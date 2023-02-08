@@ -1,0 +1,18 @@
+{
+  "socket": true,
+  "debug": true,
+  "logCongtent": "e",
+  "wlog": true,
+  "milisec": 1000,
+  "timeout": 1440,
+  "cache": 1,
+  "publictoken": "TiXaxJ1/u6DxEoLsEqP4YzpJ2IcBQmrMQQ0PGkUkr8rLbiug4nhtKkx9yFbPyVg4tnzIf4Or2bMn43/Cyj7CtsqhO5m4nts4siYbSwrxq2vppnidhiHpceuKF+4EuhKbiJ2qEMoAYGG01AWVoUyzEQ==",
+  "wrongAcceptPass": 5,
+  "wrongAcceptIP": 5,
+  "isBlockIP": true,
+  "pathBlockIP": "/Config/BlockIP.json",
+  "apiBHBQP": "https://home.soe.vn/",
+  "tokenBHBQP": "3CAB0CC9-CE13-4948-866B-124F25352A57",
+  "keycodeBHBQP": "1012198815021989",
+  "socketUrl": "https://socket2.soe.vn/"
+}

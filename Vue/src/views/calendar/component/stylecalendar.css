@@ -1,0 +1,489 @@
+.d-lang-table {
+    height: calc(100vh - 180px);
+    overflow-y: auto;
+    background-color: #fff;
+}
+
+.inputanh {
+    border: 1px solid #ccc;
+    width: 96px;
+    height: 96px;
+    cursor: pointer;
+    padding: 1px;
+}
+
+.ipnone {
+    display: none;
+}
+
+.inputanh img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.format-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.format-grid-center {
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.style-day {
+    line-height: 1.8rem;
+}
+
+.style-day.false {
+    color: #2196f3 !important;
+}
+
+.style-day.true {
+    color: red !important;
+}
+
+.row {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    display: grid;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.form-group>label {
+    margin-bottom: 0.5rem;
+}
+
+.ip36 {
+    width: 100%;
+}
+
+.p-ulchip {
+    margin: 0;
+    margin-top: 0.5rem;
+    padding: 0;
+    list-style: none;
+}
+
+.p-lichip {
+    float: left;
+}
+
+.p-multiselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.is_close {
+    background-color: #2196f3;
+}
+
+.type0 {
+    background-color: #ff8b4e;
+}
+
+.type1 {
+    background-color: #33c9dc;
+}
+
+.description {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.group-sign {
+    text-align: center;
+    position: relative;
+}
+
+.is-sign {
+    position: absolute;
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #fff;
+    right: 0;
+    bottom: 0;
+}
+
+.sign-date {
+    display: block;
+    clear: both;
+    padding: 5px;
+    margin: 0.5em 0;
+    background: #eee;
+    border-radius: 40px;
+    position: absolute;
+    top: 54px;
+    width: 100%;
+    z-index: 1;
+    text-align: center;
+    font-size: 11px;
+}
+
+.signuser-image,
+.log-image {
+    max-width: 120px;
+    min-width: 120px;
+    position: relative;
+}
+
+.signuser-detail,
+.log-detail {
+    position: relative;
+    flex-grow: 1;
+    min-height: 80px;
+}
+
+.signuser-detail>div,
+.log-detail>div {
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 10px 15px;
+    margin: 0 10px 10px 10px;
+}
+
+.signuser-detail::before {
+    left: -60px;
+    content: "";
+    width: 0;
+    height: 100%;
+    border-left: 1px solid #ccc;
+    position: absolute;
+}
+
+.signuser-last.signuser-detail::before {
+    display: none !important;
+}
+
+.signuser-last.signuser-detail {
+    min-height: 60px !important;
+}
+
+.status-signtrue .sign-date {
+    background-color: #33c9dc;
+    color: #fff;
+}
+
+.status-signtrue .signuser-detail {
+    color: #33c9dc;
+}
+
+.status-signfalse .signuser-image .text-avatar {
+    -webkit-filter: grayscale(80%);
+    filter: grayscale(80%);
+}
+
+.is-sign2 .sign-date {
+    background-color: #6dd230 !important;
+    color: #fff !important;
+}
+
+.is-sign2 .signuser-detail {
+    color: #6dd230 !important;
+}
+
+.is-sign1 .sign-date {
+    background-color: #ff8b4e !important;
+    color: #fff !important;
+}
+
+.is-sign1 .signuser-detail {
+    color: #ff8b4e !important;
+}
+
+.is-sign3 .sign-date {
+    background-color: #ff0000 !important;
+    color: #fff !important;
+}
+
+.is-sign3 .signuser-detail {
+    color: #ff0000 !important;
+}
+
+.eyeactive {
+    background-color: #2196f3 !important;
+}
+
+.eyeactive * {
+    color: #fff !important;
+}
+
+.hover:hover {
+    cursor: pointer;
+    color: #2196F3 !important;
+}
+
+.box-detail {
+    background-color: #fff;
+    height: 100%;
+}
+
+.list-style-none {
+    list-style: none !important;
+    margin: 0;
+    padding: 0;
+}
+
+.mL-15 {
+    margin-left: 15px;
+}
+
+.scroll-outer {
+    visibility: hidden;
+}
+
+.scroll-inner,
+.scroll-outer:hover,
+.scroll-outer:focus {
+    visibility: visible;
+}
+
+.d-grid {
+    display: grid;
+}
+
+.f-left {
+    float: left;
+}
+
+.p-button-hover-info:hover {
+    background-color: aliceblue !important;
+    border: 1px solid aliceblue !important;
+    color: #2196f3 !important;
+    transition: background-color 0s, color 0s, border-color 0s, box-shadow 0s !important;
+}
+
+.p-button-hover-warning:hover {
+    background-color: rgba(211, 47, 47, .04) !important;
+    border: 1px solid rgba(211, 47, 47, .04) !important;
+    color: red !important;
+    transition: background-color 0s, color 0s, border-color 0s, box-shadow 0s !important;
+}
+
+
+/* Message */
+
+.scroll-width-thin {
+    scrollbar-width: thin;
+}
+
+div[contentEditable="true"]:empty:not(:focus):before {
+    content: attr(data-text);
+    color: #aaa;
+}
+
+.mes-box {
+    position: relative;
+    display: flex;
+    background-color: #f8f8f8;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+}
+
+.mes-content {
+    flex: 1;
+    width: 100%;
+    height: 75px !important;
+    overflow-y: auto !important;
+    background-color: #f8f8f8;
+    overflow: auto;
+    padding: 10px 10px 10px 10px;
+    border: none;
+}
+
+.mes-function {
+    width: max-content;
+}
+
+.mes-function .list-item-function {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+
+.mes-function .list-item-function .item-function {
+    float: left;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    vertical-align: center;
+    text-align: center;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.mes-function .list-item-function .item-function:hover {
+    background-color: aliceblue !important;
+    color: #2196f3 !important;
+}
+
+.mes-function .list-item-function .item-function * {
+    font-size: 20px !important;
+}
+
+.mes-file {
+    background-color: #fff;
+}
+
+.mes-file .item-file {
+    display: inline-block!important;
+    width: 160px;
+    text-align: center;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    padding: 20px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.mes-file .item-file:hover {
+    background-color: aliceblue !important;
+}
+
+.mes-file .item-file .item-file-content {
+    position: relative;
+}
+
+.mes-file .item-file .item-file-content b {
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    font-weight: 500;
+    margin: 5px 0;
+    white-space: nowrap;
+}
+
+.trash:hover {
+    cursor: pointer;
+    color: red !important;
+}
+
+.mes-reply {
+    padding: 10px;
+    background-color: antiquewhite;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+.box-comment {
+    padding: 1rem;
+}
+
+.item-comment {
+    margin-bottom: 5px;
+    display: flex;
+}
+
+.item-comment-content {
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.item-comment-content.isMe {
+    background-color: rgb(219, 241, 255) !important;
+}
+
+.justify-content-start {
+    justify-content: start;
+}
+
+.justify-content-end {
+    justify-content: end;
+}
+
+.item-comment-function {
+    cursor: pointer;
+}
+
+.item-comment-function:hover {
+    color: rgb(33, 150, 243);
+}
+
+.icon-comment-function {
+    background: transparent;
+    border: none;
+    color: #000;
+    margin-left: 10px;
+    padding: 0 !important;
+}
+
+.icon-comment-function:hover {
+    background-color: transparent !important;
+    color: rgb(33, 150, 243);
+}
+
+.item-function-info:hover {
+    background-color: aliceblue !important;
+    cursor: pointer;
+}
+
+.item-function-warning:hover {
+    background-color: rgba(211, 47, 47, .04) !important;
+    cursor: pointer;
+}
+
+.item-comment-file {
+    background-color: #fff;
+    float: left !important;
+    width: 120px;
+    text-align: center;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    margin: 5px;
+    margin-left: 0;
+}
+
+.item-comment-file b {
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    font-weight: 500;
+    margin: 5px 0;
+    white-space: nowrap;
+}
+
+.item-week {
+    width: 100px !important;
+    padding: 10px 0;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: inset 0 0 2px rgb(0 0 0 / 30%);
+}
+
+.item-week.pass {
+    background-color: #eee;
+    color: #000;
+}
+
+.item-week.current {
+    background-color: #6fd234;
+    color: #fff;
+}
+
+.item-week:hover {
+    cursor: pointer;
+    background-color: #2196F3;
+    color: #fff;
+    box-shadow: inset 0 0 2px #2196F3 !important;
+}

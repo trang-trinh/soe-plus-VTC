@@ -1,0 +1,232 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Validation;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http;
+using API.Helper;
+using API.Models;
+using Helper;
+using HtmlAgilityPack;
+using Newtonsoft.Json;
+
+namespace API.Controllers.Videos
+{
+    [Authorize(Roles = "login")]
+    public class shows_commentController : ApiController
+    {
+            public string getipaddress()
+            {
+              return  HttpContext.Current.Request.UserHostAddress;
+            }
+            [HttpPost]
+            public async Task<HttpResponseMessage> add_comment([System.Web.Mvc.Bind(Include = "user_id,organization_id,created_date,created_by,created_ip,created_token_id")] shows_comment shows_Comment)
+            {
+
+                var identity = User.Identity as ClaimsIdentity;
+                IEnumerable<Claim> claims = identity.Claims;
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+             
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+      
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+
+
+                        shows_Comment.user_id = uid;
+                    shows_Comment.organization_id = int.Parse(dvid);
+                    shows_Comment.created_date = DateTime.Now;
+                        shows_Comment.created_by = uid;
+                        shows_Comment.created_ip = ip;
+                        shows_Comment.created_token_id = tid;
+                        db.shows_comment.Add(shows_Comment);
+                        await db.SaveChangesAsync();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+
+
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "add_comment/shows_comment", ip, tid, "Lỗi khi thêm add_comment shows_comment", 0, "shows_comment");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "add_comment/shows_comment", ip, tid, "Lỗi khi thêm add_comment shows_comment", 0, "shows_comment");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+            }
+            [HttpPut]
+            public async Task<HttpResponseMessage> update_comment([System.Web.Mvc.Bind(Include = "mdified_by,modified_date")] shows_comment shows_Comment)
+            {
+
+                var identity = User.Identity as ClaimsIdentity;
+                IEnumerable<Claim> claims = identity.Claims;
+              
+                try
+                {
+                    string ip = getipaddress();
+                    string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                    string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                    string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                    string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+                    bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                    List<string> delfiles = new List<string>(); string fdtask = "";
+                    string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                    try
+                    {
+                        using (DBEntities db = new DBEntities())
+                        {
+
+                            shows_Comment.mdified_by = uid;
+                            shows_Comment.modified_date = DateTime.Now;
+
+                            db.Entry(shows_Comment).State = EntityState.Modified;
+                            await db.SaveChangesAsync();
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                        }
+                    }
+                    catch (DbEntityValidationException e)
+                    {
+                        string contents = helper.getCatchError(e, null);
+                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents, contents }), domainurl + "task_comment/Update_task_comment", ip, tid, "Lỗi khi cập nhật task_comment", 0, "task_comment");
+                        if (!helper.debug)
+                        {
+                            contents = "";
+                        }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    }
+                    catch (Exception e)
+                    {
+                        string contents = helper.ExceptionMessage(e);
+                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents, contents }), domainurl + "task_comment/Update_task_comment", ip, tid, "Lỗi khi cập nhật task_comment ", 0, "task_comment");
+                        if (!helper.debug)
+                        {
+                            contents = "";
+                        }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    }
+                }
+                catch (Exception)
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest);
+                }
+
+
+
+            }
+
+
+
+            [HttpDelete]
+            public async Task<HttpResponseMessage> delete_comment([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
+            {
+                var identity = User.Identity as ClaimsIdentity;
+                IEnumerable<Claim> claims = identity.Claims;
+             
+                try
+                {
+                    string ip = getipaddress();
+                    string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                    string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                    string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                    string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+                bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                    string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                    try
+                    {
+                        using (DBEntities db = new DBEntities())
+                        {
+                            var das = await db.shows_comment.Where(a => id.Contains(a.comment_id)).ToListAsync();
+
+                            if (das != null)
+                            {
+                                List<shows_comment> del = new List<shows_comment>();
+                                foreach (var da in das)
+                                {
+                                    if (da.created_by == uid || (ad && (da.organization_id == int.Parse(dvid)|| da.organization_id == null)) || super)
+                                    {
+                                        del.Add(da);
+                                    }
+
+                                    if (del.Count == 0)
+                                    {
+                                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                                    }
+                                    db.shows_comment.RemoveRange(del);
+
+                                }
+
+
+
+
+                            }
+                            await db.SaveChangesAsync();
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                        }
+                    }
+                    catch (DbEntityValidationException e)
+                    {
+                        string contents = helper.getCatchError(e, null);
+                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Commentbug/Delete_commentbug", ip, tid, "Lỗi khi xoá Comment Bug", 0, "Commentbug");
+                        if (!helper.debug)
+                        {
+                            contents = "";
+                        }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    }
+                    catch (Exception e)
+                    {
+                        string contents = helper.ExceptionMessage(e);
+                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Commentbug/Delete_commentbug", ip, tid, "Lỗi khi xoá Comment Bug", 0, "Commentbug");
+                        if (!helper.debug)
+                        {
+                            contents = "";
+                        }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    }
+
+                }
+                catch (Exception)
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest);
+                }
+            }
+
+   
+}
+}

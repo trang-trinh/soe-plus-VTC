@@ -1,0 +1,177 @@
+﻿@model IEnumerable<API.Models.news_main>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.is_comment)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.news_type)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.is_hot)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.title)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.image)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.des)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.contents)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.key_words)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.start_date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.end_date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.created_by)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.created_date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.modified_by)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.modified_date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.created_ip)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.modified_ip)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.is_visitor)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.status)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.is_order)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.approved_by)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.approved_date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.approved_ip)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.is_notify)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.related_id)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.news_category.category_name)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.is_comment)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.news_type)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.is_hot)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.title)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.image)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.des)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.contents)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.key_words)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.start_date)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.end_date)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.created_by)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.created_date)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.modified_by)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.modified_date)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.created_ip)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.modified_ip)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.is_visitor)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.status)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.is_order)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.approved_by)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.approved_date)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.approved_ip)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.is_notify)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.related_id)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.news_category.category_name)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.news_id }) |
+            @Html.ActionLink("Details", "Details", new { id=item.news_id }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.news_id })
+        </td>
+    </tr>
+}
+
+</table>

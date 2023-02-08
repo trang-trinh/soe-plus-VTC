@@ -1,0 +1,125 @@
+.color-filter{
+    color:#0d89ec !important;
+  }
+  .toolbar-filter {
+    border: unset;
+    outline: unset;
+    background-color: #fff;
+    padding-bottom: 0px;
+  }
+  .vue-simple-context-menu {
+    min-width: 150px !important;
+  }
+  
+  .p-card {
+    box-shadow: none !important;
+    background: #fff;
+    height: 100%;
+  }
+  
+  .text-3line {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    column-gap: initial;
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
+  
+  .p-card:hover {
+    background-color: #f0f8ff !important;
+  }
+  
+  .p-card .p-card-title {
+    margin-bottom: 0 !important;
+  }
+  
+  .active-click > .p-card {
+    background-color: #cce9ff !important;
+  }
+  .item-clicked{
+    background-color: #cce9ff !important;
+  }
+  .list-group {
+    list-style: none;
+    padding-left: 0px;
+    margin-bottom: 0px;
+    cursor: pointer;
+    display: flex;
+  }
+  
+  .ul-ktra .list-group-item.active_li {
+    border-bottom: none;
+    background-color: rgb(255, 255, 255);
+    border-top: 4px solid rgb(0, 168, 255);
+    border-left: 1px solid rgb(204, 204, 204);
+    border-right: 1px solid rgb(204, 204, 204);
+  }
+  
+  .ul-ktra .list-group-item {
+    width: 100%;
+    border-right: none;
+    border-left: none;
+    border-image: initial;
+    text-align: center;
+    font-weight: bold;
+    background-color: rgb(246, 248, 250);
+    border-bottom: 1px solid rgb(204, 204, 204);
+    border-top: 4px solid transparent;
+    border-radius: 0px;
+    margin-bottom: 0px;
+    color: rgb(108, 122, 134);
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    padding: 0.5rem 1.25rem;
+    cursor: pointer;
+    display: block;
+    height: 40px !important;
+    padding: 10px;
+  }
+  
+  h3 {
+    font-size: 1.17em !important;
+  }
+  
+  .bg-success-folder {
+    background-color: #28a745 !important;
+  }
+  
+  .bg-info-folder {
+    background-color: #ffc107 !important;
+    color: #fff;
+  }
+  
+  .bg-warning-folder {
+    background-color: #dc3545 !important;
+    color: #fff;
+  }
+  
+  .p-avatar {
+    font-size: 1rem !important;
+  }
+  .p-splitter {
+    background: none !important;
+  }
+  .btn_sort{
+        list-style: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 30px;
+      border: 1px solid #607D8B;
+      border-radius: 4px;
+      margin: 0 5px 0 0;
+      background-color: #2196f3!important;
+      border: 1px solid #5ca7e3!important;
+      color: #fff;
+  }
+  .no-permission{
+    font-family: Montserrat;
+      font-size: 20px;
+      color: red;
+      font-weight: 600;
+  }

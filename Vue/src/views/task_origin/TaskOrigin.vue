@@ -1,0 +1,4168 @@
+<script setup>
+import { ref, inject, onMounted, watch, onBeforeUnmount } from "vue";
+import { useToast } from "vue-toastification";
+import { useVuelidate } from "@vuelidate/core";
+import { required } from "@vuelidate/validators";
+import DetailedWork from "../../components/task_origin/DetailedWork.vue";
+import moment from "moment";
+import { encr } from "../../util/function.js";
+import treeuser from "../../components/user/treeuser.vue";
+const cryoptojs = inject("cryptojs");
+const basedomainURL = fileURL;
+
+const checkDelList = ref(false);
+const toast = useToast();
+const swal = inject("$swal");
+const store = inject("store");
+const axios = inject("axios"); // inject axios
+const menuSortButs = ref();
+const menuListTypeButs = ref();
+const menuFilterButs = ref();
+const selectedTasks = ref();
+const listTask = ref();
+const submitted = ref(false);
+const isAdd = ref(false);
+const displayTask = ref(false);
+const issaveTask = ref(false);
+const headerAddTask = ref();
+const listDropdownUser = ref([]);
+const listDropdownorganization = ref([]);
+const listOrganization = ref([]);
+const listDropdownProject = ref([]);
+const listDropdownTaskGroup = ref([]);
+const first = ref(0);
+const sttTask = ref();
+const filterTime1 = ref();
+const filterTime2 = ref();
+const selectcapcha = ref({});
+const TaskMembers = ref([]);
+let files = [];
+const config = {
+  headers: { Authorization: `Bearer ${store.getters.token}` },
+};
+const addLog = (log) => {
+  axios.post(baseURL + "/api/Proc/AddLog", log, config);
+};
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
+const opition = ref({
+  IsNext: true,
+  sort: "modified_date",
+  ob: "DESC",
+  PageNo: 0,
+  PageSize: 20,
+  search: "",
+  Filteruser_id: null,
+  user_id: store.getters.user_id,
+  IsType: -1,
+  SearchTextUser: "",
+  filter_type: 0,
+  sdate: null,
+  edate: null,
+  loctitle: "Lọc",
+  type_view: 2,
+  filter_date: null,
+});
+const listDropdownStatus = ref([
+  {
+    value: 0,
+    text: "Chưa bắt đầu",
+    bg_color: "#bbbbbb",
+    text_color: "#FFFFFF",
+  },
+  { value: 1, text: "Đang làm", bg_color: "#2196f3", text_color: "#FFFFFF" },
+  { value: 2, text: "Tạm ngừng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 3, text: "Đã đóng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 4, text: "HT đúng hạn", bg_color: "#04D215", text_color: "#FFFFFF" },
+  {
+    value: 5,
+    text: "Chờ đánh giá",
+    bg_color: "#33c9dc",
+    text_color: "#FFFFFF",
+  },
+  { value: 6, text: "Bị trả lại", bg_color: "#ffa500", text_color: "#FFFFFF" },
+  { value: 7, text: "HT sau hạn", bg_color: "#ff8b4e", text_color: "#FFFFFF" },
+  { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
+  { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
+]);
+// const listDropdownweight = ref([
+//   { value: 0, text: "Rất dễ" },
+//   { value: 1, text: "Dễ" },
+//   { value: 2, text: "Bình thường" },
+//   { value: 3, text: "Hơi khó" },
+//   { value: 4, text: "Khó" },
+//   { value: 5, text: "Rất khó" },
+//   { value: 6, text: "Không khả thi" },
+// ]);
+const listDropdownweight = ref();
+const rules = {
+  task_name: {
+    required,
+    $errors: [
+      {
+        $property: "task_name",
+        $validator: "required",
+        $message: "Tên công việc không được để trống!",
+      },
+    ],
+  },
+  assign_user_id: {
+    required,
+    $errors: [
+      {
+        $property: "assign_user_id",
+        $validator: "required",
+        $message: "Người giao việc không được để trống!",
+      },
+    ],
+  },
+  work_user_ids: {
+    required,
+    $errors: [
+      {
+        $property: "work_user_ids",
+        $validator: "required",
+        $message: "Người thực hiện không được để trống!",
+      },
+    ],
+  },
+  end_date: {
+    required,
+    $errors: [
+      {
+        $property: "end_date",
+        $validator: "required",
+        $message: "Ngày kết thúc không được để trống!",
+      },
+    ],
+  },
+};
+const Task = ref({
+  task_name: "",
+  assign_user_id: [],
+  work_user_ids: [],
+  is_prioritize: false,
+  is_deadline: true,
+  is_review: true,
+  is_security: false,
+  weight: null,
+  start_date: null,
+  end_date: null,
+  description: null,
+  status: 0,
+  target: null,
+  request: null,
+
+  works_user_ids: [],
+  follow_user_ids: [],
+});
+const v$ = useVuelidate(rules, Task);
+const itemSortButs = ref([
+  {
+    label: "Ngày cập nhật mới đến cũ",
+    sort: "modified_date",
+    ob: "DESC",
+    active: true,
+    command: (event) => {
+      ChangeSortTask("modified_date", "DESC");
+    },
+  },
+  {
+    label: "Ngày cập nhật cũ đến mới",
+    sort: "modified_date",
+    ob: "ASC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("modified_date", "ASC");
+    },
+  },
+  {
+    label: "Số thứ tự thấp đến cao",
+    sort: "is_order",
+    ob: "ASC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("is_order", "ASC");
+    },
+  },
+  {
+    label: "Số thứ tự cao đến thấp",
+    sort: "is_order",
+    ob: "DESC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("is_order", "DESC");
+    },
+  },
+  {
+    label: "Ngày tạo mới đến cũ",
+    sort: "created_date",
+    ob: "DESC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("created_date", "DESC");
+    },
+  },
+  {
+    label: "Ngày tạo cũ đến mới",
+    sort: "created_date",
+    ob: "ASC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("created_date", "ASC");
+    },
+  },
+  {
+    label: "Tên công việc A-Z",
+    sort: "task_name",
+    ob: "ASC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("task_name", "ASC");
+    },
+  },
+  {
+    label: "Tên công việc Z-A",
+    sort: "task_name",
+    ob: "DESC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("task_name", "DESC");
+    },
+  },
+  {
+    label: "Số ngày quá hạn",
+  },
+]);
+const itemListTypeButs = ref([
+  {
+    label: "LIST",
+    active: false,
+    icon: "pi pi-list",
+    type: 1,
+    command: (event) => {
+      ChangeView(1);
+    },
+  },
+  {
+    label: "TREE",
+    active: true,
+    icon: "pi pi-list",
+    type: 2,
+    command: (event) => {
+      ChangeView(2);
+    },
+  },
+  {
+    label: "GRID",
+    active: false,
+    icon: "pi pi-table",
+    type: 3,
+    command: (event) => {
+      ChangeView(3);
+    },
+  },
+  {
+      label: "GANTT",
+      active: false,
+      icon: "pi pi-calendar-plus",
+      type: 4,
+      command: (event) => {
+          ChangeView(4);
+      },
+  },
+  // {
+  //     label: "USER",
+  //     active: false,
+  //     icon: "pi pi-user-plus",
+  //     type: 5,
+  //     command: (event) => {
+  //         ChangeView(5);
+  //     },
+  // },
+]);
+const ChangeView = (data) => {
+  if (data.type == 3) {
+    opition.value.PageSize = 10000;
+  } else {
+    opition.value.PageSize = 20;
+  }
+  loadData(true, data.type);
+  itemListTypeButs.value.forEach((t) => {
+    if (data.type != t.type) {
+      t.active = false;
+    } else {
+      t.active = true;
+    }
+  });
+  menuListTypeButs.value.toggle();
+};
+const itemFilterButs = ref([
+  {
+    label: "Theo ngày nhận",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 5,
+    filter_date: new Date(),
+  },
+  {
+    label: "Ngày hoàn thành",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 6,
+    filter_date: new Date(),
+  },
+  {
+    label: "Trong tuần",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 1,
+  },
+  {
+    label: "Trong tháng",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 2,
+  },
+  {
+    label: "Trong năm",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 3,
+  },
+  {
+    label: "Theo thời gian",
+    icon: "pi pi-calendar-times",
+    active: false,
+    istype: 4,
+    groups: [
+      {
+        label: "Ngày bắt đầu",
+        icon: "pi pi-calendar",
+        children_id: true,
+        is_change: 1,
+      },
+      {
+        label: "Ngày kết thúc",
+        icon: "pi pi-calendar",
+        children_id: true,
+        is_change: 2,
+      },
+    ],
+  },
+]);
+const emitter = inject("emitter");
+emitter.on("emitData", (obj) => {
+  switch (obj.type) {
+    case "listDropdownUserAssign":
+      listDropdownUserAssign.value = obj.data;
+      break;
+  }
+});
+const toggleSort = (event) => {
+  menuSortButs.value.toggle(event);
+};
+const toggleFilter = (event) => {
+  menuFilterButs.value.toggle(event);
+};
+const toggleListType = (event) => {
+  menuListTypeButs.value.toggle(event);
+};
+const ChangeSortTask = (sort, ob) => {
+  opition.value.sort = sort;
+  opition.value.ob = ob;
+  itemSortButs.value.forEach((i) => {
+    if (i.sort == sort && i.ob == ob) {
+      i.active = true;
+    } else {
+      i.active = false;
+    }
+  });
+  menuSortButs.value.toggle();
+  loadData(true, opition.value.type_view);
+};
+const ChangeTimeFilter = (type, value) => {
+  opition.value.filter_type = 4;
+  itemFilterButs.value.forEach((i) => {
+    if (i.istype == 4) {
+      i.active = true;
+    } else {
+      i.active = false;
+    }
+  });
+  if (type == 1) {
+    filterTime1.value = moment(new Date(value)).format("DD/MM/YYYY");
+    opition.value.sdate = value;
+  } else {
+    filterTime2.value = moment(new Date(value)).format("DD/MM/YYYY");
+    opition.value.edate = value;
+  }
+};
+const removeTime = (type) => {
+  if (type == 1) {
+    filterTime1.value = null;
+    opition.value.sdate = null;
+  } else {
+    filterTime2.value = null;
+    opition.value.edate = null;
+  }
+  if (opition.value.sdate) {
+    if (opition.value.edate) {
+      opition.value.loctitle =
+        "Từ " +
+        moment(opition.value.sdate).format("DD/MM/YYYY") +
+        " - " +
+        moment(opition.value.edate).format("DD/MM/YYYY");
+    } else {
+      opition.value.loctitle =
+        "Từ ngày " + moment(opition.value.sdate).format("DD/MM/YYYY");
+    }
+  } else {
+    if (opition.value.edate) {
+      opition.value.loctitle =
+        "Đến ngày " + moment(opition.value.edate).format("DD/MM/YYYY");
+    } else {
+      opition.value.loctitle = "Lọc";
+    }
+  }
+  if (filterTime1.value == null && filterTime2.value == null) {
+    itemFilterButs.value.forEach((i) => {
+      if (i.istype == 4) {
+        i.active = false;
+      }
+    });
+  }
+};
+const ChangeFilter = (type) => {
+  opition.value.filter_type = type;
+  itemFilterButs.value.forEach((i) => {
+    if (i.istype == type) {
+      i.active = true;
+    } else {
+      i.active = false;
+    }
+  });
+  var date = new Date();
+  switch (type) {
+    case -1: //tất cả
+      opition.value.sdate = null;
+      filterTime1.value = null;
+      opition.value.edate = null;
+      filterTime2.value = null;
+      opition.value.loctitle = "Lọc";
+      break;
+    case 1: //Trong tuần
+      opition.value.sdate = moment().startOf("isoWeek").toDate();
+      opition.value.edate = moment().endOf("isoWeek").toDate();
+      opition.value.loctitle = "Trong tuần";
+      break;
+    case 5: //theo ngày nhận
+      opition.value.sdate = null;
+      opition.value.edate = null;
+      itemFilterButs.value
+        .filter((x) => x.istype == 5)
+        .forEach((t) => {
+          opition.value.filter_date = t.filter_date;
+        });
+      opition.value.loctitle = "Theo ngày nhận";
+      break;
+    case 6: //theo ngày hoàn thành
+      opition.value.sdate = null;
+      opition.value.edate = null;
+      itemFilterButs.value
+        .filter((x) => x.istype == 6)
+        .forEach((t) => {
+          opition.value.filter_date = t.filter_date;
+        });
+      opition.value.loctitle = "Theo ngày hoàn thành";
+      break;
+    case 2: //Trong tháng
+      opition.value.sdate = new Date(date.getFullYear(), date.getMonth(), 1);
+      opition.value.edate = new Date(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        0,
+      );
+      opition.value.loctitle = "Trong tháng";
+      break;
+    case 3: //Trong năm
+      opition.value.sdate = new Date(date.getFullYear(), 1, 1);
+      opition.value.edate = new Date(date.getFullYear(), 12, 31);
+      opition.value.loctitle = "Trong năm";
+      break;
+    default:
+      if (opition.value.sdate) {
+        if (opition.value.edate) {
+          opition.value.loctitle =
+            "Từ " +
+            moment(opition.value.sdate).format("DD/MM/YYYY") +
+            " - " +
+            moment(opition.value.edate).format("DD/MM/YYYY");
+        } else {
+          opition.value.loctitle =
+            "Từ ngày " + moment(opition.value.sdate).format("DD/MM/YYYY");
+        }
+      } else {
+        if (opition.value.edate) {
+          opition.value.loctitle =
+            "Đến ngày " + moment(opition.value.edate).format("DD/MM/YYYY");
+        }
+      }
+      break;
+  }
+  filterTime1.value = opition.value.sdate
+    ? moment(new Date(opition.value.sdate)).format("DD/MM/YYYY")
+    : null;
+  filterTime2.value = opition.value.edate
+    ? moment(new Date(opition.value.edate)).format("DD/MM/YYYY")
+    : null;
+  menuFilterButs.value.toggle();
+  loadData(true, opition.value.type_view);
+};
+const Del_ChangeFilter = () => {
+  opition.value.filter_type = 0;
+  filterTime1.value = null;
+  filterTime2.value = null;
+  opition.value.sdate = null;
+  opition.value.edate = null;
+  opition.value.filter_date = null;
+  opition.value.loctitle = "Lọc";
+  itemFilterButs.value.forEach((i) => {
+    i.active = false;
+  });
+  menuFilterButs.value.toggle();
+  loadData(true, opition.value.type_view);
+};
+watch(selectedTasks, () => {
+  if (selectedTasks.value.length > 0) {
+    checkDelList.value = true;
+  } else {
+    checkDelList.value = false;
+  }
+});
+const closeDialogTask = () => {
+  Task.value = {
+    task_name: "",
+    assign_user_id: [],
+    is_prioritize: false,
+    is_deadline: true,
+    is_review: true,
+    is_security: false,
+    weight: null,
+    start_date: null,
+    end_date: null,
+    description: null,
+    status: 0,
+    target: null,
+    request: null,
+
+    works_user_ids: [],
+    work_user_ids: [],
+    follow_user_ids: [],
+  };
+  files = [];
+  displayTask.value = false;
+  // loadData(true);
+};
+const addTask = (str) => {
+  submitted.value = false;
+  Task.value = {
+    task_name: "",
+    assign_user_id: [],
+    is_prioritize: false,
+    is_deadline: true,
+    is_review: true,
+    is_security: false,
+    weight: null,
+    start_date: new Date(),
+    end_date: null,
+    description: null,
+    status: 0,
+    target: null,
+    request: null,
+    works_user_ids: [],
+    work_user_ids: [],
+    follow_user_ids: [],
+    is_order: sttTask.value,
+    files: [],
+  };
+  selectcapcha.value = [];
+  selectcapcha.value[-1] = true;
+  if (store.state.user.is_super) {
+    Task.value.organization_id = 0;
+  } else {
+    Task.value.organization_id = store.state.user.organization_id;
+  }
+  Task.value.assign_user_id.push(store.state.user.user_id);
+  Task.value.work_user_ids.push(store.state.user.user_id);
+  isAdd.value = true;
+  issaveTask.value = false;
+  headerAddTask.value = str;
+  displayTask.value = true;
+};
+const editTask = (task_data) => {
+  submitted.value = false;
+  selectcapcha.value = [];
+  isAdd.value = false;
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_origin_get_edit",
+            par: [{ par: "task_id", va: task_data.task_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        data[0].forEach((element, i) => {
+          element.Thanhviens = element.Thanhviens
+            ? JSON.parse(element.Thanhviens)
+            : [];
+          element.files = element.files ? JSON.parse(element.files) : [];
+          element.files = element.files ? element.files : [];
+        });
+      }
+      Task.value = data[0][0];
+      selectcapcha.value[Task.value.department_id || -1] = true;
+      Task.value.start_date = Task.value.start_date
+        ? new Date(Task.value.start_date)
+        : null;
+      Task.value.end_date = Task.value.end_date
+        ? new Date(Task.value.end_date)
+        : null;
+      Task.value.is_department = Task.value.department_id ? true : false;
+      Task.value.assign_user_id = [];
+      Task.value.work_user_ids = [];
+      Task.value.works_user_ids = [];
+      Task.value.follow_user_ids = [];
+      if (Task.value.Thanhviens.length > 0) {
+        Task.value.Thanhviens.forEach((t) => {
+          if (t.is_type == "0") {
+            Task.value.assign_user_id.push(t.user_id);
+          } else if (t.is_type == "1") {
+            Task.value.work_user_ids.push(t.user_id);
+          } else if (t.is_type == "2") {
+            Task.value.works_user_ids.push(t.user_id);
+          } else if (t.is_type == "3") {
+            Task.value.follow_user_ids.push(t.user_id);
+          }
+        });
+      }
+      Task.value.is_order = Task.value.STT;
+      headerAddTask.value = "Sửa công việc";
+      issaveTask.value = false;
+      displayTask.value = true;
+      if (store.state.user.is_super) {
+        Task.value.organization_id = 0;
+      } else {
+        Task.value.organization_id = store.state.user.organization_id;
+      }
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "LogsView.vue",
+        log_content: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const DelTask = (dataTask) => {
+  if (dataTask.childtasks > 0) {
+    swal.fire({
+      title: "Thông báo",
+      html: "Tồn tại công việc con bạn không thể xóa!",
+      icon: "info",
+      confirmButtonText: "OK",
+    });
+  } else {
+    swal
+      .fire({
+        title: "Thông báo",
+        text: "Bạn có muốn xoá công việc này không!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      })
+      .then((result) => {
+        if (result.isConfirmed) {
+          swal.fire({
+            width: 110,
+            didOpen: () => {
+              swal.showLoading();
+            },
+          });
+          var listId = [];
+          if (!dataTask) {
+            selectedTasks.value.forEach(function (pg) {
+              listId.push(pg.task_id);
+            });
+          }
+          axios
+            .delete(baseURL + "/api/task_origin/Delete_task_origin", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: dataTask != null ? [dataTask.task_id] : listId,
+            })
+            .then((response) => {
+              swal.close();
+              if (response.data.err != "1") {
+                swal.close();
+                toast.success("Xoá công việc thành công!");
+                loadData(true, opition.value.type_view);
+              } else {
+                swal.fire({
+                  title: "Thông báo!",
+                  html: response.data.ms,
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+              }
+            })
+            .catch((error) => {
+              swal.close();
+              if (error.status === 401) {
+                swal.fire({
+                  title: "Thông báo!",
+                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+              }
+            });
+        }
+      });
+  }
+};
+const deleteFile = (datafile) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá file này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+        axios
+          .delete(baseURL + "/api/task_origin/Delete_file", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: [datafile.file_id],
+          })
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá file thành công!");
+              var idx = Task.value.files.findIndex(
+                (x) => x.file_id == datafile.file_id,
+              );
+              if (idx != -1) {
+                Task.value.files.splice(idx, 1);
+              }
+            } else {
+              swal.fire({
+                title: "Thông báo!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                title: "Thông báo!",
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+};
+const interval = ref(null);
+const startProgress = (datalists) => {
+  interval.value = setInterval(() => {
+    let newValue = Math.floor(Math.random() * 10) + 1;
+    if (newValue < datalists) {
+      newValue = datalists;
+    }
+    datalists = newValue;
+  }, 5000);
+};
+const endProgress = () => {
+  clearInterval(interval.value);
+  interval.value = null;
+};
+const vla = ref();
+
+onBeforeUnmount(() => {
+  endProgress();
+});
+
+const ChangeData = (type) => {
+  opition.value.IsType = type;
+  opition.value.PageNo = 0;
+  if (opition.value.type_view == 3 || opition.value.type_view == 2) {
+    opition.value.PageSize = 10000;
+  } else {
+    opition.value.PageSize = 20;
+  }
+  first.value = 0;
+  loadData(true, opition.value.type_view);
+};
+const RenderData = (data) => {
+  listTask.value = [];
+  // opition.value.totalRecords = null;
+  let arrChils = [];
+  data
+    .filter(
+      (x) =>
+        x.parent_id == null ||
+        (x.parent_id != null &&
+          data.filter((y) => y.task_id == x.parent_id).length == 0),
+    )
+    .forEach((m, i) => {
+      m.STT2 = opition.value.PageNo * opition.value.PageSize + i + 1;
+      let om = { key: m.task_id, data: m };
+      const rechildren = (mm, task_id) => {
+        let dts = data.filter((x) => x.parent_id == task_id);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em, j) => {
+            em.STT2 = mm.data.STT2 + "." + (j + 1);
+            let om1 = { key: em.task_id, data: em };
+            om1.data.is_order = j + 1;
+            rechildren(om1, em.task_id);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m.task_id);
+
+      arrChils.push(om);
+    });
+  listTask.value = arrChils;
+};
+
+const groupBy = (list, props) => {
+  return list.reduce((a, b) => {
+    (a[b[props]] = a[b[props]] || []).push(b);
+    return a;
+  }, {});
+};
+
+const loadData = (rf, type) => {
+  if (type == 3 || type == 2) {
+    opition.value.PageSize = 10000;
+  } else {
+    opition.value.PageSize = 20;
+  }
+  if (rf) {
+    opition.value.loading = true;
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_origin_list",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "pageno", va: opition.value.PageNo },
+              { par: "pagesize", va: opition.value.PageSize },
+              { par: "search", va: opition.value.search },
+              { par: "sort", va: opition.value.sort },
+              { par: "ob", va: opition.value.ob },
+              { par: "IsType", va: opition.value.IsType },
+              { par: "loc", va: opition.value.filter_type },
+              { par: "sdate", va: opition.value.sdate },
+              { par: "edate", va: opition.value.edate },
+              { par: "filter_date", va: opition.value.filter_date },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      let data1 = JSON.parse(response.data.data)[0];
+      if (data1.length > 0) {
+        data1.forEach((element, i) => {
+          element.progress = element.progress == null ? 0 : element.progress;
+          element.update_date = element.modified_date
+            ? element.modified_date
+            : element.created_date;
+          element.status_name =
+            element.status != null
+              ? listDropdownStatus.value.filter(
+                  (x) => x.value == element.status,
+                )[0].text
+              : "";
+          element.status_name =
+            element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
+          element.status_bg_color =
+            element.status != null
+              ? listDropdownStatus.value.filter(
+                  (x) => x.value == element.status,
+                )[0].bg_color
+              : "";
+          element.status_bg_color =
+            element.count_extend > 0 ? "#F18636" : element.status_bg_color;
+          element.status_text_color =
+            element.status != null
+              ? listDropdownStatus.value.filter(
+                  (x) => x.value == element.status,
+                )[0].text_color
+              : "";
+          //thời gian xử lý
+          if (element.end_date != null) {
+            if (element.thoigianquahan < 0) {
+              if (element.thoigianxuly > 0) {
+                element.title_time = element.thoigianxuly + " ngày";
+                element.time_bg = element.status_bg_color;
+                element.time_color = "color: #fff;";
+              }
+            } else {
+              if (element.thoigianquahan > 0) {
+                element.title_time =
+                  "Quá hạn " + element.thoigianquahan + " ngày";
+                element.time_bg = "red";
+                element.time_color = "color: #fff;";
+              }
+            }
+          } else if (element.thoigianxuly) {
+            element.title_time = element.thoigianxuly + " ngày";
+            element.time_bg = element.status_bg_color;
+            element.time_color = "color: #fff;";
+          }
+          element.Thanhviens = element.Thanhviens
+            ? JSON.parse(element.Thanhviens)
+            : [];
+          element.ThanhvienShows = [];
+          if (element.Thanhviens.length > 3) {
+            element.ThanhvienShows = element.Thanhviens.slice(0, 3);
+          } else {
+            element.ThanhvienShows = [...element.Thanhviens];
+          }
+          element.files = element.files ? JSON.parse(element.files) : [];
+          element.files = element.files ? element.files : [];
+          element.STT = opition.value.PageNo * opition.value.PageSize + i + 1;
+          startProgress(element.progress);
+        });
+      }
+      opition.value.totalRecords = data[7][0].totalRecords;
+      opition.value.totalAlls = data[1][0].total;
+      opition.value.total_toilam = data[2][0].total_toilam;
+      opition.value.total_quanly = data[3][0].total_quanly;
+      opition.value.total_theodoi = data[4][0].total_theodoi;
+      opition.value.total_toitao = data[5][0].total_toitao;
+      opition.value.total_hoanthanh = data[6][0].total_hoanthanh;
+      if (type == 1) {
+        listTask.value = data1;
+        sttTask.value = data[1][0].total + 1;
+      }
+      if (type == 2) {
+        RenderData(data1);
+      }
+      if (type == 3) {
+        var listCV = groupBy(data1, "status");
+        var arrNew = [];
+        for (let k in listCV) {
+          var CVGroup = [];
+          listCV[k].forEach(function (r) {
+            CVGroup.push(r);
+          });
+          arrNew.push({
+            status: k,
+            status_name: listDropdownStatus.value.filter((x) => x.value == k)[0]
+              .text,
+            status_bg_color: listDropdownStatus.value.filter(
+              (x) => x.value == k,
+            )[0].bg_color,
+            CVGroup: CVGroup,
+          });
+        }
+        listTask.value = arrNew;
+        sttTask.value = data[1][0].total + 1;
+      }
+      opition.value.type_view = type;
+      if (idTaskLoaded.value != "taskmain") {
+        showDetail.value = false;
+        showDetail.value = true;
+        selectedTaskID.value = idTaskLoaded.value;
+      }
+      if (rf) {
+        opition.value.loading = false;
+        swal.close();
+      }
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!" + error);
+      opition.value.loading = false;
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "LogsView.vue",
+        log_content: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
+const listUser = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_users_list_task_origin",
+            par: [
+              { par: "search", va: opition.value.SearchTextUser },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "role_id", va: null },
+              {
+                par: "organization_id",
+                va: store.getters.user.organization_id,
+              },
+              { par: "department_id", va: null },
+              { par: "position_id", va: null },
+
+              { par: "isadmin", va: null },
+              { par: "status", va: null },
+              { par: "start_date", va: null },
+              { par: "end_date", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listDropdownUser.value = data.map((x) => ({
+        name: x.full_name,
+        code: x.user_id,
+        avatar: x.avatar,
+      }));
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const renderTreeDV = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+  // .filter((x) => x.parent_id == null)
+  data.forEach((m, i) => {
+    m.IsOrder = i + 1;
+    let om = { key: m[id], data: m };
+    const rechildren = (mm, pid) => {
+      let dts = data.filter((x) => x.parent_id == pid);
+      if (dts.length > 0) {
+        if (!mm.children) mm.children = [];
+        dts.forEach((em) => {
+          let om1 = { key: em[id], data: em };
+          rechildren(om1, em[id]);
+          mm.children.push(om1);
+        });
+      }
+    };
+    rechildren(om, m[id]);
+    arrChils.push(om);
+    //
+    om = { key: m[id], data: m[id], label: m[name] };
+    const retreechildren = (mm, pid) => {
+      let dts = data.filter((x) => x.parent_id == pid);
+      if (dts.length > 0) {
+        if (!mm.children) mm.children = [];
+        dts.forEach((em) => {
+          let om1 = { key: em[id], data: em[id], label: em[name] };
+          retreechildren(om1, em[id]);
+          mm.children.push(om1);
+        });
+      }
+    };
+    retreechildren(om, m[id]);
+    arrtreeChils.push(om);
+  });
+  arrtreeChils.unshift({
+    key: -1,
+    data: -1,
+    label: "-----Chọn " + title + "----",
+  });
+  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+};
+const listtreeOrganization = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_origin_list_pb",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      let obj = renderTreeDV(
+        data.filter((x) => x.organization_type != 0),
+        "organization_id",
+        "organization_name",
+        "phòng ban",
+      );
+      listOrganization.value = data;
+      listDropdownorganization.value = obj.arrtreeChils;
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const listProjectMain = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_origin_get_list_init",
+            par: [
+              {
+                par: "user_id",
+                va: store.getters.user.user_id,
+              },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      listDropdownProject.value = data[0];
+      listDropdownTaskGroup.value = data[1];
+      listDropdownweight.value = data[2];
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const onUploadFile = (event) => {
+  files = [];
+  event.files.forEach((element) => {
+    files.push(element);
+  });
+};
+const removeFile = (event) => {
+  files = files.filter((a) => a != event.file);
+};
+const saveTask = (isFormValid) => {
+  TaskMembers.value = [];
+  submitted.value = true;
+  if (Task.value.is_deadline) {
+    if (!isFormValid) {
+      return;
+    }
+  }
+  if (!selectcapcha.value) {
+    selectcapcha.value = [];
+  }
+  Task.value.department_id = parseInt(Object.keys(selectcapcha.value)[0]);
+  let formData = new FormData();
+  for (var i = 0; i < files.length; i++) {
+    let file = files[i];
+    formData.append("url", file);
+  }
+  if (Task.value.assign_user_id.length > 0) {
+    Task.value.assign_user_id.forEach((t) => {
+      let member = {
+        project_id: null,
+        task_id: null,
+        user_id: t,
+        is_type: 0,
+        status: true,
+      };
+      member.user_id = t;
+      TaskMembers.value.push(member);
+    });
+  }
+  if (Task.value.work_user_ids.length > 0) {
+    Task.value.work_user_ids.forEach((t) => {
+      let member1 = {
+        project_id: null,
+        task_id: null,
+        user_id: t,
+        is_type: 1,
+        status: true,
+      };
+      member1.user_id = t;
+      TaskMembers.value.push(member1);
+    });
+  }
+  if (Task.value.works_user_ids.length > 0) {
+    Task.value.works_user_ids.forEach((t) => {
+      let member2 = {
+        project_id: null,
+        task_id: null,
+        user_id: t,
+        is_type: 2,
+        status: true,
+      };
+      TaskMembers.value.push(member2);
+    });
+  }
+  if (Task.value.follow_user_ids.length > 0) {
+    Task.value.follow_user_ids.forEach((t) => {
+      let member3 = {
+        project_id: null,
+        task_id: null,
+        user_id: t,
+        is_type: 3,
+        status: true,
+      };
+      TaskMembers.value.push(member3);
+    });
+  }
+  if (isAdd.value == false) {
+    if (Task.value.created_date) {
+      Task.value.created_date = new Date(Task.value.created_date);
+    }
+    if (Task.value.update_date) {
+      Task.value.update_date = new Date(Task.value.update_date);
+    }
+    if (Task.value.start_date) {
+      Task.value.start_date = new Date(Task.value.start_date);
+    }
+    if (Task.value.end_date) {
+      Task.value.end_date = new Date(Task.value.end_date);
+    }
+  }
+
+  Task.value.start_date = Task.value.start_date
+    ? new Date(Task.value.start_date)
+    : null;
+  Task.value.end_date = Task.value.end_date
+    ? new Date(Task.value.end_date)
+    : null;
+  formData.append("taskmember", JSON.stringify(TaskMembers.value));
+  formData.append("taskOrigin", JSON.stringify(Task.value));
+  if (!issaveTask.value) {
+    axios
+      .post(
+        baseURL +
+          "/api/task_origin/" +
+          (isAdd.value == true ? "Add_TaskOrigin" : "Update_TaskOrigin"),
+        formData,
+        config,
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Cập nhật công việc thành công!");
+          loadData(false, opition.value.type_view);
+          closeDialogTask();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  }
+};
+const onPage = (event) => {
+  if (event.rows != opition.value.PageSize) {
+    opition.value.PageSize = event.rows;
+  }
+  if (event.page == 0) {
+    //Trang đầu
+    opition.value.id = null;
+    opition.value.IsNext = true;
+  } else if (event.page > opition.value.PageNo + 1) {
+    //Trang cuối
+    opition.value.id = -1;
+    opition.value.IsNext = false;
+  } else if (event.page > opition.value.PageNo) {
+    //Trang sau
+
+    opition.value.id = listTask.value[listTask.value.length - 1].task_id;
+    opition.value.IsNext = true;
+  } else if (event.page < opition.value.PageNo) {
+    //Trang trước
+    opition.value.id = listTask.value[0].task_id;
+    opition.value.IsNext = false;
+  }
+  opition.value.PageNo = event.page;
+  loadData(true, opition.value.type_view);
+};
+const onRefresh = () => {
+  opition.value = {
+    IsNext: true,
+    sort: "modified_date",
+    ob: "DESC",
+    PageNo: 0,
+    PageSize: 20,
+    search: "",
+    Filteruser_id: null,
+    user_id: store.getters.user_id,
+    IsType: -1,
+    SearchTextUser: "",
+    filter_type: 0,
+    sdate: null,
+    edate: null,
+    loctitle: "Lọc",
+    type_view: opition.value.type_view,
+    filter_date: null,
+  };
+  itemSortButs.value.forEach((i) => {
+    if (i.sort == opition.value.sort && i.ob == opition.value.ob) {
+      i.active = true;
+    } else {
+      i.active = false;
+    }
+  });
+  first.value = 0;
+  filterTime1.value = null;
+  filterTime2.value = null;
+  itemFilterButs.value.forEach((i) => {
+    i.active = false;
+  });
+  loadData(true, opition.value.type_view);
+};
+const idTaskLoaded = ref(
+  window.location.href.substring(window.location.href.lastIndexOf("/") + 1),
+);
+const changeNguoiGaoViec = (event) => {
+  Task.value.assign_user_id = [];
+  Task.value.assign_user_id.push(event.value[1]);
+};
+const CheckDate = (date) => {
+  if (date < Task.value.start_date) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Ngày kết thúc phải lớn hơn ngày bắt đầu, vui lòng chọn lại!",
+      icon: "info",
+      confirmButtonText: "OK",
+    });
+    Task.value.end_date = null;
+  }
+};
+onMounted(() => {
+  loadData(true, 2);
+  listUser();
+  listtreeOrganization();
+  listProjectMain();
+  vla.value = 8;
+  startProgress();
+
+  return { vla };
+});
+
+const ChangeIsDepartment = (model) => {
+  selectcapcha.value = [];
+  Task.value.assign_user_id = [];
+  Task.value.work_user_ids = [];
+  selectcapcha.value[-1] = true;
+  if (store.state.user.is_super) {
+    Task.value.organization_id = 0;
+  } else {
+    Task.value.organization_id = store.state.user.organization_id;
+  }
+  Task.value.assign_user_id.push(store.state.user.user_id);
+  Task.value.work_user_ids.push(store.state.user.user_id);
+};
+const ChangeTaskDepartment = () => {
+  let id = parseInt(Object.keys(selectcapcha.value)[0]);
+  Task.value.assign_user_id = [];
+  Task.value.work_user_ids = [];
+  if (id != -1) {
+    listOrganization.value
+      .filter((x) => x.organization_id == id)
+      .forEach((t) => {
+        if (t.user_id) {
+          Task.value.assign_user_id.push(store.state.user.user_id);
+          Task.value.work_user_ids.push(t.user_id);
+        } else {
+          selectcapcha.value = [];
+          selectcapcha.value[-1] = true;
+          Task.value.assign_user_id.push(store.state.user.user_id);
+          Task.value.work_user_ids.push(store.state.user.user_id);
+          swal.fire({
+            title: "Thông báo!",
+            text: "Phòng ban này chưa tồn tại người chủ trì!",
+            icon: "info",
+            confirmButtonText: "OK",
+          });
+        }
+      });
+  }
+};
+const showDetail = ref(false);
+const selectedTaskID = ref();
+const onRowSelect = (id) => {
+  showDetail.value = false;
+  showDetail.value = true;
+  selectedTaskID.value = id.task_id;
+};
+const selectedKeys = ref();
+const onNodeSelect = (id) => {
+  showDetail.value = false;
+  showDetail.value = true;
+  selectedTaskID.value = id.data.task_id;
+};
+emitter.on("SideBar", (obj) => {
+  showDetail.value = obj;
+  loadData(true, opition.value.type_view);
+});
+const onRowUnselect = (id) => {};
+
+const displayDialogUser = ref(false);
+const selectedUser = ref([]);
+const headerDialogUser = ref();
+const is_one = ref(false);
+const is_type = ref();
+const OpenDialogTreeUser = (one, type) => {
+  selectedUser.value = [];
+  if (type == 1) {
+    Task.value.assign_user_id.forEach((t) => {
+      let select = { user_id: t };
+      selectedUser.value.push(select);
+    });
+    headerDialogUser.value = "Chọn người giao việc";
+  } else if (type == 2) {
+    Task.value.work_user_ids.forEach((t) => {
+      let select = { user_id: t };
+      selectedUser.value.push(select);
+    });
+    headerDialogUser.value = "Chọn người thực hiện";
+  } else if (type == 3) {
+    Task.value.works_user_ids.forEach((t) => {
+      let select = { user_id: t };
+      selectedUser.value.push(select);
+    });
+    headerDialogUser.value = "Chọn người đồng thực hiện";
+  } else if (type == 4) {
+    Task.value.follow_user_ids.forEach((t) => {
+      let select = { user_id: t };
+      selectedUser.value.push(select);
+    });
+    headerDialogUser.value = "Chọn người theo dõi";
+  }
+  displayDialogUser.value = true;
+  is_one.value = one;
+  is_type.value = type;
+};
+const closeDialog = () => {
+  displayDialogUser.value = false;
+};
+const choiceTreeUser = () => {
+  switch (is_type.value) {
+    case 1:
+      if (selectedUser.value.length > 0) {
+        selectedUser.value.forEach((t) => {
+          Task.value.assign_user_id = [];
+          Task.value.assign_user_id.push(t.user_id);
+        });
+      }
+      break;
+    case 2:
+      if (selectedUser.value.length > 0) {
+        Task.value.work_user_ids = [];
+        selectedUser.value.forEach((t) => {
+          Task.value.work_user_ids.push(t.user_id);
+        });
+      }
+      break;
+    case 3:
+      if (selectedUser.value.length > 0) {
+        Task.value.works_user_ids = [];
+        selectedUser.value.forEach((t) => {
+          Task.value.works_user_ids.push(t.user_id);
+        });
+      }
+      break;
+    case 4:
+      if (selectedUser.value.length > 0) {
+        Task.value.follow_user_ids = [];
+        selectedUser.value.forEach((t) => {
+          Task.value.follow_user_ids.push(t.user_id);
+        });
+      }
+      break;
+    default:
+      break;
+  }
+  displayDialogUser.value = false;
+};
+</script>
+<template>
+  <div
+    v-if="store.getters.islogin"
+    class="main-layout true flex-grow-1 p-2"
+  >
+    <div class="flex justify-content-center align-items-center">
+      <Toolbar class="w-full custoolbar">
+        <template #start>
+          <span class="p-input-icon-left">
+            <i class="pi pi-search" />
+            <InputText
+              style="min-width: 300px"
+              type="text"
+              spellcheck="false"
+              v-model="opition.search"
+              placeholder="Tìm kiếm"
+              @keyup.enter="loadData(true, opition.type_view)"
+            />
+          </span>
+        </template>
+
+        <template #end>
+          <Button
+            @click="addTask('Tạo công việc')"
+            label="Tạo công việc"
+            icon="pi pi-plus"
+            class="mr-2"
+          />
+          <ul
+            id="toolbar_right"
+            style="padding: 0px; margin: 0px; display: flex"
+          >
+            <li
+              @click="toggleListType"
+              aria-haspopup="true"
+              :class="{ active: opition.type_view != 0 }"
+              aria-controls="overlay_Export1"
+            >
+              <a
+                ><i
+                  style="margin-right: 5px"
+                  class="pi pi-bars"
+                ></i
+                >Kiểu hiển thị<i
+                  style="margin-left: 5px"
+                  class="pi pi-angle-down"
+                ></i
+              ></a>
+            </li>
+            <li
+              @click="toggleFilter"
+              aria-haspopup="true"
+              :class="{ active: opition.filter_type != 0 }"
+              aria-controls="overlay_Export"
+            >
+              <a
+                ><i
+                  style="margin-right: 5px"
+                  class="pi pi-filter"
+                ></i
+                >{{ opition.loctitle
+                }}<i
+                  style="margin-left: 5px"
+                  class="pi pi-angle-down"
+                ></i
+              ></a>
+            </li>
+            <li
+              @click="toggleSort"
+              :class="{ active: opition.sort }"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            >
+              <a
+                ><i class="pi pi-sort"></i> Sắp xếp
+                <i class="pi pi-angle-down"></i
+              ></a>
+            </li>
+            <li @click="onRefresh">
+              <a><i class="pi pi-refresh"></i> Refresh</a>
+            </li>
+          </ul>
+          <OverlayPanel
+            ref="menuFilterButs"
+            id="task_filter"
+          >
+            <ul
+              v-for="(item, index) in itemFilterButs"
+              :key="index"
+              style="padding: 0px; margin: 0px"
+            >
+              <li
+                :class="{ parent: !item.children_id }"
+                class="p-menuitem"
+                v-if="!item.groups"
+              >
+                <a
+                  @click="ChangeFilter(item.istype)"
+                  :class="{ active: item.active }"
+                  ><i
+                    style="padding-right: 5px"
+                    :class="item.icon"
+                  ></i
+                  >{{ item.label }}
+                  <span v-if="item.istype == 5 || item.istype == 6">
+                    (<a style="color: #0d89ec">{{
+                      moment(item.filter_date).format("DD/MM/YYYY")
+                    }}</a
+                    >)
+                  </span>
+                </a>
+                <span
+                  style="margin-left: 10px"
+                  v-if="item.istype == 5 || item.istype == 6"
+                >
+                  <Calendar
+                    @date-select="ChangeFilter(item.istype)"
+                    inputId="icon"
+                    v-model="item.filter_date"
+                    :showIcon="true"
+                  />
+                </span>
+              </li>
+              <li
+                :class="{ children: item.groups }"
+                class="p-menuitem"
+                v-if="item.groups"
+              >
+                <a :class="{ active: item.active }"
+                  ><i
+                    style="padding-right: 5px"
+                    :class="item.icon"
+                  ></i
+                  >{{ item.label }}</a
+                >
+                <ul style="padding: 0px; display: flex">
+                  <li
+                    style="
+                      list-style: none;
+                      padding: 10px;
+                      font-weight: bold;
+                      display: flex;
+                      flex-direction: column;
+                    "
+                    v-for="(item1, index) in item.groups"
+                    :key="index"
+                  >
+                    <div style="padding-bottom: 10px">
+                      <span>{{ item1.label }}</span>
+                      <span
+                        style="
+                          color: #2196f3;
+                          font-weight: bold;
+                          margin-left: 5px;
+                          font-size: 14px;
+                        "
+                        v-if="item1.is_change == 1"
+                        >{{ filterTime1 }}
+                        <i
+                          @click="removeTime(item1.is_change)"
+                          v-if="filterTime1"
+                          style="color: black"
+                          class="pi pi-times-circle"
+                        ></i
+                      ></span>
+                      <span
+                        style="
+                          color: #2196f3;
+                          font-weight: bold;
+                          margin-left: 5px;
+                          font-size: 14px;
+                        "
+                        v-if="item1.is_change == 2"
+                        >{{ filterTime2 }}
+                        <i
+                          @click="removeTime(item1.is_change)"
+                          v-if="filterTime2"
+                          style="color: black"
+                          class="pi pi-times-circle"
+                        ></i
+                      ></span>
+                    </div>
+                    <Calendar
+                      v-if="item1.is_change == 1"
+                      @date-select="
+                        ChangeTimeFilter(item1.is_change, opition.sdate)
+                      "
+                      v-model="opition.sdate"
+                      id="filterTime1"
+                      :inline="true"
+                    />
+                    <Calendar
+                      v-if="item1.is_change == 2"
+                      @date-select="
+                        ChangeTimeFilter(item1.is_change, opition.edate)
+                      "
+                      v-model="opition.edate"
+                      id="filterTime2"
+                      :inline="true"
+                    />
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <div style="float: right; padding: 10px">
+              <Button
+                @click="ChangeFilter(opition.filter_type)"
+                label="Thực hiện"
+              />
+              <Button
+                @click="Del_ChangeFilter"
+                id="btn_huy"
+                style="
+                  background-color: #f2f4f6;
+                  border: 1px solid #f2f4f6;
+                  color: #333;
+                  margin-left: 10px;
+                "
+                label="Hủy lọc"
+              />
+            </div>
+          </OverlayPanel>
+          <Menu
+            id="task_list_type"
+            :model="itemListTypeButs"
+            ref="menuListTypeButs"
+            :popup="true"
+          >
+            <template #item="{ item }">
+              <div @click="ChangeView(item)">
+                <a :class="{ active: item.active }"
+                  ><i :class="item.icon"></i>{{ item.label }}</a
+                >
+              </div>
+            </template>
+          </Menu>
+          <Menu
+            id="task_sort"
+            :model="itemSortButs"
+            ref="menuSortButs"
+            :popup="true"
+          >
+            <template #item="{ item }">
+              <a
+                @click="ChangeSortTask(item.sort, item.ob)"
+                :class="{ active: item.active }"
+                >{{ item.label }}</a
+              >
+            </template>
+          </Menu>
+        </template>
+      </Toolbar>
+    </div>
+    <div style="display: flex; justify-content: center; margin-bottom: 10px">
+      <ul
+        id="header_bottom"
+        style="padding: 0px; margin: 0px; display: flex"
+      >
+        <li
+          @click="ChangeData(-1)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == -1 }"
+        >
+          <a><i class="pi pi-bars"></i> Tất cả ({{ opition.totalAlls }})</a>
+        </li>
+        <li
+          @click="ChangeData(0)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 0 }"
+        >
+          <a
+            ><i class="pi pi-user-edit"></i> Tôi làm ({{
+              opition.total_toilam
+            }})</a
+          >
+        </li>
+        <li
+          @click="ChangeData(1)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 1 }"
+        >
+          <a><i class="pi pi-user"></i> Quản lý ({{ opition.total_quanly }})</a>
+        </li>
+        <li
+          @click="ChangeData(2)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 2 }"
+        >
+          <a
+            ><i class="pi pi-users"></i> Theo dõi ({{
+              opition.total_theodoi
+            }})</a
+          >
+        </li>
+        <li
+          @click="ChangeData(3)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 3 }"
+        >
+          <a
+            ><i class="pi pi-user-plus"></i> Tôi tạo ({{
+              opition.total_toitao
+            }})</a
+          >
+        </li>
+        <li
+          @click="ChangeData(4)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 4 }"
+        >
+          <a
+            ><i class="pi pi-check-circle"></i> Hoàn thành ({{
+              opition.total_hoanthanh
+            }})</a
+          >
+        </li>
+      </ul>
+    </div>
+    <DataTable
+      id="task"
+      v-if="opition.type_view == 1"
+      v-model:first="first"
+      :rowHover="true"
+      :value="listTask"
+      :paginator="true"
+      :rows="opition.PageSize"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+      :scrollable="true"
+      scrollHeight="flex"
+      :totalRecords="opition.totalRecords"
+      :row-hover="true"
+      dataKey="task_id"
+      v-model:selection="selectedTasks"
+      @page="onPage($event)"
+      @sort="onSort($event)"
+      @filter="onFilter($event)"
+      :lazy="true"
+      selectionMode="single"
+      @rowSelect="onRowSelect($event.data)"
+      @rowUnselect="onRowUnselect($event.data)"
+    >
+      <Column
+        field="STT"
+        headerStyle="text-align:center;max-width:4rem;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:4rem;"
+        class="align-items-center justify-content-center text-center"
+      >
+      </Column>
+      <Column
+        headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:50px; "
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="value">
+          <Avatar
+            v-tooltip.bottom="{
+              value:
+                value.data.full_name +
+                '<br/>' +
+                (value.data.tenChucVu || '') +
+                '<br/>' +
+                (value.data.tenToChuc || ''),
+              escape: true,
+            }"
+            v-bind:label="
+              value.data.avatar
+                ? ''
+                : (value.data.last_name ?? '').substring(0, 1)
+            "
+            v-bind:image="basedomainURL + value.data.avatar"
+            style="
+              background-color: #2196f3;
+              color: #ffffff;
+              width: 2.5rem;
+              height: 2.5rem;
+              font-size: 15px !important;
+            "
+            :style="{
+              background: bgColor[0] + '!important',
+            }"
+            class="cursor-pointer"
+            size="xlarge"
+            shape="circle"
+          />
+        </template>
+      </Column>
+      <Column
+        header="Tên công việc"
+        headerStyle="min-height:3.125rem"
+        bodyStyle=" "
+      >
+        <template #body="data">
+          <div style="display: flex; flex-direction: column; padding: 5px">
+            <div style="line-height: 20px; display: flex">
+              <span
+                v-tooltip="'Ưu tiên'"
+                v-if="data.data.is_prioritize"
+                style="margin-right: 5px"
+                ><i
+                  style="color: orange"
+                  class="pi pi-star-fill"
+                ></i
+              ></span>
+              <span
+                style="
+                  font-weight: bold;
+                  font-size: 14px;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  width: 100%;
+                  display: -webkit-box;
+                  -webkit-line-clamp: 2;
+                  -webkit-box-orient: vertical;
+                "
+                >{{ data.data.task_name }}</span
+              >
+            </div>
+            <div
+              style="
+                font-size: 12px;
+                margin-top: 5px;
+                display: flex;
+                align-items: center;
+              "
+            >
+              <span
+                v-if="data.data.start_date || data.data.end_date"
+                style="color: #98a9bc"
+                >{{
+                  data.data.start_date
+                    ? moment(new Date(data.data.start_date)).format(
+                        "DD/MM/YYYY",
+                      )
+                    : null
+                }}
+                -
+                {{
+                  data.data.end_date
+                    ? moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
+                    : null
+                }}</span
+              >
+              <span
+                v-if="data.data.isQL"
+                style="
+                  background-color: #337ab7;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 10px;
+                "
+                >Quản lý</span
+              >
+              <span
+                v-if="data.data.isTT"
+                style="
+                  background-color: #5cb85c;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 5px;
+                "
+                >Thực hiện</span
+              >
+              <span
+                v-if="data.data.isTD"
+                style="
+                  background-color: #5bc0de;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 5px;
+                "
+                >Theo dõi</span
+              >
+            </div>
+            <div
+              v-if="data.data.project_name"
+              style="
+                min-height: 25px;
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+              "
+            >
+              <i class="pi pi-tag"></i>
+              <span
+                class="duan"
+                style="
+                  font-size: 13px;
+                  font-weight: 400;
+                  margin-left: 5px;
+                  color: #0078d4;
+                "
+                >{{ data.data.project_name }}</span
+              >
+            </div>
+          </div>
+        </template>
+      </Column>
+      <Column
+        field=""
+        header="Thành viên"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:150px;"
+      >
+        <template #body="data">
+          <AvatarGroup>
+            <div
+              v-for="(value, index) in data.data.ThanhvienShows"
+              :key="index"
+            >
+              <div>
+                <Avatar
+                  v-tooltip.bottom="{
+                    value:
+                      value.type_name +
+                      ': ' +
+                      value.fullName +
+                      '<br/>' +
+                      (value.tenChucVu || '') +
+                      '<br/>' +
+                      (value.tenToChuc || ''),
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    value.avatar ? '' : (value.ten ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + value.avatar"
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  "
+                  :style="{
+                    background: bgColor[index % 7] + '!important',
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+              </div>
+            </div>
+            <Avatar
+              v-if="
+                data.data.Thanhviens.length - data.data.ThanhvienShows.length >
+                0
+              "
+              :label="
+                '+' +
+                (data.data.Thanhviens.length -
+                  data.data.ThanhvienShows.length) +
+                ''
+              "
+              class="cursor-pointer"
+              shape="circle"
+              style="
+                background-color: #e9e9e9 !important;
+                color: #98a9bc;
+                font-size: 14px !important;
+                width: 32px;
+                margin-left: -10px;
+                height: 32px;
+              "
+            />
+          </AvatarGroup>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Tiến độ"
+        headerStyle="text-align:center;max-width:100px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:100px;"
+      >
+        <template #body="data">
+          <span v-if="data.data.progress == 0">{{ data.data.progress }} %</span>
+          <div
+            v-if="data.data.progress != 0"
+            style="width: 100%"
+          >
+            <ProgressBar :value="data.data.progress" />
+          </div>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Thời gian xử lý"
+        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:150px;"
+      >
+        <template #body="data">
+          <div v-if="data.data.title_time">
+            <span
+              style="
+                font-size: 10px;
+                font-weight: bold;
+                padding: 5px;
+                border-radius: 5px;
+              "
+              :style="{
+                background: data.data.time_bg,
+                color: data.data.status_text_color,
+              }"
+              >{{ data.data.title_time }}</span
+            >
+          </div>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Ngày kết thúc"
+        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:150px;"
+      >
+        <template #body="data">
+          <div
+            v-if="data.data.is_deadline == true"
+            style="
+              background-color: #fff8ee;
+              padding: 10px 20px;
+              border-radius: 5px;
+            "
+          >
+            <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
+              >{{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY") }}
+            </span>
+          </div>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Trạng thái"
+        headerStyle="text-align:center;max-width:120px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:120px;"
+      >
+        <template #body="data">
+          <Chip
+            :style="{
+              background: data.data.status_bg_color,
+              color: data.data.status_text_color,
+            }"
+            v-bind:label="data.data.status_name"
+          />
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;min-height:3.125rem;max-width:100px;"
+        bodyStyle="text-align:center;max-width:100px;"
+      >
+        <template #body="data">
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == data.data.created_by ||
+              data.data.isEdit == true ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id == data.data.organization_id)
+            "
+          >
+            <Button
+              @click="editTask(data.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-pencil"
+              v-tooltip="'Sửa'"
+            ></Button>
+            <Button
+              @click="DelTask(data.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-trash"
+              v-tooltip="'Xóa'"
+            ></Button>
+          </div>
+        </template>
+      </Column>
+      <template #empty>
+        <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          style="
+            min-height: calc(100vh - 215px);
+            max-height: calc(100vh - 215px);
+            display: flex;
+            flex-direction: column;
+          "
+          v-if="listTask != null"
+        >
+          <img
+            src="../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
+      </template>
+    </DataTable>
+    <!-- paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      :rowsPerPageOptions="[20, 30, 50, 100, 200]" -->
+    <TreeTable
+      id="task-tree"
+      v-if="opition.type_view == 2"
+      sortMode="single"
+      ref="dt"
+      @nodeSelect="onNodeSelect"
+      @nodeUnselect="onNodeUnselect"
+      :value="listTask"
+      :paginator="false"
+      :rows="opition.PageSize"
+      :scrollable="true"
+      scrollHeight="flex"
+      v-model:selectionKeys="selectedKeys"
+      v-model:first="first"
+      :loading="opition.loading"
+      :expandedKeys="expandedKeys"
+      :rowHover="true"
+      responsiveLayout="scroll"
+      :totalRecords="opition.totalRecords"
+      selectionMode="single"
+      filterMode="lenient"
+      @page="onPage($event)"
+    >
+      <Column
+        field="STT"
+        headerStyle="text-align:center;max-width:75px;height:50px"
+        bodyStyle="text-align:center;max-width:50px;;max-height:600px"
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="menu">
+          <div
+            v-if="menu.node.data.parent_id == null"
+            style="font-weight: 1000"
+          >
+            {{ menu.node.data.STT2 }}
+          </div>
+          <div
+            v-else
+            style="font-weight: 500"
+          >
+            {{ menu.node.data.STT2 }}
+          </div>
+        </template>
+      </Column>
+      <Column
+        headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:100px; "
+        :expander="true"
+        class="align-items-center justify-content-left text-center"
+      >
+        <template #body="value">
+          <Avatar
+            v-tooltip.bottom="{
+              value:
+                value.node.data.full_name +
+                '<br/>' +
+                (value.node.data.tenChucVu || '') +
+                '<br/>' +
+                (value.node.data.tenToChuc || ''),
+              escape: true,
+            }"
+            v-bind:label="
+              value.node.data.avatar
+                ? ''
+                : (value.node.data.last_name ?? '').substring(0, 1)
+            "
+            v-bind:image="basedomainURL + value.node.data.avatar"
+            style="
+              background-color: #2196f3;
+              color: #ffffff;
+              width: 2.5rem;
+              height: 2.5rem;
+              font-size: 15px !important;
+            "
+            :style="{
+              background: bgColor[0] + '!important',
+            }"
+            class="cursor-pointer"
+            size="xlarge"
+            shape="circle"
+          />
+        </template>
+      </Column>
+      <Column
+        header="Tên công việc"
+        headerStyle="min-height:3.125rem"
+        bodyStyle=" "
+      >
+        <template #body="data">
+          <div style="display: flex; flex-direction: column; padding: 5px">
+            <div style="line-height: 20px; display: flex">
+              <span
+                v-tooltip="'Ưu tiên'"
+                v-if="data.node.data.is_prioritize"
+                style="margin-right: 5px"
+                ><i
+                  style="color: orange"
+                  class="pi pi-star-fill"
+                ></i
+              ></span>
+              <span
+                style="
+                  font-weight: bold;
+                  font-size: 14px;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  width: 100%;
+                  display: -webkit-box;
+                  -webkit-line-clamp: 2;
+                  -webkit-box-orient: vertical;
+                "
+                >{{ data.node.data.task_name }}</span
+              >
+            </div>
+            <div style="font-size: 12px; margin-top: 5px">
+              <span
+                v-if="data.node.data.start_date || data.node.data.end_date"
+                style="color: #98a9bc"
+                >{{
+                  data.node.data.start_date
+                    ? moment(new Date(data.node.data.start_date)).format(
+                        "DD/MM/YYYY",
+                      )
+                    : null
+                }}
+                -
+                {{
+                  data.node.data.end_date
+                    ? moment(new Date(data.node.data.end_date)).format(
+                        "DD/MM/YYYY",
+                      )
+                    : null
+                }}</span
+              >
+              <span
+                v-if="data.node.data.isQL"
+                style="
+                  background-color: #337ab7;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 10px;
+                "
+                >Quản lý</span
+              >
+              <span
+                v-if="data.node.data.isTT"
+                style="
+                  background-color: #5cb85c;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 5px;
+                "
+                >Thực hiện</span
+              >
+              <span
+                v-if="data.node.data.isTD"
+                style="
+                  background-color: #5bc0de;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 5px;
+                "
+                >Theo dõi</span
+              >
+            </div>
+            <div
+              v-if="data.node.data.project_name"
+              style="
+                min-height: 25px;
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+              "
+            >
+              <i class="pi pi-tag"></i>
+              <span
+                class="duan"
+                style="
+                  font-size: 13px;
+                  font-weight: 400;
+                  margin-left: 5px;
+                  color: #0078d4;
+                "
+                >{{ data.node.data.project_name }}</span
+              >
+            </div>
+          </div>
+        </template>
+      </Column>
+      <Column
+        field=""
+        header="Thành viên"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:150px;"
+      >
+        <template #body="data">
+          <AvatarGroup>
+            <div
+              v-for="(value, index) in data.node.data.ThanhvienShows"
+              :key="index"
+            >
+              <div>
+                <Avatar
+                  v-tooltip.bottom="{
+                    value:
+                      value.type_name +
+                      ': ' +
+                      value.fullName +
+                      '<br/>' +
+                      (value.tenChucVu || '') +
+                      '<br/>' +
+                      (value.tenToChuc || ''),
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    value.avatar ? '' : (value.ten ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + value.avatar"
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  "
+                  :style="{
+                    background: bgColor[index % 7] + '!important',
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+              </div>
+            </div>
+            <Avatar
+              v-if="
+                data.node.data.Thanhviens.length -
+                  data.node.data.ThanhvienShows.length >
+                0
+              "
+              :label="
+                '+' +
+                (data.node.data.Thanhviens.length -
+                  data.node.data.ThanhvienShows.length) +
+                ''
+              "
+              class="cursor-pointer"
+              shape="circle"
+              style="
+                background-color: #e9e9e9 !important;
+                color: #98a9bc;
+                font-size: 14px !important;
+                width: 32px;
+                margin-left: -10px;
+                height: 32px;
+              "
+            />
+          </AvatarGroup>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Tiến độ"
+        headerStyle="text-align:center;max-width:100px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:100px;"
+      >
+        <template #body="data">
+          <span v-if="data.node.data.progress == 0"
+            >{{ data.node.data.progress }} %</span
+          >
+          <div
+            v-if="data.node.data.progress != 0"
+            style="width: 100%"
+          >
+            <ProgressBar :value="data.node.data.progress" />
+          </div>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Thời gian xử lý"
+        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:150px;"
+      >
+        <template #body="data">
+          <div v-if="data.node.data.title_time">
+            <span
+              style="
+                font-size: 10px;
+                font-weight: bold;
+                padding: 5px;
+                border-radius: 5px;
+              "
+              :style="{
+                background: data.node.data.time_bg,
+                color: data.node.data.status_text_color,
+              }"
+              >{{ data.node.data.title_time }}</span
+            >
+          </div>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Ngày kết thúc"
+        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:150px;"
+      >
+        <template #body="data">
+          <div
+            v-if="data.node.data.is_deadline == true"
+            style="
+              background-color: #fff8ee;
+              padding: 10px 20px;
+              border-radius: 5px;
+            "
+          >
+            <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
+              moment(new Date(data.node.data.end_date)).format("DD/MM/YYYY")
+            }}</span>
+          </div>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Trạng thái"
+        headerStyle="text-align:center;max-width:120px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:120px;"
+      >
+        <template #body="data">
+          <Chip
+            :style="{
+              background: data.node.data.status_bg_color,
+              color: data.node.data.status_text_color,
+            }"
+            v-bind:label="data.node.data.status_name"
+          />
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;min-height:3.125rem;max-width:100px;"
+        bodyStyle="text-align:center;max-width:100px;"
+      >
+        <template #body="data">
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == data.node.data.created_by ||
+              data.node.data.isEdit == true ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id ==
+                  data.node.data.organization_id)
+            "
+          >
+            <Button
+              @click="editTask(data.node.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-pencil"
+              v-tooltip="'Sửa'"
+            ></Button>
+            <Button
+              @click="DelTask(data.node.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-trash"
+              v-tooltip="'Xóa'"
+            ></Button>
+          </div>
+        </template>
+      </Column>
+
+      <template #empty>
+        <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          style="
+            min-height: calc(100vh - 215px);
+            max-height: calc(100vh - 215px);
+            display: flex;
+            flex-direction: column;
+          "
+          v-if="listTask != null || opition.totalRecords == 0"
+        >
+          <img
+            src="../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
+      </template>
+    </TreeTable>
+    <div
+      id="task-grid"
+      v-if="opition.type_view == 3"
+      style="
+        height: 85%;
+        width: 100%;
+        display: -webkit-box;
+        overflow-x: auto;
+        overflow-y: hidden;
+      "
+    >
+      <div
+        class="md:col-md-3"
+        v-for="item in listTask"
+        style="width: 320px; height: 100%; margin: 0px 10px"
+      >
+        <span
+          style="
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #ffffff;
+          "
+          :style="{
+            background: item.status_bg_color + '!important',
+          }"
+          >{{ item.status_name }} ({{ item.CVGroup.length }})</span
+        >
+        <div
+          style="width: 106%; height: 95%; overflow: hidden auto"
+          id="task-grid"
+          class="scroll-outer"
+        >
+          <div
+            class="scroll-inner"
+            style="width: fit-content"
+          >
+            <Card
+              v-for="cv in item.CVGroup"
+              style="width: 320px; margin-bottom: 2em"
+            >
+              <template #title>
+                <span
+                  @click="onRowSelect(cv)"
+                  v-tooltip="'Xem chi tiết'"
+                  style="
+                    overflow: hidden;
+                    font-size: 14px;
+                    font-weight: bold;
+                    text-overflow: ellipsis;
+                    width: 100%;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                  "
+                >
+                  {{ cv.task_name }}
+                </span>
+              </template>
+              <template #content>
+                <span
+                  v-if="cv.project_name"
+                  style="
+                    margin: 0px auto;
+                    text-align: center;
+                    padding: 5px 15px;
+                    background-color: #f2f4f6;
+                    max-width: max-content;
+                    border-radius: 5px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    max-width: 100%;
+                    font-weight: 500;
+                  "
+                  >{{ cv.project_name }}</span
+                >
+                <span
+                  v-if="cv.start_date || cv.end_date"
+                  style="color: #98a9bc"
+                  ><i
+                    style="margin-right: 5px"
+                    class="pi pi-calendar"
+                  ></i
+                  >{{
+                    cv.start_date
+                      ? moment(new Date(cv.start_date)).format("DD/MM/YYYY")
+                      : null
+                  }}
+                  -
+                  {{
+                    cv.end_date
+                      ? moment(new Date(cv.end_date)).format("DD/MM/YYYY")
+                      : null
+                  }}</span
+                >
+                <span>
+                  <span
+                    v-if="cv.isQL"
+                    style="
+                      background-color: #337ab7;
+                      color: #ffffff;
+                      display: inline;
+                      padding: 0.4em 0.6em;
+                      font-size: 75%;
+                      font-weight: 700;
+                      line-height: 1;
+                      color: #fff;
+                      text-align: center;
+                      white-space: nowrap;
+                      vertical-align: baseline;
+                      border-radius: 0.25em;
+                      margin-left: 10px;
+                    "
+                    >Quản lý</span
+                  >
+                  <span
+                    v-if="cv.isTT"
+                    style="
+                      background-color: #5cb85c;
+                      color: #ffffff;
+                      display: inline;
+                      padding: 0.4em 0.6em;
+                      font-size: 75%;
+                      font-weight: 700;
+                      line-height: 1;
+                      color: #fff;
+                      text-align: center;
+                      white-space: nowrap;
+                      vertical-align: baseline;
+                      border-radius: 0.25em;
+                      margin-left: 5px;
+                    "
+                    >Thực hiện</span
+                  >
+                  <span
+                    v-if="cv.isTD"
+                    style="
+                      background-color: #5bc0de;
+                      color: #ffffff;
+                      display: inline;
+                      padding: 0.4em 0.6em;
+                      font-size: 75%;
+                      font-weight: 700;
+                      line-height: 1;
+                      color: #fff;
+                      text-align: center;
+                      white-space: nowrap;
+                      vertical-align: baseline;
+                      border-radius: 0.25em;
+                      margin-left: 5px;
+                    "
+                    >Theo dõi</span
+                  >
+                </span>
+                <span
+                  style="
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                  "
+                >
+                  <AvatarGroup>
+                    <div
+                      v-for="(value, index) in cv.ThanhvienShows"
+                      :key="index"
+                    >
+                      <div>
+                        <Avatar
+                          v-tooltip.bottom="{
+                            value:
+                              value.type_name +
+                              ': ' +
+                              value.fullName +
+                              '<br/>' +
+                              (value.tenChucVu || '') +
+                              '<br/>' +
+                              (value.tenToChuc || ''),
+                            escape: true,
+                          }"
+                          v-bind:label="
+                            value.avatar
+                              ? ''
+                              : (value.ten ?? '').substring(0, 1)
+                          "
+                          v-bind:image="basedomainURL + value.avatar"
+                          style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 32px;
+                            height: 32px;
+                            font-size: 15px !important;
+                            margin-left: -10px;
+                          "
+                          :style="{
+                            background: bgColor[index % 7] + '!important',
+                          }"
+                          class="cursor-pointer"
+                          size="xlarge"
+                          shape="circle"
+                        />
+                      </div>
+                    </div>
+                    <Avatar
+                      v-if="cv.Thanhviens.length - cv.ThanhvienShows.length > 0"
+                      :label="
+                        '+' +
+                        (cv.Thanhviens.length - cv.ThanhvienShows.length) +
+                        ''
+                      "
+                      class="cursor-pointer"
+                      shape="circle"
+                      style="
+                        background-color: #e9e9e9 !important;
+                        color: #98a9bc;
+                        font-size: 14px !important;
+                        width: 32px;
+                        margin-left: -10px;
+                        height: 32px;
+                      "
+                    />
+                  </AvatarGroup>
+                </span>
+                <span
+                  v-if="cv.title_time"
+                  style="
+                    width: max-content;
+                    font-size: 10px;
+                    font-weight: bold;
+                    padding: 5px;
+                    border-radius: 5px;
+                  "
+                  :style="{
+                    background: cv.time_bg,
+                    color: cv.status_text_color,
+                  }"
+                  >{{ cv.title_time }}</span
+                >
+                <div
+                  class="card-chucnang"
+                  style="
+                    display: none;
+                    flex-direction: column;
+                    position: absolute;
+                    right: 10px;
+                  "
+                  v-if="
+                    store.state.user.is_super == true ||
+                    store.state.user.user_id == cv.created_by ||
+                    cv.isEdit == true ||
+                    (store.state.user.role_id == 'admin' &&
+                      store.state.user.organization_id == cv.organization_id)
+                  "
+                >
+                  <Button
+                    @click="editTask(cv)"
+                    style="margin-bottom: 5px"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    icon="pi pi-pencil"
+                    v-tooltip="'Sửa'"
+                  ></Button>
+                  <Button
+                    @click="DelTask(cv)"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    icon="pi pi-trash"
+                    v-tooltip="'Xóa'"
+                  ></Button>
+                </div>
+              </template>
+              <template #footer>
+                <!-- <span v-if="cv.progress == 0">{{ cv.progress }} %</span> -->
+                <div
+                  v-if="cv.progress != 0"
+                  style="width: 100%"
+                >
+                  <ProgressBar :value="cv.progress" />
+                </div>
+              </template>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+    <DetailedWork
+      v-if="showDetail == true && selectedTaskID != null"
+      :isShow="showDetail"
+      :id="selectedTaskID"
+      :turn="0"
+    >
+    </DetailedWork>
+  </div>
+  <Dialog
+    :header="headerAddTask"
+    v-model:visible="displayTask"
+    :closable="true"
+    :maximizable="true"
+    :style="{ width: '700px' }"
+  >
+    <form>
+      <div class="grid formgrid m-2">
+        <div class="field col-12 md:col-12">
+          <label class="col-3 text-left p-0"
+            >Tên công việc<span class="redsao"> (*) </span></label
+          >
+          <InputText
+            v-model="Task.task_name"
+            spellcheck="false"
+            class="col-9 ip36 px-2"
+            :class="{ 'p-invalid': v$.task_name.$invalid && submitted }"
+          />
+        </div>
+        <div
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
+          <div class="col-3 text-left"></div>
+          <small
+            v-if="
+              (v$.task_name.$invalid && submitted) ||
+              v$.task_name.$pending.$response
+            "
+            class="col-9 p-error p-0"
+          >
+            <span class="col-12 p-0">{{
+              v$.task_name.required.$message
+                .replace("Value", "Tên công việc")
+                .replace("is required", "không được để trống")
+            }}</span>
+          </small>
+        </div>
+        <!-- update tráng -->
+        <div
+          class="field col-12 md:col-12"
+          style="position: relative"
+        >
+          <label class="col-3 text-left p-0">Công việc của phòng</label>
+          <InputSwitch
+            @change="ChangeIsDepartment(Task.is_department)"
+            class="col-6"
+            style="position: absolute; top: 0px; left: 200px"
+            v-model="Task.is_department"
+          />
+          <!-- <TreeSelect class="col-9" v-model="selectcapcha" :options="listDropdownorganization" :showClear="true"
+            :max-height="200" placeholder="" optionLabel="organization_name" optionValue="department_id"
+            @change="ChangeTaskDepartment()" /> -->
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          v-if="Task.is_department"
+        >
+          <label class="col-3 text-left p-0">Phòng ban</label>
+          <TreeSelect
+            class="col-9"
+            v-model="selectcapcha"
+            :options="listDropdownorganization"
+            :showClear="true"
+            :max-height="200"
+            placeholder=""
+            optionLabel="organization_name"
+            optionValue="department_id"
+            @change="ChangeTaskDepartment()"
+          />
+        </div>
+        <!-- end -->
+        <div class="field col-12 md:col-12">
+          <label class="col-3 text-left p-0">Thuộc dự án</label>
+          <Dropdown :filter="true" v-model="Task.project_id" panelClass="d-design-dropdown" selectionLimit="1" :options="listDropdownProject"
+            optionLabel="project_name" optionValue="project_id" spellcheck="false" class="col-9 ip36 p-0">
+            <template #option="slotProps">
+              <div class="country-item flex">
+                <div class="pt-1">{{ slotProps.option.project_name }}</div>
+              </div>
+            </template>
+          </Dropdown>
+        </div>
+        <div class="field col-12 md:col-12">
+          <label class="col-3 text-left p-0"
+            >Người giao việc
+            <span
+              @click="OpenDialogTreeUser(true, 1)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+            ><span class="redsao"> (*) </span></label
+          >
+          <MultiSelect
+            :filter="true"
+            v-model="Task.assign_user_id"
+            :options="listDropdownUser"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            placeholder="Người giao việc"
+            @change="changeNguoiGaoViec($event)"
+            :class="{
+              'p-invalid': Task.assign_user_id.length == 0 && submitted,
+            }"
+            display="chip"
+          >
+            <template #option="slotProps">
+              <div
+                class="country-item flex"
+                style="align-items: center; margin-left: 10px"
+              >
+                <Avatar
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  "
+                  :style="{
+                    background: bgColor[slotProps.index % 7] + '!important',
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
+                  {{ slotProps.option.name }}
+                </div>
+              </div>
+            </template>
+          </MultiSelect>
+        </div>
+        <div
+          v-if="!Task.is_department"
+          class="field col-12 md:col-12"
+        >
+          <label class="col-3 text-left p-0"
+            >Người thực hiện
+            <span
+              @click="OpenDialogTreeUser(false, 2)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+            ><span class="redsao"> (*) </span></label
+          >
+          <MultiSelect
+            :filter="true"
+            v-model="Task.work_user_ids"
+            :options="listDropdownUser"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            placeholder="Người thực hiện"
+            :class="{
+              'p-invalid': Task.work_user_ids.length == 0 && submitted,
+            }"
+            display="chip"
+          >
+            <template #option="slotProps">
+              <div
+                class="country-item flex"
+                style="align-items: center; margin-left: 10px"
+              >
+                <Avatar
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  "
+                  :style="{
+                    background: bgColor[slotProps.index % 7] + '!important',
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
+                  {{ slotProps.option.name }}
+                </div>
+              </div>
+            </template>
+          </MultiSelect>
+        </div>
+        <div
+          v-if="!Task.is_department"
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
+          <div class="col-3 text-left"></div>
+          <small
+            v-if="
+              (v$.work_user_ids.$invalid && submitted) ||
+              v$.work_user_ids.$pending.$response
+            "
+            class="col-9 p-error p-0"
+          >
+            <span class="col-12 p-0">{{
+              v$.work_user_ids.required.$message
+                .replace("Value", "Người thực hiện")
+                .replace("is required", "không được để trống")
+            }}</span>
+          </small>
+        </div>
+        <div
+          v-if="!Task.is_department"
+          class="field col-12 md:col-12"
+        >
+          <label class="col-3 text-left p-0"
+            >Người đồng thực hiện
+            <span
+              @click="OpenDialogTreeUser(false, 3)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+          ></label>
+          <MultiSelect
+            :filter="true"
+            v-model="Task.works_user_ids"
+            :options="listDropdownUser"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            display="chip"
+          >
+            <template #option="slotProps">
+              <div
+                class="country-item flex"
+                style="align-items: center; padding-left: 10px"
+              >
+                <Avatar
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  "
+                  :style="{
+                    background: bgColor[slotProps.index % 7] + '!important',
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
+                  {{ slotProps.option.name }}
+                </div>
+              </div>
+            </template>
+          </MultiSelect>
+        </div>
+        <div
+          v-if="!Task.is_department"
+          class="field col-12 md:col-12"
+        >
+          <label class="col-3 text-left p-0"
+            >Người theo dõi
+            <span
+              @click="OpenDialogTreeUser(false, 4)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+          ></label>
+          <MultiSelect
+            :filter="true"
+            v-model="Task.follow_user_ids"
+            :options="listDropdownUser"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            display="chip"
+          >
+            <template #option="slotProps">
+              <div
+                class="country-item flex"
+                style="align-items: center; padding-left: 10px"
+              >
+                <Avatar
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  "
+                  :style="{
+                    background: bgColor[slotProps.index % 7] + '!important',
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
+                  {{ slotProps.option.name }}
+                </div>
+              </div>
+            </template>
+          </MultiSelect>
+        </div>
+        <div class="field col-12 md:col-12">
+          <label class="col-3 text-left p-0">Nhóm</label>
+          <Dropdown :filter="true" v-model="Task.group_id" panelClass="d-design-dropdown" selectionLimit="1" :options="listDropdownTaskGroup"
+            optionLabel="group_name" optionValue="group_id" spellcheck="false" class="col-9 ip36 p-0">
+            <template #option="slotProps">
+              <div class="country-item flex">
+                <div class="pt-1">{{ slotProps.option.group_name }}</div>
+              </div>
+            </template>
+          </Dropdown>
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          style="display: flex"
+        >
+          <div class="col-3"></div>
+          <div
+            class="col-9"
+            style="display: flex"
+          >
+            <div class="col-5">
+              <Checkbox
+                style="margin-right: 5px"
+                v-model="Task.is_review"
+                :binary="true"
+              />
+              YC đánh giá công việc
+            </div>
+            <div class="col-4">
+              <Checkbox
+                style="margin-right: 5px"
+                v-model="Task.is_deadline"
+                :binary="true"
+              />
+              Có hạn xử lý
+            </div>
+            <div class="col-3">
+              <Checkbox
+                style="margin-right: 5px"
+                v-model="Task.is_prioritize"
+                :binary="true"
+              />
+              Ưu tiên
+            </div>
+          </div>
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          style="display: flex; align-items: center"
+        >
+          <label class="col-3 text-left p-0">Ngày bắt đầu</label>
+          <div
+            class="col-9"
+            style="display: flex; padding: 0px; align-items: center"
+          >
+            <Calendar
+              :manualInput="true"
+              :showIcon="true"
+              class="col-5 ip36 title-lable"
+              style="margin-top: 5px; padding: 0px"
+              id="time1"
+              autocomplete="on"
+              v-model="Task.start_date"
+            />
+            <div
+              class="col-7"
+              style="display: flex; padding: 0px; align-items: center"
+            >
+              <label class="col-5 text-center">Ngày kết thúc</label>
+              <Calendar
+                :manualInput="true"
+                :showIcon="true"
+                class="col-7 ip36 title-lable"
+                style="margin-top: 5px; padding: 0px"
+                id="time2"
+                placeholder="dd/MM/yy"
+                autocomplete="on"
+                v-model="Task.end_date"
+                :class="{
+                  'p-invalid':
+                    v$.end_date.$invalid && submitted && Task.is_deadline,
+                }"
+                @date-select="CheckDate($event)"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
+          <div class="col-3 text-left"></div>
+          <small
+            v-if="
+              (v$.end_date.$invalid && submitted && Task.is_deadline) ||
+              (v$.end_date.$pending.$response && Task.is_deadline)
+            "
+            class="col-9 p-error p-0"
+          >
+            <span class="col-12 p-0">{{
+              v$.end_date.required.$message
+                .replace("Value", "Ngày kết thúc")
+                .replace("is required", "không được để trống")
+            }}</span>
+          </small>
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          style="display: flex; align-items: center"
+        >
+          <label class="col-3 text-left p-0">STT</label>
+          <div
+            class="col-9"
+            style="display: flex; padding: 0px; align-items: center"
+          >
+            <InputText
+              style="margin-top: 5px"
+              v-model="Task.is_order"
+              spellcheck="false"
+              class="col-4 ip36 px-2"
+            />
+            <div
+              class="col-8"
+              style="
+                display: flex;
+                padding: 0px;
+                align-items: center;
+                position: relative;
+              "
+            >
+              <label class="col-6 text-center">Kích hoạt bảo mật</label>
+              <InputSwitch
+                class="col-6"
+                style="position: absolute; top: 0px; left: 200px"
+                v-model="Task.is_security"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-12">
+          <label class="col-3 text-left p-0">Trạng thái công việc</label>
+          <Dropdown :filter="true" style="margin-top: 5px" panelClass="d-design-dropdown" v-model="Task.status" :options="listDropdownStatus"
+            optionLabel="text" optionValue="value" placeholder="Trạng thái công việc" spellcheck="false"
+            class="col-9 ip36 p-0">
+            <template #option="slotProps">
+              <div class="country-item flex">
+                <div class="pt-1">{{ slotProps.option.text }}</div>
+              </div>
+            </template>
+          </Dropdown>
+        </div>
+        <div class="field col-12 md:col-12">
+          <Accordion :multiple="true">
+            <AccordionTab header="THÔNG TIN KHÁC">
+              <div
+                v-if="Task.is_department"
+                class="field col-12 md:col-12"
+              >
+                <label class="col-3 text-left p-0"
+                  >Người thực hiện
+                  <span
+                    @click="OpenDialogTreeUser(false, 2)"
+                    class="choose-user"
+                    ><i class="pi pi-user-plus"></i></span
+                ></label>
+                <MultiSelect
+                  :filter="true"
+                  v-model="Task.work_user_ids"
+                  :options="listDropdownUser"
+                  optionValue="code"
+                  optionLabel="name"
+                  class="col-9 ip36 p-0"
+                  placeholder="Người thực hiện"
+                  display="chip"
+                >
+                  <template #option="slotProps">
+                    <div
+                      class="country-item flex"
+                      style="align-items: center; margin-left: 10px"
+                    >
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : (slotProps.option.name ?? '').substring(0, 1)
+                        "
+                        v-bind:image="basedomainURL + slotProps.option.avatar"
+                        style="
+                          background-color: #2196f3;
+                          color: #ffffff;
+                          width: 32px;
+                          height: 32px;
+                          font-size: 15px !important;
+                          margin-left: -10px;
+                        "
+                        :style="{
+                          background:
+                            bgColor[slotProps.index % 7] + '!important',
+                        }"
+                        class="cursor-pointer"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                      <div
+                        class="pt-1"
+                        style="padding-left: 10px"
+                      >
+                        {{ slotProps.option.name }}
+                      </div>
+                    </div>
+                  </template>
+                </MultiSelect>
+              </div>
+              <div
+                v-if="Task.is_department"
+                class="field col-12 md:col-12"
+              >
+                <label class="col-3 text-left p-0"
+                  >Người đồng thực hiện
+                  <span
+                    @click="OpenDialogTreeUser(false, 3)"
+                    class="choose-user"
+                    ><i class="pi pi-user-plus"></i></span
+                ></label>
+                <MultiSelect
+                  :filter="true"
+                  v-model="Task.works_user_ids"
+                  :options="listDropdownUser"
+                  optionValue="code"
+                  optionLabel="name"
+                  class="col-9 ip36 p-0"
+                  display="chip"
+                >
+                  <template #option="slotProps">
+                    <div
+                      class="country-item flex"
+                      style="align-items: center; padding-left: 10px"
+                    >
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : (slotProps.option.name ?? '').substring(0, 1)
+                        "
+                        v-bind:image="basedomainURL + slotProps.option.avatar"
+                        style="
+                          background-color: #2196f3;
+                          color: #ffffff;
+                          width: 32px;
+                          height: 32px;
+                          font-size: 15px !important;
+                          margin-left: -10px;
+                        "
+                        :style="{
+                          background:
+                            bgColor[slotProps.index % 7] + '!important',
+                        }"
+                        class="cursor-pointer"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                      <div
+                        class="pt-1"
+                        style="padding-left: 10px"
+                      >
+                        {{ slotProps.option.name }}
+                      </div>
+                    </div>
+                  </template>
+                </MultiSelect>
+              </div>
+              <div
+                v-if="Task.is_department"
+                class="field col-12 md:col-12"
+              >
+                <label class="col-3 text-left p-0"
+                  >Người theo dõi
+                  <span
+                    @click="OpenDialogTreeUser(false, 4)"
+                    class="choose-user"
+                    ><i class="pi pi-user-plus"></i></span
+                ></label>
+                <MultiSelect
+                  :filter="true"
+                  v-model="Task.follow_user_ids"
+                  :options="listDropdownUser"
+                  optionValue="code"
+                  optionLabel="name"
+                  class="col-9 ip36 p-0"
+                  display="chip"
+                >
+                  <template #option="slotProps">
+                    <div
+                      class="country-item flex"
+                      style="align-items: center; padding-left: 10px"
+                    >
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : (slotProps.option.name ?? '').substring(0, 1)
+                        "
+                        v-bind:image="basedomainURL + slotProps.option.avatar"
+                        style="
+                          background-color: #2196f3;
+                          color: #ffffff;
+                          width: 32px;
+                          height: 32px;
+                          font-size: 15px !important;
+                          margin-left: -10px;
+                        "
+                        :style="{
+                          background:
+                            bgColor[slotProps.index % 7] + '!important',
+                        }"
+                        class="cursor-pointer"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                      <div
+                        class="pt-1"
+                        style="padding-left: 10px"
+                      >
+                        {{ slotProps.option.name }}
+                      </div>
+                    </div>
+                  </template>
+                </MultiSelect>
+              </div>
+              <div class="field col-12 md:col-12">
+                <label class="col-3 text-left p-0">Chọn trọng số</label>
+                <Dropdown :filter="true" v-model="Task.weight" panelClass="d-design-dropdown" selectionLimit="1" :options="listDropdownweight"
+                  optionLabel="weight_name" optionValue="weight_id" spellcheck="false" class="col-9 ip36 p-0">
+                  <template #option="slotProps">
+                    <div class="country-item flex">
+                      <div class="pt-1">{{ slotProps.option.weight_name }}</div>
+                    </div>
+                  </template>
+                </Dropdown>
+              </div>
+              <div
+                class="field col-12 md:col-12"
+                style="display: flex; align-items: center"
+              >
+                <label class="col-3 text-left p-0">Mô tả</label>
+                <Textarea
+                  style="margin-top: 5px; padding: 5px; min-height: 100px"
+                  v-model="Task.description"
+                  class="col-9 ip36"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                />
+              </div>
+              <div
+                class="field col-12 md:col-12"
+                style="display: flex; align-items: center"
+              >
+                <label class="col-3 text-left p-0">Mục tiêu</label>
+                <Textarea
+                  style="margin-top: 5px; padding: 5px; min-height: 100px"
+                  v-model="Task.target"
+                  class="col-9 ip36"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                />
+              </div>
+              <div
+                class="field col-12 md:col-12"
+                style="display: flex; align-items: center"
+              >
+                <label class="col-3 text-left p-0">Khó khăn vướng mắc</label>
+                <Textarea
+                  style="margin-top: 5px; padding: 5px; min-height: 100px"
+                  v-model="Task.difficult"
+                  class="col-9 ip36"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                />
+              </div>
+              <div
+                class="field col-12 md:col-12"
+                style="display: flex; align-items: center"
+              >
+                <label class="col-3 text-left p-0">Đề xuất</label>
+                <Textarea
+                  style="margin-top: 5px; padding: 5px; min-height: 50px"
+                  v-model="Task.request"
+                  class="col-9 ip36"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                />
+              </div>
+              <div
+                class="field col-12 md:col-12"
+                id="task_file"
+                style="display: flex"
+              >
+                <label class="col-3 text-left p-0">File</label>
+                <div class="col-9 p-0">
+                  <FileUpload
+                    chooseLabel="Chọn File"
+                    style="margin-top: 5px !important"
+                    :showUploadButton="false"
+                    :showCancelButton="false"
+                    :multiple="true"
+                    accept=""
+                    :maxFileSize="10000000"
+                    @select="onUploadFile"
+                    @remove="removeFile"
+                  />
+                  <div
+                    class="col-12 p-0"
+                    style="border: 1px solid #e1e1e1; margin-top: -1px"
+                    v-if="Task.files.length > 0 && !isAdd"
+                  >
+                    <DataView
+                      :lazy="true"
+                      :value="Task.files"
+                      :rowHover="true"
+                      :scrollable="true"
+                      class="w-full h-full ptable p-datatable-sm flex flex-column col-10 ip36 p-0"
+                      layout="list"
+                      responsiveLayout="scroll"
+                    >
+                      <template #list="slotProps">
+                        <Toolbar
+                          class="w-full"
+                          style="display: flex"
+                        >
+                          <template #start>
+                            <div class="flex align-items-center task-file-list">
+                              <img
+                                class="mr-2"
+                                :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  slotProps.data.file_type +
+                                  '.png'
+                                "
+                                style="object-fit: contain"
+                                width="40"
+                                height="40"
+                              />
+                              <span
+                                style="line-height: 1.5; word-break: break-all"
+                              >
+                                {{ slotProps.data.file_name }}</span
+                              >
+                            </div>
+                          </template>
+                          <template #end>
+                            <Button
+                              icon="pi pi-times"
+                              class="p-button-rounded p-button-danger"
+                              @click="deleteFile(slotProps.data)"
+                            />
+                          </template>
+                        </Toolbar>
+                      </template>
+                    </DataView>
+                  </div>
+                </div>
+              </div>
+            </AccordionTab>
+          </Accordion>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialogTask"
+        class="p-button-text"
+      />
+
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveTask(!v$.$invalid)"
+      />
+    </template>
+  </Dialog>
+
+  <treeuser
+    v-if="displayDialogUser === true"
+    :headerDialog="headerDialogUser"
+    :displayDialog="displayDialogUser"
+    :one="is_one"
+    :selected="selectedUser"
+    :closeDialog="closeDialog"
+    :choiceUser="choiceTreeUser"
+  />
+</template>
+<style lang="scss" scoped>
+#toolbar_right .active {
+  background-color: #2196f3 !important;
+  border: 1px solid #5ca7e3 !important;
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 20px;
+}
+
+.p-multiselect-label-container {
+  display: flex;
+  align-items: center;
+}
+
+.p-treeselect-items-wrapper {
+  max-height: 200px !important;
+  min-width: calc(100vw - 1100px);
+  max-width: calc(100vw - 1100px);
+}
+
+.p-fileupload {
+  width: 100%;
+}
+
+#btn_huy:hover {
+  background-color: #eee !important;
+  border-color: #eee;
+}
+
+/* task_filter */
+/* #task_filter{
+    width: 500px;
+    height: 500px;
+} */
+.p-overlaypanel .p-overlaypanel-content {
+  padding: 5px;
+}
+
+#task_filter .p-menuitem {
+  padding: 5px 10px;
+  list-style: none;
+}
+
+#task_filter .parent:hover {
+  cursor: pointer;
+  background-color: #e9ecef;
+}
+
+#task_filter .parent .active {
+  color: #2196f3 !important;
+}
+
+#task_filter .children .active {
+  color: #2196f3 !important;
+}
+
+.duan:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.p-progressbar {
+  font-size: 10px;
+  height: 1.2rem !important;
+}
+
+.p-chip {
+  border-radius: 5px !important;
+}
+
+.add-user {
+  padding: 7px 0px;
+  outline: none;
+  border: none;
+}
+
+.p-fileupload {
+  margin-top: 5px;
+}
+
+#chitiet .title-lable {
+  padding: 0px !important;
+}
+
+#task_sort {
+  min-width: fit-content !important;
+}
+
+#header_bottom .active {
+  background-color: #f18636 !important;
+}
+
+#header_bottom li {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid #dadbdc;
+  background-color: #0078d4;
+  color: #fff;
+}
+
+#header_bottom li a {
+  padding: 0px 10px;
+}
+
+#header_bottom li:hover {
+  cursor: pointer;
+  background-color: #f18636 !important;
+  border: 1px solid #f18636 !important;
+  color: #fff;
+}
+
+#header_bottom li a i {
+  padding-right: 5px;
+}
+
+.p-tooltip-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.p-treeselect-panel {
+  max-width: 28vw !important;
+}
+
+.p-treeselect-panel .p-treeselect-items-wrapper .p-tree {
+  max-height: 17vh !important;
+}
+
+.p-dropdown-item {
+  white-space: normal !important;
+}
+
+#toolbar_right li {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+  border: 1px solid;
+  border-radius: 4px;
+  margin: 0px 5px 0px 0px;
+}
+
+#toolbar_right li a {
+  padding: 0px 10px;
+}
+
+#toolbar_right li:hover {
+  cursor: pointer;
+  background-color: #2196f3 !important;
+  border: 1px solid #5ca7e3 !important;
+  color: #fff;
+}
+</style>
+<style>
+#task_filter .p-calendar-w-btn .p-inputtext {
+  display: none !important;
+}
+
+#task_file .p-toolbar-group-left {
+  width: 85% !important;
+}
+
+#task_sort .p-menuitem {
+  padding: 5px 10px;
+}
+
+#task_sort .p-menuitem:hover {
+  cursor: pointer;
+  background-color: #e9ecef;
+}
+
+#task_sort .p-menuitem .active {
+  color: #2196f3 !important;
+}
+
+#task_list_type .p-menuitem div {
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+}
+
+#task_list_type .p-menuitem:hover {
+  cursor: pointer;
+  background-color: #e9ecef;
+}
+
+#task_list_type .p-menuitem .active {
+  color: #2196f3 !important;
+}
+
+#task_list_type .p-menuitem i {
+  margin-right: 5px;
+}
+
+#task {
+  height: 89% !important;
+}
+
+#task-tree {
+  height: 89% !important;
+}
+
+.p-card .p-card-title {
+  font-size: 14px !important;
+  text-align: center;
+}
+
+.p-card .p-card-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.p-card .p-card-content > span {
+  margin-top: 10px;
+}
+
+.p-card .p-card-body {
+  padding: 1rem 0 0 0 !important;
+}
+
+.p-card .p-card-body .p-card-title,
+.p-card .p-card-body .p-card-content {
+  padding: 0rem 1rem;
+  position: relative;
+}
+
+#task-grid .p-progressbar {
+  height: 1rem !important;
+}
+
+#task-grid .p-progressbar .p-progressbar-label {
+  line-height: 1rem !important;
+}
+
+.p-card .p-card-title span:hover {
+  cursor: pointer;
+  color: #2196f3 !important;
+}
+
+.p-card:hover .card-chucnang {
+  display: flex !important;
+}
+
+.p-card:hover {
+  cursor: pointer;
+}
+
+.p-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.scroll-outer {
+  visibility: hidden;
+}
+
+.scroll-inner,
+.scroll-outer:hover,
+.scroll-outer:focus {
+  visibility: visible;
+}
+
+.choose-user {
+  color: #2196f3;
+}
+
+.choose-user:hover {
+  cursor: pointer;
+}
+</style>

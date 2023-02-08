@@ -1,0 +1,793 @@
+﻿@using GleamTech.AspNet.Mvc
+@using GleamTech.DocumentUltimate;
+@using GleamTech.DocumentUltimate.AspNet.UI
+@model DocumentViewer
+@{
+    Layout = null;
+    string domainName = HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority);
+    string host = HttpContext.Current.Request.Url.Authority;
+    Model.ClientEvents = new DocumentViewerClientEvents
+    {
+        Loaded = "documentViewerLoaded",
+        PageRendered = "documentViewerPageRendered",
+    };
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>@ViewBag.title</title>
+    <link href="~/Content/jquery-ui-1.13.0.css" rel="stylesheet" />
+    @*<link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">*@
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+        }
+
+        div#documentViewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        #divSignImage {
+            text-align: center;
+            padding: 20px;
+            height: calc(100% - 40px)
+        }
+
+            #divSignImage img {
+                margin-bottom: 20px;
+                border: 5px solid transparent;
+                margin-top: 20px;
+            }
+
+            #divSignImage .wraptxt {
+                margin-bottom: 20px
+            }
+
+                #divSignImage .wraptxt .waterinsert {
+                    padding: 10px;
+                    border: 2px solid #edebe9;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                    font-size: 13px;
+                    font-family: 'Times New Roman', Times, serif;
+                }
+
+                    #divSignImage .wraptxt .waterinsert:hover {
+                        background-color: red;
+                        color: #fff;
+                        cursor: pointer
+                    }
+
+                    #divSignImage .wraptxt .waterinsert.txtactive {
+                        background-color: red;
+                        color: #fff;
+                    }
+
+            #divSignImage img:hover, #divSignImage img.imgactive {
+                margin-bottom: 20px;
+                border: 5px solid red;
+            }
+
+        #wrapcondau #selectcondau {
+            display: block;
+            padding: 10px;
+            border: 2px solid #edebe9;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 13px;
+            margin: 10px auto 0 auto;
+        }
+
+        #dauimg {
+            width: 190px;
+            height: 190px
+        }
+    </style>
+    @this.RenderHead(Model)
+</head>
+<body>
+    <div id="imgmenu" style="position:fixed;z-index:9999;left:400px;top:400px;box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);transition: 0.3s;padding:20px;background-color:antiquewhite;display:none">
+        <div style="margin:10px;display:flex">
+            <b style="padding:5px;width:98px">Xoá đối tượng</b>
+            <div class="cell-input" style="margin-top: 5px">
+                <div class="checkbox checkbox-circle checkbox-info peers ai-c">
+                    <input oninput="removeImage()" type="checkbox" id="ipRemove" name="ipRemove"> <label class="p-0" for="ipRemove"></label>
+                </div>
+            </div>
+        </div>
+        <div style="margin:10px;display:flex">
+            <b style="padding:5px;width:70px">Độ mờ</b>
+            <span style="margin-top:5px;flex:1">
+                <input oninput="changeOpacity()" id="ipOpacity" type="range" min="1" max="100" step="1" />
+            </span>
+            <span style="font-size: 13px; margin: 0 5px; background-color: #fff; padding:5px; border-radius: 5px;width:30px;text-align:center;height:15px" id="spOpacity"></span>
+        </div>
+        <div style="margin:10px;display:flex">
+            <b style="padding:5px;width:70px">Xoay ảnh</b>
+            <span style="margin-top:5px;flex:1">
+                <input oninput="changeRotation()" id="ipRotation" type="range" min="0" max="360" step="1" />
+            </span>
+            <span style="font-size: 13px; margin: 0 5px; background-color: #fff; padding:5px; border-radius: 5px;width:30px;text-align:center;height:15px" id="spRotation"></span>
+        </div>
+        <div id="italicmenu" style="margin:10px;display:flex">
+            <b style="padding:5px;width:98px">Chữ nghiêng</b>
+            <div class="cell-input" style="margin-top: 5px">
+                <div class="checkbox checkbox-circle checkbox-info peers ai-c">
+                    <input oninput="changeItalic()" type="checkbox" id="ipItalic" name="ipItalic"> <label class="p-0" for="ipItalic"></label>
+                </div>
+            </div>
+        </div>
+        <div id="boldmenu" style="margin:10px;display:flex">
+            <b style="padding:5px;width:98px">Chữ đậm</b>
+            <div class="cell-input" style="margin-top: 5px">
+                <div class="checkbox checkbox-circle checkbox-info peers ai-c">
+                    <input oninput="changeBold()" type="checkbox" id="ipBold" name="ipBold"> <label class="p-0" for="ipBold"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+    @*<button onclick="SignDoc()" type="button" class="btn btn-secondary btnCancelFrom" style="color: white; background-color: #4caf50 !important; height: 40px; position: fixed; left: 105px; border: 1px solid #4caf50; outline: none; cursor: pointer;">
+            Chèn chữ ký
+        </button>*@
+    <div onclick="this.style.display='none'" style=" cursor:pointer;-webkit-transition: height, 0.5s linear; -moz-transition: height, 0.5s linear; -ms-transition: height, 0.5s linear; -o-transition: height, 0.5s linear; transition: height, 0.5s linear; position: fixed; display: none; z-index: 999; top: 100px; left: 25vw; color: #fff; text-align: left; border-radius: 5px; width: auto;max-width:50vw; padding: 20px; max-height: 80vh; overflow-y: auto; background-color: #ff5757; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);" id="error"></div>
+    <div style="display:flex;">
+        <div style="flex:1;height:100vh">
+            @this.RenderBody(Model)
+        </div>
+        <div style="height: calc(100vh - 0px); overflow-y: auto">
+            <div style="margin-left: 20px"><h4 id="titlesign" style="margin-bottom: 0; font-family: Roboto,-apple-system,system-ui,sans-serif;font-size: 14px;color: #72777a;font-weight: 500"></h4></div>
+            <div style="width:240px;background-color:#eee;">
+                <div id="divSignImage" style="background-color:#fff">
+                    <img style="width: 100%" id="signimg" class="waterinsert img" />
+                    <h3 id="emptysign" style="color: red; display: none">Chưa thiết lập chữ ký</h3>
+                    @*<img id="dauimg"/>*@
+                    <div class="wraptxt">
+                        <label style="font-weight: bold">Số ký hiệu </label>
+                        <div spellcheck="false" id="sokhtxt" contenteditable="true" class="waterinsert txt"></div>
+                    </div>
+                    <div class="wraptxt flex" style="display: flex">
+                        <div style="margin-right: 15px">
+                            <label style="font-weight: bold">Ngày </label>
+                            <div style="font-style:italic" id="ngayvbngay" contenteditable="true" class="waterinsert txt"></div>
+                        </div>
+                        <div style="margin-right: 15px">
+                            <label style="font-weight: bold">Tháng </label>
+                            <div style="font-style:italic" id="ngayvbthang" contenteditable="true" class="waterinsert txt"></div>
+                        </div>
+                        <div style="margin-right: 15px">
+                            <label style="font-weight: bold">Năm </label>
+                            <div style="font-style:italic" id="ngayvbnam" contenteditable="true" class="waterinsert txt"></div>
+                        </div>
+                    </div>
+                    <div class="wraptxt">
+                        <label style="font-weight: bold">Ngày văn bản </label>
+                        <div style="font-style:italic" id="ngayvbtxt" contenteditable="true" class="waterinsert txt"></div>
+                    </div>
+                    <div class="wraptxt">
+                        <label style="font-weight: bold">Người ký </label>
+                        <div style="font-style:italic" id="nguoikytxt" contenteditable="true" class="waterinsert txt"></div>
+                    </div>
+                    <div id="wrapcondau">
+                        <label style="font-weight: bold">Con dấu </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="~/Scripts/jquery-ui-1.13.0.js"></script>
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>*@
+    <script>
+        // store ref to original method in variable
+        function clearConsole() {
+            setTimeout(function () {
+                if (typeof console._commandLineAPI !== 'undefined') {
+                    console.API = console._commandLineAPI;
+                } else if (typeof console._inspectorCommandLineAPI !== 'undefined') {
+                    console.API = console._inspectorCommandLineAPI;
+                } else if (typeof console.clear !== 'undefined') {
+                    console.API = console;
+                }
+                //console.API.clear();
+            }, 1000);
+        }
+        const originalConsoleError = console.error;
+        // overwrite ref to method with custom function
+        function setloi(ms) {
+            const myDiv = document.querySelector('#error');
+            // write error to div
+            if (myDiv) {
+                myDiv.innerText += ms;
+                myDiv.innerHTML = '<i style="font-size:20pt" class="la la-warning"></i> ' + myDiv.innerHTML + '<br>';
+                myDiv.style.display = 'block';
+                clearConsole();
+                let cloak = document.querySelector(".ng-cloak");
+                if (cloak)
+                    cloak.classList.remove("ng-cloak");
+            }
+        }
+        window.onerror = function (e) {
+            setloi(e);
+        };
+        console.error = function (...args) {
+            // get your out-div
+            const myDiv = document.querySelector('#error');
+            // write error to div
+            if (myDiv) {
+                let ms = "";
+                args.forEach(function (ag) {
+                    if (typeof ag === 'object') {
+                        let st = ag.stack.replaceAll(domainUrl, "").split("\n");
+                        ms += ag.message + "<br>" + st[0] + "<br>" + st[1] + "<br>" + st[1];
+                    }
+                    else
+                        ms += ag;
+                });
+                myDiv.innerHTML += ms + '<p></p>';
+                myDiv.style.display = 'block';
+                clearConsole();
+                let cloak = document.querySelector(".ng-cloak");
+                if (cloak)
+                    cloak.classList.remove("ng-cloak");
+            }
+            // call original method
+            return originalConsoleError.apply(this, args);
+        };
+    </script>
+    <script type="text/javascript">
+        let viewer;
+        let WaterImages = [];
+        window.addEventListener("message", displayMessage, false);
+        window.getWaterImages = function () {
+            return WaterImages;
+        }
+        function formatDate(date) {
+            var d = new Date(date),
+                month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+
+            if (month.length < 2)
+                month = '0' + month;
+            if (day.length < 2)
+                day = '0' + day;
+
+            return [day, month, year].join('/');
+        }
+        renderInfoDoc = function (docitem) {
+            document.getElementById('signimg').style.display = 'none';
+            document.getElementById('italicmenu').style.display = 'flex';
+            Array.from(document.getElementsByClassName('wraptxt')).forEach(function (r) {
+                if (r.classList.contains('flex')) {
+                    r.style.display = 'flex';
+                }
+                else r.style.display = 'block';
+            });
+            document.getElementById('wrapcondau').style.display = 'block';
+            document.getElementById('sokhtxt').innerHTML = docitem.doc_code;
+            document.getElementById('nguoikytxt').innerHTML = docitem.signer;
+            let ngvb = formatDate(docitem.doc_date);
+            document.getElementById('ngayvbngay').innerHTML = ngvb.split('/')[0];
+            document.getElementById('ngayvbthang').innerHTML = ngvb.split('/')[1];
+            document.getElementById('ngayvbnam').innerHTML = ngvb.split('/')[2];
+            document.getElementById('ngayvbtxt').innerHTML = 'ngày ' + ngvb.split('/')[0] + ' tháng ' + ngvb.split('/')[1] + ' năm ' + ngvb.split('/')[2];
+        };
+        changeDocSigner = function (docitem) {
+            document.getElementById('nguoikytxt').innerHTML = docitem.signer;
+        }
+        changeDocCode = function (docitem) {
+            document.getElementById('sokhtxt').innerHTML = docitem.doc_code;
+        }
+        changeDocDate = function (docitem) {
+            let ngvb = formatDate(docitem.doc_date);
+            document.getElementById('ngayvbngay').innerHTML = ngvb.split('/')[0];
+            document.getElementById('ngayvbthang').innerHTML = ngvb.split('/')[1];
+            document.getElementById('ngayvbnam').innerHTML = ngvb.split('/')[2];
+            document.getElementById('ngayvbtxt').innerHTML = 'ngày ' + ngvb.split('/')[0] + ' tháng ' + ngvb.split('/')[1] + ' năm ' + ngvb.split('/')[2];
+        }
+        renderStamp = function (type, stamps) {
+            if (type) {
+                //Create and append select list
+                var selectList = document.createElement("select");
+                selectList.id = "selectcondau";
+                selectList.addEventListener('change', function () {
+                    let dau = document.getElementById("dauimg");
+                    dau.setAttribute("src", this.value);
+                    dau.setAttribute("relsrc", this.value);
+                }, false);
+                document.getElementById("wrapcondau").appendChild(selectList);
+
+                //Create and append the options
+                for (var i = 0; i < stamps.length; i++) {
+                    var option = document.createElement("option");
+                    option.value = stamps[i].image;
+                    option.text = stamps[i].stamp_name;
+                    selectList.appendChild(option);
+                }
+
+                if (stamps[0]) {
+                    var img = document.createElement("img");
+                    img.id = "dauimg";
+                    img.classList.add('waterinsert');
+                    img.classList.add('img');
+                    img.setAttribute("src", stamps[0].image);
+                    img.setAttribute("relsrc", stamps[0].image);
+                    bindClickElement(img);
+                    document.getElementById("divSignImage").appendChild(img);
+                }
+            }
+            else {
+                document.getElementById('dauimg').remove();
+            }
+        };
+        renderSignature = function (type, signatures) {
+            // 1: Chu ky, 0: Chu ky nhay
+            let sign = type === 1 ? signatures.signature : signatures.flash_signature;
+            if (sign) {
+                document.getElementById('signimg').setAttribute("src", sign);
+                document.getElementById('signimg').setAttribute("relsrc", sign);
+            }
+            else {
+                document.getElementById('signimg').style.display = 'none';
+                document.getElementById('emptysign').style.display = 'block';
+            }
+            document.getElementById('italicmenu').style.display = 'none';
+            Array.from(document.getElementsByClassName('wraptxt')).forEach(function (r) {
+                r.style.display = 'none';
+            });
+            document.getElementById('wrapcondau').style.display = 'none';
+        }
+        function displayMessage(evt) {
+            if (evt.data.is_type === 'stamp') {
+                document.getElementById('titlesign').innerHTML = evt.data.titlesign;
+                // get thong tin va dau
+                renderInfoDoc(evt.data.docitem);
+                renderStamp(evt.data.docitem, evt.data.stamps);
+            }
+            else if (evt.data.is_type === 'sign') {
+                document.getElementById('titlesign').innerHTML = evt.data.titlesign;
+                renderSignature(evt.data.type_signature, evt.data.signatures);
+            }
+            else if (evt.data.getwatermark) {
+                window.parent.postMessage({ "WaterImages": WaterImages, "file_path": evt.data.file_path }, "*");
+            }
+            else if (evt.data.changedoccode) {
+                changeDocCode(evt.data.docitem);
+            }
+            else if (evt.data.changedocsigner) {
+                changeDocSigner(evt.data.docitem);
+            }
+            else if (evt.data.changedocdate) {
+                changeDocDate(evt.data.docitem);
+            }
+        }
+        let WaterImage = {};
+        function addCSS(documentViewer, css) {
+            var cssLink = documentViewer.contentWindow.document.createElement("link");
+            cssLink.href = css;
+            cssLink.rel = "stylesheet";
+            cssLink.type = "text/css";
+            documentViewer.contentWindow.document.head.appendChild(cssLink);
+        }
+        function addScript(documentViewer, js) {
+            var newScript = documentViewer.contentWindow.document.createElement("script");
+            newScript.src = js;
+            documentViewer.contentWindow.document.body.appendChild(newScript);
+        }
+        function bindClickElement(el) {
+            el.addEventListener("click", function (e) {
+                // img
+                if (e.target.classList.contains('img')) {
+                    let imgact = document.querySelector(".imgactive");
+                    if (imgact)
+                        imgact.classList.remove("imgactive");
+                    // remove txt active
+                    let txtact = document.querySelector(".txtactive");
+                    if (txtact)
+                        txtact.classList.remove("txtactive");
+                    //if (WaterImage && WaterImage.id_tag) {
+                    //    let idx = WaterImages.findIndex(x => x.id_tag === WaterImage.id_tag);
+                    //    if (idx > -1) {
+                    //        WaterImages.splice(idx, 1);
+                    //    }
+                    //}
+                    //
+                    e.target.classList.add("imgactive");
+                    let src = e.target.getAttribute("src");
+                    WaterImage = WaterImages.find(x => x.ImageFile == src);
+                    if (!WaterImage) {
+                        let max_id = 1;
+                        if (WaterImages.length > 0) {
+                            max_id = Math.max(...WaterImages.map(o => o.id));
+                        }
+                        WaterImage = { ImageFile: src, id: max_id + 1, Rotation: 0, Opacity: 100 };
+                        //WaterImages.push(WaterImage);
+                    }
+                    WaterImage.ImageFile = src;
+                    if (!WaterImage.Width) {
+                        WaterImage.Width = e.target.clientWidth;
+                        WaterImage.Height = e.target.clientHeight;
+                    }
+
+                    // Active inside img
+                    document.getElementById("imgmenu").style.display = "none";
+                    document.getElementsByTagName('iframe')[0].contentWindow.document.querySelectorAll("img.signimage").forEach(function (r) {
+                        if (r.getAttribute("src") == src) {
+                            r.classList.add("imgclick");
+                        } else {
+                            r.classList.remove("imgclick");
+                        }
+                    });
+                }
+                //txt
+                else if (e.target.classList.contains('txt')) {
+                    let imgact = document.querySelector(".txtactive");
+                    if (imgact)
+                        imgact.classList.remove("txtactive");
+                    // remove img active
+                    let dauact = document.querySelector(".imgactive");
+                    if (dauact)
+                        dauact.classList.remove("imgactive");
+                    //if (WaterImage && WaterImage.src) {
+                    //    let idx = WaterImages.findIndex(x => x.ImageFile === WaterImage.ImageFile);
+                    //    if (idx > -1) {
+                    //        WaterImages.splice(idx, 1);
+                    //    }
+                    //}
+                    //
+                    e.target.classList.add("txtactive");
+                    let diff = e.target.getAttribute("id");
+                    WaterImage = WaterImages.find(x => x.id_tag == diff);
+                    if (!WaterImage) {
+                        let max_id = 1;
+                        if (WaterImages.length > 0) {
+                            max_id = Math.max(...WaterImages.map(o => o.id));
+                        }
+                        WaterImage = { Text: e.target.innerText, id_tag: diff, id: max_id + 1, Rotation: 0, Opacity: 100 };
+                        //WaterImages.push(WaterImage);
+                    }
+                    WaterImage.Text = e.target.innerText;
+                    //if (!WaterImage.Width) {
+                    //    WaterImage.Width = e.target.clientWidth;
+                    //    WaterImage.Height = e.target.clientHeight;
+                    //}
+                    // Active inside img
+                    document.getElementById("imgmenu").style.display = "none";
+                    document.getElementsByTagName('iframe')[0].contentWindow.document.querySelectorAll("p.signimage").forEach(function (r) {
+                        if (r.innerText == WaterImages.Text) {
+                            r.classList.add("imgclick");
+                        } else {
+                            r.classList.remove("imgclick");
+                        }
+                    });
+                }
+            })
+        }
+        window.Outside_bindClickElement = function (el) {
+            bindClickElement(el);
+        }
+        function documentViewerLoaded(sender, e) {
+            var documentViewer = sender.iframe;
+            addCSS(documentViewer, "/Content/DocumentViewer.css")
+            document.querySelectorAll("#divSignImage .waterinsert").forEach(function (el) {
+                bindClickElement(el);
+            });
+            $("#divSignImage .waterinsert").eq(0).trigger("click");
+            //
+            viewer = document.getElementsByTagName('iframe')[0].contentWindow.document.getElementById("viewer");
+            viewer.removeEventListener("contextmenu", contextmenuView);
+            viewer.addEventListener("contextmenu", contextmenuView);
+            viewer.removeEventListener("click", clickView);
+            viewer.addEventListener("click", clickView);
+
+            //
+            window.addEventListener('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && (e.which === 61 || e.which === 107 || e.which === 173 || e.which === 109 || e.which === 187 || e.which === 189)) {
+                    e.preventDefault();
+                }
+            }, false);
+            const handleWheel = function (e) {
+                if (e.ctrlKey || e.metaKey)
+                    e.preventDefault();
+            };
+            window.addEventListener("wheel", handleWheel, { passive: false });
+            document.body.style.zoom = 1.0;
+        }
+        function removeImage() {
+            let ipRemove = document.getElementById("ipRemove");
+            let imgclick = viewer.querySelector(".imgclick");
+            if (imgclick) {
+                WaterImage.Remove = ipRemove.checked;
+                if (WaterImage.Remove) {
+                    if (imgclick.tagName == 'IMG') {
+                        imgclick.parentElement.parentElement.removeChild(imgclick.parentElement);
+                        let imgact = document.querySelector(".imgactive");
+                        if (imgact)
+                            imgact.classList.remove("imgactive");
+                    }
+                    else {
+                        imgclick.parentElement.removeChild(imgclick)
+                        let txtact = document.querySelector(".txtactive");
+                        if (txtact)
+                            txtact.classList.remove("txtactive");
+                    }
+                    var idx = WaterImages.findIndex(x => x.id === WaterImage.id);
+                    if (idx > -1) {
+                        WaterImages.splice(idx, 1);
+                    }
+                    document.getElementById("imgmenu").style.display = "none";
+                    ipRemove.checked = false;
+                }
+            }
+        }
+        function changeOpacity() {
+            let ipOpacity = document.getElementById("ipOpacity");
+            let imgclick = viewer.querySelector(".imgclick");
+            if (imgclick) {
+                let wi = WaterImages.find(x => x.id == imgclick.id);
+                wi.Opacity = ipOpacity.value;
+                imgclick.style.opacity = ipOpacity.value / 100;
+                ipOpacity.setAttribute("title", ipOpacity.value);
+                spOpacity.innerText = ipOpacity.value;
+            }
+        }
+        function changeRotation() {
+            let ipRotation = document.getElementById("ipRotation");
+            let imgclick = viewer.querySelector(".imgclick");
+            if (imgclick) {
+                let wi = WaterImages.find(x => x.id == imgclick.id);
+                wi.Rotation = ipRotation.value;
+                imgclick.style.transform = "rotate(" + ipRotation.value + "deg)";
+                ipRotation.setAttribute("title", ipRotation.value);
+                spRotation.innerText = ipRotation.value;
+            }
+        }
+        function changeItalic() {
+            let ipItalic = document.getElementById("ipItalic");
+            let imgclick = viewer.querySelector(".imgclick");
+            if (imgclick) {
+                let wi = WaterImages.find(x => x.id == imgclick.id);
+                wi.Italic = ipItalic.checked;
+                if (wi.Italic) imgclick.style.fontStyle = "italic";
+                else imgclick.style.fontStyle = "normal";
+            }
+        }
+        function changeBold() {
+            let ipBold = document.getElementById("ipBold");
+            let imgclick = viewer.querySelector(".imgclick");
+            if (imgclick) {
+                let wi = WaterImages.find(x => x.id == imgclick.id);
+                wi.Bold = ipBold.checked;
+                if (wi.Bold) imgclick.style.fontWeight = "bold";
+                else imgclick.style.fontWeight = "normal";
+            }
+        }
+        function appendImage() {
+            let iframe = document.getElementsByTagName('iframe')[0].contentWindow.document;
+            WaterImages.forEach(function (wim) {
+                let pc = iframe.getElementById("pageContainer" + wim.Page);
+                if (pc) {
+                    if (pc.querySelector(".imgWaterImage" + wim.id)) {
+                        pc.querySelector(".imgWaterImage" + wim.id).remove();
+                    }
+                    if (wim.Text) {
+                        let img = iframe.createElement("p");
+                        img.innerText = wim.Text;
+                        img.setAttribute("id", wim.id);
+                        img.setAttribute("draggable", true);
+                        img.className = "signimage imgWaterImage" + wim.id;
+                        img.style.left = wim.HorizontalDistance + "px";
+                        img.style.top = wim.VerticalDistance + "px";
+                        img.style.width = wim.Width + 'px';
+                        img.style.height = wim.Height + 'px';
+
+                        let ipItalic = document.getElementById("ipItalic");
+                        ipItalic.checked = wim.Italic;
+                        img.style.fontStyle = ipItalic.checked ? 'italic' : 'normal';
+
+                        let ipBold = document.getElementById("ipBold");
+                        ipBold.checked = wim.Bold;
+                        img.style.fontWeight = ipBold.checked ? 'bold' : 'normal';
+
+                        let ipRotation = document.getElementById("ipRotation");
+                        let ipOpacity = document.getElementById("ipOpacity");
+                        ipOpacity.value = wim.Opacity;
+                        ipRotation.value = wim.Rotation;
+                        spOpacity.innerText = ipOpacity.value;
+                        spRotation.innerText = ipRotation.value;
+                        img.style.opacity = ipOpacity.value / 100;
+                        ipOpacity.setAttribute("title", ipOpacity.value);
+                        img.style.transform = "rotate(" + ipRotation.value + "deg)";
+                        ipRotation.setAttribute("title", ipRotation.value);
+                        img.addEventListener("click", function (e) {
+                            clearReize();
+                            WaterImage = WaterImages.find(x => x.Text == e.target.innerText);
+                            if (document.querySelector("#divSignImage .txtactive"))
+                                document.querySelector("#divSignImage .txtactive").classList.remove("txtactive");
+
+                            if (document.querySelector("#divSignImage>img.imgactive"))
+                                document.querySelector("#divSignImage>img.imgactive").classList.remove("imgactive");
+
+                            document.querySelectorAll("#divSignImage .waterinsert").forEach(function (r) {
+                                if (r.innerText === e.target.innerText) {
+                                    r.classList.add("txtactive");
+                                }
+                            })
+                            //.
+                            e.target.classList.add("imgclick");
+                            //$(e.target).resizable({
+                            //    aspectRatio: WaterImage.Width / WaterImage.Height,
+                            //    stop: function (e, ui) {
+                            //        WaterImage.Width = ui.size.width;
+                            //        WaterImage.Height = ui.size.height;
+                            //        clearReize();
+                            //    }
+                            //});
+                        })
+                        //Resize
+                        pc.appendChild(img);
+                        $(img).draggable({
+                            containment: "#pageWidgetContainer" + wim.Page, stop: function (ev, ui) {
+                                let wi = WaterImages.find(x => x.id == ev.target.id);
+                                wi.HorizontalDistance = ui.position.left;
+                                wi.VerticalDistance = ui.position.top;
+                            }
+                        });
+                    }
+                    else {
+                        let img = iframe.createElement("img");
+                        img.setAttribute("id", wim.id);
+                        img.src = wim.ImageFile;
+                        img.setAttribute("draggable", true);
+                        img.className = "signimage imgWaterImage" + wim.id;
+                        img.style.left = wim.HorizontalDistance + "px";
+                        img.style.top = wim.VerticalDistance + "px";
+                        img.style.width = wim.Width + 'px';
+                        img.style.height = wim.Height + 'px';
+                        let ipRotation = document.getElementById("ipRotation");
+                        let ipOpacity = document.getElementById("ipOpacity");
+                        ipOpacity.value = wim.Opacity;
+                        ipRotation.value = wim.Rotation;
+                        spOpacity.innerText = ipOpacity.value;
+                        spRotation.innerText = ipRotation.value;
+                        img.style.opacity = ipOpacity.value / 100;
+                        ipOpacity.setAttribute("title", ipOpacity.value);
+                        img.style.transform = "rotate(" + ipRotation.value + "deg)";
+                        ipRotation.setAttribute("title", ipRotation.value);
+                        img.addEventListener("click", function (e) {
+                            clearReize();
+                            WaterImage = WaterImages.find(x => x.ImageFile == e.target.getAttribute("src"));
+                            if (document.querySelector("#divSignImage>img.imgactive"))
+                                document.querySelector("#divSignImage>img.imgactive").classList.remove("imgactive");
+
+                            if (document.querySelector("#divSignImage .txtactive"))
+                                document.querySelector("#divSignImage .txtactive").classList.remove("txtactive");
+
+                            document.querySelectorAll("#divSignImage>img").forEach(function (r) {
+                                if (r.getAttribute("src") === e.target.getAttribute("src")) {
+                                    r.classList.add("imgactive");
+                                }
+                            })
+                            //.
+                            e.target.classList.add("imgclick");
+                            let wi = WaterImages.find(x => x.id == e.target.id);
+                            $(e.target).resizable({
+                                aspectRatio: wi.Width / wi.Height,
+                                stop: function (e, ui) {
+                                    wi.Width = ui.size.width;
+                                    wi.Height = ui.size.height;
+                                    clearReize();
+                                }
+                            });
+                        })
+                        //Resize
+                        pc.appendChild(img);
+                        $(img).draggable({
+                            containment: "#pageWidgetContainer" + wim.Page, stop: function (ev, ui) {
+                                let wi = WaterImages.find(x => x.id == ev.target.id);
+                                wi.HorizontalDistance = ui.position.left;
+                                wi.VerticalDistance = ui.position.top;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        function clearReize() {
+            let simgs = viewer.querySelectorAll(".signimage");
+            for (i = 0; i < simgs.length; ++i) {
+                let el = simgs[i];
+                el.classList.remove("imgclick");
+                try {
+                    $(el).resizable({ disabled: true });
+                    $(el).resizable('destroy');
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        }
+        function contextmenuView(e) {
+            clearReize();
+            if (e.target.className.includes("signimage")) {
+                return false;
+            }
+            let pid = e.target;
+            if (!pid.getAttribute("id")) {
+                return false;
+            }
+            ip = parseInt(pid.getAttribute("id").replaceAll("pageContainer", "").replaceAll("pageWidgetContainer", ""));
+            if (ip >= 0) {
+                let max_id = 1;
+                if (WaterImages.length > 0) {
+                    max_id = Math.max(...WaterImages.map(o => o.id));
+                }
+                if (!WaterImage.id_tag) {
+                    WaterImage = { id: max_id + 1, Rotation: 0, Opacity: 100 };
+
+                    WaterImage.Page = ip;
+                    var imgactive = document.querySelector("img.imgactive");
+                    WaterImage.ImageFile = imgactive.getAttribute("src");
+                    WaterImage.ImageRelPath = imgactive.getAttribute("relsrc");
+                    WaterImage.Width = imgactive.clientWidth;
+                    WaterImage.Height = imgactive.clientHeight;
+                    WaterImage.PageRange = WaterImage.Page + 1;
+                    //WaterImage.HorizontalDistanceLayer = e.layerX;
+                    WaterImage.HorizontalDistance = e.layerX;
+                    //WaterImage.VerticalDistanceLayer = e.layerY;
+                    WaterImage.VerticalDistance = e.layerY;
+
+                    WaterImages.push(WaterImage);
+
+                    appendImage();
+                }
+                else {
+                    let id_tag = WaterImage.id_tag;
+                    WaterImage = { id_tag: id_tag, id: max_id + 1, Rotation: 0, Opacity: 100 };
+
+                    WaterImage.Page = ip;
+                    var imgactive = document.querySelector(".txtactive");
+                    WaterImage.Text = imgactive.innerText;
+                    //WaterImage.Width = imgactive.clientWidth;
+                    //WaterImage.Height = imgactive.clientHeight;
+                    WaterImage.PageRange = WaterImage.Page + 1;
+                    //WaterImage.HorizontalDistanceLayer = e.layerX;
+                    WaterImage.HorizontalDistance = e.layerX;
+                    //WaterImage.VerticalDistanceLayer = e.layerY;
+                    WaterImage.VerticalDistance = e.layerY;
+
+                    WaterImages.push(WaterImage);
+
+                    appendImage('txt');
+                }
+                document.getElementById("imgmenu").style.display = "none";
+            }
+        }
+        function showImageMenu(e) {
+            document.getElementById("imgmenu").style.display = "block";
+            document.getElementById("imgmenu").style.left = (e.clientX - 100) + "px";
+            document.getElementById("imgmenu").style.top = (e.clientY > 250 ? (e.clientY - 250) : (e.clientY + 50)) + "px";
+        }
+        function clickView(e) {
+            if (e.target.className.includes("signimage")) {
+                showImageMenu(e);
+                let id_target = e.target.getAttribute("id")
+                let wi = WaterImages.find(x => x.id == id_target);
+                WaterImage = JSON.parse(JSON.stringify(wi));
+                return false;
+            }
+            document.getElementById("imgmenu").style.display = "none";
+            clearReize();
+        };
+        function documentViewerPageRendered(sender, e) {
+            //if (WaterImages.indexOf(x => e.pageNumber == x.Page)!=-1) {
+            appendImage();
+            //}
+        }
+    </script>
+</body>
+</html>
