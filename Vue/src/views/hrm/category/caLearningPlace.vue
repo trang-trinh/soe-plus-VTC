@@ -308,11 +308,7 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa nơi đào tạo";
   isSaveTem.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_admin) {
-    learning_place.value.organization_id = 0;
-  } else {
-    learning_place.value.organization_id = 1;
-  }
+  
 };
 //Xóa bản ghi
 const delTem = (Tem) => {

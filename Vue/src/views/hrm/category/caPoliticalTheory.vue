@@ -308,11 +308,7 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa lý luận chính trị";
   isSaveTem.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_admin) {
-    political_theory.value.organization_id = 0;
-  } else {
-    political_theory.value.organization_id = 1;
-  }
+ 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {

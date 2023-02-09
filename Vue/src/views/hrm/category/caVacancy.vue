@@ -308,11 +308,7 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa vị trí tuyển dụng";
   isSaveTem.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_admin) {
-    vacancy.value.organization_id = 0;
-  } else {
-    vacancy.value.organization_id = 1;
-  }
+  
 };
 //Xóa bản ghi
 const delTem = (Tem) => {

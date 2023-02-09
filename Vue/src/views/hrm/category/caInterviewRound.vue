@@ -308,11 +308,7 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa vòng phỏng vấn";
   isSaveTem.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_admin) {
-    interview_round.value.organization_id = 0;
-  } else {
-    interview_round.value.organization_id = 1;
-  }
+  
 };
 //Xóa bản ghi
 const delTem = (Tem) => {

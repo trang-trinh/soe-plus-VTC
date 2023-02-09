@@ -308,11 +308,7 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa cấp nhân sự";
   isSaveTem.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_admin) {
-    personnel_level.value.organization_id = 0;
-  } else {
-    personnel_level.value.organization_id = 1;
-  }
+ 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {

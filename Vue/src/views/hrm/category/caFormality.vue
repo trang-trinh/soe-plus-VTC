@@ -308,11 +308,7 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa hình thức";
   isSaveTem.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_admin) {
-    formality.value.organization_id = 0;
-  } else {
-    formality.value.organization_id = 1;
-  }
+ 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {

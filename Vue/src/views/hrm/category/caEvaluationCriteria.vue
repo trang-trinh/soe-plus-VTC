@@ -309,11 +309,7 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa tiêu chí đánh giá";
   isSaveTem.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_admin) {
-    evaluation_criteria.value.organization_id = 0;
-  } else {
-    evaluation_criteria.value.organization_id = 1;
-  }
+ 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {

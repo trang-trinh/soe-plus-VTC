@@ -349,11 +349,7 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa trình độ học vấn";
   isSaveTem.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_admin) {
-    academic_level.value.organization_id = 0;
-  } else {
-    academic_level.value.organization_id = 1;
-  }
+ 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
