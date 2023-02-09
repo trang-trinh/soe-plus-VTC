@@ -962,7 +962,23 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             @click="onCheckBox(data.data, true, true)"
           /> </template
       ></Column>
-
+<Column
+        field="organization_id"
+        header="Hệ thống"
+        headerStyle="text-align:center;max-width:125px;height:50px"
+        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <div v-if="data.data.organization_id == 0">
+            <i
+              class="pi pi-check text-blue-400"
+              style="font-size: 1.5rem"
+            ></i>
+          </div>
+          <div v-else></div>
+        </template>
+      </Column>
       <Column
         header="Chức năng"
         class="align-items-center justify-content-center text-center"
