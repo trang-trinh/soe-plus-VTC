@@ -1209,26 +1209,34 @@ onMounted(() => {
         <tbody>
           <tr v-for="(item, index) in datalists" :key="index">
             <td width="100" align="center">
-              <Avatar
-                v-bind:label="
-                  item.avatar
-                    ? ''
-                    : item.profile_user_name.substring(0, 1).toUpperCase()
-                "
-                v-bind:image="basedomainURL + item.avatar"
-                style="
-                  background-color: #2196f3;
-                  color: #ffffff;
-                  width: 5rem;
-                  height: 5rem;
-                "
-                :style="{
-                  background: bgColor[index % 7],
-                }"
-                class="mr-2"
-                size="xlarge"
-                shape="circle"
-              />
+                            <div
+                class="flex"
+                style="justify-content: center;"
+              >
+                <img
+                  v-if="item.avatar"
+                  class="cp-0 avatar"
+                  :src="basedomainURL + item.avatar"
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
+                />
+                <div
+                  class="avatar format-center"
+                  v-if="!item.avatar"
+                  :style="{
+                    background: bgColor[index % 7],
+                  }"
+                >
+                  <span
+                    style="color: #fff; font-size: 1.5rem; font-weight: 500"
+                    >{{
+                      item.profile_user_name.substring(0, 1).toUpperCase()
+                    }}</span
+                  >
+                </div>
+              </div>
             </td>
             <td>
               <div>
@@ -1282,150 +1290,6 @@ onMounted(() => {
           </tr>
         </tbody>
       </table>
-      <!-- <DataTable
-        :value="datalists"
-        :paginator="true"
-        :rows="options.PageSize"
-        :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-        :scrollable="true"
-        scrollHeight="flex"
-        :loading="options.loading"
-        v-model:selection="selectedLanguages"
-        :lazy="true"
-        @page="onPage($event)"
-        @filter="onFilter($event)"
-        @sort="onSort($event)"
-        :totalRecords="options.totalRecords"
-        dataKey="law_language_id"
-        :rowHover="true"
-        v-model:filters="filters"
-        filterDisplay="menu"
-        :showGridlines="true"
-        filterMode="lenient"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks  NextPageLink LastPageLink RowsPerPageDropdown"
-        responsiveLayout="scroll"
-        :globalFilterFields="['language_name']"
-      >
-        <Column
-          selectionMode="multiple"
-          headerStyle="text-align:center;max-width:75px;height:50px"
-          bodyStyle="text-align:center;max-width:75px;max-height:60px"
-          class="align-items-center justify-content-center text-center"
-        ></Column>
-        <Column
-          field="is_order"
-          header="STT"
-          :sortable="true"
-          headerStyle="text-align:center;max-width:75px;height:50px"
-          bodyStyle="text-align:center;max-width:75px;max-height:60px"
-          class="align-items-center justify-content-center text-center"
-        >
-        </Column>
-        <Column
-          field="profile_id"
-          header="Mã nhân sự"
-          :sortable="true"
-          headerStyle="text-align:center;max-width:100px;height:50px"
-          bodyStyle="text-align:center;max-width:100px;max-height:60px"
-          class="align-items-center justify-content-center text-center"
-        >
-        </Column>
-        <Column
-          field="profile_user_name"
-          header="Tên nhân sự"
-          :sortable="true"
-          headerStyle="height:50px"
-          bodyStyle="max-height:60px"
-        >
-        </Column>
-
-        <Column
-          field="status"
-          header="Hiển thị"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;max-height:60px"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="data">
-            <Checkbox
-              :binary="data.data.status"
-              v-model="data.data.status"
-              @click="onCheckBox(data.data)"
-            />
-          </template>
-        </Column>
-        <Column
-          field="organization_id"
-          header="Hệ thống"
-          headerStyle="text-align:center;max-width:125px;height:50px"
-          bodyStyle="text-align:center;max-width:125px;max-height:60px"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="data">
-            <div v-if="data.data.organization_id == 0">
-              <i
-                class="pi pi-check text-blue-400"
-                style="font-size: 1.5rem"
-              ></i>
-            </div>
-            <div v-else></div>
-          </template>
-        </Column>
-        <Column
-          header="Chức năng"
-          class="align-items-center justify-content-center text-center"
-          headerStyle="text-align:center;max-width:150px;height:50px;"
-          bodyStyle="text-align:center;max-width:150px;max-height:60px;"
-        >
-          <template #body="Language">
-            <div
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Language.data.created_by ||
-                (store.state.user.is_admin == true &&
-                  store.state.user.organization_id ==
-                    Language.data.organization_id)
-              "
-            >
-              <Button
-                @click="editLanguage(Language.data)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                "
-                type="button"
-                icon="pi pi-pencil"
-                v-tooltip="'Sửa'"
-              ></Button>
-              <Button
-                @click="delLanguage(Language.data, true)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                "
-                type="button"
-                icon="pi pi-trash"
-                v-tooltip="'Xóa'"
-              ></Button>
-            </div>
-          </template>
-        </Column>
-        <template #empty>
-          <div
-            class="
-              align-items-center
-              justify-content-center
-              p-4
-              text-center
-              m-auto
-            "
-            v-if="!isFirst"
-          >
-            <img src="../../assets/background/nodata.png" height="144" />
-            <h3 class="m-1">Không có dữ liệu</h3>
-          </div>
-        </template>
-      </DataTable> -->
     </div>
   </div>
   <Dialog
@@ -1493,6 +1357,7 @@ onMounted(() => {
                       spellcheck="false"
                       class="col-4 ip33"
                       v-model="profile.profile_id"
+                      v-bind:disabled="!isAdd"
                     />
                     <label class="col-2 text-left p-0 pl-2">Mã chấm công</label>
                     <InputText
@@ -2188,7 +2053,6 @@ onMounted(() => {
                         :showUploadButton="false"
                         :showCancelButton="false"
                         :multiple="false"
-                        :fileLimit="1"
                         accept=""
                         :maxFileSize="500000000"
                         @select="onUploadFile"
@@ -2482,42 +2346,16 @@ onMounted(() => {
               <div class="field col-12 md:col-12 flex">
                 <label class="text-left col-2">Tải file lên </label>
                 <div class="col-10 p-0">
-                  <FileUpload
-                    chooseLabel="Chọn File"
-                    :showUploadButton="false"
-                    :showCancelButton="false"
-                    :multiple="false"
-                    :fileLimit="1"
-                    accept=""
-                    @select="onUploadFile"
-                    @remove="removeFile"
-                    ref="uploadFile"
-                  >
-                    <template #empty>
-                      <div
-                        class="
-                          flex
-                          align-items-center
-                          justify-content-center
-                          flex-column
-                        "
-                        @click="onUploadFile"
-                      >
-                        <i
-                          class="
-                            pi pi-cloud-upload
-                            border-2 border-circle
-                            p-5
-                            text-6xl text-400
-                            border-400
-                          "
-                        />
-                        <p class="mt-4 mb-0">
-                          Hoặc kéo thả vào đây để upload file
-                        </p>
-                      </div>
-                    </template>
-                  </FileUpload>
+                   <FileUpload
+                        chooseLabel="Chọn File"
+                        :showUploadButton="false"
+                        :showCancelButton="false"
+                        :multiple="false"
+                        accept=""
+                        :maxFileSize="500000000"
+                        @select="onUploadFile"
+                        @remove="removeFile"
+                      />
                 </div>
               </div>
             </AccordionTab>
@@ -2563,7 +2401,12 @@ onMounted(() => {
 .ipnone {
   display: none;
 }
-
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:5px;
+  object-fit:cover;
+}
 .inputanh {
   /* border: 1px solid #ccc; */
   width: 140px;
@@ -2576,6 +2419,9 @@ onMounted(() => {
   object-fit: cover;
   width: 100%;
   height: 100%;
+}
+table td{
+  padding: 5px;
 }
 .d-lang-table {
   height: calc(100vh - 155px);
@@ -2602,6 +2448,11 @@ onMounted(() => {
 ::v-deep(.p-tabview-nav-container) {
   .p-tabview-nav {
     border-top: 1px solid #dee2e6;
+  }
+}
+::v-deep(.p-tabview p-component) {
+  .p-tabview-panels {
+    padding: 0.5rem !important;
   }
 }
 </style>
