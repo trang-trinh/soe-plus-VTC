@@ -385,6 +385,8 @@ const TaskPersonConfig = () =>
 //     import ("../views/hrm/category/Interview.vue");
 const Hrm_Info = () =>
     import ("../views/hrm/Hrm_Info.vue");
+const HrmContract = () =>
+    import ("../views/hrm/contract/contract.vue");
 //end
 // TV
 const ConfigScreenTV = () =>
@@ -1560,6 +1562,11 @@ const router = createRouter({
             path: "/hrm/hrm_profile",
             name: "Hrm_Info",
             component: Hrm_Info,
+        },
+        {
+            path: "/hrm/contract",
+            name: "contract",
+            component: HrmContract,
         },
         // CA_HRM
         {
