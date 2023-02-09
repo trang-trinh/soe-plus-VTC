@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
- 
+
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -17,45 +17,43 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  academic_level_name: {
+  bank_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
- 
 });
 const rules = {
-  academic_level_name: {
+  bank_name: {
     required,
     $errors: [
       {
-        $property: "academic_level_name",
+        $property: "bank_name",
         $validator: "required",
-        $message: "Tên trình độ học vấn không được để trống!",
+        $message: "Tên ngân hàng không được để trống!",
       },
     ],
   },
- 
 };
- 
- 
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
     .post(
-      baseURL + "/api/hrm_ca_academic_level/getData",
-        {
-          str: encr(
-            JSON.stringify({
-        proc: "hrm_ca_academic_level_count",
-        par: [
-          { par: "user_id", va: store.getters.user.user_id },
-          { par: "status", va: null },
-        ],
-      }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },config
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_bank_count",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -64,11 +62,9 @@ const loadCount = () => {
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
-    .catch((error) => {
-      
-    });
+    .catch((error) => {});
 };
-//Lấy dữ liệu academic_level
+//Lấy dữ liệu bank
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -81,24 +77,25 @@ const loadData = (rf) => {
       }
     }
     axios
-         .post(
-      baseURL + "/api/hrm_ca_academic_level/getData",
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
         {
           str: encr(
             JSON.stringify({
-          proc: "hrm_ca_academic_level_list",
-          par: [
-            { par: "pageno", va: options.value.PageNo },
-            { par: "pagesize", va: options.value.PageSize },
-            { par: "user_id", va: store.getters.user.user_id },
-            { par: "status", va: null },
-          ],
-        }),
+              proc: "hrm_ca_bank_list",
+              par: [
+                { par: "pageno", va: options.value.PageNo },
+                { par: "pagesize", va: options.value.PageSize },
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "status", va: null },
+              ],
+            }),
             SecretKey,
             cryoptojs
           ).toString(),
-        },config
-    )
+        },
+        config
+      )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
@@ -112,7 +109,7 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-     
+
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -139,20 +136,19 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].academic_level_id;
+    options.value.id = datalists.value[datalists.value.length - 1].bank_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].academic_level_id;
+    options.value.id = datalists.value[0].bank_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const academic_level = ref({
-  academic_level_name: "",
+const bank = ref({
+  bank_name: "",
   emote_file: "",
   status: true,
   is_default: false,
@@ -161,7 +157,7 @@ const academic_level = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, academic_level);
+const v$ = useVuelidate(rules, bank);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -183,8 +179,8 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  academic_level.value = {
-    academic_level_name: "",
+  bank.value = {
+    bank_name: "",
     emote_file: "",
     status: true,
     is_default: false,
@@ -197,71 +193,43 @@ const openBasic = (str) => {
   headerDialog.value = str;
   displayBasic.value = true;
 };
- 
-const countries = ref([
-  { name: "Nga", code: "US" },
-  { name: "Canada", code: "US" },
-  { name: "Hoa Kỳ", code: "US" },
-  { name: "Trung Quốc", code: "US" },
-  { name: "Brasil", code: "US" },
-  { name: "Úc", code: "US" },
-  { name: "Ấn Độ", code: "US" },
-  { name: " Argentina", code: "US" },
-  { name: "Kazakhstan", code: "US" },
-  { name: "Algérie", code: "US" },
-  { name: "Cộng hòa Dân chủ Congo", code: "US" },
-  { name: "Greenland", code: "US" },
-  { name: "Ả Rập Xê Út", code: "US" },
-  { name: "México", code: "US" },
-  { name: "Indonesia", code: "US" },
-  { name: "Sudan", code: "US" },
-  { name: "Việt Nam", code: "US" },
-  { name: "Nhật Bản", code: "US" },
-  { name: "Thụy Điển", code: "US" },
-  { name: "Thụy Sĩ", code: "US" },
-  { name: "Hàn quốc", code: "US" },
-  { name: "Anh Quốc", code: "US" },
-  { name: "Lào", code: "US" },
-  { name: "Pháp", code: "US" },
-  { name: "Thái lan", code: "US" },
-]);
+
 const closeDialog = () => {
-  academic_level.value = {
-    academic_level_name: "",
+  bank.value = {
+    bank_name: "",
     emote_file: "",
     status: true,
     is_default: false,
     is_order: 1,
   };
- 
+
   displayBasic.value = false;
   loadData(true);
 };
- 
- 
+
 //Thêm bản ghi
- 
+
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
     return;
   }
- 
-  if (academic_level.value.academic_level_name.length > 250) {
+
+  if (bank.value.bank_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên trình độ học vấn không được vượt quá 250 ký tự!",
+      text: "Tên ngân hàng không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
     return;
   }
   let formData = new FormData();
- 
-  if (academic_level.value.countryside_fake)
-    academic_level.value.countryside = academic_level.value.countryside_fake;
-  formData.append("hrm_ca_academic_level", JSON.stringify(academic_level.value));
+
+  if (bank.value.countryside_fake)
+    bank.value.countryside = bank.value.countryside_fake;
+  formData.append("hrm_ca_bank", JSON.stringify(bank.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -270,17 +238,13 @@ const saveData = (isFormValid) => {
   });
   if (!isSaveTem.value) {
     axios
-      .post(
-        baseURL + "/api/hrm_ca_academic_level/add_hrm_ca_academic_level",
-        formData,
-        config
-      )
+      .post(baseURL + "/api/hrm_ca_bank/add_hrm_ca_bank", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm trình độ học vấn thành công!");
+          toast.success("Thêm ngân hàng thành công!");
           loadData(true);
-      
+
           closeDialog();
         } else {
           swal.fire({
@@ -302,17 +266,12 @@ const saveData = (isFormValid) => {
       });
   } else {
     axios
-      .put(
-        baseURL + "/api/hrm_ca_academic_level/update_hrm_ca_academic_level",
-        formData,
-        config
-      )
+      .put(baseURL + "/api/hrm_ca_bank/update_hrm_ca_bank", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trình độ học vấn thành công!");
+          toast.success("Sửa ngân hàng thành công!");
 
-       
           closeDialog();
         } else {
           swal.fire({
@@ -338,21 +297,21 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  academic_level.value = dataTem;
-  if (academic_level.value.countryside)
-    academic_level.value.countryside_fake = academic_level.value.countryside;
-  if (academic_level.value.is_default) {
+  bank.value = dataTem;
+  if (bank.value.countryside)
+    bank.value.countryside_fake = bank.value.countryside;
+  if (bank.value.is_default) {
     checkIsmain.value = false;
   } else {
     checkIsmain.value = true;
   }
-  headerDialog.value = "Sửa trình độ học vấn";
+  headerDialog.value = "Sửa ngân hàng";
   isSaveTem.value = true;
   displayBasic.value = true;
   if (store.state.user.is_admin) {
-    academic_level.value.organization_id = 0;
+    bank.value.organization_id = 0;
   } else {
-    academic_level.value.organization_id = 1;
+    bank.value.organization_id = 1;
   }
 };
 //Xóa bản ghi
@@ -378,18 +337,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(
-            baseURL + "/api/hrm_ca_academic_level/delete_hrm_ca_academic_level",
-            {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.academic_level_id] : 1,
-            }
-          )
+          .delete(baseURL + "/api/hrm_ca_bank/delete_hrm_ca_bank", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: Tem != null ? [Tem.bank_id] : 1,
+          })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá trình độ học vấn thành công!");
+              toast.success("Xoá ngân hàng thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -413,10 +369,9 @@ const delTem = (Tem) => {
     });
 };
 //Xuất excel
- 
+
 //Sort
 const onSort = (event) => {
- 
   options.value.PageNo = 0;
 
   if (event.sortField == null) {
@@ -440,7 +395,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "academic_level_id",
+    id: "bank_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -452,7 +407,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_academic_level", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_bank", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -475,7 +430,7 @@ const loadDataSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-     
+
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
@@ -507,7 +462,7 @@ const refreshStamp = () => {
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
-  filterSQL.value=[];
+  filterSQL.value = [];
   loadData(true);
 };
 const onFilter = (event) => {
@@ -547,21 +502,17 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.academic_level_id,
-      TextID: value.academic_level_id + "",
+      IntID: value.bank_id,
+      TextID: value.bank_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
-      .put(
-        baseURL + "/api/hrm_ca_academic_level/update_s_hrm_ca_academic_level",
-        data,
-        config
-      )
+      .put(baseURL + "/api/hrm_ca_bank/update_s_hrm_ca_bank", data, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái trình độ học vấn thành công!");
+          toast.success("Sửa trạng thái ngân hàng thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -584,20 +535,16 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   } else {
     let data1 = {
-      IntID: value.academic_level_id,
-      TextID: value.academic_level_id + "",
+      IntID: value.bank_id,
+      TextID: value.bank_id + "",
       BitMain: value.is_default,
     };
     axios
-      .put(
-        baseURL + "/api/hrm_ca_academic_level/Update_DefaultStamp",
-        data1,
-        config
-      )
+      .put(baseURL + "/api/hrm_ca_bank/Update_DefaultStamp", data1, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái trình độ học vấn thành công!");
+          toast.success("Sửa trạng thái ngân hàng thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -626,7 +573,7 @@ const deleteList = () => {
   let checkD = false;
   selectedStamps.value.forEach((item) => {
     if (item.is_default) {
-      toast.error("Không được xóa trình độ học vấn mặc định!");
+      toast.error("Không được xóa ngân hàng mặc định!");
       checkD = true;
       return;
     }
@@ -635,7 +582,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá trình độ học vấn này không!",
+        text: "Bạn có muốn xoá ngân hàng này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -653,21 +600,18 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.academic_level_id);
+            listId.push(item.bank_id);
           });
           axios
-            .delete(
-              baseURL + "/api/hrm_ca_academic_level/delete_hrm_ca_academic_level",
-              {
-                headers: { Authorization: `Bearer ${store.getters.token}` },
-                data: listId != null ? listId : 1,
-              }
-            )
+            .delete(baseURL + "/api/hrm_ca_bank/delete_hrm_ca_bank", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: listId != null ? listId : 1,
+            })
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá trình độ học vấn thành công!");
+                toast.success("Xoá ngân hàng thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -701,15 +645,15 @@ const trangThai = ref([
   { name: "Hiển thị", code: 1 },
   { name: "Không hiển thị", code: 0 },
 ]);
- 
+
 const filterTrangthai = ref();
 
 const reFilterEmail = () => {
   filterTrangthai.value = null;
   isDynamicSQL.value = false;
   checkFilter.value = false;
-  filterSQL.value=[];
-  options.value.SearchText=null;
+  filterSQL.value = [];
+  options.value.SearchText = null;
   op.value.hide();
   loadData(true);
 };
@@ -735,9 +679,10 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
- 
-onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-     //router.back();
+
+onMounted(() => {
+  if (!checkURL(window.location.pathname, store.getters.listModule)) {
+    //router.back();
   }
   loadData(true);
   return {
@@ -749,7 +694,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     openBasic,
     closeDialog,
     basedomainURL,
-   
+
     saveData,
     isFirst,
     searchStamp,
@@ -783,14 +728,14 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="academic_level_id"
+      dataKey="bank_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-credit-card"></i> Danh sách trình độ học vấn ({{
+          <i class="pi pi-building"></i> Danh sách ngân hàng ({{
             options.totalRecords
           }})
         </h3>
@@ -876,7 +821,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm trình độ học vấn')"
+              @click="openBasic('Thêm ngân hàng')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -922,10 +867,10 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         bodyStyle="text-align:center;max-width:70px"
         :sortable="true"
       ></Column>
- 
+
       <Column
-        field="academic_level_name"
-        header="Tên trình độ học vấn"
+        field="bank_name"
+        header="Tên ngân hàng"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -939,7 +884,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           />
         </template>
       </Column>
- 
+
       <Column
         field="status"
         header="Trạng thái"
@@ -962,7 +907,20 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             @click="onCheckBox(data.data, true, true)"
           /> </template
       ></Column>
-
+      <Column
+        field="organization_id"
+        header="Hệ thống"
+        headerStyle="text-align:center;max-width:125px;height:50px"
+        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <div v-if="data.data.organization_id == 0">
+            <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
+          </div>
+          <div v-else></div>
+        </template>
+      </Column>
       <Column
         header="Chức năng"
         class="align-items-center justify-content-center text-center"
@@ -1022,58 +980,45 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   >
     <form>
       <div class="grid formgrid m-2">
-        
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
-            >Trình độ <span class="redsao">(*)</span></label
+          <label class="col-3 text-left p-0"
+            >Tên ngân hàng <span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="academic_level.academic_level_name"
+            v-model="bank.bank_name"
             spellcheck="false"
-            class="col-10 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{
-              'p-invalid': v$.academic_level_name.$invalid && submitted,
+              'p-invalid': v$.bank_name.$invalid && submitted,
             }"
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-2 text-left"></div>
+          <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v$.academic_level_name.$invalid && submitted) ||
-              v$.academic_level_name.$pending.$response
+              (v$.bank_name.$invalid && submitted) ||
+              v$.bank_name.$pending.$response
             "
-            class="col-10 p-error"
+            class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.academic_level_name.required.$message
-                .replace("Value", "Tên trình độ học vấn")
+              v$.bank_name.required.$message
+                .replace("Value", "Tên ngân hàng")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
 
-       
-        <div   class="col-12 field md:col-12 flex" >
-      
-           
-           
-            <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div class="col-4 text-left p-0">STT</div>
-              <InputNumber
-                v-model="academic_level.is_order"
-                class="col-8 ip36 p-0"
-              />
-            </div>
-            <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div
-               
-                class="col-4 text-center p-0"
-                >Trạng thái
-              </div>
-              <InputSwitch v-model="academic_level.status" />
-            </div>
-          
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">STT</div>
+            <InputNumber v-model="bank.is_order" class="col-6 ip36 p-0" />
+          </div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-center p-0">Trạng thái</div>
+            <InputSwitch v-model="bank.status" />
+          </div>
         </div>
       </div>
     </form>
@@ -1082,7 +1027,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         label="Hủy"
         icon="pi pi-times"
         @click="closeDialog"
-      class="p-button-outlined"
+        class="p-button-outlined"
       />
 
       <Button
