@@ -1186,96 +1186,98 @@ onMounted(() => {
           </template>
         </TabPanel>
       </TabView>
-      <table
-        class="
-          table table-condensed table-hover
-          tbpad
-          table-scroll
-          bg-white
-          w-full
-        "
-      >
-        <tbody>
-          <tr v-for="(item, index) in datalists" :key="index">
-            <td width="100" align="center">
-              <div class="flex" style="justify-content: center">
-                <img
-                  v-if="item.avatar"
-                  class="cp-0 avatar"
-                  :src="basedomainURL + item.avatar"
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                />
-                <div
-                  class="avatar format-center"
-                  v-if="!item.avatar"
-                  :style="{
-                    background: bgColor[index % 7],
-                  }"
-                >
-                  <span
-                    style="color: #fff; font-size: 1.5rem; font-weight: 500"
-                    >{{
-                      item.profile_user_name.substring(0, 1).toUpperCase()
-                    }}</span
+      <div style="max-height: calc(100vh - 210px); overflow: auto">
+        <table
+          class="
+            table table-condensed table-hover
+            tbpad
+            table-scroll
+            bg-white
+            w-full
+          "
+        >
+          <tbody>
+            <tr v-for="(item, index) in datalists" :key="index">
+              <td width="100" align="center">
+                <div class="flex" style="justify-content: center">
+                  <img
+                    v-if="item.avatar"
+                    class="cp-0 avatar"
+                    :src="basedomainURL + item.avatar"
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
+                  />
+                  <div
+                    class="avatar format-center"
+                    v-if="!item.avatar"
+                    :style="{
+                      background: bgColor[index % 7],
+                    }"
                   >
+                    <span
+                      style="color: #fff; font-size: 1.5rem; font-weight: 500"
+                      >{{
+                        item.profile_user_name.substring(0, 1).toUpperCase()
+                      }}</span
+                    >
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td>
-              <div>
-                <b>{{ item.profile_user_name }}</b>
-              </div>
-              <div>{{ item.profile_id }}</div>
-              <div v-if="item.recruitment_date">
-                Ngày vào:
-                {{
-                  moment(new Date(item.recruitment_date)).format("DD/MM/YYYY")
-                }}
-              </div>
-            </td>
-            <td width="300">
-              <div v-if="item.gender">
-                {{ item.gender == 1 ? "Nam" : "Nữ" }}
-              </div>
-              <div>
-                {{ moment(new Date(item.birthday)).format("DD/MM/YYYY") }}
-              </div>
-              <div>{{ item.birthplace_name }}</div>
-            </td>
-            <td width="200">
-              <div>{{ item.phone }}</div>
-              <div>{{ item.email }}</div>
-            </td>
-            <td width="100">
-              <div class="flex">
-                <Button
-                  v-tooltip.top="'Sửa hồ sơ'"
-                  @click="edit_Profile(item)"
-                  class="
-                    p-button-rounded p-button-secondary p-button-outlined
-                    mx-1
-                  "
-                  type="button"
-                  icon="pi pi-pencil"
-                ></Button>
-                <Button
-                  v-tooltip.top="'Xóa hồ sơ'"
-                  class="
-                    p-button-rounded p-button-secondary p-button-outlined
-                    mx-1
-                  "
-                  type="button"
-                  icon="pi pi-trash"
-                  @click="del_Profile(item)"
-                ></Button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+              <td>
+                <div>
+                  <b>{{ item.profile_user_name }}</b>
+                </div>
+                <div>{{ item.profile_id }}</div>
+                <div v-if="item.recruitment_date">
+                  Ngày vào:
+                  {{
+                    moment(new Date(item.recruitment_date)).format("DD/MM/YYYY")
+                  }}
+                </div>
+              </td>
+              <td width="300">
+                <div v-if="item.gender">
+                  {{ item.gender == 1 ? "Nam" : "Nữ" }}
+                </div>
+                <div>
+                  {{ moment(new Date(item.birthday)).format("DD/MM/YYYY") }}
+                </div>
+                <div>{{ item.birthplace_name }}</div>
+              </td>
+              <td width="200">
+                <div>{{ item.phone }}</div>
+                <div>{{ item.email }}</div>
+              </td>
+              <td width="100">
+                <div class="flex">
+                  <Button
+                    v-tooltip.top="'Sửa hồ sơ'"
+                    @click="edit_Profile(item)"
+                    class="
+                      p-button-rounded p-button-secondary p-button-outlined
+                      mx-1
+                    "
+                    type="button"
+                    icon="pi pi-pencil"
+                  ></Button>
+                  <Button
+                    v-tooltip.top="'Xóa hồ sơ'"
+                    class="
+                      p-button-rounded p-button-secondary p-button-outlined
+                      mx-1
+                    "
+                    type="button"
+                    icon="pi pi-trash"
+                    @click="del_Profile(item)"
+                  ></Button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   <Dialog
@@ -1570,7 +1572,7 @@ onMounted(() => {
                   placeholder="Chọn nơi cấp"
                   optionLabel="identity_place_name"
                   optionValue="identity_place_id"
-                  :filter="true" 
+                  :filter="true"
                 >
                 </Dropdown>
                 <label class="col-2 text-left p-0 pl-5">Quốc tịch</label>
@@ -1582,7 +1584,7 @@ onMounted(() => {
                   placeholder="Chọn quốc tịch"
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.nationality_id"
-                   :filter="true"
+                  :filter="true"
                 />
                 <label class="col-2 text-left p-0 pl-5"
                   >Trình trạng hôn nhân</label
@@ -1607,7 +1609,7 @@ onMounted(() => {
                   placeholder="Chọn dân tộc"
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.ethnic_id"
-                   :filter="true" 
+                  :filter="true"
                 />
                 <label class="col-2 text-left p-0 pl-5">Tôn giáo</label>
                 <Dropdown
@@ -1618,7 +1620,7 @@ onMounted(() => {
                   placeholder="Chọn tôn giáo"
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.religion_id"
-                   :filter="true" 
+                  :filter="true"
                 />
                 <label class="col-2 text-left p-0 pl-5">Mã số thuế</label>
                 <InputText
@@ -1637,7 +1639,7 @@ onMounted(() => {
                   placeholder="Chọn ngân hàng"
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.bank_id"
-                   :filter="true" 
+                  :filter="true"
                 />
                 <label class="col-2 text-left p-0 pl-5">Số tài khoản</label>
                 <InputText
@@ -1768,7 +1770,7 @@ onMounted(() => {
                 <label class="col-2 text-left">Chỗ ở hiện nay</label>
                 <InputText
                   spellcheck="false"
-                  class="col-8 ip33"
+                  class="col-10 ip33"
                   v-model="profile.place_residence"
                 />
               </div>
@@ -1812,7 +1814,7 @@ onMounted(() => {
                   </template>
                 </Toolbar>
               </template>
-              <Accordion class="accordion-custom w-full" activeIndex="0">
+              <Accordion class="accordion-custom w-full" :activeIndex="0">
                 <AccordionTab>
                   <template #header>
                     <span class="font-medium">Thông tin 1</span>
@@ -1943,7 +1945,7 @@ onMounted(() => {
                   </template>
                 </Toolbar>
               </template>
-              <Accordion class="accordion-custom w-full" activeIndex="0">
+              <Accordion class="accordion-custom w-full" :activeIndex="0">
                 <AccordionTab>
                   <template #header>
                     <span class="font-medium">Thông tin 1</span>
@@ -2080,7 +2082,7 @@ onMounted(() => {
                   </template>
                 </Toolbar>
               </template>
-              <Accordion class="accordion-custom w-full" activeIndex="0">
+              <Accordion class="accordion-custom w-full" :activeIndex="0">
                 <AccordionTab>
                   <template #header>
                     <span class="font-medium">Thông tin 1</span>
@@ -2236,7 +2238,7 @@ onMounted(() => {
                   </template>
                 </Toolbar>
               </template>
-              <Accordion class="accordion-custom w-full" activeIndex="0">
+              <Accordion class="accordion-custom w-full" :activeIndex="0">
                 <AccordionTab>
                   <template #header>
                     <span class="font-medium">Thông tin 1</span>
@@ -2423,7 +2425,7 @@ onMounted(() => {
 }
 table td {
   padding: 5px;
-  border-bottom: 1px solid rgba(0,0,0,.0625);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.0625);
 }
 .table-hover > tbody > tr:hover {
   background-color: aliceblue;
