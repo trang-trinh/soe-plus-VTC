@@ -73,6 +73,11 @@ const hinhthucs = ref([
   { value: 1, text: "Chính thức" },
   { value: 1, text: "Điều chuyển" },
 ]);
+const marital_statuss = ref([
+  { value: 0, text: "Độc thân" },
+  { value: 1, text: "Kết hôn" },
+  { value: 2, text: "Ly hôn" },
+]);
 //khai bao bien
 const bgColor = ref([
   "#F8E69A",
@@ -85,9 +90,6 @@ const bgColor = ref([
 ]);
 const isAdd = ref(false);
 const active2 = ref(2);
-const select_identity_place = ref(); // noi cap giay to
-select_identity_place.value = {};
-select_identity_place.value[-1] = true;
 
 const select_birthplace = ref(); // noi sinh
 select_birthplace.value = {};
@@ -268,10 +270,6 @@ const loadTudien = () => {
       let data = JSON.parse(response.data.data);
       debugger;
       Dictionarys.value = data;
-      if (Dictionarys.value[15].length > 0) {
-        let obj = renderTree(Dictionarys.value[15], "place_id", "name", "");
-        places.value = obj.arrtreeChils;
-      }
       if (Dictionarys.value[16].length > 0) {
         headers.value = Dictionarys.value[16];
       }
@@ -458,10 +456,6 @@ const edit_Profile = (item) => {
         select_place_register_permanent.value[
           profile.value.place_register_permanent || -1
         ] = true;
-        select_identity_place.value = {};
-        select_identity_place.value[
-          profile.value.identity_place_id || -1
-        ] = true;
         //get child
         if (data[1].length > 0) {
           profile.value.profile_clan_history = data[1][0];
@@ -553,10 +547,6 @@ const saveProfile = (isFormValid) => {
   }
   debugger;
   // get place
-  profile.value.identity_place_id =
-    Object.keys(select_identity_place.value)[0] == -1
-      ? null
-      : Object.keys(select_identity_place.value)[0];
   profile.value.birthplace_id =
     Object.keys(select_birthplace.value)[0] == -1
       ? null
@@ -907,7 +897,7 @@ const initPlaces = () => {
       RenderData(response);
     })
     .catch((error) => {
-      console.log(error)
+      console.log(error);
       toast.error("Tải dữ liệu không thành công!");
 
       if (error && error.status === 401) {
@@ -951,15 +941,14 @@ const RenderData = (response) => {
           element.data = parseInt(element.data.place_id);
           element.key = element.data;
           //đổi is_order
-          if (list2[i].children != null && list2[i].children.length >0) {
+          if (list2[i].children != null && list2[i].children.length > 0) {
             // list3 = list2[i].children;
             // list2[i].children = list3;
-              list2[i].children.forEach((element, i) => {
-                element.label = element.data.name;
-                element.data = parseInt(element.data.place_id);
-                          element.key = element.data;
-              });
-            
+            list2[i].children.forEach((element, i) => {
+              element.label = element.data.name;
+              element.data = parseInt(element.data.place_id);
+              element.key = element.data;
+            });
           }
         });
       }
@@ -1209,10 +1198,7 @@ onMounted(() => {
         <tbody>
           <tr v-for="(item, index) in datalists" :key="index">
             <td width="100" align="center">
-                            <div
-                class="flex"
-                style="justify-content: center;"
-              >
+              <div class="flex" style="justify-content: center">
                 <img
                   v-if="item.avatar"
                   class="cp-0 avatar"
@@ -1574,18 +1560,19 @@ onMounted(() => {
                 />
               </div>
               <div class="field col-12 md:col-12">
-                <label class="col-2 text-left">Nơi cấp </label>
-                <TreeSelect
+                <label class="col-2 text-left">Nơi cấp</label>
+                <Dropdown
                   class="col-2 p-0"
-                  v-model="select_identity_place"
-                  :options="datalist_places"
+                  v-model="profile.identity_place_id"
+                  :options="Dictionarys[17]"
                   :showClear="true"
                   :max-height="200"
                   placeholder="Chọn nơi cấp"
-                  optionLabel="name"
-                  optionValue="place_id"
+                  optionLabel="identity_place_name"
+                  optionValue="identity_place_id"
+                  :filter="true" 
                 >
-                </TreeSelect>
+                </Dropdown>
                 <label class="col-2 text-left p-0 pl-5">Quốc tịch</label>
                 <Dropdown
                   :showClear="true"
@@ -1595,11 +1582,20 @@ onMounted(() => {
                   placeholder="Chọn quốc tịch"
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.nationality_id"
+                   :filter="true"
                 />
                 <label class="col-2 text-left p-0 pl-5"
                   >Trình trạng hôn nhân</label
                 >
-                <InputText spellcheck="false" class="col-2 ip33" />
+                <Dropdown
+                  :showClear="true"
+                  :options="marital_statuss"
+                  optionLabel="text"
+                  optionValue="value"
+                  placeholder="Chọn trạng thái"
+                  class="p-dropdown-sm col-2 p-0"
+                  v-model="profile.marital_status"
+                />
               </div>
               <div class="field col-12 md:col-12">
                 <label class="col-2 text-left">Dân tộc</label>
@@ -1611,6 +1607,7 @@ onMounted(() => {
                   placeholder="Chọn dân tộc"
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.ethnic_id"
+                   :filter="true" 
                 />
                 <label class="col-2 text-left p-0 pl-5">Tôn giáo</label>
                 <Dropdown
@@ -1621,6 +1618,7 @@ onMounted(() => {
                   placeholder="Chọn tôn giáo"
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.religion_id"
+                   :filter="true" 
                 />
                 <label class="col-2 text-left p-0 pl-5">Mã số thuế</label>
                 <InputText
@@ -1639,6 +1637,7 @@ onMounted(() => {
                   placeholder="Chọn ngân hàng"
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.bank_id"
+                   :filter="true" 
                 />
                 <label class="col-2 text-left p-0 pl-5">Số tài khoản</label>
                 <InputText
@@ -1761,19 +1760,21 @@ onMounted(() => {
                 <label class="col-2 text-left">Thường trú</label>
                 <InputText
                   spellcheck="false"
-                  class="col-4 ip33"
+                  class="col-10 ip33"
                   v-model="profile.place_permanent"
                 />
-                <label class="col-2 text-left p-0 pl-5">Chỗ ở hiện nay</label>
+              </div>
+              <div class="field col-12 md:col-12">
+                <label class="col-2 text-left">Chỗ ở hiện nay</label>
                 <InputText
                   spellcheck="false"
-                  class="col-4 ip33"
+                  class="col-8 ip33"
                   v-model="profile.place_residence"
                 />
               </div>
-              <h4>Khi cần báo tin cho</h4>
+              <h4>Khi cần báo tin cho:</h4>
               <div class="field col-12 md:col-12">
-                <label class="col-2 text-left">Cho</label>
+                <label class="col-2 text-left">Họ và tên</label>
                 <InputText
                   spellcheck="false"
                   class="col-2 ip33"
@@ -2346,16 +2347,16 @@ onMounted(() => {
               <div class="field col-12 md:col-12 flex">
                 <label class="text-left col-2">Tải file lên </label>
                 <div class="col-10 p-0">
-                   <FileUpload
-                        chooseLabel="Chọn File"
-                        :showUploadButton="false"
-                        :showCancelButton="false"
-                        :multiple="false"
-                        accept=""
-                        :maxFileSize="500000000"
-                        @select="onUploadFile"
-                        @remove="removeFile"
-                      />
+                  <FileUpload
+                    chooseLabel="Chọn File"
+                    :showUploadButton="false"
+                    :showCancelButton="false"
+                    :multiple="false"
+                    accept=""
+                    :maxFileSize="500000000"
+                    @select="onUploadFile"
+                    @remove="removeFile"
+                  />
                 </div>
               </div>
             </AccordionTab>
@@ -2401,11 +2402,11 @@ onMounted(() => {
 .ipnone {
   display: none;
 }
-.avatar{
-  width:56px;
-  height:56px;
-  border-radius:5px;
-  object-fit:cover;
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 5px;
+  object-fit: cover;
 }
 .inputanh {
   /* border: 1px solid #ccc; */
@@ -2420,8 +2421,12 @@ onMounted(() => {
   width: 100%;
   height: 100%;
 }
-table td{
+table td {
   padding: 5px;
+  border-bottom: 1px solid rgba(0,0,0,.0625);
+}
+.table-hover > tbody > tr:hover {
+  background-color: aliceblue;
 }
 .d-lang-table {
   height: calc(100vh - 155px);
@@ -2450,9 +2455,9 @@ table td{
     border-top: 1px solid #dee2e6;
   }
 }
-::v-deep(.p-tabview p-component) {
+::v-deep(.p-tabview) {
   .p-tabview-panels {
-    padding: 0.5rem !important;
+    padding: 0.1rem !important;
   }
 }
 </style>
