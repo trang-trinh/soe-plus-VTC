@@ -134,29 +134,17 @@ const toggleFilter = (event) => {
   opfilter.value.toggle(event);
 };
 const resetFilter = () => {
-  options.value = {
-    loading: true,
-    user_id: store.getters.user.user_id,
-    search: "",
-    pageNo: 1,
-    pageSize: 25,
-    total: 0,
-    sort: "created_date desc",
-    orderBy: "desc",
-    tab: -1,
-    filterContract_id: null,
-    organizations: [],
-    departments: [],
-    type_contracts: [],
-    work_positions: [],
-    sign_start_date: null,
-    sign_end_date: null,
-    users: [],
-    start_start_date: null,
-    end_start_date: null,
-    start_end_date: null,
-    end_end_date: null,
-  };
+  options.value.organizations = [];
+  options.value.departments = [];
+  options.value.type_contracts = [];
+  options.value.work_positions = [];
+  options.value.sign_start_date = null;
+  options.value.sign_end_date = null;
+  options.value.users = [];
+  options.value.start_start_date = null;
+  options.value.end_start_date = null;
+  options.value.start_end_date = null;
+  options.value.end_end_date = null;
 };
 const removeFilter = (idx, array) => {
   array.splice(idx, 1);
