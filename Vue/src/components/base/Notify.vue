@@ -121,6 +121,7 @@ const list_modules = [
   },
 ];
 const goToNotify = (item) => {
+  
   if (!item.seen) {
     // update status seen
     axios
@@ -135,6 +136,7 @@ const goToNotify = (item) => {
   let mds = list_modules.filter(
     (x) => x.type == item.is_type && x.module_key == item.module_key,
   );
+ debugger
   if (mds.length > 0) {
     emitter.emit("emitData", {
       type: "closeNoti",

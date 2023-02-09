@@ -134,14 +134,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -292,8 +301,13 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
                                     }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
+                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
                                 }
@@ -402,14 +416,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
                         FileInfo temp = new FileInfo(fpath);
@@ -526,7 +549,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0";
                                     listErr = "";
@@ -637,14 +664,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
                         FileInfo temp = new FileInfo(fpath);
@@ -849,7 +885,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -962,14 +1002,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -1089,7 +1138,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -1202,14 +1255,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -1350,7 +1412,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -1463,14 +1529,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -1590,7 +1665,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -1703,14 +1782,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -1841,7 +1929,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -1955,14 +2047,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -2085,7 +2186,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -2199,14 +2304,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -2344,7 +2458,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -2458,14 +2576,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -2603,7 +2730,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -2717,14 +2848,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -2856,7 +2996,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -2970,14 +3114,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -3150,7 +3303,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -3264,14 +3421,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -3397,7 +3563,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -3511,14 +3681,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -3643,7 +3822,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -3757,14 +3940,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -3804,7 +3996,7 @@ namespace API.Controllers
                                 {
                                     string celli2 = ws.Cells[i, 2].Value.ToString();
                                     var check = db.doc_ca_status.AsNoTracking().FirstOrDefault(x => x.status_id == celli2);
-                                    
+
                                     listErr += check != null ? "Dòng thứ " + i + " cột <b>Mã trạng thái</b> đã có trong cơ sở dữ liệu" : null;
                                     //--------------------------------Kiểm tra trường bắt buộc nhập-----------------------------------
                                     listErr += ws.Cells[i, 1].Value == null ? "Dòng thứ " + i + " cột <b>STT</b> không được để trống <br>" : null;
@@ -3880,7 +4072,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -3994,14 +4190,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -4120,7 +4325,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -4234,14 +4443,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -4387,7 +4605,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -4501,14 +4723,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
 
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
@@ -4654,7 +4885,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -4766,14 +5001,23 @@ namespace API.Controllers
                         var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = fileNameTemp.Split('/');
                         var pathConfigTemp = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfigTemp += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfigTemp += (item);
+                                }
+                                else
+                                {
+                                    pathConfigTemp += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathConfigTemp, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
                         fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
                         FileInfo temp = new FileInfo(fpath);
@@ -4888,7 +5132,11 @@ namespace API.Controllers
                                     if (exists1)
                                     {
                                         System.IO.File.Delete(fpath);
-                                        Directory.Delete(strPath, true);
+                                    }
+                                    bool exists2 = File.Exists(pathConfigTemp);
+                                    if (exists2)
+                                    {
+                                        System.IO.File.Delete(pathConfigTemp);
                                     }
                                     errorCode = "0";
                                     listErr = "";

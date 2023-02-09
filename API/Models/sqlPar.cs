@@ -118,6 +118,9 @@ namespace API.Models
         public string socketUrl { get; set; }
         public string fileNameSettingApp { get; set; }
         public string filePathSettingApp { get; set; }
+        public string email { get; set; }
+        public string pwEmail { get; set; }
+
     }
     public class connectString
     {
@@ -177,5 +180,14 @@ namespace API.Models
     {
         public string IP { get; set; }
         public int Count { get; set; }
+    }
+    public class MailInfo
+    {
+        public string to { get; set; }
+        public string subject { get; set; }
+
+        public string body { get; set; }
+        public bool isBodyHtml { get; set; }
+
     }
 }

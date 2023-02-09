@@ -328,14 +328,23 @@ namespace Controllers
                         cog.path_xml = Regex.Replace(cog.path_xml.Replace("\\", "/"), @"\.*/+", "/");
                         var listPath = cog.path_xml.Split('/');
                         var pathConfig = "";
+                        var sttPartPath = 1;
                         foreach (var item in listPath)
                         {
                             if (item.Trim() != "")
                             {
-                                pathConfig += "/" + Path.GetFileName(item);
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfig += (item);
+                                }
+                                else
+                                {
+                                    pathConfig += "/" + Path.GetFileName(item);
+                                }
                             }
+                            sttPartPath++;
                         }
-                        bool check_exists = System.IO.Directory.Exists(root + pathConfig);
+                        bool check_exists = System.IO.Directory.Exists(pathConfig);
                         if (check_exists == false)
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Đường dẫn lưu file XML không tồn tại, vui lòng nhập lại!" });

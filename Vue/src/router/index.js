@@ -470,6 +470,11 @@ const caHRMVacancy = () =>
     import ("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () =>
     import ("../views/hrm/category/caWage.vue");
+
+
+///HRM
+const HRM_Training = () =>
+    import ("../views/hrm/hrm_training.vue");
 const router = createRouter({
     history: createWebHistory(
         import.meta.env.BASE_URL),
@@ -1707,6 +1712,13 @@ const router = createRouter({
             name: "caHRMWage",
             component: caHRMWage,
         },
+        //HRM
+        {
+            path: "/hrm/hrm_training",
+            name: "HRM_Training",
+            component: HRM_Training,
+        },
+
     ],
 });
 // router.beforeEach((to, from) => {

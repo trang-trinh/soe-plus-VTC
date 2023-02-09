@@ -63,9 +63,17 @@ const loadData = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let count = JSON.parse(response.data.data)[1];
+
       data.forEach((x, i) => {
         x.creator = JSON.parse(x.creator);
         x.creator.tooltip =
+          x.creator.full_name +
+          "<br/>" +
+          x.creator.position_name +
+          "<br/>" +
+          (x.creator.department_name || x.creator.organization_name);
+        x.task_master = JSON.parse(x.task_master);
+        x.task_master.tooltip =
           x.creator.full_name +
           "<br/>" +
           x.creator.position_name +
@@ -119,14 +127,306 @@ watch(selectedTasks, () => {
   }
 });
 const DialogVisible = ref(false);
+const DialogFileVisible = ref(false);
+const DialogMoreVisible = ref(false);
+const listSelected = ref([]);
 const openDialog = () => {
   DialogVisible.value = true;
+  listSelected.value = [];
+  listSelected.value = JSON.parse(JSON.stringify(selectedTasks.value));
+  listSelected.value.forEach((x) => {
+    x.difficult = "";
+    x.request = "";
+    x.reportProgress = 0;
+    x.contents = "";
+    x.is_send_email = false;
+    x.file = [];
+    x.file_display = [];
+  });
+};
+const TempData = ref();
+const openMore = (data) => {
+  DialogMoreVisible.value = true;
+  TempData.value = data;
+};
+const openFile = (data) => {
+  DialogFileVisible.value = true;
+  TempData.value = data;
+};
+const formatSize = (bytes) => {
+  if (bytes === 0) {
+    return "0 B";
+  }
+
+  let k = 1024,
+    dm = 3,
+    sizes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+};
+let filecoments = [];
+const Upload = () => {
+  filecoments = [];
+  filecoments = event.target.files;
+  filecoments.forEach((x) => {
+    if (x.size > 104857600) {
+      swal.fire({
+        title: "Thông báo",
+        text: "Tệp tải lên không quá 100MB!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+  });
+  if (
+    filecoments.length > 12 ||
+    TempData.value.file.length == 12 ||
+    TempData.value.file.length + filecoments.length > 12
+  ) {
+    swal.fire({
+      title: "Thông báo",
+      text: "Bạn chỉ có thể chọn tối đa 12 tệp!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  let fileIndex = [];
+  if (filecoments && TempData.value.file.length < 12) {
+    if (TempData.value.file.length == 0) {
+      filecoments.forEach((f, i) => {
+        TempData.value.file.push(f);
+      });
+    } else {
+      filecoments.forEach((x, i) => {
+        let fi = TempData.value.file.filter((z) => x.name == z.name);
+        if (fi.length > 0) {
+          fileIndex.push(i);
+        } else {
+          TempData.value.file.push(x);
+        }
+      });
+    }
+
+    filecoments.forEach((filecomentIndex, index) => {
+      let check =
+        fileIndex.length > 0 ? fileIndex.filter((k) => index == k) : 0;
+      if (check.length > 0) {
+        return;
+      } else {
+        const element = filecomentIndex;
+        let size = formatSize(element.size);
+        var allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
+        //Kiểm tra định dạng
+        if (allowedExtensions.exec(element.name)) {
+          TempData.value.file_display.push({
+            data: element,
+            src: URL.createObjectURL(element),
+            size: size,
+            checkimg: true,
+          });
+          URL.revokeObjectURL(element);
+        } else {
+          TempData.value.file_display.push({
+            data: element.data,
+            src: element.name,
+            size: size,
+            checkimg: false,
+          });
+        }
+      }
+    });
+  }
+  filecoments = [];
+};
+const delImgComment = (value, index) => {
+  if (value.checkimg == true) {
+    TempData.value.file = TempData.value.file.filter((x) => x != value.data);
+  } else
+    TempData.value.file = TempData.value.file.filter(
+      (x) => x.name != value.src,
+    );
+  TempData.value.file_display = [];
+  TempData.value.file.forEach((x) => {
+    const element = x;
+    let size = formatSize(element.size);
+    var allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
+    //Kiểm tra định dạng
+    if (allowedExtensions.exec(element.name)) {
+      TempData.value.file_display.push({
+        data: element,
+        src: URL.createObjectURL(element),
+        size: size,
+        checkimg: true,
+      });
+      URL.revokeObjectURL(element);
+    } else {
+      TempData.value.file_display.push({
+        data: element.data,
+        src: element.name,
+        size: size,
+        checkimg: false,
+      });
+    }
+  });
+};
+
+const Report = ref({
+  project_id: null,
+  task_id: null,
+  review_Id: null,
+  request_progress: null,
+  progress: null,
+  contents: null,
+  difficult: null,
+  request: null,
+  status: null,
+  is_send_email: false,
+});
+const mailInfo = ref({
+  to: "",
+  subject: "",
+  body: "",
+  isBodyHtml: false,
+});
+const sendData = (x) => {
+  let file = x.file;
+  Report.value = {
+    project_id: null,
+    task_id: x.task_id,
+    review_Id: null,
+    request_progress: x.reportProgress,
+    progress: x.progress,
+    contents: x.contents,
+    difficult: x.difficult,
+    request: x.request,
+    status: 0,
+    is_send_email: false,
+  };
+  console.log(x);
+  Report.value.contents =
+    Report.value.contents != null
+      ? Report.value.contents.replace(/\n/g, "<br/>")
+      : "";
+  Report.value.status = 0;
+  let formData = new FormData();
+  if (file != null)
+    for (var i = 0; i < file.length; i++) {
+      let filezz = file[i];
+      formData.append("url_file", filezz);
+    }
+  formData.append("comment", JSON.stringify(Report.value));
+  axios({
+    method: "post",
+    url: baseURL + `/api/ReportProgress/${"addReportProgress"}`,
+    data: formData,
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
+  })
+    .then((response) => {
+      if (response.data.err != "1") {
+        toast.success("Thêm mới báo cáo công việc thành công!");
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch(() => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
+const bodymail = ref();
+const sendMail = (x) => {
+  mailInfo.value = {
+    to: x.uid,
+    subject: "SOE+ - Smart Office Enterprise +",
+    body: "",
+    isBodyHtml: true,
+  };
+  bodymail.value =
+    "<div style=''><span style='font-weight:700;color:blue;'>" +
+    store.state.user.full_name +
+    "</span> đã báo cáo công việc: '<span style='font-weight:700;color:blue;'>" +
+    x.task_name +
+    "</span>'. <a href=" +
+    window.location.origin +
+    "> Nhấn vào đây để chuyển sang SOE</a></div>";
+  mailInfo.value.body = bodymail.value.toString();
+  console.log(mailInfo);
+  let formData = new FormData();
+  formData.append("mailinfo", JSON.stringify(mailInfo.value));
+  axios({
+    method: "post",
+    url: baseURL + `/api/SendEmail/${"sendEMail"}`,
+    data: formData,
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
+  })
+    .then((response) => {
+      if (response.data.err == "1") {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch(() => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
+const SaveData = () => {
+  listSelected.value.forEach((x) => {
+    if (x.contents == "" || x.contents == null) {
+      swal.fire({
+        title: "Thông báo",
+        text: "Nội dung báo cáo không được để trống",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+  });
+  listSelected.value.forEach((x) => {
+    //sendData(x);
+
+    if (x.is_send_email == true) {
+      sendMail(x);
+    }
+    DialogVisible.value = false;
+  });
 };
 onMounted(() => {
   loadData();
+  bodymail.value = "";
 });
 </script>
 <template>
+  <div>
+    <div>
+      <span v-html="bodymail"></span>
+    </div>
+  </div>
   <div class="main-layout true flex-grow-1 p-2 main-div">
     <DataTable
       :value="listTask"
@@ -140,15 +440,12 @@ onMounted(() => {
       v-model:selection="selectedTasks"
       :lazy="true"
       @page="onPage($event)"
-      @filter="onFilter($event)"
-      @sort="onSort($event)"
       :totalRecords="options.totalRecords"
       dataKey="task_id"
       :rowHover="true"
       :showGridlines="true"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      @row-dblclick="showInfo($event.data)"
     >
       <template #header>
         <Toolbar class="w-full custoolbar">
@@ -210,8 +507,8 @@ onMounted(() => {
             v-bind:image="basedomainURL + data.data.creator.avt"
             style="color: #ffffff; cursor: pointer"
             :style="{
-              background: bgColor[index % 7],
-              border: '1px solid' + bgColor[index % 7],
+              background: bgColor[1 % 7],
+              border: '1px solid' + bgColor[1 % 7],
             }"
             class="p-0 myclass"
             size="large"
@@ -371,14 +668,463 @@ onMounted(() => {
   <Dialog
     :visible="DialogVisible"
     :header="'Gửi báo cáo công việc'"
-  ></Dialog>
-  <DetailedWork
+    :breakpoints="{ '1366px': '90vw', '960px': '90vw', '640px': '95vw' }"
+    :style="{ width: '85vw', 'z-index': '10000' }"
+    :closable="false"
+  >
+    <DataTable
+      :value="listSelected"
+      responsiveLayout="scroll"
+      :scrollable="true"
+      scrollHeight="75vh"
+      dataKey="task_id"
+      :rowHover="true"
+      :showGridlines="true"
+    >
+      <Column
+        header="STT"
+        field="STT"
+        class="align-items-center justify-content-center text-center max-w-4rem"
+      ></Column>
+      <Column
+        header="Người đánh giá"
+        field="task_master"
+        class="align-items-center justify-content-center text-center max-w-10rem"
+      >
+        <template #body="data">
+          <Avatar
+            v-tooltip.right="{
+              value: data.data.task_master.tooltip,
+              escape: true,
+            }"
+            v-bind:label="
+              data.data.task_master.avt
+                ? ''
+                : data.data.task_master.full_name
+                    .split(' ')
+                    .at(-1)
+                    .substring(0, 1)
+            "
+            v-bind:image="basedomainURL + data.data.task_master.avt"
+            style="color: #ffffff; cursor: pointer"
+            :style="{
+              background: bgColor[1 % 7],
+              border: '1px solid' + bgColor[1 % 7],
+            }"
+            class="p-0 myclass"
+            size="large"
+            shape="circle"
+          />
+        </template>
+      </Column>
+      <Column
+        header="Tên công việc"
+        field="task_name"
+        headerClass="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <div style="display: flex; flex-direction: column; padding: 5px">
+            <div style="line-height: 20px; display: flex">
+              <span
+                v-tooltip="'Ưu tiên'"
+                v-if="data.data.is_prioritize"
+                style="margin-right: 5px"
+                ><i
+                  style="color: orange"
+                  class="pi pi-star-fill"
+                ></i
+              ></span>
+              <span
+                style="
+                  font-weight: bold;
+                  font-size: 14px;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  width: 100%;
+                  display: -webkit-box;
+                  -webkit-line-clamp: 2;
+                  -webkit-box-orient: vertical;
+                "
+              >
+                {{ data.data.task_name }}
+              </span>
+            </div>
+            <div
+              style="
+                font-size: 12px;
+                margin-top: 5px;
+                display: flex;
+                align-items: center;
+              "
+            >
+              <span
+                v-if="data.data.start_date || data.data.end_date"
+                style="color: #98a9bc"
+                >{{
+                  data.data.start_date
+                    ? moment(new Date(data.data.start_date)).format(
+                        "DD/MM/YYYY",
+                      )
+                    : null
+                }}
+                -
+                {{
+                  data.data.end_date
+                    ? moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
+                    : null
+                }}</span
+              >
+            </div>
+            <div
+              v-if="data.data.project_name"
+              style="
+                min-height: 25px;
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+              "
+            >
+              <i class="pi pi-tag"></i>
+              <span
+                class="duan"
+                style="
+                  font-size: 13px;
+                  font-weight: 400;
+                  margin-left: 5px;
+                  color: #0078d4;
+                "
+                >{{ data.data.project_name }}</span
+              >
+            </div>
+          </div>
+        </template>
+      </Column>
+      <Column
+        header="Tiến độ"
+        field="progress"
+        class="align-items-center justify-content-center text-center max-w-8rem"
+      >
+        <template #body="data">
+          <span v-if="data.data.progress > 0">
+            <ProgressBar
+              :value="data.data.progress"
+              :show-value="true"
+          /></span>
+          <span v-else>0%</span>
+        </template>
+      </Column>
+      <Column
+        header="Tiến độ BC"
+        field="end_date"
+        class="align-items-center justify-content-center text-center max-w-8rem"
+      >
+        <template #body="data">
+          <InputNumber
+            v-model="data.data.reportProgress"
+            class="w-full"
+            inputId="minmax-buttons"
+            mode="decimal"
+            showButtons
+            :min="0"
+            :max="100"
+            suffix=" %"
+            v-tooltip.top="{
+              value: 'Tiến độ công việc <br/> (0<= x <=100)',
+            }"
+          >
+          </InputNumber>
+        </template>
+      </Column>
+      <Column
+        header="Nội dung báo cáo"
+        field="progress"
+        class="align-items-center justify-content-center text-center max-w-25rem"
+      >
+        <template #body="data">
+          <Textarea
+            class="w-full"
+            placeholder="Cập nhật kết quả công việc"
+            v-model="data.data.contents"
+          >
+          </Textarea>
+        </template>
+      </Column>
+      <Column
+        header=" Email"
+        field="progress"
+        class="align-items-center justify-content-center text-center max-w-4rem"
+      >
+        <template #body="data">
+          <InputSwitch v-model="data.data.is_send_email"> </InputSwitch>
+        </template>
+      </Column>
+      <Column
+        header=""
+        field="progress"
+        class="align-items-center justify-content-center text-center max-w-8rem"
+      >
+        <template #body="data">
+          <Button
+            v-tooltip="'Thêm khó khăn/đề xuất'"
+            icon="pi pi-plus-circle"
+            class="m-1"
+            @click="openMore(data.data)"
+          ></Button>
+          <div
+            class="p-0 m-0"
+            style="position: relative"
+          >
+            <Button
+              v-tooltip="'Đính kèm tệp'"
+              icon="pi pi-file"
+              class="m-1"
+              @click="openFile(data.data)"
+            ></Button>
+            <span
+              v-if="data.data.file.length > 0 && selectedTasks != null"
+              style="
+                position: absolute;
+                top: 0px;
+                right: 0px;
+                height: 20px;
+                width: 20px;
+                background-color: red;
+                color: #fff;
+                border-radius: 50%;
+                text-align: center;
+                padding-top: 2px;
+                font-size: 11px;
+                font-weight: bold;
+              "
+              >{{ data.data.file.length }}</span
+            >
+          </div>
+        </template>
+      </Column>
+    </DataTable>
+    <template #footer>
+      <Button
+        @click="DialogVisible = false"
+        class="p-button-raised p-button-text"
+        icon="pi pi-times"
+        label="Hủy"
+      ></Button>
+      <Button
+        @click="SaveData()"
+        class=""
+        icon="pi pi-check"
+        label="Gửi báo cáo"
+      ></Button>
+    </template>
+  </Dialog>
+  <Dialog
+    header="Tải lên tệp đính kèm"
+    v-model:visible="DialogFileVisible"
+    :closable="true"
+    :modal="true"
+    :style="{ width: '60vw', 'z-index': '10000' }"
+  >
+    <form>
+      <div class="col-12">
+        <label
+          for="FileUpload"
+          class="p-button justify-content-center p-button-raised col-4 col-offset-4 font-bold text-xl"
+        >
+          <i class="pi pi-upload font-bold mr-4 text-2xl" />
+          <span>Thêm tệp đính kèm</span>
+        </label>
+      </div>
+
+      <input
+        id="FileUpload"
+        type="file"
+        multiple
+        @input="Upload"
+        hidden
+      />
+      <div class="col-12">
+        <div
+          class="left-0 w-full bg-white"
+          v-if="TempData.file_display.length > 0"
+        >
+          <div class="col-12 h-full bottom-0 p-0 m-0">
+            <div
+              class="col-12 p-0 m-0 font-bold pl-2 bg-white"
+              style="
+                font-weight: bold;
+                font-size: 16px;
+                margin: 10px 0;
+                border-top: 1px solid #f5f5f5;
+                padding-top: 15px;
+                color: #2196f3;
+              "
+              v-if="TempData.file_display.length > 0"
+            >
+              Tệp đính kèm
+            </div>
+            <div
+              class="col-12 flex format-center bg-white"
+              v-if="TempData.file_display.length > 0"
+              style="
+                max-width: 70vw;
+                height: auto;
+                display: flex;
+                flex-wrap: wrap;
+              "
+            >
+              <div
+                v-for="(item, index) in TempData.file_display"
+                :key="index"
+                class="col-2 relative format-center file-hover border-1 border-gray-300 border-round-xl my-1 px-1 h-8rem"
+              >
+                <Button
+                  @click="delImgComment(item, index)"
+                  icon="pi pi-times-circle"
+                  class="absolute p-button-danger p-button-text p-button-rounded top-0 right-0 pr-0 mr-0 p-button-hover"
+                  v-tooltip="{ value: 'Xóa tệp' }"
+                ></Button>
+
+                <div
+                  class=""
+                  v-if="item.checkimg == true"
+                >
+                  <img
+                    :src="item.src"
+                    :alt="' '"
+                    style="
+                      max-width: 80px;
+                      max-height: 50px;
+                      object-fit: contain;
+                      margin-top: 5px;
+                    "
+                    class="pt-1"
+                  />
+                  <div
+                    class="p-1"
+                    style="
+                      width: 95px;
+                      font-size: 13px;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      display: block;
+                      font-weight: 500;
+                      white-space: nowrap;
+                    "
+                  >
+                    {{ item.data.name }}
+                    <br />
+                    {{ item.size }}
+                  </div>
+                </div>
+                <div
+                  class=""
+                  v-else
+                >
+                  <img
+                    :src="
+                      basedomainURL +
+                      '/Portals/Image/file/' +
+                      item.src.substring(item.src.lastIndexOf('.') + 1) +
+                      '.png'
+                    "
+                    style="
+                      max-width: 80px;
+                      max-height: 50px;
+                      object-fit: contain;
+                      margin-top: 5px;
+                    "
+                    :alt="' '"
+                    class="pt-1"
+                  />
+                  <div
+                    class="p-1"
+                    style="
+                      width: 95px;
+                      font-size: 13px;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      display: block;
+                      font-weight: 500;
+                      white-space: nowrap;
+                    "
+                  >
+                    {{ item.src }}
+                    <br />
+                    {{ item.size }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-check"
+        class="p-button-raised p-button-text"
+        @click="
+          (DialogFileVisible = false),
+            (TempData.file = []),
+            (TempData.file_display = [])
+        "
+      />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="DialogFileVisible = false"
+      />
+    </template>
+    <!-- Chức năng đang chỉnh sửa vui lòng liên hệ quản trị viên phần mềm -->
+  </Dialog>
+  <Dialog
+    header="Khó khăn/đề xuất"
+    v-model:visible="DialogMoreVisible"
+    :closable="true"
+    :modal="true"
+    :style="{ width: '60vw', 'z-index': '10000' }"
+  >
+    <form>
+      <div class="col-12 flex">
+        <div class="col-3">Khó khăn</div>
+        <Textarea
+          class="col-9"
+          v-model="TempData.difficult"
+        ></Textarea>
+      </div>
+      <div class="col-12 flex">
+        <div class="col-3">Đề xuất giải quyết</div>
+        <Textarea
+          class="col-9"
+          v-model="TempData.request"
+        ></Textarea>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        class="p-button-raised p-button-text"
+        @click="
+          ((DialogMoreVisible = false), (TempData.difficult = '')),
+            (TempData.request = '')
+        "
+      />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="DialogMoreVisible = false"
+      />
+    </template>
+  </Dialog>
+  <!-- <DetailedWork
     v-if="showDetail == true && selectedTaskID != null"
     :isShow="showDetail"
     :id="selectedTaskID"
     :turn="0"
   >
-  </DetailedWork>
+  </DetailedWork> -->
 </template>
 
 <style lang="scss" scoped>

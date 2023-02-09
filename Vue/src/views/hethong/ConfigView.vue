@@ -1,7 +1,7 @@
 <script setup>
 import { inject, onMounted, ref } from "vue";
 import { useToast } from "vue-toastification";
-import { encr } from "../../util/function.js";
+import { decr, encr } from "../../util/function.js";
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios"); // inject axios
 const config = ref({});
@@ -11,7 +11,7 @@ const socket = inject("socket");
 const toast = useToast();
 const baseUrlCheck = baseURL;
 const configHeader = {
-	headers: { Authorization: `Bearer ${store.getters.token}` },
+  headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const initConfig = () => {
   axios
@@ -22,14 +22,24 @@ const initConfig = () => {
       swal.close();
       if (response.data.err != "1") {
         config.value = response.data.data;
-        if (config.value != null && (config.value.fileNameSettingApp || '') != '' && (config.value.filePathSettingApp || '') != '') {
-          listFileUpdateApp.value.push({ file_name: config.value.fileNameSettingApp, file_path: config.value.filePathSettingApp, file_type: config.value.fileNameSettingApp.substring(config.value.fileNameSettingApp.lastIndexOf('.') + 1) });
-        }
-        else {
+        console.log(response.data.data);
+        if (
+          config.value != null &&
+          (config.value.fileNameSettingApp || "") != "" &&
+          (config.value.filePathSettingApp || "") != ""
+        ) {
+          listFileUpdateApp.value.push({
+            file_name: config.value.fileNameSettingApp,
+            file_path: config.value.filePathSettingApp,
+            file_type: config.value.fileNameSettingApp.substring(
+              config.value.fileNameSettingApp.lastIndexOf(".") + 1,
+            ),
+          });
+        } else {
           listFileUpdateApp.value = [];
         }
         filesUpdate = [];
-        if(fileApkUp.value){
+        if (fileApkUp.value) {
           fileApkUp.value.clear();
         }
       } else {
@@ -39,6 +49,13 @@ const initConfig = () => {
           icon: "error",
           confirmButtonText: "OK",
         });
+      }
+      if (config.value.pwEmail) {
+        config.value.pwEmail = decr(
+          config.value.pwEmail,
+          SecretKey,
+          cryoptojs,
+        ).toString();
       }
     })
     .catch((error) => {
@@ -50,10 +67,20 @@ const initConfig = () => {
       }
     });
 };
-
 const saveConfig = () => {
-  var path_temp = config.value.path_xml ;
-  config.value.path_xml = encr(config.value.path_xml,  SecretKey, cryoptojs).toString();
+  var path_temp = config.value.path_xml;
+  config.value.path_xml = encr(
+    config.value.path_xml,
+    SecretKey,
+    cryoptojs,
+  ).toString();
+  if (config.value.email != null) {
+    config.value.pwEmail = encr(
+      config.value.pwEmail,
+      SecretKey,
+      cryoptojs,
+    ).toString();
+  }
   if (listFileUpdateApp.value.length == 0 && filesUpdate.length == 0) {
     config.value.fileNameSettingApp = null;
     config.value.filePathSettingApp = null;
@@ -65,11 +92,11 @@ const saveConfig = () => {
     },
   });
   let formData = new FormData();
-	formData.append("modelConfig", JSON.stringify(config.value));  
-	for (var i = 0; i < filesUpdate.length; i++) {
-		let file = filesUpdate[i];
-		formData.append("url_file_update", file);
-	}
+  formData.append("modelConfig", JSON.stringify(config.value));
+  for (var i = 0; i < filesUpdate.length; i++) {
+    let file = filesUpdate[i];
+    formData.append("url_file_update", file);
+  }
   axios
     // .post(baseURL + "/api/Cache/SetConfig", config.value, {
     //   headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -87,7 +114,7 @@ const saveConfig = () => {
           icon: "error",
           confirmButtonText: "OK",
         });
-        config.value.path_xml  = path_temp ;
+        config.value.path_xml = path_temp;
       }
     })
     .catch((error) => {
@@ -198,13 +225,15 @@ const closeDialogLog = () => {
   };
 };
 function formatPath(srcPath) {
-  let pathReplace = srcPath.replace(/\\+/g, '/').replace(/\/+/g, '/').replace(/^\//g, '');
-  var listPath = pathReplace.split('/');
+  let pathReplace = srcPath
+    .replace(/\\+/g, "/")
+    .replace(/\/+/g, "/")
+    .replace(/^\//g, "");
+  var listPath = pathReplace.split("/");
   var pathFile = "";
-  listPath.forEach(item => {
-    if (item.trim() != "")
-    {
-        pathFile += "/" + item;
+  listPath.forEach((item) => {
+    if (item.trim() != "") {
+      pathFile += "/" + item;
     }
   });
   return pathFile;
@@ -224,7 +253,7 @@ const expotFileLog = () => {
         //window.open(baseUrlCheck + response.data.path);
         if (response.data.path != null) {
           let pathFile = formatPath(response.data.path);
-          let nameFile = formatPath(response.data.filename).replace(/^\//g, '');
+          let nameFile = formatPath(response.data.filename).replace(/^\//g, "");
           const a = document.createElement("a");
           a.href =
             baseUrlCheck +
@@ -255,24 +284,38 @@ const expotFileLog = () => {
 const listFileUpdateApp = ref([]);
 var filesUpdate = [];
 const onUploadFileApp = (event) => {
-	filesUpdate = [];
-	event.files.forEach((element) => {
-		filesUpdate.push(element);
-	});
+  filesUpdate = [];
+  event.files.forEach((element) => {
+    filesUpdate.push(element);
+  });
   if (filesUpdate.length > 0) {
     listFileUpdateApp.value = [];
     let fileUse = filesUpdate[filesUpdate.length - 1];
-    config.fileNameSettingApp = fileUse.name;
+    config.value.fileNameSettingApp = fileUse.name;
     //listFileUpdateApp.value.push({ file_name: fileUse.name, file_type: fileUse.name.substring(fileUse.name.lastIndexOf('.') + 1) });
-  }  
+  }
 };
 const loadUpdateApp = (data) => {
-	var contentReload = { user_id: "chatbot" };
-	socket.emit("sendData", { event: "updateAPK", contentReload });
-	toast.success("Gửi yêu cầu update app tivi thành công.");
+  var contentReload = { user_id: "chatbot" };
+  socket.emit("sendData", { event: "updateAPK", contentReload });
+  toast.success("Gửi yêu cầu update app tivi thành công.");
 };
 const deleteFileUpdate = (value) => {
-	listFileUpdateApp.value = [];
+  listFileUpdateApp.value = [];
+};
+const isTrueEmail = ref(true);
+const ValidateEmail = () => {
+  const textbox = document.getElementById("email");
+  if (textbox.value != "" && textbox.value != null) {
+    var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if (textbox.value.match(mailformat)) {
+      isTrueEmail.value = true;
+      return;
+    } else {
+      isTrueEmail.value = false;
+      return;
+    }
+  }
 };
 const fileApkUp = ref(null);
 onMounted(() => {
@@ -284,8 +327,14 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="main-layout h-full p-4" v-if="store.getters.islogin">
-    <Card class="p-4" style="max-height:calc(100vh - 80px); overflow:scroll">
+  <div
+    class="main-layout h-full p-4"
+    v-if="store.getters.islogin"
+  >
+    <Card
+      class="p-4"
+      style="max-height: calc(100vh - 80px); overflow: scroll"
+    >
       <template #header>
         <h3><i class="pi pi-cog"></i> Thiết lập tham số hệ thống</h3>
       </template>
@@ -294,7 +343,9 @@ onMounted(() => {
         <form @submit.prevent="saveConfig">
           <div class="grid formgrid m-2">
             <div class="field col-12 md:col-12 flex m-0">
-              <label class="col-4 text-left" style="vertical-align: text-bottom"
+              <label
+                class="col-4 text-left"
+                style="vertical-align: text-bottom"
                 >Socket real time
               </label>
               <div
@@ -309,28 +360,48 @@ onMounted(() => {
               </div>
             </div>
             <div class="field col-12 md:col-12">
-              <label class="col-4 text-left" style="vertical-align: text-bottom"
+              <label
+                class="col-4 text-left"
+                style="vertical-align: text-bottom"
                 >Bật Debug
               </label>
-              <InputSwitch v-model="config.debug" class="col-8" />
+              <InputSwitch
+                v-model="config.debug"
+                class="col-8"
+              />
             </div>
             <div class="field col-12 md:col-12">
-              <label class="col-4 text-left" style="vertical-align: text-bottom"
+              <label
+                class="col-4 text-left"
+                style="vertical-align: text-bottom"
                 >Bật Lưu Log
               </label>
-              <InputSwitch v-model="config.wlog" class="col-8" />
+              <InputSwitch
+                v-model="config.wlog"
+                class="col-8"
+              />
             </div>
             <div class="field col-12 md:col-12">
-              <label class="col-4 text-left" style="vertical-align: middle"
+              <label
+                class="col-4 text-left"
+                style="vertical-align: middle"
                 >Lưu Token(phút)</label
               >
-              <InputNumber class="col-8 ip36 p-0" v-model="config.timeout" />
+              <InputNumber
+                class="col-8 ip36 p-0"
+                v-model="config.timeout"
+              />
             </div>
             <div class="field col-12 md:col-12">
-              <label class="col-4 text-left" style="vertical-align: middle"
+              <label
+                class="col-4 text-left"
+                style="vertical-align: middle"
                 >Lưu Log SQL (Milisec)
               </label>
-              <InputNumber class="col-8 ip36 p-0" v-model="config.milisec" />
+              <InputNumber
+                class="col-8 ip36 p-0"
+                v-model="config.milisec"
+              />
             </div>
             <div class="field col-12 md:col-12">
               <label class="col-4 text-left">Thông báo lỗi </label>
@@ -342,7 +413,10 @@ onMounted(() => {
             </div>
             <div class="field col-12 md:col-12">
               <label class="col-4 text-left">Version Cache </label>
-              <InputNumber class="col-8 ip36 p-0" v-model="config.cache" />
+              <InputNumber
+                class="col-8 ip36 p-0"
+                v-model="config.cache"
+              />
             </div>
             <div class="field col-12 md:col-12 flex align-items-center">
               <label class="col-4 text-left">Public Token</label>
@@ -364,62 +438,99 @@ onMounted(() => {
             </div>
             <div class="field col-12 md:col-12">
               <label class="col-4 text-left">API BHBQP</label>
-              <InputText class="col-8 ip36" v-model="config.apiBHBQP" />
+              <InputText
+                class="col-8 ip36"
+                v-model="config.apiBHBQP"
+              />
             </div>
             <div class="field col-12 md:col-12">
               <label class="col-4 text-left">Token BHBQP</label>
-              <InputText class="col-8 ip36" v-model="config.tokenBHBQP" />
+              <InputText
+                class="col-8 ip36"
+                v-model="config.tokenBHBQP"
+              />
             </div>
             <div class="field col-12 md:col-12">
               <label class="col-4 text-left">keycode BHBQP </label>
-              <InputText class="col-8 ip36" v-model="config.keycodeBHBQP" />
+              <InputText
+                class="col-8 ip36"
+                v-model="config.keycodeBHBQP"
+              />
             </div>
             <div class="field col-12 md:col-12">
               <label class="col-4 text-left">Đường dẫn lưu file XML </label>
-              <InputText class="col-8 ip36" v-model="config.path_xml" />
+              <InputText
+                class="col-8 ip36"
+                v-model="config.path_xml"
+              />
             </div>
             <div class="field col-12 md:col-12">
               <label class="col-4 text-left">Đường dẫn Socket </label>
-              <InputText class="col-8 ip36" v-model="config.socketUrl" />
+              <InputText
+                class="col-8 ip36"
+                v-model="config.socketUrl"
+              />
             </div>
-            <div class="field col-12 md:col-12 flex" style="align-items:center;">
+            <div
+              class="field col-12 md:col-12 flex"
+              style="align-items: center"
+            >
               <label class="col-4 m-0 text-left">File cài đặt App Tivi </label>
               <!-- <InputText class="col-8 ip36" v-model="config.fileSettingApp" /> -->
               <div class="col-8 flex p-0">
-                <FileUpload mode="basic" accept=".apk" :fileLimit="1"
-                  :maxFileSize="1000000000" 
-                  :chooseIcon="'pi pi-plus-circle'" 
-                  @select="onUploadFileApp" 
-                  chooseLabel="Chọn file .apk" 
+                <FileUpload
+                  mode="basic"
+                  accept=".apk"
+                  :fileLimit="1"
+                  :maxFileSize="1000000000"
+                  :chooseIcon="'pi pi-plus-circle'"
+                  @select="onUploadFileApp"
+                  chooseLabel="Chọn file .apk"
                   :showCancelButton="true"
                   ref="fileApkUp"
                 />
-                <Button class="p-button-secondary ml-2" label="Gửi yêu cầu cập nhật" @click="loadUpdateApp" />
+                <Button
+                  class="p-button-secondary ml-2"
+                  label="Gửi yêu cầu cập nhật"
+                  @click="loadUpdateApp"
+                />
               </div>
             </div>
-            <div class="field col-12 md:col-12 flex" v-if="listFileUpdateApp.length > 0">
+            <div
+              class="field col-12 md:col-12 flex"
+              v-if="listFileUpdateApp.length > 0"
+            >
               <label class="col-4 m-0 text-left"></label>
               <div class="col-8 flex p-0">
-                <DataView 
+                <DataView
                   class="w-full h-full ptable p-datatable-sm flex flex-column"
                   :lazy="true"
-                  :value="listFileUpdateApp" 
+                  :value="listFileUpdateApp"
                   layout="list"
                   :rowHover="true"
                   responsiveLayout="scroll"
                   :scrollable="true"
-                  >
+                >
                   <template #list="slotProps">
                     <div class="w-full">
                       <Toolbar class="w-full">
                         <template #start>
                           <div class="flex align-items-center">
-                            <img class="mr-2"
-                              :src="baseUrlCheck + '/Portals/Image/file/' + slotProps.data.file_type + '.png'"
-                              style="object-fit: contain;"
-                              width="40" height="40"
+                            <img
+                              class="mr-2"
+                              :src="
+                                baseUrlCheck +
+                                '/Portals/Image/file/' +
+                                slotProps.data.file_type +
+                                '.png'
+                              "
+                              style="object-fit: contain"
+                              width="40"
+                              height="40"
                             />
-                            <span style="line-height:1.5"> {{ slotProps.data.file_name }}</span>
+                            <span style="line-height: 1.5">
+                              {{ slotProps.data.file_name }}</span
+                            >
                           </div>
                         </template>
                         <template #end>
@@ -435,6 +546,44 @@ onMounted(() => {
                 </DataView>
               </div>
             </div>
+
+            <div class="field col-12 md:col-12 flex">
+              <label class="col-4 m-0 text-left">Email</label>
+              <InputText
+                id="email"
+                autocomplete="off"
+                class="col-8 ip36"
+                v-model="config.email"
+                @input="ValidateEmail($event)"
+              />
+            </div>
+            <div
+              class="field col-12 md:col-12 flex p-0"
+              v-if="isTrueEmail == false"
+            >
+              <label class="col-4 m-0 p-0 text-left"></label>
+              <div class="col-8 ip36 p-0 m-0">
+                <small class="p-error">Email chưa đúng định dạng.</small>
+              </div>
+            </div>
+
+            <div
+              class="field col-12 md:col-12 flex"
+              v-if="
+                config.email != null &&
+                config.email != '' &&
+                isTrueEmail == true
+              "
+            >
+              <label class="col-4 m-0 text-left">Mật khẩu Email</label>
+              <InputText
+                autocomplete="off"
+                class="col-8 ip36 p-0"
+                v-model="config.pwEmail"
+                :feedback="false"
+                toggleMask
+              />
+            </div>
           </div>
         </form>
       </template>
@@ -446,7 +595,11 @@ onMounted(() => {
             label="Xuất log lỗi"
             @click="exportLogError"
           />
-          <Button icon="pi pi-save" label="Cập nhật" @click="saveConfig" />
+          <Button
+            icon="pi pi-save"
+            label="Cập nhật"
+            @click="saveConfig"
+          />
         </div>
       </template>
     </Card>
@@ -490,7 +643,11 @@ onMounted(() => {
         @click="closeDialogLog()"
         class="p-button-text"
       />
-      <Button label="Xuất file" icon="pi pi-check" @click="expotFileLog()" />
+      <Button
+        label="Xuất file"
+        icon="pi pi-check"
+        @click="expotFileLog()"
+      />
     </template>
   </Dialog>
 </template>
