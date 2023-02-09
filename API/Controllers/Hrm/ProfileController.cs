@@ -370,11 +370,7 @@ namespace API.Controllers
                         model.modified_by = uid;
                         model.modified_ip = ip;
                         model.modified_token_id = tid;
-                        model.created_token_id = tid;
-                        model.created_date = DateTime.Now;
-                        model.created_by = uid;
-                        model.created_token_id = tid;
-                        model.created_ip = ip;
+    
                         db.Entry(model).State = EntityState.Modified;
                         #region add skill
                         //delte all 
