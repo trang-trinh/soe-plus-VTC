@@ -225,8 +225,8 @@ const saveModel = (is_continue) => {
         props.isAdd ? "Thêm mới thành công!" : "Cập nhật thành công!"
       );
       if (is_continue) {
-        props.model.group_product_name = "";
-        props.model.is_order += 1;
+        props.model.profile = null;
+        props.model.contract_no = "";
       } else {
         props.closeDialog();
       }
@@ -1317,6 +1317,7 @@ onMounted(() => {});
         class="p-button-text"
       />
       <Button
+        v-if="props.isAdd"
         label="Lưu và tiếp tục"
         icon="pi pi-check"
         @click="saveModel(true)"
