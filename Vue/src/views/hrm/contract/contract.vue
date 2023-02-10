@@ -96,16 +96,6 @@ const itemButMores = ref([
     },
   },
   {
-    label: "Thiết lập trạng thái",
-    icon: "pi pi-cog",
-    command: (event) => {},
-  },
-  {
-    label: "Thanh lý",
-    icon: "pi pi-check-circle",
-    command: (event) => {},
-  },
-  {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
@@ -171,6 +161,11 @@ function CreateGuid() {
 const activeTab = (tab) => {
   options.value.tab = tab.id;
   initData(true);
+};
+const opstatus = ref();
+const toggleStatus = (item, event) => {
+  contract.value = item;
+  opstatus.value.toggle(event);
 };
 
 //add model
@@ -525,6 +520,67 @@ const setStar = (item) => {
       }
     });
   if (submitted.value) submitted.value = true;
+};
+const setStatus = (status, event) => {
+  if (status === 3) {
+    openAddDialogLiquidation("Thanh lý hợp đồng");
+  } else {
+    updateStatus(contract.value, status, event);
+  }
+};
+const updateStatus = (item, status, event, content) => {
+  opstatus.value.toggle(event);
+  closeDialogLiquidation();
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  let data = {
+    id: item["contract_id"],
+    status: status,
+    content: content || "",
+  };
+  axios
+    .put(baseURL + "/api/hrm_contract/update_status_contract", data, config)
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      } else {
+        swal.close();
+        toast.success("Cập nhật trạng thái thành công!");
+        initData(true);
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
+const headerDialogLiquidation = ref();
+const displayDialogLiquidation = ref(false);
+const liquidationContent = ref();
+const openAddDialogLiquidation = (str) => {
+  forceRerender();
+  liquidationContent.value = "";
+  headerDialogLiquidation.value = str;
+  displayDialogLiquidation.value = true;
+};
+const closeDialogLiquidation = () => {
+  displayDialogLiquidation.value = false;
 };
 
 //Init
@@ -965,6 +1021,9 @@ const initData = (ref) => {
                 item["end_date"] = moment(new Date(item["end_date"])).format(
                   "DD/MM/YYYY"
                 );
+              }
+              if(item["created_date"] != null){
+                item["created_date"] = moment(new Date(item["created_date"])).format("DD/MM/YYYY");
               }
             });
             datas.value = data[0];
@@ -1766,22 +1825,78 @@ onMounted(() => {
           </template>
         </Column>
         <Column
-          field="status"
-          header="Trạng thái"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
+          field="created_date"
+          header="Ngày lập"
+          headerStyle="text-align:center;max-width:100px;height:50px"
+          bodyStyle="text-align:center;max-width:100px;"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <Tag
-              class="px-3 py-1"
-              :value="slotProps.data.status_name"
-              :style="{
-                backgroundColor: slotProps.data.bg_color,
-                color: slotProps.data.text_color,
-              }"
-              style="font-size: 11px"
-            ></Tag>
+            <span>{{ slotProps.data.created_date }}</span>
+          </template>
+        </Column>
+        <Column
+          field="status"
+          header="Trạng thái"
+          headerStyle="text-align:center;max-width:140px;height:50px"
+          bodyStyle="text-align:center;max-width:140px;"
+          class="align-items-center justify-content-center text-center"
+        >
+          <template #body="slotProps">
+            <div
+              class="m-2"
+              @click="
+                toggleStatus(slotProps.data, $event);
+                $event.stopPropagation();
+              "
+              aria:haspopup="true"
+              aria-controls="overlay_panel_status"
+            >
+              <Button
+                :label="slotProps.data.status_name"
+                icon="pi pi-chevron-down"
+                iconPos="right"
+                :style="{
+                  border: slotProps.data.bg_color,
+                  backgroundColor: slotProps.data.bg_color,
+                  color: slotProps.data.text_color,
+                }"
+              />
+            </div>
+            <OverlayPanel
+              :showCloseIcon="false"
+              ref="opstatus"
+              appendTo="body"
+              class="p-0 m-0"
+              id="overlay_panel_status"
+              style="width: 200px"
+            >
+              <div class="form-group m-0">
+                <label>Trạng thái</label>
+                <Dropdown
+                  :options="typestatus"
+                  :filter="false"
+                  :showClear="false"
+                  :editable="false"
+                  v-model="slotProps.data.status"
+                  optionLabel="title"
+                  optionValue="value"
+                  placeholder="Chọn trạng thái"
+                  class="ip36"
+                  @change="
+                    setStatus(slotProps.data.status, $event)
+                  "
+                >
+                  <template #option="slotProps">
+                    <div class="country-item flex align-items-center">
+                      <div class="pt-1 pl-2">
+                        {{ slotProps.option.title }}
+                      </div>
+                    </div>
+                  </template>
+                </Dropdown>
+              </div>
+            </OverlayPanel>
           </template>
         </Column>
         <!-- <Column
@@ -1825,11 +1940,13 @@ onMounted(() => {
             <div>
               <a
                 @click="setStar(slotProps.data)"
-                v-tooltip.top="slotProps.data.is_star ? 'Quan trọng' : ''"
+                v-tooltip.top="
+                  slotProps.data.is_star ? 'Hợp đồng cần lưu ý' : ''
+                "
               >
                 <i
                   :class="{
-                    'pi pi-star-fill icon-start': slotProps.data.is_star,
+                    'pi pi-star-fill icon-star': slotProps.data.is_star,
                     'pi pi-star': !slotProps.data.is_star,
                   }"
                   style="font-size: 15px"
@@ -1851,6 +1968,7 @@ onMounted(() => {
               @click="toggleMores($event, slotProps.data)"
               aria-haspopup="true"
               aria-controls="overlay_More"
+              v-tooltip.top="'Tác vụ'"
             />
           </template>
         </Column>
@@ -1902,6 +2020,43 @@ onMounted(() => {
     :professional_works="professional_works"
     :initData="initData"
   />
+  <Dialog
+    :header="headerDialogLiquidation"
+    v-model:visible="displayDialogLiquidation"
+    :style="{ width: '30vw' }"
+    :maximizable="true"
+    :closable="false"
+    style="z-index: 9000"
+  >
+    <form @submit.prevent="" name="submitform">
+      <div class="grid formgrid m-2">
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Nội dung</label>
+            <Textarea
+              v-model="liquidationContent"
+              :autoResize="true"
+              rows="3"
+              cols="30"
+            />
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialogLiquidation()"
+        class="p-button-text"
+      />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="updateStatus(contract, 3, $event, liquidationContent)"
+      />
+    </template>
+  </Dialog>
   <Menu
     id="overlay_More"
     ref="menuButMores"
@@ -1960,8 +2115,8 @@ onMounted(() => {
   filter: opacity(40%) !important;
   cursor: auto !important;
 }
-.icon-start {
-  color: orange !important;
+.icon-star {
+  color: #f4b400 !important;
 }
 </style>
 <style lang="scss" scoped>
