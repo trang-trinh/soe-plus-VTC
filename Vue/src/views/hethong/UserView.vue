@@ -144,11 +144,11 @@ const item = "/Portals/Mau Excel/Mẫu Excel Người Dùng.xlsx";
 const displayImport = ref(false);
 const ImportExcel = () => {
   displayImport.value = true;
-  files = [];
+  file_import = [];
 };
 let file_import = [];
 const removeFile = (event) => {
-  files = [];
+  file_import = [];
 };
 const selectFile = (event) => {
   event.files.forEach((element) => {
@@ -314,10 +314,10 @@ const initModuleFunctions = () => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -522,10 +522,10 @@ const initTudien = () => {
             par: [{ par: "user_id", va: opition.value.user_id }],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -538,7 +538,7 @@ const initTudien = () => {
           data[1],
           "organization_id",
           "organization_name",
-          "phòng ban"
+          "phòng ban",
         );
         donvis.value = obj.arrChils;
         treedonvis.value = obj.arrtreeChils;
@@ -577,10 +577,10 @@ const loadCount = (f) => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -682,29 +682,29 @@ const resetopition = () => {
   }
   if (opition.value.organization_id && !opition.value.organization_name) {
     opition.value.organization_name = users.value.find(
-      (x) => x.organization_id == opition.value.organization_id
+      (x) => x.organization_id == opition.value.organization_id,
     ).organization_name;
   }
   if (opition.value.status && !opition.value.tenstatus) {
     opition.value.tenstatus = tdstatuss.value.find(
-      (x) => x.status == opition.value.status
+      (x) => x.status == opition.value.status,
     ).tenstatus;
   }
 };
 const loadUser = (rf, rfpb) => {
   if (opition.value.role_id != null)
     opition.value.role_name = tdRoles.value.filter(
-      (x) => x.role_id == opition.value.role_id
+      (x) => x.role_id == opition.value.role_id,
     )[0].role_name;
   else opition.value.role_name = null;
   if (opition.value.status != null)
     opition.value.tenstatus = tdstatuss.value.filter(
-      (x) => x.value == opition.value.status
+      (x) => x.value == opition.value.status,
     )[0].text;
   else opition.value.tenstatus = null;
   if (opition.value.position_id != null)
     opition.value.position_name = chucvus.value.filter(
-      (x) => x.position_id == opition.value.position_id
+      (x) => x.position_id == opition.value.position_id,
     )[0].position_name;
   else opition.value.position_name = null;
   //resetopition();
@@ -713,7 +713,7 @@ const loadUser = (rf, rfpb) => {
   }
   if (opition.value.check_quyen != null)
     opition.value.check_quyen_label = tdCheckquyens.value.filter(
-      (x) => x.value == opition.value.check_quyen
+      (x) => x.value == opition.value.check_quyen,
     )[0].text;
   else opition.value.check_quyen_label = null;
   if (rf) {
@@ -749,10 +749,10 @@ const loadUser = (rf, rfpb) => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -809,10 +809,10 @@ const editUser = (md) => {
             par: [{ par: "user_id", va: md.user_id }],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       swal.close();
@@ -824,7 +824,7 @@ const editUser = (md) => {
           user.value.birthday = new Date(
             dt.getFullYear(),
             dt.getMonth(),
-            dt.getDate()
+            dt.getDate(),
           );
         }
         getInfoPass(user.value);
@@ -1095,7 +1095,7 @@ const exportUser = (method) => {
           { par: "status", va: opition.value.status },
         ],
       },
-      config
+      config,
     )
     .then((response) => {
       swal.close();
@@ -1253,10 +1253,10 @@ const configRole = (md) => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       opition.value.moduleloading = false;
@@ -1457,7 +1457,7 @@ const initUserPhongban = () => {
         let getString = dv.data.organization_name.substring(idx1, idx2);
         dv.data.organization_name = dv.data.organization_name.replace(
           getString,
-          " (" + us.length + ")"
+          " (" + us.length + ")",
         );
       }
       //dv.users = us;
@@ -1472,7 +1472,7 @@ const initUserPhongban = () => {
         let getString = dv.data.organization_name.substring(idx1, idx2);
         dv.data.organization_name = dv.data.organization_name.replace(
           getString,
-          " (" + us.length + ")"
+          " (" + us.length + ")",
         );
       }
     }
@@ -1509,7 +1509,7 @@ function removeVietnameseTones(str) {
   // Bỏ dấu câu, kí tự đặc biệt
   str = str.replace(
     /!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'|\"|\&|\#|\[|\]|~|\$|_|`|-|{|}|\||\\/g,
-    " "
+    " ",
   );
   return str;
 }
@@ -1534,7 +1534,10 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="main-layout true flex-grow-1 p-2" id="sys_users">
+  <div
+    class="main-layout true flex-grow-1 p-2"
+    id="sys_users"
+  >
     <DataView
       v-if="!displayPhongban"
       class="w-full h-full flex flex-column"
@@ -1711,7 +1714,10 @@ onMounted(() => {
                       ></Button>
                     </template>
                     <template #end>
-                      <Button @click="filterUser" label="Lọc"></Button>
+                      <Button
+                        @click="filterUser"
+                        label="Lọc"
+                      ></Button>
                     </template>
                   </Toolbar>
                 </div>
@@ -1852,7 +1858,10 @@ onMounted(() => {
                   v-ripple
                   :label="slotProps.data.organization_name"
                 ></Chip>
-                <div class="mb-1" v-if="slotProps.data.position_name">
+                <div
+                  class="mb-1"
+                  v-if="slotProps.data.position_name"
+                >
                   <Chip
                     @click="goChucvu(slotProps.data)"
                     v-ripple
@@ -1886,7 +1895,10 @@ onMounted(() => {
         </div>
       </template>
       <template #list="slotProps">
-        <div class="p-2 w-full" style="background-color: #fff">
+        <div
+          class="p-2 w-full"
+          style="background-color: #fff"
+        >
           <div class="flex align-items-center justify-content-center">
             <div class="mx-2">
               <Checkbox
@@ -1956,7 +1968,7 @@ onMounted(() => {
             >
               {{
                 moment(new Date(slotProps.data.created_date)).format(
-                  "DD/MM/YYYY"
+                  "DD/MM/YYYY",
                 )
               }}
             </div>
@@ -1988,7 +2000,10 @@ onMounted(() => {
           class="align-items-center justify-content-center p-4 text-center"
           v-if="!isFirst"
         >
-          <img src="../../assets/background/nodata.png" height="144" />
+          <img
+            src="../../assets/background/nodata.png"
+            height="144"
+          />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -2007,7 +2022,10 @@ onMounted(() => {
     :maximizable="true"
     :closable="true"
   >
-    <form @submit.prevent="handleSubmit(!v$.$invalid)" name="submitform">
+    <form
+      @submit.prevent="handleSubmit(!v$.$invalid)"
+      name="submitform"
+    >
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left"
@@ -2050,7 +2068,7 @@ onMounted(() => {
               >{{
                 v$.user_id.maxLength.$message.replace(
                   "The maximum length allowed is",
-                  "Tên đăng nhập không được vượt quá"
+                  "Tên đăng nhập không được vượt quá",
                 )
               }}
               ký tự</span
@@ -2099,7 +2117,7 @@ onMounted(() => {
               >{{
                 v$.full_name.maxLength.$message.replace(
                   "The maximum length allowed is",
-                  "Tên người dùng không được vượt quá"
+                  "Tên người dùng không được vượt quá",
                 )
               }}
               ký tự</span
@@ -2124,7 +2142,10 @@ onMounted(() => {
               {{ sp.level }}
               <Divider />
               <p class="mt-2">Gợi ý</p>
-              <ul class="pl-2 ml-2 mt-0" style="line-height: 1.5">
+              <ul
+                class="pl-2 ml-2 mt-0"
+                style="line-height: 1.5"
+              >
                 <li>Có ít nhất 1 chữ thường</li>
                 <li>Có ít nhất 1 chữ hoa</li>
                 <li>Có ít nhất 1 ký tự số</li>
@@ -2159,7 +2180,7 @@ onMounted(() => {
               v$.is_psword.minLength.$message
                 .replace(
                   "This field should be at least",
-                  "Mật khẩu không được ít hơn"
+                  "Mật khẩu không được ít hơn",
                 )
                 .replace("long", "ký tự")
             }}</span>
@@ -2175,7 +2196,7 @@ onMounted(() => {
               >{{
                 v$.is_psword.maxLength.$message.replace(
                   "The maximum length allowed is",
-                  "Mật khẩu không được vượt quá"
+                  "Mật khẩu không được vượt quá",
                 )
               }}
               ký tự</span
@@ -2269,7 +2290,10 @@ onMounted(() => {
         <div class="col-3">
           <div class="field">
             <label class="col-12 text-center">Ảnh đại diện</label>
-            <div class="inputanh relative" style="margin: 0 auto">
+            <div
+              class="inputanh relative"
+              style="margin: 0 auto"
+            >
               <img
                 @click="chonanh('AnhUser')"
                 id="Anhdaidien"
@@ -2299,7 +2323,10 @@ onMounted(() => {
         <div class="col-3">
           <div class="field">
             <label class="col-12 text-center">Chữ ký</label>
-            <div class="inputanh relative" style="margin: 0 auto">
+            <div
+              class="inputanh relative"
+              style="margin: 0 auto"
+            >
               <img
                 @click="chonanh('UserChuky')"
                 id="Chuky"
@@ -2329,7 +2356,10 @@ onMounted(() => {
         <div class="col-3">
           <div class="field">
             <label class="col-12 text-center">Chữ ký nháy</label>
-            <div class="inputanh relative" style="margin: 0 auto">
+            <div
+              class="inputanh relative"
+              style="margin: 0 auto"
+            >
               <img
                 @click="chonanh('UserKynhay')"
                 id="Kynhay"
@@ -2358,17 +2388,34 @@ onMounted(() => {
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">STT</label>
-          <InputNumber class="col-1 ip32 p-0" v-model="user.is_order" />
+          <InputNumber
+            class="col-1 ip32 p-0"
+            v-model="user.is_order"
+          />
 
           <label class="col-2 text-right">Admin</label>
-          <InputSwitch class="col-1" v-model="user.is_admin" />
-          <label class="text-right" style="width: 20%; padding: 0.5rem"
+          <InputSwitch
+            class="col-1"
+            v-model="user.is_admin"
+          />
+          <label
+            class="text-right"
+            style="width: 20%; padding: 0.5rem"
             >Hiển thị sinh nhật</label
           >
-          <InputSwitch class="col-1" v-model="user.display_birthday" />
+          <InputSwitch
+            class="col-1"
+            v-model="user.display_birthday"
+          />
           <label class="col-2 text-right">Ban hành</label>
-          <InputSwitch class="col-1" v-model="user.calendar_enact" />
-          <div class="field col-12 md:col-12" v-if="user.is_super">
+          <InputSwitch
+            class="col-1"
+            v-model="user.calendar_enact"
+          />
+          <div
+            class="field col-12 md:col-12"
+            v-if="user.is_super"
+          >
             <label class="col-2 left">Is Super</label>
             <InputSwitch v-model="user.is_super" />
           </div>
@@ -2440,9 +2487,15 @@ onMounted(() => {
           <template #start>
             <h3 class="module-title mt-0 ml-1 mb-2">
               <i class="pi pi-microsoft"></i> Module chức năng
-              <span class="text-base font-normal" style="color: #495057"
+              <span
+                class="text-base font-normal"
+                style="color: #495057"
                 >(Module đang được phân theo
-                <span class="font-bold" v-if="!is_role">cá nhân</span>
+                <span
+                  class="font-bold"
+                  v-if="!is_role"
+                  >cá nhân</span
+                >
                 <span v-else
                   >nhóm người dùng
                   <span class="font-bold"> {{ role_name }}</span></span
@@ -2545,7 +2598,7 @@ onMounted(() => {
             :popup="true"
             :options="
               function_modules.filter(
-                (x) => x.module_key === md.node.data.module_key
+                (x) => x.module_key === md.node.data.module_key,
               )
             "
             optionLabel="function_name"
@@ -2563,7 +2616,11 @@ onMounted(() => {
         @click="closedisplayConfigRole"
         class="p-button-raised p-button-secondary"
       />
-      <Button label="Cập nhật" icon="pi pi-save" @click="addConfigRole" />
+      <Button
+        label="Cập nhật"
+        icon="pi pi-save"
+        @click="addConfigRole"
+      />
     </template>
   </Dialog>
   <Dialog
@@ -2574,7 +2631,11 @@ onMounted(() => {
   >
     <h3>
       <label>
-        <a :href="basedomainURL + item" download>Nhấn vào đây</a>
+        <a
+          :href="basedomainURL + item"
+          download
+          >Nhấn vào đây</a
+        >
         để tải xuống tệp mẫu.
       </label>
     </h3>
@@ -2595,7 +2656,11 @@ onMounted(() => {
       </FileUpload>
     </form>
     <template #footer>
-      <Button label="Lưu" icon="pi pi-check" @click="Upload" />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="Upload"
+      />
     </template>
   </Dialog>
 </template>
