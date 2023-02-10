@@ -724,7 +724,7 @@ onMounted(() => {});
                 <div v-if="!props.model.start_date && submitted">
                   <small class="p-error">
                     <span class="col-12 p-0"
-                      >Hiệu lực từ ngày được để trống</span
+                      >Hiệu lực từ ngày không được để trống</span
                     >
                   </small>
                 </div>

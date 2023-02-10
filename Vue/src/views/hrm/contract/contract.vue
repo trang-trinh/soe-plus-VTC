@@ -65,6 +65,13 @@ const typestatus = ref([
   { value: 2, title: "Hết hiệu lực", bg_color: "red", text_color: "#fff" },
   { value: 3, title: "Đã thanh lý", bg_color: "#ff8b4e", text_color: "#fff" },
 ]);
+const liquidations = ref([
+  { value: 0, title: "Thôi việc" },
+  { value: 1, title: "Ký hợp đồng mới" },
+  { value: 2, title: "Chấm dứt HĐLĐ" },
+  { value: 3, title: "Chấm dứt HĐLĐ" },
+  { value: 4, title: "Khác..." },
+]);
 const selectedNodes = ref({});
 const selectedKeys = ref([]);
 const expandedKeys = ref([]);
@@ -144,6 +151,28 @@ const filter = (event) => {
   isFilter.value = true;
   initCount();
   initData(true);
+};
+
+//export
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      //exportData("ExportExcel");
+    },
+  },
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      //exportData("ExportExcel");
+    },
+  },
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
 };
 
 //Function
@@ -528,9 +557,18 @@ const setStatus = (status, event) => {
     updateStatus(contract.value, status, event);
   }
 };
-const updateStatus = (item, status, event, content) => {
+const updateStatus = (item, status, event, model) => {
   opstatus.value.toggle(event);
   closeDialogLiquidation();
+  if (status === 3 && (!model || !model.date)) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -540,7 +578,8 @@ const updateStatus = (item, status, event, content) => {
   let data = {
     id: item["contract_id"],
     status: status,
-    content: content || "",
+    content: model != null ? model.content : "",
+    date: model != null ? model.date : null,
   };
   axios
     .put(baseURL + "/api/hrm_contract/update_status_contract", data, config)
@@ -556,6 +595,7 @@ const updateStatus = (item, status, event, content) => {
       } else {
         swal.close();
         toast.success("Cập nhật trạng thái thành công!");
+        initCount();
         initData(true);
       }
     })
@@ -572,10 +612,13 @@ const updateStatus = (item, status, event, content) => {
 };
 const headerDialogLiquidation = ref();
 const displayDialogLiquidation = ref(false);
-const liquidationContent = ref();
+const modelLiquidation = ref();
 const openAddDialogLiquidation = (str) => {
   forceRerender();
-  liquidationContent.value = "";
+  modelLiquidation.value = {
+    content: "",
+    date: null,
+  };
   headerDialogLiquidation.value = str;
   displayDialogLiquidation.value = true;
 };
@@ -916,6 +959,16 @@ const initDataFilter = () => {
                   "DD/MM/YYYY"
                 );
               }
+              if (item["created_date"] != null) {
+                item["created_date"] = moment(
+                  new Date(item["created_date"])
+                ).format("DD/MM/YYYY");
+              }
+              if (item["liquidation_date"] != null) {
+                item["liquidation_date"] = moment(
+                  new Date(item["liquidation_date"])
+                ).format("DD/MM/YYYY");
+              }
             });
             datas.value = data[0];
             if (data[1] != null && data[1].length > 0) {
@@ -1022,8 +1075,15 @@ const initData = (ref) => {
                   "DD/MM/YYYY"
                 );
               }
-              if(item["created_date"] != null){
-                item["created_date"] = moment(new Date(item["created_date"])).format("DD/MM/YYYY");
+              if (item["created_date"] != null) {
+                item["created_date"] = moment(
+                  new Date(item["created_date"])
+                ).format("DD/MM/YYYY");
+              }
+              if (item["liquidation_date"] != null) {
+                item["liquidation_date"] = moment(
+                  new Date(item["liquidation_date"])
+                ).format("DD/MM/YYYY");
               }
             });
             datas.value = data[0];
@@ -1691,6 +1751,26 @@ onMounted(() => {
             'btn-hidden p-button-danger': options.filterContract_id == null,
           }"
           @click="deleteItem()"
+          class="mr-2"
+        />
+        <Button
+          @click="toggleExport"
+          label="Tiện ích"
+          icon="pi pi-file-excel"
+          class="p-button-outlined p-button-secondary"
+          aria-haspopup="true"
+          aria-controls="overlay_Export"
+        >
+          <div>
+            <span class="mr-2">Tiện ích</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
+        <Menu
+          :model="itemButs"
+          :popup="true"
+          id="overlay_Export"
+          ref="menuButs"
         />
       </template>
     </Toolbar>
@@ -1832,7 +1912,35 @@ onMounted(() => {
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <span>{{ slotProps.data.created_date }}</span>
+            <span class="mr-2">{{ slotProps.data.created_date }}</span>
+            <div>
+              <Avatar
+                v-bind:label="
+                  slotProps.data.avatar
+                    ? ''
+                    : slotProps.data.full_name.substring(0, 1)
+                "
+                v-bind:image="
+                  slotProps.data.avatar
+                    ? basedomainURL + slotProps.data.avatar
+                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                "
+                style="
+                  background-color: #2196f3;
+                  color: #ffffff;
+                  width: 2rem;
+                  height: 2rem;
+                  font-size: 1rem !important;
+                "
+                :style="{
+                  background: bgColor[slotProps.data.created_is_order % 7],
+                }"
+                class="text-avatar"
+                size="xlarge"
+                shape="circle"
+                v-tooltip.top="'Người lập' + '<br>' + slotProps.data.full_name"
+              />
+            </div>
           </template>
         </Column>
         <Column
@@ -1871,21 +1979,19 @@ onMounted(() => {
               id="overlay_panel_status"
               style="width: 200px"
             >
-              <div class="form-group m-0">
+              <div class="form-group">
                 <label>Trạng thái</label>
                 <Dropdown
                   :options="typestatus"
                   :filter="false"
                   :showClear="false"
                   :editable="false"
-                  v-model="slotProps.data.status"
+                  v-model="contract.status"
                   optionLabel="title"
                   optionValue="value"
                   placeholder="Chọn trạng thái"
                   class="ip36"
-                  @change="
-                    setStatus(slotProps.data.status, $event)
-                  "
+                  @change="setStatus(contractstatus, $event)"
                 >
                   <template #option="slotProps">
                     <div class="country-item flex align-items-center">
@@ -1895,6 +2001,28 @@ onMounted(() => {
                     </div>
                   </template>
                 </Dropdown>
+              </div>
+              <div v-if="contract.status === 3" class="form-group">
+                <label>Ngày thanh lý</label>
+                <Calendar
+                  :showIcon="true"
+                  class="ip36"
+                  autocomplete="on"
+                  inputId="time24"
+                  v-model="contract.liquidation_date"
+                  placeholder="DD/MM/YYYY"
+                  disabled="true"
+                />
+              </div>
+              <div v-if="contract.status === 3" class="form-group m-0">
+                <label>Nội dung</label>
+                <Textarea
+                  v-model="contract.liquidation_content"
+                  :autoResize="true"
+                  rows="2"
+                  cols="30"
+                  disabled="true"
+                />
               </div>
             </OverlayPanel>
           </template>
@@ -2032,13 +2160,49 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="col-12 md:col-12">
           <div class="form-group">
-            <label>Nội dung</label>
-            <Textarea
-              v-model="liquidationContent"
-              :autoResize="true"
-              rows="3"
-              cols="30"
+            <label>Ngày thanh lý <span class="redsao">(*)</span></label>
+            <Calendar
+              :showIcon="true"
+              class="ip36"
+              autocomplete="on"
+              inputId="time24"
+              :class="{
+                'p-invalid': !modelLiquidation.date && submitted,
+              }"
+              v-model="modelLiquidation.date"
+              placeholder="DD/MM/YYYY"
             />
+            <div v-if="!modelLiquidation.date && submitted">
+              <small class="p-error">
+                <span class="col-12 p-0"
+                  >Hiệu lực từ ngày không được để trống</span
+                >
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Nội dung</label>
+            <Dropdown
+              :options="liquidations"
+              :filter="true"
+              :showClear="true"
+              :editable="true"
+              v-model="modelLiquidation.content"
+              optionLabel="title"
+              optionValue="title"
+              placeholder="Chọn kiểu thanh lý"
+              class="ip36"
+            >
+              <template #option="slotProps">
+                <div class="country-item flex align-items-center">
+                  <div class="pt-1 pl-2">
+                    {{ slotProps.option.title }}
+                  </div>
+                </div>
+              </template>
+            </Dropdown>
           </div>
         </div>
       </div>
@@ -2053,7 +2217,7 @@ onMounted(() => {
       <Button
         label="Lưu"
         icon="pi pi-check"
-        @click="updateStatus(contract, 3, $event, liquidationContent)"
+        @click="updateStatus(contract, 3, $event, modelLiquidation)"
       />
     </template>
   </Dialog>

@@ -206,16 +206,6 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        // data.forEach((element, i) => {
-        //   element.is_order =
-        //     options.value.PageNo * options.value.PageSize + i + 1;
-        //   element.open_date = moment(new Date(element.open_date)).format(
-        //     "DD/MM/YYYY"
-        //   );
-        //   element.end_date = moment(new Date(element.end_date)).format(
-        //     "DD/MM/YYYY"
-        //   );
-        // });
         datalists.value = data;
         options.value.loading = false;
       })
@@ -236,9 +226,6 @@ const loadData = (rf) => {
           store.commit("gologout");
         }
       });
-  }
-  if (store.state.user.is_super == 1) {
-    loadDonvi();
   }
 };
 const loadTudien = () => {
@@ -285,74 +272,6 @@ const loadTudien = () => {
     });
 };
 const treedonvis = ref();
-const loadDonvi = () => {
-  axios
-    .post(
-      baseUrlCheck + "api/FileMain/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_org_list",
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      treedonvis.value = [];
-      let data = JSON.parse(response.data.data)[0];
-      let sys = { name: "Hệ thống", code: 0 };
-      treedonvis.value.push(sys);
-      //console.log(data);
-      if (data.length > 0) {
-        data.forEach((x) => {
-          x = { name: x.organization_name, code: x.organization_id };
-          treedonvis.value.push(x);
-        });
-      } else {
-        treedonvis.value = [];
-      }
-    })
-    .catch((error) => {
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-      }
-    });
-};
-
-const checkSort = ref(false);
-//Phân trang dữ liệu
-const onPage = (event) => {
-  if (event.page == 0) {
-    //Trang đầu
-    options.value.id = null;
-    options.value.IsNext = true;
-  } else if (event.page > options.value.PageNo + 1) {
-    //Trang cuối
-    options.value.id = -1;
-    options.value.IsNext = false;
-  } else if (event.page > options.value.PageNo) {
-    //Trang sau
-
-    options.value.id =
-      datalists.value[datalists.value.length - 1].law_language_id;
-    options.value.IsNext = true;
-    if (checkSort.value) {
-      options.value.id = null;
-    }
-  } else if (event.page < options.value.PageNo) {
-    //Trang trước
-    options.value.id = datalists.value[0].law_language_id;
-    options.value.IsNext = false;
-  }
-  options.value.PageNo = event.page;
-  loadData(true);
-};
 
 //Hiển thị dialog
 const headerDialog = ref();
@@ -588,34 +507,26 @@ const edit_Profile = (item) => {
         //get child
         if (data[1].length > 0) {
           profile_clan_historys.value = data[1];
-          profile_clan_historys.value.forEach((item)=>{
-          if (item.start_date != null) {
-            item.start_date = new Date(
-              item.start_date
-            );
-          }
-          if (item.end_date != null) {
-            item.end_date = new Date(
-              item.end_date
-            );
-          }
-          })
+          profile_clan_historys.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+            if (item.end_date != null) {
+              item.end_date = new Date(item.end_date);
+            }
+          });
         } else profile_clan_historys.value = [];
 
         if (data[2].length > 0) {
           profile_experiences.value = data[2];
-          profile_experiences.value.forEach((item)=>{
-          if (item.start_date != null) {
-            item.start_date = new Date(
-              item.start_date
-            );
-          }
-          if (item.end_date != null) {
-            item.end_date = new Date(
-              item.end_date
-            );
-          }
-          })
+          profile_experiences.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+            if (item.end_date != null) {
+              item.end_date = new Date(item.end_date);
+            }
+          });
         } else profile_experiences.value = [];
 
         if (data[3].length > 0) {
@@ -1959,7 +1870,7 @@ onMounted(() => {
                   @click="addRow_Item(1)"
                 />
               </div>
-              <div style="overflow-x: scroll">
+              <div style="overflow-x: scroll" class="scroll-outer">
                 <table
                   class="table table-condensed table-hover tbpad table-child"
                   style="table-layout: fixed"
@@ -1974,13 +1885,13 @@ onMounted(() => {
                         Họ tên
                       </th>
                       <th class="text-center row-bc" style="width: 150px">
-                        Quan hệ<span class="redsao"></span>
+                        Quan hệ
                       </th>
                       <th class="text-center row-bc" style="width: 120px">
                         Năm sinh
                       </th>
                       <th class="text-center row-bc" style="width: 140px">
-                        SĐT<span class="redsao"></span>
+                        SĐT
                       </th>
                       <th class="text-center row-bc" style="width: 120px">
                         Mã số thuế
@@ -2020,7 +1931,12 @@ onMounted(() => {
                       <td
                         class="row-content-pdx sticky"
                         align="center"
-                        style="color: black; width: 100px; left: 0px !important"
+                        style="
+                          color: black;
+                          width: 100px;
+                          left: 0px !important;
+                          z-index: 100;
+                        "
                       >
                         <!-- <Button
                           icon="pi pi-times"
@@ -2176,175 +2092,182 @@ onMounted(() => {
                   @click="addRow_Item(2)"
                 />
               </div>
-              <div style="overflow-x: scroll">
-                <table
-                  class="table table-condensed table-hover tbpad table-child"
-                  style="table-layout: fixed"
-                >
-                  <thead>
-                    <tr>
-                      <th
-                        class="text-center row-bc sticky"
-                        style="width: 100px; left: 0px !important"
-                      ></th>
-                      <th class="text-center row-bc" style="width: 170px">
-                        Tên trường
-                      </th>
-                      <th class="text-center row-bc" style="width: 170px">
-                        Chuyên ngành<span class="redsao"></span>
-                      </th>
-                      <th class="text-center row-bc" style="width: 150px">
-                        Từ tháng, năm
-                      </th>
-                      <th class="text-center row-bc" style="width: 150px">
-                        Đến tháng, năm<span class="redsao"></span>
-                      </th>
-                      <th class="text-center row-bc" style="width: 150px">
-                        Hình thức đào tạo
-                      </th>
-                      <th class="text-center row-bc" style="width: 150px">
-                        Văn bằng, chứng chỉ
-                      </th>
-                      <th class="text-center row-bc" style="width: 150px">
-                        Ngày hiệu lực
-                      </th>
-                      <th class="text-center row-bc" style="width: 150px">
-                        Ngày hết hiệu lực
-                      </th>
-                      <th class="text-center row-bc" style="width: 120px">
-                        Số hiệu
-                      </th>
-                      <th class="text-center row-bc" style="width: 120px">
-                        Phiên bản
-                      </th>
-                      <th class="text-center row-bc" style="width: 150px">
-                        Lần phát hành
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(item, index) in profile_skills" :key="index">
-                      <td
-                        class="row-content-pdx sticky"
-                        align="center"
-                        style="color: black; width: 100px; left: 0px !important"
-                      >
-                        <i
-                          class="pi pi-times text-xl cursor-pointer"
-                          style="color: red"
-                          v-tooltip.top="'Xóa'"
-                          @click="delRow_Item(item, 2)"
-                        ></i>
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="ip33"
-                          style="width: 170px"
-                          v-model="item.university_name"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <Dropdown
-                          :showClear="true"
-                          :options="Dictionarys[18]"
-                          optionLabel="specialization_name"
-                          optionValue="specialization_id"
-                          placeholder="Chọn chuyên ngành"
-                          class="p-dropdown-sm p-0"
-                          v-model="item.specialized"
-                          style="width: 170px"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <Calendar
-                          v-model="item.start_date"
-                          view="month"
-                          dateFormat="mm/yy"
-                          class="ip33"
-                          style="width: 150px"
-                          placeholder="Bắt đầu"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <Calendar
-                          v-model="item.end_date"
-                          view="month"
-                          dateFormat="mm/yy"
-                          class="ip33"
-                          style="width: 150px"
-                          placeholder="Kết thúc"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <Dropdown
-                          :showClear="true"
-                          :options="Dictionarys[12]"
-                          optionLabel="form_traning_name"
-                          optionValue="form_traning_id"
-                          placeholder="Chọn hình thức"
-                          style="width: 150px"
-                          class="p-dropdown-sm"
-                          v-model="item.form_traning_id"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <Dropdown
-                          :showClear="true"
-                          :options="Dictionarys[13]"
-                          optionLabel="certificate_name"
-                          optionValue="certificate_id"
-                          placeholder="Chọn văn bằng"
-                          class="p-dropdown-sm"
-                          style="width: 150px"
-                          v-model="item.certificate_id"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <Calendar
-                          style="width: 150px"
-                          class="ip33"
-                          id="icon"
-                          v-model="item.certificate_start_date"
-                          :showIcon="true"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <Calendar
-                          style="width: 150px"
-                          class="col-4 ip33"
-                          id="icon"
-                          v-model="item.certificate_end_date"
-                          :showIcon="true"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          style="width: 120px"
-                          spellcheck="false"
-                          class="ip33"
-                          v-model="item.certificate_key_code"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="ip33"
-                          style="width: 120px"
-                          v-model="item.certificate_version"
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          style="width: 120px"
-                          class="ip33"
-                          v-model="item.certificate_release_time"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div style="overflow-x: scroll" class="scroll-outer">
+                <div class="scroll-inner">
+                  <table
+                    class="table table-condensed table-hover tbpad table-child"
+                    style="table-layout: fixed"
+                  >
+                    <thead>
+                      <tr>
+                        <th
+                          class="text-center row-bc sticky"
+                          style="width: 100px; left: 0px !important"
+                        ></th>
+                        <th class="text-center row-bc" style="width: 170px">
+                          Tên trường
+                        </th>
+                        <th class="text-center row-bc" style="width: 170px">
+                          Chuyên ngành
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Từ tháng, năm
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Đến tháng, năm
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Hình thức đào tạo
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Văn bằng, chứng chỉ
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Ngày hiệu lực
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Ngày hết hiệu lực
+                        </th>
+                        <th class="text-center row-bc" style="width: 120px">
+                          Số hiệu
+                        </th>
+                        <th class="text-center row-bc" style="width: 120px">
+                          Phiên bản
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Lần phát hành
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(item, index) in profile_skills" :key="index">
+                        <td
+                          class="row-content-pdx sticky"
+                          align="center"
+                          style="
+                            color: black;
+                            width: 100px;
+                            left: 0px !important;
+                            z-index: 100;
+                          "
+                        >
+                          <i
+                            class="pi pi-times text-xl cursor-pointer"
+                            style="color: red"
+                            v-tooltip.top="'Xóa'"
+                            @click="delRow_Item(item, 2)"
+                          ></i>
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <InputText
+                            spellcheck="false"
+                            class="ip33"
+                            style="width: 170px"
+                            v-model="item.university_name"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Dropdown
+                            :showClear="true"
+                            :options="Dictionarys[18]"
+                            optionLabel="specialization_name"
+                            optionValue="specialization_id"
+                            placeholder="Chọn chuyên ngành"
+                            class="p-dropdown-sm p-0"
+                            v-model="item.specialized"
+                            style="width: 170px"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Calendar
+                            v-model="item.start_date"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip33"
+                            style="width: 150px"
+                            placeholder="Bắt đầu"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Calendar
+                            v-model="item.end_date"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip33"
+                            style="width: 150px"
+                            placeholder="Kết thúc"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Dropdown
+                            :showClear="true"
+                            :options="Dictionarys[12]"
+                            optionLabel="form_traning_name"
+                            optionValue="form_traning_id"
+                            placeholder="Chọn hình thức"
+                            style="width: 150px"
+                            class="p-dropdown-sm"
+                            v-model="item.form_traning_id"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Dropdown
+                            :showClear="true"
+                            :options="Dictionarys[13]"
+                            optionLabel="certificate_name"
+                            optionValue="certificate_id"
+                            placeholder="Chọn văn bằng"
+                            class="p-dropdown-sm"
+                            style="width: 150px"
+                            v-model="item.certificate_id"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Calendar
+                            style="width: 150px"
+                            class="ip33"
+                            id="icon"
+                            v-model="item.certificate_start_date"
+                            :showIcon="true"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Calendar
+                            style="width: 150px"
+                            class="col-4 ip33"
+                            id="icon"
+                            v-model="item.certificate_end_date"
+                            :showIcon="true"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <InputText
+                            style="width: 120px"
+                            spellcheck="false"
+                            class="ip33"
+                            v-model="item.certificate_key_code"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <InputText
+                            spellcheck="false"
+                            class="ip33"
+                            style="width: 120px"
+                            v-model="item.certificate_version"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <InputText
+                            spellcheck="false"
+                            style="width: 120px"
+                            class="ip33"
+                            v-model="item.certificate_release_time"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </AccordionTab>
             <!-- 6. Lịch sử Đảng viên -->
@@ -2367,7 +2290,7 @@ onMounted(() => {
                   @click="addRow_Item(3)"
                 />
               </div>
-              <div style="overflow-x: scroll">
+              <div style="overflow-x: scroll" class="scroll-outer">
                 <table
                   class="table table-condensed table-hover tbpad table-child"
                   style="table-layout: fixed"
@@ -2382,7 +2305,7 @@ onMounted(() => {
                         Số thẻ
                       </th>
                       <th class="text-center row-bc" style="width: 150px">
-                        Hình thức<span class="redsao"></span>
+                        Hình thức
                       </th>
                       <th class="text-center row-bc" style="width: 150px">
                         Từ ngày
@@ -2406,7 +2329,12 @@ onMounted(() => {
                       <td
                         class="row-content-pdx sticky"
                         align="center"
-                        style="color: black; width: 100px; left: 0px !important"
+                        style="
+                          color: black;
+                          width: 100px;
+                          left: 0px !important;
+                          z-index: 100;
+                        "
                       >
                         <i
                           class="pi pi-times text-xl cursor-pointer"
@@ -2576,7 +2504,7 @@ onMounted(() => {
                   @click="addRow_Item(4)"
                 />
               </div>
-              <div style="overflow-x: scroll">
+              <div style="overflow-x: scroll" class="scroll-outer">
                 <table
                   class="table table-condensed table-hover tbpad table-child"
                   style="table-layout: fixed"
@@ -2591,7 +2519,7 @@ onMounted(() => {
                         Từ tháng, năm
                       </th>
                       <th class="text-center row-bc" style="width: 150px">
-                        Đến tháng, năm<span class="redsao"></span>
+                        Đến tháng, năm
                       </th>
                       <th class="text-center row-bc" style="width: 200px">
                         Công ty, đơn vị
@@ -2618,7 +2546,12 @@ onMounted(() => {
                       <td
                         class="row-content-pdx sticky"
                         align="center"
-                        style="color: black; width: 100px; left: 0px !important"
+                        style="
+                          color: black;
+                          width: 100px;
+                          left: 0px !important;
+                          z-index: 100;
+                        "
                       >
                         <i
                           class="pi pi-times text-xl cursor-pointer"
@@ -2781,6 +2714,14 @@ onMounted(() => {
   </Dialog>
 </template>
 <style scoped>
+.scroll-outer {
+  visibility: hidden;
+}
+.scroll-inner,
+.scroll-outer:hover,
+.scroll-outer:focus {
+  visibility: visible;
+}
 .p-avatar {
   font-size: 1.5rem !important;
 }
