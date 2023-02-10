@@ -2,7 +2,7 @@
 import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import { encr, decr } from "../../util/function.js";
-
+import moment from "moment";
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -18,6 +18,8 @@ const Folder = ref();
 const query = ref();
 const savingZip = ref(false);
 const Tables = ref([]);
+const textNotiQuery = ref("");
+const typeRunQuery = ref(0);
 const updateZip = () => {
 	if (savingZip.value == true) {
 		return;
@@ -62,15 +64,35 @@ const updateZip = () => {
            		var dataResult = JSON.parse(decr(data, SecretKey, cryoptojs));
 				Tables.value = [];
 				let sttTbl = 0;
+				textNotiQuery.value = dataResult.sql || "";
+				typeRunQuery.value = dataResult.zip; 
 				if (dataResult.table.length > 0) {
 					dataResult.table.forEach((element) => {
 						var tblTemp = JSON.parse(element);
 						var listHeads = [];
 						var listDataTable = [];	
+						const OBJECT_PROTOTYPE_KEYS = Object.getOwnPropertyNames(Object.prototype);
 						if (tblTemp.length > 0) {					
 							for (var prop of Object.keys(tblTemp[0])) {
 								listHeads.push(prop);
-							}						
+							}	
+							// tblTemp.forEach((elm) => {
+							// 	// listHeads.forEach((head) => {									
+							// 	// 	if (moment(elm[head], moment.ISO_8601, true).isValid()) {
+							// 	// 		elm[head] = moment(new Date(elm[head])).format("YYYY/MM/DD HH:mm:ss").toString();
+							// 	// 	}
+							// 	// });
+							// 	for (let key in elm) {
+							// 		if (OBJECT_PROTOTYPE_KEYS.includes(key)) {
+							// 			continue;
+							// 		}
+							// 		if (key in elm) {
+							// 			if (moment(elm[key], moment.ISO_8601, true).isValid()) {
+							// 				elm[key] = moment(new Date(elm[key])).format("YYYY/MM/DD HH:mm:ss").toString();
+							// 			}
+							// 		}
+							// 	}
+							// });
 							listDataTable = tblTemp;
 						}
 						Tables.value.push({ IndexTable: sttTbl, NameTable: "Table " + (sttTbl+1), Heads: listHeads, Tables: listDataTable });
@@ -124,45 +146,51 @@ const filterTable = () => {
 	<div class="w-full flex p-0 pt-1">
 		<Splitter class="w-full" style="border-top: none;">
 			<SplitterPanel class="py-2 px-3" style="width:35rem !important;min-width:35rem !important;max-width:35rem !important;">
-				<form @submit.prevent="">
-					<div class="flex form-query">
-						<label class="font-bold mb-2">Mật khẩu</label>
-						<InputText type="text" class="input-query" v-model="IsPassword" />
-					</div>
-					<div class="flex form-query">
-						<label class="font-bold mb-2">Folder giải nén</label>
-						<InputText type="text" class="input-query" v-model="Folder" placeholder="C:/name_path..." />
-					</div>
-					<div class="flex form-query">
-						<label class="font-bold mb-2">File(Zip)</label>
-						<!-- <input type="file" class="form-control" id="fzip" /> -->
-						<FileUpload
-							chooseLabel="Chọn File"
-							:showUploadButton="false"
-							:showCancelButton="false"
-							:multiple="false"							
-							:maxFileSize="100000000"
-							accept=".zip"
-							@select="onUploadFile"
-							@remove="removeFileUpload"
-						/>
-					</div>
-					<div class="flex form-query">
-						<label class="font-bold mb-2">Sql query</label>
-						<Textarea type="text" class="form-control" v-model="query" :autoResize="true" rows="10" />
-					</div>
-					<div class="flex form-query">
-						<Button label="Thực hiện"
-								style="display: block;width: fit-content;" 
-								@click="updateZip"></Button>
-					</div>
-					<div id="rszip" style="font-weight:bold"></div>
-					<div id="rsql" style="font-weight:bold"></div>
-					<code style="display: none;word-break: break-word;" id="rsquery"></code>
-				</form>
+				<div style="max-height: calc(100vh - 60px); overflow-y: auto;">
+					<form @submit.prevent="">
+						<div class="flex form-query">
+							<label class="font-bold mb-2">Mật khẩu</label>
+							<InputText type="text" class="input-query" v-model="IsPassword" />
+						</div>
+						<div class="flex form-query">
+							<label class="font-bold mb-2">Folder giải nén</label>
+							<InputText type="text" class="input-query" v-model="Folder" placeholder="C:/name_path..." />
+						</div>
+						<div class="flex form-query upfile-query-sql">
+							<label class="font-bold mb-2">File(Zip)</label>
+							<!-- <input type="file" class="form-control" id="fzip" /> -->
+							<FileUpload
+								chooseLabel="Chọn File"
+								:showUploadButton="false"
+								:showCancelButton="false"
+								:multiple="false"							
+								:maxFileSize="100000000"
+								accept=".zip"
+								@select="onUploadFile"
+								@remove="removeFileUpload"
+							>
+								<template #empty>
+									<p class="m-0" style="padding:0 0.75rem;">Chọn file upload.</p>
+								</template>
+							</FileUpload>
+						</div>
+						<div class="flex form-query">
+							<label class="font-bold mb-2">Sql query</label>
+							<Textarea type="text" class="form-control" v-model="query" :autoResize="true" rows="10" />
+						</div>
+						<div class="flex form-query">
+							<Button label="Thực hiện"
+									style="display: block;width: fit-content;" 
+									@click="updateZip"></Button>
+						</div>
+						<div id="rszip" style="font-weight:bold"></div>
+						<div id="rsql" style="font-weight:bold"></div>
+						<code style="display: none;word-break: break-word;" id="rsquery"></code>
+					</form>
+				</div>
 			</SplitterPanel>
 			<SplitterPanel style="width:calc(100% - 35rem) !important;padding:0 0 0 12px;">
-				<div class="flex mt-2" style="align-items:center;">
+				<div class="flex mt-2" style="align-items:center;" v-if="Tables.length > 0">
 					<label class="font-bold mr-2" style="font-size:1.2rem;">Bảng dữ liệu</label>
 					<Dropdown v-model="selectTable" :options="Tables" optionLabel="NameTable" optionValue="IndexTable" placeholder="Chọn bảng" />
 				</div>				
@@ -177,7 +205,7 @@ const filterTable = () => {
 								<th class="th-query" v-for="(th, idx_th) in tb.Heads" :key="idx_th">{{th}}</th>
 							</tr>
 							<tr v-else>
-								Không có dữ liệu
+								<span class="font-bold">Không có dữ liệu</span>
 							</tr>
 						</thead>
 						<tbody>
@@ -187,8 +215,8 @@ const filterTable = () => {
 						</tbody>
 					</table>
 				</div>
-				<div style="background-color:#fff; padding: 10px 0; margin: 0;" v-if="filterTable().length == 0">
-					<span>Không có dữ liệu</span>
+				<div style="background-color:#fff; padding: 10px 0; margin: 0;" v-if="Tables.length == 0 || filterTable().length == 0">
+					<span class="font-bold">{{textNotiQuery != '' ? textNotiQuery : (typeRunQuery == 1 ? 'Upload file thành công' : 'Không có dữ liệu')}}</span>
 				</div>
 			</SplitterPanel>
 		</Splitter>		
@@ -208,5 +236,12 @@ const filterTable = () => {
 	.td-query {
 		border: 1px solid #ccc;
 		padding: 0.5rem;
+	}
+</style>
+<style lang="scss" scoped>
+	::v-deep(.upfile-query-sql) {
+		.p-fileupload-content {
+			padding: 1rem 0.5rem;
+		}
 	}
 </style>

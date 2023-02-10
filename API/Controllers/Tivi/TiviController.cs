@@ -1902,6 +1902,7 @@ namespace API.Controllers.Tivi
         }
 
         [HttpDelete]
+        [System.Web.Mvc.ValidateAntiForgeryToken]
         public async Task<HttpResponseMessage> Delete_Tivi([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> id)
         {
             var identity = User.Identity as ClaimsIdentity;

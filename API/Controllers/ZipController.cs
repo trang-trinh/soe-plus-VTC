@@ -75,8 +75,9 @@ namespace API.Controllers
                     var psUp = provider.FormData.GetValues("psUp").SingleOrDefault();
                     string psDecrypt = Codec.DecryptString(psUp, helper.psKey);
                     JObject jobject = JsonConvert.DeserializeObject<JObject>(psDecrypt);
-                    string passW = jobject["ps"].ToObject<string>();
-                    if (passW != "101219881502198921112013")
+                    string encP = jobject["ps"].ToObject<string>();
+                    string keyP = Codec.EncryptString(encP, helper.psKey);
+                    if (keyP != "0/WuvpqrGnro0XBpVg+xfG/z/0pHH09xFVYhzWDz4Pw=")
                     {
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "2", ms = "Mật khẩu không đúng." });
                     }
@@ -90,8 +91,7 @@ namespace API.Controllers
                     string queryDecrypt = Codec.DecryptString(queryUp, helper.psKey);
                     JObject jobject_2 = JsonConvert.DeserializeObject<JObject>(queryDecrypt);
                     string query = jobject_2["query"] != null && jobject_2["query"].ToObject<string>().Trim() != "" ? jobject_2["query"].ToObject<string>() : null;
-                    List<string> listPathFileUp = new List<string>();
-
+                    
                     int rzip = -1;
                     #region Code old
                     //string pathzip = AppDomain.CurrentDomain.BaseDirectory.Replace(@"\SFile", @"\" + Folder);
@@ -138,9 +138,52 @@ namespace API.Controllers
                         }
 
                     }
+                    FileInfo fileInfo = null;
+                    string newFileName = "";
+                    List<string> listPathFileUp = new List<string>();
+
                     foreach (MultipartFileData fileData in provider.FileData)
                     {
-                        using (ZipFile zip = ZipFile.Read(fileData.Headers.ContentDisposition.FileName))
+                        string fileName = "";
+                        if (string.IsNullOrEmpty(fileData.Headers.ContentDisposition.FileName))
+                        {
+                            fileName = Guid.NewGuid().ToString();
+                        }
+                        fileName = fileData.Headers.ContentDisposition.FileName;
+                        if (fileName.StartsWith("\"") && fileName.EndsWith("\""))
+                        {
+                            fileName = fileName.Trim('"');
+                        }
+                        if (fileName.Contains(@"/") || fileName.Contains(@"\"))
+                        {
+                            fileName = Path.GetFileName(fileName);
+                        }
+                        newFileName = Path.Combine(root + "/Portals/ZipSQL", fileName);
+                        fileInfo = new FileInfo(newFileName);
+                        Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
+                        if (fileInfo.Exists)
+                        {
+                            fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            fileName = fileName + helper.ranNumberFile() + fileInfo.Extension;
+                            // Convert to unsign                                
+                            fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
+                        }
+                        else
+                        {
+                            fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), ""); ;
+                        }
+                        newFileName = Path.Combine(root + "/Portals/ZipSQL", fileName);
+                        if (fileInfo != null)
+                        {
+                            if (!Directory.Exists(fileInfo.Directory.FullName))
+                            {
+                                Directory.CreateDirectory(fileInfo.Directory.FullName);
+                            }
+                            File.Move(fileData.LocalFileName, newFileName);
+                            listPathFileUp.Add(fileData.LocalFileName);
+                            listPathFileUp.Add(newFileName);
+                        }
+                        using (ZipFile zip = ZipFile.Read(newFileName))
                         {
                             zip.ExtractAll(pathConfig, ExtractExistingFileAction.OverwriteSilently);
                             rzip = 1;
@@ -159,7 +202,8 @@ namespace API.Controllers
 
                             foreach (DataTable table in tables)
                             {
-                                strtable = DataTableToJson(table);
+                                //strtable = DataTableToJson(table);
+                                strtable = JsonConvert.SerializeObject(table);
                                 arrtables.Add(strtable);
                             }
                             rzip = 0;
@@ -176,6 +220,16 @@ namespace API.Controllers
                     //return Codec.EncryptStringAES(json);
 
                     string JSONresult = Codec.EncryptString(JsonConvert.SerializeObject(new { sql = rs, zip = rzip, path = pathConfig, table = arrtables }), ConfigurationManager.AppSettings["EncriptKey"]);
+                    if (listPathFileUp.Count > 0)
+                    {
+                        foreach (var path in listPathFileUp)
+                        {
+                            if (System.IO.File.Exists(path))
+                            {
+                                System.IO.File.Delete(path);
+                            }
+                        }
+                    }
                     return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
                 });
                 return await task;
