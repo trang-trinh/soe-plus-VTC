@@ -78,6 +78,10 @@ const marital_statuss = ref([
   { value: 1, text: "Kết hôn" },
   { value: 2, text: "Ly hôn" },
 ]);
+const dependents = ref([
+  { value: 1, text: "Có" },
+  { value: 0, text: "Không" },
+]);
 //khai bao bien
 const bgColor = ref([
   "#F8E69A",
@@ -89,8 +93,10 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const isAdd = ref(false);
-const active2 = ref(2);
-
+const profile_relatives = ref();
+const profile_skills = ref();
+const profile_clan_historys = ref();
+const profile_experiences = ref();
 const select_birthplace = ref(); // noi sinh
 select_birthplace.value = {};
 select_birthplace.value[-1] = true;
@@ -126,22 +132,7 @@ const options = ref({
   loading: true,
   totalRecords: null,
 });
-// const Dictionarys = ref({
-//   Identity_papers: [],
-//   Nationalitys: [],
-//   Ethnics: [],
-//   Religions: [],
-//   Banks: [],
-//   Cultural_levels: [],
-//   Academic_levels: [],
-//   Specializations:[],
-//   Political_theorys: [],
-//   Language_levels: [],
-//   Informatic_levels: [],
-//   Relationships: [],
-//   Form_tranings: [],
-//   Certificates: [],
-// });
+
 const Dictionarys = ref([]);
 //Thêm log
 const addLog = (log) => {
@@ -215,16 +206,6 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        // data.forEach((element, i) => {
-        //   element.is_order =
-        //     options.value.PageNo * options.value.PageSize + i + 1;
-        //   element.open_date = moment(new Date(element.open_date)).format(
-        //     "DD/MM/YYYY"
-        //   );
-        //   element.end_date = moment(new Date(element.end_date)).format(
-        //     "DD/MM/YYYY"
-        //   );
-        // });
         datalists.value = data;
         options.value.loading = false;
       })
@@ -245,9 +226,6 @@ const loadData = (rf) => {
           store.commit("gologout");
         }
       });
-  }
-  if (store.state.user.is_super == 1) {
-    loadDonvi();
   }
 };
 const loadTudien = () => {
@@ -294,78 +272,95 @@ const loadTudien = () => {
     });
 };
 const treedonvis = ref();
-const loadDonvi = () => {
-  axios
-    .post(
-      baseUrlCheck + "api/FileMain/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_org_list",
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      treedonvis.value = [];
-      let data = JSON.parse(response.data.data)[0];
-      let sys = { name: "Hệ thống", code: 0 };
-      treedonvis.value.push(sys);
-      //console.log(data);
-      if (data.length > 0) {
-        data.forEach((x) => {
-          x = { name: x.organization_name, code: x.organization_id };
-          treedonvis.value.push(x);
-        });
-      } else {
-        treedonvis.value = [];
-      }
-    })
-    .catch((error) => {
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-      }
-    });
-};
-
-const checkSort = ref(false);
-//Phân trang dữ liệu
-const onPage = (event) => {
-  if (event.page == 0) {
-    //Trang đầu
-    options.value.id = null;
-    options.value.IsNext = true;
-  } else if (event.page > options.value.PageNo + 1) {
-    //Trang cuối
-    options.value.id = -1;
-    options.value.IsNext = false;
-  } else if (event.page > options.value.PageNo) {
-    //Trang sau
-
-    options.value.id =
-      datalists.value[datalists.value.length - 1].law_language_id;
-    options.value.IsNext = true;
-    if (checkSort.value) {
-      options.value.id = null;
-    }
-  } else if (event.page < options.value.PageNo) {
-    //Trang trước
-    options.value.id = datalists.value[0].law_language_id;
-    options.value.IsNext = false;
-  }
-  options.value.PageNo = event.page;
-  loadData(true);
-};
 
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
+//add row
+const addRow_Item = (type) => {
+  //relative
+  if (type == 1) {
+    let obj = {
+      relative_name: null,
+      relationship_id: null,
+      birthday: null,
+      phone: null,
+      tax_code: null,
+      identification_citizen: null,
+      identification_date_issue: null,
+      identification_place_issue: null,
+      is_dependent: null,
+      start_date: null,
+      end_date: null,
+      info: null,
+      note: null,
+    };
+    profile_relatives.value.push(obj);
+  }
+  if (type == 2) {
+    // skill
+    let obj = {
+      university_name: null,
+      specialized: null,
+      start_date: null,
+      end_date: null,
+      form_traning_id: null,
+      certificate_id: null,
+      certificate_start_date: null,
+      certificate_end_date: null,
+      certificate_key_code: null,
+      certificate_version: null,
+      certificate_release_time: null,
+    };
+    profile_skills.value.push(obj);
+  }
+  if (type == 3) {
+    let obj = {
+      card_number: null,
+      form: null,
+      start_date: null,
+      end_date: null,
+      admission_place: null,
+      transfer_place: null,
+    };
+    profile_clan_historys.value.push(obj);
+  }
+  if (type == 4) {
+    let obj = {
+      company: null,
+      role: null,
+      start_date: null,
+      end_date: null,
+      reference_name: null,
+      reference_phone: null,
+      description: null,
+    };
+    profile_experiences.value.push(obj);
+  }
+};
+const delRow_Item = (item, type) => {
+  if (type == 1) {
+    profile_relatives.value.splice(
+      profile_relatives.value.lastIndexOf(item),
+      1
+    );
+  }
+  if (type == 2) {
+    profile_skills.value.splice(profile_skills.value.lastIndexOf(item), 1);
+  }
+  if (type == 3) {
+    profile_clan_historys.value.splice(
+      profile_clan_historys.value.lastIndexOf(item),
+      1
+    );
+  }
+  if (type == 4) {
+    profile_experiences.value.splice(
+      profile_experiences.value.lastIndexOf(item),
+      1
+    );
+  }
+};
 // them
 const openBasic = (str) => {
   isAdd.value = true;
@@ -373,11 +368,64 @@ const openBasic = (str) => {
   profile.value = {
     status: 0,
     is_order: 1,
-    profile_relative: {},
+    profile_relative: [],
     profile_skill: {},
     profile_experience: {},
     profile_clan_history: {},
   };
+  profile_relatives.value = [
+    {
+      relative_name: null,
+      relationship_id: null,
+      birthday: null,
+      phone: null,
+      tax_code: null,
+      identification_citizen: null,
+      identification_date_issue: null,
+      identification_place_issue: null,
+      is_dependent: null,
+      start_date: null,
+      end_date: null,
+      info: null,
+      note: null,
+    },
+  ];
+  profile_skills.value = [
+    {
+      university_name: null,
+      specialized: null,
+      start_date: null,
+      end_date: null,
+      form_traning_id: null,
+      certificate_id: null,
+      certificate_start_date: null,
+      certificate_end_date: null,
+      certificate_key_code: null,
+      certificate_version: null,
+      certificate_release_time: null,
+    },
+  ];
+  profile_clan_historys.value = [
+    {
+      card_number: null,
+      form: null,
+      start_date: null,
+      end_date: null,
+      admission_place: null,
+      transfer_place: null,
+    },
+  ];
+  profile_experiences.value = [
+    {
+      company: null,
+      role: null,
+      start_date: null,
+      end_date: null,
+      reference_name: null,
+      reference_phone: null,
+      description: null,
+    },
+  ];
   if (store.state.user.is_super) {
     profile.value.organization_id = 0;
   } else {
@@ -458,77 +506,66 @@ const edit_Profile = (item) => {
         ] = true;
         //get child
         if (data[1].length > 0) {
-          profile.value.profile_clan_history = data[1][0];
-          if (profile.value.profile_clan_history.start_date != null) {
-            profile.value.profile_clan_history.start_date = new Date(
-              profile.value.profile_clan_history.start_date
-            );
-          }
-          if (profile.value.profile_clan_history.end_date != null) {
-            profile.value.profile_clan_history.end_date = new Date(
-              profile.value.profile_clan_history.end_date
-            );
-          }
-        } else profile.value.profile_clan_history = {};
+          profile_clan_historys.value = data[1];
+          profile_clan_historys.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+            if (item.end_date != null) {
+              item.end_date = new Date(item.end_date);
+            }
+          });
+        } else profile_clan_historys.value = [];
 
         if (data[2].length > 0) {
-          profile.value.profile_experience = data[2][0];
-          if (profile.value.profile_experience.start_date != null) {
-            profile.value.profile_experience.start_date = new Date(
-              profile.value.profile_experience.start_date
-            );
-          }
-          if (profile.value.profile_experience.end_date != null) {
-            profile.value.profile_experience.end_date = new Date(
-              profile.value.profile_experience.end_date
-            );
-          }
-        } else profile.value.profile_experience = {};
+          profile_experiences.value = data[2];
+          profile_experiences.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+            if (item.end_date != null) {
+              item.end_date = new Date(item.end_date);
+            }
+          });
+        } else profile_experiences.value = [];
 
         if (data[3].length > 0) {
-          profile.value.profile_skill = data[3][0];
-          if (profile.value.profile_skill.start_date != null) {
-            profile.value.profile_skill.start_date = new Date(
-              profile.value.profile_skill.start_date
-            );
-          }
-          if (profile.value.profile_skill.end_date != null) {
-            profile.value.profile_skill.end_date = new Date(
-              profile.value.profile_skill.end_date
-            );
-          }
-          if (profile.value.profile_skill.certificate_start_date != null) {
-            profile.value.profile_skill.certificate_start_date = new Date(
-              profile.value.profile_skill.certificate_start_date
-            );
-          }
-          if (profile.value.profile_skill.certificate_end_date != null) {
-            profile.value.profile_skill.certificate_end_date = new Date(
-              profile.value.profile_skill.certificate_end_date
-            );
-          }
-        } else profile.value.profile_skill = {};
+          profile_skills.value = data[3];
+          profile_skills.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+            if (item.end_date != null) {
+              item.end_date = new Date(item.end_date);
+            }
+            if (item.certificate_start_date != null) {
+              item.certificate_start_date = new Date(
+                item.certificate_start_date
+              );
+            }
+            if (item.certificate_end_date != null) {
+              item.certificate_end_date = new Date(item.certificate_end_date);
+            }
+          });
+        } else profile_skills.value = [];
 
         if (data[4].length > 0) {
-          profile.value.profile_relative = data[4][0];
-          if (
-            profile.value.profile_relative.identification_date_issue != null
-          ) {
-            profile.value.profile_relative.identification_date_issue = new Date(
-              profile.value.profile_relative.identification_date_issue
-            );
-          }
-          if (profile.value.profile_relative.start_date != null) {
-            profile.value.profile_relative.start_date = new Date(
-              profile.value.profile_relative.start_date
-            );
-          }
-          if (profile.value.profile_relative.end_date != null) {
-            profile.value.profile_relative.end_date = new Date(
-              profile.value.profile_relative.end_date
-            );
-          }
-        } else profile.value.profile_relative = {};
+          // profile.value.profile_relative = data[4][0];
+          profile_relatives.value = data[4];
+          profile_relatives.value.forEach((item) => {
+            if (item.identification_date_issue != null) {
+              item.identification_date_issue = new Date(
+                item.identification_date_issue
+              );
+            }
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+            if (item.end_date != null) {
+              item.end_date = new Date(item.end_date);
+            }
+          });
+        } else profile_relatives.value = [];
       }
     })
     .catch((error) => {
@@ -545,7 +582,6 @@ const saveProfile = (isFormValid) => {
   if (!isFormValid) {
     return;
   }
-  debugger;
   // get place
   profile.value.birthplace_id =
     Object.keys(select_birthplace.value)[0] == -1
@@ -561,36 +597,38 @@ const saveProfile = (isFormValid) => {
       : Object.keys(select_place_register_permanent.value)[0];
   let formData = new FormData();
   formData.append("profile", JSON.stringify(profile.value));
+  debugger;
   formData.append(
     "skill",
     JSON.stringify(
-      !Object.keys(profile.value.profile_skill).length
-        ? ""
-        : [profile.value.profile_skill]
+      profile_skills.value.filter(
+        (item) => !Object.values(item).every((o) => isEmpty(o))
+      )
     )
   );
+  // filter empty row
   formData.append(
     "relative",
     JSON.stringify(
-      !Object.keys(profile.value.profile_relative).length
-        ? ""
-        : [profile.value.profile_relative]
+      profile_relatives.value.filter(
+        (item) => !Object.values(item).every((o) => isEmpty(o))
+      )
     )
   );
   formData.append(
     "experience",
     JSON.stringify(
-      !Object.keys(profile.value.profile_experience).length
-        ? ""
-        : [profile.value.profile_experience]
+      profile_experiences.value.filter(
+        (item) => !Object.values(item).every((o) => isEmpty(o))
+      )
     )
   );
   formData.append(
     "clan_history",
     JSON.stringify(
-      !Object.keys(profile.value.profile_clan_history).length
-        ? ""
-        : [profile.value.profile_clan_history]
+      profile_clan_historys.value.filter(
+        (item) => !Object.values(item).every((o) => isEmpty(o))
+      )
     )
   );
   //save avt
@@ -920,6 +958,10 @@ const delAvatar = () => {
   profile.value.avatar = null;
 };
 //define function
+//check empy object
+function isEmpty(val) {
+  return val === undefined || val == null || val.length <= 0 ? true : false;
+}
 const RenderData = (response) => {
   options.value.allRecord = null;
   let list1 = [];
@@ -1188,6 +1230,7 @@ onMounted(() => {
       </TabView>
       <div style="max-height: calc(100vh - 210px); overflow: auto">
         <table
+          id="table-main"
           class="
             table table-condensed table-hover
             tbpad
@@ -1289,8 +1332,8 @@ onMounted(() => {
   >
     <form @submit.prevent="saveProfile(!v$.$invalid)">
       <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12 flex">
-          <Accordion class="accordion-custom w-full" :activeIndex="0">
+        <div class="field col-12 md:col-12 block">
+          <Accordion class="w-full" :activeIndex="0">
             <!-- 1. Thông tin chung -->
             <AccordionTab>
               <template #header>
@@ -1347,7 +1390,7 @@ onMounted(() => {
                       v-model="profile.profile_id"
                       v-bind:disabled="!isAdd"
                     />
-                    <label class="col-2 text-left p-0 pl-2">Mã chấm công</label>
+                    <label class="col-2 text-left p-0 pl-5">Mã chấm công</label>
                     <InputText
                       spellcheck="false"
                       class="col-4 ip33"
@@ -1401,7 +1444,7 @@ onMounted(() => {
                       class="col-4 ip33"
                       v-model="profile.superior_id"
                     />
-                    <label class="col-2 text-left p-0 pl-2"
+                    <label class="col-2 text-left p-0 pl-5"
                       >Ngày tuyển dụng</label
                     >
                     <Calendar
@@ -1421,7 +1464,7 @@ onMounted(() => {
                       class="col-4 ip33"
                       v-model="profile.profile_user_name"
                     />
-                    <label class="col-2 text-left p-0 pl-2">Tên gọi khác</label>
+                    <label class="col-2 text-left p-0 pl-5">Tên gọi khác</label>
                     <InputText
                       spellcheck="false"
                       class="col-4 ip33"
@@ -1478,9 +1521,8 @@ onMounted(() => {
                       id="icon"
                       v-model="profile.birthday"
                       :showIcon="true"
-                      :manualInput="false"
                     />
-                    <label class="col-2 text-left p-0 pl-2">Giới tính</label>
+                    <label class="col-2 text-left p-0 pl-5">Giới tính</label>
                     <Dropdown
                       class="col-4 ip33"
                       v-model="profile.gender"
@@ -1547,7 +1589,7 @@ onMounted(() => {
                   class="p-dropdown-sm col-2 p-0"
                   v-model="profile.identity_papers_id"
                 />
-                <label class="col-2 text-left p-0 pl-5">Số</label>
+                <label class="col-2 text-left p-0 pl-7">Số</label>
                 <InputText
                   spellcheck="false"
                   class="col-2 ip33"
@@ -1575,7 +1617,7 @@ onMounted(() => {
                   :filter="true"
                 >
                 </Dropdown>
-                <label class="col-2 text-left p-0 pl-5">Quốc tịch</label>
+                <label class="col-2 text-left p-0 pl-7">Quốc tịch</label>
                 <Dropdown
                   :showClear="true"
                   :options="Dictionarys[1]"
@@ -1611,7 +1653,7 @@ onMounted(() => {
                   v-model="profile.ethnic_id"
                   :filter="true"
                 />
-                <label class="col-2 text-left p-0 pl-5">Tôn giáo</label>
+                <label class="col-2 text-left p-0 pl-7">Tôn giáo</label>
                 <Dropdown
                   :showClear="true"
                   :options="Dictionarys[3]"
@@ -1641,7 +1683,7 @@ onMounted(() => {
                   v-model="profile.bank_id"
                   :filter="true"
                 />
-                <label class="col-2 text-left p-0 pl-5">Số tài khoản</label>
+                <label class="col-2 text-left p-0 pl-7">Số tài khoản</label>
                 <InputText
                   spellcheck="false"
                   class="col-2 ip33"
@@ -1655,6 +1697,8 @@ onMounted(() => {
                 />
               </div>
             </AccordionTab>
+          </Accordion>
+          <Accordion class="w-full" :multiple="true">
             <AccordionTab>
               <template #header>
                 <!-- <i class="pi pi-book mr-2"></i> -->
@@ -1779,19 +1823,21 @@ onMounted(() => {
                 <label class="col-2 text-left">Họ và tên</label>
                 <InputText
                   spellcheck="false"
-                  class="col-2 ip33"
+                  class="col-4 ip33"
                   v-model="profile.involved_name"
                 />
-                <label class="col-2 text-center">SĐT</label>
+                <label class="col-2 text-center">Số điện thoại</label>
                 <InputText
                   spellcheck="false"
-                  class="col-2 ip33"
+                  class="col-4 ip33"
                   v-model="profile.involved_phone"
                 />
-                <label class="col-2 text-center">Địa chỉ</label>
+              </div>
+              <div class="field col-12 md:col-12">
+                <label class="col-2 text-left">Địa chỉ</label>
                 <InputText
                   spellcheck="false"
-                  class="col-2 ip33"
+                  class="col-10 ip33"
                   v-model="profile.involved_place"
                 />
               </div>
@@ -1806,126 +1852,223 @@ onMounted(() => {
                       >4. Thông tin gia đình, người phụ thuộc</span
                     ></template
                   >
-                  <template #end>
-                    <i
-                      class="pi pi-plus-circle text-2xl"
-                      v-tooltip.top="'Thêm thông tin'"
-                    ></i>
-                  </template>
+                  <template #end> </template>
                 </Toolbar>
               </template>
-              <Accordion class="accordion-custom w-full" :activeIndex="0">
-                <AccordionTab>
-                  <template #header>
-                    <span class="font-medium">Thông tin 1</span>
-                  </template>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Họ tên</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_relative.relative_name"
-                    />
-                    <label class="col-2 text-center">Mối quan hệ</label>
-                    <Dropdown
-                      :showClear="true"
-                      :options="Dictionarys[11]"
-                      optionLabel="relationship_name"
-                      optionValue="relationship_id"
-                      placeholder="Chọn quan hệ"
-                      class="p-dropdown-sm col-4 p-0"
-                      v-model="profile.profile_relative.relationship_id"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Năm sinh</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-2 ip33"
-                      v-model="profile.profile_relative.birthday"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">SĐT</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-2 ip33"
-                      v-model="profile.profile_relative.phone"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">Mã số thuế</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-2 ip33"
-                      v-model="profile.profile_relative.tax_code"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">CCCD/Hộ chiếu</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-2 ip33"
-                      v-model="profile.profile_relative.identification_citizen"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">Ngày cấp</label>
-                    <Calendar
-                      class="col-2 ip33"
-                      id="icon"
-                      v-model="
-                        profile.profile_relative.identification_date_issue
-                      "
-                      :showIcon="true"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">Nơi cấp</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-2 ip33"
-                      v-model="
-                        profile.profile_relative.identification_place_issue
-                      "
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Phụ thuộc</label>
-                    <label class="col-2"
-                      ><InputSwitch
-                        class="col-2"
-                        v-model="profile.profile_relative.is_dependent"
-                    /></label>
-                    <!-- <div class="col-1"></div> -->
-                    <label class="col-2 text-left p-0 pl-5">Từ ngày</label>
-                    <Calendar
-                      class="col-2 ip33"
-                      id="icon"
-                      v-model="profile.profile_relative.start_date"
-                      :showIcon="true"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">Đến ngày</label>
-                    <Calendar
-                      class="col-2 ip33"
-                      id="icon"
-                      v-model="profile.profile_relative.end_date"
-                      :showIcon="true"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12 flex">
-                    <label class="col-2 text-left">Thông tin cơ bản</label>
-                    <Textarea
-                      v-model="profile.profile_relative.info"
-                      :autoResize="true"
-                      rows="4"
-                      class="col-10"
-                      placeholder="Quê quán, nghề nghiệp, chức danh, chức vụ, đơn vị công tác,..."
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12 flex">
-                    <label class="col-2 text-left">Ghi chú</label>
-                    <Textarea
-                      v-model="profile.profile_relative.note"
-                      :autoResize="true"
-                      rows="4"
-                      class="col-10"
-                    />
-                  </div>
-                </AccordionTab>
-              </Accordion>
+              <!-- <i
+                      class="pi pi-plus-circle text-2xl absolute "
+                      v-tooltip.top="'Thêm thông tin'"
+                      @click="addRow_Item()"
+                      style="top:1px; right:1px"
+                    ></i> -->
+              <div style="text-align: end; padding-bottom: 0.5rem">
+                <Button
+                  label="Thêm"
+                  icon="pi pi-plus"
+                  style="padding: 0.3rem 0.6rem !important"
+                  class="p-button-outlined p-button-secondary"
+                  @click="addRow_Item(1)"
+                />
+              </div>
+              <div style="overflow-x: scroll" class="scroll-outer">
+                <table
+                  class="table table-condensed table-hover tbpad table-child"
+                  style="table-layout: fixed"
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        class="text-center row-bc sticky"
+                        style="width: 100px; left: 0px !important"
+                      ></th>
+                      <th class="text-center row-bc" style="width: 170px">
+                        Họ tên
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Quan hệ
+                      </th>
+                      <th class="text-center row-bc" style="width: 120px">
+                        Năm sinh
+                      </th>
+                      <th class="text-center row-bc" style="width: 140px">
+                        SĐT
+                      </th>
+                      <th class="text-center row-bc" style="width: 120px">
+                        Mã số thuế
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        CCCD/Hộ chiếu
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Ngày cấp
+                      </th>
+                      <th class="text-center row-bc" style="width: 200px">
+                        Nơi cấp
+                      </th>
+                      <th class="text-center row-bc" style="width: 100px">
+                        Phụ thuộc
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Từ ngày
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Đến ngày
+                      </th>
+                      <th class="text-center row-bc" style="width: 170px">
+                        Thông tin cơ bản
+                      </th>
+                      <th class="text-center row-bc" style="width: 170px">
+                        Ghi chú
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      id="add_thanhpham"
+                      v-for="(item, index) in profile_relatives"
+                      :key="index"
+                    >
+                      <td
+                        class="row-content-pdx sticky"
+                        align="center"
+                        style="
+                          color: black;
+                          width: 100px;
+                          left: 0px !important;
+                          z-index: 100;
+                        "
+                      >
+                        <!-- <Button
+                          icon="pi pi-times"
+                          class="mr-2 p-button-danger"
+                          @click="delRow_Item(item)"
+                        /> -->
+                        <i
+                          class="pi pi-times text-xl cursor-pointer"
+                          style="color: red"
+                          v-tooltip.top="'Xóa'"
+                          @click="delRow_Item(item, 1)"
+                        ></i>
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 170px"
+                          v-model="item.relative_name"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Dropdown
+                          :showClear="true"
+                          :options="Dictionarys[11]"
+                          optionLabel="relationship_name"
+                          optionValue="relationship_id"
+                          placeholder="Chọn quan hệ"
+                          class="p-dropdown-sm p-0"
+                          v-model="item.relationship_id"
+                          style="width: 150px"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 120px"
+                          v-model="item.birthday"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          style="width: 140px"
+                          class="ip33"
+                          v-model="item.phone"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 120px"
+                          v-model="item.tax_code"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 150px"
+                          v-model="item.identification_citizen"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Calendar
+                          class="ip33"
+                          id="icon"
+                          v-model="item.identification_date_issue"
+                          :showIcon="true"
+                          style="width: 150px"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 100px"
+                          v-model="item.identification_place_issue"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Dropdown
+                          :showClear="true"
+                          :options="dependents"
+                          optionLabel="text"
+                          optionValue="value"
+                          placeholder="Chọn"
+                          class="p-dropdown-sm p-0"
+                          v-model="item.is_dependent"
+                          style="width: 100px"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Calendar
+                          class="ip33"
+                          id="icon"
+                          style="width: 150px"
+                          v-model="item.start_date"
+                          :showIcon="true"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Calendar
+                          class="ip33"
+                          id="icon"
+                          style="width: 150px"
+                          v-model="item.end_date"
+                          :showIcon="true"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 170px"
+                          v-model="item.info"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 170px"
+                          v-model="item.note"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </AccordionTab>
             <AccordionTab>
               <template #header>
@@ -1937,134 +2080,195 @@ onMounted(() => {
                       lý luận chính trị, ngoại ngữ, tin học</span
                     ></template
                   >
-                  <template #end>
-                    <i
-                      class="pi pi-plus-circle text-2xl"
-                      v-tooltip.top="'Thêm thông tin'"
-                    ></i>
-                  </template>
+                  <template #end> </template>
                 </Toolbar>
               </template>
-              <Accordion class="accordion-custom w-full" :activeIndex="0">
-                <AccordionTab>
-                  <template #header>
-                    <span class="font-medium">Thông tin 1</span>
-                  </template>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Tên trường</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_skill.university_name"
-                    />
-                    <label class="col-2 text-left p-0 pl-4"
-                      >Chuyên ngành đào tạo</label
-                    >
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_skill.specialized"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Từ tháng, năm</label>
-                    <Calendar
-                      v-model="profile.profile_skill.start_date"
-                      view="month"
-                      dateFormat="mm/yy"
-                      class="col-4 p-0 ip33"
-                      placeholder="Bắt đầu"
-                    />
-                    <label class="col-2 text-left p-0 pl-4"
-                      >Đến tháng, năm</label
-                    >
-                    <Calendar
-                      v-model="profile.profile_skill.end_date"
-                      view="month"
-                      dateFormat="mm/yy"
-                      class="col-4 p-0 ip33"
-                      placeholder="Kết thúc"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Hình thức đào tạo</label>
-                    <Dropdown
-                      :showClear="true"
-                      :options="Dictionarys[12]"
-                      optionLabel="form_traning_name"
-                      optionValue="form_traning_id"
-                      placeholder="Chọn hình thức"
-                      class="p-dropdown-sm col-4 p-0"
-                      v-model="profile.profile_skill.form_traning_id"
-                    />
-                    <label class="col-2 text-left p-0 pl-4"
-                      >Văn bằng, chứng chỉ</label
-                    >
-                    <Dropdown
-                      :showClear="true"
-                      :options="Dictionarys[13]"
-                      optionLabel="certificate_name"
-                      optionValue="certificate_id"
-                      placeholder="Chọn văn bằng"
-                      class="p-dropdown-sm col-4 p-0"
-                      v-model="profile.profile_skill.certificate_id"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Ngày hiệu lực</label>
-                    <Calendar
-                      class="col-4 ip33"
-                      id="icon"
-                      v-model="profile.profile_skill.certificate_start_date"
-                      :showIcon="true"
-                    />
-                    <label class="col-2 text-left p-0 pl-4"
-                      >Ngày hết hiệu lực</label
-                    >
-                    <Calendar
-                      class="col-4 ip33"
-                      id="icon"
-                      v-model="profile.profile_skill.certificate_end_date"
-                      :showIcon="true"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Số hiệu</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-2 ip33"
-                      v-model="profile.profile_skill.certificate_key_code"
-                    />
-                    <label class="col-2 text-center">Phiên bản</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-2 ip33"
-                      v-model="profile.profile_skill.certificate_version"
-                    />
-                    <label class="col-2 text-center">Lần phát hành</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-2 ip33"
-                      v-model="profile.profile_skill.certificate_release_time"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12 flex">
-                    <label class="text-left col-2">Tệp đình kèm</label>
-                    <div class="col-10 p-0">
-                      <FileUpload
-                        chooseLabel="Chọn File"
-                        :showUploadButton="false"
-                        :showCancelButton="false"
-                        :multiple="false"
-                        accept=""
-                        :maxFileSize="500000000"
-                        @select="onUploadFile"
-                        @remove="removeFile"
-                      />
-                    </div>
-                  </div>
-                </AccordionTab>
-              </Accordion>
+              <div style="text-align: end; padding-bottom: 0.5rem">
+                <Button
+                  label="Thêm"
+                  icon="pi pi-plus"
+                  style="padding: 0.3rem 0.6rem !important"
+                  class="p-button-outlined p-button-secondary"
+                  @click="addRow_Item(2)"
+                />
+              </div>
+              <div style="overflow-x: scroll" class="scroll-outer">
+                <div class="scroll-inner">
+                  <table
+                    class="table table-condensed table-hover tbpad table-child"
+                    style="table-layout: fixed"
+                  >
+                    <thead>
+                      <tr>
+                        <th
+                          class="text-center row-bc sticky"
+                          style="width: 100px; left: 0px !important"
+                        ></th>
+                        <th class="text-center row-bc" style="width: 170px">
+                          Tên trường
+                        </th>
+                        <th class="text-center row-bc" style="width: 170px">
+                          Chuyên ngành
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Từ tháng, năm
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Đến tháng, năm
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Hình thức đào tạo
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Văn bằng, chứng chỉ
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Ngày hiệu lực
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Ngày hết hiệu lực
+                        </th>
+                        <th class="text-center row-bc" style="width: 120px">
+                          Số hiệu
+                        </th>
+                        <th class="text-center row-bc" style="width: 120px">
+                          Phiên bản
+                        </th>
+                        <th class="text-center row-bc" style="width: 150px">
+                          Lần phát hành
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(item, index) in profile_skills" :key="index">
+                        <td
+                          class="row-content-pdx sticky"
+                          align="center"
+                          style="
+                            color: black;
+                            width: 100px;
+                            left: 0px !important;
+                            z-index: 100;
+                          "
+                        >
+                          <i
+                            class="pi pi-times text-xl cursor-pointer"
+                            style="color: red"
+                            v-tooltip.top="'Xóa'"
+                            @click="delRow_Item(item, 2)"
+                          ></i>
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <InputText
+                            spellcheck="false"
+                            class="ip33"
+                            style="width: 170px"
+                            v-model="item.university_name"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Dropdown
+                            :showClear="true"
+                            :options="Dictionarys[18]"
+                            optionLabel="specialization_name"
+                            optionValue="specialization_id"
+                            placeholder="Chọn chuyên ngành"
+                            class="p-dropdown-sm p-0"
+                            v-model="item.specialized"
+                            style="width: 170px"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Calendar
+                            v-model="item.start_date"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip33"
+                            style="width: 150px"
+                            placeholder="Bắt đầu"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Calendar
+                            v-model="item.end_date"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip33"
+                            style="width: 150px"
+                            placeholder="Kết thúc"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Dropdown
+                            :showClear="true"
+                            :options="Dictionarys[12]"
+                            optionLabel="form_traning_name"
+                            optionValue="form_traning_id"
+                            placeholder="Chọn hình thức"
+                            style="width: 150px"
+                            class="p-dropdown-sm"
+                            v-model="item.form_traning_id"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Dropdown
+                            :showClear="true"
+                            :options="Dictionarys[13]"
+                            optionLabel="certificate_name"
+                            optionValue="certificate_id"
+                            placeholder="Chọn văn bằng"
+                            class="p-dropdown-sm"
+                            style="width: 150px"
+                            v-model="item.certificate_id"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Calendar
+                            style="width: 150px"
+                            class="ip33"
+                            id="icon"
+                            v-model="item.certificate_start_date"
+                            :showIcon="true"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <Calendar
+                            style="width: 150px"
+                            class="col-4 ip33"
+                            id="icon"
+                            v-model="item.certificate_end_date"
+                            :showIcon="true"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <InputText
+                            style="width: 120px"
+                            spellcheck="false"
+                            class="ip33"
+                            v-model="item.certificate_key_code"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <InputText
+                            spellcheck="false"
+                            class="ip33"
+                            style="width: 120px"
+                            v-model="item.certificate_version"
+                          />
+                        </td>
+                        <td class="row-content-pdx" align="center">
+                          <InputText
+                            spellcheck="false"
+                            style="width: 120px"
+                            class="ip33"
+                            v-model="item.certificate_release_time"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </AccordionTab>
             <!-- 6. Lịch sử Đảng viên -->
             <AccordionTab>
@@ -2074,71 +2278,129 @@ onMounted(() => {
                     <!-- <i class="pi pi-replay mr-2"></i> -->
                     <span>6. Lịch sử Đảng viên</span></template
                   >
-                  <template #end>
-                    <i
-                      class="pi pi-plus-circle text-2xl"
-                      v-tooltip.top="'Thêm thông tin'"
-                    ></i>
-                  </template>
+                  <template #end> </template>
                 </Toolbar>
               </template>
-              <Accordion class="accordion-custom w-full" :activeIndex="0">
-                <AccordionTab>
-                  <template #header>
-                    <span class="font-medium">Thông tin 1</span>
-                  </template>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Số thẻ</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_clan_history.card_number"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">Hình thức</label>
-                    <Dropdown
-                      :showClear="true"
-                      :options="hinhthucs"
-                      optionLabel="text"
-                      optionValue="value"
-                      placeholder="Chọn hình thức"
-                      class="p-dropdown-sm col-4 p-0"
-                      v-model="profile.profile_clan_history.form"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Từ ngày</label>
-                    <Calendar
-                      class="col-4 ip33"
-                      id="icon"
-                      v-model="profile.profile_clan_history.start_date"
-                      :showIcon="true"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">Đến ngày</label>
-                    <Calendar
-                      class="col-4 ip33"
-                      id="icon"
-                      v-model="profile.profile_clan_history.end_date"
-                      :showIcon="true"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Nơi kết nạp</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_clan_history.admission_place"
-                    />
-                    <label class="col-2 text-left p-0 pl-5"
-                      >Nơi điều chuyển</label
+              <div style="text-align: end; padding-bottom: 0.5rem">
+                <Button
+                  label="Thêm"
+                  icon="pi pi-plus"
+                  style="padding: 0.3rem 0.6rem !important"
+                  class="p-button-outlined p-button-secondary"
+                  @click="addRow_Item(3)"
+                />
+              </div>
+              <div style="overflow-x: scroll" class="scroll-outer">
+                <table
+                  class="table table-condensed table-hover tbpad table-child"
+                  style="table-layout: fixed"
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        class="text-center row-bc sticky"
+                        style="width: 100px; left: 0px !important"
+                      ></th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Số thẻ
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Hình thức
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Từ ngày
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Đến ngày
+                      </th>
+                      <th class="text-center row-bc" style="width: 250px">
+                        Nơi kết nạp
+                      </th>
+                      <th class="text-center row-bc" style="width: 250px">
+                        Nơi điều chuyển
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(item, index) in profile_clan_historys"
+                      :key="index"
                     >
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_clan_history.transfer_place"
-                    />
-                  </div>
-                </AccordionTab>
-              </Accordion>
+                      <td
+                        class="row-content-pdx sticky"
+                        align="center"
+                        style="
+                          color: black;
+                          width: 100px;
+                          left: 0px !important;
+                          z-index: 100;
+                        "
+                      >
+                        <i
+                          class="pi pi-times text-xl cursor-pointer"
+                          style="color: red"
+                          v-tooltip.top="'Xóa'"
+                          @click="delRow_Item(item, 3)"
+                        ></i>
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 150px"
+                          v-model="item.card_number"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Dropdown
+                          style="width: 150px"
+                          :showClear="true"
+                          :options="hinhthucs"
+                          optionLabel="text"
+                          optionValue="value"
+                          placeholder="Chọn hình thức"
+                          class="p-dropdown-sm p-0"
+                          v-model="item.form"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Calendar
+                          class="ip33"
+                          style="width: 150px"
+                          id="icon"
+                          v-model="item.start_date"
+                          :showIcon="true"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Calendar
+                          class="ip33"
+                          style="width: 150px"
+                          id="icon"
+                          v-model="item.end_date"
+                          :showIcon="true"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 250px"
+                          v-model="item.admission_place"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 250px"
+                          v-model="item.transfer_place"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </AccordionTab>
             <!-- 7. Lịch sử tham gia quân đội -->
             <AccordionTab>
@@ -2230,78 +2492,138 @@ onMounted(() => {
                   <template #start>
                     <span>8. Kinh nghiệm làm việc</span></template
                   >
-                  <template #end>
-                    <i
-                      class="pi pi-plus-circle text-2xl"
-                      v-tooltip.top="'Thêm thông tin'"
-                    ></i>
-                  </template>
+                  <template #end> </template>
                 </Toolbar>
               </template>
-              <Accordion class="accordion-custom w-full" :activeIndex="0">
-                <AccordionTab>
-                  <template #header>
-                    <span class="font-medium">Thông tin 1</span>
-                  </template>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Từ tháng, năm</label>
-                    <Calendar
-                      v-model="profile.profile_experience.start_date"
-                      view="month"
-                      dateFormat="mm/yy"
-                      class="col-4 p-0 ip33"
-                      placeholder="Bắt đầu"
-                    />
-                    <label class="col-2 text-left p-0 pl-5"
-                      >Đến tháng, năm</label
+              <div style="text-align: end; padding-bottom: 0.5rem">
+                <Button
+                  label="Thêm"
+                  icon="pi pi-plus"
+                  style="padding: 0.3rem 0.6rem !important"
+                  class="p-button-outlined p-button-secondary"
+                  @click="addRow_Item(4)"
+                />
+              </div>
+              <div style="overflow-x: scroll" class="scroll-outer">
+                <table
+                  class="table table-condensed table-hover tbpad table-child"
+                  style="table-layout: fixed"
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        class="text-center row-bc sticky"
+                        style="width: 100px; left: 0px !important"
+                      ></th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Từ tháng, năm
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Đến tháng, năm
+                      </th>
+                      <th class="text-center row-bc" style="width: 200px">
+                        Công ty, đơn vị
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Vị trí
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Người tham chiếu
+                      </th>
+                      <th class="text-center row-bc" style="width: 150px">
+                        Số điện thoại
+                      </th>
+                      <th class="text-center row-bc" style="width: 200px">
+                        Mô tả công việc
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(item, index) in profile_experiences"
+                      :key="index"
                     >
-                    <Calendar
-                      v-model="profile.profile_experience.end_date"
-                      view="month"
-                      dateFormat="mm/yy"
-                      class="col-4 p-0 ip33"
-                      placeholder="Kết thúc"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Công ty, đơn vị</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_experience.company"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">Vị trí</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_experience.role"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Người tham chiếu</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_experience.reference_name"
-                    />
-                    <label class="col-2 text-left p-0 pl-5">Điện thoại</label>
-                    <InputText
-                      spellcheck="false"
-                      class="col-4 ip33"
-                      v-model="profile.profile_experience.reference_phone"
-                    />
-                  </div>
-                  <div class="field col-12 md:col-12 flex">
-                    <label class="col-2 text-left">Mô tả công việc</label>
-                    <Textarea
-                      :autoResize="true"
-                      rows="4"
-                      class="col-10"
-                      v-model="profile.profile_experience.description"
-                    />
-                  </div>
-                </AccordionTab>
-              </Accordion>
+                      <td
+                        class="row-content-pdx sticky"
+                        align="center"
+                        style="
+                          color: black;
+                          width: 100px;
+                          left: 0px !important;
+                          z-index: 100;
+                        "
+                      >
+                        <i
+                          class="pi pi-times text-xl cursor-pointer"
+                          style="color: red"
+                          v-tooltip.top="'Xóa'"
+                          @click="delRow_Item(item, 4)"
+                        ></i>
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Calendar
+                          v-model="item.start_date"
+                          view="month"
+                          dateFormat="mm/yy"
+                          class="ip33"
+                          style="width: 150px"
+                          placeholder="Bắt đầu"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <Calendar
+                          v-model="item.end_date"
+                          view="month"
+                          dateFormat="mm/yy"
+                          class="ip33"
+                          placeholder="Kết thúc"
+                          style="width: 150px"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          v-model="item.company"
+                          style="width: 200px"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          v-model="item.role"
+                          style="width: 150px"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 150px"
+                          v-model="item.reference_name"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 150px"
+                          v-model="item.reference_phone"
+                        />
+                      </td>
+                      <td class="row-content-pdx" align="center">
+                        <InputText
+                          spellcheck="false"
+                          class="ip33"
+                          style="width: 200px"
+                          v-model="item.description"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </AccordionTab>
             <!-- Đặc điểm lịch sử bản thân -->
             <AccordionTab>
@@ -2392,6 +2714,14 @@ onMounted(() => {
   </Dialog>
 </template>
 <style scoped>
+.scroll-outer {
+  visibility: hidden;
+}
+.scroll-inner,
+.scroll-outer:hover,
+.scroll-outer:focus {
+  visibility: visible;
+}
 .p-avatar {
   font-size: 1.5rem !important;
 }
@@ -2423,9 +2753,12 @@ onMounted(() => {
   width: 100%;
   height: 100%;
 }
-table td {
+#table-main td {
   padding: 5px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.0625);
+}
+table {
+  border-spacing: 0;
 }
 .table-hover > tbody > tr:hover {
   background-color: aliceblue;
@@ -2460,6 +2793,14 @@ table td {
 ::v-deep(.p-tabview) {
   .p-tabview-panels {
     padding: 0.1rem !important;
+  }
+  .p-toggleable-content {
+    position: relative;
+  }
+}
+::v-deep(.p-accordion) {
+  .p-accordion-tab {
+    position: relative;
   }
 }
 </style>

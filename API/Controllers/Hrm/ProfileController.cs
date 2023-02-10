@@ -143,7 +143,7 @@ namespace API.Controllers
                         List<hrm_profile_relative> relatives = JsonConvert.DeserializeObject<List<hrm_profile_relative>>(relative);
                         List<hrm_profile_experience> experiences = JsonConvert.DeserializeObject<List<hrm_profile_experience>>(experience);
                         List<hrm_profile_clan_history> clan_historys = JsonConvert.DeserializeObject<List<hrm_profile_clan_history>>(clan_history);
-
+                        model.is_order = db.hrm_profile.Count() + 1;
                         model.modified_date = DateTime.Now;
                         model.modified_by = uid;
                         model.modified_ip = ip;
@@ -370,7 +370,7 @@ namespace API.Controllers
                         model.modified_by = uid;
                         model.modified_ip = ip;
                         model.modified_token_id = tid;
-    
+
                         db.Entry(model).State = EntityState.Modified;
                         #region add skill
                         //delte all 

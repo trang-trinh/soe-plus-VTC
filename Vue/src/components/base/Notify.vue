@@ -119,6 +119,42 @@ const list_modules = [
     type: -1,
     is_link: "taskmaindetail",
   },
+    {
+    module_key: "M7",
+    module_name: "Thiết bị",
+    type: 0,
+    is_link: "/device/doc_approved",
+  },
+    {
+    module_key: "M7",
+    module_name: "Thiết bị",
+    type: 1,
+    is_link: "/device/accepthandover",
+  },
+    {
+    module_key: "M7",
+    module_name: "Thiết bị",
+    type: 2,
+    is_link: "/device/repair",
+  },
+    {
+    module_key: "M7",
+    module_name: "Thiết bị",
+    type: 3,
+    is_link: "/device/acceptinventory",
+  },
+    {
+    module_key: "M7",
+    module_name: "Thiết bị",
+    type: 4,
+    is_link: "/device/recall",
+  },
+      {
+    module_key: "M7",
+    module_name: "Thiết bị",
+    type: 5,
+    is_link: "/device/follows",
+  },
 ];
 const goToNotify = (item) => {
   
@@ -133,10 +169,11 @@ const goToNotify = (item) => {
         // }
       });
   }
+  
   let mds = list_modules.filter(
     (x) => x.type == item.is_type && x.module_key == item.module_key,
   );
- debugger
+  
   if (mds.length > 0) {
     emitter.emit("emitData", {
       type: "closeNoti",
@@ -151,6 +188,11 @@ const goToNotify = (item) => {
         .then(() => {
           router.go(0);
         });
+    } else
+      if (mds[0].module_key == "M7") {
+      router
+        .push(mds[0].is_link)
+        
     } else {
       router
         .push({ name: mds[0].is_link, params: { id: item.id_key } || {} })

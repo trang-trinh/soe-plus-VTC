@@ -18,6 +18,7 @@
         "@fortawesome/free-solid-svg-icons": "^6.2.0",
         "@fortawesome/vue-fontawesome": "^3.0.1",
         "@popperjs/core": "^2.11.2",
+        "@vitejs/plugin-legacy": "^1.8.2",
         "@vuelidate/core": "^2.0.0-alpha.34",
         "@vuelidate/validators": "^2.0.0-alpha.26",
         "@vuepic/vue-datepicker": "^3.3.0",
