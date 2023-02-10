@@ -725,13 +725,7 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 
 const listSCard = ref([
-  { name: "Duyệt phòng ban", code: "1" },
   { name: "Duyệt cấp hành chính, lãnh đạo", code: "2" },
-  { name: "Kiểm kho thiết bị", code: "3" },
-  { name: "Mua sắm thiết bị", code: "4" },
-  { name: "Duyệt mua sắm thiết bị", code: "5" },
-  { name: "Xác nhận mua sắm thiết bị", code: "6" },
-  { name: "Lập thẻ thiết bị", code: "7" },
   { name: "Phòng chức năng duyệt", code: "8" },
   { name: "Phòng chức năng đánh giá", code: "9" },
   { name: "Phòng kỹ thuật duyệt", code: "10" },
@@ -742,7 +736,7 @@ const listSCard = ref([
   { name: "Kế toán duyệt", code: "15" },
   { name: "Lãnh đạo duyệt", code: "16" },
   { name: "Hoàn thành", code: "17" },
-  { name: "Xác nhận hoàn thành", code: "18" },
+ 
 ]);
 const listTCard = ref([
   { name: "Duyệt một nhiều", code: 1 },

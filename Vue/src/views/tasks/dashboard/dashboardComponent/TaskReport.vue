@@ -5,6 +5,7 @@ import { encr } from "../../../../util/function.js";
 import moment from "moment";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
 const cryoptojs = inject("cryptojs");
+const emitter = inject("emitter");
 //khai báo
 const axios = inject("axios");
 const store = inject("store");
@@ -35,6 +36,28 @@ const options = ref({
   loading: true,
   totalRecords: 0,
 });
+const listStatus = ref([
+  {
+    value: 0,
+    text: "Chưa bắt đầu",
+    bg_color: "#bbbbbb",
+    text_color: "#FFFFFF",
+  },
+  { value: 1, text: "Đang làm", bg_color: "#2196f3", text_color: "#FFFFFF" },
+  { value: 2, text: "Tạm ngừng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 3, text: "Đã đóng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 4, text: "HT đúng hạn", bg_color: "#04D215", text_color: "#FFFFFF" },
+  {
+    value: 5,
+    text: "Chờ đánh giá",
+    bg_color: "#33c9dc",
+    text_color: "#FFFFFF",
+  },
+  { value: 6, text: "Bị trả lại", bg_color: "#ffa500", text_color: "#FFFFFF" },
+  { value: 7, text: "HT sau hạn", bg_color: "#ff8b4e", text_color: "#FFFFFF" },
+  { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
+  { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
+]);
 const user = store.state.user;
 const listTask = ref([]);
 const first = ref(0);
@@ -81,6 +104,13 @@ const loadData = () => {
           (x.creator.department_name || x.creator.organization_name);
         x.STT = options.value.PageNo * options.value.PageSize + i + 1;
         x.progress = x.progress ?? 0;
+        let sttus = listStatus.value.filter((a) => a.value == x.status);
+        console.log(sttus);
+        x.status_display = {
+          text: sttus[0].text,
+          bg_color: sttus[0].bg_color,
+          text_color: sttus[0].text_color,
+        };
       });
       listTask.value = data;
       options.value.totalRecords = count[0].totalRecords;
@@ -304,7 +334,7 @@ const sendData = (x) => {
     status: 0,
     is_send_email: false,
   };
-  console.log(x);
+
   Report.value.contents =
     Report.value.contents != null
       ? Report.value.contents.replace(/\n/g, "<br/>")
@@ -351,7 +381,8 @@ const bodymail = ref();
 const sendMail = (x) => {
   mailInfo.value = {
     to: x.uid,
-    subject: "SOE+ - Smart Office Enterprise +",
+    display_name: "SOE+ - Smart Office Enterprise +",
+    subject: "Thông báo công việc trên SOE+",
     body: "",
     isBodyHtml: true,
   };
@@ -364,7 +395,7 @@ const sendMail = (x) => {
     window.location.origin +
     "> Nhấn vào đây để chuyển sang SOE</a></div>";
   mailInfo.value.body = bodymail.value.toString();
-  console.log(mailInfo);
+
   let formData = new FormData();
   formData.append("mailinfo", JSON.stringify(mailInfo.value));
   axios({
@@ -378,12 +409,20 @@ const sendMail = (x) => {
     .then((response) => {
       if (response.data.err == "1") {
         swal.fire({
-          title: "Error!",
+          title: "Lỗi",
           text: response.data.ms,
-          icon: "error",
+          icon: "warning",
           confirmButtonText: "OK",
         });
-      }
+      } else toast.success("Đã gửi email tới người đánh giá");
+      // else if (response.data.err == "-1") {
+      //   swal.fire({
+      //     title: "Thông báo",
+      //     html: response.data.ms,
+      //     icon: "warning",
+      //     confirmButtonText: "OK",
+      //   });
+      // }
     })
     .catch(() => {
       swal.close();
@@ -408,14 +447,24 @@ const SaveData = () => {
     }
   });
   listSelected.value.forEach((x) => {
-    //sendData(x);
-
+    sendData(x);
     if (x.is_send_email == true) {
       sendMail(x);
     }
     DialogVisible.value = false;
   });
 };
+const showDetail = ref(false);
+const selectedTaskID = ref();
+const onNodeSelect = (id) => {
+  showDetail.value = false;
+  showDetail.value = true;
+  selectedTaskID.value = id.task_id;
+};
+emitter.on("SideBar", (obj) => {
+  showDetail.value = obj;
+  loadData();
+});
 onMounted(() => {
   loadData();
   bodymail.value = "";
@@ -522,7 +571,11 @@ onMounted(() => {
         headerClass="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div style="display: flex; flex-direction: column; padding: 5px">
+          <div
+            style="display: flex; flex-direction: column; padding: 5px"
+            @click="onNodeSelect(data.data)"
+            class="task-hover w-full"
+          >
             <div style="line-height: 20px; display: flex">
               <span
                 v-tooltip="'Ưu tiên'"
@@ -661,6 +714,21 @@ onMounted(() => {
               >Đến hạn hoàn thành</span
             >
           </div>
+        </template>
+      </Column>
+      <Column
+        header="Trạng thái"
+        field="status"
+        class="align-items-center justify-content-center text-center max-w-12rem"
+      >
+        <template #body="data">
+          <Chip
+            :style="{
+              background: data.data.status_display.bg_color,
+              color: data.data.status_display.text_color,
+            }"
+            v-bind:label="data.data.status_display.text"
+          />
         </template>
       </Column>
     </DataTable>
@@ -1118,17 +1186,21 @@ onMounted(() => {
       />
     </template>
   </Dialog>
-  <!-- <DetailedWork
+  <DetailedWork
     v-if="showDetail == true && selectedTaskID != null"
     :isShow="showDetail"
     :id="selectedTaskID"
     :turn="0"
   >
-  </DetailedWork> -->
+  </DetailedWork>
 </template>
 
 <style lang="scss" scoped>
 .main-div {
   height: calc(100vh - 7rem);
+}
+.task-hover:hover {
+  background-color: #f5f5f5;
+  color: #2196f3;
 }
 </style>

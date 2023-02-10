@@ -592,7 +592,7 @@ const loadTudien = (f) => {
             folder_id: "me",
             folder_name: "Của tôi",
             parent_id: null,
-            is_filepath: basedomainURL + "/Portals/file/folder_me.png",
+            is_filepath:  "/Portals/file/folder_me.png",
             count_folder: data[0].filter(
               (x) => x.module_key == null && !x.is_share && x.parent_id == null
             ).length,
@@ -603,7 +603,7 @@ const loadTudien = (f) => {
             folder_id: "share",
             folder_name: "Được chia sẻ",
             parent_id: null,
-            is_filepath: basedomainURL + "/Portals/file/folder_share.png",
+            is_filepath:  "/Portals/file/folder_share.png",
             count_folder: data[1].length,
             count_file:
               data[3].length > 0 ? data[3][0].count_share_file || 0 : 0,
@@ -2020,7 +2020,7 @@ export default {
                       >
                         <div class="col-2 p-0">
                           <img
-                            :src="data.node.data.is_filepath"
+                            :src="basedomainURL+data.node.data.is_filepath"
                             width="28"
                             height="36"
                             style="object-fit: contain"
@@ -3507,7 +3507,7 @@ export default {
               </div>
             </div>
             <div class="col-12 field p-0" v-if="typeTab == 2">
-              <div v-if="share_files.length > 0">
+              <div v-if="share_files && share_files.length > 0">
                 <div
                   v-for="(item, index) in share_files"
                   :key="index"
@@ -3515,7 +3515,7 @@ export default {
                   style="border-bottom: 1px solid #e9ecef"
                 >
                   <div class="col-1 p-0 format-center">
-                    <Avatar
+                    <Avatar v-if="item.last_name"
                       v-bind:label="
                         item.avatar ? '' : item.last_name.substring(0, 1)
                       "
