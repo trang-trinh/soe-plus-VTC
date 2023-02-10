@@ -388,10 +388,39 @@ const closeDialog = () => {
   displayBasic.value = false;
   loadData(true);
 };
-
+const checkShow = ref(false);
+const checkShow2 = ref(false);
+const checkShow3 = ref(false);
+  
+const showHidePanel = (type) => {
+  if (type == 1) {
+    if (checkShow.value == true) {
+      checkShow.value = false;
+    } else {
+      checkShow.value = true;
+    }
+  }
+  if (type == 2) {
+    if (checkShow2.value == true) {
+      checkShow2.value = false;
+    } else {
+      checkShow2.value = true;
+    }
+  }
+   if (type == 3) {
+    if (checkShow3.value == true) {
+      checkShow3.value = false;
+    } else {
+      checkShow3.value = true;
+    }
+  }
+   
+};
 const addRow_Item = (type) => {
   //relative
   if (type == 1) {
+    checkShow.value = true;
+
     let obj = {
       is_order: list_users_training.value.length + 1,
       data: null,
@@ -406,11 +435,12 @@ const addRow_Item = (type) => {
     };
     list_users_training.value.push(obj);
   }
-    if (type == 2) {
+  if (type == 2) {
+    checkShow2.value = true;
     let obj = {
       is_order: list_schedule.value.length + 1,
       class_schedule_name: null,
-      limit: null,
+      limit: 1,
       lecturers: null,
       phone_number: null,
       date_study: null,
@@ -420,26 +450,55 @@ const addRow_Item = (type) => {
     };
     list_schedule.value.push(obj);
   }
-  
+  if(type==3){
+     checkShow3.value = true;
+  }
 };
-
+const listLimit = ref([
+  {
+    name: "Nội bộ",
+    code: 1,
+  },
+  {
+    name: "Bên ngoài",
+    code: 2,
+  },
+]);
+const listLectures = ref([
+  {
+    name: "Gianrg viên 1",
+    code: 1,
+  },
+  {
+    name: "Gianrg viên 2",
+    code: 2,
+  },
+]);
 const delRow_Item = (item, type) => {
   if (type == 1) {
     list_users_training.value.splice(
       list_users_training.value.lastIndexOf(item),
       1
     );
+    if (list_users_training.value.length > 0) {
+      var arr = [...listDataUsersSave.value];
+      list_users_training.value.forEach((element) => {
+        arr = arr.filter((x) => x.code.profile_id != element.profile_id);
+      });
+      listDataUsers.value = arr;
+    }
   }
-    if (type == 2) {
-    list_schedule.value.splice(
-      list_schedule.value.lastIndexOf(item),
-      1
-    );
+  if (type == 2) {
+    list_schedule.value.splice(list_schedule.value.lastIndexOf(item), 1);
   }
-  
 };
 //Thêm bản ghi
-
+const listTrainingGroups=ref([{
+  name:'Nhóm đào tạo 1',code:1
+},
+{
+  name:'Nhóm đào tạo 2',code:2
+}])
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
@@ -676,6 +735,7 @@ const loadDataSQL = () => {
       }
     });
 };
+
 //Tìm kiếm
 const searchStamp = (event) => {
   if (event.code == "Enter") {
@@ -926,6 +986,7 @@ const toggle = (event) => {
 };
 
 const listDataUsers = ref([]);
+const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
   listDataUsers.value = [];
 
@@ -977,6 +1038,7 @@ const loadUserProfiles = () => {
           organization_id: element.organization_id,
         });
       });
+      listDataUsersSave.value = [...listDataUsers.value];
     })
     .catch((error) => {
       console.log(error);
@@ -994,6 +1056,7 @@ const loadUserProfiles = () => {
 };
 const changeUserTrainding = (data, index) => {
   if (data && list_users_training.value[index]) {
+    list_users_training.value[index].is_order = index + 1;
     list_users_training.value[index].profile_id = data.profile_id;
     list_users_training.value[index].full_name = data.profile_user_name;
     list_users_training.value[index].role_id = data.work_position_id;
@@ -1003,19 +1066,32 @@ const changeUserTrainding = (data, index) => {
     list_users_training.value[index].position_id = data.position_id;
     list_users_training.value[index].department_id = data.department_id;
     list_users_training.value[index].department_name = data.department_name;
-  }
-  else{
-        list_users_training.value[index].profile_id =null;
-    list_users_training.value[index].full_name =null;
+  } else {
+    list_users_training.value[index].profile_id = null;
+    list_users_training.value[index].full_name = null;
     list_users_training.value[index].role_id = null;
-    list_users_training.value[index].work_position_name =
-     null;
+    list_users_training.value[index].work_position_name = null;
     list_users_training.value[index].position_name = null;
-    list_users_training.value[index].position_id =null;
-    list_users_training.value[index].department_id =null;
+    list_users_training.value[index].position_id = null;
+    list_users_training.value[index].department_id = null;
     list_users_training.value[index].department_name = null;
   }
+  if (list_users_training.value.length > 0) {
+    var arr = [...listDataUsersSave.value];
+    list_users_training.value.forEach((element) => {
+      arr = arr.filter((x) => x.code.profile_id != element.profile_id);
+    });
+    listDataUsers.value = arr;
+  }
 };
+const listClasroom = ref([
+  {
+    name:'Lớp 1',code:1
+  },
+    {
+    name:'Lớp 2',code:2
+  }
+]);
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
@@ -1348,7 +1424,7 @@ onMounted(() => {
               <div style="width: calc(100% - 10rem)">
                 <Dropdown
                   v-model="training_emps.training_groups_id"
-                  :options="listSCard"
+                  :options="listTrainingGroups"
                   optionLabel="name"
                   optionValue="code"
                   placeholder="Chọn nhóm đào tạo"
@@ -1491,6 +1567,7 @@ onMounted(() => {
                 v-model="training_emps.registration_deadline"
                 autocomplete="on"
                 :showIcon="true"
+                    :showTime="true"
               />
             </div>
           </div>
@@ -1511,22 +1588,6 @@ onMounted(() => {
               placeholder="---------------  Chọn đơn vị thực hiện --------------- "
             >
             </TreeSelect>
-            <!-- <Dropdown
-              v-model="training_emps.producer"
-              :options="listPCard"
-              :filter="true"
-              optionLabel="name"
-              optionValue="code"
-              placeholder="---------------  Chọn đơn vị thực hiện --------------- "
-              class="sel-placeholder w-full"
-              @change="onChangeCountry()"
-            >
-              <template #option="slotProps">
-                <div class="country-item flex">
-                  <div class="pt-1">{{ slotProps.option.name }}</div>
-                </div>
-              </template>
-            </Dropdown> -->
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
@@ -1702,359 +1763,438 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 field">
-          <Accordion class="accordion-custom w-full">
-            <!-- 1. Thông tin chung -->
-            <AccordionTab>
-              <template #header>
-                <span class="font-bold">Thông tin học viên</span>
-              </template>
-              <div style="text-align: end; padding-bottom: 0.5rem">
-                <Button
-                  label="Thêm"
-                  icon="pi pi-plus"
-                  style="padding: 0.3rem 0.6rem !important"
-                  class="p-button-outlined p-button-secondary"
-                  @click="addRow_Item(1)"
-                />
-              </div>
+        <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+            <div
+              class="font-bold flex align-items-center w-full cursor-pointer"
+              @click="showHidePanel(1)"
+            >
+              <i
+                class="pi pi-angle-right"
+                v-if="checkShow == false"
+                style="font-size: 1.25rem"
+              ></i>
+              <i
+                class="pi pi-angle-down"
+                v-if="checkShow == true"
+                style="font-size: 1.25rem"
+              ></i>
+              <div class="pl-2">Thông tin học viên</div>
+            </div>
+            <div class="w-1">
+              <Button
+                class="p-button-outlined"
+                label="Thêm"
+                icon="pi pi-plus"
+                @click="addRow_Item(1)"
+              ></Button>
+            </div>
+          </div>
 
-              <div style="overflow-x: scroll">
-                <table
-                v-if="list_users_training.length>0"
-                  class="table table-condensed table-hover tbpad table-child"
-                  style="table-layout: fixed"
-                >
-                  <thead class=" pb-3">
-                    <tr class="w-full">
-                      <th
-                        class="text-center sticky"
-                        style="width: 5%; left: 0px !important"
-                      ></th>
-                      <th class="text-center" style="width: 120px">STT</th>
-                      <th class="text-center" style="width: 25%">Họ và tên</th>
-                      <th class="text-center" style="width: 20%">Phòng ban</th>
-                      <th class="text-center" style="width: 15%">Vị trí</th>
-                      <th class="text-center" style="width: 15%">Chức vụ</th>
-                      <th class="text-center" style="width: 30%">Ghi chú</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      id="add_thanhpham"
-                      v-for="(item, index) in list_users_training"
-                      :key="index"
-                    >
-                      <td
-                        class="row-content-pdx sticky"
-                        align="center"
-                        style="color: black; width: 100px; left: 0px !important"
-                      >
-                        <!-- <Button
-                          icon="pi pi-times"
-                          class="mr-2 p-button-danger"
-                          @click="delRow_Item(item)"
-                        /> -->
-                        <i
-                          class="pi pi-times text-xl cursor-pointer"
-                          style="color: red"
-                          v-tooltip.top="'Xóa'"
-                          @click="delRow_Item(item, 1)"
-                        ></i>
-                      </td>
-
-                      <td class="row-content-pdx" align="center">
-                        {{ item.is_order }}
-                      </td>
-                      <td class="row-content-pdx mx-2" align="center">
-                        <div class="mx-2">
-                          <Dropdown
-                            :options="listDataUsers"
-                            :filter="true"
-                            :showClear="true"
-                            :editable="false"
-                            optionLabel="profile_user_name"
-                            optionValue="code"
-                            placeholder="Chọn học viên"
-                            v-model="item.data"
-                            class="w-full"
-                            style="height: auto; min-height: 36px"
-                            @change="changeUserTrainding(item.data, index)"
-                          >
-                            <template #value="slotProps">
-                              <div v-if="slotProps.value">
-                                <div
-                                  class="
-                                    flex
-                                    w-full
-                                    align-items-center
-                                    pr-2
-                                    p-0
+          <div class="w-full px-3 pt-3" v-if="checkShow == true">
+            <div style="overflow-x: scroll">
+              <table
+                v-if="list_users_training.length > 0"
+                class="table table-condensed table-hover tbpad table-child"
+                style="table-layout: fixed"
+              >
+                <thead class="pb-3">
+                  <tr class="w-full">
+                    <td class="text-center" style="width: 120px">STT</td>
+                    <td class="text-center" style="width: 25%">Họ và tên</td>
+                    <td class="text-center" style="width: 20%">Phòng ban</td>
+                    <td class="text-center" style="width: 15%">Vị trí</td>
+                    <td class="text-center" style="width: 15%">Chức vụ</td>
+                    <td class="text-center" style="width: 30%">Ghi chú</td>
+                    <td
+                      class="text-center sticky"
+                      style="width: 5%; left: 0px !important"
+                    ></td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    id="add_thanhpham"
+                    v-for="(item, index) in list_users_training"
+                    :key="index"
+                  >
+                    <td class="row-content-pdx" align="center">
+                      {{ index + 1 }}
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <div class="mx-2">
+                        <Dropdown
+                          :options="listDataUsers"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          optionLabel="profile_user_name"
+                          optionValue="code"
+                          placeholder="Chọn học viên"
+                          v-model="item.data"
+                          class="w-full"
+                          style="height: auto; min-height: 36px"
+                          @change="changeUserTrainding(item.data, index)"
+                        >
+                          <template #value="slotProps">
+                            <div v-if="slotProps.value">
+                              <div
+                                class="flex w-full align-items-center pr-2 p-0"
+                              >
+                                <Avatar
+                                  v-bind:label="
+                                    slotProps.value.avatar
+                                      ? ''
+                                      : slotProps.value.profile_user_name.substring(
+                                          slotProps.value.profile_user_name.lastIndexOf(
+                                            ' '
+                                          ) + 1,
+                                          slotProps.value.profile_user_name.lastIndexOf(
+                                            ' '
+                                          ) + 2
+                                        )
                                   "
-                                >
-                                  <Avatar
-                                    v-bind:label="
-                                      slotProps.value.avatar
-                                        ? ''
-                                        : slotProps.value.profile_user_name.substring(
-                                            slotProps.value.profile_user_name.lastIndexOf(
-                                              ' '
-                                            ) + 1,
-                                            slotProps.value.profile_user_name.lastIndexOf(
-                                              ' '
-                                            ) + 2
-                                          )
-                                    "
-                                    :image="
-                                      basedomainURL + slotProps.value.avatar
-                                    "
-                                    size="small"
-                                    :style="
-                                      slotProps.value.avatar
-                                        ? 'background-color: #2196f3'
-                                        : 'background:' +
-                                          bgColor[
-                                            slotProps.value.profile_user_name
-                                              .length % 7
-                                          ]
-                                    "
-                                    shape="circle"
-                                    @error="
-                                      $event.target.src =
-                                        basedomainURL +
-                                        '/Portals/Image/nouser1.png'
-                                    "
-                                  />
-                                  <div class="px-2">
-                                    {{ slotProps.value.profile_user_name }}
-                                  </div>
+                                  :image="
+                                    basedomainURL + slotProps.value.avatar
+                                  "
+                                  size="small"
+                                  :style="
+                                    slotProps.value.avatar
+                                      ? 'background-color: #2196f3'
+                                      : 'background:' +
+                                        bgColor[
+                                          slotProps.value.profile_user_name
+                                            .length % 7
+                                        ]
+                                  "
+                                  shape="circle"
+                                  @error="
+                                    $event.target.src =
+                                      basedomainURL +
+                                      '/Portals/Image/nouser1.png'
+                                  "
+                                />
+                                <div class="px-2">
+                                  {{ slotProps.value.profile_user_name }}
                                 </div>
                               </div>
-                              <span v-else> {{ slotProps.placeholder }} </span>
-                            </template>
-                            <template #option="slotProps">
-                              <div v-if="slotProps.option" class="flex">
-                                <div class="format-center">
-                                  <Avatar
-                                    v-bind:label="
-                                      slotProps.option.avatar
-                                        ? ''
-                                        : slotProps.option.profile_user_name.substring(
-                                            0,
-                                            1
-                                          )
-                                    "
-                                    v-bind:image="
-                                      slotProps.option.avatar
-                                        ? basedomainURL +
-                                          slotProps.option.avatar
-                                        : basedomainURL +
-                                          '/Portals/Image/noimg.jpg'
-                                    "
-                                    style="
-                                      background-color: #2196f3;
-                                      color: #ffffff;
-                                      width: 3rem;
-                                      height: 3rem;
-                                      font-size: 1.4rem !important;
-                                    "
-                                    :style="{
-                                      background:
-                                        bgColor[slotProps.option.is_order % 7],
-                                    }"
-                                    class="text-avatar"
-                                    size="xlarge"
-                                    shape="circle"
-                                  />
-                                </div>
-                                <div class="ml-3 format-center">
-                                  <div class="mb-1">
-                                    {{ slotProps.option.profile_user_name }}
-                                  </div>
+                            </div>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                          <template #option="slotProps">
+                            <div v-if="slotProps.option" class="flex">
+                              <div class="format-center">
+                                <Avatar
+                                  v-bind:label="
+                                    slotProps.option.avatar
+                                      ? ''
+                                      : slotProps.option.profile_user_name.substring(
+                                          0,
+                                          1
+                                        )
+                                  "
+                                  v-bind:image="
+                                    slotProps.option.avatar
+                                      ? basedomainURL + slotProps.option.avatar
+                                      : basedomainURL +
+                                        '/Portals/Image/noimg.jpg'
+                                  "
+                                  style="
+                                    background-color: #2196f3;
+                                    color: #ffffff;
+                                    width: 3rem;
+                                    height: 3rem;
+                                    font-size: 1.4rem !important;
+                                  "
+                                  :style="{
+                                    background:
+                                      bgColor[slotProps.option.is_order % 7],
+                                  }"
+                                  class="text-avatar"
+                                  size="xlarge"
+                                  shape="circle"
+                                />
+                              </div>
+                              <div class="ml-3 format-center">
+                                <div class="mb-1">
+                                  {{ slotProps.option.profile_user_name }}
                                 </div>
                               </div>
-                              <span v-else> Chưa có dữ liệu </span>
-                            </template>
-                          </Dropdown>
-                        </div>
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="w-full"
-                          style="width: 170px"
-                          v-model="item.department_name"
-                          disabled
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="w-full"
-                          style="width: 170px"
-                          v-model="item.work_position_name"
-                          disabled
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="w-full"
-                          style="width: 170px"
-                          v-model="item.position_name"
-                          disabled
-                        />
-                      </td>
+                            </div>
+                            <span v-else> Chưa có dữ liệu </span>
+                          </template>
+                        </Dropdown>
+                      </div>
+                    </td>
+                    <td class="row-content-pdx" align="center">
+                      <InputText
+                        spellcheck="false"
+                        class="w-full"
+                        style="width: 170px"
+                        v-model="item.department_name"
+                        disabled
+                      />
+                    </td>
+                    <td class="row-content-pdx" align="center">
+                      <InputText
+                        spellcheck="false"
+                        class="w-full"
+                        style="width: 170px"
+                        v-model="item.work_position_name"
+                        disabled
+                      />
+                    </td>
+                    <td class="row-content-pdx" align="center">
+                      <InputText
+                        spellcheck="false"
+                        class="w-full"
+                        style="width: 170px"
+                        v-model="item.position_name"
+                        disabled
+                      />
+                    </td>
 
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="ip33"
-                          style="width: 170px"
-                          v-model="item.note"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </AccordionTab>
-            <AccordionTab>
-              <template #header>
-                <span>Lịch học</span>
-              </template>
- 
-              <div style="text-align: end; padding-bottom: 0.5rem">
-                <Button
-                  label="Thêm"
-                  icon="pi pi-plus"
-                  style="padding: 0.3rem 0.6rem !important"
-                  class="p-button-outlined p-button-secondary"
-                  @click="addRow_Item(2)"
-                />
-              </div>
-
-              <div style="overflow-x: scroll">
-                <table
-                v-if="list_schedule.length>0"
-                  class="table table-condensed table-hover tbpad table-child"
-                  style="table-layout: fixed"
-                >
-                  <thead class=" pb-3">
-                    <tr class="w-full">
-                      <th
-                        class="text-center sticky"
-                        style="width: 5%; left: 0px !important"
-                      ></th>
-                      <th class="text-center" style="width: 120px">STT</th>
-                      <th class="text-center" style="width: 25%">Nội dung đào tạo</th>
-                      <th class="text-center" style="width: 20%">Phạm vi</th>
-                      <th class="text-center" style="width: 15%">Vị trí</th>
-                      <th class="text-center" style="width: 15%">Chức vụ</th>
-                      <th class="text-center" style="width: 30%">Ghi chú</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      id="add_thanhpham"
-                      v-for="(item, index) in list_schedule"
-                      :key="index"
+                    <td class="row-content-pdx" align="center">
+                      <InputText
+                        spellcheck="false"
+                        class="ip33"
+                        style="width: 170px"
+                        v-model="item.note"
+                      />
+                    </td>
+                    <td
+                      class="row-content-pdx sticky"
+                      align="center"
+                      style="color: black; width: 100px; left: 0px !important"
                     >
-                      <td
-                        class="row-content-pdx sticky"
-                        align="center"
-                        style="color: black; width: 100px; left: 0px !important"
-                      >
-                        <!-- <Button
+                      <i
+                        class="pi pi-times text-xl cursor-pointer"
+                        style="color: red"
+                        v-tooltip.top="'Xóa'"
+                        @click="delRow_Item(item, 1)"
+                      ></i>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+            <div
+              class="font-bold flex align-items-center w-full cursor-pointer"
+              @click="showHidePanel(2)"
+            >
+              <i
+                class="pi pi-angle-right"
+                v-if="checkShow2 == false"
+                style="font-size: 1.25rem"
+              ></i>
+              <i
+                class="pi pi-angle-down"
+                v-if="checkShow2 == true"
+                style="font-size: 1.25rem"
+              ></i>
+              <div class="pl-2">Lịch học</div>
+            </div>
+            <div class="w-1">
+              <Button
+                class="p-button-outlined"
+                label="Thêm"
+                icon="pi pi-plus"
+                @click="addRow_Item(2)"
+              ></Button>
+            </div>
+          </div>
+
+          <div class="w-full px-3 pt-3" v-if="checkShow2 == true">
+            <div style="overflow-x: scroll">
+              <table
+                v-if="list_schedule.length > 0"
+                class="table table-condensed table-hover tbpad table-child"
+                style="table-layout: fixed"
+              >
+                <thead>
+                  <tr>
+                    <td class="text-center" style="width: 120px">STT</td>
+                    <td class="text-center" style="width: 170px">
+                      Nội dung đào tạo
+                    </td>
+                    <td class="text-center" style="width: 170px">Phạm vi</td>
+                    <td class="text-center" style="width: 170px">Giảng viên</td>
+                    <td class="text-center" style="width: 170px">
+                      Số điện thoại
+                    </td>
+                    <td class="text-center" style="width: 170px">Ngày học</td>
+                    <td class="text-center" style="width: 170px">Bắt đầu</td>
+                    <td class="text-center" style="width: 170px">Kết thúc</td>
+                    <td class="text-center" style="width: 170px">Phòng học</td>
+                    <td
+                      class="text-center sticky"
+                      style="width: 170px; left: 0px !important"
+                    ></td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, index) in list_schedule" :key="index">
+                    <td class="row-content-pdx" align="center">
+                      {{ index + 1 }}
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <div class="mx-2">
+                        <Textarea
+                          :autoResize="true"
+                          rows="2"
+                          cols="40"
+                          v-model="item.class_schedule_name"
+                          class="w-30rem"
+                        />
+                      </div>
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <Dropdown
+                        v-model="item.limit"
+                        :options="listLimit"
+                        optionLabel="name"
+                        optionValue="code"
+                        :filter="true"
+                        class="sel-placeholder w-10rem"
+                        panelClass="d-design-dropdown"
+                        placeholder="---- Phạm vi ----"
+                      />
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <div class="mx-2">
+                        <InputText
+                          spellcheck="false"
+                          class="w-12rem"
+                          v-model="item.lecturers"
+                          v-if="item.limit == 2"
+                        />
+                        <Dropdown
+                          v-else
+                          v-model="item.lecturers"
+                          :options="listLectures"
+                          optionLabel="name"
+                          optionValue="code"
+                          :filter="true"
+                          class="  w-15rem"
+                          panelClass="d-design-dropdown"
+                          placeholder="---- Chọn giảng viên ----"
+                        />
+                      </div>
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <div class="mx-2">
+                        <InputNumber
+                          spellcheck="false"
+                          class="w-12rem"
+                          v-model="item.phone_number"
+                        />
+                      </div>
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <Calendar
+                        class="w-12rem"
+                        id="basic_purchase_date"
+                        v-model="item.date_study"
+                        autocomplete="on"
+                        :showIcon="true"
+                      />
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <div class="w-full">
+                        <Calendar
+                          inputId="time12"
+                          hourFormat="24"
+                          class="w-5rem"
+                          autocomplete="on"
+                          icon="pi pi-clock"
+                          :showIcon="false"
+                          :timeOnly="true"
+                          v-model="item.start_time"
+                        />
+                      </div>
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <Calendar
+                        inputId="time12"
+                        hourFormat="24"
+                        class="w-5rem"
+                        autocomplete="on"
+                        icon="pi pi-clock"
+                        :showIcon="false"
+                        :timeOnly="true"
+                        v-model="item.end_time"
+                      />
+                    </td>
+                    <td class="row-content-pdx mx-2" align="center">
+                      <Dropdown
+                        v-model="item.training_class_id"
+                        :options="listClasroom"
+                        optionLabel="name"
+                        optionValue="code"
+                        :filter="true"
+                        class="  w-15rem"
+                        panelClass="d-design-dropdown"
+                        placeholder="----Chọn phòng học----"
+                      />
+                    </td>
+                    <td
+                      class="row-content-pdx sticky"
+                      align="center"
+                      style="color: black; width: 100px; left: 0px !important"
+                    >
+                      <!-- <Button
                           icon="pi pi-times"
                           class="mr-2 p-button-danger"
                           @click="delRow_Item(item)"
                         /> -->
-                        <i
-                          class="pi pi-times text-xl cursor-pointer"
-                          style="color: red"
-                          v-tooltip.top="'Xóa'"
-                          @click="delRow_Item(item, 1)"
-                        ></i>
-                      </td>
+                      <i
+                        class="pi pi-times text-xl cursor-pointer"
+                        style="color: red"
+                        v-tooltip.top="'Xóa'"
+                        @click="delRow_Item(item, 2)"
+                      ></i>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+          <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+            <div
+              class="font-bold flex align-items-center w-full cursor-pointer"
+              @click="showHidePanel(3)"
+            >
+              <i
+                class="pi pi-angle-right"
+                v-if="checkShow3 == false"
+                style="font-size: 1.25rem"
+              ></i>
+              <i
+                class="pi pi-angle-down"
+                v-if="checkShow3 == true"
+                style="font-size: 1.25rem"
+              ></i>
+              <div class="pl-2">File đính kèm</div>
+            </div>
+            <div class="w-1">
+              <Button
+                class="p-button-outlined"
+                label="Thêm"
+                icon="pi pi-plus"
+                @click="addRow_Item(3)"
+              ></Button>
+            </div>
+          </div>
 
-                      <td class="row-content-pdx" align="center">
-                        {{ item.is_order }}
-                      </td>
-                      <td class="row-content-pdx mx-2" align="center">
-                        <div class="mx-2">
-                           <InputText
-                          spellcheck="false"
-                          class="w-full"
-                          style="width: 170px"
-                          v-model="item.department_name"
-                          disabled
-                        />
-                        </div>
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="w-full"
-                          style="width: 170px"
-                          v-model="item.department_name"
-                          disabled
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="w-full"
-                          style="width: 170px"
-                          v-model="item.work_position_name"
-                          disabled
-                        />
-                      </td>
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="w-full"
-                          style="width: 170px"
-                          v-model="item.position_name"
-                          disabled
-                        />
-                      </td>
-
-                      <td class="row-content-pdx" align="center">
-                        <InputText
-                          spellcheck="false"
-                          class="ip33"
-                          style="width: 170px"
-                          v-model="item.note"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </AccordionTab>
-            <AccordionTab>
-              <template #header>
-                <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                <span>Đính kèm khác (file số hóa liên quan)</span>
-              </template>
-              <!-- <div class="field col-12 md:col-12 flex">
-                <label class="text-left col-2">Tải file lên </label>
-                <div class="col-10 p-0">
-                  <FileUpload
-                    chooseLabel="Chọn File"
-                    :showUploadButton="false"
-                    :showCancelButton="false"
-                    :multiple="false"
-                    accept=""
-                    :maxFileSize="500000000"
-                    @select="onUploadFile"
-                    @remove="removeFile"
-                  />
-                </div>
-              </div> -->
-            </AccordionTab>
-          </Accordion>
+          
         </div>
       </div>
     </form>

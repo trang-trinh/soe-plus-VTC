@@ -2229,9 +2229,9 @@ const endProgress = () => {
 const hideall = () => {
   isShow.value = false;
   emitter.emit("SideBar", false);
-  router.push({ name: "taskmain", params: {} }).then(() => {
-    router.go(0);
-  });
+  // router.push({ name: "taskmain", params: {} }).then(() => {
+  //   router.go(0);
+  // });
 };
 const PositionSideBar = ref("right");
 const MaxMin = (m) => {
@@ -3262,9 +3262,9 @@ const router = inject("router");
 const closeSildeBar = () => {
   isShow.value = false;
   emitter.emit("SideBar", false);
-  router.push({ name: "taskmain", params: {} }).then(() => {
-    router.go(0);
-  });
+  // router.push({ name: "taskmain", params: {} }).then(() => {
+  //   router.go(0);
+  // });
 };
 </script>
 <template>
@@ -6674,7 +6674,7 @@ const closeSildeBar = () => {
     v-model:visible="displayTask"
     :closable="true"
     :maximizable="true"
-    :style="{ width: '670px' }"
+    :style="{ width: '670px', 'z-index': '10000' }"
   >
     <form>
       <div class="grid formgrid m-2">
@@ -6686,7 +6686,7 @@ const closeSildeBar = () => {
             v-model="Task.task_name"
             spellcheck="false"
             class="col-9 ip36 px-2"
-            :class="{ 'p-invalid': v3$.task_name.$invalid && submitted }"
+            :class="{ 'p-invalid': v3$.task_name.$invalid && sbm }"
           />
         </div>
         <div
@@ -6696,7 +6696,7 @@ const closeSildeBar = () => {
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v3$.task_name.$invalid && submitted) ||
+              (v3$.task_name.$invalid && sbm) ||
               v3$.task_name.$pending.$response
             "
             class="col-9 p-error p-0"
@@ -6832,7 +6832,7 @@ const closeSildeBar = () => {
             class="col-9 ip36 p-0"
             placeholder="Người thực hiện"
             :class="{
-              'p-invalid': Task.work_user_ids.length == 0 && submitted,
+              'p-invalid': Task.work_user_ids.length == 0 && sbm,
             }"
             display="chip"
           >
@@ -6881,13 +6881,13 @@ const closeSildeBar = () => {
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v3$.work_user_ids.$invalid && submitted) ||
+              (v3$.work_user_ids.$invalid && sbm) ||
               v3$.work_user_ids.$pending.$response
             "
             class="col-9 p-error p-0"
           >
             <span class="col-12 p-0">{{
-              v$.work_user_ids.required.$message
+              v3$.work_user_ids.required.$message
                 .replace("Value", "Người thực hiện")
                 .replace("is required", "không được để trống")
             }}</span>
@@ -7082,8 +7082,7 @@ const closeSildeBar = () => {
                 autocomplete="on"
                 v-model="Task.end_date"
                 :class="{
-                  'p-invalid':
-                    v3$.end_date.$invalid && submitted && Task.is_deadline,
+                  'p-invalid': v3$.end_date.$invalid && sbm && Task.is_deadline,
                 }"
                 @date-select="CheckDate($event)"
               />
@@ -7097,7 +7096,7 @@ const closeSildeBar = () => {
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v3$.end_date.$invalid && submitted && Task.is_deadline) ||
+              (v3$.end_date.$invalid && sbm && Task.is_deadline) ||
               (v3$.end_date.$pending.$response && Task.is_deadline)
             "
             class="col-9 p-error p-0"
@@ -7891,7 +7890,7 @@ const closeSildeBar = () => {
   <Dialog
     header="Tải lên tệp tài liệu"
     v-model:visible="openFileDialog"
-    :style="{ width: '40vw' }"
+    :style="{ width: '40vw', 'z-index': '10000' }"
     :closable="true"
   >
     <form>

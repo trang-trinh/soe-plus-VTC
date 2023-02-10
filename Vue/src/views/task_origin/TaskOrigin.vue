@@ -892,7 +892,7 @@ const groupBy = (list, props) => {
 };
 
 const loadData = (rf, type) => {
-  if (type == 3 || type == 2) {
+  if (type == 3 || type == 2 || type == 4 || type == 5) {
     opition.value.PageSize = 10000;
   } else {
     opition.value.PageSize = 20;
@@ -966,7 +966,7 @@ const loadData = (rf, type) => {
               : "";
           //thời gian xử lý
           if (element.end_date != null) {
-            if (element.thoigianquahan < 0) {
+            if (element.thoigianquahan <= 0) {
               if (element.thoigianxuly > 0) {
                 element.title_time = element.thoigianxuly + " ngày";
                 element.totalDay = element.thoigianxuly;
@@ -1010,6 +1010,7 @@ const loadData = (rf, type) => {
       opition.value.total_theodoi = data[4][0].total_theodoi;
       opition.value.total_toitao = data[5][0].total_toitao;
       opition.value.total_hoanthanh = data[6][0].total_hoanthanh;
+      opition.value.type_view = type;
       if (type == 1) {
         listTask.value = data1;
         sttTask.value = data[1][0].total + 1;
@@ -1040,13 +1041,14 @@ const loadData = (rf, type) => {
       }
       if (type == 4 || type == 5) {
         listTask.value = data1;
-        let date = new Date();
-        var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-        var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        let date1 = new Date((opition.value.sdate) ? opition.value.sdate : new Date());
+        let date2 = new Date((opition.value.edate) ? opition.value.edate : new Date());
+        // var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+        // var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        var firstDay = new Date(date1.getFullYear(), date1.getMonth(), 1);
+        var lastDay = new Date(date2.getFullYear(), date2.getMonth() + 1, 0);
         getDates(firstDay, lastDay);
-
       }
-      opition.value.type_view = type;
       if (idTaskLoaded.value != "taskmain") {
         showDetail.value = false;
         showDetail.value = true;
@@ -1075,6 +1077,8 @@ const loadData = (rf, type) => {
       }
     });
 };
+
+const listThanhVien = ref();
 
 const listUser = () => {
   axios
@@ -1113,7 +1117,13 @@ const listUser = () => {
         name: x.full_name,
         code: x.user_id,
         avatar: x.avatar,
+        ten: x.last_name,
       }));
+      if (listDropdownUser.value.length > 10) {
+        listThanhVien.value = listDropdownUser.value.slice(0, 10);
+      } else {
+        listThanhVien.value = [...listDropdownUser.value];
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -1470,10 +1480,10 @@ function getDaysInMonth(year, month) {
   return new Date(year, month, 0).getDate();
 }
 
-const getDates = (startDate, stopDate) => {
+const getDates = (startDate, endDate) => {
   var dateArray = [];
   var currentDate = moment(startDate);
-  var stopDate = moment(stopDate);
+  var stopDate = moment(endDate);
   while (currentDate <= stopDate && currentDate) {
     var d = moment.utc(currentDate).toDate();
     var date = new Date();
@@ -1484,19 +1494,17 @@ const getDates = (startDate, stopDate) => {
       bg: (WeekDay.value.filter(x => x.value == d.toLocaleString("default", { weekday: "long" }))[0].bg),
       color: ((parseInt(moment(currentDate).format('DD')) == parseInt(moment(new Date()).format('DD')))) ? '#ff0000' : '',
       totalDayCurrent: getDaysInMonth(currentYear, currentMonth),
-      currentDate: currentDate
+      currentDate: currentDate,
+      Month: d.getMonth(), Year: d.getFullYear()
     })
-    // ((parseInt(moment(currentDate).format('DD')) == parseInt(moment(new Date()).format('DD')))) ? '#bde0ff' : 
     currentDate = moment(currentDate).add(1, 'days');
   }
   listTask.value.forEach(function (d) {
     var dates = [];// JSON.parse(JSON.stringify(dat));
     var bd = new Date(d.start_date);
-    var datenow = new Date();
     bd.setHours(0, 0, 0, 0);
     dateArray.forEach(function (t, i) {
-      var dem = 0;
-      var to = { DW: t.DW , Day: t.Day, totalDay: 0};
+      var to = { DW: t.DW, Day: t.Day, totalDay: 0 };
       var k = new Date(t.currentDate);
       if (new Date(t.currentDate) >= bd && new Date(t.currentDate) <= new Date(d.finish_date != null ? d.finish_date : new Date())) {
         to.IsCheck = true;
@@ -1504,23 +1512,63 @@ const getDates = (startDate, stopDate) => {
         to.totalDay = to.totalDay + 1;
         if (i > 0 && dates[i - 1].IsCheck) {
           to.IsHide = true;
-        }else{
+        } else {
           to.IsHide = false;
         }
-      }else{
+      } else {
         to.IsHide = false;
       }
       to.color = t.color;
       to.bg = t.bg;
       dates.push(to);
     });
-    d.totalDay = dates.filter(x=>x.IsCheck == true).length;
-    d.dateArray = dates.filter(x=>x.IsHide == false);
+    d.totalDay = dates.filter(x => x.IsCheck == true).length;
+    d.dateArray = dates.filter(x => x.IsHide == false);
   });
+  if (opition.value.type_view == 5) {
+    var listData = [];
+    listTask.value.forEach(function (cv) {
+      cv.Thanhviens.forEach(function (u) {
+        if (listData.filter(x => x.user_id == u.user_id && x.task_id == cv.task_id).length == 0) {
+          listData.push({
+            user_id: u.user_id, task_id: cv.task_id, user_name: u.fullName, dateArray: cv.dateArray, totalDay: cv.totalDay,
+            time_bg: cv.status_bg_color, status_text_color: cv.status_text_color, avatar: u.avatar, last_name: u.ten, tenToChuc: u.tenToChuc, tenChucVu: u.tenChucVu, 
+            is_type: parseInt(u.is_type)
+          });
+        }
+      })
+    })
+    let listCV = groupBy(listData, 'user_id');
+    var arrNew = [];
+    for (let k in listCV) {
+      listCV[k].forEach(function (r, i) {
+        r.IsHienThi = (i == 0) ? true : false;
+        r.count_cv = listCV[k].length;
+        // r.isQL = (listCV[k].filter(x => x.is_type == 0).length > 0) ? true
+        r.count_istype_0 = listCV[k].filter(x => x.is_type == 0).length;
+        r.count_istype_1 = listCV[k].filter(x => x.is_type == 1 || x.is_type == 2).length;
+        r.count_istype_3 = listCV[k].filter(x => x.is_type == 3).length;
+        arrNew.push(r);
+      });
+    }
+    listTask.value = arrNew;
+  }
   GrandsDate.value = dateArray;
+
+  var years = [];
+  for (var i = (new Date(startDate)).getFullYear(); i <= (new Date(endDate)).getFullYear(); i++) {
+    for (var j = 0; j < 12; j++) {
+      var Month = { Month: j + 1, Year: i, Dates: [] };
+      Month.Dates = dateArray.filter(x => x.Month === j && x.Year === i);
+      if (Month.Dates.length > 0)
+        years.push(Month);
+    }
+  }
+  Grands.value = years;
 }
 
 const GrandsDate = ref();
+const Grands = ref();
 const WeekDay = ref([
   { value: 'Monday', text: 'T2', bg: '' },
   { value: 'Tuesday', text: 'T3', bg: '' },
@@ -1713,7 +1761,7 @@ const choiceTreeUser = () => {
               <a><i class="pi pi-refresh"></i> Refresh</a>
             </li>
           </ul>
-          <OverlayPanel ref="menuFilterButs" id="task_filter">
+          <OverlayPanel ref="menuFilterButs" id="task_filter" style="z-index: 10;">
             <ul v-for="(item, index) in itemFilterButs" :key="index" style="padding: 0px; margin: 0px">
               <li :class="{ parent: !item.children_id }" class="p-menuitem" v-if="!item.groups">
                 <a @click="ChangeFilter(item.istype)" :class="{ active: item.active }"><i style="padding-right: 5px"
@@ -2578,12 +2626,14 @@ const choiceTreeUser = () => {
     <!-- end -->
     <!-- kiểu GANTT -->
     <div id="task-gantt" v-if="opition.type_view == 4" style="
-        height: 89%;
+        max-height: calc(100vh - 500px);
+        min-height: calc(100vh - 150px);
         display: -webkit-box;
         overflow-x: auto;
         overflow-y: hidden;
       " class="grid formgrid m-2">
-      <div class="field col-12 md:col-12" style="display: flex;padding: 0px;height: 100%;">
+      <div class="field col-12 md:col-12" style="display: flex;padding: 0px;max-height: calc(100vh - 500px);
+        min-height: calc(100vh - 150px);">
         <div class="col-12 scrollbox_delayed" style="height: 100%;padding: 0px;overflow: auto;">
           <table class="table table-border"
             style="width: max-content;table-layout: fixed;min-width: 100%;border-collapse: collapse;overflow-x: scroll;">
@@ -2595,7 +2645,11 @@ const choiceTreeUser = () => {
                 <th class="fixcol left-350 p-3" rowspan="3" style="width: 100px;border: 1px solid #e9e9e9;">Bắt đầu</th>
                 <th class="fixcol left-450 p-3" rowspan="3" style="width: 100px;border: 1px solid #e9e9e9;">Kết thúc
                 </th>
-                <th class="p-3" style="border: 1px solid #e9e9e9;" :colspan="GrandsDate.length">Tháng 2</th>
+                <th v-for="m in Grands" class="p-3" align="center" :width="m.Dates.length * 40"
+                  :colspan="m.Dates.length" style="text-align:center;min-width:100px;color:#2196f3">
+                  Tháng {{ m.Month }}/{{ m.Year }}
+                </th>
+                <!-- <th class="p-3" style="border: 1px solid #e9e9e9;" :colspan="GrandsDate.length">Tháng 2</th> -->
               </tr>
               <tr>
                 <th class="no-fixcol p-3" width="40" style="border: 1px solid #e9e9e9;"
@@ -2604,34 +2658,33 @@ const choiceTreeUser = () => {
                   {{ g.DayName }}</th>
               </tr>
               <tr>
-                <th class="no-fixcol p-3" style="border: 1px solid #e9e9e9;"
+                <th class="no-fixcol p-3" width="40" style="border: 1px solid #e9e9e9;"
                   :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
                   v-for="g in GrandsDate">{{ g.DayN }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="l in listTask">
+              <tr v-for="l in listTask" @click="onRowSelect(l)">
                 <td class="fixcol left-0 p-3" style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">{{
                   l.task_name
                 }}</td>
-                <td class="fixcol left-200 p-3"
-                  style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">
+                <td class="fixcol left-200 p-3" style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">
                   <div style="display: flex; justify-content: center;">
                     <AvatarGroup>
-                    <div v-for="(value, index) in l.ThanhvienShows" :key="index">
-                      <div>
-                        <Avatar v-tooltip.bottom="{
-                          value:
-                            value.type_name +
-                            ': ' +
-                            value.fullName +
-                            '<br/>' +
-                            (value.tenChucVu || '') +
-                            '<br/>' +
-                            (value.tenToChuc || ''),
-                          escape: true,
-                        }" v-bind:label="
+                      <div v-for="(value, index) in l.ThanhvienShows" :key="index">
+                        <div>
+                          <Avatar v-tooltip.bottom="{
+                            value:
+                              value.type_name +
+                              ': ' +
+                              value.fullName +
+                              '<br/>' +
+                              (value.tenChucVu || '') +
+                              '<br/>' +
+                              (value.tenToChuc || ''),
+                            escape: true,
+                          }" v-bind:label="
   value.avatar ? '' : (value.ten ?? '').substring(0, 1)
 " v-bind:image="basedomainURL + value.avatar" style="
                     background-color: #2196f3;
@@ -2643,12 +2696,12 @@ const choiceTreeUser = () => {
                   " :style="{
                     background: bgColor[index % 7] + '!important',
                   }" class="cursor-pointer" size="xlarge" shape="circle" />
+                        </div>
                       </div>
-                    </div>
-                    <Avatar v-if="
-                      l.Thanhviens.length - l.ThanhvienShows.length >
-                      0
-                    " :label="
+                      <Avatar v-if="
+                        l.Thanhviens.length - l.ThanhvienShows.length >
+                        0
+                      " :label="
   '+' +
   (l.Thanhviens.length -
     l.ThanhvienShows.length) +
@@ -2661,7 +2714,7 @@ const choiceTreeUser = () => {
                 margin-left: -10px;
                 height: 32px;
               " />
-                  </AvatarGroup>
+                    </AvatarGroup>
                   </div>
                 </td>
                 <td class="fixcol left-350 p-3" style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">{{
@@ -2670,10 +2723,13 @@ const choiceTreeUser = () => {
                 <td class="fixcol left-450 p-3" style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">{{
                   l.end_date ? moment(new Date(l.end_date)).format("DD/MM/YYYY") : ''
                 }}</td>
-                <td style="background-color: #fff;border: 1px solid #e9e9e9;" width="40" :colspan="g.IsCheck?l.totalDay:1"
-                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
+                <td class="no-fixcol-hover" style="background-color: #fff;border: 1px solid #e9e9e9;" width="40"
+                  :colspan="g.IsCheck ? l.totalDay : 1"
+                  :style="g.Name ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
                   v-for="g in l.dateArray">
-                  <div v-if="g.Name" class="divbg" :style="'background-color:' + l.time_bg +'!important;color:' +l.status_text_color">{{g.Name}}</div>
+                  <div v-if="g.Name" class="divbg"
+                    :style="'background-color:' + l.status_bg_color + '!important;color:' + l.status_text_color">{{ g.Name }}
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -2683,40 +2739,175 @@ const choiceTreeUser = () => {
     </div>
     <!-- end -->
     <!-- kiểu User -->
-    <div id="task-gantt" v-if="opition.type_view == 5" 
-    style="
-        height: 89%;
+    <div id="task-gantt" v-if="opition.type_view == 5" style="
+        /* height: 89%; */
+        max-height: calc(100vh - 500px);
+        min-height: calc(100vh - 150px);
         display: -webkit-box;
         overflow-x: auto;
         overflow-y: hidden;
       " class="grid formgrid m-2">
-      <div class="field col-12 md:col-12" style="display: flex;padding: 0px;">
+      <div class="field col-12 md:col-12" style="display: flex;padding: 0px;max-height: calc(100vh - 500px); min-height: calc(100vh - 150px);">
         <div class="col-12 scrollbox_delayed" style="height: 100%;padding: 0px;overflow: auto;">
           <table class="table table-border"
-            style="width: max-content;table-layout: fixed;min-width: 100%;border-collapse: collapse;">
-            <thead style="background-color: #f8f9fa;">
+            style="width: max-content;table-layout: fixed;min-width: 100%;border-collapse: collapse;overflow-x: scroll;">
+            <thead style="background-color: #f8f9fa;position: sticky;top: 0px;z-index: 5;">
               <tr>
-                <th class="fixcol left-0 p-3" rowspan="3" style="width: 200px;border: 1px solid #e9e9e9;">Công việc</th>
-                <th class="fixcol left-200 p-3" rowspan="3" style="width: 150px;border: 1px solid #e9e9e9;">Thực hiện
+                <th class="fixcol left-0 p-3" rowspan="3" style="width: 200px;border: 1px solid #e9e9e9;">
+                  <div style="display: flex; justify-content: center;flex-direction: column;align-items: center;">
+                    <span style="margin-bottom: 5px;">
+                      Thành viên {{ '(' + listDropdownUser.length + ')' }}
+                    </span>
+                    <span>
+                      <AvatarGroup>
+                        <div v-for="(value, index) in listThanhVien" :key="index">
+                          <div>
+                            <Avatar v-bind:label="
+                              value.avatar ? '' : (value.ten ?? '').substring(0, 1)
+                            " v-bind:image="basedomainURL + value.avatar" style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  " :style="{
+                    background: bgColor[index % 7] + '!important',
+                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                          </div>
+                        </div>
+                        <Avatar v-if="
+                          listDropdownUser.length - listThanhVien.length >
+                          0
+                        " :label="
+  '+' +
+  (listDropdownUser.length -
+    listThanhVien.length) +
+  ''
+" class="cursor-pointer" shape="circle" style="
+                background-color: #e9e9e9 !important;
+                color: #98a9bc;
+                font-size: 14px !important;
+                width: 32px;
+                margin-left: -10px;
+                height: 32px;
+              " />
+                      </AvatarGroup>
+                    </span>
+                  </div>
                 </th>
-                <th class="fixcol left-350 p-3" rowspan="3" style="width: 100px;border: 1px solid #e9e9e9;">Bắt đầu</th>
-                <th class="fixcol left-450 p-3" rowspan="3" style="width: 100px;border: 1px solid #e9e9e9;">Kết thúc
+                <th v-for="m in Grands" class="p-3" align="center" :width="m.Dates.length * 40"
+                  :colspan="m.Dates.length" style="text-align:center;min-width:100px;color:#2196f3">
+                  Tháng {{ m.Month }}/{{ m.Year }}
                 </th>
-                <th class="p-3" style="border: 1px solid #e9e9e9;" :colspan="GrandsDate.length">Tháng 2</th>
               </tr>
               <tr>
-                <th class="no-fixcol p-3" style="border: 1px solid #e9e9e9;"
-                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg" v-for="g in GrandsDate">
+                <th class="no-fixcol p-3" width="40" style="border: 1px solid #e9e9e9;"
+                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
+                  v-for="g in GrandsDate">
                   {{ g.DayName }}</th>
               </tr>
               <tr>
-                <th class="no-fixcol p-3" style="border: 1px solid #e9e9e9;"
-                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg" v-for="g in GrandsDate">
-                  {{ g.DayN }}</th>
+                <th class="no-fixcol p-3" width="40" style="border: 1px solid #e9e9e9;"
+                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
+                  v-for="g in GrandsDate">{{ g.DayN }}
+                </th>
               </tr>
             </thead>
             <tbody>
-
+              <tr v-for="(l, index) in listTask">
+                <td class="fixcol left-0 p-3" style="height: 40px;border: 1px solid #dedede;background-color: #f8f9fa;"
+                  v-if="l.IsHienThi" :rowspan="l.count_cv">
+                  <div style="display: flex;align-items: center;padding: 10px;">
+                    <span>
+                      <Avatar v-tooltip.bottom="{
+                        value:
+                          l.user_name +
+                          '<br/>' +
+                          (l.tenChucVu || '') +
+                          '<br/>' +
+                          (l.tenToChuc || ''),
+                        escape: true,
+                      }" v-bind:label="
+  l.avatar
+    ? ''
+    : (l.last_name ?? '').substring(0, 1)
+" v-bind:image="basedomainURL + l.avatar" style="
+              background-color: #2196f3;
+              color: #ffffff;
+              width: 3.5rem;
+              height: 3.5rem;
+              font-size: 15px !important;
+            " :style="{
+              background: bgColor[(index % 7) + 1] + '!important',
+            }" class="cursor-pointer" size="xlarge" shape="circle" />
+                    </span>
+                    <span style="margin-left: 10px;">
+                      <div style="display: flex;flex-direction: column;line-height: 20px;">
+                        <b style="font-size: 13px;">{{ l.user_name }}</b>
+                        <div style="font-weight: 600;color: #72777a;font-size: 12px;">{{ l.tenChucVu }}</div>
+                        <div style="font-weight: 500;font-size: 11px;">{{ l.tenToChuc }}</div>
+                        <div style="display: flex;">
+                          <span v-if="l.count_istype_0 > 0" style="
+                  background-color: #337ab7;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 10px;
+                ">Quản lý {{ l.count_istype_0 }}</span>
+                          <span v-if="l.count_istype_1 > 0" style="
+                  background-color: #5cb85c;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 5px;
+                ">Thực hiện {{ l.count_istype_1 }}</span>
+                          <span v-if="l.count_istype_3 > 0" style="
+                  background-color: #5bc0de;
+                  color: #ffffff;
+                  display: inline;
+                  padding: 0.4em 0.6em;
+                  font-size: 75%;
+                  font-weight: 700;
+                  line-height: 1;
+                  color: #fff;
+                  text-align: center;
+                  white-space: nowrap;
+                  vertical-align: baseline;
+                  border-radius: 0.25em;
+                  margin-left: 5px;
+                ">Theo dõi {{ l.count_istype_3 }}</span>
+                        </div>
+                      </div>
+                    </span>
+                  </div>
+                </td>
+                <td @click="onRowSelect(l)" rowspan="1" class="no-fixcol-hover"
+                  style="background-color: #fff;border: 1px solid #e9e9e9;height: 40px;" width="40"
+                  :colspan="g.IsCheck ? l.totalDay : 1"
+                  :style="g.Name ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
+                  v-for="g in l.dateArray">
+                  <div v-if="g.Name" class="divbg"
+                    :style="'background-color:' + l.time_bg + '!important;color:' + l.status_text_color">{{ g.Name }}
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -2727,8 +2918,8 @@ const choiceTreeUser = () => {
       :turn="0">
     </DetailedWork>
   </div>
-  <Dialog :header="headerAddTask" v-model:visible="displayTask" :closable="true" :maximizable="true"
-    :style="{ width: '700px' }">
+  <Dialog :header="headerAddTask" style="z-index: 10;" v-model:visible="displayTask" :closable="true"
+    :maximizable="true" :style="{ width: '700px' }">
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
@@ -2865,7 +3056,8 @@ const choiceTreeUser = () => {
                   slotProps.option.avatar
                     ? ''
                     : (slotProps.option.name ?? '').substring(0, 1)
-                " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                " v-bind:image="basedomainURL + slotProps.option.avatar" 
+                style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
@@ -3415,6 +3607,15 @@ const choiceTreeUser = () => {
   line-height: 1rem !important;
 }
 
+#task-gantt .table tbody tr:hover {
+  cursor: pointer;
+  /* background-color: #E5F3FF !important; */
+}
+
+#task-gantt .table tbody tr:hover td.no-fixcol-hover {
+  background-color: #E5F3FF !important;
+}
+
 #task-gantt .table thead tr .fixcol {
   z-index: 5;
   color: #000;
@@ -3433,7 +3634,7 @@ const choiceTreeUser = () => {
 
 #task-gantt .table tbody tr .fixcol {
   position: sticky;
-  z-index: 2;
+  z-index: 0;
   color: #000;
   font-weight: 400;
   /* background: #f5f5f5; */
@@ -3514,5 +3715,6 @@ const choiceTreeUser = () => {
   white-space: normal;
   position: relative;
   margin: 5px;
+  position: inherit;
 }
 </style>

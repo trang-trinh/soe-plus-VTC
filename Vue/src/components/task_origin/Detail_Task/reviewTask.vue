@@ -691,8 +691,7 @@ onMounted(() => {
                     margin-left: 4rem !important;
                   "
                   :style="{
-                    'flex-wrap':
-                      PositionSideBar == 'right' ? 'wrap' : 'wrap-reverse',
+                    'flex-wrap': 'wrap',
                   }"
                 >
                   <div
@@ -1082,7 +1081,7 @@ onMounted(() => {
                     </div>
                   </div>
                   <div
-                    class=""
+                    class="h-8rem"
                     v-else
                   >
                     <img

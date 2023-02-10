@@ -576,11 +576,7 @@ onMounted(() => {
                           "
                           v-tooltip.right="{
                             value:
-                              item.name_approved +
-                              '<br/>' +
-                              item.department_name +
-                              '<br/>' +
-                              item.position_name,
+                              item.name_approved ,
                             class: 'custom-error-tl',
                           }"
                         />

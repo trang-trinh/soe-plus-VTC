@@ -32,8 +32,91 @@ const closeDialogLog = () => {
 };
 const showSidebar = ref(false);
 const closeSideBar = () => {
-  showSidebar.value = false;
-  emitter.emit("sidebar_tivilog", false);
+	showSidebar.value = false;
+	//emitter.emit("sidebar_tivilog", false);
+	emitter.emit("emitDataLog", {
+		type: "sidebar_tivilog",
+		data: false
+	});
+};
+const isDelLog = ref(false);
+const deleteContentLog = (dataLog, isDelMulti) => {
+	if (isDelLog.value) {
+		return;
+	}
+	swal
+		.fire({
+			title: "Thông báo",
+			text: "Bạn có muốn xoá " + (isDelMulti == true ? "tất cả " : "") + "log không?",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonColor: "#3085d6",
+			cancelButtonColor: "#d33",
+			confirmButtonText: "Có",
+			cancelButtonText: "Không",
+		})
+		.then((result) => {
+		if (result.isConfirmed) {
+			var dataDel = [];
+			if (isDelMulti) {
+				props.listLog.forEach((e) => {
+					if (e.log_id != null) {
+						dataDel.push(e.log_id);
+					}
+				});
+			}
+			else {
+				if (dataLog != null) {
+					dataDel.push(dataLog.log_id);
+				}
+			}
+			isDelLog.value = true;
+			swal.fire({
+				width: 110,
+				didOpen: () => {
+					swal.showLoading();
+				},
+			});
+
+			axios
+				.delete(baseUrlCheck + "/api/Tivi/Delete_Log_Tivi", {
+					headers: { Authorization: `Bearer ${store.getters.token}` },
+					data: dataDel,
+			})
+			.then((response) => {
+				swal.close();
+				isDelLog.value = false;
+				if (response.data.err != "1") {
+					toast.success("Xoá log thành công!");
+					if (isDelMulti) {
+						closeSideBar();
+					} else {
+						emitter.emit("emitDataLog", {
+							type: "reload_list_log",
+							data:  null
+						});
+					}					
+				} else {
+					swal.fire({
+						title: "Thông báo",
+						text: "Xảy ra lỗi khi xóa log",
+						icon: "error",
+						confirmButtonText: "OK",
+					});
+				}
+			})
+			.catch((error) => {
+				swal.close();
+				isDelLog.value = false;
+				if (error.status === 401) {
+					swal.fire({						
+						text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",						
+						confirmButtonText: "OK",
+					});
+				}
+			});
+		}
+		});
 };
 onMounted(() => {
 	showSidebar.value = props.isShow;
@@ -42,7 +125,7 @@ onMounted(() => {
 <template>
 	<Sidebar
 		v-model:visible="showSidebar"
-		:baseZIndex="10000"
+		:baseZIndex="100"
 		:autoZIndex="true"
 		position="right"
     	:showCloseIcon="false"
@@ -54,12 +137,19 @@ onMounted(() => {
 					icon="pi pi-times"
 					class="p-button-rounded p-button-info p-button-outlined"
 					type="button"
-					v-tooltip="{ value: 'Đóng' }"
+					v-tooltip.bottom="'Đóng'"
 					@click="closeSideBar()"
 				/>
 			</div>
-			<div class="px-0 py-2 m-0 ml-2 flex">
+			<div class="w-full px-0 py-2 m-0 ml-2 flex" style="align-items: center;justify-content: space-between;">
 				<span class="font-bold" style="font-size: 1.2rem;">Danh sách Log</span>
+				<Button
+					@click="deleteContentLog(null, true)"
+					class="p-button-danger m-0"
+					type="button"
+					icon="pi pi-trash"
+					label="Xóa log"
+				/>
 			</div>
 		</div>
 		<div>
@@ -87,7 +177,7 @@ onMounted(() => {
 									v-if="slotProps.data.avatar"
 									style="border:1px solid #ccc;width:2.5rem;height:2.5rem;"
 								/>
-								<Avatar v-else
+								<Avatar v-if="slotProps.data.avatar == null && slotProps.data.last_name != null"
 									class="avt-replace"
 									size="large"
 									shape="circle"
@@ -121,11 +211,21 @@ onMounted(() => {
 								class="p-button-rounded p-button-secondary p-button-outlined mx-1"
 								type="button"
 								icon="pi pi-eye"
-								v-tooltip="'Chi tiết'"
+								v-tooltip.top="'Chi tiết'"
+							></Button>
+							<Button
+								@click="deleteContentLog(slotProps.data)"
+								class="p-button-rounded p-button-danger p-button-outlined mx-1"
+								type="button"
+								icon="pi pi-trash"
+								v-tooltip.top="'Xóa'"
 							></Button>
 						</div>
 					</template>
 				</Column>
+				<template #empty>
+					<div class="text-center font-bold">Không có dữ liệu</div>
+				</template>
 			</DataTable>
 		</div>
 	</Sidebar>
@@ -166,6 +266,9 @@ onMounted(() => {
 			border-top: 1px solid #ccc;
 			border-left: 1px solid #ccc;
 		} 
+		.p-datatable-emptymessage {
+			border-right: 1px solid #ccc;
+		}
 	}
 	::v-deep(.btn-close-log) {
 		.p-button {

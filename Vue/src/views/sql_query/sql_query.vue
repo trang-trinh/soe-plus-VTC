@@ -71,27 +71,16 @@ const updateZip = () => {
 						var tblTemp = JSON.parse(element);
 						var listHeads = [];
 						var listDataTable = [];	
-						const OBJECT_PROTOTYPE_KEYS = Object.getOwnPropertyNames(Object.prototype);
 						if (tblTemp.length > 0) {					
 							for (var prop of Object.keys(tblTemp[0])) {
 								listHeads.push(prop);
 							}	
 							// tblTemp.forEach((elm) => {
-							// 	// listHeads.forEach((head) => {									
-							// 	// 	if (moment(elm[head], moment.ISO_8601, true).isValid()) {
-							// 	// 		elm[head] = moment(new Date(elm[head])).format("YYYY/MM/DD HH:mm:ss").toString();
-							// 	// 	}
-							// 	// });
-							// 	for (let key in elm) {
-							// 		if (OBJECT_PROTOTYPE_KEYS.includes(key)) {
-							// 			continue;
+							// 	listHeads.forEach((head) => {									
+							// 		if (moment(elm[head], moment.ISO_8601, true).isValid()) {
+							// 			elm[head] = moment(new Date(elm[head])).format("YYYY/MM/DD HH:mm:ss").toString();
 							// 		}
-							// 		if (key in elm) {
-							// 			if (moment(elm[key], moment.ISO_8601, true).isValid()) {
-							// 				elm[key] = moment(new Date(elm[key])).format("YYYY/MM/DD HH:mm:ss").toString();
-							// 			}
-							// 		}
-							// 	}
+							// 	});
 							// });
 							listDataTable = tblTemp;
 						}
@@ -232,6 +221,8 @@ const filterTable = () => {
 		border: 1px solid #ccc;
 		/* border-bottom: none; */
 		padding: 0.5rem;
+		font-weight: bold;
+		background-color: #f8f9fa;
 	}
 	.td-query {
 		border: 1px solid #ccc;

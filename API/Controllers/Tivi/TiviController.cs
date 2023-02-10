@@ -2014,7 +2014,7 @@ namespace API.Controllers.Tivi
                         var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
                         tivi_log logtivi = new tivi_log();
                         logtivi.tivi_id = das[0].tivi_id;
-                        logtivi.method = "HttpPost";
+                        logtivi.method = "HttpDelete";
                         logtivi.organization_id = user_now?.organization_id;
                         logtivi.action = "Tivi/Delete_Tivi";
                         logtivi.created_by = uid;
@@ -2046,6 +2046,94 @@ namespace API.Controllers.Tivi
             {
                 string contents = helper.ExceptionMessage(e);
                 helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Tivi/Delete_Tivi", ip, tid, "Lỗi khi xoá tivi", 0, "Tivi");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+
+        }
+
+        [HttpDelete]
+        [System.Web.Mvc.ValidateAntiForgeryToken]
+        public async Task<HttpResponseMessage> Delete_Log_Tivi([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    var das = await db.tivi_log.Where(a => id.Contains(a.log_id)).ToListAsync();
+                    string root = HttpContext.Current.Server.MapPath("~/");
+                    if (das != null)
+                    {
+                        List<tivi_log> del = new List<tivi_log>();
+                        foreach (var da in das)
+                        {
+                            del.Add(da);
+                            #region add cms_logs
+                            if (helper.wlog)
+                            {
+                                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { da.log_id, da.tivi_id, da.organization_id, da.content, da.action, da.method, da.created_by, da.created_date, da.created_ip, da.created_token_id }), domainurl + "Tivi/Delete_Log_Tivi", ip, tid, "Xóa log tivi", 1, "Tivi");
+                            }
+                            #endregion
+                        }
+                        if (del.Count == 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                        }
+                        db.tivi_log.RemoveRange(del);
+
+                        #region log tivi
+                        //var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
+                        //tivi_log logtivi = new tivi_log();
+                        //logtivi.tivi_id = das[0].tivi_id;
+                        //logtivi.method = "HttpDelete";
+                        //logtivi.organization_id = user_now?.organization_id;
+                        //logtivi.action = "Tivi/Delete_Log_Tivi";
+                        //logtivi.created_by = uid;
+                        //logtivi.created_date = DateTime.Now;
+                        //logtivi.created_ip = ip;
+                        //logtivi.created_token_id = tid;
+                        //logtivi.content = JsonConvert.SerializeObject(new { listLogDel = JsonConvert.SerializeObject(das, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                        //db.tivi_log.Add(logtivi);
+                        #endregion
+
+                    }
+                    await db.SaveChangesAsync();
+
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Tivi/Delete_Log_Tivi", ip, tid, "Lỗi khi xoá tivi", 0, "Tivi");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Tivi/Delete_Log_Tivi", ip, tid, "Lỗi khi xoá tivi", 0, "Tivi");
                 if (!helper.debug)
                 {
                     contents = "";

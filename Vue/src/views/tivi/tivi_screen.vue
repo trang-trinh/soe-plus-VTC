@@ -1079,10 +1079,22 @@ const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
-emitter.on("sidebar_tivilog", (obj) => {
-  	showDetail.value = obj;
+emitter.on("emitDataLog", (obj) => {
+	switch (obj.type) {
+		case "sidebar_tivilog":
+			showSideBar.value = obj.data;
+			break;
+		case "reload_list_log":
+			viewLogTivi(tiviViewLog.value);
+			break;
+		default:
+			break;
+	}
+  	
 });
+const tiviViewLog = ref();
 const viewLogTivi = (dataTV) => {
+	tiviViewLog.value = dataTV;
 	axios
 		.post(
 			baseUrlCheck + "api/Tivi/GetDataProc",
@@ -1209,7 +1221,7 @@ onMounted(() => {
 											icon="pi pi-refresh"
 											v-tooltip="'Reload'"
 										/>
-										<Button
+										<Button v-if="store.getters.user.is_admin || store.getters.user.is_super"
 											@click="viewLogTivi(slotProps.data)"
 											class="p-button-rounded p-button-secondary p-button-outlined mx-1 p-0"
 											type="button"
