@@ -204,14 +204,15 @@ watch(selectedUsersAccess, () => {
 // const getDataToTivi = () => {
 //   axios
 //     .post(
-//       //"http://localhost:8080/" 
-// 	  basedomainURL + "/api/Tivi/List_TiviPublic",
+//       "http://localhost:8080/" 
+// 	  //basedomainURL 
+// 	  + "/api/Tivi/List_TiviPublic",
 //       {
 // 		str: encr(JSON.stringify({
-// 					//token: "TiXaxJ1/u6DxEoLsEqP4YzpJ2IcBQmrMQQ0PGkUkr8rLbiug4nhtKkx9yFbPyVg4tnzIf4Or2bMn43/Cyj7CtsqhO5m4nts4siYbSwrxq2vppnidhiHpceuKF+4EuhKbiJ2qEMoAYGG01AWVoUyzEQ==",
-// 					token: "ZeiCsoE1M7hmz1lzmjU7WLIvGOOU/LEIGyxYT2HlWzmW2tNaMpYSn+c/DyXx+QKHDOdiAxwqYqorpcrgvgyDCp7lxt5HpENBD8kzikqjunb5grYabietoS5COYOFPE5iaXIvux4bYGn0C8RXba+pc0B062Ncurnuj8iwRCkXNUHWIXtYxM3yGJh7I+3chpcEfjIEmckJdDRALTGXUhN8h+NqbySHCB4c5T7J3626w4V9cgLBH2/0Gnc4+xxRyN20ttt6qqdR2y2cIkkCw8YxrU8lqZyFj27Z95HWIi4jo7c=",
+// 					token: "TiXaxJ1/u6DxEoLsEqP4YzpJ2IcBQmrMQQ0PGkUkr8rLbiug4nhtKkx9yFbPyVg4tnzIf4Or2bMn43/Cyj7CtsqhO5m4nts4siYbSwrxq2vppnidhiHpceuKF+4EuhKbiJ2qEMoAYGG01AWVoUyzEQ==",
+// 					//token: "ZeiCsoE1M7hmz1lzmjU7WLIvGOOU/LEIGyxYT2HlWzmW2tNaMpYSn+c/DyXx+QKHDOdiAxwqYqorpcrgvgyDCp7lxt5HpENBD8kzikqjunb5grYabietoS5COYOFPE5iaXIvux4bYGn0C8RXba+pc0B062Ncurnuj8iwRCkXNUHWIXtYxM3yGJh7I+3chpcEfjIEmckJdDRALTGXUhN8h+NqbySHCB4c5T7J3626w4V9cgLBH2/0Gnc4+xxRyN20ttt6qqdR2y2cIkkCw8YxrU8lqZyFj27Z95HWIi4jo7c=",
 // 					user_id: 'admin.bhbqp',
-// 					//idtivi: "idtv01",
+// 					idtivi: "F6FCB0CF-A7E0-582D-A696-54E044B99782",
 // 					tiviname: "tivi test 02"
 // 				}), SecretKey, cryoptojs
 // 			).toString()

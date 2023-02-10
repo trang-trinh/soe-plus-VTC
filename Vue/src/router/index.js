@@ -410,7 +410,8 @@ const totalReport = () =>
     import ("../views/tasks/task_report_person/totalReport.vue");
 const TaskDashboard = () =>
     import ("../views/tasks/dashboard/DashboardMain.vue");
-
+const SQLDB_Query = () =>
+    import ("../views/sql_query/sql_query.vue");
 // HRM_ca
 const AcademicLevel = () =>
     import ("../views/hrm/category/caAcademicLevel.vue");
@@ -476,7 +477,7 @@ const caHRMWage = () =>
 
 ///HRM
 const HRM_Training = () =>
-    import ("../views/hrm/hrm_training.vue");
+    import ("../views/hrm/training/hrm_training.vue");
 const router = createRouter({
     history: createWebHistory(
         import.meta.env.BASE_URL),
@@ -1562,6 +1563,12 @@ const router = createRouter({
             path: "/hrm/hrm_profile",
             name: "Hrm_Info",
             component: Hrm_Info,
+        },
+
+        {
+            path: "/sqldb",
+            name: "SQLDB_Query",
+            component: SQLDB_Query,
         },
         {
             path: "/hrm/contract",

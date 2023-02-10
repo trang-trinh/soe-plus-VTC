@@ -949,9 +949,8 @@ const initTudien = () => {
         );
 
         treedonvis.value = obj.arrtreeChils;
-      } else {
-      }
-      tudiens.value = data;
+      }  
+       
     })
     .catch((error) => {});
 };

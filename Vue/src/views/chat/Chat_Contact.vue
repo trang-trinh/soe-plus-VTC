@@ -110,6 +110,9 @@ const loadDataGroupChat = (isGetRealtime) => {
 		if (cookies.get("chatGroupID") != null){
 			reloadDataChat(null, isGetRealtime);
 		}
+		else {
+			detailChat.value = null;
+		}
 		if ((data[1] == null || (data[1] != null && data[1][0] != null && data[1][0].is_notify)) && isGetRealtime) {
 			let audioNoti = new Audio(baseUrlCheck + "/Portals/FileChatSystem/pristine-sound.mp3");
 			audioNoti.play();
@@ -194,7 +197,7 @@ const reloadDataChat = (dataChat, isGetRealtime) => {
 			}
 		})
 		.catch((error) => {
-			console.log(error);
+			//console.log(error);
 			toast.error("Tải dữ liệu không thành công!");
 
 			if (error && error.status === 401) {

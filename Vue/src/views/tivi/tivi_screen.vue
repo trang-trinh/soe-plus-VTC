@@ -6,6 +6,7 @@ import dialogScreen from "../../components/tivi/tivi_screen_detail.vue";
 import dialogDataScreen from "../../components/tivi/tivi_video_list.vue";
 import dialogDataImage from "../../components/tivi/tivi_image_list.vue";
 import dialogDataDBScreen from "../../components/tivi/tivi_screen_list.vue";
+import ShowLogTivi from "../../components/tivi/tivi_list_log.vue";
 import { change_unsigned, getParent, encr, decr, checkURL } from "../../util/function.js";
 
 const cryoptojs = inject("cryptojs");
@@ -14,6 +15,7 @@ const store = inject("store");
 const swal = inject("$swal");
 const socket = inject("socket");
 const router = inject("router");
+const emitter = inject("emitter");
 const toast = useToast();
 const basedomainURL = baseURL;
 const baseUrlCheck = baseURL;
@@ -1071,6 +1073,48 @@ const changeDisplayImages = () => {
 		detailScreen.value.number_docs = 10;
 	}
 };
+const listLogTivi = ref([]);
+const showSideBar = ref(false);
+const componentKey = ref(0);
+const forceRerender = () => {
+  componentKey.value += 1;
+};
+emitter.on("sidebar_tivilog", (obj) => {
+  	showDetail.value = obj;
+});
+const viewLogTivi = (dataTV) => {
+	axios
+		.post(
+			baseUrlCheck + "api/Tivi/GetDataProc",
+			{ 
+				str: encr(JSON.stringify({
+						proc: "tivi_get_log",
+						par: [
+							{ par: "tivi_id", va: dataTV.tivi_id },
+						],
+					}), SecretKey, cryoptojs
+				).toString()
+			},
+			config
+    ).then((response) => {
+		var data = JSON.parse(response.data.data);
+		if (data[0].length > 0) {
+			data[0].forEach((element, idx) => {
+				element.is_order = idx + 1;
+			});
+		}
+		listLogTivi.value = data[0];
+		showSideBar.value = true;
+		forceRerender();
+	})
+    .catch((error) => {
+      swal.fire({
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
 onMounted(() => {
 	if (!checkURL(window.location.pathname, store.getters.listModule)) {
 		//router.back();
@@ -1157,17 +1201,24 @@ onMounted(() => {
 								bodyStyle="text-align:center;max-width:120px;"
 							>
 								<template #body="slotProps">
-									<div>
+									<div class="flex">
 										<Button
 											@click="reloadTivi(slotProps.data)"
-											class="p-button-rounded p-button-info p-button-outlined mx-1 p-0"
+											class="p-button-rounded p-button-info p-button-outlined ml-1 p-0"
 											type="button"
 											icon="pi pi-refresh"
 											v-tooltip="'Reload'"
 										/>
 										<Button
+											@click="viewLogTivi(slotProps.data)"
+											class="p-button-rounded p-button-secondary p-button-outlined mx-1 p-0"
+											type="button"
+											icon="pi pi-clock"
+											v-tooltip="'Xem Log'"
+										/>
+										<Button
 											@click="delSingleTivi(slotProps.data)"
-											class="p-button-rounded p-button-danger p-button-outlined mx-1 p-0"
+											class="p-button-rounded p-button-danger p-button-outlined mr-1 p-0"
 											type="button"
 											icon="pi pi-trash"
 											v-tooltip="'Xóa'"
@@ -1639,6 +1690,13 @@ onMounted(() => {
 		:closeDialog="closeDialogImage"
 		:addDataToScreen="addImageToScreen"
 	/>
+
+	<ShowLogTivi
+      v-if="showSideBar == true"
+      :isShow="showSideBar"
+      :listLog="listLogTivi"
+	  :key="componentKey"
+    />
 </template>
 <style scoped>
 	.class-cog-tivi {
