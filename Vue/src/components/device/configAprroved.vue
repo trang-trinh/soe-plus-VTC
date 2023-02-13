@@ -279,7 +279,8 @@ const loadData = () => {
             }
           });
 
-          if (props.checkApp == 1 && element.classify != 17) {
+          // if (props.checkApp == 1 && element.classify != 17) {
+            if (props.checkApp == 1  ) {
             datalists.value.push({
               name: element.approved_group_name,
               code: element.approved_group_id,
@@ -576,7 +577,7 @@ onMounted(() => {
                           "
                           v-tooltip.right="{
                             value:
-                              item.name_approved ,
+                              item.name_approved  ,
                             class: 'custom-error-tl',
                           }"
                         />
@@ -630,11 +631,7 @@ onMounted(() => {
                           "
                           v-tooltip.right="{
                             value:
-                              item.name_approved +
-                              '<br/>' +
-                              item.department_name +
-                              '<br/>' +
-                              item.position_name,
+                              item.name_approved  ,
                             class: 'custom-error-tl',
                           }"
                         />

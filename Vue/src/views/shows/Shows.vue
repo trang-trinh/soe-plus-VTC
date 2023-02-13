@@ -203,7 +203,15 @@ const loadDataNews = () => {
     .catch((error) => {
       console.log(error);
     });
-};
+};const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
 const onPage = (event) => {
   location.href = "#scrollTop1";
   options.value.pageno = event.page;
@@ -537,16 +545,30 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                     <div class="flex pt-0 grid">
                       <div class="col-12 p-0 flex">
                         <div class="col-2 p-0 format-center">
-                          <Avatar
-                            :image="basedomainURL + slotProps.data.avatar"
-                            class="w-2rem h-2rem"
-                            shape="circle"
-                            @error="
-                                      $event.target.src =
-                                        basedomainURL +
-                                        '/Portals/Image/noimg.jpg'
-                                    "
-                          />
+                         
+                           <Avatar
+                        v-bind:label="
+                          slotProps.data.avatar
+                            ? ''
+                            : slotProps.data.created_name.substring(
+                                slotProps.data.created_name.lastIndexOf(' ') + 1,
+                                slotProps.data.created_name.lastIndexOf(' ') + 2
+                              )
+                        "
+                        :image="basedomainURL + slotProps.data.avatar"
+                        
+                        :style="
+                          slotProps.data.avatar
+                            ? 'background-color: #2196f3'
+                            : 'background:' +
+                              bgColor[slotProps.data.created_name.length % 7]
+                        "
+                        shape="circle"
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "  class="w-2rem h-2rem"
+                      />
                         </div>
                         <div class="col-10 p-0 justify-content-center flex">
                           <div class="col-10 flex align-items-end">

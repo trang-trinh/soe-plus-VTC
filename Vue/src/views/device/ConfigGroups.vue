@@ -723,18 +723,24 @@ const rechildrenSPK = (item, data) => {
 
 const headerDialog = ref();
 const displayBasic = ref(false);
-
+//  { name: "Duyệt cấp hành chính, lãnh đạo", code: "2" },
+//   { name: "Phòng chức năng duyệt", code: "8" },
+//   { name: "Phòng chức năng đánh giá", code: "9" },
+//   { name: "Phòng kỹ thuật duyệt", code: "10" },
+//   { name: "Phòng kỹ thuật đánh giá", code: "11" },
+//   { name: "Báo giá sửa chữa", code: "12" },
+//   { name: "Lãnh đạo duyệt phí sửa chữa", code: "13" },
+//   { name: "Hoàn thành sửa chữa", code: "14" },
+//   { name: "Kế toán duyệt", code: "15" },
+//   { name: "Lãnh đạo duyệt", code: "16" },
+//   { name: "Hoàn thành", code: "17" },
 const listSCard = ref([
  
-  { name: "Phòng chức năng đánh giá", code: "9" },
  
-  { name: "Phòng kỹ thuật đánh giá", code: "11" },
-  { name: "Báo giá sửa chữa", code: "12" },
- 
-  { name: "Hoàn thành sửa chữa", code: "14" },
- 
+ { name: "Nhóm xử lý", code: "11" },
+  { name: "Nhóm duyệt", code: "2" },
   { name: "Hoàn thành", code: "17" },
-   { name: "Khác", code: "1" },
+ 
 ]);
 const listTCard = ref([
   { name: "Duyệt một nhiều", code: 1 },
@@ -1992,6 +1998,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     v-model:visible="displayBasic"
     :maximizable="true"
     :style="{ width: '35vw' }"
+    :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
@@ -2309,7 +2316,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Cập nhật nhóm duyệt phòng ban"
     v-model:visible="displayAssets"
     :maximizable="true"
-    :style="{ width: '50vw' }"
+    :style="{ width: '50vw' }"  :modal="true"
   >
     <div>
       <div class="true flex-grow-1 p-2" id="scrollTop">

@@ -3502,7 +3502,7 @@ onMounted(() => {
                 field="device_user_name"
                 header="Người sử dụng"
                 ><template #body="data">
-                  <div v-if="device_inventory.department_id_fake">
+                  <div  >
                     {{ data.data.device_user_name }}
                   </div>
                 </template>

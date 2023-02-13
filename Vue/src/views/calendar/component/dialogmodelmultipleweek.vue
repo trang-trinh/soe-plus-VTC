@@ -997,13 +997,7 @@ onMounted(() => {
                               ? basedomainURL + item.avatar
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
-                          v-tooltip.top="
-                            item.full_name +
-                            '<br>' +
-                            item.position_name +
-                            '<br>' +
-                            item.department_name
-                          "
+                          v-tooltip.top="item.full_name"
                           :key="item.user_id"
                           style="border: 2px solid orange; color: white"
                           @click="onTaskUserFilter(item)"
@@ -1076,13 +1070,7 @@ onMounted(() => {
                               ? basedomainURL + item.avatar
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
-                          v-tooltip.top="
-                            item.full_name +
-                            '<br>' +
-                            item.position_name +
-                            '<br>' +
-                            item.department_name
-                          "
+                          v-tooltip.top="item.full_name"
                           :key="item.user_id"
                           style="border: 2px solid white; color: white"
                           @click="onTaskUserFilter(item)"
@@ -1322,11 +1310,7 @@ onMounted(() => {
                     "
                   >
                     <div style="height: calc(100vh)">
-                      <img
-                        src="../../../assets/background/nodata.png"
-                        height="144"
-                      />
-                      <h3 class="m-1">Không có dữ liệu</h3>
+                      
                     </div>
                   </div>
                 </template>

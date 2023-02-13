@@ -1140,7 +1140,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   <Dialog
     :maximizable="true"
     :header="headerDialog"
-    v-model:visible="displayBasic"
+    v-model:visible="displayBasic" :modal="true"
     :style="{ width: '40vw' }"
   >
     <form>
@@ -1252,7 +1252,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Tải lên file Excel"
     v-model:visible="Imp"
     :style="{ width: '40vw' }"
-    :closable="true"
+    :closable="true" :modal="true"
   >
     <h3>
       <label>

@@ -62,7 +62,7 @@ emitter.on("emitData", (obj) => {
   }
 });
 const listMSH = ref([
-  { name: "TS_PhieuTaiSan", code: "Thẻ tài sản" },
+  { name: "TS_PhieuTaiSan", code: "Thẻ thiết bị" },
   { name: "TS_PhieuBanGiao", code: "Phiếu cấp phát" },
   { name: "TS_PhieuSuaChua", code: "Phiếu sửa chữa" },
   { name: "TS_PhieuKiemKe", code: "Phiếu kiểm kê" },
@@ -994,7 +994,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         ><template #body="data">
           <div>
             <div v-if="data.data.code_number == 'TS_PhieuTaiSan'">
-              Thẻ tài sản
+              Thẻ thiết bị
             </div>
             <div v-if="data.data.code_number == 'TS_PhieuBanGiao'">
               Phiếu cấp phát
@@ -1251,7 +1251,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Tải lên file Excel"
     v-model:visible="Imp"
     :style="{ width: '40vw' }"
-    :closable="true"
+    :closable="true"   :modal="true"
   >
     <h3>
       <label>

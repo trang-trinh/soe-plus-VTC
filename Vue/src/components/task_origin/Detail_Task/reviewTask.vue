@@ -339,6 +339,10 @@ const sendReport = () => {
     ReportProgress.value.contents != null
       ? ReportProgress.value.contents.replace(/\n/g, "<br/>")
       : "";
+  ReportProgress.value.contents =
+    ReportProgress.value.contents != null
+      ? ReportProgress.value.contents.replaceAll('"', "'")
+      : "";
   ReportProgress.value.task_id = props.id;
   ReportProgress.value.status = 0;
   let formData = new FormData();

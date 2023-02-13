@@ -393,7 +393,7 @@ const configDetailScreen = (dataScreen) => {
 };
 
 const savingConfigScreen = ref(false);
-const saveConfigScreen = () => {
+const saveConfigScreen = (isAutoSaveUpFile) => {
 	if (savingConfigScreen.value == true) {
 		return;
 	}
@@ -439,7 +439,12 @@ const saveConfigScreen = () => {
 			});
 		} else if (response.data.err != "1") {
 			toast.success("Cập nhật thiết lập màn hình thành công!");
-			configDetailScreen();
+			if (isAutoSaveUpFile == true) {
+				uploadFileToSys();
+			}
+			else {				
+				configDetailScreen();
+			}
 		} else {
 			swal.fire({
 				title: "Thông báo",
@@ -814,6 +819,9 @@ const closeDialogUpload = () => {
 	showModalImg.value = false;
 };
 const isuploading = ref(false);
+const autoSaveUpFile = () => {
+	saveConfigScreen(true);
+};
 const uploadFileToSys = () => {
 	if (isuploading.value) {
 		return;
@@ -1060,6 +1068,7 @@ const changeDisplayShows = () => {
 		detailScreen.value.display_calendar_meeting = false;
 		detailScreen.value.display_calendar_working = false;
 		detailScreen.value.display_calendar_duty = false;
+		detailScreen.value.display_screen_image = false;
 		detailScreen.value.number_docs = 10;
 	}
 };
@@ -1070,6 +1079,7 @@ const changeDisplayImages = () => {
 		detailScreen.value.display_calendar_meeting = false;
 		detailScreen.value.display_calendar_working = false;
 		detailScreen.value.display_calendar_duty = false;
+		detailScreen.value.display_screen_shows = false;
 		detailScreen.value.number_docs = 10;
 	}
 };
@@ -1216,14 +1226,14 @@ onMounted(() => {
 									<div class="flex">
 										<Button
 											@click="reloadTivi(slotProps.data)"
-											class="p-button-rounded p-button-info p-button-outlined ml-1 p-0"
+											class="p-button-rounded p-button-info p-button-outlined mx-1 p-0"
 											type="button"
 											icon="pi pi-refresh"
 											v-tooltip="'Reload'"
 										/>
 										<Button v-if="store.getters.user.is_admin || store.getters.user.is_super"
 											@click="viewLogTivi(slotProps.data)"
-											class="p-button-rounded p-button-secondary p-button-outlined mx-1 p-0"
+											class="p-button-rounded p-button-secondary p-button-outlined mr-1 p-0"
 											type="button"
 											icon="pi pi-clock"
 											v-tooltip="'Xem Log'"
@@ -1405,7 +1415,7 @@ onMounted(() => {
 									<div class="w-full" style="border-bottom: 0px solid #ccc;"></div>
 								</div>
 							</div>
-							<div class="col-12 pl-0 pr-3 class-cog-screen" v-if="!detailScreen.display_screen_calendar && !detailScreen.display_screen_docs">
+							<div class="col-12 pl-0 pr-3 class-cog-screen" v-if="!detailScreen.display_screen_calendar && !detailScreen.display_screen_docs && !detailScreen.display_screen_image">
 								<label class="label-cog-screen label-main-screen">Hiển thị tuyên truyền</label>
 								<InputSwitch class="switch-cog-screen" v-model="detailScreen.display_screen_shows" @change="changeDisplayShows()" />
 							</div>
@@ -1498,7 +1508,7 @@ onMounted(() => {
 									<div class="w-full" style="border-bottom: 0px solid #ccc;"></div>
 								</div>
 							</div>
-							<div class="col-12 pl-0 pr-3 class-cog-screen" v-if="!detailScreen.display_screen_calendar && !detailScreen.display_screen_docs">
+							<div class="col-12 pl-0 pr-3 class-cog-screen" v-if="!detailScreen.display_screen_calendar && !detailScreen.display_screen_docs && !detailScreen.display_screen_shows">
 								<label class="label-cog-screen label-main-screen">Hiển thị hình ảnh</label>
 								<InputSwitch class="switch-cog-screen" v-model="detailScreen.display_screen_image" @change="changeDisplayImages()" />
 							</div>
@@ -1690,7 +1700,7 @@ onMounted(() => {
 				@click="closeDialogUpload"
 				class="p-button-text"
 			/>
-			<Button label="Upload" icon="pi pi-check" @click="uploadFileToSys" />
+			<Button label="Upload" icon="pi pi-check" @click="autoSaveUpFile" />
 		</template>
 	</Dialog>
 	<dialogDataImage

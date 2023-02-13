@@ -5,7 +5,7 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
-
+import moment from "moment";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -59,7 +59,11 @@ const listFormTraining = ref([
   { name: "Đăng ký", code: 2 },
   { name: "Cả hai", code: 3 },
 ]);
-
+const listStatus = ref([
+  { name: "Dự kiến tổ chức", code: 1 },
+  { name: "Chưa hoàn thành", code: 2 },
+  { name: "Đã hoàn thành", code: 3 },
+]);
 const listObjTraining = ref([
   { name: "Cấp lãnh đạo", code: 1 },
   { name: "Quản lý", code: 2 },
@@ -75,10 +79,7 @@ const loadCount = () => {
         str: encr(
           JSON.stringify({
             proc: "hrm_training_emps_count",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: null },
-            ],
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
           cryoptojs
@@ -118,7 +119,6 @@ const loadData = (rf) => {
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
-                { par: "status", va: null },
               ],
             }),
             SecretKey,
@@ -204,6 +204,7 @@ const options = ref({
   PageSize: 20,
   loading: true,
   totalRecords: null,
+  tab: -1,
 });
 
 //Hiển thị dialog
@@ -213,8 +214,8 @@ const openBasic = (str) => {
   submitted.value = false;
   training_emps.value = {
     training_emps_name: "",
-    emote_file: "",
-    status: true,
+    form_training: 1,
+    status: 1,
     is_default: false,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
@@ -391,7 +392,7 @@ const closeDialog = () => {
 const checkShow = ref(false);
 const checkShow2 = ref(false);
 const checkShow3 = ref(false);
-  
+
 const showHidePanel = (type) => {
   if (type == 1) {
     if (checkShow.value == true) {
@@ -407,14 +408,13 @@ const showHidePanel = (type) => {
       checkShow2.value = true;
     }
   }
-   if (type == 3) {
+  if (type == 3) {
     if (checkShow3.value == true) {
       checkShow3.value = false;
     } else {
       checkShow3.value = true;
     }
   }
-   
 };
 const addRow_Item = (type) => {
   //relative
@@ -450,8 +450,8 @@ const addRow_Item = (type) => {
     };
     list_schedule.value.push(obj);
   }
-  if(type==3){
-     checkShow3.value = true;
+  if (type == 3) {
+    checkShow3.value = true;
   }
 };
 const listLimit = ref([
@@ -493,12 +493,16 @@ const delRow_Item = (item, type) => {
   }
 };
 //Thêm bản ghi
-const listTrainingGroups=ref([{
-  name:'Nhóm đào tạo 1',code:1
-},
-{
-  name:'Nhóm đào tạo 2',code:2
-}])
+const listTrainingGroups = ref([
+  {
+    name: "Nhóm đào tạo 1",
+    code: 1,
+  },
+  {
+    name: "Nhóm đào tạo 2",
+    code: 2,
+  },
+]);
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
@@ -792,6 +796,11 @@ const onFilter = (event) => {
   isDynamicSQL.value = true;
   loadDataSQL();
 };
+const tabs = ref([
+  { id: -1, title: "Tất cả", icon: "", total: 0 },
+  { id: 0, title: "Chưa hoàn thành", icon: "", total: 0 },
+  { id: 1, title: "Đã hoàn thành", icon: "", total: 0 },
+]);
 //Checkbox
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
@@ -1086,11 +1095,13 @@ const changeUserTrainding = (data, index) => {
 };
 const listClasroom = ref([
   {
-    name:'Lớp 1',code:1
+    name: "Lớp 1",
+    code: 1,
   },
-    {
-    name:'Lớp 2',code:2
-  }
+  {
+    name: "Lớp 2",
+    code: 2,
+  },
 ]);
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
@@ -1120,35 +1131,9 @@ onMounted(() => {
 });
 </script>
     <template>
-  <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <DataTable
-      @page="onPage($event)"
-      @sort="onSort($event)"
-      @filter="onFilter($event)"
-      v-model:filters="filters"
-      filterDisplay="menu"
-      filterMode="lenient"
-      :filters="filters"
-      :scrollable="true"
-      scrollHeight="flex"
-      :showGridlines="true"
-      columnResizeMode="fit"
-      :lazy="true"
-      :totalRecords="options.totalRecords"
-      :loading="options.loading"
-      :reorderableColumns="true"
-      :value="datalists"
-      removableSort
-      v-model:rows="options.PageSize"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :paginator="true"
-      dataKey="training_emps_id"
-      responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
-      :row-hover="true"
-    >
-      <template #header>
+  <div class="p-3 surface-100">
+    <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
+      <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
           <i class="pi pi-book"></i> Danh sách đào tạo ({{
             options.totalRecords
@@ -1166,6 +1151,24 @@ onMounted(() => {
                 placeholder="Tìm kiếm"
               />
               <Button
+                @click="toggle"
+                type="button"
+                class="ml-2 p-button-outlined p-button-secondary"
+                aria:haspopup="true"
+                aria-controls="overlay_panel"
+                :class="
+                  filterTrangthai != null && checkFilter
+                    ? ''
+                    : 'p-button-secondary p-button-outlined'
+                "
+              >
+                <div>
+                  <span class="mr-2"><i class="pi pi-filter"></i></span>
+                  <span class="mr-2">Lọc dữ liệu</span>
+                  <span><i class="pi pi-chevron-down"></i></span>
+                </div>
+              </Button>
+              <!-- <Button
                 type="button"
                 class="ml-2"
                 icon="pi pi-filter"
@@ -1178,7 +1181,7 @@ onMounted(() => {
                     ? ''
                     : 'p-button-secondary p-button-outlined'
                 "
-              />
+              /> -->
               <OverlayPanel
                 ref="op"
                 appendTo="body"
@@ -1229,13 +1232,6 @@ onMounted(() => {
 
           <template #end>
             <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
-            <Button
               @click="openBasic('Thêm mới thông tin đào tạo')"
               label="Thêm mới"
               icon="pi pi-plus"
@@ -1247,132 +1243,251 @@ onMounted(() => {
               icon="pi pi-refresh"
               v-tooltip="'Tải lại'"
             />
-          </template> </Toolbar
-      ></template>
-
-      <Column
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
-        selectionMode="multiple"
-      >
-      </Column>
-
-      <Column
-        field="STT"
-        header="STT"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
-        :sortable="true"
-      ></Column>
-
-      <!-- <Column
-        field="training_emps_name"
-        header="Tên đào tạo"
-        :sortable="true"
-        headerStyle="text-align:left;height:50px"
-        bodyStyle="text-align:left"
-      >
-        <template #filter="{ filterModel }">
-          <InputText
-            type="text"
-            v-model="filterModel.value"
-            class="p-column-filter"
-            placeholder="Từ khoá"
-          />
-        </template>
-      </Column>
- 
-      <Column
-        field="status"
-        header="Trạng thái"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <Checkbox
-            :disabled="
-              !(
-                store.state.user.is_super == true ||
-                store.state.user.user_id == data.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
-                  store.state.user.organization_id == data.data.organization_id)
-              )
-            "
-            :binary="true"
-            v-model="data.data.status"
-            @click="onCheckBox(data.data, true, true)"
-          /> </template
-      ></Column>
-<Column
-        field="organization_id"
-        header="Hệ thống"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <div v-if="data.data.organization_id == 0">
-            <i
-              class="pi pi-check text-blue-400"
-              style="font-size: 1.5rem"
-            ></i>
-          </div>
-          <div v-else></div>
-        </template>
-      </Column>
-      <Column
-        header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
-      >
-        <template #body="Tem">
-          <div
-            v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == Tem.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
-            "
-          >
             <Button
-              @click="editTem(Tem.data)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-pencil"
-              v-tooltip.top="'Sửa'"
-            ></Button>
-            <Button
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
+              v-if="checkDelList"
+              @click="deleteList()"
+              label="Xóa"
               icon="pi pi-trash"
-              @click="delTem(Tem.data)"
-              v-tooltip.top="'Xóa'"
-            ></Button>
+              class="mr-2 p-button-danger"
+            />
+            <Button
+              @click="toggleExport"
+              label="Tiện ích"
+              icon="pi pi-file-excel"
+              class="p-button-outlined p-button-secondary"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            >
+              <div>
+                <span class="mr-2">Tiện ích</span>
+                <span><i class="pi pi-chevron-down"></i></span>
+              </div>
+            </Button>
+          </template>
+        </Toolbar>
+      </div>
+      <div class="tabview">
+        <div class="tableview-nav-content">
+          <ul class="tableview-nav">
+            <li
+              v-for="(tab, key) in tabs"
+              :key="key"
+              @click="activeTab(tab)"
+              class="tableview-header"
+              :class="{ highlight: options.tab === tab.id }"
+            >
+              <a>
+                <i :class="tab.icon"></i>
+                <span>{{ tab.title }} ({{ tab.total }})</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <DataTable
+        @page="onPage($event)"
+        @sort="onSort($event)"
+        @filter="onFilter($event)"
+        v-model:filters="filters"
+        filterDisplay="menu"
+        filterMode="lenient"
+        :filters="filters"
+        :scrollable="true"
+        scrollHeight="flex"
+        :showGridlines="true"
+        columnResizeMode="fit"
+        :lazy="true"
+        :totalRecords="options.totalRecords"
+        :loading="options.loading"
+        :reorderableColumns="true"
+        :value="datalists"
+        removableSort
+        v-model:rows="options.PageSize"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+        :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+        :paginator="true"
+        dataKey="training_emps_id"
+        responsiveLayout="scroll"
+        v-model:selection="selectedStamps"
+        :row-hover="true"
+      >
+        <Column
+          class="align-items-center justify-content-center text-center"
+          headerStyle="text-align:center;max-width:70px;height:50px"
+          bodyStyle="text-align:center;max-width:70px"
+          selectionMode="multiple"
+        >
+        </Column>
+
+        <Column
+          field="STT"
+          header="STT"
+          class="align-items-center justify-content-center text-center"
+          headerStyle="text-align:center;max-width:70px;height:50px"
+          bodyStyle="text-align:center;max-width:70px"
+        ></Column>
+        <Column
+          field="training_emps_code"
+          header="Mã số"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px"
+          class="align-items-center justify-content-center text-center"
+        />
+        <Column
+          field="training_emps_name"
+          header="Tên khoá đào tạo"
+          :sortable="true"
+          headerStyle="text-align:left;height:50px"
+          bodyStyle="text-align:left"
+        >
+          <template #filter="{ filterModel }">
+            <InputText
+              type="text"
+              v-model="filterModel.value"
+              class="p-column-filter"
+              placeholder="Từ khoá"
+            />
+          </template>
+        </Column>
+        <Column
+          field="form_training"
+          header="Hình thức"
+          headerStyle="text-align:center;max-width:100px;height:50px"
+          bodyStyle="text-align:center;max-width:100px"
+          class="align-items-center justify-content-center text-center"
+        >
+          <template #body="data">
+            <div>
+              {{
+                data.data.form_training == 1
+                  ? "Bắt buộc"
+                  : data.data.form_training == 2
+                  ? "Đăng ký"
+                  : "Cả hai"
+              }}
+            </div>
+          </template>
+        </Column>
+        <Column
+          field="start_date"
+          header="Từ ngày"
+          headerStyle="text-align:center;max-width:100px;height:50px"
+          bodyStyle="text-align:center;max-width:100px"
+          class="align-items-center justify-content-center text-center"
+        >
+          <template #body="data">
+            <div>
+              {{ moment(new Date(data.data.start_date)).format("DD/MM/YYYY") }}
+            </div>
+          </template>
+        </Column>
+
+        <Column
+          field="end_date"
+          header="Đến ngày"
+          headerStyle="text-align:center;max-width:100px;height:50px"
+          bodyStyle="text-align:center;max-width:100px"
+          class="align-items-center justify-content-center text-center"
+         >
+          <template #body="data">
+            <div>
+              {{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY") }}
+            </div>
+          </template>
+        </Column>
+        <Column
+          field="user_verify"
+          header="Giảng viên"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px"
+          class="align-items-center justify-content-center text-center"
+        />
+        <Column
+          field="user_verify"
+          header="Học viên"
+          headerStyle="text-align:center;max-width:100px;height:50px"
+          bodyStyle="text-align:center;max-width:100px"
+          class="align-items-center justify-content-center text-center"
+        />
+        <Column
+          field="created_date"
+          header="Ngày tạo"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px"
+          class="align-items-center justify-content-center text-center"
+         >
+          <template #body="data">
+            <div>
+              {{ moment(new Date(data.data.created_date)).format("DD/MM/YYYY") }}
+            </div>
+          </template>
+        </Column>
+        <Column
+          field="status"
+          header="Trạng thái"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px"
+          class="align-items-center justify-content-center text-center"
+        >
+          
+        </Column>
+
+        <Column
+          header="Chức năng"
+          class="align-items-center justify-content-center text-center"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px"
+        >
+          <template #body="Tem">
+            <div
+              v-if="
+                store.state.user.is_super == true ||
+                store.state.user.user_id == Tem.data.created_by ||
+                (store.state.user.role_id == 'admin' &&
+                  store.state.user.organization_id == Tem.data.organization_id)
+              "
+            >
+              <Button
+                @click="editTem(Tem.data)"
+                class="
+                  p-button-rounded p-button-secondary p-button-outlined
+                  mx-1
+                "
+                type="button"
+                icon="pi pi-pencil"
+                v-tooltip.top="'Sửa'"
+              ></Button>
+              <Button
+                class="
+                  p-button-rounded p-button-secondary p-button-outlined
+                  mx-1
+                "
+                type="button"
+                icon="pi pi-trash"
+                @click="delTem(Tem.data)"
+                v-tooltip.top="'Xóa'"
+              ></Button>
+            </div>
+          </template>
+        </Column>
+        <template #empty>
+          <div
+            class="
+              align-items-center
+              justify-content-center
+              p-4
+              text-center
+              m-auto
+            "
+            v-if="!isFirst"
+          >
+            <img src="../../../assets/background/nodata.png" height="144" />
+            <h3 class="m-1">Không có dữ liệu</h3>
           </div>
         </template>
-      </Column> -->
-      <template #empty>
-        <div
-          class="
-            align-items-center
-            justify-content-center
-            p-4
-            text-center
-            m-auto
-          "
-          v-if="!isFirst"
-        >
-          <img src="../../../assets/background/nodata.png" height="144" />
-          <h3 class="m-1">Không có dữ liệu</h3>
-        </div>
-      </template>
-    </DataTable>
+      </DataTable>
+    </div>
   </div>
-
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
@@ -1475,8 +1590,10 @@ onMounted(() => {
               </small>
             </div> -->
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 field p-0 flex text-left align-items-center">
-            <div class="w-10rem">Đối tượng đào tạo</div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem">
+              Đối tượng đào tạo<span class="redsao pl-1"> (*)</span>
+            </div>
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 v-model="training_emps.obj_training"
@@ -1489,8 +1606,8 @@ onMounted(() => {
               />
             </div>
           </div>
-          <div class="col-6 field p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Hình thức đào tạo</div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">Hình thức</div>
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 v-model="training_emps.form_training"
@@ -1505,8 +1622,10 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 field p-0 flex text-left align-items-center">
-            <div class="w-10rem">Ngày bắt đầu</div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem">
+              Ngày bắt đầu<span class="redsao pl-1"> (*)</span>
+            </div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
@@ -1517,7 +1636,7 @@ onMounted(() => {
               />
             </div>
           </div>
-          <div class="col-6 field p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Ngày kết thúc</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
@@ -1542,7 +1661,7 @@ onMounted(() => {
               </small>
             </div> -->
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 field p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">Thời lượng</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
@@ -1558,7 +1677,7 @@ onMounted(() => {
               />
             </div>
           </div>
-          <div class="col-6 field p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Hạn đăng ký</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
@@ -1567,32 +1686,17 @@ onMounted(() => {
                 v-model="training_emps.registration_deadline"
                 autocomplete="on"
                 :showIcon="true"
-                    :showTime="true"
+                :showTime="true"
               />
             </div>
           </div>
         </div>
 
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Đơn vị thực hiện</div>
-          <div style="width: calc(100% - 10rem)">
-            <TreeSelect
-              class="w-full sel-placeholder"
-              v-model="training_emps.corporation"
-              :options="treedonvis"
-              :showClear="true"
-              :max-height="200"
-              optionLabel="label"
-              optionValue="data"
-              panelClass="d-design-dropdown"
-              placeholder="---------------  Chọn đơn vị thực hiện --------------- "
-            >
-            </TreeSelect>
-          </div>
-        </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 field p-0 flex text-left align-items-center">
-            <div class="w-10rem">Người phụ trách</div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem">
+              Người phụ trách <span class="redsao pl-1"> (*)</span>
+            </div>
             <div style="width: calc(100% - 10rem)">
               <MultiSelect
                 v-model="training_emps.user_verify"
@@ -1666,7 +1770,7 @@ onMounted(() => {
               </MultiSelect>
             </div>
           </div>
-          <div class="col-6 field p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Người theo dõi</div>
             <div style="width: calc(100% - 10rem)">
               <MultiSelect
@@ -1763,6 +1867,38 @@ onMounted(() => {
             </div>
           </div>
         </div>
+        <div class="col-12 field p-0 flex">
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem">Đơn vị thực hiện</div>
+            <div style="width: calc(100% - 10rem)">
+              <TreeSelect
+                class="w-full sel-placeholder"
+                v-model="training_emps.corporation"
+                :options="treedonvis"
+                :showClear="true"
+                :max-height="200"
+                optionLabel="label"
+                optionValue="data"
+                panelClass="d-design-dropdown"
+                placeholder="---------------  Chọn đơn vị thực hiện --------------- "
+              >
+              </TreeSelect>
+            </div>
+          </div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">Trạng thái</div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                v-model="training_emps.status"
+                :options="listStatus"
+                optionLabel="name"
+                optionValue="code"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
+            </div>
+          </div>
+        </div>
         <div class="col-12 p-0 border-1 border-300 border-solid">
           <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
             <div
@@ -1779,14 +1915,19 @@ onMounted(() => {
                 v-if="checkShow == true"
                 style="font-size: 1.25rem"
               ></i>
-              <div class="pl-2">Thông tin học viên</div>
+              <div class="pl-2">
+                Thông tin học viên
+                <span v-if="list_users_training.length > 0">
+                  ( {{ list_users_training.length }} )</span
+                >
+              </div>
             </div>
-            <div class="w-1">
+            <div class="w-1 text-right">
               <Button
-                class="p-button-outlined"
-                label="Thêm"
+                class="p-button-outlined p-button-rounded p-button-secondary"
                 icon="pi pi-plus"
                 @click="addRow_Item(1)"
+                v-tooltip.top="'Thêm học viên'"
               ></Button>
             </div>
           </div>
@@ -1969,12 +2110,16 @@ onMounted(() => {
                       align="center"
                       style="color: black; width: 100px; left: 0px !important"
                     >
-                      <i
-                        class="pi pi-times text-xl cursor-pointer"
-                        style="color: red"
-                        v-tooltip.top="'Xóa'"
+                      <a
                         @click="delRow_Item(item, 1)"
-                      ></i>
+                        class="hover cursor-pointer"
+                        v-tooltip.top="'Xóa học viên'"
+                      >
+                        <i
+                          class="pi pi-times-circle"
+                          style="font-size: 18px"
+                        ></i>
+                      </a>
                     </td>
                   </tr>
                 </tbody>
@@ -1998,14 +2143,19 @@ onMounted(() => {
                 v-if="checkShow2 == true"
                 style="font-size: 1.25rem"
               ></i>
-              <div class="pl-2">Lịch học</div>
+              <div class="pl-2">
+                Lịch học
+                <span v-if="list_schedule.length > 0">
+                  ( {{ list_schedule.length }} )</span
+                >
+              </div>
             </div>
-            <div class="w-1">
+            <div class="w-1 text-right">
               <Button
-                class="p-button-outlined"
-                label="Thêm"
+                class="p-button-outlined p-button-rounded p-button-secondary"
                 icon="pi pi-plus"
                 @click="addRow_Item(2)"
+                v-tooltip.top="'Thêm lịch học'"
               ></Button>
             </div>
           </div>
@@ -2081,7 +2231,7 @@ onMounted(() => {
                           optionLabel="name"
                           optionValue="code"
                           :filter="true"
-                          class="  w-15rem"
+                          class="w-15rem"
                           panelClass="d-design-dropdown"
                           placeholder="---- Chọn giảng viên ----"
                         />
@@ -2138,7 +2288,7 @@ onMounted(() => {
                         optionLabel="name"
                         optionValue="code"
                         :filter="true"
-                        class="  w-15rem"
+                        class="w-15rem"
                         panelClass="d-design-dropdown"
                         placeholder="----Chọn phòng học----"
                       />
@@ -2148,17 +2298,16 @@ onMounted(() => {
                       align="center"
                       style="color: black; width: 100px; left: 0px !important"
                     >
-                      <!-- <Button
-                          icon="pi pi-times"
-                          class="mr-2 p-button-danger"
-                          @click="delRow_Item(item)"
-                        /> -->
-                      <i
-                        class="pi pi-times text-xl cursor-pointer"
-                        style="color: red"
-                        v-tooltip.top="'Xóa'"
+                      <a
                         @click="delRow_Item(item, 2)"
-                      ></i>
+                        class="hover cursor-pointer"
+                        v-tooltip.top="'Xóa lịch học'"
+                      >
+                        <i
+                          class="pi pi-times-circle"
+                          style="font-size: 18px"
+                        ></i>
+                      </a>
                     </td>
                   </tr>
                 </tbody>
@@ -2166,7 +2315,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
-          <div class="col-12 p-0 border-1 border-300 border-solid">
+        <div class="col-12 p-0 border-1 border-300 border-solid">
           <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
             <div
               class="font-bold flex align-items-center w-full cursor-pointer"
@@ -2184,17 +2333,14 @@ onMounted(() => {
               ></i>
               <div class="pl-2">File đính kèm</div>
             </div>
-            <div class="w-1">
+            <div class="w-1 text-right">
               <Button
-                class="p-button-outlined"
-                label="Thêm"
+                class="p-button-outlined p-button-rounded p-button-secondary"
                 icon="pi pi-plus"
                 @click="addRow_Item(3)"
               ></Button>
             </div>
           </div>
-
-          
         </div>
       </div>
     </form>
@@ -2215,8 +2361,55 @@ onMounted(() => {
     </template>
   </Dialog>
 </template>
-    
+  
     <style scoped>
+.tableview-nav {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-width: 0 0 2px 0;
+  display: flex;
+  flex: 1 1 auto;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.tableview-header {
+  display: inline-block;
+}
+.tableview-nav li {
+  border: solid #dee2e6;
+  border-width: 0 0 2px 0;
+  padding: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 -2px 0;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.tableview-nav li:hover {
+  cursor: pointer;
+}
+.tableview-nav li.highlight {
+  background: #ffffff;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+.tableview-nav li:not(.highlight):hover {
+  background: #ffffff;
+  border-color: #adb5bd;
+  color: #6c757d;
+}
+.tableview-nav li a:focus {
+  outline: 0 none;
+  outline-offset: 0;
+  box-shadow: inset 0 0 0 0.2rem #bfdbfe;
+}
+.btn-hidden {
+  filter: opacity(40%) !important;
+  cursor: auto !important;
+}
+.hover:hover {
+  cursor: pointer;
+  color: #2196f3 !important;
+}
 .inputanh {
   border: 1px solid #ccc;
   width: 8rem;

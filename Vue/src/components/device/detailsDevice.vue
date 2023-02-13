@@ -512,6 +512,7 @@ onMounted(() => {
                           <div style="width: calc(100% - 10rem)">
                             <div class="country-item flex align-items-center">
                               <Avatar
+                              v-if="item.avatar"
                                 v-bind:label="
                                   item.avartar
                                     ? ''

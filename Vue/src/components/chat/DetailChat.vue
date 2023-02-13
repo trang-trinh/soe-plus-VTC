@@ -2281,6 +2281,7 @@ onMounted(() => {
 								<Textarea class="scroll-width-thin div-comment" 
 									style="height: 75px; padding: 0.5rem; overflow: auto; border: none; font-size: 15px; width: 100%; text-align: justify;" 
 									id="noiDungChat" 
+									v-focus
 									v-model="noiDungChat.noiDung" 
 									v-on:keypress="changeContent($event)"
 									v-on:keydown.enter.exact.prevent="sendMS(0, noiDungChat)" 
@@ -3201,6 +3202,7 @@ onMounted(() => {
 								" 
 								id="noiDungChat_Share" 
 								autoResize
+								v-focus
 								v-model="msgShare.content_message" 
 								placeholder="Nhập nội dung tin nhắn..." disabled>
 							</Textarea>

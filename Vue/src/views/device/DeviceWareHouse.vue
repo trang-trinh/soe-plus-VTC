@@ -210,6 +210,7 @@ const openBasic = (str) => {
     is_order: sttWarehouse.value,
     status: true,
     organization_id: store.state.user.organization_id,
+    phone_number:null
   };
   issaveWarehouse.value = false;
   headerDialog.value = str;
@@ -1243,7 +1244,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     />
   </div>
   <Dialog
-    :header="headerDialog"
+    :header="headerDialog" :modal="true"
     v-model:visible="displayBasic"
     :style="{ width: '40vw' }"
   >
@@ -1347,7 +1348,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                                   "
                                 />
                               </div>
-                              <div class="col-11 p-0 pl-2 align-items-center">
+                              <div class="col-11 p-0 pl-4 align-items-center">
                                 <div class="pt-2">
                                   <div class="font-bold">
                                     {{ slotProps.option.name }}
@@ -1379,8 +1380,8 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           <div class="col-6 p-0 flex align-items-center">
             <div class="col-4 p-0 pl-2">Điện thoại</div>
             <div class="col-8 p-0">
-              <InputText
-                @keyup="checkNumber($event, 'phone_number')"
+              <InputNumber
+           :format="false"
                 v-model="warehouse.phone_number"
                 spellcheck="false"
                 class="w-full"
@@ -1423,7 +1424,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     </template>
   </Dialog>
   <Dialog
-    header="Tải lên file Excel"
+    header="Tải lên file Excel" :modal="true"
     v-model:visible="Imp"
     :style="{ width: '40vw' }"
     :closable="true"

@@ -2246,7 +2246,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Chọn thiết bị từ danh sách"
     v-model:visible="displayAssets"
     :maximizable="true"
-    :style="{ width: '55vw' }"
+    :style="{ width: '55vw' }"  :modal="true"
   >
     <div>
       <div class="true flex-grow-1 p-2" id="scrollTop">
@@ -2386,7 +2386,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Phiếu kiểm kê"
     v-model:visible="displayDetailsHandover"
     :maximizable="true"
-    :style="{ width: '70vw' }"
+    :style="{ width: '70vw' }"   :modal="true"
   >
       <form v-if="displayDetailsHandover"> 
     <detailsInventory  :device_inventory_id="device_inventory_id"/>
@@ -2406,7 +2406,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Trình duyệt"
     v-model:visible="displayDeviceRepair"
     :maximizable="true"
-    :style="{ width: '35vw' }"
+    :style="{ width: '35vw' }"   :modal="true"
   >
     <div v-if="displayDeviceRepair">
       <configAprroved
