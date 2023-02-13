@@ -176,7 +176,8 @@ const openBasic = (str) => {
     organization_id: null,
   };
   doc_org.value.organization_id = store.state.user.organization_id;
-  doc_org.value.is_order = datalists.value[0].is_order + 1;
+  doc_org.value.is_order =
+    datalists.value.length == 0 ? 1 : datalists.value[0].is_order + 1;
   issaveDispatch.value = false;
   headerDialog.value = str;
   displayBasic.value = true;

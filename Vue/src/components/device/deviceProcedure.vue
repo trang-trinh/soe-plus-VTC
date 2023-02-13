@@ -174,11 +174,7 @@ const toast = useToast();
                                   "
                                   v-bind:image="basedomainURL + process.avatar"
                                   v-tooltip.top="
-                                    process.full_name +
-                                    '<br>' +
-                                    process.position_name +
-                                    '<br>' +
-                                    process.organization_name
+                                    process.full_name  
                                   "
                                   style="
                                     background-color: #2196f3;
@@ -365,11 +361,7 @@ const toast = useToast();
                           "
                           v-bind:image="basedomainURL + log.avatar"
                           v-tooltip.top="
-                            log.full_name +
-                            '<br>' +
-                            log.role_name +
-                            '<br>' +
-                            log.department_name
+                            log.full_name  
                           "
                           style="
                             background-color: #2196f3;

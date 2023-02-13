@@ -339,6 +339,10 @@ const sendReport = () => {
     ReportProgress.value.contents != null
       ? ReportProgress.value.contents.replace(/\n/g, "<br/>")
       : "";
+  ReportProgress.value.contents =
+    ReportProgress.value.contents != null
+      ? ReportProgress.value.contents.replaceAll('"', "'")
+      : "";
   ReportProgress.value.task_id = props.id;
   ReportProgress.value.status = 0;
   let formData = new FormData();
@@ -691,8 +695,7 @@ onMounted(() => {
                     margin-left: 4rem !important;
                   "
                   :style="{
-                    'flex-wrap':
-                      PositionSideBar == 'right' ? 'wrap' : 'wrap-reverse',
+                    'flex-wrap': 'wrap',
                   }"
                 >
                   <div
@@ -1082,7 +1085,7 @@ onMounted(() => {
                     </div>
                   </div>
                   <div
-                    class=""
+                    class="h-8rem"
                     v-else
                   >
                     <img

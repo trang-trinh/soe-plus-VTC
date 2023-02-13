@@ -328,12 +328,7 @@ const send = () => {
                                   ? basedomainURL + item.avatar
                                   : basedomainURL + '/Portals/Image/noimg.jpg'
                               "
-                              v-tooltip.top="
-                                item.full_name ||
-                                '' + '<br>' + item.position_name ||
-                                '' + '<br>' + item.department_name ||
-                                ''
-                              "
+                              v-tooltip.top="item.full_name"
                               :key="item.user_id"
                               style="border: 2px solid white; color: white"
                               @click="onTaskUserFilter(item)"
@@ -418,12 +413,7 @@ const send = () => {
                             ? basedomainURL + item.avatar
                             : basedomainURL + '/Portals/Image/noimg.jpg'
                         "
-                        v-tooltip.top="
-                          item.full_name ||
-                          '' + '<br>' + item.position_name ||
-                          '' + '<br>' + item.department_name ||
-                          ''
-                        "
+                        v-tooltip.top="item.full_name"
                         :key="item.user_id"
                         style="border: 2px solid white; color: white"
                         @click="onTaskUserFilter(item)"

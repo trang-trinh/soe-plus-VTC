@@ -629,7 +629,9 @@ const cancelItem = (item) => {
                           (store.getters.user.background_image ||
                             "../assets/background/bg.png"),
                         tag: "project.soe.vn",
-                        url: "/calendar/detail/".concat(item["calendar_duty_id"]),
+                        url: "/calendar/detail/".concat(
+                          item["calendar_duty_id"]
+                        ),
                       },
                     })
                     .then((res) => {});
@@ -934,7 +936,7 @@ const exportWord = (method) => {
           moment(options.week_start_date).format("DDMMYYYY") +
           "_" +
           moment(options.week_end_date).format("DDMMYYYY") +
-          ".docx",
+          ".doc",
         html: htmltable,
         opition: {
           orientation: "Portrait",
@@ -1560,20 +1562,17 @@ const initDictionary = () => {
           }
           if (tbs[6] != null && tbs[6].length > 0) {
             signforms.value = tbs[6];
-          }
-          else{
+          } else {
             signforms.value = [];
           }
           if (tbs[7] != null && tbs[7].length > 0) {
             users.value = tbs[7];
-          }
-          else{
+          } else {
             users.value = [];
           }
           if (tbs[8] != null && tbs[8].length > 0) {
             roleFunctions.value = tbs[8][0];
-          }
-          else{
+          } else {
             roleFunctions.value = {};
           }
         }
@@ -1837,7 +1836,10 @@ onMounted(() => {
               <span class="p-menuitem-text">{{ item.label }}</span>
             </a>
             <a
-              v-if="item.id === 3 && (store.state.user.is_admin || roleFunctions.calendar_enact)"
+              v-if="
+                item.id === 3 &&
+                (store.state.user.is_admin || roleFunctions.calendar_enact)
+              "
               class="p-menuitem-link"
               role="menuitem"
               tabindex="0"
@@ -1875,7 +1877,10 @@ onMounted(() => {
               <span class="p-menuitem-text">{{ item.label }}</span>
             </a>
             <a
-              v-if="item.id === 2 && (store.state.user.is_admin || roleFunctions.calendar_enact)"
+              v-if="
+                item.id === 2 &&
+                (store.state.user.is_admin || roleFunctions.calendar_enact)
+              "
               class="p-menuitem-link"
               role="menuitem"
               tabindex="0"
@@ -2246,13 +2251,7 @@ onMounted(() => {
                         ? basedomainURL + item.avatar
                         : basedomainURL + '/Portals/Image/noimg.jpg'
                     "
-                    v-tooltip.top="
-                      item.full_name +
-                      '<br>' +
-                      item.position_name +
-                      '<br>' +
-                      item.department_name
-                    "
+                    v-tooltip.top="item.full_name"
                     :key="item.user_id"
                     style="border: 2px solid orange; color: white"
                     @click="onTaskUserFilter(item)"
@@ -2303,13 +2302,7 @@ onMounted(() => {
                         ? basedomainURL + item.avatar
                         : basedomainURL + '/Portals/Image/noimg.jpg'
                     "
-                    v-tooltip.top="
-                      item.full_name +
-                      '<br>' +
-                      item.position_name +
-                      '<br>' +
-                      item.department_name
-                    "
+                    v-tooltip.top="item.full_name"
                     :key="item.user_id"
                     style="border: 2px solid orange; color: white"
                     @click="onTaskUserFilter(item)"

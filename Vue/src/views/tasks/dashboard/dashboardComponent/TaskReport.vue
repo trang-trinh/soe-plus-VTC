@@ -105,7 +105,6 @@ const loadData = () => {
         x.STT = options.value.PageNo * options.value.PageSize + i + 1;
         x.progress = x.progress ?? 0;
         let sttus = listStatus.value.filter((a) => a.value == x.status);
-        console.log(sttus);
         x.status_display = {
           text: sttus[0].text,
           bg_color: sttus[0].bg_color,
@@ -339,6 +338,14 @@ const sendData = (x) => {
     Report.value.contents != null
       ? Report.value.contents.replace(/\n/g, "<br/>")
       : "";
+  Report.value.difficult =
+    Report.value.difficult != null
+      ? Report.value.difficult.replace(/\n/g, "<br/>")
+      : "";
+  Report.value.request =
+    Report.value.request != null
+      ? Report.value.request.replace(/\n/g, "<br/>")
+      : "";
   Report.value.status = 0;
   let formData = new FormData();
   if (file != null)
@@ -471,11 +478,6 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div>
-    <div>
-      <span v-html="bodymail"></span>
-    </div>
-  </div>
   <div class="main-layout true flex-grow-1 p-2 main-div">
     <DataTable
       :value="listTask"
@@ -969,6 +971,18 @@ onMounted(() => {
           </div>
         </template>
       </Column>
+      <template #empty>
+        <div
+          class="block w-full h-full format-center"
+          v-if="options.totalRecords == 0"
+        >
+          <img
+            src="../../../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
+      </template>
     </DataTable>
     <template #footer>
       <Button

@@ -598,6 +598,10 @@ onMounted(() => {
   margin: 16px;
   height: calc(100vh - 50px);
 }
+ .check-scroll{
+    max-height: 40rem;
+     overflow:scroll
+  }
 @media only screen and (max-height: 768px) {
 
   .style-vb-1{
@@ -611,7 +615,7 @@ onMounted(() => {
     padding: 8px !important;
   }
  .check-scroll{
-    max-height:32rem ;
+    max-height:25rem ;
      overflow:scroll
   }
 }
@@ -620,7 +624,7 @@ onMounted(() => {
     display: none;
   }
   .check-scroll{
-    max-height:32rem ;
+    max-height:20rem ;
      overflow:scroll
   }
 }

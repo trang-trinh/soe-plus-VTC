@@ -221,6 +221,9 @@ const sendExtendReport = (e) => {
     TaskExtend.value.answer = TaskExtend.value.answer
       ? TaskExtend.value.answer.replace(/\n/g, "<br/>")
       : TaskExtend.value.answer;
+    TaskExtend.value.answer = TaskExtend.value.answer
+      ? TaskExtend.value.answer.replaceAll('"', "'")
+      : TaskExtend.value.answer;
     axios
       .put(
         baseURL + "/api/TaskExtend/Upgrade_Status_TaskExtend",

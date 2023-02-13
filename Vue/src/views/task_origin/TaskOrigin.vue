@@ -9,7 +9,10 @@ import { encr } from "../../util/function.js";
 import treeuser from "../../components/user/treeuser.vue";
 const cryoptojs = inject("cryptojs");
 const basedomainURL = fileURL;
-
+const componentKey = ref(0);
+const forceRerender = () => {
+  componentKey.value += 1;
+};
 const checkDelList = ref(false);
 const toast = useToast();
 const swal = inject("$swal");
@@ -645,7 +648,10 @@ const editTask = (task_data) => {
       Task.value.end_date = Task.value.end_date
         ? new Date(Task.value.end_date)
         : null;
-      Task.value.is_department = Task.value.department_id ? true : false;
+      Task.value.is_department =
+        Task.value.department_id && Task.value.department_id != -1
+          ? true
+          : false;
       Task.value.assign_user_id = [];
       Task.value.work_user_ids = [];
       Task.value.works_user_ids = [];
@@ -892,7 +898,7 @@ const groupBy = (list, props) => {
 };
 
 const loadData = (rf, type) => {
-  if (type == 3 || type == 2) {
+  if (type == 3 || type == 2 || type == 4 || type == 5) {
     opition.value.PageSize = 10000;
   } else {
     opition.value.PageSize = 20;
@@ -945,28 +951,28 @@ const loadData = (rf, type) => {
           element.status_name =
             element.status != null
               ? listDropdownStatus.value.filter(
-                (x) => x.value == element.status,
-              )[0].text
+                  (x) => x.value == element.status,
+                )[0].text
               : "";
           element.status_name =
             element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
           element.status_bg_color =
             element.status != null
               ? listDropdownStatus.value.filter(
-                (x) => x.value == element.status,
-              )[0].bg_color
+                  (x) => x.value == element.status,
+                )[0].bg_color
               : "";
           element.status_bg_color =
             element.count_extend > 0 ? "#F18636" : element.status_bg_color;
           element.status_text_color =
             element.status != null
               ? listDropdownStatus.value.filter(
-                (x) => x.value == element.status,
-              )[0].text_color
+                  (x) => x.value == element.status,
+                )[0].text_color
               : "";
           //thời gian xử lý
           if (element.end_date != null) {
-            if (element.thoigianquahan < 0) {
+            if (element.thoigianquahan <= 0) {
               if (element.thoigianxuly > 0) {
                 element.title_time = element.thoigianxuly + " ngày";
                 element.totalDay = element.thoigianxuly;
@@ -1010,6 +1016,7 @@ const loadData = (rf, type) => {
       opition.value.total_theodoi = data[4][0].total_theodoi;
       opition.value.total_toitao = data[5][0].total_toitao;
       opition.value.total_hoanthanh = data[6][0].total_hoanthanh;
+      opition.value.type_view = type;
       if (type == 1) {
         listTask.value = data1;
         sttTask.value = data[1][0].total + 1;
@@ -1040,13 +1047,18 @@ const loadData = (rf, type) => {
       }
       if (type == 4 || type == 5) {
         listTask.value = data1;
-        let date = new Date();
-        var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-        var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        let date1 = new Date(
+          opition.value.sdate ? opition.value.sdate : new Date(),
+        );
+        let date2 = new Date(
+          opition.value.edate ? opition.value.edate : new Date(),
+        );
+        // var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+        // var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        var firstDay = new Date(date1.getFullYear(), date1.getMonth(), 1);
+        var lastDay = new Date(date2.getFullYear(), date2.getMonth() + 1, 0);
         getDates(firstDay, lastDay);
-
       }
-      opition.value.type_view = type;
       if (idTaskLoaded.value != "taskmain") {
         showDetail.value = false;
         showDetail.value = true;
@@ -1075,6 +1087,8 @@ const loadData = (rf, type) => {
       }
     });
 };
+
+const listThanhVien = ref();
 
 const listUser = () => {
   axios
@@ -1113,7 +1127,13 @@ const listUser = () => {
         name: x.full_name,
         code: x.user_id,
         avatar: x.avatar,
+        ten: x.last_name,
       }));
+      if (listDropdownUser.value.length > 10) {
+        listThanhVien.value = listDropdownUser.value.slice(0, 10);
+      } else {
+        listThanhVien.value = [...listDropdownUser.value];
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -1357,8 +1377,8 @@ const saveTask = (isFormValid) => {
     axios
       .post(
         baseURL +
-        "/api/task_origin/" +
-        (isAdd.value == true ? "Add_TaskOrigin" : "Update_TaskOrigin"),
+          "/api/task_origin/" +
+          (isAdd.value == true ? "Add_TaskOrigin" : "Update_TaskOrigin"),
         formData,
         config,
       )
@@ -1470,65 +1490,136 @@ function getDaysInMonth(year, month) {
   return new Date(year, month, 0).getDate();
 }
 
-const getDates = (startDate, stopDate) => {
+const getDates = (startDate, endDate) => {
   var dateArray = [];
   var currentDate = moment(startDate);
-  var stopDate = moment(stopDate);
+  var stopDate = moment(endDate);
   while (currentDate <= stopDate && currentDate) {
     var d = moment.utc(currentDate).toDate();
     var date = new Date();
     var currentYear = date.getFullYear();
     var currentMonth = date.getMonth() + 1;
     dateArray.push({
-      DayN: moment(currentDate).format('DD'), DW: d.getDay(), Day: parseInt(moment(currentDate).format('DD')), DayName: WeekDay.value.filter(x => x.value == d.toLocaleString("default", { weekday: "long" }))[0].text,
-      bg: (WeekDay.value.filter(x => x.value == d.toLocaleString("default", { weekday: "long" }))[0].bg),
-      color: ((parseInt(moment(currentDate).format('DD')) == parseInt(moment(new Date()).format('DD')))) ? '#ff0000' : '',
+      DayN: moment(currentDate).format("DD"),
+      DW: d.getDay(),
+      Day: parseInt(moment(currentDate).format("DD")),
+      DayName: WeekDay.value.filter(
+        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+      )[0].text,
+      bg: WeekDay.value.filter(
+        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+      )[0].bg,
+      color:
+        parseInt(moment(currentDate).format("DD")) ==
+        parseInt(moment(new Date()).format("DD"))
+          ? "#ff0000"
+          : "",
       totalDayCurrent: getDaysInMonth(currentYear, currentMonth),
-      currentDate: currentDate
-    })
-    // ((parseInt(moment(currentDate).format('DD')) == parseInt(moment(new Date()).format('DD')))) ? '#bde0ff' : 
-    currentDate = moment(currentDate).add(1, 'days');
+      currentDate: currentDate,
+      Month: d.getMonth(),
+      Year: d.getFullYear(),
+    });
+    currentDate = moment(currentDate).add(1, "days");
   }
   listTask.value.forEach(function (d) {
-    var dates = [];// JSON.parse(JSON.stringify(dat));
+    var dates = [];
     var bd = new Date(d.start_date);
-    var datenow = new Date();
     bd.setHours(0, 0, 0, 0);
     dateArray.forEach(function (t, i) {
-      var dem = 0;
-      var to = { DW: t.DW , Day: t.Day, totalDay: 0};
-      var k = new Date(t.currentDate);
-      if (new Date(t.currentDate) >= bd && new Date(t.currentDate) <= new Date(d.finish_date != null ? d.finish_date : new Date())) {
+      var to = { DW: t.DW, Day: t.Day, totalDay: 0 };
+      if (
+        new Date(t.currentDate) >= bd &&
+        new Date(t.currentDate) <=
+          new Date(d.finish_date != null ? d.finish_date : new Date())
+      ) {
         to.IsCheck = true;
         to.Name = d.task_name;
         to.totalDay = to.totalDay + 1;
         if (i > 0 && dates[i - 1].IsCheck) {
           to.IsHide = true;
-        }else{
+        } else {
           to.IsHide = false;
         }
-      }else{
+      } else {
         to.IsHide = false;
       }
       to.color = t.color;
       to.bg = t.bg;
       dates.push(to);
     });
-    d.totalDay = dates.filter(x=>x.IsCheck == true).length;
-    d.dateArray = dates.filter(x=>x.IsHide == false);
+    d.totalDay = dates.filter((x) => x.IsCheck == true).length;
+    d.dateArray = dates.filter((x) => x.IsHide == false);
   });
   GrandsDate.value = dateArray;
-}
+
+  if (opition.value.type_view == 5) {
+    var listData = [];
+    listTask.value.forEach(function (cv) {
+      cv.Thanhviens.forEach(function (u) {
+        if (
+          listData.filter(
+            (x) => x.user_id == u.user_id && x.task_id == cv.task_id,
+          ).length == 0
+        ) {
+          listData.push({
+            user_id: u.user_id,
+            task_id: cv.task_id,
+            user_name: u.fullName,
+            dateArray: cv.dateArray,
+            totalDay: cv.totalDay,
+            time_bg: cv.status_bg_color,
+            status_text_color: cv.status_text_color,
+            avatar: u.avatar,
+            last_name: u.ten,
+            tenToChuc: u.tenToChuc,
+            tenChucVu: u.tenChucVu,
+            is_type: parseInt(u.is_type),
+          });
+        }
+      });
+    });
+    let listCV = groupBy(listData, "user_id");
+    var arrNew = [];
+    for (let k in listCV) {
+      listCV[k].forEach(function (r, i) {
+        r.IsHienThi = i == 0 ? true : false;
+        r.count_cv = listCV[k].length;
+        r.count_istype_0 = listCV[k].filter((x) => x.is_type == 0).length;
+        r.count_istype_1 = listCV[k].filter(
+          (x) => x.is_type == 1 || x.is_type == 2,
+        ).length;
+        r.count_istype_3 = listCV[k].filter((x) => x.is_type == 3).length;
+        arrNew.push(r);
+      });
+    }
+    listTask.value = arrNew;
+  }
+
+  var years = [];
+  for (
+    var i = new Date(startDate).getFullYear();
+    i <= new Date(endDate).getFullYear();
+    i++
+  ) {
+    for (var j = 0; j < 12; j++) {
+      var Month = { Month: j + 1, Year: i, Dates: [] };
+      Month.Dates = dateArray.filter((x) => x.Month === j && x.Year === i);
+      if (Month.Dates.length > 0) years.push(Month);
+    }
+  }
+  Grands.value = years;
+};
 
 const GrandsDate = ref();
+const Grands = ref();
 const WeekDay = ref([
-  { value: 'Monday', text: 'T2', bg: '' },
-  { value: 'Tuesday', text: 'T3', bg: '' },
-  { value: 'Wednesday', text: 'T4', bg: '' },
-  { value: 'Thursday', text: 'T5', bg: '' },
-  { value: 'Friday', text: 'T6', bg: '' },
-  { value: 'Saturday', text: 'T7', bg: 'aliceblue' },
-  { value: 'Sunday', text: 'CN', bg: 'antiquewhite' },
+  { value: "Monday", text: "T2", bg: "" },
+  { value: "Tuesday", text: "T3", bg: "" },
+  { value: "Wednesday", text: "T4", bg: "" },
+  { value: "Thursday", text: "T5", bg: "" },
+  { value: "Friday", text: "T6", bg: "" },
+  { value: "Saturday", text: "T7", bg: "aliceblue" },
+  { value: "Sunday", text: "CN", bg: "antiquewhite" },
 ]);
 
 onMounted(() => {
@@ -1583,21 +1674,25 @@ const ChangeTaskDepartment = () => {
 const showDetail = ref(false);
 const selectedTaskID = ref();
 const onRowSelect = (id) => {
+  forceRerender();
   showDetail.value = false;
   showDetail.value = true;
   selectedTaskID.value = id.task_id;
 };
 const selectedKeys = ref();
 const onNodeSelect = (id) => {
+  forceRerender();
   showDetail.value = false;
   showDetail.value = true;
   selectedTaskID.value = id.data.task_id;
 };
 emitter.on("SideBar", (obj) => {
-  showDetail.value = obj;
+  showDetail.value = false;
+  selectedTaskID.value = null;
+  console.log(showDetail.value, selectedTaskID.value);
   loadData(false, opition.value.type_view);
 });
-const onRowUnselect = (id) => { };
+const onRowUnselect = (id) => {};
 
 const displayDialogUser = ref(false);
 const selectedUser = ref([]);
@@ -1679,196 +1774,413 @@ const choiceTreeUser = () => {
 };
 </script>
 <template>
-  <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
+  <div
+    v-if="store.getters.islogin"
+    class="main-layout true flex-grow-1 p-2"
+  >
     <div class="flex justify-content-center align-items-center">
       <Toolbar class="w-full custoolbar">
         <template #start>
           <span class="p-input-icon-left">
             <i class="pi pi-search" />
-            <InputText style="min-width: 300px" type="text" spellcheck="false" v-model="opition.search"
-              placeholder="Tìm kiếm" @keyup.enter="loadData(true, opition.type_view)" />
+            <InputText
+              style="min-width: 300px"
+              type="text"
+              spellcheck="false"
+              v-model="opition.search"
+              placeholder="Tìm kiếm"
+              @keyup.enter="loadData(true, opition.type_view)"
+            />
           </span>
         </template>
 
         <template #end>
-          <Button @click="addTask('Tạo công việc')" label="Tạo công việc" icon="pi pi-plus" class="mr-2" />
-          <ul id="toolbar_right" style="padding: 0px; margin: 0px; display: flex">
-            <li @click="toggleListType" aria-haspopup="true" :class="{ active: opition.type_view != 0 }"
-              aria-controls="overlay_Export1">
-              <a><i style="margin-right: 5px" class="pi pi-bars"></i>Kiểu hiển thị<i style="margin-left: 5px"
-                  class="pi pi-angle-down"></i></a>
+          <Button
+            @click="addTask('Tạo công việc')"
+            label="Tạo công việc"
+            icon="pi pi-plus"
+            class="mr-2"
+          />
+          <ul
+            id="toolbar_right"
+            style="padding: 0px; margin: 0px; display: flex"
+          >
+            <li
+              @click="toggleListType"
+              aria-haspopup="true"
+              :class="{ active: opition.type_view != 0 }"
+              aria-controls="overlay_Export1"
+            >
+              <a
+                ><i
+                  style="margin-right: 5px"
+                  class="pi pi-bars"
+                ></i
+                >Kiểu hiển thị<i
+                  style="margin-left: 5px"
+                  class="pi pi-angle-down"
+                ></i
+              ></a>
             </li>
-            <li @click="toggleFilter" aria-haspopup="true" :class="{ active: opition.filter_type != 0 }"
-              aria-controls="overlay_Export">
-              <a><i style="margin-right: 5px" class="pi pi-filter"></i>{{
-                opition.loctitle
-              }}<i style="margin-left: 5px" class="pi pi-angle-down"></i></a>
+            <li
+              @click="toggleFilter"
+              aria-haspopup="true"
+              :class="{ active: opition.filter_type != 0 }"
+              aria-controls="overlay_Export"
+            >
+              <a
+                ><i
+                  style="margin-right: 5px"
+                  class="pi pi-filter"
+                ></i
+                >{{ opition.loctitle
+                }}<i
+                  style="margin-left: 5px"
+                  class="pi pi-angle-down"
+                ></i
+              ></a>
             </li>
-            <li @click="toggleSort" :class="{ active: opition.sort }" aria-haspopup="true"
-              aria-controls="overlay_Export">
-              <a><i class="pi pi-sort"></i> Sắp xếp
-                <i class="pi pi-angle-down"></i></a>
+            <li
+              @click="toggleSort"
+              :class="{ active: opition.sort }"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            >
+              <a
+                ><i class="pi pi-sort"></i> Sắp xếp
+                <i class="pi pi-angle-down"></i
+              ></a>
             </li>
             <li @click="onRefresh">
               <a><i class="pi pi-refresh"></i> Refresh</a>
             </li>
           </ul>
-          <OverlayPanel ref="menuFilterButs" id="task_filter">
-            <ul v-for="(item, index) in itemFilterButs" :key="index" style="padding: 0px; margin: 0px">
-              <li :class="{ parent: !item.children_id }" class="p-menuitem" v-if="!item.groups">
-                <a @click="ChangeFilter(item.istype)" :class="{ active: item.active }"><i style="padding-right: 5px"
-                    :class="item.icon"></i>{{ item.label }}
+          <OverlayPanel
+            ref="menuFilterButs"
+            id="task_filter"
+            style="z-index: 10"
+          >
+            <ul
+              v-for="(item, index) in itemFilterButs"
+              :key="index"
+              style="padding: 0px; margin: 0px"
+            >
+              <li
+                :class="{ parent: !item.children_id }"
+                class="p-menuitem"
+                v-if="!item.groups"
+              >
+                <a
+                  @click="ChangeFilter(item.istype)"
+                  :class="{ active: item.active }"
+                  ><i
+                    style="padding-right: 5px"
+                    :class="item.icon"
+                  ></i
+                  >{{ item.label }}
                   <span v-if="item.istype == 5 || item.istype == 6">
                     (<a style="color: #0d89ec">{{
                       moment(item.filter_date).format("DD/MM/YYYY")
-                    }}</a>)
+                    }}</a
+                    >)
                   </span>
                 </a>
-                <span style="margin-left: 10px" v-if="item.istype == 5 || item.istype == 6">
-                  <Calendar @date-select="ChangeFilter(item.istype)" inputId="icon" v-model="item.filter_date"
-                    :showIcon="true" />
+                <span
+                  style="margin-left: 10px"
+                  v-if="item.istype == 5 || item.istype == 6"
+                >
+                  <Calendar
+                    @date-select="ChangeFilter(item.istype)"
+                    inputId="icon"
+                    v-model="item.filter_date"
+                    :showIcon="true"
+                  />
                 </span>
               </li>
-              <li :class="{ children: item.groups }" class="p-menuitem" v-if="item.groups">
-                <a :class="{ active: item.active }"><i style="padding-right: 5px" :class="item.icon"></i>{{
-                  item.label
-                }}</a>
+              <li
+                :class="{ children: item.groups }"
+                class="p-menuitem"
+                v-if="item.groups"
+              >
+                <a :class="{ active: item.active }"
+                  ><i
+                    style="padding-right: 5px"
+                    :class="item.icon"
+                  ></i
+                  >{{ item.label }}</a
+                >
                 <ul style="padding: 0px; display: flex">
-                  <li style="
+                  <li
+                    style="
                       list-style: none;
                       padding: 10px;
                       font-weight: bold;
                       display: flex;
                       flex-direction: column;
-                    " v-for="(item1, index) in item.groups" :key="index">
+                    "
+                    v-for="(item1, index) in item.groups"
+                    :key="index"
+                  >
                     <div style="padding-bottom: 10px">
                       <span>{{ item1.label }}</span>
-                      <span style="
+                      <span
+                        style="
                           color: #2196f3;
                           font-weight: bold;
                           margin-left: 5px;
                           font-size: 14px;
-                        " v-if="item1.is_change == 1">{{ filterTime1 }}
-                        <i @click="removeTime(item1.is_change)" v-if="filterTime1" style="color: black"
-                          class="pi pi-times-circle"></i></span>
-                      <span style="
+                        "
+                        v-if="item1.is_change == 1"
+                        >{{ filterTime1 }}
+                        <i
+                          @click="removeTime(item1.is_change)"
+                          v-if="filterTime1"
+                          style="color: black"
+                          class="pi pi-times-circle"
+                        ></i
+                      ></span>
+                      <span
+                        style="
                           color: #2196f3;
                           font-weight: bold;
                           margin-left: 5px;
                           font-size: 14px;
-                        " v-if="item1.is_change == 2">{{ filterTime2 }}
-                        <i @click="removeTime(item1.is_change)" v-if="filterTime2" style="color: black"
-                          class="pi pi-times-circle"></i></span>
+                        "
+                        v-if="item1.is_change == 2"
+                        >{{ filterTime2 }}
+                        <i
+                          @click="removeTime(item1.is_change)"
+                          v-if="filterTime2"
+                          style="color: black"
+                          class="pi pi-times-circle"
+                        ></i
+                      ></span>
                     </div>
-                    <Calendar v-if="item1.is_change == 1" @date-select="
-                      ChangeTimeFilter(item1.is_change, opition.sdate)
-                    " v-model="opition.sdate" id="filterTime1" :inline="true" />
-                    <Calendar v-if="item1.is_change == 2" @date-select="
-                      ChangeTimeFilter(item1.is_change, opition.edate)
-                    " v-model="opition.edate" id="filterTime2" :inline="true" />
+                    <Calendar
+                      v-if="item1.is_change == 1"
+                      @date-select="
+                        ChangeTimeFilter(item1.is_change, opition.sdate)
+                      "
+                      v-model="opition.sdate"
+                      id="filterTime1"
+                      :inline="true"
+                    />
+                    <Calendar
+                      v-if="item1.is_change == 2"
+                      @date-select="
+                        ChangeTimeFilter(item1.is_change, opition.edate)
+                      "
+                      v-model="opition.edate"
+                      id="filterTime2"
+                      :inline="true"
+                    />
                   </li>
                 </ul>
               </li>
             </ul>
             <div style="float: right; padding: 10px">
-              <Button @click="ChangeFilter(opition.filter_type)" label="Thực hiện" />
-              <Button @click="Del_ChangeFilter" id="btn_huy" style="
+              <Button
+                @click="ChangeFilter(opition.filter_type)"
+                label="Thực hiện"
+              />
+              <Button
+                @click="Del_ChangeFilter"
+                id="btn_huy"
+                style="
                   background-color: #f2f4f6;
                   border: 1px solid #f2f4f6;
                   color: #333;
                   margin-left: 10px;
-                " label="Hủy lọc" />
+                "
+                label="Hủy lọc"
+              />
             </div>
           </OverlayPanel>
-          <Menu id="task_list_type" :model="itemListTypeButs" ref="menuListTypeButs" :popup="true">
+          <Menu
+            id="task_list_type"
+            :model="itemListTypeButs"
+            ref="menuListTypeButs"
+            :popup="true"
+          >
             <template #item="{ item }">
               <div @click="ChangeView(item)">
-                <a :class="{ active: item.active }"><i :class="item.icon"></i>{{ item.label }}</a>
+                <a :class="{ active: item.active }"
+                  ><i :class="item.icon"></i>{{ item.label }}</a
+                >
               </div>
             </template>
           </Menu>
-          <Menu id="task_sort" :model="itemSortButs" ref="menuSortButs" :popup="true">
+          <Menu
+            id="task_sort"
+            :model="itemSortButs"
+            ref="menuSortButs"
+            :popup="true"
+          >
             <template #item="{ item }">
-              <a @click="ChangeSortTask(item.sort, item.ob)" :class="{ active: item.active }">{{ item.label }}</a>
+              <a
+                @click="ChangeSortTask(item.sort, item.ob)"
+                :class="{ active: item.active }"
+                >{{ item.label }}</a
+              >
             </template>
           </Menu>
         </template>
       </Toolbar>
     </div>
     <div style="display: flex; justify-content: center; margin-bottom: 10px">
-      <ul id="header_bottom" style="padding: 0px; margin: 0px; display: flex">
-        <li @click="ChangeData(-1)" class="header-bottom" :class="{ active: opition.IsType == -1 }">
+      <ul
+        id="header_bottom"
+        style="padding: 0px; margin: 0px; display: flex"
+      >
+        <li
+          @click="ChangeData(-1)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == -1 }"
+        >
           <a><i class="pi pi-bars"></i> Tất cả ({{ opition.totalAlls }})</a>
         </li>
-        <li @click="ChangeData(0)" class="header-bottom" :class="{ active: opition.IsType == 0 }">
-          <a><i class="pi pi-user-edit"></i> Tôi làm ({{
-            opition.total_toilam
-          }})</a>
+        <li
+          @click="ChangeData(0)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 0 }"
+        >
+          <a
+            ><i class="pi pi-user-edit"></i> Tôi làm ({{
+              opition.total_toilam
+            }})</a
+          >
         </li>
-        <li @click="ChangeData(1)" class="header-bottom" :class="{ active: opition.IsType == 1 }">
+        <li
+          @click="ChangeData(1)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 1 }"
+        >
           <a><i class="pi pi-user"></i> Quản lý ({{ opition.total_quanly }})</a>
         </li>
-        <li @click="ChangeData(2)" class="header-bottom" :class="{ active: opition.IsType == 2 }">
-          <a><i class="pi pi-users"></i> Theo dõi ({{
-            opition.total_theodoi
-          }})</a>
+        <li
+          @click="ChangeData(2)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 2 }"
+        >
+          <a
+            ><i class="pi pi-users"></i> Theo dõi ({{
+              opition.total_theodoi
+            }})</a
+          >
         </li>
-        <li @click="ChangeData(3)" class="header-bottom" :class="{ active: opition.IsType == 3 }">
-          <a><i class="pi pi-user-plus"></i> Tôi tạo ({{
-            opition.total_toitao
-          }})</a>
+        <li
+          @click="ChangeData(3)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 3 }"
+        >
+          <a
+            ><i class="pi pi-user-plus"></i> Tôi tạo ({{
+              opition.total_toitao
+            }})</a
+          >
         </li>
-        <li @click="ChangeData(4)" class="header-bottom" :class="{ active: opition.IsType == 4 }">
-          <a><i class="pi pi-check-circle"></i> Hoàn thành ({{
-            opition.total_hoanthanh
-          }})</a>
+        <li
+          @click="ChangeData(4)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 4 }"
+        >
+          <a
+            ><i class="pi pi-check-circle"></i> Hoàn thành ({{
+              opition.total_hoanthanh
+            }})</a
+          >
         </li>
       </ul>
     </div>
     <!-- kiểu LIST -->
-    <DataTable id="task" v-if="opition.type_view == 1" v-model:first="first" :rowHover="true" :value="listTask"
-      :paginator="true" :rows="opition.PageSize"
+    <DataTable
+      id="task"
+      v-if="opition.type_view == 1"
+      v-model:first="first"
+      :rowHover="true"
+      :value="listTask"
+      :paginator="true"
+      :rows="opition.PageSize"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]" :scrollable="true" scrollHeight="flex"
-      :totalRecords="opition.totalRecords" :row-hover="true" dataKey="task_id" v-model:selection="selectedTasks"
-      @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" :lazy="true" selectionMode="single"
-      @rowSelect="onRowSelect($event.data)" @rowUnselect="onRowUnselect($event.data)">
-      <Column field="STT" headerStyle="text-align:center;max-width:4rem;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:4rem;" class="align-items-center justify-content-center text-center">
+      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+      :scrollable="true"
+      scrollHeight="flex"
+      :totalRecords="opition.totalRecords"
+      :row-hover="true"
+      dataKey="task_id"
+      v-model:selection="selectedTasks"
+      @page="onPage($event)"
+      @sort="onSort($event)"
+      @filter="onFilter($event)"
+      :lazy="true"
+      selectionMode="single"
+      @rowSelect="onRowSelect($event.data)"
+      @rowUnselect="onRowUnselect($event.data)"
+    >
+      <Column
+        field="STT"
+        headerStyle="text-align:center;max-width:4rem;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:4rem;"
+        class="align-items-center justify-content-center text-center"
+      >
       </Column>
-      <Column headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:50px; " class="align-items-center justify-content-center text-center">
+      <Column
+        headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:50px; "
+        class="align-items-center justify-content-center text-center"
+      >
         <template #body="value">
-          <Avatar v-tooltip.bottom="{
-            value:
-              value.data.full_name +
-              '<br/>' +
-              (value.data.tenChucVu || '') +
-              '<br/>' +
-              (value.data.tenToChuc || ''),
-            escape: true,
-          }" v-bind:label="
-  value.data.avatar
-    ? ''
-    : (value.data.last_name ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + value.data.avatar" style="
+          <Avatar
+            v-tooltip.bottom="{
+              value:
+                value.data.full_name +
+                '<br/>' +
+                (value.data.tenChucVu || '') +
+                '<br/>' +
+                (value.data.tenToChuc || ''),
+              escape: true,
+            }"
+            v-bind:label="
+              value.data.avatar
+                ? ''
+                : (value.data.last_name ?? '').substring(0, 1)
+            "
+            v-bind:image="basedomainURL + value.data.avatar"
+            style="
               background-color: #2196f3;
               color: #ffffff;
               width: 2.5rem;
               height: 2.5rem;
               font-size: 15px !important;
-            " :style="{
+            "
+            :style="{
               background: bgColor[0] + '!important',
-            }" class="cursor-pointer" size="xlarge" shape="circle" />
+            }"
+            class="cursor-pointer"
+            size="xlarge"
+            shape="circle"
+          />
         </template>
       </Column>
-      <Column header="Tên công việc" headerStyle="min-height:3.125rem" bodyStyle=" ">
+      <Column
+        header="Tên công việc"
+        headerStyle="min-height:3.125rem"
+        bodyStyle=" "
+      >
         <template #body="data">
           <div style="display: flex; flex-direction: column; padding: 5px">
             <div style="line-height: 20px; display: flex">
-              <span v-tooltip="'Ưu tiên'" v-if="data.data.is_prioritize" style="margin-right: 5px"><i
-                  style="color: orange" class="pi pi-star-fill"></i></span>
-              <span style="
+              <span
+                v-tooltip="'Ưu tiên'"
+                v-if="data.data.is_prioritize"
+                style="margin-right: 5px"
+                ><i
+                  style="color: orange"
+                  class="pi pi-star-fill"
+                ></i
+              ></span>
+              <span
+                style="
                   font-weight: bold;
                   font-size: 14px;
                   overflow: hidden;
@@ -1877,28 +2189,38 @@ const choiceTreeUser = () => {
                   display: -webkit-box;
                   -webkit-line-clamp: 2;
                   -webkit-box-orient: vertical;
-                ">{{ data.data.task_name }}</span>
+                "
+                >{{ data.data.task_name }}</span
+              >
             </div>
-            <div style="
+            <div
+              style="
                 font-size: 12px;
                 margin-top: 5px;
                 display: flex;
                 align-items: center;
-              ">
-              <span v-if="data.data.start_date || data.data.end_date" style="color: #98a9bc">{{
-                data.data.start_date
-                  ? moment(new Date(data.data.start_date)).format(
-                    "DD/MM/YYYY",
-                  )
-                  : null
-              }}
+              "
+            >
+              <span
+                v-if="data.data.start_date || data.data.end_date"
+                style="color: #98a9bc"
+                >{{
+                  data.data.start_date
+                    ? moment(new Date(data.data.start_date)).format(
+                        "DD/MM/YYYY",
+                      )
+                    : null
+                }}
                 -
                 {{
                   data.data.end_date
                     ? moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
                     : null
-                }}</span>
-              <span v-if="data.data.isQL" style="
+                }}</span
+              >
+              <span
+                v-if="data.data.isQL"
+                style="
                   background-color: #337ab7;
                   color: #ffffff;
                   display: inline;
@@ -1912,8 +2234,12 @@ const choiceTreeUser = () => {
                   vertical-align: baseline;
                   border-radius: 0.25em;
                   margin-left: 10px;
-                ">Quản lý</span>
-              <span v-if="data.data.isTT" style="
+                "
+                >Quản lý</span
+              >
+              <span
+                v-if="data.data.isTT"
+                style="
                   background-color: #5cb85c;
                   color: #ffffff;
                   display: inline;
@@ -1927,8 +2253,12 @@ const choiceTreeUser = () => {
                   vertical-align: baseline;
                   border-radius: 0.25em;
                   margin-left: 5px;
-                ">Thực hiện</span>
-              <span v-if="data.data.isTD" style="
+                "
+                >Thực hiện</span
+              >
+              <span
+                v-if="data.data.isTD"
+                style="
                   background-color: #5bc0de;
                   color: #ffffff;
                   display: inline;
@@ -1942,154 +2272,230 @@ const choiceTreeUser = () => {
                   vertical-align: baseline;
                   border-radius: 0.25em;
                   margin-left: 5px;
-                ">Theo dõi</span>
+                "
+                >Theo dõi</span
+              >
             </div>
-            <div v-if="data.data.project_name" style="
+            <div
+              v-if="data.data.project_name"
+              style="
                 min-height: 25px;
                 display: flex;
                 align-items: center;
                 margin-top: 10px;
-              ">
+              "
+            >
               <i class="pi pi-tag"></i>
-              <span class="duan" style="
+              <span
+                class="duan"
+                style="
                   font-size: 13px;
                   font-weight: 400;
                   margin-left: 5px;
                   color: #0078d4;
-                ">{{ data.data.project_name }}</span>
+                "
+                >{{ data.data.project_name }}</span
+              >
             </div>
           </div>
         </template>
       </Column>
-      <Column field="" header="Thành viên" class="align-items-center justify-content-center text-center"
+      <Column
+        field=""
+        header="Thành viên"
+        class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;">
+        bodyStyle="text-align:center;max-width:150px;"
+      >
         <template #body="data">
           <AvatarGroup>
-            <div v-for="(value, index) in data.data.ThanhvienShows" :key="index">
+            <div
+              v-for="(value, index) in data.data.ThanhvienShows"
+              :key="index"
+            >
               <div>
-                <Avatar v-tooltip.bottom="{
-                  value:
-                    value.type_name +
-                    ': ' +
-                    value.fullName +
-                    '<br/>' +
-                    (value.tenChucVu || '') +
-                    '<br/>' +
-                    (value.tenToChuc || ''),
-                  escape: true,
-                }" v-bind:label="
-  value.avatar ? '' : (value.ten ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + value.avatar" style="
+                <Avatar
+                  v-tooltip.bottom="{
+                    value:
+                      value.type_name +
+                      ': ' +
+                      value.fullName +
+                      '<br/>' +
+                      (value.tenChucVu || '') +
+                      '<br/>' +
+                      (value.tenToChuc || ''),
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    value.avatar ? '' : (value.ten ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + value.avatar"
+                  style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
                     height: 32px;
                     font-size: 15px !important;
                     margin-left: -10px;
-                  " :style="{
+                  "
+                  :style="{
                     background: bgColor[index % 7] + '!important',
-                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
               </div>
             </div>
-            <Avatar v-if="
-              data.data.Thanhviens.length - data.data.ThanhvienShows.length >
-              0
-            " :label="
-  '+' +
-  (data.data.Thanhviens.length -
-    data.data.ThanhvienShows.length) +
-  ''
-" class="cursor-pointer" shape="circle" style="
+            <Avatar
+              v-if="
+                data.data.Thanhviens.length - data.data.ThanhvienShows.length >
+                0
+              "
+              :label="
+                '+' +
+                (data.data.Thanhviens.length -
+                  data.data.ThanhvienShows.length) +
+                ''
+              "
+              class="cursor-pointer"
+              shape="circle"
+              style="
                 background-color: #e9e9e9 !important;
                 color: #98a9bc;
                 font-size: 14px !important;
                 width: 32px;
                 margin-left: -10px;
                 height: 32px;
-              " />
+              "
+            />
           </AvatarGroup>
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center" header="Tiến độ"
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Tiến độ"
         headerStyle="text-align:center;max-width:100px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:100px;">
+        bodyStyle="text-align:center;max-width:100px;"
+      >
         <template #body="data">
           <span v-if="data.data.progress == 0">{{ data.data.progress }} %</span>
-          <div v-if="data.data.progress != 0" style="width: 100%">
+          <div
+            v-if="data.data.progress != 0"
+            style="width: 100%"
+          >
             <ProgressBar :value="data.data.progress" />
           </div>
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center" header="Thời gian xử lý"
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Thời gian xử lý"
         headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;">
+        bodyStyle="text-align:center;max-width:150px;"
+      >
         <template #body="data">
           <div v-if="data.data.title_time">
-            <span style="
+            <span
+              style="
                 font-size: 10px;
                 font-weight: bold;
                 padding: 5px;
                 border-radius: 5px;
-              " :style="{
+              "
+              :style="{
                 background: data.data.time_bg,
                 color: data.data.status_text_color,
-              }">{{ data.data.title_time }}</span>
+              }"
+              >{{ data.data.title_time }}</span
+            >
           </div>
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center" header="Ngày kết thúc"
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Ngày kết thúc"
         headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;">
+        bodyStyle="text-align:center;max-width:150px;"
+      >
         <template #body="data">
-          <div v-if="data.data.is_deadline == true" style="
+          <div
+            v-if="data.data.is_deadline == true"
+            style="
               background-color: #fff8ee;
               padding: 10px 20px;
               border-radius: 5px;
-            ">
-            <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
-          moment(new
-            Date(data.data.end_date)).format("DD/MM/YYYY") }}
+            "
+          >
+            <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
+              >{{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY") }}
             </span>
           </div>
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center" header="Trạng thái"
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Trạng thái"
         headerStyle="text-align:center;max-width:120px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:120px;">
+        bodyStyle="text-align:center;max-width:120px;"
+      >
         <template #body="data">
-          <Chip :style="{
-            background: data.data.status_bg_color,
-            color: data.data.status_text_color,
-          }" v-bind:label="data.data.status_name" />
+          <Chip
+            :style="{
+              background: data.data.status_bg_color,
+              color: data.data.status_text_color,
+            }"
+            v-bind:label="data.data.status_name"
+          />
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center"
+      <Column
+        class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;min-height:3.125rem;max-width:100px;"
-        bodyStyle="text-align:center;max-width:100px;">
+        bodyStyle="text-align:center;max-width:100px;"
+      >
         <template #body="data">
-          <div v-if="
-            store.state.user.is_super == true ||
-            store.state.user.user_id == data.data.created_by ||
-            data.data.isEdit == true ||
-            (store.state.user.role_id == 'admin' &&
-              store.state.user.organization_id == data.data.organization_id)
-          ">
-            <Button @click="editTask(data.data)" class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button" icon="pi pi-pencil" v-tooltip="'Sửa'"></Button>
-            <Button @click="DelTask(data.data)" class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button" icon="pi pi-trash" v-tooltip="'Xóa'"></Button>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == data.data.created_by ||
+              data.data.isEdit == true ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id == data.data.organization_id)
+            "
+          >
+            <Button
+              @click="editTask(data.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-pencil"
+              v-tooltip="'Sửa'"
+            ></Button>
+            <Button
+              @click="DelTask(data.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-trash"
+              v-tooltip="'Xóa'"
+            ></Button>
           </div>
         </template>
       </Column>
       <template #empty>
-        <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
+        <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          style="
             min-height: calc(100vh - 215px);
             max-height: calc(100vh - 215px);
             display: flex;
             flex-direction: column;
-          " v-if="listTask != null">
-          <img src="../../assets/background/nodata.png" height="144" />
+          "
+          v-if="listTask != null"
+        >
+          <img
+            src="../../assets/background/nodata.png"
+            height="144"
+          />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -2102,57 +2508,108 @@ const choiceTreeUser = () => {
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
      -->
     <!-- kiểu TREE -->
-    <TreeTable id="task-tree" v-if="opition.type_view == 2" sortMode="single" ref="dt" @nodeSelect="onNodeSelect"
-      @nodeUnselect="onNodeUnselect" :value="listTask" :paginator="false" :rows="opition.PageSize" :scrollable="true"
-      scrollHeight="flex" v-model:selectionKeys="selectedKeys" v-model:first="first" :loading="opition.loading"
-      :expandedKeys="expandedKeys" :rowHover="true" responsiveLayout="scroll" :totalRecords="opition.totalRecords"
-      selectionMode="single" filterMode="lenient" @page="onPage($event)">
-      <Column field="STT" headerStyle="text-align:center;max-width:75px;height:50px"
+    <TreeTable
+      id="task-tree"
+      v-if="opition.type_view == 2"
+      sortMode="single"
+      ref="dt"
+      @nodeSelect="onNodeSelect"
+      @nodeUnselect="onNodeUnselect"
+      :value="listTask"
+      :paginator="false"
+      :rows="opition.PageSize"
+      :scrollable="true"
+      scrollHeight="flex"
+      v-model:selectionKeys="selectedKeys"
+      v-model:first="first"
+      :loading="opition.loading"
+      :expandedKeys="expandedKeys"
+      :rowHover="true"
+      responsiveLayout="scroll"
+      :totalRecords="opition.totalRecords"
+      selectionMode="single"
+      filterMode="lenient"
+      @page="onPage($event)"
+    >
+      <Column
+        field="STT"
+        headerStyle="text-align:center;max-width:75px;height:50px"
         bodyStyle="text-align:center;max-width:50px;;max-height:600px"
-        class="align-items-center justify-content-center text-center">
+        class="align-items-center justify-content-center text-center"
+      >
         <template #body="menu">
-          <div v-if="menu.node.data.parent_id == null" style="font-weight: 1000">
+          <div
+            v-if="menu.node.data.parent_id == null"
+            style="font-weight: 1000"
+          >
             {{ menu.node.data.STT2 }}
           </div>
-          <div v-else style="font-weight: 500">
+          <div
+            v-else
+            style="font-weight: 500"
+          >
             {{ menu.node.data.STT2 }}
           </div>
         </template>
       </Column>
-      <Column headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:100px; " :expander="true"
-        class="align-items-center justify-content-left text-center">
+      <Column
+        headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:100px; "
+        :expander="true"
+        class="align-items-center justify-content-left text-center"
+      >
         <template #body="value">
-          <Avatar v-tooltip.bottom="{
-            value:
-              value.node.data.full_name +
-              '<br/>' +
-              (value.node.data.tenChucVu || '') +
-              '<br/>' +
-              (value.node.data.tenToChuc || ''),
-            escape: true,
-          }" v-bind:label="
-  value.node.data.avatar
-    ? ''
-    : (value.node.data.last_name ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + value.node.data.avatar" style="
+          <Avatar
+            v-tooltip.bottom="{
+              value:
+                value.node.data.full_name +
+                '<br/>' +
+                (value.node.data.tenChucVu || '') +
+                '<br/>' +
+                (value.node.data.tenToChuc || ''),
+              escape: true,
+            }"
+            v-bind:label="
+              value.node.data.avatar
+                ? ''
+                : (value.node.data.last_name ?? '').substring(0, 1)
+            "
+            v-bind:image="basedomainURL + value.node.data.avatar"
+            style="
               background-color: #2196f3;
               color: #ffffff;
               width: 2.5rem;
               height: 2.5rem;
               font-size: 15px !important;
-            " :style="{
+            "
+            :style="{
               background: bgColor[0] + '!important',
-            }" class="cursor-pointer" size="xlarge" shape="circle" />
+            }"
+            class="cursor-pointer"
+            size="xlarge"
+            shape="circle"
+          />
         </template>
       </Column>
-      <Column header="Tên công việc" headerStyle="min-height:3.125rem" bodyStyle=" ">
+      <Column
+        header="Tên công việc"
+        headerStyle="min-height:3.125rem"
+        bodyStyle=" "
+      >
         <template #body="data">
           <div style="display: flex; flex-direction: column; padding: 5px">
             <div style="line-height: 20px; display: flex">
-              <span v-tooltip="'Ưu tiên'" v-if="data.node.data.is_prioritize" style="margin-right: 5px"><i
-                  style="color: orange" class="pi pi-star-fill"></i></span>
-              <span style="
+              <span
+                v-tooltip="'Ưu tiên'"
+                v-if="data.node.data.is_prioritize"
+                style="margin-right: 5px"
+                ><i
+                  style="color: orange"
+                  class="pi pi-star-fill"
+                ></i
+              ></span>
+              <span
+                style="
                   font-weight: bold;
                   font-size: 14px;
                   overflow: hidden;
@@ -2161,25 +2618,33 @@ const choiceTreeUser = () => {
                   display: -webkit-box;
                   -webkit-line-clamp: 2;
                   -webkit-box-orient: vertical;
-                ">{{ data.node.data.task_name }}</span>
+                "
+                >{{ data.node.data.task_name }}</span
+              >
             </div>
             <div style="font-size: 12px; margin-top: 5px">
-              <span v-if="data.node.data.start_date || data.node.data.end_date" style="color: #98a9bc">{{
-                data.node.data.start_date
-                  ? moment(new Date(data.node.data.start_date)).format(
-                    "DD/MM/YYYY",
-                  )
-                  : null
-              }}
+              <span
+                v-if="data.node.data.start_date || data.node.data.end_date"
+                style="color: #98a9bc"
+                >{{
+                  data.node.data.start_date
+                    ? moment(new Date(data.node.data.start_date)).format(
+                        "DD/MM/YYYY",
+                      )
+                    : null
+                }}
                 -
                 {{
                   data.node.data.end_date
                     ? moment(new Date(data.node.data.end_date)).format(
-                      "DD/MM/YYYY",
-                    )
+                        "DD/MM/YYYY",
+                      )
                     : null
-                }}</span>
-              <span v-if="data.node.data.isQL" style="
+                }}</span
+              >
+              <span
+                v-if="data.node.data.isQL"
+                style="
                   background-color: #337ab7;
                   color: #ffffff;
                   display: inline;
@@ -2193,8 +2658,12 @@ const choiceTreeUser = () => {
                   vertical-align: baseline;
                   border-radius: 0.25em;
                   margin-left: 10px;
-                ">Quản lý</span>
-              <span v-if="data.node.data.isTT" style="
+                "
+                >Quản lý</span
+              >
+              <span
+                v-if="data.node.data.isTT"
+                style="
                   background-color: #5cb85c;
                   color: #ffffff;
                   display: inline;
@@ -2208,8 +2677,12 @@ const choiceTreeUser = () => {
                   vertical-align: baseline;
                   border-radius: 0.25em;
                   margin-left: 5px;
-                ">Thực hiện</span>
-              <span v-if="data.node.data.isTD" style="
+                "
+                >Thực hiện</span
+              >
+              <span
+                v-if="data.node.data.isTD"
+                style="
                   background-color: #5bc0de;
                   color: #ffffff;
                   display: inline;
@@ -2223,185 +2696,289 @@ const choiceTreeUser = () => {
                   vertical-align: baseline;
                   border-radius: 0.25em;
                   margin-left: 5px;
-                ">Theo dõi</span>
+                "
+                >Theo dõi</span
+              >
             </div>
-            <div v-if="data.node.data.project_name" style="
+            <div
+              v-if="data.node.data.project_name"
+              style="
                 min-height: 25px;
                 display: flex;
                 align-items: center;
                 margin-top: 10px;
-              ">
+              "
+            >
               <i class="pi pi-tag"></i>
-              <span class="duan" style="
+              <span
+                class="duan"
+                style="
                   font-size: 13px;
                   font-weight: 400;
                   margin-left: 5px;
                   color: #0078d4;
-                ">{{ data.node.data.project_name }}</span>
+                "
+                >{{ data.node.data.project_name }}</span
+              >
             </div>
           </div>
         </template>
       </Column>
-      <Column field="" header="Thành viên" class="align-items-center justify-content-center text-center"
+      <Column
+        field=""
+        header="Thành viên"
+        class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;">
+        bodyStyle="text-align:center;max-width:150px;"
+      >
         <template #body="data">
           <AvatarGroup>
-            <div v-for="(value, index) in data.node.data.ThanhvienShows" :key="index">
+            <div
+              v-for="(value, index) in data.node.data.ThanhvienShows"
+              :key="index"
+            >
               <div>
-                <Avatar v-tooltip.bottom="{
-                  value:
-                    value.type_name +
-                    ': ' +
-                    value.fullName +
-                    '<br/>' +
-                    (value.tenChucVu || '') +
-                    '<br/>' +
-                    (value.tenToChuc || ''),
-                  escape: true,
-                }" v-bind:label="
-  value.avatar ? '' : (value.ten ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + value.avatar" style="
+                <Avatar
+                  v-tooltip.bottom="{
+                    value:
+                      value.type_name +
+                      ': ' +
+                      value.fullName +
+                      '<br/>' +
+                      (value.tenChucVu || '') +
+                      '<br/>' +
+                      (value.tenToChuc || ''),
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    value.avatar ? '' : (value.ten ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + value.avatar"
+                  style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
                     height: 32px;
                     font-size: 15px !important;
                     margin-left: -10px;
-                  " :style="{
+                  "
+                  :style="{
                     background: bgColor[index % 7] + '!important',
-                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
               </div>
             </div>
-            <Avatar v-if="
-              data.node.data.Thanhviens.length -
-              data.node.data.ThanhvienShows.length >
-              0
-            " :label="
-  '+' +
-  (data.node.data.Thanhviens.length -
-    data.node.data.ThanhvienShows.length) +
-  ''
-" class="cursor-pointer" shape="circle" style="
+            <Avatar
+              v-if="
+                data.node.data.Thanhviens.length -
+                  data.node.data.ThanhvienShows.length >
+                0
+              "
+              :label="
+                '+' +
+                (data.node.data.Thanhviens.length -
+                  data.node.data.ThanhvienShows.length) +
+                ''
+              "
+              class="cursor-pointer"
+              shape="circle"
+              style="
                 background-color: #e9e9e9 !important;
                 color: #98a9bc;
                 font-size: 14px !important;
                 width: 32px;
                 margin-left: -10px;
                 height: 32px;
-              " />
+              "
+            />
           </AvatarGroup>
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center" header="Tiến độ"
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Tiến độ"
         headerStyle="text-align:center;max-width:100px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:100px;">
+        bodyStyle="text-align:center;max-width:100px;"
+      >
         <template #body="data">
-          <span v-if="data.node.data.progress == 0">{{ data.node.data.progress }} %</span>
-          <div v-if="data.node.data.progress != 0" style="width: 100%">
+          <span v-if="data.node.data.progress == 0"
+            >{{ data.node.data.progress }} %</span
+          >
+          <div
+            v-if="data.node.data.progress != 0"
+            style="width: 100%"
+          >
             <ProgressBar :value="data.node.data.progress" />
           </div>
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center" header="Thời gian xử lý"
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Thời gian xử lý"
         headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;">
+        bodyStyle="text-align:center;max-width:150px;"
+      >
         <template #body="data">
           <div v-if="data.node.data.title_time">
-            <span style="
+            <span
+              style="
                 font-size: 10px;
                 font-weight: bold;
                 padding: 5px;
                 border-radius: 5px;
-              " :style="{
+              "
+              :style="{
                 background: data.node.data.time_bg,
                 color: data.node.data.status_text_color,
-              }">{{ data.node.data.title_time }}</span>
+              }"
+              >{{ data.node.data.title_time }}</span
+            >
           </div>
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center" header="Ngày kết thúc"
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Ngày kết thúc"
         headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;">
+        bodyStyle="text-align:center;max-width:150px;"
+      >
         <template #body="data">
-          <div v-if="data.node.data.is_deadline == true" style="
+          <div
+            v-if="data.node.data.is_deadline == true"
+            style="
               background-color: #fff8ee;
               padding: 10px 20px;
               border-radius: 5px;
-            ">
+            "
+          >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
               moment(new Date(data.node.data.end_date)).format("DD/MM/YYYY")
             }}</span>
           </div>
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center" header="Trạng thái"
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Trạng thái"
         headerStyle="text-align:center;max-width:120px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:120px;">
+        bodyStyle="text-align:center;max-width:120px;"
+      >
         <template #body="data">
-          <Chip :style="{
-            background: data.node.data.status_bg_color,
-            color: data.node.data.status_text_color,
-          }" v-bind:label="data.node.data.status_name" />
+          <Chip
+            :style="{
+              background: data.node.data.status_bg_color,
+              color: data.node.data.status_text_color,
+            }"
+            v-bind:label="data.node.data.status_name"
+          />
         </template>
       </Column>
-      <Column class="align-items-center justify-content-center text-center"
+      <Column
+        class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;min-height:3.125rem;max-width:100px;"
-        bodyStyle="text-align:center;max-width:100px;">
+        bodyStyle="text-align:center;max-width:100px;"
+      >
         <template #body="data">
-          <div v-if="
-            store.state.user.is_super == true ||
-            store.state.user.user_id == data.node.data.created_by ||
-            data.node.data.isEdit == true ||
-            (store.state.user.role_id == 'admin' &&
-              store.state.user.organization_id ==
-              data.node.data.organization_id)
-          ">
-            <Button @click="editTask(data.node.data)" class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button" icon="pi pi-pencil" v-tooltip="'Sửa'"></Button>
-            <Button @click="DelTask(data.node.data)" class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button" icon="pi pi-trash" v-tooltip="'Xóa'"></Button>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == data.node.data.created_by ||
+              data.node.data.isEdit == true ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id ==
+                  data.node.data.organization_id)
+            "
+          >
+            <Button
+              @click="editTask(data.node.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-pencil"
+              v-tooltip="'Sửa'"
+            ></Button>
+            <Button
+              @click="DelTask(data.node.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-trash"
+              v-tooltip="'Xóa'"
+            ></Button>
           </div>
         </template>
       </Column>
 
       <template #empty>
-        <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
+        <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          style="
             min-height: calc(100vh - 215px);
             max-height: calc(100vh - 215px);
             display: flex;
             flex-direction: column;
-          " v-if="listTask != null || opition.totalRecords == 0">
-          <img src="../../assets/background/nodata.png" height="144" />
+          "
+          v-if="listTask != null || opition.totalRecords == 0"
+        >
+          <img
+            src="../../assets/background/nodata.png"
+            height="144"
+          />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
     </TreeTable>
     <!-- end -->
     <!-- kiểu GRID -->
-    <div id="task-grid" v-if="opition.type_view == 3" style="
+    <div
+      id="task-grid"
+      v-if="opition.type_view == 3"
+      style="
         height: 85%;
         width: 100%;
         display: -webkit-box;
         overflow-x: auto;
         overflow-y: hidden;
-      ">
-      <div class="md:col-md-3" v-for="item in listTask" style="width: 320px; height: 100%; margin: 0px 10px">
-        <span style="
+      "
+    >
+      <div
+        class="md:col-md-3"
+        v-for="item in listTask"
+        style="width: 320px; height: 100%; margin: 0px 10px"
+      >
+        <span
+          style="
             padding: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
             color: #ffffff;
-          " :style="{
+          "
+          :style="{
             background: item.status_bg_color + '!important',
-          }">{{ item.status_name }} ({{ item.CVGroup.length }})</span>
-        <div style="width: 106%; height: 95%; overflow: hidden auto" id="task-grid" class="scroll-outer">
-          <div class="scroll-inner" style="width: fit-content">
-            <Card v-for="cv in item.CVGroup" style="width: 320px; margin-bottom: 2em">
+          }"
+          >{{ item.status_name }} ({{ item.CVGroup.length }})</span
+        >
+        <div
+          style="width: 106%; height: 95%; overflow: hidden auto"
+          id="task-grid"
+          class="scroll-outer"
+        >
+          <div
+            class="scroll-inner"
+            style="width: fit-content"
+          >
+            <Card
+              v-for="cv in item.CVGroup"
+              style="width: 320px; margin-bottom: 2em"
+            >
               <template #title>
-                <span @click="onRowSelect(cv)" v-tooltip="'Xem chi tiết'" style="
+                <span
+                  @click="onRowSelect(cv)"
+                  v-tooltip="'Xem chi tiết'"
+                  style="
                     overflow: hidden;
                     font-size: 14px;
                     font-weight: bold;
@@ -2410,12 +2987,15 @@ const choiceTreeUser = () => {
                     display: -webkit-box;
                     -webkit-line-clamp: 2;
                     -webkit-box-orient: vertical;
-                  ">
+                  "
+                >
                   {{ cv.task_name }}
                 </span>
               </template>
               <template #content>
-                <span v-if="cv.project_name" style="
+                <span
+                  v-if="cv.project_name"
+                  style="
                     margin: 0px auto;
                     text-align: center;
                     padding: 5px 15px;
@@ -2427,21 +3007,32 @@ const choiceTreeUser = () => {
                     white-space: nowrap;
                     max-width: 100%;
                     font-weight: 500;
-                  ">{{ cv.project_name }}</span>
-                <span v-if="cv.start_date || cv.end_date" style="color: #98a9bc"><i style="margin-right: 5px"
-                    class="pi pi-calendar"></i>{{
-                      cv.start_date
-                        ? moment(new Date(cv.start_date)).format("DD/MM/YYYY")
-                        : null
-                    }}
+                  "
+                  >{{ cv.project_name }}</span
+                >
+                <span
+                  v-if="cv.start_date || cv.end_date"
+                  style="color: #98a9bc"
+                  ><i
+                    style="margin-right: 5px"
+                    class="pi pi-calendar"
+                  ></i
+                  >{{
+                    cv.start_date
+                      ? moment(new Date(cv.start_date)).format("DD/MM/YYYY")
+                      : null
+                  }}
                   -
                   {{
                     cv.end_date
                       ? moment(new Date(cv.end_date)).format("DD/MM/YYYY")
                       : null
-                  }}</span>
+                  }}</span
+                >
                 <span>
-                  <span v-if="cv.isQL" style="
+                  <span
+                    v-if="cv.isQL"
+                    style="
                       background-color: #337ab7;
                       color: #ffffff;
                       display: inline;
@@ -2455,8 +3046,12 @@ const choiceTreeUser = () => {
                       vertical-align: baseline;
                       border-radius: 0.25em;
                       margin-left: 10px;
-                    ">Quản lý</span>
-                  <span v-if="cv.isTT" style="
+                    "
+                    >Quản lý</span
+                  >
+                  <span
+                    v-if="cv.isTT"
+                    style="
                       background-color: #5cb85c;
                       color: #ffffff;
                       display: inline;
@@ -2470,8 +3065,12 @@ const choiceTreeUser = () => {
                       vertical-align: baseline;
                       border-radius: 0.25em;
                       margin-left: 5px;
-                    ">Thực hiện</span>
-                  <span v-if="cv.isTD" style="
+                    "
+                    >Thực hiện</span
+                  >
+                  <span
+                    v-if="cv.isTD"
+                    style="
                       background-color: #5bc0de;
                       color: #ffffff;
                       display: inline;
@@ -2485,88 +3084,132 @@ const choiceTreeUser = () => {
                       vertical-align: baseline;
                       border-radius: 0.25em;
                       margin-left: 5px;
-                    ">Theo dõi</span>
+                    "
+                    >Theo dõi</span
+                  >
                 </span>
-                <span style="
+                <span
+                  style="
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                  ">
+                  "
+                >
                   <AvatarGroup>
-                    <div v-for="(value, index) in cv.ThanhvienShows" :key="index">
+                    <div
+                      v-for="(value, index) in cv.ThanhvienShows"
+                      :key="index"
+                    >
                       <div>
-                        <Avatar v-tooltip.bottom="{
-                          value:
-                            value.type_name +
-                            ': ' +
-                            value.fullName +
-                            '<br/>' +
-                            (value.tenChucVu || '') +
-                            '<br/>' +
-                            (value.tenToChuc || ''),
-                          escape: true,
-                        }" v-bind:label="
-  value.avatar
-    ? ''
-    : (value.ten ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + value.avatar" style="
+                        <Avatar
+                          v-tooltip.bottom="{
+                            value:
+                              value.type_name +
+                              ': ' +
+                              value.fullName +
+                              '<br/>' +
+                              (value.tenChucVu || '') +
+                              '<br/>' +
+                              (value.tenToChuc || ''),
+                            escape: true,
+                          }"
+                          v-bind:label="
+                            value.avatar
+                              ? ''
+                              : (value.ten ?? '').substring(0, 1)
+                          "
+                          v-bind:image="basedomainURL + value.avatar"
+                          style="
                             background-color: #2196f3;
                             color: #ffffff;
                             width: 32px;
                             height: 32px;
                             font-size: 15px !important;
                             margin-left: -10px;
-                          " :style="{
+                          "
+                          :style="{
                             background: bgColor[index % 7] + '!important',
-                          }" class="cursor-pointer" size="xlarge" shape="circle" />
+                          }"
+                          class="cursor-pointer"
+                          size="xlarge"
+                          shape="circle"
+                        />
                       </div>
                     </div>
-                    <Avatar v-if="cv.Thanhviens.length - cv.ThanhvienShows.length > 0" :label="
-                      '+' +
-                      (cv.Thanhviens.length - cv.ThanhvienShows.length) +
-                      ''
-                    " class="cursor-pointer" shape="circle" style="
+                    <Avatar
+                      v-if="cv.Thanhviens.length - cv.ThanhvienShows.length > 0"
+                      :label="
+                        '+' +
+                        (cv.Thanhviens.length - cv.ThanhvienShows.length) +
+                        ''
+                      "
+                      class="cursor-pointer"
+                      shape="circle"
+                      style="
                         background-color: #e9e9e9 !important;
                         color: #98a9bc;
                         font-size: 14px !important;
                         width: 32px;
                         margin-left: -10px;
                         height: 32px;
-                      " />
+                      "
+                    />
                   </AvatarGroup>
                 </span>
-                <span v-if="cv.title_time" style="
+                <span
+                  v-if="cv.title_time"
+                  style="
                     width: max-content;
                     font-size: 10px;
                     font-weight: bold;
                     padding: 5px;
                     border-radius: 5px;
-                  " :style="{
+                  "
+                  :style="{
                     background: cv.time_bg,
                     color: cv.status_text_color,
-                  }">{{ cv.title_time }}</span>
-                <div class="card-chucnang" style="
+                  }"
+                  >{{ cv.title_time }}</span
+                >
+                <div
+                  class="card-chucnang"
+                  style="
                     display: none;
                     flex-direction: column;
                     position: absolute;
                     right: 10px;
-                  " v-if="
+                  "
+                  v-if="
                     store.state.user.is_super == true ||
                     store.state.user.user_id == cv.created_by ||
                     cv.isEdit == true ||
                     (store.state.user.role_id == 'admin' &&
                       store.state.user.organization_id == cv.organization_id)
-                  ">
-                  <Button @click="editTask(cv)" style="margin-bottom: 5px"
-                    class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-pencil"
-                    v-tooltip="'Sửa'"></Button>
-                  <Button @click="DelTask(cv)" class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                    type="button" icon="pi pi-trash" v-tooltip="'Xóa'"></Button>
+                  "
+                >
+                  <Button
+                    @click="editTask(cv)"
+                    style="margin-bottom: 5px"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    icon="pi pi-pencil"
+                    v-tooltip="'Sửa'"
+                  ></Button>
+                  <Button
+                    @click="DelTask(cv)"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    icon="pi pi-trash"
+                    v-tooltip="'Xóa'"
+                  ></Button>
                 </div>
               </template>
               <template #footer>
                 <!-- <span v-if="cv.progress == 0">{{ cv.progress }} %</span> -->
-                <div v-if="cv.progress != 0" style="width: 100%">
+                <div
+                  v-if="cv.progress != 0"
+                  style="width: 100%"
+                >
                   <ProgressBar :value="cv.progress" />
                 </div>
               </template>
@@ -2577,103 +3220,246 @@ const choiceTreeUser = () => {
     </div>
     <!-- end -->
     <!-- kiểu GANTT -->
-    <div id="task-gantt" v-if="opition.type_view == 4" style="
-        height: 89%;
+    <div
+      id="task-gantt"
+      v-if="opition.type_view == 4"
+      style="
+        max-height: calc(100vh - 500px);
+        min-height: calc(100vh - 150px);
         display: -webkit-box;
         overflow-x: auto;
         overflow-y: hidden;
-      " class="grid formgrid m-2">
-      <div class="field col-12 md:col-12" style="display: flex;padding: 0px;height: 100%;">
-        <div class="col-12 scrollbox_delayed" style="height: 100%;padding: 0px;overflow: auto;">
-          <table class="table table-border"
-            style="width: max-content;table-layout: fixed;min-width: 100%;border-collapse: collapse;overflow-x: scroll;">
-            <thead style="background-color: #f8f9fa;position: sticky;top: 0px;z-index: 5;">
+      "
+      class="grid formgrid m-2"
+    >
+      <div
+        class="field col-12 md:col-12"
+        style="
+          display: flex;
+          padding: 0px;
+          max-height: calc(100vh - 500px);
+          min-height: calc(100vh - 150px);
+        "
+      >
+        <div
+          class="col-12 scrollbox_delayed"
+          style="height: 100%; padding: 0px; overflow: auto"
+        >
+          <table
+            class="table table-border"
+            style="
+              width: max-content;
+              table-layout: fixed;
+              min-width: 100%;
+              border-collapse: collapse;
+              overflow-x: scroll;
+            "
+          >
+            <thead
+              style="
+                background-color: #f8f9fa;
+                position: sticky;
+                top: 0px;
+                z-index: 5;
+              "
+            >
               <tr>
-                <th class="fixcol left-0 p-3" rowspan="3" style="width: 200px;border: 1px solid #e9e9e9;">Công việc</th>
-                <th class="fixcol left-200 p-3" rowspan="3" style="width: 150px;border: 1px solid #e9e9e9;">Thực hiện
+                <th
+                  class="fixcol left-0 p-3"
+                  rowspan="3"
+                  style="width: 200px; border: 1px solid #e9e9e9"
+                >
+                  Công việc
                 </th>
-                <th class="fixcol left-350 p-3" rowspan="3" style="width: 100px;border: 1px solid #e9e9e9;">Bắt đầu</th>
-                <th class="fixcol left-450 p-3" rowspan="3" style="width: 100px;border: 1px solid #e9e9e9;">Kết thúc
+                <th
+                  class="fixcol left-200 p-3"
+                  rowspan="3"
+                  style="width: 150px; border: 1px solid #e9e9e9"
+                >
+                  Thực hiện
                 </th>
-                <th class="p-3" style="border: 1px solid #e9e9e9;" :colspan="GrandsDate.length">Tháng 2</th>
+                <th
+                  class="fixcol left-350 p-3"
+                  rowspan="3"
+                  style="width: 100px; border: 1px solid #e9e9e9"
+                >
+                  Bắt đầu
+                </th>
+                <th
+                  class="fixcol left-450 p-3"
+                  rowspan="3"
+                  style="width: 100px; border: 1px solid #e9e9e9"
+                >
+                  Kết thúc
+                </th>
+                <th
+                  v-for="m in Grands"
+                  class="p-3"
+                  align="center"
+                  :width="m.Dates.length * 40"
+                  :colspan="m.Dates.length"
+                  style="text-align: center; min-width: 100px; color: #2196f3"
+                >
+                  Tháng {{ m.Month }}/{{ m.Year }}
+                </th>
+                <!-- <th class="p-3" style="border: 1px solid #e9e9e9;" :colspan="GrandsDate.length">Tháng 2</th> -->
               </tr>
               <tr>
-                <th class="no-fixcol p-3" width="40" style="border: 1px solid #e9e9e9;"
-                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
-                  v-for="g in GrandsDate">
-                  {{ g.DayName }}</th>
+                <th
+                  class="no-fixcol p-3"
+                  width="40"
+                  style="border: 1px solid #e9e9e9"
+                  :style="
+                    (g.bg == ''
+                      ? 'background-color: #fff;'
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
+                  "
+                  v-for="g in GrandsDate"
+                >
+                  {{ g.DayName }}
+                </th>
               </tr>
               <tr>
-                <th class="no-fixcol p-3" style="border: 1px solid #e9e9e9;"
-                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
-                  v-for="g in GrandsDate">{{ g.DayN }}
+                <th
+                  class="no-fixcol p-3"
+                  width="40"
+                  style="border: 1px solid #e9e9e9"
+                  :style="
+                    (g.bg == ''
+                      ? 'background-color: #fff;'
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
+                  "
+                  v-for="g in GrandsDate"
+                >
+                  {{ g.DayN }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="l in listTask">
-                <td class="fixcol left-0 p-3" style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">{{
-                  l.task_name
-                }}</td>
-                <td class="fixcol left-200 p-3"
-                  style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">
-                  <div style="display: flex; justify-content: center;">
+              <tr
+                v-for="l in listTask"
+                @click="onRowSelect(l)"
+              >
+                <td
+                  class="fixcol left-0 p-3"
+                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
+                >
+                  {{ l.task_name }}
+                </td>
+                <td
+                  class="fixcol left-200 p-3"
+                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
+                >
+                  <div style="display: flex; justify-content: center">
                     <AvatarGroup>
-                    <div v-for="(value, index) in l.ThanhvienShows" :key="index">
-                      <div>
-                        <Avatar v-tooltip.bottom="{
-                          value:
-                            value.type_name +
-                            ': ' +
-                            value.fullName +
-                            '<br/>' +
-                            (value.tenChucVu || '') +
-                            '<br/>' +
-                            (value.tenToChuc || ''),
-                          escape: true,
-                        }" v-bind:label="
-  value.avatar ? '' : (value.ten ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + value.avatar" style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  " :style="{
-                    background: bgColor[index % 7] + '!important',
-                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                      <div
+                        v-for="(value, index) in l.ThanhvienShows"
+                        :key="index"
+                      >
+                        <div>
+                          <Avatar
+                            v-tooltip.bottom="{
+                              value:
+                                value.type_name +
+                                ': ' +
+                                value.fullName +
+                                '<br/>' +
+                                (value.tenChucVu || '') +
+                                '<br/>' +
+                                (value.tenToChuc || ''),
+                              escape: true,
+                            }"
+                            v-bind:label="
+                              value.avatar
+                                ? ''
+                                : (value.ten ?? '').substring(0, 1)
+                            "
+                            v-bind:image="basedomainURL + value.avatar"
+                            style="
+                              background-color: #2196f3;
+                              color: #ffffff;
+                              width: 32px;
+                              height: 32px;
+                              font-size: 15px !important;
+                              margin-left: -10px;
+                            "
+                            :style="{
+                              background: bgColor[index % 7] + '!important',
+                            }"
+                            class="cursor-pointer"
+                            size="xlarge"
+                            shape="circle"
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <Avatar v-if="
-                      l.Thanhviens.length - l.ThanhvienShows.length >
-                      0
-                    " :label="
-  '+' +
-  (l.Thanhviens.length -
-    l.ThanhvienShows.length) +
-  ''
-" class="cursor-pointer" shape="circle" style="
-                background-color: #e9e9e9 !important;
-                color: #98a9bc;
-                font-size: 14px !important;
-                width: 32px;
-                margin-left: -10px;
-                height: 32px;
-              " />
-                  </AvatarGroup>
+                      <Avatar
+                        v-if="l.Thanhviens.length - l.ThanhvienShows.length > 0"
+                        :label="
+                          '+' +
+                          (l.Thanhviens.length - l.ThanhvienShows.length) +
+                          ''
+                        "
+                        class="cursor-pointer"
+                        shape="circle"
+                        style="
+                          background-color: #e9e9e9 !important;
+                          color: #98a9bc;
+                          font-size: 14px !important;
+                          width: 32px;
+                          margin-left: -10px;
+                          height: 32px;
+                        "
+                      />
+                    </AvatarGroup>
                   </div>
                 </td>
-                <td class="fixcol left-350 p-3" style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">{{
-                  l.start_date ? moment(new Date(l.start_date)).format("DD/MM/YYYY") : ''
-                }}</td>
-                <td class="fixcol left-450 p-3" style="border: 1px solid #e9e9e9;background-color: #F8F9FA;">{{
-                  l.end_date ? moment(new Date(l.end_date)).format("DD/MM/YYYY") : ''
-                }}</td>
-                <td style="background-color: #fff;border: 1px solid #e9e9e9;" width="40" :colspan="g.IsCheck?l.totalDay:1"
-                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg + ';', 'color:' + g.color"
-                  v-for="g in l.dateArray">
-                  <div v-if="g.Name" class="divbg" :style="'background-color:' + l.time_bg +'!important;color:' +l.status_text_color">{{g.Name}}</div>
+                <td
+                  class="fixcol left-350 p-3"
+                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
+                >
+                  {{
+                    l.start_date
+                      ? moment(new Date(l.start_date)).format("DD/MM/YYYY")
+                      : ""
+                  }}
+                </td>
+                <td
+                  class="fixcol left-450 p-3"
+                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
+                >
+                  {{
+                    l.end_date
+                      ? moment(new Date(l.end_date)).format("DD/MM/YYYY")
+                      : ""
+                  }}
+                </td>
+                <td
+                  class="no-fixcol-hover"
+                  style="background-color: #fff; border: 1px solid #e9e9e9"
+                  width="40"
+                  :colspan="g.IsCheck ? l.totalDay : 1"
+                  :style="
+                    (g.Name
+                      ? 'background-color: #fff;'
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
+                  "
+                  v-for="g in l.dateArray"
+                >
+                  <div
+                    v-if="g.Name"
+                    class="divbg"
+                    :style="
+                      'background-color:' +
+                      l.status_bg_color +
+                      '!important;color:' +
+                      l.status_text_color
+                    "
+                  >
+                    {{ g.Name }}
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -2683,65 +3469,376 @@ const choiceTreeUser = () => {
     </div>
     <!-- end -->
     <!-- kiểu User -->
-    <div id="task-gantt" v-if="opition.type_view == 5" 
-    style="
-        height: 89%;
+    <div
+      id="task-gantt"
+      v-if="opition.type_view == 5"
+      style="
+        /* height: 89%; */
+        max-height: calc(100vh - 500px);
+        min-height: calc(100vh - 150px);
         display: -webkit-box;
         overflow-x: auto;
         overflow-y: hidden;
-      " class="grid formgrid m-2">
-      <div class="field col-12 md:col-12" style="display: flex;padding: 0px;">
-        <div class="col-12 scrollbox_delayed" style="height: 100%;padding: 0px;overflow: auto;">
-          <table class="table table-border"
-            style="width: max-content;table-layout: fixed;min-width: 100%;border-collapse: collapse;">
-            <thead style="background-color: #f8f9fa;">
+      "
+      class="grid formgrid m-2"
+    >
+      <div
+        class="field col-12 md:col-12"
+        style="
+          display: flex;
+          padding: 0px;
+          max-height: calc(100vh - 500px);
+          min-height: calc(100vh - 150px);
+        "
+      >
+        <div
+          class="col-12 scrollbox_delayed"
+          style="height: 100%; padding: 0px; overflow: auto"
+        >
+          <table
+            class="table table-border"
+            style="
+              width: max-content;
+              table-layout: fixed;
+              min-width: 100%;
+              border-collapse: collapse;
+              overflow-x: scroll;
+            "
+          >
+            <thead
+              style="
+                background-color: #f8f9fa;
+                position: sticky;
+                top: 0px;
+                z-index: 5;
+              "
+            >
               <tr>
-                <th class="fixcol left-0 p-3" rowspan="3" style="width: 200px;border: 1px solid #e9e9e9;">Công việc</th>
-                <th class="fixcol left-200 p-3" rowspan="3" style="width: 150px;border: 1px solid #e9e9e9;">Thực hiện
+                <th
+                  class="fixcol left-0 p-3"
+                  rowspan="3"
+                  style="width: 200px; border: 1px solid #e9e9e9"
+                >
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      flex-direction: column;
+                      align-items: center;
+                    "
+                  >
+                    <span style="margin-bottom: 5px">
+                      Thành viên {{ "(" + listDropdownUser.length + ")" }}
+                    </span>
+                    <span>
+                      <AvatarGroup>
+                        <div
+                          v-for="(value, index) in listThanhVien"
+                          :key="index"
+                        >
+                          <div>
+                            <Avatar
+                              v-bind:label="
+                                value.avatar
+                                  ? ''
+                                  : (value.ten ?? '').substring(0, 1)
+                              "
+                              v-bind:image="basedomainURL + value.avatar"
+                              style="
+                                background-color: #2196f3;
+                                color: #ffffff;
+                                width: 32px;
+                                height: 32px;
+                                font-size: 15px !important;
+                                margin-left: -10px;
+                              "
+                              :style="{
+                                background: bgColor[index % 7] + '!important',
+                              }"
+                              class="cursor-pointer"
+                              size="xlarge"
+                              shape="circle"
+                            />
+                          </div>
+                        </div>
+                        <Avatar
+                          v-if="
+                            listDropdownUser.length - listThanhVien.length > 0
+                          "
+                          :label="
+                            '+' +
+                            (listDropdownUser.length - listThanhVien.length) +
+                            ''
+                          "
+                          class="cursor-pointer"
+                          shape="circle"
+                          style="
+                            background-color: #e9e9e9 !important;
+                            color: #98a9bc;
+                            font-size: 14px !important;
+                            width: 32px;
+                            margin-left: -10px;
+                            height: 32px;
+                          "
+                        />
+                      </AvatarGroup>
+                    </span>
+                  </div>
                 </th>
-                <th class="fixcol left-350 p-3" rowspan="3" style="width: 100px;border: 1px solid #e9e9e9;">Bắt đầu</th>
-                <th class="fixcol left-450 p-3" rowspan="3" style="width: 100px;border: 1px solid #e9e9e9;">Kết thúc
+                <th
+                  v-for="m in Grands"
+                  class="p-3"
+                  align="center"
+                  :width="m.Dates.length * 40"
+                  :colspan="m.Dates.length"
+                  style="text-align: center; min-width: 100px; color: #2196f3"
+                >
+                  Tháng {{ m.Month }}/{{ m.Year }}
                 </th>
-                <th class="p-3" style="border: 1px solid #e9e9e9;" :colspan="GrandsDate.length">Tháng 2</th>
               </tr>
               <tr>
-                <th class="no-fixcol p-3" style="border: 1px solid #e9e9e9;"
-                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg" v-for="g in GrandsDate">
-                  {{ g.DayName }}</th>
+                <th
+                  class="no-fixcol p-3"
+                  width="40"
+                  style="border: 1px solid #e9e9e9"
+                  :style="
+                    (g.bg == ''
+                      ? 'background-color: #fff;'
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
+                  "
+                  v-for="g in GrandsDate"
+                >
+                  {{ g.DayName }}
+                </th>
               </tr>
               <tr>
-                <th class="no-fixcol p-3" style="border: 1px solid #e9e9e9;"
-                  :style="g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg" v-for="g in GrandsDate">
-                  {{ g.DayN }}</th>
+                <th
+                  class="no-fixcol p-3"
+                  width="40"
+                  style="border: 1px solid #e9e9e9"
+                  :style="
+                    (g.bg == ''
+                      ? 'background-color: #fff;'
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
+                  "
+                  v-for="g in GrandsDate"
+                >
+                  {{ g.DayN }}
+                </th>
               </tr>
             </thead>
             <tbody>
-
+              <tr v-for="(l, index) in listTask">
+                <td
+                  class="fixcol left-0 p-3"
+                  style="
+                    height: 40px;
+                    border: 1px solid #dedede;
+                    background-color: #f8f9fa;
+                  "
+                  v-if="l.IsHienThi"
+                  :rowspan="l.count_cv"
+                >
+                  <div
+                    style="display: flex; align-items: center; padding: 10px"
+                  >
+                    <span>
+                      <Avatar
+                        v-tooltip.bottom="{
+                          value:
+                            l.user_name +
+                            '<br/>' +
+                            (l.tenChucVu || '') +
+                            '<br/>' +
+                            (l.tenToChuc || ''),
+                          escape: true,
+                        }"
+                        v-bind:label="
+                          l.avatar ? '' : (l.last_name ?? '').substring(0, 1)
+                        "
+                        v-bind:image="basedomainURL + l.avatar"
+                        style="
+                          background-color: #2196f3;
+                          color: #ffffff;
+                          width: 3.5rem;
+                          height: 3.5rem;
+                          font-size: 15px !important;
+                        "
+                        :style="{
+                          background: bgColor[(index % 7) + 1] + '!important',
+                        }"
+                        class="cursor-pointer"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                    </span>
+                    <span style="margin-left: 10px">
+                      <div
+                        style="
+                          display: flex;
+                          flex-direction: column;
+                          line-height: 20px;
+                        "
+                      >
+                        <b style="font-size: 13px">{{ l.user_name }}</b>
+                        <div
+                          style="
+                            font-weight: 600;
+                            color: #72777a;
+                            font-size: 12px;
+                          "
+                        >
+                          {{ l.tenChucVu }}
+                        </div>
+                        <div style="font-weight: 500; font-size: 11px">
+                          {{ l.tenToChuc }}
+                        </div>
+                        <div style="display: flex">
+                          <span
+                            v-if="l.count_istype_0 > 0"
+                            style="
+                              background-color: #337ab7;
+                              color: #ffffff;
+                              display: inline;
+                              padding: 0.4em 0.6em;
+                              font-size: 75%;
+                              font-weight: 700;
+                              line-height: 1;
+                              color: #fff;
+                              text-align: center;
+                              white-space: nowrap;
+                              vertical-align: baseline;
+                              border-radius: 0.25em;
+                              margin-left: 10px;
+                            "
+                            >Quản lý {{ l.count_istype_0 }}</span
+                          >
+                          <span
+                            v-if="l.count_istype_1 > 0"
+                            style="
+                              background-color: #5cb85c;
+                              color: #ffffff;
+                              display: inline;
+                              padding: 0.4em 0.6em;
+                              font-size: 75%;
+                              font-weight: 700;
+                              line-height: 1;
+                              color: #fff;
+                              text-align: center;
+                              white-space: nowrap;
+                              vertical-align: baseline;
+                              border-radius: 0.25em;
+                              margin-left: 5px;
+                            "
+                            >Thực hiện {{ l.count_istype_1 }}</span
+                          >
+                          <span
+                            v-if="l.count_istype_3 > 0"
+                            style="
+                              background-color: #5bc0de;
+                              color: #ffffff;
+                              display: inline;
+                              padding: 0.4em 0.6em;
+                              font-size: 75%;
+                              font-weight: 700;
+                              line-height: 1;
+                              color: #fff;
+                              text-align: center;
+                              white-space: nowrap;
+                              vertical-align: baseline;
+                              border-radius: 0.25em;
+                              margin-left: 5px;
+                            "
+                            >Theo dõi {{ l.count_istype_3 }}</span
+                          >
+                        </div>
+                      </div>
+                    </span>
+                  </div>
+                </td>
+                <td
+                  @click="onRowSelect(l)"
+                  rowspan="1"
+                  class="no-fixcol-hover"
+                  style="
+                    background-color: #fff;
+                    border: 1px solid #e9e9e9;
+                    height: 40px;
+                  "
+                  width="40"
+                  :colspan="g.IsCheck ? l.totalDay : 1"
+                  :style="
+                    (g.Name
+                      ? 'background-color: #fff;'
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
+                  "
+                  v-for="g in l.dateArray"
+                >
+                  <div
+                    v-if="g.Name"
+                    class="divbg"
+                    :style="
+                      'background-color:' +
+                      l.time_bg +
+                      '!important;color:' +
+                      l.status_text_color
+                    "
+                  >
+                    {{ g.Name }}
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
     <!-- end -->
-    <DetailedWork v-if="showDetail == true && selectedTaskID != null" :isShow="showDetail" :id="selectedTaskID"
-      :turn="0">
+    <DetailedWork
+      :key="componentKey"
+      v-if="showDetail == true && selectedTaskID != null"
+      :isShow="showDetail"
+      :id="selectedTaskID"
+      :turn="0"
+    >
     </DetailedWork>
   </div>
-  <Dialog :header="headerAddTask" v-model:visible="displayTask" :closable="true" :maximizable="true"
-    :style="{ width: '700px' }">
+  <Dialog
+    :header="headerAddTask"
+    style="z-index: 10"
+    v-model:visible="displayTask"
+    :closable="true"
+    :maximizable="true"
+    :style="{ width: '700px' }"
+  >
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Tên công việc<span class="redsao"> (*) </span></label>
-          <InputText v-model="Task.task_name" spellcheck="false" class="col-9 ip36 px-2"
-            :class="{ 'p-invalid': v$.task_name.$invalid && submitted }" />
+          <label class="col-3 text-left p-0"
+            >Tên công việc<span class="redsao"> (*) </span></label
+          >
+          <InputText
+            v-model="Task.task_name"
+            spellcheck="false"
+            class="col-9 ip36 px-2"
+            :class="{ 'p-invalid': v$.task_name.$invalid && submitted }"
+          />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
+        <div
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
           <div class="col-3 text-left"></div>
-          <small v-if="
-            (v$.task_name.$invalid && submitted) ||
-            v$.task_name.$pending.$response
-          " class="col-9 p-error p-0">
+          <small
+            v-if="
+              (v$.task_name.$invalid && submitted) ||
+              v$.task_name.$pending.$response
+            "
+            class="col-9 p-error p-0"
+          >
             <span class="col-12 p-0">{{
               v$.task_name.required.$message
                 .replace("Value", "Tên công việc")
@@ -2750,26 +3847,52 @@ const choiceTreeUser = () => {
           </small>
         </div>
         <!-- update tráng -->
-        <div class="field col-12 md:col-12" style="position: relative">
+        <div
+          class="field col-12 md:col-12"
+          style="position: relative"
+        >
           <label class="col-3 text-left p-0">Công việc của phòng</label>
-          <InputSwitch @change="ChangeIsDepartment(Task.is_department)" class="col-6"
-            style="position: absolute; top: 0px; left: 200px" v-model="Task.is_department" />
+          <InputSwitch
+            @change="ChangeIsDepartment(Task.is_department)"
+            class="col-6"
+            style="position: absolute; top: 0px; left: 200px"
+            v-model="Task.is_department"
+          />
           <!-- <TreeSelect class="col-9" v-model="selectcapcha" :options="listDropdownorganization" :showClear="true"
             :max-height="200" placeholder="" optionLabel="organization_name" optionValue="department_id"
             @change="ChangeTaskDepartment()" /> -->
         </div>
-        <div class="field col-12 md:col-12" v-if="Task.is_department">
+        <div
+          class="field col-12 md:col-12"
+          v-if="Task.is_department"
+        >
           <label class="col-3 text-left p-0">Phòng ban</label>
-          <TreeSelect class="col-9" v-model="selectcapcha" :options="listDropdownorganization" :showClear="true"
-            :max-height="200" placeholder="" optionLabel="organization_name" optionValue="department_id"
-            @change="ChangeTaskDepartment()" />
+          <TreeSelect
+            class="col-9"
+            v-model="selectcapcha"
+            :options="listDropdownorganization"
+            :showClear="true"
+            :max-height="200"
+            placeholder=""
+            optionLabel="organization_name"
+            optionValue="department_id"
+            @change="ChangeTaskDepartment()"
+          />
         </div>
         <!-- end -->
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0">Thuộc dự án</label>
-          <Dropdown :filter="true" v-model="Task.project_id" panelClass="d-design-dropdown" selectionLimit="1"
-            :options="listDropdownProject" optionLabel="project_name" optionValue="project_id" spellcheck="false"
-            class="col-9 ip36 p-0">
+          <Dropdown
+            :filter="true"
+            v-model="Task.project_id"
+            panelClass="d-design-dropdown"
+            selectionLimit="1"
+            :options="listDropdownProject"
+            optionLabel="project_name"
+            optionValue="project_id"
+            spellcheck="false"
+            class="col-9 ip36 p-0"
+          >
             <template #option="slotProps">
               <div class="country-item flex">
                 <div class="pt-1">{{ slotProps.option.project_name }}</div>
@@ -2778,74 +3901,140 @@ const choiceTreeUser = () => {
           </Dropdown>
         </div>
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Người giao việc
-            <span @click="OpenDialogTreeUser(true, 1)" class="choose-user"><i class="pi pi-user-plus"></i></span><span
-              class="redsao"> (*) </span></label>
-          <MultiSelect :filter="true" v-model="Task.assign_user_id" :options="listDropdownUser" optionValue="code"
-            optionLabel="name" class="col-9 ip36 p-0" placeholder="Người giao việc" @change="changeNguoiGaoViec($event)"
+          <label class="col-3 text-left p-0"
+            >Người giao việc
+            <span
+              @click="OpenDialogTreeUser(true, 1)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+            ><span class="redsao"> (*) </span></label
+          >
+          <MultiSelect
+            :filter="true"
+            v-model="Task.assign_user_id"
+            :options="listDropdownUser"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            placeholder="Người giao việc"
+            @change="changeNguoiGaoViec($event)"
             :class="{
               'p-invalid': Task.assign_user_id.length == 0 && submitted,
-            }" display="chip">
+            }"
+            display="chip"
+          >
             <template #option="slotProps">
-              <div class="country-item flex" style="align-items: center; margin-left: 10px">
-                <Avatar v-bind:label="
-                  slotProps.option.avatar
-                    ? ''
-                    : (slotProps.option.name ?? '').substring(0, 1)
-                " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+              <div
+                class="country-item flex"
+                style="align-items: center; margin-left: 10px"
+              >
+                <Avatar
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
                     height: 32px;
                     font-size: 15px !important;
                     margin-left: -10px;
-                  " :style="{
+                  "
+                  :style="{
                     background: bgColor[slotProps.index % 7] + '!important',
-                  }" class="cursor-pointer" size="xlarge" shape="circle" />
-                <div class="pt-1" style="padding-left: 10px">
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
                   {{ slotProps.option.name }}
                 </div>
               </div>
             </template>
           </MultiSelect>
         </div>
-        <div v-if="!Task.is_department" class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Người thực hiện
-            <span @click="OpenDialogTreeUser(false, 2)" class="choose-user"><i class="pi pi-user-plus"></i></span><span
-              class="redsao"> (*) </span></label>
-          <MultiSelect :filter="true" v-model="Task.work_user_ids" :options="listDropdownUser" optionValue="code"
-            optionLabel="name" class="col-9 ip36 p-0" placeholder="Người thực hiện" :class="{
+        <div
+          v-if="!Task.is_department"
+          class="field col-12 md:col-12"
+        >
+          <label class="col-3 text-left p-0"
+            >Người thực hiện
+            <span
+              @click="OpenDialogTreeUser(false, 2)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+            ><span class="redsao"> (*) </span></label
+          >
+          <MultiSelect
+            :filter="true"
+            v-model="Task.work_user_ids"
+            :options="listDropdownUser"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            placeholder="Người thực hiện"
+            :class="{
               'p-invalid': Task.work_user_ids.length == 0 && submitted,
-            }" display="chip">
+            }"
+            display="chip"
+          >
             <template #option="slotProps">
-              <div class="country-item flex" style="align-items: center; margin-left: 10px">
-                <Avatar v-bind:label="
-                  slotProps.option.avatar
-                    ? ''
-                    : (slotProps.option.name ?? '').substring(0, 1)
-                " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+              <div
+                class="country-item flex"
+                style="align-items: center; margin-left: 10px"
+              >
+                <Avatar
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
                     height: 32px;
                     font-size: 15px !important;
                     margin-left: -10px;
-                  " :style="{
+                  "
+                  :style="{
                     background: bgColor[slotProps.index % 7] + '!important',
-                  }" class="cursor-pointer" size="xlarge" shape="circle" />
-                <div class="pt-1" style="padding-left: 10px">
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
                   {{ slotProps.option.name }}
                 </div>
               </div>
             </template>
           </MultiSelect>
         </div>
-        <div v-if="!Task.is_department" style="display: flex" class="field col-12 md:col-12">
+        <div
+          v-if="!Task.is_department"
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
           <div class="col-3 text-left"></div>
-          <small v-if="
-            (v$.work_user_ids.$invalid && submitted) ||
-            v$.work_user_ids.$pending.$response
-          " class="col-9 p-error p-0">
+          <small
+            v-if="
+              (v$.work_user_ids.$invalid && submitted) ||
+              v$.work_user_ids.$pending.$response
+            "
+            class="col-9 p-error p-0"
+          >
             <span class="col-12 p-0">{{
               v$.work_user_ids.required.$message
                 .replace("Value", "Người thực hiện")
@@ -2853,58 +4042,114 @@ const choiceTreeUser = () => {
             }}</span>
           </small>
         </div>
-        <div v-if="!Task.is_department" class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Người đồng thực hiện
-            <span @click="OpenDialogTreeUser(false, 3)" class="choose-user"><i
-                class="pi pi-user-plus"></i></span></label>
-          <MultiSelect :filter="true" v-model="Task.works_user_ids" :options="listDropdownUser" optionValue="code"
-            optionLabel="name" class="col-9 ip36 p-0" display="chip">
+        <div
+          v-if="!Task.is_department"
+          class="field col-12 md:col-12"
+        >
+          <label class="col-3 text-left p-0"
+            >Người đồng thực hiện
+            <span
+              @click="OpenDialogTreeUser(false, 3)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+          ></label>
+          <MultiSelect
+            :filter="true"
+            v-model="Task.works_user_ids"
+            :options="listDropdownUser"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            display="chip"
+          >
             <template #option="slotProps">
-              <div class="country-item flex" style="align-items: center; padding-left: 10px">
-                <Avatar v-bind:label="
-                  slotProps.option.avatar
-                    ? ''
-                    : (slotProps.option.name ?? '').substring(0, 1)
-                " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+              <div
+                class="country-item flex"
+                style="align-items: center; padding-left: 10px"
+              >
+                <Avatar
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
                     height: 32px;
                     font-size: 15px !important;
                     margin-left: -10px;
-                  " :style="{
+                  "
+                  :style="{
                     background: bgColor[slotProps.index % 7] + '!important',
-                  }" class="cursor-pointer" size="xlarge" shape="circle" />
-                <div class="pt-1" style="padding-left: 10px">
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
                   {{ slotProps.option.name }}
                 </div>
               </div>
             </template>
           </MultiSelect>
         </div>
-        <div v-if="!Task.is_department" class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Người theo dõi
-            <span @click="OpenDialogTreeUser(false, 4)" class="choose-user"><i
-                class="pi pi-user-plus"></i></span></label>
-          <MultiSelect :filter="true" v-model="Task.follow_user_ids" :options="listDropdownUser" optionValue="code"
-            optionLabel="name" class="col-9 ip36 p-0" display="chip">
+        <div
+          v-if="!Task.is_department"
+          class="field col-12 md:col-12"
+        >
+          <label class="col-3 text-left p-0"
+            >Người theo dõi
+            <span
+              @click="OpenDialogTreeUser(false, 4)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+          ></label>
+          <MultiSelect
+            :filter="true"
+            v-model="Task.follow_user_ids"
+            :options="listDropdownUser"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            display="chip"
+          >
             <template #option="slotProps">
-              <div class="country-item flex" style="align-items: center; padding-left: 10px">
-                <Avatar v-bind:label="
-                  slotProps.option.avatar
-                    ? ''
-                    : (slotProps.option.name ?? '').substring(0, 1)
-                " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+              <div
+                class="country-item flex"
+                style="align-items: center; padding-left: 10px"
+              >
+                <Avatar
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
                     height: 32px;
                     font-size: 15px !important;
                     margin-left: -10px;
-                  " :style="{
+                  "
+                  :style="{
                     background: bgColor[slotProps.index % 7] + '!important',
-                  }" class="cursor-pointer" size="xlarge" shape="circle" />
-                <div class="pt-1" style="padding-left: 10px">
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
                   {{ slotProps.option.name }}
                 </div>
               </div>
@@ -2913,9 +4158,17 @@ const choiceTreeUser = () => {
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0">Nhóm</label>
-          <Dropdown :filter="true" v-model="Task.group_id" panelClass="d-design-dropdown" selectionLimit="1"
-            :options="listDropdownTaskGroup" optionLabel="group_name" optionValue="group_id" spellcheck="false"
-            class="col-9 ip36 p-0">
+          <Dropdown
+            :filter="true"
+            v-model="Task.group_id"
+            panelClass="d-design-dropdown"
+            selectionLimit="1"
+            :options="listDropdownTaskGroup"
+            optionLabel="group_name"
+            optionValue="group_id"
+            spellcheck="false"
+            class="col-9 ip36 p-0"
+          >
             <template #option="slotProps">
               <div class="country-item flex">
                 <div class="pt-1">{{ slotProps.option.group_name }}</div>
@@ -2923,45 +4176,94 @@ const choiceTreeUser = () => {
             </template>
           </Dropdown>
         </div>
-        <div class="field col-12 md:col-12" style="display: flex">
+        <div
+          class="field col-12 md:col-12"
+          style="display: flex"
+        >
           <div class="col-3"></div>
-          <div class="col-9" style="display: flex">
+          <div
+            class="col-9"
+            style="display: flex"
+          >
             <div class="col-5">
-              <Checkbox style="margin-right: 5px" v-model="Task.is_review" :binary="true" />
+              <Checkbox
+                style="margin-right: 5px"
+                v-model="Task.is_review"
+                :binary="true"
+              />
               YC đánh giá công việc
             </div>
             <div class="col-4">
-              <Checkbox style="margin-right: 5px" v-model="Task.is_deadline" :binary="true" />
+              <Checkbox
+                style="margin-right: 5px"
+                v-model="Task.is_deadline"
+                :binary="true"
+              />
               Có hạn xử lý
             </div>
             <div class="col-3">
-              <Checkbox style="margin-right: 5px" v-model="Task.is_prioritize" :binary="true" />
+              <Checkbox
+                style="margin-right: 5px"
+                v-model="Task.is_prioritize"
+                :binary="true"
+              />
               Ưu tiên
             </div>
           </div>
         </div>
-        <div class="field col-12 md:col-12" style="display: flex; align-items: center">
+        <div
+          class="field col-12 md:col-12"
+          style="display: flex; align-items: center"
+        >
           <label class="col-3 text-left p-0">Ngày bắt đầu</label>
-          <div class="col-9" style="display: flex; padding: 0px; align-items: center">
-            <Calendar :manualInput="true" :showIcon="true" class="col-5 ip36 title-lable"
-              style="margin-top: 5px; padding: 0px" id="time1" autocomplete="on" v-model="Task.start_date" />
-            <div class="col-7" style="display: flex; padding: 0px; align-items: center">
+          <div
+            class="col-9"
+            style="display: flex; padding: 0px; align-items: center"
+          >
+            <Calendar
+              :manualInput="true"
+              :showIcon="true"
+              class="col-5 ip36 title-lable"
+              style="margin-top: 5px; padding: 0px"
+              id="time1"
+              autocomplete="on"
+              v-model="Task.start_date"
+            />
+            <div
+              class="col-7"
+              style="display: flex; padding: 0px; align-items: center"
+            >
               <label class="col-5 text-center">Ngày kết thúc</label>
-              <Calendar :manualInput="true" :showIcon="true" class="col-7 ip36 title-lable"
-                style="margin-top: 5px; padding: 0px" id="time2" placeholder="dd/MM/yy" autocomplete="on"
-                v-model="Task.end_date" :class="{
+              <Calendar
+                :manualInput="true"
+                :showIcon="true"
+                class="col-7 ip36 title-lable"
+                style="margin-top: 5px; padding: 0px"
+                id="time2"
+                placeholder="dd/MM/yy"
+                autocomplete="on"
+                v-model="Task.end_date"
+                :class="{
                   'p-invalid':
                     v$.end_date.$invalid && submitted && Task.is_deadline,
-                }" @date-select="CheckDate($event)" />
+                }"
+                @date-select="CheckDate($event)"
+              />
             </div>
           </div>
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
+        <div
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
           <div class="col-3 text-left"></div>
-          <small v-if="
-            (v$.end_date.$invalid && submitted && Task.is_deadline) ||
-            (v$.end_date.$pending.$response && Task.is_deadline)
-          " class="col-9 p-error p-0">
+          <small
+            v-if="
+              (v$.end_date.$invalid && submitted && Task.is_deadline) ||
+              (v$.end_date.$pending.$response && Task.is_deadline)
+            "
+            class="col-9 p-error p-0"
+          >
             <span class="col-12 p-0">{{
               v$.end_date.required.$message
                 .replace("Value", "Ngày kết thúc")
@@ -2969,26 +4271,53 @@ const choiceTreeUser = () => {
             }}</span>
           </small>
         </div>
-        <div class="field col-12 md:col-12" style="display: flex; align-items: center">
+        <div
+          class="field col-12 md:col-12"
+          style="display: flex; align-items: center"
+        >
           <label class="col-3 text-left p-0">STT</label>
-          <div class="col-9" style="display: flex; padding: 0px; align-items: center">
-            <InputText style="margin-top: 5px" v-model="Task.is_order" spellcheck="false" class="col-4 ip36 px-2" />
-            <div class="col-8" style="
+          <div
+            class="col-9"
+            style="display: flex; padding: 0px; align-items: center"
+          >
+            <InputText
+              style="margin-top: 5px"
+              v-model="Task.is_order"
+              spellcheck="false"
+              class="col-4 ip36 px-2"
+            />
+            <div
+              class="col-8"
+              style="
                 display: flex;
                 padding: 0px;
                 align-items: center;
                 position: relative;
-              ">
+              "
+            >
               <label class="col-6 text-center">Kích hoạt bảo mật</label>
-              <InputSwitch class="col-6" style="position: absolute; top: 0px; left: 200px" v-model="Task.is_security" />
+              <InputSwitch
+                class="col-6"
+                style="position: absolute; top: 0px; left: 200px"
+                v-model="Task.is_security"
+              />
             </div>
           </div>
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0">Trạng thái công việc</label>
-          <Dropdown :filter="true" style="margin-top: 5px" panelClass="d-design-dropdown" v-model="Task.status"
-            :options="listDropdownStatus" optionLabel="text" optionValue="value" placeholder="Trạng thái công việc"
-            spellcheck="false" class="col-9 ip36 p-0">
+          <Dropdown
+            :filter="true"
+            style="margin-top: 5px"
+            panelClass="d-design-dropdown"
+            v-model="Task.status"
+            :options="listDropdownStatus"
+            optionLabel="text"
+            optionValue="value"
+            placeholder="Trạng thái công việc"
+            spellcheck="false"
+            class="col-9 ip36 p-0"
+          >
             <template #option="slotProps">
               <div class="country-item flex">
                 <div class="pt-1">{{ slotProps.option.text }}</div>
@@ -2999,90 +4328,175 @@ const choiceTreeUser = () => {
         <div class="field col-12 md:col-12">
           <Accordion :multiple="true">
             <AccordionTab header="THÔNG TIN KHÁC">
-              <div v-if="Task.is_department" class="field col-12 md:col-12">
-                <label class="col-3 text-left p-0">Người thực hiện
-                  <span @click="OpenDialogTreeUser(false, 2)" class="choose-user"><i
-                      class="pi pi-user-plus"></i></span></label>
-                <MultiSelect :filter="true" v-model="Task.work_user_ids" :options="listDropdownUser" optionValue="code"
-                  optionLabel="name" class="col-9 ip36 p-0" placeholder="Người thực hiện" display="chip">
+              <div
+                v-if="Task.is_department"
+                class="field col-12 md:col-12"
+              >
+                <label class="col-3 text-left p-0"
+                  >Người thực hiện
+                  <span
+                    @click="OpenDialogTreeUser(false, 2)"
+                    class="choose-user"
+                    ><i class="pi pi-user-plus"></i></span
+                ></label>
+                <MultiSelect
+                  :filter="true"
+                  v-model="Task.work_user_ids"
+                  :options="listDropdownUser"
+                  optionValue="code"
+                  optionLabel="name"
+                  class="col-9 ip36 p-0"
+                  placeholder="Người thực hiện"
+                  display="chip"
+                >
                   <template #option="slotProps">
-                    <div class="country-item flex" style="align-items: center; margin-left: 10px">
-                      <Avatar v-bind:label="
-                        slotProps.option.avatar
-                          ? ''
-                          : (slotProps.option.name ?? '').substring(0, 1)
-                      " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                    <div
+                      class="country-item flex"
+                      style="align-items: center; margin-left: 10px"
+                    >
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : (slotProps.option.name ?? '').substring(0, 1)
+                        "
+                        v-bind:image="basedomainURL + slotProps.option.avatar"
+                        style="
                           background-color: #2196f3;
                           color: #ffffff;
                           width: 32px;
                           height: 32px;
                           font-size: 15px !important;
                           margin-left: -10px;
-                        " :style="{
+                        "
+                        :style="{
                           background:
                             bgColor[slotProps.index % 7] + '!important',
-                        }" class="cursor-pointer" size="xlarge" shape="circle" />
-                      <div class="pt-1" style="padding-left: 10px">
+                        }"
+                        class="cursor-pointer"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                      <div
+                        class="pt-1"
+                        style="padding-left: 10px"
+                      >
                         {{ slotProps.option.name }}
                       </div>
                     </div>
                   </template>
                 </MultiSelect>
               </div>
-              <div v-if="Task.is_department" class="field col-12 md:col-12">
-                <label class="col-3 text-left p-0">Người đồng thực hiện
-                  <span @click="OpenDialogTreeUser(false, 3)" class="choose-user"><i
-                      class="pi pi-user-plus"></i></span></label>
-                <MultiSelect :filter="true" v-model="Task.works_user_ids" :options="listDropdownUser" optionValue="code"
-                  optionLabel="name" class="col-9 ip36 p-0" display="chip">
+              <div
+                v-if="Task.is_department"
+                class="field col-12 md:col-12"
+              >
+                <label class="col-3 text-left p-0"
+                  >Người đồng thực hiện
+                  <span
+                    @click="OpenDialogTreeUser(false, 3)"
+                    class="choose-user"
+                    ><i class="pi pi-user-plus"></i></span
+                ></label>
+                <MultiSelect
+                  :filter="true"
+                  v-model="Task.works_user_ids"
+                  :options="listDropdownUser"
+                  optionValue="code"
+                  optionLabel="name"
+                  class="col-9 ip36 p-0"
+                  display="chip"
+                >
                   <template #option="slotProps">
-                    <div class="country-item flex" style="align-items: center; padding-left: 10px">
-                      <Avatar v-bind:label="
-                        slotProps.option.avatar
-                          ? ''
-                          : (slotProps.option.name ?? '').substring(0, 1)
-                      " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                    <div
+                      class="country-item flex"
+                      style="align-items: center; padding-left: 10px"
+                    >
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : (slotProps.option.name ?? '').substring(0, 1)
+                        "
+                        v-bind:image="basedomainURL + slotProps.option.avatar"
+                        style="
                           background-color: #2196f3;
                           color: #ffffff;
                           width: 32px;
                           height: 32px;
                           font-size: 15px !important;
                           margin-left: -10px;
-                        " :style="{
+                        "
+                        :style="{
                           background:
                             bgColor[slotProps.index % 7] + '!important',
-                        }" class="cursor-pointer" size="xlarge" shape="circle" />
-                      <div class="pt-1" style="padding-left: 10px">
+                        }"
+                        class="cursor-pointer"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                      <div
+                        class="pt-1"
+                        style="padding-left: 10px"
+                      >
                         {{ slotProps.option.name }}
                       </div>
                     </div>
                   </template>
                 </MultiSelect>
               </div>
-              <div v-if="Task.is_department" class="field col-12 md:col-12">
-                <label class="col-3 text-left p-0">Người theo dõi
-                  <span @click="OpenDialogTreeUser(false, 4)" class="choose-user"><i
-                      class="pi pi-user-plus"></i></span></label>
-                <MultiSelect :filter="true" v-model="Task.follow_user_ids" :options="listDropdownUser"
-                  optionValue="code" optionLabel="name" class="col-9 ip36 p-0" display="chip">
+              <div
+                v-if="Task.is_department"
+                class="field col-12 md:col-12"
+              >
+                <label class="col-3 text-left p-0"
+                  >Người theo dõi
+                  <span
+                    @click="OpenDialogTreeUser(false, 4)"
+                    class="choose-user"
+                    ><i class="pi pi-user-plus"></i></span
+                ></label>
+                <MultiSelect
+                  :filter="true"
+                  v-model="Task.follow_user_ids"
+                  :options="listDropdownUser"
+                  optionValue="code"
+                  optionLabel="name"
+                  class="col-9 ip36 p-0"
+                  display="chip"
+                >
                   <template #option="slotProps">
-                    <div class="country-item flex" style="align-items: center; padding-left: 10px">
-                      <Avatar v-bind:label="
-                        slotProps.option.avatar
-                          ? ''
-                          : (slotProps.option.name ?? '').substring(0, 1)
-                      " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                    <div
+                      class="country-item flex"
+                      style="align-items: center; padding-left: 10px"
+                    >
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : (slotProps.option.name ?? '').substring(0, 1)
+                        "
+                        v-bind:image="basedomainURL + slotProps.option.avatar"
+                        style="
                           background-color: #2196f3;
                           color: #ffffff;
                           width: 32px;
                           height: 32px;
                           font-size: 15px !important;
                           margin-left: -10px;
-                        " :style="{
+                        "
+                        :style="{
                           background:
                             bgColor[slotProps.index % 7] + '!important',
-                        }" class="cursor-pointer" size="xlarge" shape="circle" />
-                      <div class="pt-1" style="padding-left: 10px">
+                        }"
+                        class="cursor-pointer"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                      <div
+                        class="pt-1"
+                        style="padding-left: 10px"
+                      >
                         {{ slotProps.option.name }}
                       </div>
                     </div>
@@ -3091,9 +4505,17 @@ const choiceTreeUser = () => {
               </div>
               <div class="field col-12 md:col-12">
                 <label class="col-3 text-left p-0">Chọn trọng số</label>
-                <Dropdown :filter="true" v-model="Task.weight" panelClass="d-design-dropdown" selectionLimit="1"
-                  :options="listDropdownweight" optionLabel="weight_name" optionValue="weight_id" spellcheck="false"
-                  class="col-9 ip36 p-0">
+                <Dropdown
+                  :filter="true"
+                  v-model="Task.weight"
+                  panelClass="d-design-dropdown"
+                  selectionLimit="1"
+                  :options="listDropdownweight"
+                  optionLabel="weight_name"
+                  optionValue="weight_id"
+                  spellcheck="false"
+                  class="col-9 ip36 p-0"
+                >
                   <template #option="slotProps">
                     <div class="country-item flex">
                       <div class="pt-1">{{ slotProps.option.weight_name }}</div>
@@ -3101,54 +4523,126 @@ const choiceTreeUser = () => {
                   </template>
                 </Dropdown>
               </div>
-              <div class="field col-12 md:col-12" style="display: flex; align-items: center">
+              <div
+                class="field col-12 md:col-12"
+                style="display: flex; align-items: center"
+              >
                 <label class="col-3 text-left p-0">Mô tả</label>
-                <Textarea style="margin-top: 5px; padding: 5px; min-height: 100px" v-model="Task.description"
-                  class="col-9 ip36" :autoResize="true" rows="5" cols="30" />
+                <Textarea
+                  style="margin-top: 5px; padding: 5px; min-height: 100px"
+                  v-model="Task.description"
+                  class="col-9 ip36"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                />
               </div>
-              <div class="field col-12 md:col-12" style="display: flex; align-items: center">
+              <div
+                class="field col-12 md:col-12"
+                style="display: flex; align-items: center"
+              >
                 <label class="col-3 text-left p-0">Mục tiêu</label>
-                <Textarea style="margin-top: 5px; padding: 5px; min-height: 100px" v-model="Task.target"
-                  class="col-9 ip36" :autoResize="true" rows="5" cols="30" />
+                <Textarea
+                  style="margin-top: 5px; padding: 5px; min-height: 100px"
+                  v-model="Task.target"
+                  class="col-9 ip36"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                />
               </div>
-              <div class="field col-12 md:col-12" style="display: flex; align-items: center">
+              <div
+                class="field col-12 md:col-12"
+                style="display: flex; align-items: center"
+              >
                 <label class="col-3 text-left p-0">Khó khăn vướng mắc</label>
-                <Textarea style="margin-top: 5px; padding: 5px; min-height: 100px" v-model="Task.difficult"
-                  class="col-9 ip36" :autoResize="true" rows="5" cols="30" />
+                <Textarea
+                  style="margin-top: 5px; padding: 5px; min-height: 100px"
+                  v-model="Task.difficult"
+                  class="col-9 ip36"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                />
               </div>
-              <div class="field col-12 md:col-12" style="display: flex; align-items: center">
+              <div
+                class="field col-12 md:col-12"
+                style="display: flex; align-items: center"
+              >
                 <label class="col-3 text-left p-0">Đề xuất</label>
-                <Textarea style="margin-top: 5px; padding: 5px; min-height: 50px" v-model="Task.request"
-                  class="col-9 ip36" :autoResize="true" rows="5" cols="30" />
+                <Textarea
+                  style="margin-top: 5px; padding: 5px; min-height: 50px"
+                  v-model="Task.request"
+                  class="col-9 ip36"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                />
               </div>
-              <div class="field col-12 md:col-12" id="task_file" style="display: flex">
+              <div
+                class="field col-12 md:col-12"
+                id="task_file"
+                style="display: flex"
+              >
                 <label class="col-3 text-left p-0">File</label>
                 <div class="col-9 p-0">
-                  <FileUpload chooseLabel="Chọn File" style="margin-top: 5px !important" :showUploadButton="false"
-                    :showCancelButton="false" :multiple="true" accept="" :maxFileSize="10000000" @select="onUploadFile"
-                    @remove="removeFile" />
-                  <div class="col-12 p-0" style="border: 1px solid #e1e1e1; margin-top: -1px"
-                    v-if="Task.files.length > 0 && !isAdd">
-                    <DataView :lazy="true" :value="Task.files" :rowHover="true" :scrollable="true"
-                      class="w-full h-full ptable p-datatable-sm flex flex-column col-10 ip36 p-0" layout="list"
-                      responsiveLayout="scroll">
+                  <FileUpload
+                    chooseLabel="Chọn File"
+                    style="margin-top: 5px !important"
+                    :showUploadButton="false"
+                    :showCancelButton="false"
+                    :multiple="true"
+                    accept=""
+                    :maxFileSize="10000000"
+                    @select="onUploadFile"
+                    @remove="removeFile"
+                  />
+                  <div
+                    class="col-12 p-0"
+                    style="border: 1px solid #e1e1e1; margin-top: -1px"
+                    v-if="Task.files.length > 0 && !isAdd"
+                  >
+                    <DataView
+                      :lazy="true"
+                      :value="Task.files"
+                      :rowHover="true"
+                      :scrollable="true"
+                      class="w-full h-full ptable p-datatable-sm flex flex-column col-10 ip36 p-0"
+                      layout="list"
+                      responsiveLayout="scroll"
+                    >
                       <template #list="slotProps">
-                        <Toolbar class="w-full" style="display: flex">
+                        <Toolbar
+                          class="w-full"
+                          style="display: flex"
+                        >
                           <template #start>
                             <div class="flex align-items-center task-file-list">
-                              <img class="mr-2" :src="
-                                basedomainURL +
-                                '/Portals/Image/file/' +
-                                slotProps.data.file_type +
-                                '.png'
-                              " style="object-fit: contain" width="40" height="40" />
-                              <span style="line-height: 1.5; word-break: break-all">
-                                {{ slotProps.data.file_name }}</span>
+                              <img
+                                class="mr-2"
+                                :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  slotProps.data.file_type +
+                                  '.png'
+                                "
+                                style="object-fit: contain"
+                                width="40"
+                                height="40"
+                              />
+                              <span
+                                style="line-height: 1.5; word-break: break-all"
+                              >
+                                {{ slotProps.data.file_name }}</span
+                              >
                             </div>
                           </template>
                           <template #end>
-                            <Button icon="pi pi-times" class="p-button-rounded p-button-danger"
-                              @click="deleteFile(slotProps.data)" />
+                            <Button
+                              icon="pi pi-times"
+                              class="p-button-rounded p-button-danger"
+                              @click="deleteFile(slotProps.data)"
+                            />
                           </template>
                         </Toolbar>
                       </template>
@@ -3162,14 +4656,30 @@ const choiceTreeUser = () => {
       </div>
     </form>
     <template #footer>
-      <Button label="Hủy" icon="pi pi-times" @click="closeDialogTask" class="p-button-text" />
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialogTask"
+        class="p-button-text"
+      />
 
-      <Button label="Lưu" icon="pi pi-check" @click="saveTask(!v$.$invalid)" />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveTask(!v$.$invalid)"
+      />
     </template>
   </Dialog>
 
-  <treeuser v-if="displayDialogUser === true" :headerDialog="headerDialogUser" :displayDialog="displayDialogUser"
-    :one="is_one" :selected="selectedUser" :closeDialog="closeDialog" :choiceUser="choiceTreeUser" />
+  <treeuser
+    v-if="displayDialogUser === true"
+    :headerDialog="headerDialogUser"
+    :displayDialog="displayDialogUser"
+    :one="is_one"
+    :selected="selectedUser"
+    :closeDialog="closeDialog"
+    :choiceUser="choiceTreeUser"
+  />
 </template>
 <style lang="scss" scoped>
 #toolbar_right .active {
@@ -3393,7 +4903,7 @@ const choiceTreeUser = () => {
   flex-direction: column;
 }
 
-.p-card .p-card-content>span {
+.p-card .p-card-content > span {
   margin-top: 10px;
 }
 
@@ -3415,13 +4925,22 @@ const choiceTreeUser = () => {
   line-height: 1rem !important;
 }
 
+#task-gantt .table tbody tr:hover {
+  cursor: pointer;
+  /* background-color: #E5F3FF !important; */
+}
+
+#task-gantt .table tbody tr:hover td.no-fixcol-hover {
+  background-color: #e5f3ff !important;
+}
+
 #task-gantt .table thead tr .fixcol {
   z-index: 5;
   color: #000;
   font-weight: 600;
   position: sticky;
   /* background: #f5f5f5; */
-  background-color: #F8F9FA;
+  background-color: #f8f9fa;
   outline: 1px solid #e9e9e9;
   border: none;
   vertical-align: middle;
@@ -3433,11 +4952,11 @@ const choiceTreeUser = () => {
 
 #task-gantt .table tbody tr .fixcol {
   position: sticky;
-  z-index: 2;
+  z-index: 0;
   color: #000;
   font-weight: 400;
   /* background: #f5f5f5; */
-  background-color: #F8F9FA;
+  background-color: #f8f9fa;
   outline: 1px solid #e9e9e9;
   border: none;
   vertical-align: middle;
@@ -3514,5 +5033,6 @@ const choiceTreeUser = () => {
   white-space: normal;
   position: relative;
   margin: 5px;
+  position: inherit;
 }
 </style>

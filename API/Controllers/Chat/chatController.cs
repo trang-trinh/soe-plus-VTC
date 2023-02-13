@@ -344,13 +344,19 @@ namespace API.Controllers
                         #region SendNoti
                         var lstsh = new List<sys_sendhub>();
                         List<string> tokens = new List<string>();
-                        string ConnectionSQL = db.Database.Connection.ConnectionString;
-                        //var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", chat_main.chat_group_id, uid).Tables[0]);
-                        var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", chat_main.chat_group_id, uid).Tables[0];
-                        var table = task;
+                        //string ConnectionSQL = db.Database.Connection.ConnectionString;
+                        string ConnectionSQL = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+                        var sqlpas = new List<SqlParameter>();
+                        sqlpas.Add(new SqlParameter("@" + "chat_group_id", chat_main.chat_group_id));
+                        sqlpas.Add(new SqlParameter("@" + "users_ID", uid));
+                        var arrpas = sqlpas.ToArray();
+                        var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0];
+                        //var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0]);
+                        var tables = task;
+
                         if (idMembers.Count > 0)
                         {
-                            List<UserToken> dataMember = UserTokenByTable(table);
+                            List<UserToken> dataMember = UserTokenByTable(tables);
                             foreach (var to in dataMember)
                             {
                                 userids.Add(to.users_id);
@@ -668,6 +674,7 @@ namespace API.Controllers
                                 if (listMessage.Count > 0)
                                 {
                                     db.chat_message.AddRange(listMessage);
+                                    db.SaveChanges();
                                 }
 
                                 if (listFileUp.Count > 0)
@@ -1226,9 +1233,15 @@ namespace API.Controllers
                     List<string> nsids = new List<string>();
                     // var ng = await db.sys_users.FindAsync(uid);
 
-                    string ConnectionSQL = db.Database.Connection.ConnectionString;
-                    var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", chat_group_id, uid).Tables[0];
+                    string ConnectionSQL = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+                    var sqlpas = new List<SqlParameter>();
+                    sqlpas.Add(new SqlParameter("@" + "chat_group_id", chat_group_id));
+                    sqlpas.Add(new SqlParameter("@" + "users_ID", uid));
+                    var arrpas = sqlpas.ToArray();
+                    var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0];
+                    //var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0]);
                     var tables = task;
+
                     List<UserToken> fbs = UserTokenByTable(tables);
                     foreach (var to in fbs)
                     {
@@ -1449,9 +1462,16 @@ namespace API.Controllers
                                             #region SendGM
                                             var lstsh = new List<sys_sendhub>();
                                             var ng = db.sys_users.Find(uid);
-                                            string ConnectionSQL = db.Database.Connection.ConnectionString;
-                                            var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", item, uid).Tables[0];
+
+                                            string ConnectionSQL = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+                                            var sqlpas = new List<SqlParameter>();
+                                            sqlpas.Add(new SqlParameter("@" + "chat_group_id", item));
+                                            sqlpas.Add(new SqlParameter("@" + "users_ID", uid));
+                                            var arrpas = sqlpas.ToArray();
+                                            var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0];
+                                            //var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0]);
                                             var tables = task;
+
                                             List<UserToken> fbs = UserTokenByTable(tables);
                                             List<string> tokens = new List<string>();
                                             foreach (var to in fbs)
@@ -1640,9 +1660,16 @@ namespace API.Controllers
                                             #region SendGM
                                             var lstsh = new List<sys_sendhub>();
                                             var ng = db.sys_users.Find(uid);
-                                            string ConnectionSQL = db.Database.Connection.ConnectionString;
-                                            var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", chatGet.chat_group_id, uid).Tables[0];
+
+                                            string ConnectionSQL = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+                                            var sqlpas = new List<SqlParameter>();
+                                            sqlpas.Add(new SqlParameter("@" + "chat_group_id", chatGet.chat_group_id));
+                                            sqlpas.Add(new SqlParameter("@" + "users_ID", uid));
+                                            var arrpas = sqlpas.ToArray();
+                                            var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0];
+                                            //var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0]);
                                             var tables = task;
+
                                             List<UserToken> fbs = UserTokenByTable(tables);
                                             List<string> tokens = new List<string>();
                                             foreach (var to in fbs)
@@ -1822,9 +1849,16 @@ namespace API.Controllers
                                                 #region SendGM
                                                 var lstsh = new List<sys_sendhub>();
                                                 var ng = db.sys_users.Find(uid);
-                                                string ConnectionSQL = db.Database.Connection.ConnectionString;
-                                                var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", new_chat.chat_group_id, uid).Tables[0];
+
+                                                string ConnectionSQL = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+                                                var sqlpas = new List<SqlParameter>();
+                                                sqlpas.Add(new SqlParameter("@" + "chat_group_id", new_chat.chat_group_id));
+                                                sqlpas.Add(new SqlParameter("@" + "users_ID", uid));
+                                                var arrpas = sqlpas.ToArray();
+                                                var task = SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0];
+                                                //var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0]);
                                                 var tables = task;
+
                                                 List<UserToken> fbs = UserTokenByTable(tables);
                                                 List<string> tokens = new List<string>();
                                                 foreach (var to in fbs)

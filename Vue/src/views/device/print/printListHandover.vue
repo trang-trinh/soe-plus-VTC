@@ -47,7 +47,7 @@ const props = defineProps({
             <th style="width: 50px">TT</th>
             <th style="width: 150px">Số phiếu</th>
             <th style="width: 150px">Người bàn giao</th>
-            <th style="width: 150px">Người sử dụng</th>
+            <th style="width: 150px">Sử dụng</th>
             <th style="width: 100px">Tài sản</th>
             <th style="width: 100px">Ngày lập</th>
             <th style="width: 100px">Ngày xác nhận</th>
@@ -72,7 +72,11 @@ const props = defineProps({
             </td>
 
             <td align="center">
-              <div>{{ value.user_receiver_name }}</div>
+              <div> 
+                   <span v-if="value.is_receiver_department">
+                {{ value.receiver_department_name }}</span
+              ><span v-else>{{ value.user_receiver_name }}</span>
+              </div>
             </td>
             <td align="center">
               <div>{{ value.assets }}</div>

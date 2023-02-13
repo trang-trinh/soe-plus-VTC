@@ -158,13 +158,7 @@ const goFile = (file) => {
                                       v-bind:image="
                                         basedomainURL + signuser.avatar
                                       "
-                                      v-tooltip.top="
-                                        signuser.full_name +
-                                        '<br>' +
-                                        signuser.position_name +
-                                        '<br>' +
-                                        signuser.department_name
-                                      "
+                                      v-tooltip.top="signuser.full_name"
                                       style="
                                         background-color: #2196f3;
                                         color: #ffffff;
@@ -393,13 +387,7 @@ const goFile = (file) => {
                                     v-bind:image="
                                       basedomainURL + signuser.avatar
                                     "
-                                    v-tooltip.top="
-                                      signuser.full_name +
-                                      '<br>' +
-                                      signuser.position_name +
-                                      '<br>' +
-                                      signuser.department_name
-                                    "
+                                    v-tooltip.top="signuser.full_name"
                                     style="
                                       background-color: #2196f3;
                                       color: #ffffff;
@@ -573,13 +561,7 @@ const goFile = (file) => {
                                 : signuser.last_name.substring(0, 1)
                             "
                             v-bind:image="basedomainURL + signuser.avatar"
-                            v-tooltip.top="
-                              signuser.full_name +
-                              '<br>' +
-                              signuser.position_name +
-                              '<br>' +
-                              signuser.department_name
-                            "
+                            v-tooltip.top="signuser.full_name"
                             style="
                               background-color: #2196f3;
                               color: #ffffff;
@@ -725,13 +707,7 @@ const goFile = (file) => {
                             log.avatar ? '' : log.last_name.substring(0, 1)
                           "
                           v-bind:image="basedomainURL + log.avatar"
-                          v-tooltip.top="
-                            log.full_name +
-                            '<br>' +
-                            log.position_name +
-                            '<br>' +
-                            log.department_name
-                          "
+                          v-tooltip.top="log.full_name"
                           style="
                             background-color: #2196f3;
                             color: #ffffff;

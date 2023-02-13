@@ -7,6 +7,7 @@ import { useVuelidate } from "@vuelidate/core";
 import moment from "moment";
 
 import detailsDevice from "../../components/device/detailsDevice.vue";
+import printCardVue from "./print/printCard.vue";
 import { encr, checkURL } from "../../util/function.js";
 //Khai báo
 const router = inject("router");
@@ -179,6 +180,90 @@ const changeMonthPur = (event) => {
   };
   filterSQL.value.push(filterS1);
 };
+
+const print = () => {
+  var htmltable = "";
+  htmltable = renderhtmlWord("formwordlist", htmltable);
+   
+  var printframe = window.frames["printframe"];
+  printframe.document.write(htmltable);
+  setTimeout(function () {
+    printframe.print();
+    printframe.document.close();
+  }, 0);
+};
+
+function renderhtmlWord(id, htmltable) {
+  htmltable = "";
+  //Style
+  htmltable += `<style>
+    #formprint, #formword  {
+      background: #fff !important;
+    }
+    #formprint *, #formword * {
+      font-family: "Times New Roman", Times, serif !important;
+      font-size: 13pt;
+    }
+    .title1,
+    .title1 * {
+      font-size: 17pt !important;
+    }
+    .title2,
+    .title2 * {
+      font-size: 16pt !important;
+    }
+    .title3,
+    .title3 * {
+      font-size: 15pt !important;
+    }
+    .boder tr th,
+    .boder tr td {
+      border: 1px solid #999999 !important;
+      padding: 0.5rem;
+    }
+    table {
+      min-width: 100% !important;
+      page-break-inside: auto !important;
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
+    }
+    thead {
+      display: table-header-group !important;
+    }
+    tbody {
+      display: table-header-group !important;
+    }
+    tr {
+      -webkit-column-break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+    tfoot {
+      display: table-footer-group !important;
+    }
+    .uppercase,
+    .uppercase * {
+      text-transform: uppercase !important;
+    }
+    .text-center {
+      text-align: center !important;
+    }
+    .text-left {
+      text-align: left !important;
+    }
+    .text-right {
+      text-align: right !important;
+    }
+    .html p{
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  </style>`;
+  var html = document.getElementById(id);
+  if (html) {
+    htmltable += html.innerHTML;
+  }
+  return htmltable;
+}
 const changeYearPur = (event) => {
   filterSQL.value = [];
   options.value.start_date = new Date("1/1/" + event.year);
@@ -525,6 +610,7 @@ const loadDataSQLDM = () => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
+     
         data.forEach((element, i) => {
           element.STT =
             options.value.pagenoDM * options.value.pagesizeDM + i + 1;
@@ -949,9 +1035,8 @@ const initTudien = () => {
         );
 
         treedonvis.value = obj.arrtreeChils;
-      } else {
-      }
-      tudiens.value = data;
+      }  
+     
     })
     .catch((error) => {});
 };
@@ -1082,7 +1167,7 @@ const saveCard = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm  thẻ thiết bị thành công!");
+          toast.success("Thêm thẻ thiết bị thành công!");
           checkCV.value = true;
           displayBasic.value = false;
         } else {
@@ -2881,6 +2966,18 @@ onMounted(() => {
                   p-button-status-d
                 "
               />
+                 <Chip
+                v-else-if="data.data.status == 'TPTH'"
+                :label="data.data.device_status_name"
+                v-tooltip.top="data.data.device_status_name"
+                class="
+                  textonelinec
+                  w-full
+                  bg-purple-300
+                  justify-content-center
+                  p-button-status-d
+                "
+              />
             </div>
           </template>
         </Column>
@@ -2988,7 +3085,11 @@ onMounted(() => {
         </template>
       </DataTable>
     </div>
+    <printCardVue
+    :datas="devicecard"  
+  />  <iframe name="printframe" id="printframe" style="display: none"></iframe>
   </div>
+
 
   <Dialog
     header="Chi tiết thẻ thiết bị"
@@ -3003,6 +3104,7 @@ onMounted(() => {
 
     <template #footer>
       <Button @click="closeDetails" label="Đóng" icon="pi pi-times" autofocus />
+       <!-- <Button @click="print()" label="In phiếu" icon="pi pi-print" /> -->
     </template>
   </Dialog>
   <Dialog

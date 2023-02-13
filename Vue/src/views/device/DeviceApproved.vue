@@ -329,84 +329,7 @@ const liItemsAccept = ref([]);
 
 const onShowConfigGroup = (type, module) => {
   if (type == 1) {
-    // axios
-    //   .post(
-    //     baseURL + "/api/Proc/CallProc",
-    //     {
-    //       proc: "device_approved_group_get",
-    //       par: [
-    //         { par: "approved_group_id", va: null },
-    //         { par: "module", va:module },
-    //         { par: "default", va: null },
-    //         { par: "user_id", va: store.getters.user.user_id },
-    //       ],
-    //     },
-    //     config
-    //   )
-    //   .then((response) => {
-    //     let data = JSON.parse(response.data.data)[0];
-    //     if (data.length > 0) {
-    //       var approved_group = data.find(
-    //         (x) => (x.approved_group_id = device_process.value.approved_group_id)
-    //       );
-    //       if (approved_group != null) {
-    //         if (approved_group.module == "all") {
-    //           deviceAprrovedId.value = data.find(
-    //             (x) => (x.module = module),
-    //             (x) => x.is_default
-    //           ).approved_group_id;
-    //         } else {
-    //           if (approved_group.classify == 10) {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.module =module),
-    //               (x) => (x.classify = 11)
-    //             ).approved_group_id;
-    //           } else if (approved_group.classify == 11) {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.module = module),
-    //               (x) => (x.classify = 12)
-    //             ).approved_group_id;
-    //           } else if (approved_group.classify == 12) {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.module =module),
-    //               (x) => (x.classify = 13)
-    //             ).approved_group_id;
-    //           } else if (approved_group.classify == 13) {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.module = module),
-    //               (x) => (x.classify = 14)
-    //             ).approved_group_id;
-    //           } else if (approved_group.classify == 14) {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.classify = 15)
-    //             ).approved_group_id;
-    //           } else if (approved_group.classify == 15) {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.classify = 16)
-    //             ).approved_group_id;
-    //           } else if (approved_group.classify == 16) {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.classify = 17)
-    //             ).approved_group_id;
-    //           } else if (approved_group.classify == 17) {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.classify = 18)
-    //             ).approved_group_id;
-    //           } else {
-    //             deviceAprrovedId.value = data.find(
-    //               (x) => (x.module = module),
-    //               (x) => x.is_default
-    //             ).approved_group_id;
-    //           }
-    //         }
-    //       }
-    //       // deviceAprrovedId.value = data[0].approved_group_id;
-    //       checkDefault.value = true;
-    //       displayDeviceRepair.value = true;
-    //     }
-    //   })
-    //   .catch((error) => {
-    //   });
+     console.log("");
   } else {
     checkDefault.value = false;
     displayDeviceRepair.value = true;
@@ -592,7 +515,7 @@ const listTypeRepair = ref([
 const sendAccept = (value) => {
   device_process.value = value;
   liItemsAccept.value = [];
-
+ 
   if (value.classify_fake.includes("17") && value.is_last) {
     liItemsAccept.value.push({
       label: "Hoàn thành",
@@ -1907,8 +1830,7 @@ onMounted(() => {
                       cols="30"
                       spellcheck="false"
                       :disabled="
-                        device_process.classify_fake.includes('17') ||
-                        device_process.classify_fake.includes('14') ||
+                        device_process.classify_fake.includes('17')   ||
                         (item.repair_condition == 3 &&
                           item.modified_by != store.getters.user.user_id)
                       "
@@ -1926,7 +1848,7 @@ onMounted(() => {
                       cols="30"
                       spellcheck="false"
                       :disabled="
-                        (device_process.classify_fake.includes('9') &&
+                        ( 
                           device_process.classify_fake.includes('11')) ||
                         (item.repair_condition == 3 &&
                           item.modified_by != store.getters.user.user_id)
@@ -1967,7 +1889,7 @@ onMounted(() => {
                         v-model="item.repair_price"
                         suffix=" VND"
                         :disabled="
-                          device_process.classify_fake.includes('12') ==
+                          device_process.classify_fake.includes('11') ==
                             false ||
                           (item.repair_condition == 3 &&
                             item.modified_by != store.getters.user.user_id)
@@ -2209,8 +2131,7 @@ onMounted(() => {
               <div
                 class="flex"
                 v-if="
-                  (device_process.classify_fake.includes('17') ||
-                    device_process.classify_fake.includes('14')) &&
+                  (device_process.classify_fake.includes('17')  ) &&
                   device_process.is_last
                 "
               >
@@ -3060,8 +2981,7 @@ onMounted(() => {
               <div
                 class="flex"
                 v-if="
-                  (device_process.classify_fake.includes('17') ||
-                    device_process.classify_fake.includes('14')) &&
+                  (device_process.classify_fake.includes('17')  ) &&
                   device_process.is_last
                 "
               >
@@ -3152,8 +3072,7 @@ onMounted(() => {
               <div
                 class="flex"
                 v-if="
-                  (device_process.classify_fake.includes('17') ||
-                    device_process.classify_fake.includes('14')) &&
+                  (device_process.classify_fake.includes('17')  ) &&
                   device_process.is_last
                 "
               >
@@ -3184,7 +3103,7 @@ onMounted(() => {
     header="Chi tiết thiết bị"
     v-model:visible="displayDetailsDevice"
     :maximizable="true"
-    :style="{ width: '80vw' }"
+    :style="{ width: '80vw' }"   :modal="true"
   >
     <div v-if="displayDetailsDevice && dataPropsD">
       <detailsDevice :device="dataPropsD" style="min-height: 80vh" />
@@ -3193,7 +3112,7 @@ onMounted(() => {
   <Dialog
     header="Trình duyệt"
     v-model:visible="displayDeviceRepair"
-    :maximizable="true"
+    :maximizable="true"   :modal="true"
     :style="{ width: '35vw' }"
   >
     <div v-if="displayDeviceRepair">
@@ -3222,7 +3141,7 @@ onMounted(() => {
     header="Nội dung trả về"
     v-model:visible="isShowReturn"
     :maximizable="true"
-    :style="{ width: '35vw' }"
+    :style="{ width: '35vw' }"   :modal="true"
   >
     <div class="grid p-0 pr-2 mx-2">
       <div class="col-12 p-0 py-2 field flex align-items-center">
@@ -3275,7 +3194,7 @@ onMounted(() => {
     header="Hoàn thành"
     v-model:visible="isshowCompleted"
     :maximizable="true"
-    :style="{ width: '35vw' }"
+    :style="{ width: '35vw' }"   :modal="true"
   >
     <div class="grid p-0 pr-2 mx-2">
       <div class="col-12 p-0 py-2 field flex align-items-center">

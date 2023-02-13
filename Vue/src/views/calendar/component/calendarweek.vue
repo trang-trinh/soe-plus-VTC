@@ -13,6 +13,8 @@ import dialogapprove from "../component/dialogapprove.vue";
 import dialogenact from "../component/dialogenact.vue";
 import dialogchart from "../component/dialogchart.vue";
 import dialogcoincide from "../component/dialogcoincide.vue";
+import frameprintweek from "../component/frameprintweek.vue";
+import framewordweek from "../component/framewordweek.vue";
 import { de } from "date-fns/locale";
 import max from "date-fns/max";
 import min from "date-fns/min";
@@ -150,6 +152,20 @@ const itemButs = ref([
       exportData("ExportExcel");
     },
   },
+  {
+    label: "Xuất word",
+    icon: "pi pi-file",
+    command: (event) => {
+      exportWord(event);
+    },
+  },
+  {
+    label: "In",
+    icon: "pi pi-file",
+    command: (event) => {
+      print(event);
+    },
+  },
 ]);
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
@@ -188,6 +204,149 @@ const exportData = (method) => {
         if (response.data["path"] != null) {
           const path = baseURL + response.data["path"];
           window.open(path);
+        }
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+//Print
+const print = () => {
+  var htmltable = "";
+  htmltable = renderhtml("formprint", htmltable);
+  var printframe = window.frames["printframe"];
+  printframe.document.write(htmltable);
+  setTimeout(function () {
+    printframe.print();
+    printframe.document.close();
+  }, 0);
+};
+function renderhtml(id, htmltable) {
+  htmltable = "";
+  //Style
+  htmltable += `<style>
+    #formprint, #formword  {
+      background: #fff !important;
+    }
+    #formprint *, #formword * {
+      font-family: "Times New Roman", Times, serif !important;
+      font-size: 13pt;
+    }
+    .title1,
+    .title1 * {
+      font-size: 17pt !important;
+    }
+    .title2,
+    .title2 * {
+      font-size: 16pt !important;
+    }
+    .title3,
+    .title3 * {
+      font-size: 15pt !important;
+    }
+    .boder tr th,
+    .boder tr td {
+      border: 1px solid #999999 !important;
+      padding: 0.5rem;
+    }
+    table {
+      min-width: 100% !important;
+      page-break-inside: auto !important;
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
+    }
+    thead {
+      display: table-header-group !important;
+    }
+    tbody {
+      display: table-header-group !important;
+    }
+    tr {
+      -webkit-column-break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+    tfoot {
+      display: table-footer-group !important;
+    }
+    .uppercase,
+    .uppercase * {
+      text-transform: uppercase !important;
+    }
+    .text-center {
+      text-align: center !important;
+    }
+    .text-left {
+      text-align: left !important;
+    }
+    .text-right {
+      text-align: right !important;
+    }
+    .html p{
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  </style>`;
+  var html = document.getElementById(id);
+  if (html) {
+    htmltable += html.innerHTML;
+  }
+  return htmltable;
+}
+//export word
+const exportWord = (method) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  var htmltable = "";
+  htmltable = renderhtml("formword", htmltable);
+  axios
+    .post(
+      baseURL + "/api/calendar_duty/ExportDoc",
+      {
+        lib: "word",
+        name:
+          (options.value.is_group === 0 ? "lichhoptuan_" : "lichcongtac_") +
+          moment(options.week_start_date).format("DDMMYYYY") +
+          "_" +
+          moment(options.week_end_date).format("DDMMYYYY") +
+          ".doc",
+        html: htmltable,
+        opition: {
+          orientation: "Portrait",
+          pageSize: "A4",
+          left: 37.79,
+          top: 68.03,
+          right: 37.79,
+          bottom: 68.03,
+        },
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
+        swal.close();
+
+        toast.success("Kết xuất dữ liệu thành công!");
+        if (response.data.path != null) {
+          window.open(baseURL + response.data.path);
         }
       } else {
         swal.fire({
@@ -1926,7 +2085,6 @@ onMounted(() => {
           v-if="props.state === 0"
         />
         <Button
-          v-if="props.state === 3"
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
@@ -2275,13 +2433,7 @@ onMounted(() => {
                       ? basedomainURL + item.avatar
                       : basedomainURL + '/Portals/Image/noimg.jpg'
                   "
-                  v-tooltip.top="
-                    item.full_name +
-                    '<br>' +
-                    item.position_name +
-                    '<br>' +
-                    item.department_name
-                  "
+                  v-tooltip.top="item.full_name"
                   :key="item.user_id"
                   style="border: 2px solid orange; color: white"
                   @click="onTaskUserFilter(item)"
@@ -2331,13 +2483,7 @@ onMounted(() => {
                       ? basedomainURL + item.avatar
                       : basedomainURL + '/Portals/Image/noimg.jpg'
                   "
-                  v-tooltip.top="
-                    item.full_name +
-                    '<br>' +
-                    item.position_name +
-                    '<br>' +
-                    item.department_name
-                  "
+                  v-tooltip.top="item.full_name"
                   :key="item.user_id"
                   style="border: 2px solid white; color: white"
                   @click="onTaskUserFilter(item)"
@@ -2534,6 +2680,7 @@ onMounted(() => {
         </template>
       </DataTable>
     </div>
+    <iframe name="printframe" id="printframe" style="display: none"></iframe>
   </div>
 
   <!--Model-->
@@ -2631,6 +2778,22 @@ onMounted(() => {
     :closeDialog="closeDialogCoincide"
     :datas="coincide"
     :goCalendar="goCalendar"
+  />
+
+  <!--print-->
+  <frameprintweek
+    :datas="datas"
+    :group="options.is_group"
+    :week_start_date="options.week_start_date"
+    :week_end_date="options.week_end_date"
+  />
+
+  <!--word-->
+  <framewordweek
+    :datas="datas"
+    :group="options.is_group"
+    :week_start_date="options.week_start_date"
+    :week_end_date="options.week_end_date"
   />
 </template>
 <style scoped>

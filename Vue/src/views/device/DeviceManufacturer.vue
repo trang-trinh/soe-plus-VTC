@@ -1188,7 +1188,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     :header="headerDialog"
     v-model:visible="displayBasic"
     :style="{ width: '40vw' }"
-    :closable="true"
+    :closable="true" :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">

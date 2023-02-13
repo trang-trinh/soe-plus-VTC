@@ -366,17 +366,15 @@ namespace API.Controllers
                             List<booking_meal> del = new List<booking_meal>();
                             foreach (var da in das)
                             {
-                                if (ad)
-                                {
-                                    del.Add(da);
-                                    #region  add Log
-                                    //helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = da, contents = "" }), domainurl + "Users/Del_Users", ip, tid, "Xoá User " + da.user_id, 1, "Users");
-                                    #endregion
-                                }
+
+                                del.Add(da);
+                                #region  add Log
+                                //helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = da, contents = "" }), domainurl + "Users/Del_Users", ip, tid, "Xoá User " + da.user_id, 1, "Users");
+                                #endregion
                             }
                             if (del.Count == 0)
                             {
-                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa người dùng này." });
+                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa phiếu này." });
                             }
                             db.booking_meal.RemoveRange(del);
                         }
@@ -387,7 +385,7 @@ namespace API.Controllers
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "BokingMeal/Del_Booking", ip, tid, "Lỗi khi xoá phiếu đặt cơm", 0, "BokingMeal");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "BookingMeal/Del_Booking", ip, tid, "Lỗi khi xoá phiếu đặt cơm", 0, "BookingMeal");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -397,7 +395,7 @@ namespace API.Controllers
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "BokingMeal/Del_Booking", ip, tid, "Lỗi khi xoá phiếu đặt cơm", 0, "BokingMeal");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "BookingMeal/Del_Booking", ip, tid, "Lỗi khi xoá phiếu đặt cơm", 0, "BookingMeal");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -489,6 +487,7 @@ namespace API.Controllers
 
         }
         #region Config
+        
         [HttpGet]
         public HttpResponseMessage GetConfig()
         {
@@ -534,6 +533,7 @@ namespace API.Controllers
             }
 
         }
+        
         [HttpPost]
         public HttpResponseMessage SetConfig([FromBody] bookings cog)
         {
@@ -591,6 +591,7 @@ namespace API.Controllers
 
         }
         #region CallProc
+        
         [HttpPost]
         public async Task<HttpResponseMessage> GetDataProc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
