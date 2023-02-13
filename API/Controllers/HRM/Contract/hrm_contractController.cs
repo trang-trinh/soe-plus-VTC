@@ -13,13 +13,7 @@ using Newtonsoft.Json;
 using System.Data.Entity.Validation;
 using System.Data.Entity;
 using System.IO;
-using System.Text.RegularExpressions;
-using Microsoft.ApplicationBlocks.Data;
 using Newtonsoft.Json.Linq;
-using System.Configuration;
-using System.Data.SqlClient;
-using System.Security.Cryptography;
-using System.Text;
 
 
 namespace API.Controllers.Hrn
