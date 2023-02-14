@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
+import { useToast } from "vue-toastification";
 import moment from "moment";
 
 const store = inject("store");
@@ -12,6 +13,7 @@ const config = {
     Authorization: `Bearer ${store.getters.token}`,
   },
 };
+const toast = useToast();
 
 //Get arguments
 const props = defineProps({
@@ -126,7 +128,6 @@ const bindDateBetweenFirstAndLast = (
     add_fn = add_fn || Date.prototype.addDays;
     interval = interval || 1;
 
-    
     var current = new Date(start_date);
 
     var checkVR = true;
@@ -139,7 +140,7 @@ const bindDateBetweenFirstAndLast = (
       }
       retVal.push(new Date(current));
       current = add_fn.call(current, interval);
-    }    
+    }
   }
   return retVal;
 };
@@ -611,13 +612,7 @@ onMounted(() => {
                         ? basedomainURL + item.avatar
                         : basedomainURL + '/Portals/Image/noimg.jpg'
                     "
-                    v-tooltip.top="
-                      item.full_name +
-                      '<br>' +
-                      item.position_name +
-                      '<br>' +
-                      item.department_name
-                    "
+                    v-tooltip.top="item.full_name"
                     :key="item.user_id"
                     style="border: 2px solid orange; color: white"
                     @click="onTaskUserFilter(item)"
@@ -669,13 +664,7 @@ onMounted(() => {
                         ? basedomainURL + item.avatar
                         : basedomainURL + '/Portals/Image/noimg.jpg'
                     "
-                    v-tooltip.top="
-                      item.full_name +
-                      '<br>' +
-                      item.position_name +
-                      '<br>' +
-                      item.department_name
-                    "
+                    v-tooltip.top="item.full_name"
                     :key="item.user_id"
                     style="border: 2px solid white; color: white"
                     @click="onTaskUserFilter(item)"

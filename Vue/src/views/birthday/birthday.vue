@@ -679,9 +679,9 @@ onMounted(() => {
                               v-if="m.display_birthday == true"
                             >
                               {{
-                                moment(new Date(m.birthday)).format(
+                                m.birthday != null ? moment(new Date(m.birthday)).format(
                                   "DD/MM/YYYY",
-                                )
+                                ) : ""
                               }}
                             </div>
                             <!-- <span v-bind:class="m.user_id == GetNhanSu_ID ? ' display-info' : ''" style="display: none; float: right; font-size: 24px;padding-right: 5px;"  v-tooltip.top="'Nhắn tin'"><i class="pi pi-envelope text-3xl"></i></span>                          -->

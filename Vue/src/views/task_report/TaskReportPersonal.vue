@@ -107,9 +107,9 @@ const itemExportButs = ref([
 ]);
 
 const ChangeExportTask = (item) => {
-    if(item.type == 1){
+    if (item.type == 1) {
         openExportData();
-    }else{
+    } else {
         openExportXML();
     }
     menuExportButs.value.toggle();
@@ -172,9 +172,9 @@ const opition = ref({
 });
 const listDropdownProject = ref([]);
 const listDropdownVaitro = ref([
-    {value: 3, text:"Theo dõi"},
-    {value: 1, text:"Đang làm"},
-    {value: 0, text:"Quản lý"},
+    { value: 3, text: "Theo dõi" },
+    { value: 1, text: "Đang làm" },
+    { value: 0, text: "Quản lý" },
 ]);
 const listTaskReportPersonal = ref();
 const renderTree = (data, id, name, title) => {
@@ -302,6 +302,7 @@ const loadData = (rf) => {
             } else {
                 listTaskReportPersonal.value = [];
             }
+            opition.value.totalRecords = data[1].totalRecords;
             if (rf) {
                 opition.value.loading = false;
                 swal.close();
@@ -318,9 +319,9 @@ const loadData = (rf) => {
             });
             if (error && error.status === 401) {
                 swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
+                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                    confirmButtonText: "OK",
+                });
                 store.commit("gologout");
             }
         });
@@ -383,9 +384,9 @@ const listTudien = () => {
 
             if (error && error.status === 401) {
                 swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
+                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                    confirmButtonText: "OK",
+                });
                 store.commit("gologout");
             }
         });
@@ -423,11 +424,11 @@ const ExportData = () => {
         });
     }
     var htmltable = "";
-    htmltable += "<table border='0' width='100%' cellpadding='10' style='border-collapse:collapse;' colspan='"+ listColumExportNews.value.length +"'>";
+    htmltable += "<table border='0' width='100%' cellpadding='10' style='border-collapse:collapse;' colspan='" + listColumExportNews.value.length + "'>";
     htmltable += "<thead>";
     htmltable += "<tr><th colspan='15' style='font-size:16px;text-align:center;'>BÁO CÁO THỐNG KÊ TỔNG HỢP CÔNG VIỆC CÁ NHÂN</th></tr></thead></table>";
 
-    htmltable += "<table border='1' width='100%' cellpadding='10' style='border-collapse:collapse;' colspan='"+ listColumExportNews.value.length +"'>";
+    htmltable += "<table border='1' width='100%' cellpadding='10' style='border-collapse:collapse;' colspan='" + listColumExportNews.value.length + "'>";
     htmltable += "<thead>";
     htmltable += "<tr>";
     htmltable += "<th style='width:30px;font-size:14px;text-align:center;'>STT</th>";
@@ -471,11 +472,11 @@ const ExportData = () => {
         htmltable += "<th style='width: 150px;font-size:14px;text-align: center;'> Người theo dõi</th>";
     }
     htmltable += "</tr>";
-    htmltable += "</thead>";    
+    htmltable += "</thead>";
     htmltable += "<tbody>";
     if (arrNew.length > 0) {
         arrNew.forEach(function (t, index) {
-            htmltable += "<tr><th colspan='"+ listColumExportNews.value.length +"' style='text-align: left;'>" + (t.Tennhom) + "</th></tr>";
+            htmltable += "<tr><th colspan='" + listColumExportNews.value.length + "' style='text-align: left;'>" + (t.Tennhom != 'null' ? t.Tennhom : '') + "</th></tr>";
             t.Group.forEach(function (d, index) {
                 htmltable += "<tr>";
                 htmltable += "<td style='width:30px;font-size:14px;text-align:center;'>" + (d.STT) + "</td>";
@@ -561,33 +562,33 @@ const openExportData = () => {
 }
 
 const openExportXML = () => {
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  axios
-    .post(
-      baseURL + "/api/task_origin/TaskPersonal_export_xml",
-      listTaskReportPersonal.value,
-      config,
-    )
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-        toast.success("Export file XML thành công!");
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Thông báo!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+    swal.fire({
+        width: 110,
+        didOpen: () => {
+            swal.showLoading();
+        },
     });
+    axios
+        .post(
+            baseURL + "/api/task_origin/TaskPersonal_export_xml",
+            listTaskReportPersonal.value,
+            config,
+        )
+        .then((response) => {
+            if (response.data.err != "1") {
+                swal.close();
+                toast.success("Export file XML thành công!");
+            }
+        })
+        .catch((error) => {
+            swal.close();
+            swal.fire({
+                title: "Thông báo!",
+                text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+            });
+        });
 }
 
 const chooseColumExport = (col) => {
@@ -617,6 +618,32 @@ const chooseAllColum = (isChon) => {
 const closeDialogExport = () => {
     DialogExportData.value = false;
 }
+
+const onPage = (event) => {
+    if (event.rows != opition.value.PageSize) {
+        opition.value.PageSize = event.rows;
+    }
+    if (event.page == 0) {
+        //Trang đầu
+        opition.value.id = null;
+        opition.value.IsNext = true;
+    } else if (event.page > opition.value.PageNo + 1) {
+        //Trang cuối
+        opition.value.id = -1;
+        opition.value.IsNext = false;
+    } else if (event.page > opition.value.PageNo) {
+        //Trang sau
+
+        opition.value.id = listTaskReportPersonal.value[listTaskReportPersonal.value.length - 1].task_id;
+        opition.value.IsNext = true;
+    } else if (event.page < opition.value.PageNo) {
+        //Trang trước
+        opition.value.id = listTaskReportPersonal.value[0].task_id;
+        opition.value.IsNext = false;
+    }
+    opition.value.PageNo = event.page;
+    loadData(true);
+};
 </script>
 <template>
     <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2" id="task-report">
@@ -625,13 +652,13 @@ const closeDialogExport = () => {
                 <template #start>
                     <div class="flex justify-content-center align-items-center">
                         <span class="p-input-icon-left">
-                        <i class="pi pi-search" />
-                        <InputText style="min-width: 300px; margin-right: 10px;" type="text" spellcheck="false" v-model="opition.search"
-                            placeholder="Tìm kiếm" @keyup.enter="loadData(true)" />
-                    </span>
-            <h3>BÁO CÁO THỐNG KÊ TỔNG HỢP CÔNG VIỆC CÁ NHÂN</h3>
-            <!-- <span v-if="opition.sdate && opition.edate">(từ ngày 01/12/2022 đến ngày 19/12/2022)</span> -->
-        </div>
+                            <i class="pi pi-search" />
+                            <InputText style="min-width: 300px; margin-right: 10px;" type="text" spellcheck="false"
+                                v-model="opition.search" placeholder="Tìm kiếm" @keyup.enter="loadData(true)" />
+                        </span>
+                        <h3>BÁO CÁO THỐNG KÊ TỔNG HỢP CÔNG VIỆC CÁ NHÂN</h3>
+                        <!-- <span v-if="opition.sdate && opition.edate">(từ ngày 01/12/2022 đến ngày 19/12/2022)</span> -->
+                    </div>
                 </template>
                 <template #end>
                     <ul id="toolbar_right" style="padding: 0px; margin: 0px; display: flex">
@@ -640,7 +667,8 @@ const closeDialogExport = () => {
                         </li>
                         <li @click="toggleFilter" aria-haspopup="true" :class="{ active: opition.filter_type != 0 }"
                             aria-controls="overlay_Export">
-                            <a><i style="margin-right: 5px" class="pi pi-filter"></i>{{ opition.loctitle
+                            <a><i style="margin-right: 5px" class="pi pi-filter"></i>{{
+                                opition.loctitle
                             }}<i style="margin-left: 5px" class="pi pi-angle-down"></i></a>
                         </li>
                         <li @click="toggleSort" :class="{ active: opition.sort }" aria-haspopup="true"
@@ -648,8 +676,7 @@ const closeDialogExport = () => {
                             <a><i class="pi pi-sort"></i> Sắp xếp
                                 <i class="pi pi-angle-down"></i></a>
                         </li>
-                        <li @click="toggleExport" aria-haspopup="true"
-                            aria-controls="overlay_Export">
+                        <li @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export">
                             <a><i class="pi pi-file"></i> Export
                                 <i class="pi pi-angle-down"></i></a>
                         </li>
@@ -659,9 +686,10 @@ const closeDialogExport = () => {
                             <li class="p-menuitem">
                                 <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
                                     <label>Dự án</label>
-                                    <Dropdown :filter="true" v-model="opition.filterDuan" panelClass="d-design-dropdown" placeholder="Chọn dự án"
-                                        selectionLimit="1" :options="listDropdownProject" optionLabel="project_name"
-                                        optionValue="project_id" spellcheck="false" class="col-12 ip36 p-0">
+                                    <Dropdown :filter="true" v-model="opition.filterDuan" panelClass="d-design-dropdown"
+                                        placeholder="Chọn dự án" selectionLimit="1" :options="listDropdownProject"
+                                        optionLabel="project_name" optionValue="project_id" spellcheck="false"
+                                        class="col-12 ip36 p-0">
                                         <template #option="slotProps">
                                             <div class="pt-1">{{ slotProps.option.project_name }}</div>
                                         </template>
@@ -687,9 +715,10 @@ const closeDialogExport = () => {
                             <li class="p-menuitem">
                                 <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
                                     <label>Trạng thái công việc</label>
-                                    <Dropdown :filter="true" panelClass="d-design-dropdown" v-model="opition.filterStatus" placeholder="Chọn trạng thái"
-                                        selectionLimit="1" :options="listDropdownStatus" optionLabel="text"
-                                        optionValue="value" spellcheck="false" class="col-12 ip36 p-0">
+                                    <Dropdown :filter="true" panelClass="d-design-dropdown"
+                                        v-model="opition.filterStatus" placeholder="Chọn trạng thái" selectionLimit="1"
+                                        :options="listDropdownStatus" optionLabel="text" optionValue="value"
+                                        spellcheck="false" class="col-12 ip36 p-0">
                                         <template #option="slotProps">
                                             <div class="pt-1">{{ slotProps.option.text }}</div>
                                         </template>
@@ -699,9 +728,10 @@ const closeDialogExport = () => {
                             <li class="p-menuitem">
                                 <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
                                     <label>Vai trò</label>
-                                    <Dropdown :filter="true" panelClass="d-design-dropdown" v-model="opition.IsType" placeholder="Chọn vai trò"
-                                        selectionLimit="1" :options="listDropdownVaitro" optionLabel="text"
-                                        optionValue="value" spellcheck="false" class="col-12 ip36 p-0">
+                                    <Dropdown :filter="true" panelClass="d-design-dropdown" v-model="opition.IsType"
+                                        placeholder="Chọn vai trò" selectionLimit="1" :options="listDropdownVaitro"
+                                        optionLabel="text" optionValue="value" spellcheck="false"
+                                        class="col-12 ip36 p-0">
                                         <template #option="slotProps">
                                             <div class="pt-1">{{ slotProps.option.text }}</div>
                                         </template>
@@ -711,8 +741,7 @@ const closeDialogExport = () => {
                         </ul>
                         <div style="float: right; padding: 10px">
                             <Button @click="ChangeFilter()" label="Thực hiện" />
-                            <Button @click="Del_ChangeFilter" id="btn_huy" 
-                            style="
+                            <Button @click="Del_ChangeFilter" id="btn_huy" style="
                 background-color: #f2f4f6;
                   border: 1px solid #f2f4f6;
                   color: #333;
@@ -723,7 +752,7 @@ const closeDialogExport = () => {
                     <Menu id="task_sort" :model="itemSortButs" ref="menuSortButs" :popup="true">
                         <template #item="{ item }">
                             <a @click="ChangeSortTask(item.sort, item.ob)" :class="{ active: item.active }">{{
-                                    item.label
+                                item.label
                             }}</a>
                         </template>
                     </Menu>
@@ -736,11 +765,15 @@ const closeDialogExport = () => {
                     </Menu>
                 </template>
             </Toolbar>
-        </div> 
-        
-        <DataTable :showGridlines="true" id="table-report-personal" :value="listTaskReportPersonal" rowGroupMode="subheader" groupRowsBy="Tennhom" sortMode="single"
-            sortField="Tennhom" :sortOrder="1" scrollable
-            style="max-height:calc(100vh - 145px);min-height: calc(100vh - 145px);" scrollHeight="calc(100vh - 115px)">
+        </div>
+
+        <DataTable :showGridlines="true" :paginator="true" :rows="opition.PageSize" @page="onPage($event)"
+            :totalRecords="opition.totalRecords"
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            dataKey="task_id" :rowsPerPageOptions="[20, 30, 50, 100, 200]" id="table-report-personal"
+            :value="listTaskReportPersonal" rowGroupMode="subheader" groupRowsBy="Tennhom" sortMode="single"
+            :sortOrder="1" scrollable style="max-height:calc(100vh - 145px);min-height: calc(100vh - 145px);"
+            scrollHeight="calc(100vh - 170px)">
             <Column field="STT" class="align-items-center justify-content-center text-center" header="STT"
                 headerStyle="min-height:3.125rem;min-width: 5rem;" bodyStyle="min-width: 5rem;"></Column>
             <Column field="task_name" header="Tên công việc" headerStyle="min-height:3.125rem;min-width: 25rem;"
@@ -758,8 +791,8 @@ const closeDialogExport = () => {
     -webkit-box-orient: vertical;">{{ data.data.Nguoigiaoviecs }}</span>
                 </template>
             </Column>
-            <Column header="Người thực hiện"
-                headerStyle="min-height:3.125rem;min-width: 40rem;" bodyStyle="min-width: 40rem;">
+            <Column header="Người thực hiện" headerStyle="min-height:3.125rem;min-width: 40rem;"
+                bodyStyle="min-width: 40rem;">
                 <template #body="data">
                     <span style="overflow: hidden;text-overflow: ellipsis;
     width: 100%;
@@ -768,11 +801,11 @@ const closeDialogExport = () => {
     -webkit-box-orient: vertical;">{{ data.data.Nguoithuchiens }}</span>
                 </template>
             </Column>
-            <Column field="description" header="Mô tả" class="align-items-center justify-content-center text-center" headerStyle="min-height:3.125rem;min-width: 10rem;"
-                bodyStyle="min-width: 10rem;">
+            <Column field="description" header="Mô tả" class="align-items-center justify-content-center text-center"
+                headerStyle="min-height:3.125rem;min-width: 10rem;" bodyStyle="min-width: 10rem;">
             </Column>
-            <Column field="target" header="Mục tiêu" class="align-items-center justify-content-center text-center" headerStyle="min-height:3.125rem;min-width: 10rem;"
-                bodyStyle="min-width: 10rem;">
+            <Column field="target" header="Mục tiêu" class="align-items-center justify-content-center text-center"
+                headerStyle="min-height:3.125rem;min-width: 10rem;" bodyStyle="min-width: 10rem;">
             </Column>
             <Column field="progress" header="Kết quả đạt được"
                 class="align-items-center justify-content-center text-center"
@@ -782,7 +815,7 @@ const closeDialogExport = () => {
                 headerStyle="min-height:3.125rem;min-width: 10rem;" bodyStyle="min-width: 10rem;">
                 <template #body="data">
                     <span>{{
-                            moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
+                        moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
                     }}</span>
                 </template>
             </Column>
@@ -790,7 +823,7 @@ const closeDialogExport = () => {
                 headerStyle="min-height:3.125rem;min-width: 10rem;" bodyStyle="min-width: 10rem;">
                 <template #body="data">
                     <span>{{
-                            moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
+                        moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
                     }}</span>
                 </template>
             </Column>
@@ -810,12 +843,12 @@ const closeDialogExport = () => {
                     <span>{{ data.data.status_name }}</span>
                 </template>
             </Column>
-            <Column header="Người theo dõi"
-                headerStyle="min-height:3.125rem;min-width: 40rem;" bodyStyle="min-width: 40rem;">
+            <Column header="Người theo dõi" headerStyle="min-height:3.125rem;min-width: 40rem;"
+                bodyStyle="min-width: 40rem;">
                 <template #body="data">
                     <span
                         style="overflow: hidden;text-overflow: ellipsis;width: 100%;display: -webkit-box;-webkit-line-clamp: 2;-webkit-box-orient: vertical;">{{
-                                data.data.Nguoitheodois
+                            data.data.Nguoitheodois
                         }}</span>
                 </template>
             </Column>
@@ -910,7 +943,7 @@ const closeDialogExport = () => {
     list-style: none;
 }
 
-.p-dropdown-panel{
+.p-dropdown-panel {
     width: 412px;
 }
 
@@ -918,20 +951,24 @@ const closeDialogExport = () => {
     height: 88% !important;
 }
 
-#task_sort, #task_export {
+#task_sort,
+#task_export {
     min-width: fit-content !important;
 }
 
-#task_sort .p-menuitem, #task_export .p-menuitem {
+#task_sort .p-menuitem,
+#task_export .p-menuitem {
     padding: 5px 10px;
 }
 
-#task_sort .p-menuitem:hover, #task_export .p-menuitem:hover{
+#task_sort .p-menuitem:hover,
+#task_export .p-menuitem:hover {
     cursor: pointer;
     background-color: #e9ecef;
 }
 
-#task_sort .p-menuitem .active, #task_export .p-menuitem .active {
+#task_sort .p-menuitem .active,
+#task_export .p-menuitem .active {
     color: #2196f3 !important;
 }
 

@@ -515,7 +515,7 @@ const listTypeRepair = ref([
 const sendAccept = (value) => {
   device_process.value = value;
   liItemsAccept.value = [];
- 
+  
   if (value.classify_fake.includes("17") && value.is_last) {
     liItemsAccept.value.push({
       label: "Hoàn thành",
@@ -1274,9 +1274,7 @@ onMounted(() => {
               <div
                 v-tooltip.bottom="{
                   value:
-                    data.data.department_name +
-                    '<br/>' +
-                    data.data.position_name,
+                    data.data.department_name  ,
                   class: 'custom-error-tl1',
                 }"
                 class="flex surface-100 align-items-center pr-2 format-center"
@@ -1642,9 +1640,7 @@ onMounted(() => {
                         <div
                           v-tooltip.bottom="{
                             value:
-                              item.department_name +
-                              '<br/>' +
-                              item.position_name,
+                              item.department_name  ,
                             class: 'custom-error-tl1',
                           }"
                           class="flex w-full surface-0 align-items-center pr-2"
@@ -1704,9 +1700,7 @@ onMounted(() => {
                     <div
                       v-tooltip.bottom="{
                         value:
-                          device_process.department_name +
-                          '<br/>' +
-                          device_process.position_name,
+                          device_process.department_name ,
                         class: 'custom-error-tl1',
                       }"
                       class="flex w-full surface-0 align-items-center pr-2"
@@ -2227,9 +2221,7 @@ onMounted(() => {
                         <div
                           v-tooltip.bottom="{
                             value:
-                              device_process.department_name +
-                              '<br/>' +
-                              device_process.position_name,
+                              device_process.department_name  ,
                             class: 'custom-error-tl1',
                           }"
                           class="flex w-full surface-0 align-items-center pr-2"
@@ -2299,9 +2291,7 @@ onMounted(() => {
                         <div
                           v-tooltip.bottom="{
                             value:
-                              item.department_name +
-                              '<br/>' +
-                              item.position_name,
+                              item.department_name  ,
                             class: 'custom-error-tl1',
                           }"
                           class="flex w-full surface-0 align-items-center pr-2"

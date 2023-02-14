@@ -255,10 +255,16 @@ const resize_ob = new ResizeObserver(function (entries) {
   let width = entries[0].contentRect.width;
   // defaul width size item
   var sidebar = document.querySelector(".v-sidebar-menu");
-//   var left = document.querySelector("#splitter-doclist")
+  var left = document.querySelector("#splitter-doclist");
+  var full_width = window.innerWidth || document.documentElement.clientWidth || 
+document.body.clientWidth;
+  if(left){
+    left.style.width = ((40/100)*(full_width - sidebar.offsetWidth)) + "px";
+  }
   var ele = document.querySelector(".auto-width");
   if(ele){
-    ele.style.width="calc(100vw - " + (sidebar.offsetWidth + width + 32) + "px)";
+    // ele.style.width="calc(100vw - " + (sidebar.offsetWidth + width + 32) + "px)";
+    ele.style.width = ((58/100)*(full_width - sidebar.offsetWidth) + 1) + "px";
   }
 });
 const selection_nodes = ref([]);

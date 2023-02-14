@@ -473,7 +473,8 @@ const caHRMVacancy = () =>
     import ("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () =>
     import ("../views/hrm/category/caWage.vue");
-
+const FileMain_Detail = () =>
+    import ("../views/files/FileMain.vue");
 
 ///HRM
 const HRM_Training = () =>
@@ -1731,6 +1732,11 @@ const router = createRouter({
             path: "/hrm/hrm_training",
             name: "HRM_Training",
             component: HRM_Training,
+        }, // Tài liệu
+        {
+            path: "/files/file_main/:id/:type",
+            name: "files/file_main_detail",
+            component: FileMain_Detail,
         },
 
     ],

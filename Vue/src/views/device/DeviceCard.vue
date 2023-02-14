@@ -2986,8 +2986,18 @@ onMounted(() => {
           headerStyle="text-align:center;max-width:180px;height:50px"
           bodyStyle="text-align:center;max-width:180px;overflow: hidden;"
           field="device_user_name"
-          header="Người sử dụng"
-        >
+          header="Sử dụng"
+        ><template #body="data">
+            <div
+            >
+            <span v-if="data.data.is_receiver_department">
+  {{ data.data.department_use_name }}
+
+            </span>
+            <span v-else>{{data.data.device_user_name}}</span>
+            
+            </div>
+          </template>
         </Column>
         <!-- <Column
           class="align-items-center justify-content-center text-center"

@@ -144,27 +144,30 @@ const loadData = (f) => {
   });
   axios
     .post(
-        baseURL + "/api/BookingMeal/GetDataProc",
-        {
-          str: encr(JSON.stringify({
+      baseURL + "/api/BookingMeal/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
             proc: "booking_report_week",
-        par: [
-          { par: "start_date", va: options.value.Start_Date },
-          { par: "end_date", va: options.value.End_Date },
-          {
-            par: "list_user",
-            va:
-              listUserSelected.value.length > 0
-                ? listUserSelected.value.toString()
-                : null,
-          },
-          { par: "user_id", va: store.getters.user.user_id },
-        ],
-          }), SecretKey, cryoptojs
-          ).toString()
-        },
-        config
-      )
+            par: [
+              { par: "start_date", va: options.value.Start_Date },
+              { par: "end_date", va: options.value.End_Date },
+              {
+                par: "list_user",
+                va:
+                  listUserSelected.value.length > 0
+                    ? listUserSelected.value.toString()
+                    : null,
+              },
+              { par: "user_id", va: store.getters.user.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
@@ -193,8 +196,16 @@ const loadData = (f) => {
               for (let i = 0; i < list_price.length; i++) {
                 // tìm khoảng giá tiền cho ngày ăn
                 if (
-                  moment(t,'MM/DD/YYYY').toDate() >= moment(list_price.map((x) => x.day_string)[i],'DD/MM/YYYY').toDate() &&
-                  moment(t,'MM/DD/YYYY').toDate() < moment(list_price.map((x) => x.day_string)[i + 1],'DD/MM/YYYY').toDate()
+                  moment(t, "MM/DD/YYYY").toDate() >=
+                    moment(
+                      list_price.map((x) => x.day_string)[i],
+                      "DD/MM/YYYY"
+                    ).toDate() &&
+                  moment(t, "MM/DD/YYYY").toDate() <
+                    moment(
+                      list_price.map((x) => x.day_string)[i + 1],
+                      "DD/MM/YYYY"
+                    ).toDate()
                 ) {
                   price_date = list_price[i].price;
                   break;
@@ -268,8 +279,12 @@ const initConfig = () => {
           price = response.data.data.price;
           working_days = response.data.data.working_days;
           list_price = response.data.data.list_price;
-          loadData(true);
+        } else {
+          price= 0;
+          working_days = [];
+          list_price = [];
         }
+        loadData(true);
       } else {
         loadData(true);
         swal.fire({
@@ -295,16 +310,19 @@ const loadFilterUsers = () => {
 const loadUser = () => {
   axios
     .post(
-        baseURL + "/api/BookingMeal/GetDataProc",
-        {
-          str: encr(JSON.stringify({
+      baseURL + "/api/BookingMeal/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
             proc: "booking_meal_user_list",
-        par: [{ par: "user_id", va: store.getters.user.user_id }],
-          }), SecretKey, cryoptojs
-          ).toString()
-        },
-        config
-      )
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
@@ -331,13 +349,21 @@ const onRefresh = () => {
 };
 //excel
 const exportExcel = () => {
-  let text_string = '';
-  if(options.value.End_Date){
-    text_string = 'TỪ NGÀY '+ moment(new Date(options.value.Start_Date)).format("DD/MM/YYYY").toString()+' - '+
-           moment(new Date(options.value.End_Date)).format("DD/MM/YYYY").toString() 
-  }
-  else{
-        text_string = ' NGÀY '+ moment(new Date(options.value.Start_Date)).format("DD/MM/YYYY").toString()
+  let text_string = "";
+  if (options.value.End_Date) {
+    text_string =
+      "TỪ NGÀY " +
+      moment(new Date(options.value.Start_Date))
+        .format("DD/MM/YYYY")
+        .toString() +
+      " - " +
+      moment(new Date(options.value.End_Date)).format("DD/MM/YYYY").toString();
+  } else {
+    text_string =
+      " NGÀY " +
+      moment(new Date(options.value.Start_Date))
+        .format("DD/MM/YYYY")
+        .toString();
   }
   let name = "BC_suat_an_";
   let id = "tablequizz";
@@ -359,18 +385,23 @@ const exportExcel = () => {
   tab_text =
     tab_text +
     '<style>.cstd{font-family: Times New Roman;border:none!important; font-size: 17px; font-weight: 700; text-align: center; vertical-align: center;color:#1769aa}</style><table><td colspan="' +
-    (dataTime.value.length+6) +'" class="cstd" > BÁO CÁO SUẤT ĂN '+text_string+'</td > ';
+    (dataTime.value.length + 6) +
+    '" class="cstd" > BÁO CÁO SUẤT ĂN ' +
+    text_string +
+    "</td > ";
   tab_text = tab_text + "</table>";
 
   //var exportTable = $('#' + id).clone();
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
-tab_text = tab_text + "<style>th,table,tr{font-family: Times New Roman; font-size: 12px; vertical-align: middle; text-align: center;}</style><table border='1'>";
+  tab_text =
+    tab_text +
+    "<style>th,table,tr{font-family: Times New Roman; font-size: 12px; vertical-align: middle; text-align: center;}</style><table border='1'>";
   var exportTable = document
     .getElementById("table-bc")
     .cloneNode(true).innerHTML;
   tab_text = tab_text + exportTable;
   tab_text = tab_text + htmltable1;
-   tab_text = tab_text + '</table>';
+  tab_text = tab_text + "</table>";
   tab_text = tab_text + '<meta charset="utf-8"/></ta></body></html>';
   var data_type =
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
