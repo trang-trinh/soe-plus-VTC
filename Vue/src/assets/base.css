@@ -1100,7 +1100,8 @@ li.p-chips-token {
 .p-tooltip,
 .p-autocomplete-panel,
 .p-treeselect-panel,
-.p-dropdown-panel {
+.p-dropdown-panel,
+.p-multiselect-panel {
     z-index: 999999 !important;
 }
 
