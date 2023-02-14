@@ -2155,7 +2155,7 @@ onMounted(() => {});
       <Button
         label="Hủy"
         icon="pi pi-times"
-        @click="closeDialog"
+        @click="props.closeDialog()"
         class="p-button-text"
       />
 
