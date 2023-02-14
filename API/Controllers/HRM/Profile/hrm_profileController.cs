@@ -14,6 +14,7 @@ using System.Data.Entity.Validation;
 using System.Data.Entity;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using ImageMagick;
 
 
 namespace API.Controllers.HRM.Profile
@@ -77,11 +78,23 @@ namespace API.Controllers.HRM.Profile
                     bool isAdd = bool.Parse(provider.FormData.GetValues("isAdd").SingleOrDefault());
                     var md = provider.FormData.GetValues("model").SingleOrDefault();
                     hrm_profile model = JsonConvert.DeserializeObject<hrm_profile>(md);
-                    if (db.hrm_profile.Count(a => a.profile_id == model.profile_id) > 0)
+                    if (isAdd)
                     {
-                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã tồn tại mã nhân sự này trong hệ thống!", err = "1" });
+                        if (db.hrm_profile.Count(a => a.profile_id == model.profile_id) > 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã tồn tại mã nhân sự này trong hệ thống!", err = "1" });
+                        }
                     }
-                    
+                    else
+                    {
+                        var old = await db.hrm_profile.AsNoTracking().FirstOrDefaultAsync(a => a.profile_id == uid);
+                        if (old != null && old.profile_id != model.profile_id) {
+                            if (db.hrm_profile.Count(a => a.profile_id == model.profile_id) > 0)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã tồn tại mã nhân sự này trong hệ thống!", err = "1" });
+                            }
+                        }
+                    }
                     var relative = provider.FormData.GetValues("relative").SingleOrDefault();
                     var skill = provider.FormData.GetValues("skill").SingleOrDefault();
                     var clan_history = provider.FormData.GetValues("clan_history").SingleOrDefault();
@@ -120,9 +133,8 @@ namespace API.Controllers.HRM.Profile
                     if (relatives != null)
                     {
                         var count = 0;
-                        foreach (var item in relatives)
+                        foreach (var rl in relatives)
                         {
-                            hrm_profile_relative rl = new hrm_profile_relative();
                             rl.profile_relative_id = helper.GenKey();
                             rl.profile_id = model.profile_id;
                             rl.is_order = count++;
@@ -144,9 +156,8 @@ namespace API.Controllers.HRM.Profile
                     if (skills != null)
                     {
                         var count = 0;
-                        foreach (var item in skills)
+                        foreach (var sk in skills)
                         {
-                            hrm_profile_skill sk = new hrm_profile_skill();
                             sk.profile_skill_id = helper.GenKey();
                             sk.profile_id = model.profile_id;
                             sk.is_order = count++;
@@ -168,14 +179,11 @@ namespace API.Controllers.HRM.Profile
                             db.hrm_profile_clan_history.RemoveRange(clan_historys_old);
                         }
                         var count = 0;
-                        foreach (var item in clan_historys)
+                        foreach (var clan in clan_historys)
                         {
-                            count++;
-                            hrm_profile_clan_history clan = new hrm_profile_clan_history();
-                            clan = item;
                             clan.profile_clan_history_id = helper.GenKey();
                             clan.profile_id = model.profile_id;
-                            clan.is_order = count;
+                            clan.is_order = count++;
                             clan.created_token_id = tid;
                             clan.created_date = DateTime.Now;
                             clan.created_by = uid;
@@ -194,9 +202,8 @@ namespace API.Controllers.HRM.Profile
                             db.hrm_profile_experience.RemoveRange(experiences_old);
                         }
                         var count = 0;
-                        foreach (var item in experiences)
+                        foreach (var ex in experiences)
                         {
-                            hrm_profile_experience ex = new hrm_profile_experience();
                             ex.profile_experience_id = helper.GenKey();
                             ex.profile_id = model.profile_id;
                             ex.is_order = count++;
@@ -216,6 +223,12 @@ namespace API.Controllers.HRM.Profile
                     if (!exists)
                         Directory.CreateDirectory(path);
                     List<hrm_file> dfs = new List<hrm_file>();
+                    string avatar_old = null;
+                    var modelold = await db.hrm_profile.FindAsync(model.profile_id);
+                    if (modelold != null)
+                    {
+                        avatar_old = modelold.avatar;
+                    }
                     foreach (MultipartFileData fileData in provider.FileData)
                     {
                         string org_name_file = fileData.Headers.ContentDisposition.FileName;
@@ -243,26 +256,42 @@ namespace API.Controllers.HRM.Profile
                         }
                         File.Move(fileData.LocalFileName, rootPath);
                         //File.Copy(fileData.LocalFileName, rootPathFile, true);
-                        var df = new hrm_file();
-                        df.file_id = helper.GenKey();
-                        df.key_id = model.profile_id;
-                        df.file_name = name_file;
-                        df.file_path = Duongdan;
-                        df.file_type = Dinhdang;
-                        var file_info = new FileInfo(rootPath);
-                        df.file_size = file_info.Length;
-                        df.is_image = helper.IsImageFileName(name_file);
-                        if (df.is_image == true)
+
+                        if (fileData.Headers.ContentDisposition.Name == "\"avatar\"")
                         {
-                            //helper.ResizeImage(rootPathFile, 1024, 768, 90);
+                            model.avatar = Duongdan;
+                            if (!string.IsNullOrWhiteSpace(avatar_old) && avatar_old.Contains("Portals"))
+                            {
+                                var strPath = root + "\\" + avatar_old;
+                                bool ex = System.IO.Directory.Exists(strPath);
+                                if (ex)
+                                {
+                                    System.IO.Directory.Delete(strPath, true);
+                                }
+                            }
                         }
-                        df.is_type = 0;
-                        df.status = true;
-                        df.created_by = uid;
-                        df.created_date = DateTime.Now;
-                        df.created_ip = ip;
-                        df.created_token_id = tid;
-                        dfs.Add(df);
+                        else
+                        {
+                            var df = new hrm_file();
+                            df.key_id = model.profile_id;
+                            df.file_name = name_file;
+                            df.file_path = Duongdan;
+                            df.file_type = Dinhdang;
+                            var file_info = new FileInfo(rootPath);
+                            df.file_size = file_info.Length;
+                            df.is_image = helper.IsImageFileName(name_file);
+                            if (df.is_image == true)
+                            {
+                                //helper.ResizeImage(rootPathFile, 1024, 768, 90);
+                            }
+                            df.is_type = 0;
+                            df.status = true;
+                            df.created_by = uid;
+                            df.created_date = DateTime.Now;
+                            df.created_ip = ip;
+                            df.created_token_id = tid;
+                            dfs.Add(df);
+                        }
                     }
                     if (dfs.Count > 0)
                     {
@@ -292,6 +321,102 @@ namespace API.Controllers.HRM.Profile
                     contents = "";
                 }
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpDelete]
+        public async Task<HttpResponseMessage> delete_profile([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> ids)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        string root = HttpContext.Current.Server.MapPath("~/Portals");
+                        var das = await db.hrm_profile.Where(a => ids.Contains(a.profile_id)).ToListAsync();
+                        var dasUrl = await db.hrm_file.AsNoTracking().Where(a => ids.Contains(a.key_id) && (ad || a.created_by == uid) && a.file_path != null).Select(a => a.file_path).ToListAsync();
+                        List<string> paths = new List<string>();
+                        if (das != null)
+                        {
+                            List<hrm_profile> del = new List<hrm_profile>();
+                            foreach (var da in das)
+                            {
+                                del.Add(da);
+                                if (!string.IsNullOrWhiteSpace(da.avatar) && da.avatar.Contains("Portals"))
+                                {
+                                    paths.Add(da.avatar);
+                                }
+                            }
+                            foreach (var p in dasUrl)
+                            {
+                                paths.Add(p);
+                            }
+                            if (del.Count == 0)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                            }
+                            db.hrm_profile.RemoveRange(del);
+                        }
+                        await db.SaveChangesAsync();
+                        if (paths != null && paths.Count > 0)
+                        {
+                            foreach (var p in paths)
+                            {
+                                var rootPath = root + "/" + p;
+                                if (System.IO.File.Exists(rootPath))
+                                {
+                                    System.IO.File.Delete(rootPath);
+                                }
+                            }
+                        }
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents, contents }), domainurl + "hrm_profile/delete_profile", ip, tid, "Lỗi khi xóa", 0, "hrm_profile");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents, contents }), domainurl + "hrm_profile/delete_profile", ip, tid, "Lỗi khi xoá", 0, "hrm_profile");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
         }
         #endregion
