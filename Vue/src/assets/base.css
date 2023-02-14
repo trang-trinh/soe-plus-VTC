@@ -1038,38 +1038,83 @@ li.p-chips-token {
 .modal-tivi-config .p-dialog-header-icons {
     display: none !important;
 }
+
 .modal-tivi-config .item-image-screen {
     height: fit-content;
 }
-.modal-report-config .p-dialog-content, .modal-choice-user .p-dialog-content {
+
+.modal-report-config .p-dialog-content,
+.modal-choice-user .p-dialog-content {
     overflow-y: hidden !important;
 }
-.modal-report-config .p-datatable-wrapper{
-    max-height:calc(100vh - 322px) !important;
-}
-.modal-report-config .p-datatable-header, .modal-choice-user .p-datatable-header{
-    width: 98%;
-}
-.modal-report-config .not-vaild, .modal-report-config .not-vaild .p-inputtext,.modal-report-config .not-vaild .p-button{
-    color: red !important;
-}
-.file-report-config .not-vaild, .file-report-config .not-vaild .p-inputtext, .file-report-config .not-vaild .p-button{
-    color: red !important;
-}
-.modal-choice-user .p-datatable-wrapper{
-    max-height:calc(100vh - 292px) !important;
+
+.modal-report-config .p-datatable-wrapper {
+    max-height: calc(100vh - 322px) !important;
 }
 
-.dispatch-input.p-inputtext{
-    color: red; font-size: 2rem; font-weight: bold;
+.modal-report-config .p-datatable-header,
+.modal-choice-user .p-datatable-header {
+    width: 98%;
+}
+
+.modal-report-config .not-vaild,
+.modal-report-config .not-vaild .p-inputtext,
+.modal-report-config .not-vaild .p-button {
+    color: red !important;
+}
+
+.file-report-config .not-vaild,
+.file-report-config .not-vaild .p-inputtext,
+.file-report-config .not-vaild .p-button {
+    color: red !important;
+}
+
+.modal-choice-user .p-datatable-wrapper {
+    max-height: calc(100vh - 292px) !important;
+}
+
+.dispatch-input.p-inputtext {
+    color: red;
+    font-size: 2rem;
+    font-weight: bold;
     padding-left: 0.5rem !important;
 }
 
-.p-toolbar.custoolbar .p-toolbar-group-left{
+.p-toolbar.custoolbar .p-toolbar-group-left {
     flex-wrap: wrap !important;
     row-gap: 0.3rem;
 }
 
-.black-text.p-dialog .p-dialog-content{
+.black-text.p-dialog .p-dialog-content {
     color: #000 !important;
+}
+
+.p-tooltip,
+.p-autocomplete-panel,
+.p-treeselect-panel,
+.p-dropdown-panel {
+    z-index: 999999 !important;
+}
+
+.form-group {
+    display: grid;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.form-group>label {
+    margin-bottom: 0.5rem;
+}
+
+.form-group .p-multiselect .p-multiselect-label,
+.form-group .p-dropdown .p-dropdown-label,
+.form-group .p-treeselect .p-treeselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100% !important;
 }

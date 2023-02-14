@@ -385,6 +385,10 @@ const TaskPersonConfig = () =>
 //     import ("../views/hrm/category/Interview.vue");
 const Hrm_Info = () =>
     import ("../views/hrm/Hrm_Info.vue");
+const HrmProfile = () =>
+    import ("../views/hrm/profile/profile.vue");
+const HrmProfileInfo = () =>
+    import ("../views/hrm/profile/component/profileinfo.vue")
 const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
 //end
@@ -1562,6 +1566,16 @@ const router = createRouter({
             path: "/hrm/hrm_profile",
             name: "Hrm_Info",
             component: Hrm_Info,
+        },
+        {
+            path: "/hrm/profile",
+            name: "profile",
+            component: HrmProfile,
+        },
+        {
+            path: "/hrm/profile/:id",
+            name: "profileinfo",
+            component: HrmProfileInfo,
         },
         {
             path: "/hrm/contract",
