@@ -234,19 +234,10 @@ const goBack = () => {
 //Function
 const changeView = (view) => {
   options.value.view = view;
-  switch (view) {
-    case 1:
-      initView1(true);
-      break;
-    case 3:
-      initView3(true);
-      break;
-    default:
-      break;
-  }
+  initData();
 };
 
-//init Dictionary
+//init Dictionary view 1
 const initPlace = () => {
   axios
     .post(
@@ -321,7 +312,8 @@ const renderPlace = (response) => {
   });
   places.value = list1;
 };
-const initDictionary = () => {
+const initDictionary1 = () => {
+  dictionarys.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -354,6 +346,34 @@ const initDictionary = () => {
     });
 };
 
+//init dictionary view 3
+const initDictionary3 = () => {
+  dictionarys.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_contract_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          dictionarys.value = tbs;
+        }
+      }
+    });
+};
 //Init data
 const initView1 = (rf) => {
   datachilds.value = [];
@@ -748,6 +768,7 @@ const initView3 = (rf) => {
                 item["bg_color"] = "#bbbbbb";
                 item["text_color"] = "#fff";
               }
+              item["effect"] = "";
               if (item["sign_date"] != null) {
                 item["sign_date"] = moment(new Date(item["sign_date"])).format(
                   "DD/MM/YYYY"
@@ -757,11 +778,13 @@ const initView3 = (rf) => {
                 item["start_date"] = moment(
                   new Date(item["start_date"])
                 ).format("DD/MM/YYYY");
+                item["effect"] += item["sign_date"];
               }
               if (item["end_date"] != null) {
                 item["end_date"] = moment(new Date(item["end_date"])).format(
                   "DD/MM/YYYY"
                 );
+                item["effect"] += "<br/> đến <br/>" + item["sign_date"];
               }
               if (item["created_date"] != null) {
                 item["created_date"] = moment(
@@ -812,9 +835,10 @@ const initView3 = (rf) => {
 };
 const initData = () => {
   if (options.value.view === 1) {
-    initDictionary();
+    initDictionary1();
   } else if (options.value.view === 2) {
   } else if (options.value.view === 3) {
+    initDictionary3();
     initView3(true);
   }
 };
@@ -1332,7 +1356,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 4. Thông tin gia đình, người phụ thuộc -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full padding-0" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -1354,6 +1378,7 @@ const onPage = (event) => {
                             :showGridlines="true"
                             scrollDirection="both"
                             style="display: grid"
+                            class="empty-full"
                           >
                             <Column
                               field="relative_name"
@@ -1584,7 +1609,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 5. Quá trình đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ, lý luận chính trị, ngoại ngữ, tin học -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full padding-0" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -1608,6 +1633,7 @@ const onPage = (event) => {
                             :showGridlines="true"
                             scrollDirection="both"
                             style="display: grid"
+                            class="empty-full"
                           >
                             <Column
                               field="university_name"
@@ -1814,7 +1840,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 6. Lịch sử Đảng viên -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full padding-0" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -1834,6 +1860,7 @@ const onPage = (event) => {
                             :showGridlines="true"
                             scrollDirection="both"
                             style="display: grid"
+                            class="empty-full"
                           >
                             <Column
                               field="card_number"
@@ -2062,7 +2089,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 8. Kinh nghiệm làm việc -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full padding-0" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2081,6 +2108,7 @@ const onPage = (event) => {
                             :showGridlines="true"
                             scrollDirection="both"
                             style="display: grid"
+                            class="empty-full"
                           >
                             <Column
                               field="start_date"
@@ -2410,11 +2438,11 @@ const onPage = (event) => {
                     "
                   >
                     <template #body="slotProps">
-                      <span>{{ slotProps.data.start_date }}</span>
+                      <span v-html="slotProps.data.start_date"></span>
                     </template>
                   </Column>
                   <Column
-                    field="end_date"
+                    field="start_date"
                     header="Ngày hết hạn"
                     headerStyle="text-align:center;max-width:120px;height:50px"
                     bodyStyle="text-align:center;max-width:120px;"
@@ -2425,7 +2453,7 @@ const onPage = (event) => {
                     "
                   >
                     <template #body="slotProps">
-                      <span>{{ slotProps.data.end_date }}</span>
+                      <span v-html="slotProps.data.end_date"></span>
                     </template>
                   </Column>
                   <Column
@@ -2441,6 +2469,52 @@ const onPage = (event) => {
                   >
                     <template #body="slotProps">
                       {{ slotProps.data.sign_user_name }}
+                    </template>
+                  </Column>
+                  <Column
+                    field="created_date"
+                    header="Ngày/Người lập"
+                    headerStyle="text-align:center;max-width:130px;height:50px"
+                    bodyStyle="text-align:center;max-width:130px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      <span class="mr-2">{{
+                        slotProps.data.created_date
+                      }}</span>
+                      <div>
+                        <Avatar
+                          v-bind:label="
+                            slotProps.data.avatar
+                              ? ''
+                              : slotProps.data.full_name.substring(0, 1)
+                          "
+                          v-bind:image="
+                            slotProps.data.avatar
+                              ? basedomainURL + slotProps.data.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 2rem;
+                            height: 2rem;
+                            font-size: 1rem !important;
+                          "
+                          :style="{
+                            background:
+                              bgColor[slotProps.data.created_is_order % 7],
+                          }"
+                          class="text-avatar"
+                          size="xlarge"
+                          shape="circle"
+                          v-tooltip.top="slotProps.data.full_name"
+                        />
+                      </div>
                     </template>
                   </Column>
                   <Column
@@ -2531,6 +2605,7 @@ const onPage = (event) => {
     :closeDialog="closeDialogContract"
     :isView="isView"
     :model="contract"
+    :dictionarys="dictionarys"
   />
 </template>
 <style scoped>
@@ -2550,4 +2625,14 @@ const onPage = (event) => {
 }
 </style>
 <style lang="scss" scoped>
+::v-deep(.padding-0) {
+  .p-accordion-content {
+    padding: 0 !important;
+  }
+}
+::v-deep(.empty-full) {
+  .p-datatable-emptymessage td {
+    width: 100% !important;
+  }
+}
 </style>
