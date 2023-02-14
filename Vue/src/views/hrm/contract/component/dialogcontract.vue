@@ -909,7 +909,7 @@ onMounted(() => {});
                     </td>
                     <td>
                       <ul
-                        v-if="key === props.model.allowances.length - 1"
+                        v-if="!props.isView && (key === props.model.allowances.length - 1)"
                         class="flex p-0 m-0 format-center"
                         style="list-style: none"
                       >
@@ -1005,7 +1005,7 @@ onMounted(() => {});
                       </td>
                       <td>
                         <ul
-                          v-if="key === allowance.formalitys.length - 1"
+                          v-if="!props.isView && (key === allowance.formalitys.length - 1)"
                           class="flex p-0 m-0 format-center"
                           style="list-style: none"
                         >
@@ -1125,7 +1125,7 @@ onMounted(() => {});
                       </td>
                       <td>
                         <ul
-                          v-if="key === allowance.wages.length - 1"
+                          v-if="!props.isView && (key === allowance.wages.length - 1)"
                           class="flex p-0 m-0 format-center"
                           style="list-style: none"
                         >
