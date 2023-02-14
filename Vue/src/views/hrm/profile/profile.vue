@@ -3,6 +3,7 @@ import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dilogprofile from "../profile/component/dilogprofile.vue";
+import dialogreceipt from "../profile/component/dialogreceipt.vue";
 import moment from "moment";
 const router = inject("router");
 const store = inject("store");
@@ -161,7 +162,7 @@ const itemButMoresPlus = ref([
     label: "Xác nhận tiếp nhận hồ sơ",
     icon: "pi pi-check-circle",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openEditDialogReceipt(profile.value, "Xác nhận tiếp nhận hồ sơ");
     },
   },
   {
@@ -568,6 +569,80 @@ const addRow = (type) => {
 const deleteRow = (type, idx) => {
   datachilds.value[type].splice(idx, 1);
 };
+
+//function receipt
+const receipts = ref([]);
+const headerDialogReceipt = ref();
+const displayDialogReceipt = ref(false);
+const openEditDialogReceipt = (item, str) => {
+  options.value.loading = true;
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  isAdd.value = false;
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_receipt_get",
+            par: [{ par: "profile_id", va: item.profile_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          receipts.value = tbs[0];
+          receipts.value.forEach((x) => {
+            if (x["receipt_date"] != null) {
+              x["receipt_date"] = new Date(x["receipt_date"]);
+            }
+          });
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      forceRerender();
+      headerDialogReceipt.value = str;
+      displayDialogReceipt.value = true;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+const closeDialogReceipt = () => {
+  displayDialogReceipt.value = false;
+}
 
 //Init
 const initPlace = () => {
@@ -1646,6 +1721,8 @@ onMounted(() => {
       </DataTable>
     </div>
   </div>
+
+  <!-- Dialog -->
   <dilogprofile
     :key="componentKey"
     :headerDialog="headerDialog"
@@ -1667,6 +1744,14 @@ onMounted(() => {
     :places="places"
     :marital_status="marital_status"
     :initData="initData"
+  />
+  <dialogreceipt
+    :key="componentKey"
+    :headerDialog="headerDialogReceipt"
+    :displayDialog="displayDialogReceipt"
+    :closeDialog="closeDialogReceipt"
+    :profile="profile"
+    :receipts="receipts"
   />
   <Menu
     id="overlay_More"

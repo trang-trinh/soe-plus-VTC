@@ -1092,16 +1092,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="surface-100 p-3">
-    <Toolbar class="outline-none surface-0 border-none pb-0">
-      <template #start>
-        <div>
-          <h3 class="module-title m-0">
-            <i class="pi pi-file"></i> Danh sách hợp đồng ({{ options.total }})
-          </h3>
-        </div>
-      </template>
-    </Toolbar>
+  <div class="surface-100 p-2">
     <Toolbar class="outline-none surface-0 border-none">
       <template #start>
         <span class="p-input-icon-left">
@@ -2147,7 +2138,7 @@ onMounted(() => {
 <style scoped>
 @import url(../contract/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 210px) !important;
+  height: calc(100vh - 166px) !important;
   background-color: #fff;
 }
 .icon-star {
