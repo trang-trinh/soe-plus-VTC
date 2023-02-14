@@ -392,6 +392,24 @@ const loadDataSQLDM = () => {
     key: "status",
   };
   filterSQLDM.value.push(filterS);
+      let filterS1 = {
+      filterconstraints: [
+        { value: device_recall.value.product_user, matchMode: "equals" },
+      ],
+      filteroperator: "and",
+      key: "device_user_id",
+    };
+        filterSQLDM.value.push(filterS1);
+    let filterS2 = {
+      filterconstraints: [
+        { value: "L", matchMode: "isNull" },
+   
+      ],
+      filteroperator: "and",
+      key: "check_recall",
+    };
+
+    filterSQLDM.value.push(filterS2);
   let data = {
     sqlS: "True",
     sqlO: options.value.sortDM,
@@ -860,6 +878,17 @@ const searchDeviceMain = () => {
 };
 const filterDeviceMain = () => {
   filterSQLDM.value = [];
+  
+     let filterS2 = {
+      filterconstraints: [
+        { value: options.value.device_type_id, matchMode: "equals" },
+   
+      ],
+      filteroperator: "and",
+      key: "device_type_id",
+    };
+
+    filterSQLDM.value.push(filterS2);
   loadDataSQLDM();
 };
 const listDepartment = ref([]);
@@ -3729,7 +3758,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Chọn thiết bị từ danh sách"
     v-model:visible="displayAssets" :modal="true"
     :maximizable="true"
-    :style="{ width: '55vw' }"
+    :style="{ width: '55vw' }" 
   >
     <div>
       <div class="true flex-grow-1 p-2" id="scrollTop">

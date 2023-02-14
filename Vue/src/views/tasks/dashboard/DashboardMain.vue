@@ -4,6 +4,7 @@ import MyTaskInfo from "./dashboardComponent/MyTaskInfo.vue";
 import MembersTask from "./dashboardComponent/MembersTask.vue";
 import OrganizationTasks from "./dashboardComponent/OrganizationTask.vue";
 import TaskReport from "./dashboardComponent/TaskReport.vue";
+import TaskReview from "./dashboardComponent/TaskReview.vue";
 const ListButtonLabel = ref([
   { label: "Cá nhân", icon: "pi pi-user", code: "0", count: "", status: false },
   {
@@ -59,7 +60,7 @@ const ChangeView = (value) => {
   });
 };
 onMounted(() => {
-  ChangeView(4);
+  ChangeView(5);
   return;
 });
 </script>
@@ -86,6 +87,7 @@ onMounted(() => {
         v-if="ListButtonLabel[3].status == true"
       ></OrganizationTasks>
       <TaskReport v-if="ListButtonLabel[4].status == true"></TaskReport>
+      <TaskReview v-if="ListButtonLabel[5].status == true"></TaskReview>
     </div>
   </div>
 </template>

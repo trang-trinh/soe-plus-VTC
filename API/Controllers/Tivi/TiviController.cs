@@ -447,6 +447,20 @@ namespace API.Controllers.Tivi
                             }
                         }
                         //
+                        #region log tivi
+                        tivi_log logtivi = new tivi_log();
+                        logtivi.tivi_id = "";
+                        logtivi.method = "HttpPost";
+                        logtivi.organization_id = user_now.organization_id;
+                        logtivi.action = "Tivi/UpdateConfigTivi";
+                        logtivi.created_by = uid;
+                        logtivi.created_date = DateTime.Now;
+                        logtivi.created_ip = ip;
+                        logtivi.created_token_id = tid;
+                        logtivi.content = "";
+                        db.tivi_log.Add(logtivi);
+                        #endregion
+
                         db.SaveChanges();
                         //if (delData.Count > 0)
                         //{
@@ -551,8 +565,8 @@ namespace API.Controllers.Tivi
                         var dataUser = provider.FormData.GetValues("listUser").SingleOrDefault();
                         List<tivi_user_access> list_user = JsonConvert.DeserializeObject<List<tivi_user_access>>(dataUser);
                         List<tivi_user_access> listAddUserToDb = new List<tivi_user_access>();
-                        var userAdd = list_user.Where(x => db.tivi_user_access.Count(y => y.organization_id == user_now.organization_id && y.user_id == x.user_id) == 0).ToList();
-                        var userTemp = db.tivi_user_access.AsNoTracking().Where(x => x.organization_id == user_now.organization_id).ToList();
+                        var userAdd = list_user.Where(x => db.tivi_user_access.Count(y => (y.organization_id == user_now.organization_id || user_now.is_super == true) && y.user_id == x.user_id) == 0).ToList();
+                        var userTemp = db.tivi_user_access.AsNoTracking().Where(x => x.organization_id == user_now.organization_id || user_now.is_super == true).ToList();
                         var userDel = userTemp.Where(x => list_user.Count(y => y.user_id == x.user_id) == 0).ToList();
                         var stt = 1;
                         foreach (var item in list_user)
@@ -598,6 +612,19 @@ namespace API.Controllers.Tivi
                             }
                         }
 
+                        #region log tivi
+                        tivi_log logtivi = new tivi_log();
+                        logtivi.tivi_id = "";
+                        logtivi.method = "HttpPost";
+                        logtivi.organization_id = user_now.organization_id;
+                        logtivi.action = "Tivi/UpdateConfigUser";
+                        logtivi.created_by = uid;
+                        logtivi.created_date = DateTime.Now;
+                        logtivi.created_ip = ip;
+                        logtivi.created_token_id = tid;
+                        logtivi.content = "";
+                        db.tivi_log.Add(logtivi);
+                        #endregion
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -736,6 +763,20 @@ namespace API.Controllers.Tivi
                         {
                             db.tivi_screen_image.AddRange(listFileUp);
                         }
+
+                        #region log tivi
+                        tivi_log logtivi = new tivi_log();
+                        logtivi.tivi_id = "";
+                        logtivi.method = "HttpPost";
+                        logtivi.organization_id = user_now.organization_id;
+                        logtivi.action = "Tivi/UploadImageTivi";
+                        logtivi.created_by = uid;
+                        logtivi.created_date = DateTime.Now;
+                        logtivi.created_ip = ip;
+                        logtivi.created_token_id = tid;
+                        logtivi.content = "";
+                        db.tivi_log.Add(logtivi);
+                        #endregion
                         db.SaveChanges();
                         if (listPathFileUp.Count > 0)
                         {
@@ -808,6 +849,21 @@ namespace API.Controllers.Tivi
                             helper.saveLog(uid, name, JsonConvert.SerializeObject(new { das.tivi_id, das.tivi_name, das.created_date, das.created_ip, das.created_token_id, das.is_active, das.is_order, das.is_change_screen, das.time_change_screen }), domainurl + "Tivi/Update_StatusTivi", ip, tid, "Sửa trạng thái tivi", 1, "Tivi");
                         }
                         #endregion
+
+                        #region log tivi
+                        var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
+                        tivi_log logtivi = new tivi_log();
+                        logtivi.tivi_id = das.tivi_id;
+                        logtivi.method = "HttpPut";
+                        logtivi.organization_id = user_now?.organization_id;
+                        logtivi.action = "Tivi/Update_StatusTivi";
+                        logtivi.created_by = uid;
+                        logtivi.created_date = DateTime.Now;
+                        logtivi.created_ip = ip;
+                        logtivi.created_token_id = tid;
+                        logtivi.content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(das, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                        db.tivi_log.Add(logtivi);
+                        #endregion
                         await db.SaveChangesAsync();
                     }
 
@@ -877,6 +933,9 @@ namespace API.Controllers.Tivi
                             dataTivi.is_change_screen = tivi.is_change_screen == true ? true : false;
                             dataTivi.time_change_screen = tivi.time_change_screen;
 
+                            List<tivi_screen_detail> list_edit_screen = new List<tivi_screen_detail>();
+                            List<tivi_screen_detail> list_del_screen = new List<tivi_screen_detail>();
+
                             var listScreen = provider.FormData.GetValues("listScreen").SingleOrDefault();
                             List<tivi_screen_detail> screen = JsonConvert.DeserializeObject<List<tivi_screen_detail>>(listScreen);
                             var screenTemp = db.tivi_screen_detail.AsNoTracking().Where(x => x.tivi_id == dataTivi.tivi_id).ToList();
@@ -889,6 +948,7 @@ namespace API.Controllers.Tivi
                                 {
                                     existData.is_order = sttScreen;
                                     existData.is_active = item.is_active;
+                                    list_edit_screen.Add(existData);
                                 }
                                 sttScreen++;
                             }
@@ -900,6 +960,7 @@ namespace API.Controllers.Tivi
                                     var da = db.tivi_screen_detail.FirstOrDefault(x => x.screen_id == scrD.screen_id);
                                     if (da != null)
                                     {
+                                        list_del_screen.Add(da);
                                         delScreen.Add(da);
                                         if (helper.wlog)
                                         {
@@ -913,6 +974,24 @@ namespace API.Controllers.Tivi
                                 }
                             }
 
+                            #region log tivi
+                            tivi_log logtivi = new tivi_log();
+                            logtivi.tivi_id = dataTivi.tivi_id;
+                            logtivi.method = "HttpPost";
+                            logtivi.organization_id = user_now?.organization_id;
+                            logtivi.action = "Tivi/Update_Tivi";
+                            logtivi.created_by = uid;
+                            logtivi.created_date = DateTime.Now;
+                            logtivi.created_ip = ip;
+                            logtivi.created_token_id = tid;
+                            logtivi.content = JsonConvert.SerializeObject(
+                                new { 
+                                    dataTivi = JsonConvert.SerializeObject(dataTivi, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                    screenEdit = JsonConvert.SerializeObject(list_edit_screen, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                    screenDel = JsonConvert.SerializeObject(list_del_screen, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) 
+                            });
+                            db.tivi_log.Add(logtivi);
+                            #endregion
                             db.SaveChanges();
                             return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                         }
@@ -983,6 +1062,10 @@ namespace API.Controllers.Tivi
                         var typeUp = provider.FormData.GetValues("typeUp").SingleOrDefault();
                         var screenTivi = provider.FormData.GetValues("screenTivi").SingleOrDefault();
                         tivi_screen_detail tv_screen = JsonConvert.DeserializeObject<tivi_screen_detail>(screenTivi);
+
+                        List<tivi_screen_detail> list_edit_screen = new List<tivi_screen_detail>();
+                        List<tivi_screen_detail> list_del_screen = new List<tivi_screen_detail>();
+
                         if (typeUp == "Add")
                         {
                             tv_screen.screen_id = helper.GenKey();
@@ -1015,6 +1098,7 @@ namespace API.Controllers.Tivi
                                 {
                                     existData.is_order = sttScreen;
                                     existData.is_active = item.is_active;
+                                    list_edit_screen.Add(existData);
                                 }
                                 sttScreen++;
                             }
@@ -1026,6 +1110,7 @@ namespace API.Controllers.Tivi
                                     var da = db.tivi_screen_detail.FirstOrDefault(x => x.screen_id == scrD.screen_id);
                                     if (da != null)
                                     {
+                                        list_del_screen.Add(da);
                                         delScreen.Add(da);
                                         if (helper.wlog)
                                         {
@@ -1045,6 +1130,24 @@ namespace API.Controllers.Tivi
                             db.Entry(tv_screen).State = EntityState.Modified;
                         }
 
+                        #region log tivi
+                        tivi_log logtivi = new tivi_log();
+                        logtivi.tivi_id = tv_screen.tivi_id;
+                        logtivi.method = "HttpPost";
+                        logtivi.organization_id = user_now?.organization_id;
+                        logtivi.action = "Tivi/Update_Screen";
+                        logtivi.created_by = uid;
+                        logtivi.created_date = DateTime.Now;
+                        logtivi.created_ip = ip;
+                        logtivi.created_token_id = tid;
+                        logtivi.content = JsonConvert.SerializeObject(
+                            new { 
+                                screenAdd = JsonConvert.SerializeObject(tv_screen, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                screenEdit = JsonConvert.SerializeObject(list_edit_screen, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                screenDel = JsonConvert.SerializeObject(list_del_screen, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) 
+                            });
+                        db.tivi_log.Add(logtivi);
+                        #endregion
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -1133,6 +1236,9 @@ namespace API.Controllers.Tivi
                                 var dataFilesScreen = provider.FormData.GetValues("listFiles").SingleOrDefault();
                                 List<tivi_screen_propaganda> list_files = JsonConvert.DeserializeObject<List<tivi_screen_propaganda>>(dataFilesScreen);
 
+                                List<tivi_screen_propaganda> list_edit_pro = new List<tivi_screen_propaganda>();
+                                List<tivi_screen_image> list_edit_image = new List<tivi_screen_image>();
+
                                 List<tivi_screen_propaganda> listAddFilesToDb = new List<tivi_screen_propaganda>();
                                 var filesAdd = list_files.Where(x => db.tivi_screen_propaganda.Count(y => y.screen_id == detail_screen.screen_id && (y.video_id == x.video_id || y.shows_id == x.shows_id)) == 0).ToList();
                                 var filesTemp = db.tivi_screen_propaganda.AsNoTracking().Where(x => x.screen_id == detail_screen.screen_id).ToList();
@@ -1182,11 +1288,11 @@ namespace API.Controllers.Tivi
                                             #endregion
                                         }
                                         vd.link_folder = item.link_folder;
-
                                         listAddFilesToDb.Add(vd);
                                     }
                                     else
                                     {
+                                        list_edit_pro.Add(existData);
                                         existData.is_order = sttFile;
                                     }
                                     sttFile++;
@@ -1225,6 +1331,7 @@ namespace API.Controllers.Tivi
                                     var existData = db.tivi_screen_image.FirstOrDefault(x => (x.tivi_image_id == item.tivi_image_id && item.is_copy == false) || (x.group_img == item.group_img && item.is_copy == true));
                                     if (existData != null)
                                     {
+                                        list_edit_image.Add(existData);
                                         existData.is_order = sttImg;
                                         existData.is_active = item.is_active;
                                     }
@@ -1254,9 +1361,9 @@ namespace API.Controllers.Tivi
                                     db.tivi_screen_image.AddRange(listAddImagesToDb);
                                 }
                                 List<string> pathImgDel = new List<string>();
+                                List<tivi_screen_image> delImg = new List<tivi_screen_image>();
                                 if (imageDel.Count() > 0)
                                 {
-                                    List<tivi_screen_image> delImg = new List<tivi_screen_image>();
                                     foreach (var imgD in imageDel)
                                     {
                                         var da = db.tivi_screen_image.FirstOrDefault(x => x.tivi_image_id == imgD.tivi_image_id);
@@ -1279,6 +1386,29 @@ namespace API.Controllers.Tivi
                                 }
 
                                 //
+                                #region log tivi
+                                tivi_log logtivi = new tivi_log();
+                                logtivi.tivi_id = detail_screen.tivi_id;
+                                logtivi.method = "HttpPost";
+                                logtivi.organization_id = user_now?.organization_id;
+                                logtivi.action = "Tivi/UpdateConfigScreen";
+                                logtivi.created_by = uid;
+                                logtivi.created_date = DateTime.Now;
+                                logtivi.created_ip = ip;
+                                logtivi.created_token_id = tid;
+                                logtivi.content = JsonConvert.SerializeObject(
+                                    new { 
+                                        screenEdit = JsonConvert.SerializeObject(detail_screen, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }),
+                                        propagandaAdd = JsonConvert.SerializeObject(listAddFilesToDb, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                        propagandaEdit = JsonConvert.SerializeObject(list_edit_pro, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                        propagandaDel = JsonConvert.SerializeObject(delData, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                        imageAdd = JsonConvert.SerializeObject(listAddImagesToDb, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                        imageEdit = JsonConvert.SerializeObject(list_edit_image, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                        imageDel = JsonConvert.SerializeObject(delImg, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) 
+                                    });
+                                db.tivi_log.Add(logtivi);
+                                #endregion
+
                                 db.SaveChanges();
                                 if (pathImgDel.Count > 0)
                                 {
@@ -1504,6 +1634,21 @@ namespace API.Controllers.Tivi
                                 {
                                     db.tivi_screen_image.AddRange(listFileUp);
                                 }
+
+                                #region log tivi
+                                tivi_log logtivi = new tivi_log();
+                                logtivi.tivi_id = screenTV.tivi_id;
+                                logtivi.method = "HttpPost";
+                                logtivi.organization_id = user_now?.organization_id;
+                                logtivi.action = "Tivi/UploadFileImageScreen";
+                                logtivi.created_by = uid;
+                                logtivi.created_date = DateTime.Now;
+                                logtivi.created_ip = ip;
+                                logtivi.created_token_id = tid;
+                                logtivi.content = JsonConvert.SerializeObject(new { imageAdd = JsonConvert.SerializeObject(listFileUp, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                                db.tivi_log.Add(logtivi);
+                                #endregion
+
                                 db.SaveChanges();
                                 if (listPathFileUp.Count > 0)
                                 {
@@ -1594,6 +1739,8 @@ namespace API.Controllers.Tivi
                             var detail_tv = db.tivi_screen.FirstOrDefault(x => x.tivi_id == tv_data.tivi_id);
                             if (detail_tv != null)
                             {
+                                List<tivi_screen_detail> list_edit_screen = new List<tivi_screen_detail>();
+
                                 // Xóa màn hình bị remove từ tivi hiện tại
                                 var listScreen = provider.FormData.GetValues("listScreenTivi").SingleOrDefault();
                                 List<tivi_screen_detail> screen = JsonConvert.DeserializeObject<List<tivi_screen_detail>>(listScreen);
@@ -1605,14 +1752,15 @@ namespace API.Controllers.Tivi
                                     var existData = db.tivi_screen_detail.FirstOrDefault(x => x.screen_id == item.screen_id);
                                     if (existData != null)
                                     {
+                                        list_edit_screen.Add(existData);
                                         existData.is_order = sttScreen;
                                         existData.is_active = item.is_active;
                                     }
                                     sttScreen++;
                                 }
+                                List<tivi_screen_detail> delScreen = new List<tivi_screen_detail>();
                                 if (screenDel.Count() > 0)
                                 {
-                                    List<tivi_screen_detail> delScreen = new List<tivi_screen_detail>();
                                     foreach (var scrD in screenDel)
                                     {
                                         var da = db.tivi_screen_detail.FirstOrDefault(x => x.screen_id == scrD.screen_id);
@@ -1694,6 +1842,25 @@ namespace API.Controllers.Tivi
                                     db.tivi_screen_image.AddRange(listImage_Add);
                                 }
 
+                                #region log tivi
+                                tivi_log logtivi = new tivi_log();
+                                logtivi.tivi_id = tv_data.tivi_id;
+                                logtivi.method = "HttpPost";
+                                logtivi.organization_id = user_now?.organization_id;
+                                logtivi.action = "Tivi/CopyScreenToTivi";
+                                logtivi.created_by = uid;
+                                logtivi.created_date = DateTime.Now;
+                                logtivi.created_ip = ip;
+                                logtivi.created_token_id = tid;
+                                logtivi.content = JsonConvert.SerializeObject(
+                                    new { 
+                                        screenCopy = JsonConvert.SerializeObject(listScreen_Add, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                        screenEdit = JsonConvert.SerializeObject(list_edit_screen, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), 
+                                        screenDel = JsonConvert.SerializeObject(delScreen, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) 
+                                    });
+                                db.tivi_log.Add(logtivi);
+                                #endregion
+
                                 db.SaveChanges();
                                 return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                             }
@@ -1735,6 +1902,7 @@ namespace API.Controllers.Tivi
         }
 
         [HttpDelete]
+        [System.Web.Mvc.ValidateAntiForgeryToken]
         public async Task<HttpResponseMessage> Delete_Tivi([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> id)
         {
             var identity = User.Identity as ClaimsIdentity;
@@ -1841,6 +2009,22 @@ namespace API.Controllers.Tivi
                                 }
                             }
                         }
+
+                        #region log tivi
+                        var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
+                        tivi_log logtivi = new tivi_log();
+                        logtivi.tivi_id = das[0].tivi_id;
+                        logtivi.method = "HttpDelete";
+                        logtivi.organization_id = user_now?.organization_id;
+                        logtivi.action = "Tivi/Delete_Tivi";
+                        logtivi.created_by = uid;
+                        logtivi.created_date = DateTime.Now;
+                        logtivi.created_ip = ip;
+                        logtivi.created_token_id = tid;
+                        logtivi.content = JsonConvert.SerializeObject(new { listTiviDel = JsonConvert.SerializeObject(das, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                        db.tivi_log.Add(logtivi);
+                        #endregion
+
                     }
                     await db.SaveChangesAsync();
 
@@ -1862,6 +2046,94 @@ namespace API.Controllers.Tivi
             {
                 string contents = helper.ExceptionMessage(e);
                 helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Tivi/Delete_Tivi", ip, tid, "Lỗi khi xoá tivi", 0, "Tivi");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+
+        }
+
+        [HttpDelete]
+        [System.Web.Mvc.ValidateAntiForgeryToken]
+        public async Task<HttpResponseMessage> Delete_Log_Tivi([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    var das = await db.tivi_log.Where(a => id.Contains(a.log_id)).ToListAsync();
+                    string root = HttpContext.Current.Server.MapPath("~/");
+                    if (das != null)
+                    {
+                        List<tivi_log> del = new List<tivi_log>();
+                        foreach (var da in das)
+                        {
+                            del.Add(da);
+                            #region add cms_logs
+                            if (helper.wlog)
+                            {
+                                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { da.log_id, da.tivi_id, da.organization_id, da.content, da.action, da.method, da.created_by, da.created_date, da.created_ip, da.created_token_id }), domainurl + "Tivi/Delete_Log_Tivi", ip, tid, "Xóa log tivi", 1, "Tivi");
+                            }
+                            #endregion
+                        }
+                        if (del.Count == 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                        }
+                        db.tivi_log.RemoveRange(del);
+
+                        #region log tivi
+                        //var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
+                        //tivi_log logtivi = new tivi_log();
+                        //logtivi.tivi_id = das[0].tivi_id;
+                        //logtivi.method = "HttpDelete";
+                        //logtivi.organization_id = user_now?.organization_id;
+                        //logtivi.action = "Tivi/Delete_Log_Tivi";
+                        //logtivi.created_by = uid;
+                        //logtivi.created_date = DateTime.Now;
+                        //logtivi.created_ip = ip;
+                        //logtivi.created_token_id = tid;
+                        //logtivi.content = JsonConvert.SerializeObject(new { listLogDel = JsonConvert.SerializeObject(das, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                        //db.tivi_log.Add(logtivi);
+                        #endregion
+
+                    }
+                    await db.SaveChangesAsync();
+
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Tivi/Delete_Log_Tivi", ip, tid, "Lỗi khi xoá tivi", 0, "Tivi");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Tivi/Delete_Log_Tivi", ip, tid, "Lỗi khi xoá tivi", 0, "Tivi");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -1907,6 +2179,26 @@ namespace API.Controllers.Tivi
                 var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, "tivi_get_config_public", arrpas).Tables); // edit
                 var tables = await task;
                 string JSONresult = Codec.EncryptString(JsonConvert.SerializeObject(tables), ConfigurationManager.AppSettings["EncriptKey"]);
+
+                #region log tivi
+                using (DBEntities db = new DBEntities())
+                {
+                    var user_now = db.sys_users.FirstOrDefault(x => x.user_id == user_id);
+                    tivi_log logtivi = new tivi_log();
+                    logtivi.tivi_id = tivi_id;
+                    logtivi.method = "HttpPost";
+                    logtivi.organization_id = user_now?.organization_id;
+                    logtivi.action = "Tivi/Tivi_SettingPublic";
+                    logtivi.created_by = user_id;
+                    logtivi.created_date = DateTime.Now;
+                    logtivi.created_ip = ip;
+                    logtivi.created_token_id = tid;
+                    logtivi.content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(tables) });
+                    db.tivi_log.Add(logtivi);
+                    db.SaveChanges();
+                }
+                #endregion
+
                 return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
             }
             catch (DbEntityValidationException e)
@@ -1957,12 +2249,35 @@ namespace API.Controllers.Tivi
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             try
             {
+                var user_id = jobject["user_id"] != null ? jobject["user_id"].ToObject<string>() : null;
+                var tivi_id = jobject["idtivi"] != null ? jobject["idtivi"].ToObject<string>() : null;
+
                 var sqlpas = new List<SqlParameter>();
                 sqlpas.Add(new SqlParameter("@" + "user_id", uid));
                 var arrpas = sqlpas.ToArray();
                 var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, "tivi_get_law_screen", arrpas).Tables);
                 var tables = await task;
                 string JSONresult = Codec.EncryptString(JsonConvert.SerializeObject(tables), ConfigurationManager.AppSettings["EncriptKey"]);
+
+                #region log tivi
+                using (DBEntities db = new DBEntities())
+                {
+                    var user_now = db.sys_users.FirstOrDefault(x => x.user_id == user_id);
+                    tivi_log logtivi = new tivi_log();
+                    logtivi.tivi_id = tivi_id;
+                    logtivi.method = "HttpPost";
+                    logtivi.organization_id = user_now?.organization_id;
+                    logtivi.action = "Tivi/Tivi_LawPublic";
+                    logtivi.created_by = user_id;
+                    logtivi.created_date = DateTime.Now;
+                    logtivi.created_ip = ip;
+                    logtivi.created_token_id = tid;
+                    logtivi.content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(tables) });
+                    db.tivi_log.Add(logtivi);
+                    db.SaveChanges();
+                }
+                #endregion
+
                 return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
             }
             catch (DbEntityValidationException e)
@@ -2013,6 +2328,7 @@ namespace API.Controllers.Tivi
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             try
             {
+                var user_id = jobject["user_id"] != null ? jobject["user_id"].ToObject<string>() : null;
                 var tivi_id = jobject["idtivi"] != null ? jobject["idtivi"].ToObject<string>() : null;
                 var sqlpas = new List<SqlParameter>();
                 sqlpas.Add(new SqlParameter("@" + "user_id", uid));
@@ -2021,6 +2337,26 @@ namespace API.Controllers.Tivi
                 var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, "tivi_get_media_screen", arrpas).Tables);
                 var tables = await task;
                 string JSONresult = Codec.EncryptString(JsonConvert.SerializeObject(tables), ConfigurationManager.AppSettings["EncriptKey"]);
+
+                #region log tivi
+                using (DBEntities db = new DBEntities())
+                {
+                    var user_now = db.sys_users.FirstOrDefault(x => x.user_id == user_id);
+                    tivi_log logtivi = new tivi_log();
+                    logtivi.tivi_id = tivi_id;
+                    logtivi.method = "HttpPost";
+                    logtivi.organization_id = user_now?.organization_id;
+                    logtivi.action = "Tivi/Tivi_MediaPublic";
+                    logtivi.created_by = user_id;
+                    logtivi.created_date = DateTime.Now;
+                    logtivi.created_ip = ip;
+                    logtivi.created_token_id = tid;
+                    logtivi.content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(tables) });
+                    db.tivi_log.Add(logtivi);
+                    db.SaveChanges();
+                }
+                #endregion
+
                 return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
             }
             catch (DbEntityValidationException e)
@@ -2071,6 +2407,7 @@ namespace API.Controllers.Tivi
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             try
             {
+                var user_id = jobject["user_id"] != null ? jobject["user_id"].ToObject<string>() : null;
                 var tivi_id = jobject["idtivi"] != null ? jobject["idtivi"].ToObject<string>() : null;
                 var sqlpas = new List<SqlParameter>();
                 sqlpas.Add(new SqlParameter("@" + "user_id", uid));
@@ -2079,6 +2416,25 @@ namespace API.Controllers.Tivi
                 var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, "tivi_get_image_screen", arrpas).Tables);
                 var tables = await task;
                 string JSONresult = Codec.EncryptString(JsonConvert.SerializeObject(tables), ConfigurationManager.AppSettings["EncriptKey"]);
+
+                #region log tivi
+                using (DBEntities db = new DBEntities())
+                {
+                    var user_now = db.sys_users.FirstOrDefault(x => x.user_id == user_id);
+                    tivi_log logtivi = new tivi_log();
+                    logtivi.tivi_id = tivi_id;
+                    logtivi.method = "HttpPost";
+                    logtivi.organization_id = user_now?.organization_id;
+                    logtivi.action = "Tivi/Tivi_ImagePublic";
+                    logtivi.created_by = user_id;
+                    logtivi.created_date = DateTime.Now;
+                    logtivi.created_ip = ip;
+                    logtivi.created_token_id = tid;
+                    logtivi.content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(tables) });
+                    db.tivi_log.Add(logtivi);
+                    db.SaveChanges();
+                }
+                #endregion
                 return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
             }
             catch (DbEntityValidationException e)
@@ -2128,20 +2484,38 @@ namespace API.Controllers.Tivi
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             try
             {
-                using (DBEntities db = new DBEntities()) {
+                using (DBEntities db = new DBEntities()) 
+                {
                     if (uid != null)
                     {
                         var userAccess = db.sys_users.Find(uid);
                         if (userAccess != null && (userAccess.is_admin == true || userAccess.is_super == true))
                         {
                             var user_id = jobject["user_id"] != null ? jobject["user_id"].ToObject<string>() : null;
+                            var tivi_id = jobject["idtivi"] != null ? jobject["idtivi"].ToObject<string>() : null;
                             var sqlpas = new List<SqlParameter>();
-                            sqlpas.Add(new SqlParameter("@" + "user_id", user_id));
+                            sqlpas.Add(new SqlParameter("@" + "user_id", uid));
                             sqlpas.Add(new SqlParameter("@" + "socket_url", config.socketUrl));
                             var arrpas = sqlpas.ToArray();
                             var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, "tivi_list_public", arrpas).Tables);
                             var tables = await task;
                             string JSONresult = Codec.EncryptString(JsonConvert.SerializeObject(tables), ConfigurationManager.AppSettings["EncriptKey"]);
+
+                            #region log tivi
+                            var user_now = db.sys_users.FirstOrDefault(x => x.user_id == user_id);
+                            tivi_log logtivi = new tivi_log();
+                            logtivi.tivi_id = tivi_id;
+                            logtivi.method = "HttpPost";
+                            logtivi.organization_id = user_now?.organization_id;
+                            logtivi.action = "Tivi/List_TiviPublic";
+                            logtivi.created_by = user_id;
+                            logtivi.created_date = DateTime.Now;
+                            logtivi.created_ip = ip;
+                            logtivi.created_token_id = tid;
+                            logtivi.content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(tables) });
+                            db.tivi_log.Add(logtivi);
+                            db.SaveChanges();
+                            #endregion
                             return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
                         }
                         else
@@ -2230,6 +2604,24 @@ namespace API.Controllers.Tivi
                         obj_tv.time_change_screen = 60;
                         obj_tv.is_order = maxOrder + 1;
                         db.tivi_screen.Add(obj_tv);
+
+                        var user_id = jobject["user_id"] != null ? jobject["user_id"].ToObject<string>() : null;
+
+                        #region log tivi
+                        var user_now = db.sys_users.FirstOrDefault(x => x.user_id == user_id);
+                        tivi_log logtivi = new tivi_log();
+                        logtivi.tivi_id = obj_tv.tivi_id;
+                        logtivi.method = "HttpPost";
+                        logtivi.organization_id = user_now?.organization_id;
+                        logtivi.action = "Tivi/dangkytivi";
+                        logtivi.created_by = user_id;
+                        logtivi.created_date = DateTime.Now;
+                        logtivi.created_ip = ip;
+                        logtivi.created_token_id = tid;
+                        logtivi.content = JsonConvert.SerializeObject(new { dataTivi = JsonConvert.SerializeObject(obj_tv, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                        db.tivi_log.Add(logtivi);
+                        #endregion
+
                     }
                     await db.SaveChangesAsync();
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });

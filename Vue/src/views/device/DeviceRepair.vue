@@ -395,6 +395,12 @@ const loadDataSQLDM = () => {
     key: "status",
   };
   filterSQLDM.value.push(filterS3);
+    let filterS4 = {
+    filterconstraints: [{ value: "TPTH", matchMode: "notEquals" }],
+    filteroperator: "and",
+    key: "status",
+  };
+  filterSQLDM.value.push(filterS4);
   let data = {
     sqlS: "True",
     sqlO: options.value.sortDM,

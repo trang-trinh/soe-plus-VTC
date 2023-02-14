@@ -13,13 +13,8 @@ using Newtonsoft.Json;
 using System.Data.Entity.Validation;
 using System.Data.Entity;
 using System.IO;
-using System.Text.RegularExpressions;
-using Microsoft.ApplicationBlocks.Data;
 using Newtonsoft.Json.Linq;
-using System.Configuration;
-using System.Data.SqlClient;
-using System.Security.Cryptography;
-using System.Text;
+using ImageMagick;
 
 
 namespace API.Controllers.Hrn
@@ -28,7 +23,7 @@ namespace API.Controllers.Hrn
     public class hrm_contractController : ApiController
     {
         public string getipaddress()
-        {
+        { 
             //var host = Dns.GetHostEntry(Dns.GetHostName());
             //foreach (var ip in host.AddressList)
             //{
@@ -205,7 +200,6 @@ namespace API.Controllers.Hrn
                         File.Move(fileData.LocalFileName, rootPath);
                         //File.Copy(fileData.LocalFileName, rootPathFile, true);
                         var df = new hrm_file();
-                        df.file_id = helper.GenKey();
                         df.key_id = model.contract_id;
                         df.file_name = name_file;
                         df.file_path = Duongdan;
@@ -284,13 +278,20 @@ namespace API.Controllers.Hrn
                 {
                     using (DBEntities db = new DBEntities())
                     {
+                        string root = HttpContext.Current.Server.MapPath("~/Portals");
                         var das = await db.hrm_contract.Where(a => ids.Contains(a.contract_id)).ToListAsync();
+                        var dasUrl = await db.hrm_file.AsNoTracking().Where(a => ids.Contains(a.key_id) && (ad || a.created_by == uid) && a.file_path != null).Select(a => a.file_path).ToListAsync();
+                        List<string> paths = new List<string>();
                         if (das != null)
                         {;
                             List<hrm_contract> del = new List<hrm_contract>();
                             foreach (var da in das)
                             {
                                 del.Add(da);
+                            }
+                            foreach (var p in dasUrl)
+                            {
+                                paths.Add(p);
                             }
                             if (del.Count == 0)
                             {
@@ -299,6 +300,17 @@ namespace API.Controllers.Hrn
                             db.hrm_contract.RemoveRange(del);
                         }
                         await db.SaveChangesAsync();
+                        if (paths != null && paths.Count > 0)
+                        {
+                            foreach (var p in paths)
+                            {
+                                var rootPath = root + "/" + p;
+                                if (System.IO.File.Exists(rootPath))
+                                {
+                                    System.IO.File.Delete(rootPath);
+                                }
+                            }
+                        }
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     }
                 }
@@ -331,7 +343,7 @@ namespace API.Controllers.Hrn
         }
 
         [HttpDelete]
-        public async Task<HttpResponseMessage> delete_file([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> ids)
+        public async Task<HttpResponseMessage> delete_file([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> ids)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -500,6 +512,81 @@ namespace API.Controllers.Hrn
                     contents = "";
                 }
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_status_contract([System.Web.Mvc.Bind(Include = "id,status,content,date")][FromBody] JObject data)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                string id = data["id"].ToObject<string>();
+                int? status = data["status"]?.ToObject<int?>();
+                string content = data["content"].ToObject<string>();
+                DateTime? date = data["date"]?.ToObject<DateTime?>();
+
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        var model = await db.hrm_contract.FindAsync(id);
+                        if (model != null)
+                        {
+                            model.status = status;
+                            if (model.status == 3)
+                            {
+                                model.liquidation_content = content;
+                                model.liquidation_date = date;
+                            }
+                        }
+                        await db.SaveChangesAsync();
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents, contents }), domainurl + "hrm_contract/update_status_contract", ip, tid, "Lỗi khi cập nhật trạng thái", 0, "hrm_contract");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents, contents }), domainurl + "hrm_contract/update_status_contract", ip, tid, "Lỗi khi cập nhật trạng thái", 0, "hrm_contract");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
         }
         #endregion

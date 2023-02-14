@@ -216,7 +216,7 @@ namespace API.Controllers
                             sh.title = "Công việc";
                             sh.contents = "Thêm công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
                             sh.type = 2;
-                            sh.is_type = 0;
+                            sh.is_type = -1;
                             sh.date_send = DateTime.Now;
                             sh.id_key = task_origin.task_id.ToString();
                             //sh.group_id = task_origin.group_id;
@@ -527,7 +527,7 @@ namespace API.Controllers
                             sh.title = "Công việc";
                             sh.contents = "Sửa công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
                             sh.type = 2;
-                            sh.is_type = 0;
+                            sh.is_type = -1;
                             sh.date_send = DateTime.Now;
                             sh.id_key = task_origin.task_id.ToString();
                             //sh.group_id = task_origin.group_id;
@@ -724,7 +724,7 @@ namespace API.Controllers
                                 sh.title = "Công việc";
                                 sh.contents = "Xóa công việc: " + (da.task_name.Length > 100 ? da.task_name.Substring(0, 97) + "..." : da.task_name);
                                 sh.type = 2;
-                                sh.is_type = 0;
+                                sh.is_type = -1;
                                 sh.date_send = DateTime.Now;
                                 sh.id_key = da.task_id.ToString();
                                 //sh.group_id = task_origin.group_id;
@@ -1367,12 +1367,19 @@ namespace API.Controllers
                         fddepartment = provider.FormData.GetValues("department").SingleOrDefault();
                         task_department_configuration task_department_configuration = JsonConvert.DeserializeObject<task_department_configuration>(fddepartment);
                         var task_config = db.task_department_configuration.Where(x=> x.department_id == task_department_configuration.department_id).ToList();
-                        foreach (var item in task_config)
+                        if (task_config.Count == 0)
                         {
-                            item.user_id = task_department_configuration.user_id;
-                            //db.task_department_configuration.Add(task_department_configuration);
-                            db.Entry(item).State = EntityState.Modified;
+                            db.task_department_configuration.Add(task_department_configuration);
                         }
+                        else
+                        {
+                            foreach (var item in task_config)
+                            {
+                                item.user_id = task_department_configuration.user_id;
+                                db.Entry(item).State = EntityState.Modified;
+                            }
+                        }
+                        
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });

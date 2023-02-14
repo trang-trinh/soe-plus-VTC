@@ -147,6 +147,9 @@ const loadDataGroupChat = (isGetRealtime) => {
 			let chatLocal = { chat_group_id: cookies.get("chatGroupID") };
 			showDetailChat(chatLocal, isGetRealtime);
 		}
+		else {
+			detailChat.value = null;
+		}
 		if ((data[1] == null || (data[1] != null && data[1][0] != null && data[1][0].is_notify)) && isGetRealtime) {
 			let audioNoti = new Audio(baseUrlCheck + "/Portals/FileChatSystem/pristine-sound.mp3");
 			audioNoti.play();
@@ -1184,7 +1187,7 @@ onMounted(() => {
 								<div class="scrollParenttree" style="overflow-x: hidden; overflow-y: auto;">
 									<ul class="list-group dataUser p-0 m-0" tabindex="0" style="max-height: calc(100vh - 32.75rem);">
 										<div v-for="pb in departments" :key="pb.department_id" class="p-0">
-											<div class="p-3" style="background-color: antiquewhite;">
+											<div class="p-3" style="background-color: antiquewhite;" v-if="filterListUser(pb).length > 0">
 												<span class="font-bold uppercase" style="color: #333;">{{pb.department_name}}</span>
 											</div>
 											<li class="list-group-item format_center"

@@ -188,6 +188,7 @@ const openBasic = (str) => {
     organization_id: store.getters.user.organization_id,
     type: true,
   };
+  selectCapcha.value=null;
   issaveWarehouse.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -1411,7 +1412,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     :maximizable="true"
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '40vw' }"
+    :style="{ width: '40vw' }" :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
@@ -1672,7 +1673,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Tải lên file Excel"
     v-model:visible="Imp"
     :style="{ width: '40vw' }"
-    :closable="true"
+    :closable="true" :modal="true"
   >
     <h3>
       <label>

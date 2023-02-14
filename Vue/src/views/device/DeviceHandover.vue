@@ -5,7 +5,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import moment from "moment";
- import treeuser from "../../components/user/treeuser.vue";
+import treeuser from "../../components/user/treeuser.vue";
 import detailsHandover from "../../components/device/detailsHandover.vue";
 import detailsDevice from "../../components/device/detailsDevice.vue";
 import { el } from "date-fns/locale";
@@ -44,37 +44,35 @@ const rules = {
       },
     ],
   },
-}; 
+};
 
 const displayDialogUser = ref(false);
- 
- let checkTypeUse=null;
+
+let checkTypeUse = null;
 const showTreeUser = (value) => {
-    checkMultile.value = true;
-   selectedUser.value= [...listUserA.value];
-     checkTypeUse=value;
+  checkMultile.value = true;
+  selectedUser.value = [...listUserA.value];
+  checkTypeUse = value;
   displayDialogUser.value = true;
 };
 const headerDialogUser = ref("Chọn người duyệt");
 const closeDialogUser = () => {
   displayDialogUser.value = false;
-};const datalistsD = ref();
+};
+const datalistsD = ref();
 const checkMultile = ref(true);
- const listUserA = ref([]);
- 
+const listUserA = ref([]);
+
 const choiceUser = () => {
-   
   if (checkMultile.value == true)
-    selectedUser.value.forEach(element => {
-      if(checkTypeUse==1){
-      device_handover.value.user_receiver_id=element.user_id;
-onChangeUser1(element.user_id)
+    selectedUser.value.forEach((element) => {
+      if (checkTypeUse == 1) {
+        device_handover.value.user_receiver_id = element.user_id;
+        onChangeUser1(element.user_id);
+      } else {
+        device_handover.value.user_verifier_id = element.user_id;
+        onChangeUser2(element.user_id);
       }
-      else
-    {  device_handover.value.user_verifier_id=element.user_id;
-    onChangeUser2(element.user_id);
-    }
-      
     });
   closeDialogUser();
 };
@@ -382,7 +380,6 @@ const onDayClick = () => {
   isDynamicSQL.value = true;
   loadData(true);
 };
-
 
 //Xóa tin tức
 
@@ -1443,7 +1440,7 @@ function renderhtmlWord(id, htmltable) {
 }
 
 function renderhtml(id, htmltable) {
-    htmltable = "";
+  htmltable = "";
 
   htmltable +=
     "   <table  border='0' width='1024' cellpadding='0'> <thead> <tr> ";
@@ -1522,17 +1519,22 @@ function renderhtml(id, htmltable) {
       : "0" +
         (new Date(device_handover.value.handover_created_date).getMonth() + 1);
   htmltable += strM;
-
+  var strM1 = device_handover.value.user_receiver_department_name
+    ? device_handover.value.user_receiver_department_name
+    : " đây ";
+  var strM2 = device_handover.value.user_deliver_department_name
+    ? device_handover.value.user_deliver_department_name
+    : "";
   htmltable +=
     " năm " +
     new Date(device_handover.value.handover_created_date).getFullYear() +
     " tại " +
-    device_handover.value.user_receiver_department_name +
+    strM1 +
     ", chúng tôi gồm:</p></td></tr></tbody></table>";
   htmltable +=
     "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'>" +
     "A. Bên giao: " +
-    device_handover.value.user_deliver_department_name +
+    strM2 +
     "</p></td></tr></tbody></table>";
   htmltable +=
     "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: " +
@@ -1543,10 +1545,16 @@ function renderhtml(id, htmltable) {
     device_handover.value.user_deliver_position +
     "</p></td></tr>";
   htmltable += " </tbody></table>";
+  var strM3 = device_handover.value.user_receiver_department_name
+    ? device_handover.value.user_receiver_department_name
+    : "";
+  var strM4 = device_handover.value.user_verifier_department_name
+    ? device_handover.value.user_verifier_department_name
+    : "";
   htmltable +=
     "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'>" +
     "B. Bên nhận: " +
-    device_handover.value.user_receiver_department_name +
+    strM3 +
     "</p></td></tr></tbody></table>";
   htmltable +=
     "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: " +
@@ -1561,7 +1569,7 @@ function renderhtml(id, htmltable) {
     htmltable +=
       "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'>" +
       "C. Bên xác nhận: " +
-      device_handover.value.user_verifier_department_name +
+      strM4 +
       "</p></td></tr></tbody></table>";
     htmltable +=
       "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: " +
@@ -1616,13 +1624,15 @@ function renderhtml(id, htmltable) {
       ts.device_name +
       "</td>";
     //htmltable += "<td width='100' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>" + moment(ts.ngaymua).format('DD/MM/YYYY') + "</td>";
+
+    var dv = ts.device_unit ? ts.device_unit : "";
     htmltable +=
       "<td width='90' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>" +
-      ts.device_unit +
+      dv +
       "</td>";
     htmltable +=
       "<td width='90' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;padding:10px 5px;'>" +
-        (ts.price != null ? ts.price.toLocaleString() : " 0 ")    +
+      (ts.price != null ? ts.price.toLocaleString() : " 0 ") +
       " VND " +
       "</td>";
     htmltable +=
@@ -1714,6 +1724,7 @@ const saveHandover = (isFormValid, isPrint) => {
     Object.keys(device_handover.value.user_department).forEach((key) => {
       mre = Number(key);
     });
+
     var liOr = listOrganization.value.filter((x) => x.organization_id == mre);
     if (liOr) {
       if (liOr[0].user_receiver != null) {
@@ -1827,7 +1838,7 @@ const saveHandover = (isFormValid, isPrint) => {
           swal.close();
           toast.success("Thêm cấp phát thành công!");
           if (isPrint) {
-            listAssetsH.value=selectedCard.value;
+            listAssetsH.value = selectedCard.value;
             print();
           }
           checkCV.value = true;
@@ -1863,7 +1874,7 @@ const saveHandover = (isFormValid, isPrint) => {
           swal.close();
           toast.success("Sửa cấp phát thành công!");
           if (isPrint) {
-               listAssetsH.value=selectedCard.value;
+            listAssetsH.value = selectedCard.value;
             print();
           }
           checkCV.value = true;
@@ -1964,14 +1975,14 @@ const onChangeUserReceiver = (value) => {
       typeReceiver.value = 1;
     }
 
-  device_handover.value.user_department=null;
+    device_handover.value.user_department = null;
     if (userReceiver2.value) typeReceiver.value = 2;
   } else {
     userReceiver2.value = userReceiver1.value;
     userReceiver1.value = !userReceiver2.value;
     if (userReceiver1.value) typeReceiver.value = 1;
     if (userReceiver2.value) typeReceiver.value = 2;
-    device_handover.value.user_receiver_id=null;
+    device_handover.value.user_receiver_id = null;
   }
   // if (typeReceiver.value == 2) {
 
@@ -2226,14 +2237,13 @@ const openBasic = (str) => {
       if (data.length > 0) {
         loadDeviceNumber(data[0]);
         checkCV.value = false;
-  filesList.value = [];
-  submitted.value = false;
-  headerDialog.value = str;
-  isSaveCard.value = false;
-  checkShowAssets.value = false;
-  displayBasic.value = true;
-      }     else{
-        
+        filesList.value = [];
+        submitted.value = false;
+        headerDialog.value = str;
+        isSaveCard.value = false;
+        checkShowAssets.value = false;
+        displayBasic.value = true;
+      } else {
         swal.fire({
           title: "Error!",
           text: "Vui lòng cấu hình số hiệu cho phiếu cấp phát!",
@@ -2244,7 +2254,6 @@ const openBasic = (str) => {
     })
     .catch((error) => {});
   // loadRelate();
-  
 };
 const onChangeReceipt = () => {
   selectedCard.value = [];
@@ -2473,14 +2482,14 @@ const itemButs = ref([
     command: (event) => {
       exportData("ExportExcel");
     },
-  },  {
+  },
+  {
     label: "Xuất Word",
     icon: "pi pi-file",
     command: (event) => {
       exportWordListH(event);
     },
   },
-  
 ]);
 
 const exportWordListH = (method) => {
@@ -2492,13 +2501,12 @@ const exportWordListH = (method) => {
   });
   var htmltable = "";
   htmltable = renderhtmlWord("formwordlist", htmltable);
-  axios 
+  axios
     .post(
       baseURL + "/api/device_handover/ExportDoc",
       {
         lib: "word",
-        name:
-          "DANH_SACH_CAP_PHAT" ,
+        name: "DANH_SACH_CAP_PHAT",
         html: htmltable,
         opition: {
           orientation: "Portrait",
@@ -2553,8 +2561,7 @@ const exportWord = (method) => {
       baseURL + "/api/device_handover/ExportDoc",
       {
         lib: "word",
-        name:
-          "BIEN_BAN_BAN_GIAO" ,
+        name: "BIEN_BAN_BAN_GIAO",
         html: htmltable,
         opition: {
           orientation: "Portrait",
@@ -2611,13 +2618,14 @@ const exportData = (method) => {
       {
         excelname: "DANH SÁCH BIÊN BẢN BÀN GIAO",
         proc: "device_handover_list_export",
-        par: [  { par: "user_id", va: store.state.user.user_id },
+        par: [
+          { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.search },
           { par: "status", va: filterTrangthai.value },
-          { par: "user_deliver_name", va: filterCardUserSend.value  },
+          { par: "user_deliver_name", va: filterCardUserSend.value },
           { par: "user_receiver_name", va: filterCardUser.value },
-          { par: "start_date", va:  options.value.start_date},
-          { par: "end_date", va:  options.value.end_date },
+          { par: "start_date", va: options.value.start_date },
+          { par: "end_date", va: options.value.end_date },
           { par: "pageno", va: options.value.pageno },
           { par: "pagesize", va: options.value.pagesize },
         ],
@@ -2664,7 +2672,6 @@ const exportData = (method) => {
     });
 };
 
- 
 const renderTreeDV1 = (data, id, name, title, org_id) => {
   let arrtreeChils = [];
   if (org_id == "" || org_id == null) {
@@ -2931,18 +2938,15 @@ const loadUser = () => {
 const listOrganization = ref([]);
 const datalistsDM = ref();
 const listDepartment = ref();
-const loadOrganization = ( ) => {
+const loadOrganization = () => {
   axios
     .post(
       baseURL + "/api/device_card/getData",
       {
         str: encr(
           JSON.stringify({
-          proc: "sys_device_department_child",
-            par: [
- 
-              { par: "user_id", va: store.getters.user.user_id },
-            ],
+            proc: "sys_device_department_child",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
           cryoptojs
@@ -2955,18 +2959,17 @@ const loadOrganization = ( ) => {
 
       if (data.length > 0) {
         listOrganization.value = data;
-             var arr = [...data];
+        var arr = [...data];
         let obj = renderTreeDV1(
           arr,
           "organization_id",
           "organization_name",
           "đơn vị",
-           store.getters.user.organization_id
+          store.getters.user.organization_id
         );
         datalistsD.value = obj.arrChils;
         listDepartment.value = obj.arrtreeChils;
       } else listDepartment.value = [];
-      
     })
     .catch((error) => {
       console.log("err", error);
@@ -2984,12 +2987,13 @@ const loadOrganization = ( ) => {
     });
 };
 
-onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-     //router.back();
+onMounted(() => {
+  if (!checkURL(window.location.pathname, store.getters.listModule)) {
+    //router.back();
   }
   loadDeviceUnit();
 
-  loadOrganization( );
+  loadOrganization();
   loadWareHouse();
   loadUser();
 
@@ -3442,16 +3446,14 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           headerStyle="text-align:center;height:50px"
           bodyStyle="text-align:center"
           field="user_receiver_name"
-          header="Người sử dụng"
-          :sortable="true"
+          header="Sử dụng"
         >
-          <template #filter="{ filterModel }">
-            <InputText
-              type="text"
-              v-model="filterModel.value"
-              class="p-column-filter"
-              placeholder="Từ khoá"
-            />
+          <template #body="data">
+            <div>
+              <span v-if="data.data.is_receiver_department">
+                {{ data.data.receiver_department_name }}</span
+              ><span v-else>{{ data.data.user_receiver_name }}</span>
+            </div>
           </template>
         </Column>
         <Column
@@ -3908,9 +3910,14 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         <div class="col-12 flex p-0" v-if="typeReceiver == 1">
           <div class="col-6 p-0 text-left align-items-center">
             <div class="col-12 field p-0 flex text-left align-items-center">
-              <div class="w-10rem  align-items-center flex">
-              <div>  Người nhận<span class="redsao pl-1"> (*)</span></div>
-             <Button v-tooltip.top="'Chọn người nhận'" @click="showTreeUser(1)"  icon="pi pi-user-plus" class="  p-button-text p-button-rounded "   />
+              <div class="w-10rem align-items-center flex">
+                <div>Người nhận<span class="redsao pl-1"> (*)</span></div>
+                <Button
+                  v-tooltip.top="'Chọn người nhận'"
+                  @click="showTreeUser(1)"
+                  icon="pi pi-user-plus"
+                  class="p-button-text p-button-rounded"
+                />
               </div>
               <Dropdown
                 v-model="device_handover.user_receiver_id"
@@ -4110,10 +4117,15 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           <div class="col-12 flex p-0">
             <div class="col-6 p-0 text-left align-items-center">
               <div class="col-12 field p-0 flex text-left align-items-center">
-                 <div class="w-10rem  align-items-center flex">
-              <div>  Người duyệt<span class="redsao pl-1"> (*)</span></div>
-             <Button v-tooltip.top="'Chọn người duyệt'" @click="showTreeUser(2)"   icon="pi pi-user-plus" class="  p-button-text   p-button-rounded"   />
-              </div>
+                <div class="w-10rem align-items-center flex">
+                  <div>Người duyệt<span class="redsao pl-1"> (*)</span></div>
+                  <Button
+                    v-tooltip.top="'Chọn người duyệt'"
+                    @click="showTreeUser(2)"
+                    icon="pi pi-user-plus"
+                    class="p-button-text p-button-rounded"
+                  />
+                </div>
                 <Dropdown
                   v-model="device_handover.user_verifier_id"
                   panelClass="d-design-dropdown"
@@ -5152,8 +5164,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         autofocus
       />
       <Button @click="print()" label="In phiếu" icon="pi pi-print" />
-          <Button @click="exportWord()" label="Xuất Word" icon="pi pi-file" />
-      
+      <Button @click="exportWord()" label="Xuất Word" icon="pi pi-file" />
     </template>
   </Dialog>
 
@@ -5980,7 +5991,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       />
     </template>
   </Dialog>
-    <treeuser
+  <treeuser
     v-if="displayDialogUser === true"
     :headerDialog="headerDialogUser"
     :displayDialog="displayDialogUser"
@@ -5989,12 +6000,8 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     :selected="selectedUser"
     :choiceUser="choiceUser"
   />
-    <printDocHandover
-    :datas="device_handover" :listAssets="listAssetsH"
-  />
-     <printListHandover
-    :datas="datalists"  
-  />
+  <printDocHandover :datas="device_handover" :listAssets="listAssetsH" />
+  <printListHandover :datas="datalists" />
 </template>
 
 

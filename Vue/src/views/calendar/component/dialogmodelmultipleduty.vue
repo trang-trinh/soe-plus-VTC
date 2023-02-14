@@ -120,7 +120,6 @@ const bindDateBetweenFirstAndLast = (
     add_fn = add_fn || Date.prototype.addDays;
     interval = interval || 1;
 
-    
     var current = new Date(start_date);
 
     var checkVR = true;
@@ -133,7 +132,7 @@ const bindDateBetweenFirstAndLast = (
       }
       retVal.push(new Date(current));
       current = add_fn.call(current, interval);
-    }    
+    }
   }
   return retVal;
 };
@@ -1189,15 +1188,7 @@ onMounted(() => {
                       "
                       v-if="!isFirst || options.total == 0"
                       style="display: flex; height: calc(100vh - 225px)"
-                    >
-                      <div>
-                        <img
-                          src="../../../assets/background/nodata.png"
-                          height="144"
-                        />
-                        <h3 class="m-1">Không có dữ liệu</h3>
-                      </div>
-                    </div>
+                    ></div>
                   </template>
                 </DataTable>
               </div>
@@ -1646,15 +1637,11 @@ onMounted(() => {
                         text-center
                         m-auto
                       "
-                      v-if="!options.loading && (!isFirst || options.total == 0)"
+                      v-if="
+                        !options.loading && (!isFirst || options.total == 0)
+                      "
                     >
-                      <div style="height: calc(100vh)">
-                        <img
-                          src="../../../assets/background/nodata.png"
-                          height="144"
-                        />
-                        <h3 class="m-1">Không có dữ liệu</h3>
-                      </div>
+                      <div style="height: calc(100vh)"></div>
                     </div>
                   </template>
                 </DataTable>

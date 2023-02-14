@@ -213,18 +213,21 @@ const loadFile = () => {
         element.creator = JSON.parse(element.creator);
         element.creator_tooltip =
           "Người tạo <br/>" +
-          element.creator.full_name +
-          "<br/>" +
-          element.creator.positions +
-          "<br/>" +
-          (element.creator.department_name != null
-            ? element.creator.department_name
-            : element.creator.organiztion_name);
+            element.creator.full_name +
+            "<br/>" +
+            element.creator.positions ??
+          "" +
+            "<br/>" +
+            (element.creator.department_name != null
+              ? element.creator.department_name
+              : element.creator.organiztion_name);
+        console.log(element);
       });
       listFile.value = [];
       listFile.value = data;
       countFiles.value = count[0].count;
       countAllFile.value = count2[0].countALLFile;
+      console.log(listFile.value, countFiles.value, countAllFile.value);
     })
     .catch((error) => {
       // toast.error("Tải dữ liệu không thành công!");
@@ -1439,8 +1442,8 @@ const addNewChildTaskOrigin = (task) => {
   selectcapcha.value[task.department_id || -1] = true;
   listtreeOrganization();
   listProjectMain();
-  // Task.value.assign_user_id.push(store.state.user.user_id);
-  // Task.value.work_user_ids.push(store.state.user.user_id);
+  Task.value.assign_user_id.push(store.state.user.user_id);
+  Task.value.work_user_ids.push(store.state.user.user_id);
   isAdd.value = true;
   displayTask.value = true;
 };
@@ -1555,8 +1558,8 @@ const listProjectMain = () => {
             proc: "task_origin_get_list_init",
             par: [
               {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
+                par: "user_id",
+                va: store.getters.user.user_id,
               },
             ],
           }),
@@ -1570,10 +1573,12 @@ const listProjectMain = () => {
       let data = JSON.parse(response.data.data);
       listDropdownProject.value = data[0];
       listDropdownTaskGroup.value = data[1];
+      listDropdownweight.value = data[2];
     })
     .catch((error) => {
-      // toast.error("Tải dữ liệu không thành công7!");
-      options.value.loading = false;
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
 
       if (error && error.status === 401) {
         swal.fire({
@@ -1761,7 +1766,12 @@ const saveTask = (isFormValid) => {
 }; //recall component
 const showDetail1 = ref(false);
 const selectedTaskID = ref();
+const componentKey = ref(0);
+const forceRerender = () => {
+  componentKey.value += 1;
+};
 const show = (ch) => {
+  forceRerender();
   selectedTaskID.value = null;
   showDetail1.value = true;
   selectedTaskID.value = ch.task_id;
@@ -2229,9 +2239,9 @@ const endProgress = () => {
 const hideall = () => {
   isShow.value = false;
   emitter.emit("SideBar", false);
-  router.push({ name: "taskmain", params: {} }).then(() => {
-    router.go(0);
-  });
+  // router.push({ name: "taskmain", params: {} }).then(() => {
+  //   router.go(0);
+  // });
 };
 const PositionSideBar = ref("right");
 const MaxMin = (m) => {
@@ -2577,6 +2587,7 @@ const Upload = () => {
     axios
       .post(baseURL + "/api/task_Files/add_Task_File", formData, config)
       .then((response) => {
+        console.log(response.data);
         if (response.data.err != "1") {
           swal.close();
           toast.success("Tải tệp tài liệu lên thành công!");
@@ -3262,9 +3273,9 @@ const router = inject("router");
 const closeSildeBar = () => {
   isShow.value = false;
   emitter.emit("SideBar", false);
-  router.push({ name: "taskmain", params: {} }).then(() => {
-    router.go(0);
-  });
+  // router.push({ name: "taskmain", params: {} }).then(() => {
+  //   router.go(0);
+  // });
 };
 </script>
 <template>
@@ -6483,6 +6494,7 @@ const closeSildeBar = () => {
     </div>
   </Sidebar>
   <DetailedChild
+    :key="componentKey"
     v-if="showDetail1 == true && selectedTaskID != null"
     :isShow="showDetail1"
     :id="selectedTaskID"
@@ -6616,7 +6628,6 @@ const closeSildeBar = () => {
     v-model:visible="openDialog1"
     :style="{ width: '20vw' }"
     :closable="true"
-    style="z-index: 10000"
   >
     <form>
       <div class="grid formgrid m-2">
@@ -6686,7 +6697,7 @@ const closeSildeBar = () => {
             v-model="Task.task_name"
             spellcheck="false"
             class="col-9 ip36 px-2"
-            :class="{ 'p-invalid': v3$.task_name.$invalid && submitted }"
+            :class="{ 'p-invalid': v3$.task_name.$invalid && sbm }"
           />
         </div>
         <div
@@ -6696,7 +6707,7 @@ const closeSildeBar = () => {
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v3$.task_name.$invalid && submitted) ||
+              (v3$.task_name.$invalid && sbm) ||
               v3$.task_name.$pending.$response
             "
             class="col-9 p-error p-0"
@@ -6753,6 +6764,7 @@ const closeSildeBar = () => {
             optionValue="project_id"
             spellcheck="false"
             class="col-9 ip36 p-0"
+            panelClass="d-design-dropdown"
           >
             <template #option="slotProps">
               <div class="country-item flex">
@@ -6832,7 +6844,7 @@ const closeSildeBar = () => {
             class="col-9 ip36 p-0"
             placeholder="Người thực hiện"
             :class="{
-              'p-invalid': Task.work_user_ids.length == 0 && submitted,
+              'p-invalid': Task.work_user_ids.length == 0 && sbm,
             }"
             display="chip"
           >
@@ -6881,13 +6893,13 @@ const closeSildeBar = () => {
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v3$.work_user_ids.$invalid && submitted) ||
+              (v3$.work_user_ids.$invalid && sbm) ||
               v3$.work_user_ids.$pending.$response
             "
             class="col-9 p-error p-0"
           >
             <span class="col-12 p-0">{{
-              v$.work_user_ids.required.$message
+              v3$.work_user_ids.required.$message
                 .replace("Value", "Người thực hiện")
                 .replace("is required", "không được để trống")
             }}</span>
@@ -7082,8 +7094,7 @@ const closeSildeBar = () => {
                 autocomplete="on"
                 v-model="Task.end_date"
                 :class="{
-                  'p-invalid':
-                    v3$.end_date.$invalid && submitted && Task.is_deadline,
+                  'p-invalid': v3$.end_date.$invalid && sbm && Task.is_deadline,
                 }"
                 @date-select="CheckDate($event)"
               />
@@ -7097,7 +7108,7 @@ const closeSildeBar = () => {
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v3$.end_date.$invalid && submitted && Task.is_deadline) ||
+              (v3$.end_date.$invalid && sbm && Task.is_deadline) ||
               (v3$.end_date.$pending.$response && Task.is_deadline)
             "
             class="col-9 p-error p-0"
@@ -7992,7 +8003,6 @@ const closeSildeBar = () => {
     ref="panel_file"
     :popup="true"
     id="overlay_panel"
-    style=""
   >
     <template #item="{ item }">
       <a

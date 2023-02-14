@@ -6,6 +6,7 @@ import dialogScreen from "../../components/tivi/tivi_screen_detail.vue";
 import dialogDataScreen from "../../components/tivi/tivi_video_list.vue";
 import dialogDataImage from "../../components/tivi/tivi_image_list.vue";
 import dialogDataDBScreen from "../../components/tivi/tivi_screen_list.vue";
+import ShowLogTivi from "../../components/tivi/tivi_list_log.vue";
 import { change_unsigned, getParent, encr, decr, checkURL } from "../../util/function.js";
 
 const cryoptojs = inject("cryptojs");
@@ -14,6 +15,7 @@ const store = inject("store");
 const swal = inject("$swal");
 const socket = inject("socket");
 const router = inject("router");
+const emitter = inject("emitter");
 const toast = useToast();
 const basedomainURL = baseURL;
 const baseUrlCheck = baseURL;
@@ -391,7 +393,7 @@ const configDetailScreen = (dataScreen) => {
 };
 
 const savingConfigScreen = ref(false);
-const saveConfigScreen = () => {
+const saveConfigScreen = (isAutoSaveUpFile) => {
 	if (savingConfigScreen.value == true) {
 		return;
 	}
@@ -437,7 +439,12 @@ const saveConfigScreen = () => {
 			});
 		} else if (response.data.err != "1") {
 			toast.success("Cập nhật thiết lập màn hình thành công!");
-			configDetailScreen();
+			if (isAutoSaveUpFile == true) {
+				uploadFileToSys();
+			}
+			else {				
+				configDetailScreen();
+			}
 		} else {
 			swal.fire({
 				title: "Thông báo",
@@ -812,6 +819,9 @@ const closeDialogUpload = () => {
 	showModalImg.value = false;
 };
 const isuploading = ref(false);
+const autoSaveUpFile = () => {
+	saveConfigScreen(true);
+};
 const uploadFileToSys = () => {
 	if (isuploading.value) {
 		return;
@@ -1058,6 +1068,7 @@ const changeDisplayShows = () => {
 		detailScreen.value.display_calendar_meeting = false;
 		detailScreen.value.display_calendar_working = false;
 		detailScreen.value.display_calendar_duty = false;
+		detailScreen.value.display_screen_image = false;
 		detailScreen.value.number_docs = 10;
 	}
 };
@@ -1068,8 +1079,63 @@ const changeDisplayImages = () => {
 		detailScreen.value.display_calendar_meeting = false;
 		detailScreen.value.display_calendar_working = false;
 		detailScreen.value.display_calendar_duty = false;
+		detailScreen.value.display_screen_shows = false;
 		detailScreen.value.number_docs = 10;
 	}
+};
+const listLogTivi = ref([]);
+const showSideBar = ref(false);
+const componentKey = ref(0);
+const forceRerender = () => {
+  componentKey.value += 1;
+};
+emitter.on("emitDataLog", (obj) => {
+	switch (obj.type) {
+		case "sidebar_tivilog":
+			showSideBar.value = obj.data;
+			break;
+		case "reload_list_log":
+			viewLogTivi(tiviViewLog.value);
+			break;
+		default:
+			break;
+	}
+  	
+});
+const tiviViewLog = ref();
+const viewLogTivi = (dataTV) => {
+	tiviViewLog.value = dataTV;
+	axios
+		.post(
+			baseUrlCheck + "api/Tivi/GetDataProc",
+			{ 
+				str: encr(JSON.stringify({
+						proc: "tivi_get_log",
+						par: [
+							{ par: "tivi_id", va: dataTV.tivi_id },
+						],
+					}), SecretKey, cryoptojs
+				).toString()
+			},
+			config
+    ).then((response) => {
+		var data = JSON.parse(response.data.data);
+		if (data[0].length > 0) {
+			data[0].forEach((element, idx) => {
+				element.is_order = idx + 1;
+			});
+		}
+		listLogTivi.value = data[0];
+		showSideBar.value = true;
+		forceRerender();
+	})
+    .catch((error) => {
+      swal.fire({
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
 };
 onMounted(() => {
 	if (!checkURL(window.location.pathname, store.getters.listModule)) {
@@ -1157,7 +1223,7 @@ onMounted(() => {
 								bodyStyle="text-align:center;max-width:120px;"
 							>
 								<template #body="slotProps">
-									<div>
+									<div class="flex">
 										<Button
 											@click="reloadTivi(slotProps.data)"
 											class="p-button-rounded p-button-info p-button-outlined mx-1 p-0"
@@ -1165,9 +1231,16 @@ onMounted(() => {
 											icon="pi pi-refresh"
 											v-tooltip="'Reload'"
 										/>
+										<Button v-if="store.getters.user.is_admin || store.getters.user.is_super"
+											@click="viewLogTivi(slotProps.data)"
+											class="p-button-rounded p-button-secondary p-button-outlined mr-1 p-0"
+											type="button"
+											icon="pi pi-clock"
+											v-tooltip="'Xem Log'"
+										/>
 										<Button
 											@click="delSingleTivi(slotProps.data)"
-											class="p-button-rounded p-button-danger p-button-outlined mx-1 p-0"
+											class="p-button-rounded p-button-danger p-button-outlined mr-1 p-0"
 											type="button"
 											icon="pi pi-trash"
 											v-tooltip="'Xóa'"
@@ -1342,7 +1415,7 @@ onMounted(() => {
 									<div class="w-full" style="border-bottom: 0px solid #ccc;"></div>
 								</div>
 							</div>
-							<div class="col-12 pl-0 pr-3 class-cog-screen" v-if="!detailScreen.display_screen_calendar && !detailScreen.display_screen_docs">
+							<div class="col-12 pl-0 pr-3 class-cog-screen" v-if="!detailScreen.display_screen_calendar && !detailScreen.display_screen_docs && !detailScreen.display_screen_image">
 								<label class="label-cog-screen label-main-screen">Hiển thị tuyên truyền</label>
 								<InputSwitch class="switch-cog-screen" v-model="detailScreen.display_screen_shows" @change="changeDisplayShows()" />
 							</div>
@@ -1435,7 +1508,7 @@ onMounted(() => {
 									<div class="w-full" style="border-bottom: 0px solid #ccc;"></div>
 								</div>
 							</div>
-							<div class="col-12 pl-0 pr-3 class-cog-screen" v-if="!detailScreen.display_screen_calendar && !detailScreen.display_screen_docs">
+							<div class="col-12 pl-0 pr-3 class-cog-screen" v-if="!detailScreen.display_screen_calendar && !detailScreen.display_screen_docs && !detailScreen.display_screen_shows">
 								<label class="label-cog-screen label-main-screen">Hiển thị hình ảnh</label>
 								<InputSwitch class="switch-cog-screen" v-model="detailScreen.display_screen_image" @change="changeDisplayImages()" />
 							</div>
@@ -1627,7 +1700,7 @@ onMounted(() => {
 				@click="closeDialogUpload"
 				class="p-button-text"
 			/>
-			<Button label="Upload" icon="pi pi-check" @click="uploadFileToSys" />
+			<Button label="Upload" icon="pi pi-check" @click="autoSaveUpFile" />
 		</template>
 	</Dialog>
 	<dialogDataImage
@@ -1639,6 +1712,13 @@ onMounted(() => {
 		:closeDialog="closeDialogImage"
 		:addDataToScreen="addImageToScreen"
 	/>
+
+	<ShowLogTivi
+      v-if="showSideBar == true"
+      :isShow="showSideBar"
+      :listLog="listLogTivi"
+	  :key="componentKey"
+    />
 </template>
 <style scoped>
 	.class-cog-tivi {

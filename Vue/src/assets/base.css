@@ -201,6 +201,14 @@ input[disabled] {
     width: 100% !important;
 }
 
+.d-card-design.p-card .p-card-body {
+    padding: 0px !important;
+}
+
+.d-card-design.p-card .p-card-body .p-card-content {
+    padding: 0px !important;
+}
+
 .app-system .v-sidebar-menu.vsm_expanded,
 .app-system .vsm--menu {
     max-width: calc(100vw - 88%) !important;

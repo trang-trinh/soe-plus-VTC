@@ -748,8 +748,13 @@ const Del_GroupChat = (gr) => {
 				.then((response) => {
 					if (response.data.err == "0") {
 						toast.success("Xóa dữ liệu thành công!");						
-						//localStorage.removeItem("chatGroupID");
-						cookies.remove("chatGroupID");
+						//localStorage.removeItem("chatGroupID");						
+						if (cookies.get("chatGroupID") != null) {
+							cookies.remove("chatGroupID");
+						}
+						if (cookies.get("viewTabChatID") != null) {
+							cookies.remove("viewTabChatID");
+						}
 						// emitter.emit("emitData", {
 						// 	type: "loadListChatGroup",
 						// 	data:  null
@@ -824,8 +829,13 @@ const Out_GroupChat = (gr, type, user_leave_id, user_remove_id) => {
 					cookies.set("chatGroupID", props.detailChat.chat_group_id);
 					var groupID_Out = props.detailChat.chat_group_id;
 					if (type == 1 || type == 2) {
-						//localStorage.removeItem("chatGroupID");
-						cookies.remove("chatGroupID");
+						//localStorage.removeItem("chatGroupID");						
+						if (cookies.get("chatGroupID") != null) {
+							cookies.remove("chatGroupID");
+						}
+						if (cookies.get("viewTabChatID") != null) {
+							cookies.remove("viewTabChatID");
+						}
 						// emitter.emit("emitData", {
 						// 	type: "loadListChatGroup",
 						// 	data:  null
@@ -2271,6 +2281,7 @@ onMounted(() => {
 								<Textarea class="scroll-width-thin div-comment" 
 									style="height: 75px; padding: 0.5rem; overflow: auto; border: none; font-size: 15px; width: 100%; text-align: justify;" 
 									id="noiDungChat" 
+									v-focus
 									v-model="noiDungChat.noiDung" 
 									v-on:keypress="changeContent($event)"
 									v-on:keydown.enter.exact.prevent="sendMS(0, noiDungChat)" 
@@ -2977,7 +2988,7 @@ onMounted(() => {
 								<div class="scrollParenttree" style="overflow-x: hidden; overflow-y: auto;">
 									<ul class="list-group dataUser p-0 m-0" tabindex="0" style="max-height: calc(100vh - 32.75rem);">
 										<div v-for="pb in departments" :key="pb.department_id" class="p-0">
-											<div class="p-3" style="background-color: antiquewhite;">
+											<div class="p-3" style="background-color: antiquewhite;" v-if="filterListUser(pb).length > 0">
 												<span class="font-bold uppercase" style="color: #333;">{{pb.department_name}}</span>
 											</div>
 											<li class="list-group-item format_center"
@@ -3056,7 +3067,7 @@ onMounted(() => {
 								<div class="scrollParenttree" style="overflow-x: hidden; overflow-y: auto;">
 									<ul class="list-group dataUser p-0 m-0" tabindex="0">
 										<div class="p-0">
-											<div class="p-3" style="background-color: antiquewhite;">
+											<div class="p-3" style="background-color: antiquewhite;" v-if="filterListChatRecent().length > 0">
 												<span class="font-bold uppercase" style="color: #333;">Trò chuyện gần đây</span>
 											</div>											
 											<li class="list-group-item format_center"
@@ -3084,7 +3095,7 @@ onMounted(() => {
 													</div>
 												</div>
 											</li>
-											<div class="p-3" style="background-color: antiquewhite;">
+											<div class="p-3" style="background-color: antiquewhite;" v-if="filterListUserAll().length > 0">
 												<span class="font-bold uppercase" style="color: #333;">Danh sách người dùng</span>
 											</div>											
 											<li class="list-group-item format_center"
@@ -3191,6 +3202,7 @@ onMounted(() => {
 								" 
 								id="noiDungChat_Share" 
 								autoResize
+								v-focus
 								v-model="msgShare.content_message" 
 								placeholder="Nhập nội dung tin nhắn..." disabled>
 							</Textarea>

@@ -928,29 +928,34 @@ const filterDeviceMain = () => {
 }; 
 const displayDetails = ref(false);
 const openDetails = (data) => {
-  if (data.corporation_name)
-    data.corporation_name = treedonvis.value.filter(
-      (x) => x.data == data.corporation
-    )[0].label;
-  if (data.created_name)
-    data.created_name = listUsers.value.filter(
-      (x) => x.user_id == data.created_by
-    )[0].full_name;
+    axios
+    .post(
+      baseURL + "/api/device_card/getData",
+        {
+          str: encr(
+            JSON.stringify({
+        proc: "device_card_get",
+        par: [{ par: "card_id", va: data.card_id }],
+      }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+        devicecard.value = data[0];
+      } else {
+        devicecard.value = null;
+      }
 
-  if (data.device_unit)
-    data.device_unit_name = listUnit.value.filter(
-      (x) => x.code == Number(data.device_unit)
-    )[0].name;
-  if (data.device_type_id)
-    data.device_type_name = listType.value.filter(
-      (x) => x.code == data.device_type_id
-    )[0].name;
-  if (data.warehouse_id)
-    data.warehouse_name = listWarehouse.value.filter(
-      (x) => x.code == data.warehouse_id
-    )[0].name;
-  devicecard.value = data;
-  displayDetails.value = true;
+      displayDetails.value = true;
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 };
 const closeDetails = () => {
   displayDetails.value = false;
