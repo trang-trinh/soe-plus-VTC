@@ -385,8 +385,14 @@ const TaskPersonConfig = () =>
 //     import ("../views/hrm/category/Interview.vue");
 const Hrm_Info = () =>
     import ("../views/hrm/Hrm_Info.vue");
+const HrmProfile = () =>
+    import ("../views/hrm/profile/profile.vue");
+const HrmProfileInfo = () =>
+    import ("../views/hrm/profile/component/profileinfo.vue")
 const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
+const Insurance = () =>
+    import ("../views/hrm/insurance/insurance.vue");
 //end
 // TV
 const ConfigScreenTV = () =>
@@ -1572,6 +1578,16 @@ const router = createRouter({
             component: SQLDB_Query,
         },
         {
+            path: "/hrm/profile",
+            name: "profile",
+            component: HrmProfile,
+        },
+        {
+            path: "/hrm/profile/:id",
+            name: "profileinfo",
+            component: HrmProfileInfo,
+        },
+        {
             path: "/hrm/contract",
             name: "contract",
             component: HrmContract,
@@ -1737,6 +1753,11 @@ const router = createRouter({
             path: "/files/file_main/:id/:type",
             name: "files/file_main_detail",
             component: FileMain_Detail,
+        },
+        {
+            path: "/hrm/insurance",
+            name: "insurance",
+            component: Insurance,
         },
 
     ],

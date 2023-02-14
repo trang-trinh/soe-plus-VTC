@@ -13,13 +13,8 @@ using Newtonsoft.Json;
 using System.Data.Entity.Validation;
 using System.Data.Entity;
 using System.IO;
-using System.Text.RegularExpressions;
-using Microsoft.ApplicationBlocks.Data;
 using Newtonsoft.Json.Linq;
-using System.Configuration;
-using System.Data.SqlClient;
-using System.Security.Cryptography;
-using System.Text;
+using ImageMagick;
 
 
 namespace API.Controllers.Hrn
@@ -205,7 +200,6 @@ namespace API.Controllers.Hrn
                         File.Move(fileData.LocalFileName, rootPath);
                         //File.Copy(fileData.LocalFileName, rootPathFile, true);
                         var df = new hrm_file();
-                        df.file_id = helper.GenKey();
                         df.key_id = model.contract_id;
                         df.file_name = name_file;
                         df.file_path = Duongdan;
@@ -284,13 +278,20 @@ namespace API.Controllers.Hrn
                 {
                     using (DBEntities db = new DBEntities())
                     {
+                        string root = HttpContext.Current.Server.MapPath("~/Portals");
                         var das = await db.hrm_contract.Where(a => ids.Contains(a.contract_id)).ToListAsync();
+                        var dasUrl = await db.hrm_file.AsNoTracking().Where(a => ids.Contains(a.key_id) && (ad || a.created_by == uid) && a.file_path != null).Select(a => a.file_path).ToListAsync();
+                        List<string> paths = new List<string>();
                         if (das != null)
                         {;
                             List<hrm_contract> del = new List<hrm_contract>();
                             foreach (var da in das)
                             {
                                 del.Add(da);
+                            }
+                            foreach (var p in dasUrl)
+                            {
+                                paths.Add(p);
                             }
                             if (del.Count == 0)
                             {
@@ -299,6 +300,17 @@ namespace API.Controllers.Hrn
                             db.hrm_contract.RemoveRange(del);
                         }
                         await db.SaveChangesAsync();
+                        if (paths != null && paths.Count > 0)
+                        {
+                            foreach (var p in paths)
+                            {
+                                var rootPath = root + "/" + p;
+                                if (System.IO.File.Exists(rootPath))
+                                {
+                                    System.IO.File.Delete(rootPath);
+                                }
+                            }
+                        }
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     }
                 }
@@ -331,7 +343,7 @@ namespace API.Controllers.Hrn
         }
 
         [HttpDelete]
-        public async Task<HttpResponseMessage> delete_file([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> ids)
+        public async Task<HttpResponseMessage> delete_file([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> ids)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
