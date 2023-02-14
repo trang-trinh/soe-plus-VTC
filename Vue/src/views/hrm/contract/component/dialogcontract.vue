@@ -19,6 +19,7 @@ const props = defineProps({
   displayDialog: Boolean,
   closeDialog: Function,
   isAdd: Boolean,
+  isView: Boolean,
   model: Object,
   files: Array,
   selectFile: Function,
@@ -1224,6 +1225,7 @@ onMounted(() => {});
               <div class="form-group">
                 <label><h3 class="m-0">Tài liệu đính kèm</h3></label>
                 <FileUpload
+                  v-if="!props.isView"
                   :multiple="true"
                   :show-upload-button="false"
                   :show-cancel-button="true"
@@ -1322,7 +1324,12 @@ onMounted(() => {});
         icon="pi pi-check"
         @click="saveModel(true)"
       />
-      <Button label="Lưu" icon="pi pi-check" @click="saveModel()" />
+      <Button
+        v-if="!props.isView"
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveModel()"
+      />
     </template>
   </Dialog>
 </template>

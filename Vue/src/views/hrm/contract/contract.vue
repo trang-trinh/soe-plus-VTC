@@ -2131,6 +2131,7 @@ onMounted(() => {
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
     :isAdd="isAdd"
+    :isView="false"
     :model="model"
     :files="files"
     :selectFile="selectFile"

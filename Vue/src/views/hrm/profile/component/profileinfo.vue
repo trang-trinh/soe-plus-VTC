@@ -3,8 +3,8 @@ import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import { useRoute } from "vue-router";
+import dialogcontract from "../../contract/component/dialogcontract.vue";
 import moment from "moment";
-import format from "date-fns/fp/format/index.js";
 
 const route = useRoute();
 const router = inject("router");
@@ -46,8 +46,24 @@ const options = ref({
   orderBy: "desc",
   view: 1,
   profile_id: null,
+  contract_id: null,
 });
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
 const selectedNodes = ref([]);
+watch(selectedNodes, () => {
+  if (options.value.view === 3) {
+    options.value["contract_id"] = selectedNodes.value["contract_id"];
+    openViewDialogContract("Thông tin hợp đồng");
+  }
+});
 
 //data view 1
 const profile = ref({});
@@ -77,6 +93,135 @@ const typestatus = ref([
   { value: 2, title: "Hết hiệu lực", bg_color: "red", text_color: "#fff" },
   { value: 3, title: "Đã thanh lý", bg_color: "#ff8b4e", text_color: "#fff" },
 ]);
+const isView = ref(false);
+const contract = ref({});
+const headerDialogContract = ref();
+const displayDialogContract = ref(false);
+const openViewDialogContract = (str) => {
+  isView.value = true;
+  options.value.loading = true;
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_contract_get",
+            par: [{ par: "contract_id", va: options.value["contract_id"] }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          contract.value = tbs[0][0];
+          if (contract.value["profiles"] != null) {
+            contract.value["profile"] = JSON.parse(
+              contract.value["profiles"]
+            )[0];
+          }
+          if (contract.value["sign_users"] != null) {
+            contract.value["sign_user"] = JSON.parse(
+              contract.value["sign_users"]
+            )[0];
+          }
+          if (contract.value["start_date"] != null) {
+            contract.value["start_date"] = new Date(
+              contract.value["start_date"]
+            );
+          }
+          if (contract.value["end_date"] != null) {
+            contract.value["end_date"] = new Date(contract.value["end_date"]);
+          }
+          if (contract.value["sign_date"] != null) {
+            contract.value["sign_date"] = new Date(contract.value["sign_date"]);
+          }
+          if (contract.value["professional_works"] != null) {
+            contract.value["professional_works"] = contract.value[
+              "professional_works"
+            ]
+              .split(",")
+              .map((x) => parseInt(x));
+          }
+        }
+        if (tbs[1] != null && tbs[1].length > 0) {
+          contract.value["allowances"] = tbs[1];
+          if (tbs[2] != null && tbs[2].length > 0) {
+            var formalitys = tbs[2].filter((x) => x["is_type"] === 0);
+            formalitys.forEach((x) => {
+              if (x["allowance_formality_id"] == null) {
+                x["allowance_formality_id"] = x["allowance_formality"];
+              }
+            });
+            var wages = tbs[2].filter((x) => x["is_type"] === 1);
+            wages.forEach((x) => {
+              if (x["allowance_wage_id"] == null) {
+                x["allowance_wage_id"] = x["allowance_wage"];
+              }
+            });
+            contract.value["allowances"].forEach((allowance) => {
+              if (allowance["start_date"] != null) {
+                allowance["start_date"] = new Date(allowance["start_date"]);
+              }
+              allowance.formalitys = formalitys.filter(
+                (x) => x["allowance_id"] === allowance["allowance_id"]
+              );
+              allowance.wages = wages.filter(
+                (x) => x["allowance_id"] === allowance["allowance_id"]
+              );
+            });
+          }
+        } else {
+          contract.value.allowances = [];
+        }
+        if (tbs[3] != null && tbs[3].length > 0) {
+          contract.value["files"] = tbs[3];
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+
+      headerDialogContract.value = str;
+      displayDialogContract.value = true;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+const closeDialogContract = () => {
+  displayDialogContract.value = false;
+};
 
 //filter
 const goFile = (file) => {
@@ -667,12 +812,12 @@ const initView3 = (rf) => {
 };
 const initData = () => {
   if (options.value.view === 1) {
-      initDictionary();
-    } else if (options.value.view === 2) {
-    } else if (options.value.view === 3) {
-      initView3(true);
-    }
-}
+    initDictionary();
+  } else if (options.value.view === 2) {
+  } else if (options.value.view === 3) {
+    initView3(true);
+  }
+};
 onMounted(() => {
   if (route.params.id != null) {
     options.value["profile_id"] = route.params.id;
@@ -692,7 +837,7 @@ const onPage = (event) => {
 };
 </script>
 <template>
-  <div class="surface-100 p-3">
+  <div class="surface-100 p-2">
     <Toolbar class="outline-none surface-0 border-none">
       <template #start>
         <ul class="flex p-0 m-0" style="list-style: none">
@@ -740,1682 +885,1663 @@ const onPage = (event) => {
       <template #end> </template>
     </Toolbar>
     <div class="d-lang-table" style="border-top: solid 1px rgba(0, 0, 0, 0.1)">
-      <div class="grid formgrid m-0">
-        <div class="row">
-          <div class="col-9 md:col-9 p-3 pr-0">
-            <div class="d-lang-table-1">
-              <div v-show="options.view === 1" class="f-full">
-                <div class="row">
-                  <div class="col-12 md:col-12 p-0">
-                    <!-- 1. Thông tin chung -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <span>1. Thông tin chung</span>
-                        </template>
-                        <div class="col-12 md:col-12 p-0">
-                          <div class="row">
-                            <div class="col-3 md:col-3 format-center">
-                              <div class="form-group">
-                                <div
-                                  class="inputanh2 relative mb-2"
-                                  style="margin: 0 auto"
-                                >
-                                  <img
-                                    id="avatar"
-                                    v-bind:src="
-                                      profile.avatar
-                                        ? basedomainURL + profile.avatar
-                                        : basedomainURL +
-                                          '/Portals/Image/noimg.jpg'
-                                    "
-                                  />
-                                </div>
-                                <label class="text-center">Ảnh đại diện</label>
-                              </div>
-                            </div>
-                            <div class="col-9 md:col-9 p-0">
-                              <div class="row">
-                                <div class="col-6 md:col-6">
-                                  <div class="form-group">
-                                    <label>
-                                      Mã nhân sự:
-                                      <span class="description">{{
-                                        profile.profile_id
-                                      }}</span>
-                                    </label>
-                                  </div>
-                                </div>
-                                <div class="col-6 md:col-6">
-                                  <div class="form-group">
-                                    <label
-                                      >Mã chấm công:
-                                      <span class="description">{{
-                                        profile.check_in_id
-                                      }}</span></label
-                                    >
-                                  </div>
-                                </div>
-                                <div class="col-6 md:col-6">
-                                  <div class="form-group">
-                                    <label
-                                      >Mã quản lý cấp trên:
-                                      <span class="description">{{
-                                        profile.superior_id
-                                      }}</span></label
-                                    >
-                                  </div>
-                                </div>
-                                <div class="col-6 md:col-6">
-                                  <div class="form-group">
-                                    <label
-                                      >Ngày tuyển dụng:
-                                      <span class="description">{{
-                                        profile.recruitment_date
-                                      }}</span></label
-                                    >
-                                  </div>
-                                </div>
-                                <div class="col-6 md:col-6">
-                                  <div class="form-group">
-                                    <label
-                                      >Họ và tên:
-                                      <span class="description">{{
-                                        profile.profile_user_name
-                                      }}</span></label
-                                    >
-                                  </div>
-                                </div>
-                                <div class="col-6 md:col-6">
-                                  <div class="form-group">
-                                    <label
-                                      >Tên gọi khác:
-                                      <span class="description">{{
-                                        profile.profile_nick_name
-                                      }}</span></label
-                                    >
-                                  </div>
-                                </div>
-                                <div class="col-6 md:col-6">
-                                  <div class="form-group">
-                                    <label
-                                      >Ngày sinh:
-                                      <span class="description">{{
-                                        profile.birthday
-                                      }}</span></label
-                                    >
-                                  </div>
-                                </div>
-                                <div class="col-6 md:col-6">
-                                  <div class="form-group">
-                                    <label
-                                      >Giới tính:
-                                      <span class="description">{{
-                                        profile.gender
-                                      }}</span></label
-                                    >
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
-                            <label
-                              >Nơi sinh:
-                              <span class="description">{{
-                                profile.select_birthplace
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
-                            <label
-                              >Quê quán:
-                              <span class="description">{{
-                                profile.select_birthplace_origin
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
-                            <label
-                              >Nơi đăng ký HKTT:
-                              <span class="description">{{
-                                profile.select_place_register_permanent
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12 p-0">
-                          <div class="row">
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Loại giấy tờ:
-                                  <span class="discription">{{
-                                    profile.identity_papers_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Số:
-                                  <span class="description">{{
-                                    profile.identity_papers_code
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Ngày cấp:
-                                  <span class="description">{{
-                                    profile.identity_date_issue
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Nơi cấp:
-                                  <span class="discription">{{
-                                    profile.identity_papers_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Quốc tịch:
-                                  <span class="discription">{{
-                                    profile.nationality_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Tình trạng hôn nhân:
-                                  <span class="discription">{{
-                                    profile.marital_status
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Dân tộc:
-                                  <span class="discription">{{
-                                    profile.ethnic_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Tôn giáo:
-                                  <span class="discription">{{
-                                    profile.religion_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Mã số thuế:
-                                  <span class="description">{{
-                                    profile.tax_code
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Ngân hàng:
-                                  <span class="discription">{{
-                                    profile.bank_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Số tài khoản:
-                                  <span class="description">{{
-                                    profile.bank_number
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Tên tài khoản:
-                                  <span class="description">{{
-                                    profile.bank_account
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- 2. Trình độ học vấn -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <!-- <i class="pi pi-book mr-2"></i> -->
-                          <span>2. Trình độ học vấn</span>
-                        </template>
-                        <div class="col-12 md:col-12">
-                          <div class="row">
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Trình độ phổ thông:
-                                  <span class="discription">{{
-                                    profile.cultural_level_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Trình độ học vấn cao nhất:
-                                  <span class="discription">{{
-                                    profile.academic_level_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Chuyên ngành học:
-                                  <span class="discription">{{
-                                    profile.specialization_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Quản lý nhà nước:
-                                  <span class="discription">{{
-                                    profile.management_state_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Lý luận chính trị:
-                                  <span class="discription">{{
-                                    profile.political_theory_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Ngoại ngữ:
-                                  <span class="discription">{{
-                                    profile.language_level_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-4 md:col-4">
-                              <div class="form-group">
-                                <label
-                                  >Tin học:
-                                  <span class="discription">{{
-                                    profile.informatic_level_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- 3. Thông tin liên hệ -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <!-- <i class="pi pi-info-circle mr-2"></i> -->
-                          <span>3. Thông tin liên hệ</span>
-                        </template>
-                        <div class="col-12 md:col-12">
-                          <div class="row">
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Số điện thoại:
-                                  <span class="description">{{
-                                    profile.phone
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Email:
-                                  <span class="description">{{
-                                    profile.email
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-12 md:col-12">
-                              <div class="form-group">
-                                <label
-                                  >Thường trú:
-                                  <span class="description">{{
-                                    profile.place_permanent
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-12 md:col-12">
-                              <div class="form-group">
-                                <label
-                                  >Chỗ ở hiện nay:
-                                  <span class="description">{{
-                                    profile.place_residence
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-12 md:col-12">
-                              <div class="form-group">
-                                <label class="m-0">Khi cần báo tin cho:</label>
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Họ và tên:
-                                  <span class="description">{{
-                                    profile.involved_name
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Số điện thoại:
-                                  <span class="description">{{
-                                    profile.involved_phone
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-12 md:col-12">
-                              <div class="form-group">
-                                <label
-                                  >Địa chỉ:
-                                  <span class="description">{{
-                                    profile.involved_place
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- 4. Thông tin gia đình, người phụ thuộc -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <Toolbar class="w-full custoolbar p-0 font-bold">
-                            <template #start>
-                              <!-- <i class="pi pi-users mr-2"></i> -->
-                              <span
-                                >4. Thông tin gia đình, người phụ thuộc</span
-                              ></template
-                            >
-                          </Toolbar>
-                        </template>
-                        <div class="col-12 md:col-12 p-0">
-                          <div style="min-height: 250px">
-                            <DataTable
-                              :value="datachilds[1]"
-                              :scrollable="true"
-                              :lazy="true"
-                              :rowHover="true"
-                              :showGridlines="true"
-                              scrollDirection="both"
-                              style="display: grid"
-                            >
-                              <Column
-                                field="relative_name"
-                                header="Họ tên"
-                                headerStyle="text-align:center;width:180px;height:50px"
-                                bodyStyle="text-align:center;width:180px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
+      <div class="flex">
+        <div class="flex-1">
+          <div class="d-lang-table-1">
+            <div v-show="options.view === 1" class="f-full">
+              <div class="row p-3">
+                <div class="col-12 md:col-12 p-0">
+                  <!-- 1. Thông tin chung -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <span>1. Thông tin chung</span>
+                      </template>
+                      <div class="col-12 md:col-12 p-0">
+                        <div class="row">
+                          <div class="col-3 md:col-3 format-center">
+                            <div class="form-group">
+                              <div
+                                class="inputanh2 relative mb-2"
+                                style="margin: 0 auto"
                               >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.relative_name
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="relationship_id"
-                                header="Quan hệ"
-                                headerStyle="text-align:center;width:170px;height:50px"
-                                bodyStyle="text-align:center;width:170px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <div class="form-group m-0">
-                                    <span>{{
-                                      slotProps.data.relationship_name
+                                <img
+                                  id="avatar"
+                                  v-bind:src="
+                                    profile.avatar
+                                      ? basedomainURL + profile.avatar
+                                      : basedomainURL +
+                                        '/Portals/Image/noimg.jpg'
+                                  "
+                                />
+                              </div>
+                              <label class="text-center">Ảnh đại diện</label>
+                            </div>
+                          </div>
+                          <div class="col-9 md:col-9 p-0">
+                            <div class="row">
+                              <div class="col-6 md:col-6">
+                                <div class="form-group">
+                                  <label>
+                                    Mã nhân sự:
+                                    <span class="description">{{
+                                      profile.profile_id
                                     }}</span>
-                                  </div>
-                                </template>
-                              </Column>
-                              <Column
-                                field="identification_date_issue"
-                                header="Năm sinh"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.identification_date_issue
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="phone"
-                                header="SĐT"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.phone }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="tax_code"
-                                header="Mã số thuế"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.tax_code }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="identification_citizen"
-                                header="CCCD/Hộ chiếu"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.identification_citizen
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="identification_date_issue"
-                                header="Ngày cấp"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  {{ slotProps.data.identification_date_issue }}
-                                </template>
-                              </Column>
-                              <Column
-                                field="identification_place_issue"
-                                header="Nơi cấp"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  {{
-                                    slotProps.data.identification_place_issue
-                                  }}
-                                </template>
-                              </Column>
-                              <Column
-                                field="is_dependent"
-                                header="Phụ thuộc"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <div class="form-group m-0">
-                                    <span>{{
-                                      slotProps.data.dependent_name
-                                    }}</span>
-                                  </div>
-                                </template>
-                              </Column>
-                              <Column
-                                field="start_date"
-                                header="Từ ngày"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.start_date }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="end_date"
-                                header="Đến ngày"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.end_date }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="info"
-                                header="Thông tin cơ bản"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.info }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="note"
-                                header="Ghi chú"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.note }}</span>
-                                </template>
-                              </Column>
-                              <template #empty>
-                                <div
-                                  class="
-                                    align-items-center
-                                    justify-content-center
-                                    p-4
-                                    text-center
-                                    m-auto
-                                  "
-                                  style="
-                                    display: flex;
-                                    width: 100%;
-                                    min-height: 200px;
-                                  "
-                                ></div>
-                              </template>
-                            </DataTable>
-                          </div>
-                        </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- 5. Quá trình đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ, lý luận chính trị, ngoại ngữ, tin học -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <Toolbar class="w-full custoolbar p-0 font-bold">
-                            <template #start>
-                              <!-- <i class="pi pi-replay mr-2"></i> -->
-                              <span
-                                >5. Quá trình đào tạo, bồi dưỡng về chuyên môn,
-                                nghiệp vụ, lý luận chính trị, ngoại ngữ, tin
-                                học</span
-                              ></template
-                            >
-                          </Toolbar>
-                        </template>
-                        <div class="col-12 md:col-12 p-0">
-                          <div style="min-height: 250px">
-                            <DataTable
-                              :value="datachilds[2]"
-                              :scrollable="true"
-                              :lazy="true"
-                              :rowHover="true"
-                              :showGridlines="true"
-                              scrollDirection="both"
-                              style="display: grid"
-                            >
-                              <Column
-                                field="university_name"
-                                header="Tên trường"
-                                headerStyle="text-align:center;width:180px;height:50px"
-                                bodyStyle="text-align:center;width:180px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.university_name
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="specialized"
-                                header="Chuyên ngành"
-                                headerStyle="text-align:center;width:170px;height:50px"
-                                bodyStyle="text-align:center;width:170px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.specialization_name
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="start_date"
-                                header="Từ tháng, năm"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.start_date }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="end_date"
-                                header="Đến tháng, năm"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.end_date }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="form_traning_id"
-                                header="Hình thức đào tạo"
-                                headerStyle="text-align:center;width:170px;height:50px"
-                                bodyStyle="text-align:center;width:170px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.form_traning_name
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="certificate_id"
-                                header="Văn bằng, chứng chỉ"
-                                headerStyle="text-align:center;width:170px;height:50px"
-                                bodyStyle="text-align:center;width:170px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.certificate_name
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="certificate_start_date"
-                                header="Ngày hiệu lực"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.certificate_start_date
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="certificate_end_date"
-                                header="Ngày hết hiệu lực"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.certificate_end_date
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="certificate_key_code"
-                                header="Số hiệu"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.certificate_key_code
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="certificate_version"
-                                header="phiên bản"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.certificate_version
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="certificate_release_time"
-                                header="Lần phát hành"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.certificate_release_time
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <template #empty>
-                                <div
-                                  class="
-                                    align-items-center
-                                    justify-content-center
-                                    p-4
-                                    text-center
-                                    m-auto
-                                  "
-                                  style="
-                                    display: flex;
-                                    width: 100%;
-                                    min-height: 200px;
-                                  "
-                                ></div>
-                              </template>
-                            </DataTable>
-                          </div>
-                        </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- 6. Lịch sử Đảng viên -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <Toolbar class="w-full custoolbar p-0 font-bold">
-                            <template #start>
-                              <!-- <i class="pi pi-replay mr-2"></i> -->
-                              <span>6. Lịch sử Đảng viên</span></template
-                            >
-                          </Toolbar>
-                        </template>
-                        <div class="col-12 md:col-12 p-0">
-                          <div style="min-height: 250px">
-                            <DataTable
-                              :value="datachilds[3]"
-                              :scrollable="true"
-                              :lazy="true"
-                              :rowHover="true"
-                              :showGridlines="true"
-                              scrollDirection="both"
-                              style="display: grid"
-                            >
-                              <Column
-                                field="card_number"
-                                header="Số thẻ"
-                                headerStyle="text-align:center;width:180px;height:50px"
-                                bodyStyle="text-align:center;width:180px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.card_number }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="form"
-                                header="Hình thức"
-                                headerStyle="text-align:center;width:170px;height:50px"
-                                bodyStyle="text-align:center;width:170px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.form }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="start_date"
-                                header="Từ ngày"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.start_date }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="end_date"
-                                header="Đến ngày"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.end_date }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="admission_place"
-                                header="Nơi kết nạp"
-                                headerStyle="text-align:center;width:180px;height:50px"
-                                bodyStyle="text-align:center;width:180px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.admission_place
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="transfer_place"
-                                header="Nơi điều chuyển"
-                                headerStyle="text-align:center;width:180px;height:50px"
-                                bodyStyle="text-align:center;width:180px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.transfer_place
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <template #empty>
-                                <div
-                                  class="
-                                    align-items-center
-                                    justify-content-center
-                                    p-4
-                                    text-center
-                                    m-auto
-                                  "
-                                  style="
-                                    display: flex;
-                                    width: 100%;
-                                    min-height: 200px;
-                                  "
-                                ></div>
-                              </template>
-                            </DataTable>
-                          </div>
-                        </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- 7. Lịch sử tham gia quân đội -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                          <span>7. Lịch sử tham gia quân đội</span>
-                        </template>
-                        <div class="col-12 md:col-12">
-                          <div class="row">
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Ngày nhập ngũ:
-                                  <span class="description">{{
-                                    profile.military_start_date
-                                  }}</span></label
-                                >
+                                  </label>
+                                </div>
                               </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Ngày xuất ngũ:
-                                  <span class="description">{{
-                                    profile.military_end_date
-                                  }}</span></label
-                                >
+                              <div class="col-6 md:col-6">
+                                <div class="form-group">
+                                  <label
+                                    >Mã chấm công:
+                                    <span class="description">{{
+                                      profile.check_in_id
+                                    }}</span></label
+                                  >
+                                </div>
                               </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Quân hàm cao nhất:
-                                  <span class="description">{{
-                                    profile.military_rank
-                                  }}</span></label
-                                >
+                              <div class="col-6 md:col-6">
+                                <div class="form-group">
+                                  <label
+                                    >Mã quản lý cấp trên:
+                                    <span class="description">{{
+                                      profile.superior_id
+                                    }}</span></label
+                                  >
+                                </div>
                               </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Danh hiệu cao nhất:
-                                  <span class="description">{{
-                                    profile.military_title
-                                  }}</span></label
-                                >
+                              <div class="col-6 md:col-6">
+                                <div class="form-group">
+                                  <label
+                                    >Ngày tuyển dụng:
+                                    <span class="description">{{
+                                      profile.recruitment_date
+                                    }}</span></label
+                                  >
+                                </div>
                               </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Sở trường công tác:
-                                  <span class="description">{{
-                                    profile.military_forte
-                                  }}</span></label
-                                >
+                              <div class="col-6 md:col-6">
+                                <div class="form-group">
+                                  <label
+                                    >Họ và tên:
+                                    <span class="description">{{
+                                      profile.profile_user_name
+                                    }}</span></label
+                                  >
+                                </div>
                               </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Sức khỏe:
-                                  <span class="description">{{
-                                    profile.military_health
-                                  }}</span></label
-                                >
+                              <div class="col-6 md:col-6">
+                                <div class="form-group">
+                                  <label
+                                    >Tên gọi khác:
+                                    <span class="description">{{
+                                      profile.profile_nick_name
+                                    }}</span></label
+                                  >
+                                </div>
                               </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Khen thưởng:
-                                  <span class="description">{{
-                                    profile.military_reward
-                                  }}</span></label
-                                >
+                              <div class="col-6 md:col-6">
+                                <div class="form-group">
+                                  <label
+                                    >Ngày sinh:
+                                    <span class="description">{{
+                                      profile.birthday
+                                    }}</span></label
+                                  >
+                                </div>
                               </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Kỷ luật:
-                                  <span class="description">{{
-                                    profile.military_discipline
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Thương binh hạng:
-                                  <span class="description">{{
-                                    profile.military_veterans_rank
-                                  }}</span></label
-                                >
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <label
-                                  >Con gia đình chính sách:
-                                  <span class="description">{{
-                                    profile.military_policy_family
-                                  }}</span></label
-                                >
+                              <div class="col-6 md:col-6">
+                                <div class="form-group">
+                                  <label
+                                    >Giới tính:
+                                    <span class="description">{{
+                                      profile.gender
+                                    }}</span></label
+                                  >
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- 8. Kinh nghiệm làm việc -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <Toolbar class="w-full custoolbar p-0 font-bold">
-                            <template #start>
-                              <span>8. Kinh nghiệm làm việc</span></template
-                            >
-                          </Toolbar>
-                        </template>
-                        <div class="col-12 md:col-12 p-0">
-                          <div style="min-height: 250px">
-                            <DataTable
-                              :value="datachilds[4]"
-                              :scrollable="true"
-                              :lazy="true"
-                              :rowHover="true"
-                              :showGridlines="true"
-                              scrollDirection="both"
-                              style="display: grid"
-                            >
-                              <Column
-                                field="start_date"
-                                header="Từ tháng, năm"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.start_date }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="end_date"
-                                header="Đến tháng, năm"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.end_date }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="company"
-                                header="Công ty, đơn vị"
-                                headerStyle="text-align:center;width:180px;height:50px"
-                                bodyStyle="text-align:center;width:180px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.company }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="role"
-                                header="Vị trí"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.role }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="reference_name"
-                                header="Người tham chiếu"
-                                headerStyle="text-align:center;width:150px;height:50px"
-                                bodyStyle="text-align:center;width:150px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.reference_name
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="reference_phone"
-                                header="SĐT"
-                                headerStyle="text-align:center;width:120px;height:50px"
-                                bodyStyle="text-align:center;width:120px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{
-                                    slotProps.data.reference_phone
-                                  }}</span>
-                                </template>
-                              </Column>
-                              <Column
-                                field="description"
-                                header="Mô tả công việc"
-                                headerStyle="text-align:center;width:200px;height:50px"
-                                bodyStyle="text-align:center;width:200px;"
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  text-center
-                                "
-                              >
-                                <template #body="slotProps">
-                                  <span>{{ slotProps.data.description }}</span>
-                                </template>
-                              </Column>
-                              <template #empty>
-                                <div
-                                  class="
-                                    align-items-center
-                                    justify-content-center
-                                    p-4
-                                    text-center
-                                    m-auto
-                                  "
-                                  style="
-                                    display: flex;
-                                    width: 100%;
-                                    min-height: 200px;
-                                  "
-                                ></div>
-                              </template>
-                            </DataTable>
-                          </div>
-                        </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- Đặc điểm lịch sử bản thân -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                          <span>9. Đặc điểm lịch sử bản thân</span>
-                        </template>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
-                            <label
-                              >Thông tin 1:
-                              <span class="description">{{
-                                profile.biography_first
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
-                            <label
-                              >Thông tin 2:
-                              <span class="description">{{
-                                profile.biography_second
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
-                            <label
-                              >Thông tin 3:
-                              <span class="description">{{
-                                profile.biography_third
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                      </AccordionTab>
-                    </Accordion>
-                    <!-- 10.	Đính kèm khác (file số hóa liên quan) -->
-                    <Accordion class="w-full" :activeIndex="0">
-                      <AccordionTab>
-                        <template #header>
-                          <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                          <span>
-                            10. Đính kèm khác (file số hóa liên quan)</span
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label
+                            >Nơi sinh:
+                            <span class="description">{{
+                              profile.select_birthplace
+                            }}</span></label
                           >
-                        </template>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
-                            <label>Tải file lên </label>
-                            <div
-                              v-if="
-                                profile.files != null &&
-                                profile.files.length > 0
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label
+                            >Quê quán:
+                            <span class="description">{{
+                              profile.select_birthplace_origin
+                            }}</span></label
+                          >
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label
+                            >Nơi đăng ký HKTT:
+                            <span class="description">{{
+                              profile.select_place_register_permanent
+                            }}</span></label
+                          >
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12 p-0">
+                        <div class="row">
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Loại giấy tờ:
+                                <span class="discription">{{
+                                  profile.identity_papers_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Số:
+                                <span class="description">{{
+                                  profile.identity_papers_code
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Ngày cấp:
+                                <span class="description">{{
+                                  profile.identity_date_issue
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Nơi cấp:
+                                <span class="discription">{{
+                                  profile.identity_papers_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Quốc tịch:
+                                <span class="discription">{{
+                                  profile.nationality_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Tình trạng hôn nhân:
+                                <span class="discription">{{
+                                  profile.marital_status
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Dân tộc:
+                                <span class="discription">{{
+                                  profile.ethnic_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Tôn giáo:
+                                <span class="discription">{{
+                                  profile.religion_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Mã số thuế:
+                                <span class="description">{{
+                                  profile.tax_code
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Ngân hàng:
+                                <span class="discription">{{
+                                  profile.bank_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Số tài khoản:
+                                <span class="description">{{
+                                  profile.bank_number
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Tên tài khoản:
+                                <span class="description">{{
+                                  profile.bank_account
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 2. Trình độ học vấn -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <!-- <i class="pi pi-book mr-2"></i> -->
+                        <span>2. Trình độ học vấn</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="row">
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Trình độ phổ thông:
+                                <span class="discription">{{
+                                  profile.cultural_level_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Trình độ học vấn cao nhất:
+                                <span class="discription">{{
+                                  profile.academic_level_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Chuyên ngành học:
+                                <span class="discription">{{
+                                  profile.specialization_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Quản lý nhà nước:
+                                <span class="discription">{{
+                                  profile.management_state_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Lý luận chính trị:
+                                <span class="discription">{{
+                                  profile.political_theory_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Ngoại ngữ:
+                                <span class="discription">{{
+                                  profile.language_level_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group">
+                              <label
+                                >Tin học:
+                                <span class="discription">{{
+                                  profile.informatic_level_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 3. Thông tin liên hệ -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <!-- <i class="pi pi-info-circle mr-2"></i> -->
+                        <span>3. Thông tin liên hệ</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="row">
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Số điện thoại:
+                                <span class="description">{{
+                                  profile.phone
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Email:
+                                <span class="description">{{
+                                  profile.email
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group">
+                              <label
+                                >Thường trú:
+                                <span class="description">{{
+                                  profile.place_permanent
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group">
+                              <label
+                                >Chỗ ở hiện nay:
+                                <span class="description">{{
+                                  profile.place_residence
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group">
+                              <label class="m-0">Khi cần báo tin cho:</label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Họ và tên:
+                                <span class="description">{{
+                                  profile.involved_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Số điện thoại:
+                                <span class="description">{{
+                                  profile.involved_phone
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group">
+                              <label
+                                >Địa chỉ:
+                                <span class="description">{{
+                                  profile.involved_place
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 4. Thông tin gia đình, người phụ thuộc -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <Toolbar class="w-full custoolbar p-0 font-bold">
+                          <template #start>
+                            <!-- <i class="pi pi-users mr-2"></i> -->
+                            <span
+                              >4. Thông tin gia đình, người phụ thuộc</span
+                            ></template
+                          >
+                        </Toolbar>
+                      </template>
+                      <div class="col-12 md:col-12 p-0">
+                        <div style="min-height: 250px">
+                          <DataTable
+                            :value="datachilds[1]"
+                            :scrollable="true"
+                            :lazy="true"
+                            :rowHover="true"
+                            :showGridlines="true"
+                            scrollDirection="both"
+                            style="display: grid"
+                          >
+                            <Column
+                              field="relative_name"
+                              header="Họ tên"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
                               "
                             >
-                              <DataView
-                                :lazy="true"
-                                :value="profile.files"
-                                :rowHover="true"
-                                :scrollable="true"
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.relative_name }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="relationship_id"
+                              header="Quan hệ"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <div class="form-group m-0">
+                                  <span>{{
+                                    slotProps.data.relationship_name
+                                  }}</span>
+                                </div>
+                              </template>
+                            </Column>
+                            <Column
+                              field="identification_date_issue"
+                              header="Năm sinh"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.identification_date_issue
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="phone"
+                              header="SĐT"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.phone }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="tax_code"
+                              header="Mã số thuế"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.tax_code }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="identification_citizen"
+                              header="CCCD/Hộ chiếu"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.identification_citizen
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="identification_date_issue"
+                              header="Ngày cấp"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                {{ slotProps.data.identification_date_issue }}
+                              </template>
+                            </Column>
+                            <Column
+                              field="identification_place_issue"
+                              header="Nơi cấp"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                {{ slotProps.data.identification_place_issue }}
+                              </template>
+                            </Column>
+                            <Column
+                              field="is_dependent"
+                              header="Phụ thuộc"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <div class="form-group m-0">
+                                  <span>{{
+                                    slotProps.data.dependent_name
+                                  }}</span>
+                                </div>
+                              </template>
+                            </Column>
+                            <Column
+                              field="start_date"
+                              header="Từ ngày"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.start_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="end_date"
+                              header="Đến ngày"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.end_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="info"
+                              header="Thông tin cơ bản"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.info }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="note"
+                              header="Ghi chú"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.note }}</span>
+                              </template>
+                            </Column>
+                            <template #empty>
+                              <div
                                 class="
-                                  w-full
-                                  h-full
-                                  ptable
-                                  p-datatable-sm
-                                  flex flex-column
+                                  align-items-center
+                                  justify-content-center
+                                  p-4
+                                  text-center
+                                  m-auto
                                 "
-                                layout="list"
-                                responsiveLayout="scroll"
+                                style="
+                                  display: flex;
+                                  width: 100%;
+                                  min-height: 200px;
+                                "
+                              ></div>
+                            </template>
+                          </DataTable>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 5. Quá trình đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ, lý luận chính trị, ngoại ngữ, tin học -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <Toolbar class="w-full custoolbar p-0 font-bold">
+                          <template #start>
+                            <!-- <i class="pi pi-replay mr-2"></i> -->
+                            <span
+                              >5. Quá trình đào tạo, bồi dưỡng về chuyên môn,
+                              nghiệp vụ, lý luận chính trị, ngoại ngữ, tin
+                              học</span
+                            ></template
+                          >
+                        </Toolbar>
+                      </template>
+                      <div class="col-12 md:col-12 p-0">
+                        <div style="min-height: 250px">
+                          <DataTable
+                            :value="datachilds[2]"
+                            :scrollable="true"
+                            :lazy="true"
+                            :rowHover="true"
+                            :showGridlines="true"
+                            scrollDirection="both"
+                            style="display: grid"
+                          >
+                            <Column
+                              field="university_name"
+                              header="Tên trường"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.university_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="specialized"
+                              header="Chuyên ngành"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.specialization_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="start_date"
+                              header="Từ tháng, năm"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.start_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="end_date"
+                              header="Đến tháng, năm"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.end_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="form_traning_id"
+                              header="Hình thức đào tạo"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.form_traning_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_id"
+                              header="Văn bằng, chứng chỉ"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_start_date"
+                              header="Ngày hiệu lực"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_start_date
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_end_date"
+                              header="Ngày hết hiệu lực"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_end_date
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_key_code"
+                              header="Số hiệu"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_key_code
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_version"
+                              header="phiên bản"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_version
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_release_time"
+                              header="Lần phát hành"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_release_time
+                                }}</span>
+                              </template>
+                            </Column>
+                            <template #empty>
+                              <div
+                                class="
+                                  align-items-center
+                                  justify-content-center
+                                  p-4
+                                  text-center
+                                  m-auto
+                                "
+                                style="
+                                  display: flex;
+                                  width: 100%;
+                                  min-height: 200px;
+                                "
+                              ></div>
+                            </template>
+                          </DataTable>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 6. Lịch sử Đảng viên -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <Toolbar class="w-full custoolbar p-0 font-bold">
+                          <template #start>
+                            <!-- <i class="pi pi-replay mr-2"></i> -->
+                            <span>6. Lịch sử Đảng viên</span></template
+                          >
+                        </Toolbar>
+                      </template>
+                      <div class="col-12 md:col-12 p-0">
+                        <div style="min-height: 250px">
+                          <DataTable
+                            :value="datachilds[3]"
+                            :scrollable="true"
+                            :lazy="true"
+                            :rowHover="true"
+                            :showGridlines="true"
+                            scrollDirection="both"
+                            style="display: grid"
+                          >
+                            <Column
+                              field="card_number"
+                              header="Số thẻ"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.card_number }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="form"
+                              header="Hình thức"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.form }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="start_date"
+                              header="Từ ngày"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.start_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="end_date"
+                              header="Đến ngày"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.end_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="admission_place"
+                              header="Nơi kết nạp"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.admission_place
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="transfer_place"
+                              header="Nơi điều chuyển"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.transfer_place }}</span>
+                              </template>
+                            </Column>
+                            <template #empty>
+                              <div
+                                class="
+                                  align-items-center
+                                  justify-content-center
+                                  p-4
+                                  text-center
+                                  m-auto
+                                "
+                                style="
+                                  display: flex;
+                                  width: 100%;
+                                  min-height: 200px;
+                                "
+                              ></div>
+                            </template>
+                          </DataTable>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 7. Lịch sử tham gia quân đội -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <!-- <i class="pi pi-chart-line mr-2"></i> -->
+                        <span>7. Lịch sử tham gia quân đội</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="row">
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Ngày nhập ngũ:
+                                <span class="description">{{
+                                  profile.military_start_date
+                                }}</span></label
                               >
-                                <template #list="slotProps">
-                                  <div class="w-full">
-                                    <Toolbar class="w-full">
-                                      <template #start>
-                                        <div
-                                          @click="goFile(slotProps.data)"
-                                          class="flex align-items-center"
-                                        >
-                                          <img
-                                            class="mr-2"
-                                            :src="
-                                              basedomainURL +
-                                              '/Portals/Image/file/' +
-                                              slotProps.data.file_type +
-                                              '.png'
-                                            "
-                                            style="object-fit: contain"
-                                            width="40"
-                                            height="40"
-                                          />
-                                          <span style="line-height: 1.5">
-                                            {{ slotProps.data.file_name }}</span
-                                          >
-                                        </div>
-                                      </template>
-                                    </Toolbar>
-                                  </div>
-                                </template>
-                              </DataView>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Ngày xuất ngũ:
+                                <span class="description">{{
+                                  profile.military_end_date
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Quân hàm cao nhất:
+                                <span class="description">{{
+                                  profile.military_rank
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Danh hiệu cao nhất:
+                                <span class="description">{{
+                                  profile.military_title
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Sở trường công tác:
+                                <span class="description">{{
+                                  profile.military_forte
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Sức khỏe:
+                                <span class="description">{{
+                                  profile.military_health
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Khen thưởng:
+                                <span class="description">{{
+                                  profile.military_reward
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Kỷ luật:
+                                <span class="description">{{
+                                  profile.military_discipline
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Thương binh hạng:
+                                <span class="description">{{
+                                  profile.military_veterans_rank
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Con gia đình chính sách:
+                                <span class="description">{{
+                                  profile.military_policy_family
+                                }}</span></label
+                              >
                             </div>
                           </div>
                         </div>
-                      </AccordionTab>
-                    </Accordion>
-                  </div>
-                  <div class="col-12 md:col-12 p-0 mt-2">
-                    <div class="form-group">
-                      <label
-                        >Ghi chú:
-                        <span class="description">{{
-                          profile.note
-                        }}</span></label
-                      >
-                    </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 8. Kinh nghiệm làm việc -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <Toolbar class="w-full custoolbar p-0 font-bold">
+                          <template #start>
+                            <span>8. Kinh nghiệm làm việc</span></template
+                          >
+                        </Toolbar>
+                      </template>
+                      <div class="col-12 md:col-12 p-0">
+                        <div style="min-height: 250px">
+                          <DataTable
+                            :value="datachilds[4]"
+                            :scrollable="true"
+                            :lazy="true"
+                            :rowHover="true"
+                            :showGridlines="true"
+                            scrollDirection="both"
+                            style="display: grid"
+                          >
+                            <Column
+                              field="start_date"
+                              header="Từ tháng, năm"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.start_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="end_date"
+                              header="Đến tháng, năm"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.end_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="company"
+                              header="Công ty, đơn vị"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.company }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="role"
+                              header="Vị trí"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.role }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="reference_name"
+                              header="Người tham chiếu"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.reference_name }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="reference_phone"
+                              header="SĐT"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.reference_phone
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="description"
+                              header="Mô tả công việc"
+                              headerStyle="text-align:center;width:200px;height:50px"
+                              bodyStyle="text-align:center;width:200px;"
+                              class="
+                                align-items-center
+                                justify-content-center
+                                text-center
+                              "
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.description }}</span>
+                              </template>
+                            </Column>
+                            <template #empty>
+                              <div
+                                class="
+                                  align-items-center
+                                  justify-content-center
+                                  p-4
+                                  text-center
+                                  m-auto
+                                "
+                                style="
+                                  display: flex;
+                                  width: 100%;
+                                  min-height: 200px;
+                                "
+                              ></div>
+                            </template>
+                          </DataTable>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- Đặc điểm lịch sử bản thân -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <!-- <i class="pi pi-chart-line mr-2"></i> -->
+                        <span>9. Đặc điểm lịch sử bản thân</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label
+                            >Thông tin 1:
+                            <span class="description">{{
+                              profile.biography_first
+                            }}</span></label
+                          >
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label
+                            >Thông tin 2:
+                            <span class="description">{{
+                              profile.biography_second
+                            }}</span></label
+                          >
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label
+                            >Thông tin 3:
+                            <span class="description">{{
+                              profile.biography_third
+                            }}</span></label
+                          >
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 10.	Đính kèm khác (file số hóa liên quan) -->
+                  <Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <!-- <i class="pi pi-chart-line mr-2"></i> -->
+                        <span> 10. Đính kèm khác (file số hóa liên quan)</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label>Tải file lên </label>
+                          <div
+                            v-if="
+                              profile.files != null && profile.files.length > 0
+                            "
+                          >
+                            <DataView
+                              :lazy="true"
+                              :value="profile.files"
+                              :rowHover="true"
+                              :scrollable="true"
+                              class="
+                                w-full
+                                h-full
+                                ptable
+                                p-datatable-sm
+                                flex flex-column
+                              "
+                              layout="list"
+                              responsiveLayout="scroll"
+                            >
+                              <template #list="slotProps">
+                                <div class="w-full">
+                                  <Toolbar class="w-full">
+                                    <template #start>
+                                      <div
+                                        @click="goFile(slotProps.data)"
+                                        class="flex align-items-center"
+                                      >
+                                        <img
+                                          class="mr-2"
+                                          :src="
+                                            basedomainURL +
+                                            '/Portals/Image/file/' +
+                                            slotProps.data.file_type +
+                                            '.png'
+                                          "
+                                          style="object-fit: contain"
+                                          width="40"
+                                          height="40"
+                                        />
+                                        <span style="line-height: 1.5">
+                                          {{ slotProps.data.file_name }}</span
+                                        >
+                                      </div>
+                                    </template>
+                                  </Toolbar>
+                                </div>
+                              </template>
+                            </DataView>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                </div>
+                <div class="col-12 md:col-12 p-0 mt-2">
+                  <div class="form-group">
+                    <label
+                      >Ghi chú:
+                      <span class="description">{{ profile.note }}</span></label
+                    >
                   </div>
                 </div>
               </div>
-              <div v-show="options.view === 2" class="f-full">Công việc</div>
-              <div v-show="options.view === 3" class="f-full">
-                <div class="d-lang-table">
-      <DataTable
-        @page="onPage($event)"
-        :value="datas"
-        :paginator="true"
-        :rows="options.pageSize"
-        :rowsPerPageOptions="[25, 50, 100, 200]"
-        :totalRecords="options.total"
-        :scrollable="true"
-        :lazy="true"
-        :rowHover="true"
-        :showGridlines="false"
-        :globalFilterFields="['type_contract_name']"
-        v-model:selection="selectedNodes"
-        selectionMode="single"
-        dataKey="contract_id"
-        scrollHeight="flex"
-        filterDisplay="menu"
-        filterMode="lenient"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        responsiveLayout="scroll"
-      >
-        <!-- <Column
-          field="STT"
-          header="STT"
-          headerStyle="text-align:center;max-width:75px;height:50px"
-          bodyStyle="text-align:center;max-width:75px;"
-          class="align-items-center justify-content-center text-center"
-        >
-        </Column> -->
-        <Column
-          field="contract_no"
-          header="Mã HĐ"
-          headerStyle="text-align:center;max-width:80px;height:50px"
-          bodyStyle="text-align:center;max-width:80px;"
-          class="align-items-center justify-content-center text-center"
-        />
-        <Column
-          field="department_name"
-          header="Phòng ban"
-          headerStyle="height:50px;max-width:auto;"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.department_name }}
-          </template>
-        </Column>
-        <Column
-          field="type_contract_name"
-          header="Loại hợp đồng"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.type_contract_name }}
-          </template>
-        </Column>
-        <Column
-          field="sign_date"
-          header="Ngày ký"
-          headerStyle="text-align:center;max-width:100px;height:50px"
-          bodyStyle="text-align:center;max-width:100px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <span>{{ slotProps.data.sign_date }}</span>
-          </template>
-        </Column>
-        <Column
-          field="start_date"
-          header="Ngày hiệu lực"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <span>{{ slotProps.data.start_date }}</span>
-          </template>
-        </Column>
-        <Column
-          field="end_date"
-          header="Ngày hết hạn"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <span>{{ slotProps.data.end_date }}</span>
-          </template>
-        </Column>
-        <Column
-          field="sign_user_name"
-          header="Người ký"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.sign_user_name }}
-          </template>
-        </Column>
-        <Column
-          field="created_date"
-          header="Ngày/Người lập"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <span class="mr-2">{{ slotProps.data.created_date }}</span>
-            <div>
-              <Avatar
-                v-bind:label="
-                  slotProps.data.avatar
-                    ? ''
-                    : slotProps.data.full_name.substring(0, 1)
-                "
-                v-bind:image="
-                  slotProps.data.avatar
-                    ? basedomainURL + slotProps.data.avatar
-                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-                style="
-                  background-color: #2196f3;
-                  color: #ffffff;
-                  width: 2rem;
-                  height: 2rem;
-                  font-size: 1rem !important;
-                "
-                :style="{
-                  background: bgColor[slotProps.data.created_is_order % 7],
-                }"
-                class="text-avatar"
-                size="xlarge"
-                shape="circle"
-                v-tooltip.top="slotProps.data.full_name"
-              />
             </div>
-          </template>
-        </Column>
-        <Column
-          field="status"
-          header="Trạng thái"
-          headerStyle="text-align:center;max-width:140px;height:50px"
-          bodyStyle="text-align:center;max-width:140px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <div
-              class="m-2"
-              aria:haspopup="true"
-              aria-controls="overlay_panel_status"
-            >
-              <Button
-                :label="slotProps.data.status_name"
-                :style="{
-                  border: slotProps.data.bg_color,
-                  backgroundColor: slotProps.data.bg_color,
-                  color: slotProps.data.text_color,
-                }"
-              />
-            </div>
-          </template>
-        </Column>
-        <template #empty>
-          <div
-            class="
-              align-items-center
-              justify-content-center
-              p-4
-              text-center
-              m-auto
-            "
-            style="
-              display: flex;
-              width: 100%;
-              height: calc(100vh - 326px);
-              background-color: #fff;
-            "
-          >
-            <div v-if="!options.loading && options.total == 0">
-              <img src="../../../../assets/background/nodata.png" height="144" />
-              <h3 class="m-1">Không có dữ liệu</h3>
-            </div>
-          </div>
-        </template>
-      </DataTable>
-    </div>
-              </div>
-              <div v-show="options.view === 4" class="f-full">Chấm công</div>
-              <div v-show="options.view === 5" class="f-full">Phiếu lương</div>
-              <div v-show="options.view === 6" class="f-full">Bảo hiểm</div>
-              <div v-show="options.view === 7" class="f-full">Phép năm</div>
-              <div v-show="options.view === 8" class="f-full">Đào tạo</div>
-              <div v-show="options.view === 9" class="f-full">Quyết định</div>
-              <div v-show="options.view === 10" class="f-full">Tệp số hóa</div>
-              <div v-show="options.view === 11" class="f-full">
-                Sơ yếu lí lịch
+            <div v-show="options.view === 2" class="f-full">Công việc</div>
+            <div v-show="options.view === 3" class="f-full">
+              <div class="d-lang-table-1 p-3">
+                <DataTable
+                  @page="onPage($event)"
+                  :value="contracts"
+                  :paginator="true"
+                  :rows="options.pageSize"
+                  :rowsPerPageOptions="[25, 50, 100, 200]"
+                  :totalRecords="options.total"
+                  :scrollable="true"
+                  :lazy="true"
+                  :rowHover="true"
+                  :showGridlines="false"
+                  :globalFilterFields="['type_contract_name']"
+                  v-model:selection="selectedNodes"
+                  selectionMode="single"
+                  dataKey="contract_id"
+                  scrollHeight="flex"
+                  filterDisplay="menu"
+                  filterMode="lenient"
+                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                  responsiveLayout="scroll"
+                >
+                  <Column
+                    field="contract_no"
+                    header="Mã HĐ"
+                    headerStyle="text-align:center;max-width:80px;height:50px"
+                    bodyStyle="text-align:center;max-width:80px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  />
+                  <Column
+                    field="department_name"
+                    header="Phòng ban"
+                    headerStyle="height:50px;max-width:auto;"
+                  >
+                    <template #body="slotProps">
+                      {{ slotProps.data.department_name }}
+                    </template>
+                  </Column>
+                  <Column
+                    field="type_contract_name"
+                    header="Loại hợp đồng"
+                    headerStyle="text-align:center;max-width:120px;height:50px"
+                    bodyStyle="text-align:center;max-width:120px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      {{ slotProps.data.type_contract_name }}
+                    </template>
+                  </Column>
+                  <Column
+                    field="sign_date"
+                    header="Ngày ký"
+                    headerStyle="text-align:center;max-width:100px;height:50px"
+                    bodyStyle="text-align:center;max-width:100px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      <span>{{ slotProps.data.sign_date }}</span>
+                    </template>
+                  </Column>
+                  <Column
+                    field="start_date"
+                    header="Ngày hiệu lực"
+                    headerStyle="text-align:center;max-width:120px;height:50px"
+                    bodyStyle="text-align:center;max-width:120px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      <span>{{ slotProps.data.start_date }}</span>
+                    </template>
+                  </Column>
+                  <Column
+                    field="end_date"
+                    header="Ngày hết hạn"
+                    headerStyle="text-align:center;max-width:120px;height:50px"
+                    bodyStyle="text-align:center;max-width:120px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      <span>{{ slotProps.data.end_date }}</span>
+                    </template>
+                  </Column>
+                  <Column
+                    field="sign_user_name"
+                    header="Người ký"
+                    headerStyle="text-align:center;max-width:120px;height:50px"
+                    bodyStyle="text-align:center;max-width:120px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      {{ slotProps.data.sign_user_name }}
+                    </template>
+                  </Column>
+                  <Column
+                    field="status"
+                    header="Trạng thái"
+                    headerStyle="text-align:center;max-width:140px;height:50px"
+                    bodyStyle="text-align:center;max-width:140px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      <div
+                        class="m-2"
+                        aria:haspopup="true"
+                        aria-controls="overlay_panel_status"
+                      >
+                        <Button
+                          :label="slotProps.data.status_name"
+                          :style="{
+                            border: slotProps.data.bg_color,
+                            backgroundColor: slotProps.data.bg_color,
+                            color: slotProps.data.text_color,
+                          }"
+                        />
+                      </div>
+                    </template>
+                  </Column>
+                  <template #empty>
+                    <div
+                      class="
+                        align-items-center
+                        justify-content-center
+                        p-4
+                        text-center
+                        m-auto
+                      "
+                      style="
+                        display: flex;
+                        width: 100%;
+                        height: calc(100vh - 303px);
+                        background-color: #fff;
+                      "
+                    >
+                      <div v-if="!options.loading && options.total == 0">
+                        <img
+                          src="../../../../assets/background/nodata.png"
+                          height="144"
+                        />
+                        <h3 class="m-1">Không có dữ liệu</h3>
+                      </div>
+                    </div>
+                  </template>
+                </DataTable>
               </div>
             </div>
+            <div v-show="options.view === 4" class="f-full">Chấm công</div>
+            <div v-show="options.view === 5" class="f-full">Phiếu lương</div>
+            <div v-show="options.view === 6" class="f-full">Bảo hiểm</div>
+            <div v-show="options.view === 7" class="f-full">Phép năm</div>
+            <div v-show="options.view === 8" class="f-full">Đào tạo</div>
+            <div v-show="options.view === 9" class="f-full">Quyết định</div>
+            <div v-show="options.view === 10" class="f-full">Tệp số hóa</div>
+            <div v-show="options.view === 11" class="f-full">
+              Sơ yếu lí lịch
+            </div>
           </div>
-          <div
-            class="col-3 md:col-3"
-            style="border-left: solid 1px rgba(0, 0, 0, 0.1)"
-          >
-            <div></div>
-          </div>
+        </div>
+        <div
+          style="
+            width: 350px !important;
+            border-left: solid 1px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <div></div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Dialog contract -->
+  <dialogcontract
+    :key="componentKey"
+    :headerDialog="headerDialogContract"
+    :displayDialog="displayDialogContract"
+    :closeDialog="closeDialogContract"
+    :isView="isView"
+    :model="contract"
+  />
 </template>
 <style scoped>
 @import url(../../profile/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 180px) !important;
+  height: calc(100vh - 166px) !important;
   background-color: #fff;
   overflow: hidden;
 }
 .d-lang-table-1 {
-  height: calc(100vh - 195px) !important;
+  height: calc(100vh - 166px) !important;
   overflow-x: hidden;
   overflow-y: auto;
 }
