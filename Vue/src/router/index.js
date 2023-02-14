@@ -391,6 +391,8 @@ const HrmProfileInfo = () =>
     import ("../views/hrm/profile/component/profileinfo.vue")
 const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
+const Insurance = () =>
+    import ("../views/hrm/insurance/insurance.vue");
 //end
 // TV
 const ConfigScreenTV = () =>
@@ -1745,6 +1747,11 @@ const router = createRouter({
             path: "/hrm/hrm_training",
             name: "HRM_Training",
             component: HRM_Training,
+        },
+        {
+            path: "/hrm/insurance",
+            name: "insurance",
+            component: Insurance,
         },
 
     ],
