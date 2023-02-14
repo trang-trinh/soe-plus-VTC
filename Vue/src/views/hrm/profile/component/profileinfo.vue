@@ -2017,7 +2017,7 @@ const onPage = (event) => {
                               >
                                 <template #body="slotProps">
                                   <span>{{
-                                    slotProps.data.roreference_namele
+                                    slotProps.data.reference_name
                                   }}</span>
                                 </template>
                               </Column>

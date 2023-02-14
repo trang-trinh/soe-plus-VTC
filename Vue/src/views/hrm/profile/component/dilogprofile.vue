@@ -1946,7 +1946,7 @@ onMounted(() => {});
                     >
                       <template #body="slotProps">
                         <InputText
-                          v-model="slotProps.data.roreference_namele"
+                          v-model="slotProps.data.reference_name"
                           spellcheck="false"
                           type="text"
                           class="ip36"
