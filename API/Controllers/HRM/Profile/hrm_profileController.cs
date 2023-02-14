@@ -420,5 +420,108 @@ namespace API.Controllers.HRM.Profile
             }
         }
         #endregion
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_profile_receipt()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    // Params
+                    var user_now = await db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                    string profile_id = provider.FormData.GetValues("profile_id").SingleOrDefault();
+                    int? receipt_status = int.Parse(provider.FormData.GetValues("receipt_status").SingleOrDefault());
+                    var re = provider.FormData.GetValues("receipts").SingleOrDefault();
+                    List<hrm_profile_receipt> receipts = JsonConvert.DeserializeObject<List<hrm_profile_receipt>>(re);
+                    var profile = db.hrm_profile.Find(profile_id);
+                    profile.receipt_status = receipt_status ?? 0;
+                    if (receipts != null)
+                    {
+                        List<hrm_profile_receipt> new_receipts = new List<hrm_profile_receipt>();
+                        var stt = 0;
+                        foreach (var receipt in receipts)
+                        {
+                            if (string.IsNullOrEmpty(receipt.receipt_profile_id.ToString()) || receipt.receipt_profile_id == -1)
+                            {
+                                receipt.profile_id = profile_id;
+                                receipt.is_order = stt++;
+                                receipt.created_by = uid;
+                                receipt.created_date = DateTime.Now;
+                                receipt.created_ip = ip;
+                                receipt.created_token_id = tid;
+                                new_receipts.Add(receipt);
+                            }
+                            else
+                            {
+                                var model = await db.hrm_profile_receipt.FindAsync(receipt.receipt_profile_id);
+                                model.receipt_date = receipt.receipt_date;
+                                model.note = receipt.note;
+                                model.modified_by = uid;
+                                model.modified_date = DateTime.Now;
+                                model.modified_ip = ip;
+                                model.modified_token_id = tid;
+                            }
+                        }
+                        if (new_receipts.Count > 0)
+                        {
+                            db.hrm_profile_receipt.AddRange(new_receipts);
+                        }
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
     }
 }

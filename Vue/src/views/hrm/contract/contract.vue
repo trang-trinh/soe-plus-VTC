@@ -78,19 +78,7 @@ const expandedKeys = ref([]);
 const isFirst = ref(true);
 const datas = ref([]);
 const counts = ref([]);
-const organization = ref({});
-const organizations = ref([]);
-const profiles = ref([]);
-const type_contracts = ref([]);
-const departments = ref([]);
-const work_positions = ref([]);
-const positions = ref([]);
-const formalitys = ref([]);
-const wages = ref([]);
-const users = ref([]);
-const allowance_formalitys = ref([]);
-const allowance_wages = ref([]);
-const professional_works = ref([]);
+const dictionarys = ref([]);
 const contract = ref({});
 
 const menuButMores = ref();
@@ -212,7 +200,8 @@ const openAddDialog = (str) => {
     sign_user: null,
     contract_no: "",
     contract_name: "",
-    employment: organization.value.address,
+    employment:
+      dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
     start_date: new Date(),
     sign_date: new Date(),
     status: 0,
@@ -648,71 +637,7 @@ const initDictionary = () => {
         var data = response.data.data;
         if (data != null) {
           let tbs = JSON.parse(data);
-          if (tbs[0] != null && tbs[0].length > 0) {
-            organization.value = tbs[0][0];
-          } else {
-            organization.value = [];
-          }
-          if (tbs[1] != null && tbs[1].length > 0) {
-            profiles.value = tbs[1];
-          } else {
-            profiles.value = [];
-          }
-          if (tbs[2] != null && tbs[2].length > 0) {
-            type_contracts.value = tbs[2];
-          } else {
-            type_contracts.value = [];
-          }
-          if (tbs[3] != null && tbs[3].length > 0) {
-            departments.value = tbs[3];
-          } else {
-            departments.value = [];
-          }
-          if (tbs[4] != null && tbs[4].length > 0) {
-            work_positions.value = tbs[4];
-          } else {
-            work_positions.value = [];
-          }
-          if (tbs[5] != null && tbs[5].length > 0) {
-            positions.value = tbs[5];
-          } else {
-            positions.value = [];
-          }
-          if (tbs[6] != null && tbs[6].length > 0) {
-            formalitys.value = tbs[6];
-          } else {
-            formalitys.value = [];
-          }
-          if (tbs[7] != null && tbs[7].length > 0) {
-            wages.value = tbs[7];
-          } else {
-            wages.value = [];
-          }
-          if (tbs[8] != null && tbs[8].length > 0) {
-            users.value = tbs[8];
-          } else {
-            users.value = [];
-          }
-          if (tbs[9] != null && tbs[9].length > 0) {
-            allowance_formalitys.value = tbs[9];
-          } else {
-            allowance_formalitys.value = [];
-          }
-          if (tbs[10] != null && tbs[10].length > 0) {
-            allowance_wages.value = tbs[10];
-          } else {
-            allowance_wages.value = [];
-          }
-          if (tbs[11] != null && tbs[11].length > 0) {
-            professional_works.value = tbs[11];
-          } else {
-            professional_works.value = [];
-          }
-          if (tbs[12] != null && tbs[12].length > 0) {
-            organizations.value = tbs[12];
-          } else {
-            organizations.value = [];
-          }
+          dictionarys.value = tbs;
         }
       }
     });
@@ -1167,16 +1092,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="surface-100 p-3">
-    <Toolbar class="outline-none surface-0 border-none pb-0">
-      <template #start>
-        <div>
-          <h3 class="module-title m-0">
-            <i class="pi pi-file"></i> Danh sách hợp đồng ({{ options.total }})
-          </h3>
-        </div>
-      </template>
-    </Toolbar>
+  <div class="surface-100 p-2">
     <Toolbar class="outline-none surface-0 border-none">
       <template #start>
         <span class="p-input-icon-left">
@@ -1227,7 +1143,7 @@ onMounted(() => {
                       <div class="form-group">
                         <label>Đơn vị</label>
                         <MultiSelect
-                          :options="organizations"
+                          :options="dictionarys[12]"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
@@ -2136,17 +2052,7 @@ onMounted(() => {
     :files="files"
     :selectFile="selectFile"
     :removeFile="removeFile"
-    :profiles="profiles"
-    :type_contracts="type_contracts"
-    :departments="departments"
-    :work_positions="work_positions"
-    :positions="positions"
-    :formalitys="formalitys"
-    :wages="wages"
-    :users="users"
-    :allowance_formalitys="allowance_formalitys"
-    :allowance_wages="allowance_wages"
-    :professional_works="professional_works"
+    :dictionarys="dictionarys"
     :initData="initData"
   />
   <Dialog
@@ -2232,7 +2138,7 @@ onMounted(() => {
 <style scoped>
 @import url(../contract/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 210px) !important;
+  height: calc(100vh - 166px) !important;
   background-color: #fff;
 }
 .icon-star {
