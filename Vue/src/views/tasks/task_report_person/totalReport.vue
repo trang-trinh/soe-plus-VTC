@@ -1243,8 +1243,8 @@ onMounted(() => {
             <Button
               @click="ExportToWord()"
               class="mr-2"
-              label="Xuất tệp Word"
-              icon="pi pi-file-word"
+              label="In báo cáo"
+              icon="pi pi-print"
             />
           </template>
         </Toolbar>

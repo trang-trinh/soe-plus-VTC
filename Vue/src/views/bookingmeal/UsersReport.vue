@@ -113,7 +113,7 @@ const onDayClick = () => {
 const onCleanFilterMonth = () => {
   if (weekPickerFilter.value) weekPickerFilter.value = null;
   if (monthPickerFilter.value) monthPickerFilter.value = null;
-    checkFilterDate.value = false;
+  checkFilterDate.value = false;
   loadData(true);
 };
 const loadData = (f) => {
@@ -136,27 +136,30 @@ const loadData = (f) => {
   });
   axios
     .post(
-        baseURL + "/api/BookingMeal/GetDataProc",
-        {
-          str: encr(JSON.stringify({
+      baseURL + "/api/BookingMeal/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
             proc: "booking_report_week",
-        par: [
-          { par: "user_id", va: options.value.Start_Date },
-          { par: "search", va: options.value.End_Date },
-          {
-            par: "list_user",
-            va:
-              listUserSelected.value.length > 0
-                ? listUserSelected.value.toString()
-                : null,
-          },
-          { par: "user_id", va: store.getters.user.user_id },
-        ],
-          }), SecretKey, cryoptojs
-          ).toString()
-        },
-        config
-      )
+            par: [
+              { par: "user_id", va: options.value.Start_Date },
+              { par: "search", va: options.value.End_Date },
+              {
+                par: "list_user",
+                va:
+                  listUserSelected.value.length > 0
+                    ? listUserSelected.value.toString()
+                    : null,
+              },
+              { par: "user_id", va: store.getters.user.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
     .then((response) => {
       debugger;
       let data = JSON.parse(response.data.data)[0];
@@ -225,8 +228,11 @@ const initConfig = () => {
         if (response.data.data) {
           price = response.data.data.price;
           working_days = response.data.data.working_days;
-          loadData(true);
+        } else {
+          price = 0;
+          working_days = [];
         }
+        loadData(true);
       } else {
         loadData(true);
         swal.fire({
@@ -252,16 +258,19 @@ const loadFilterUsers = () => {
 const loadUser = () => {
   axios
     .post(
-        baseURL + "/api/BookingMeal/GetDataProc",
-        {
-          str: encr(JSON.stringify({
+      baseURL + "/api/BookingMeal/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
             proc: "booking_meal_user_list",
-        par: [{ par: "user_id", va: store.getters.user.user_id }],
-          }), SecretKey, cryoptojs
-          ).toString()
-        },
-        config
-      )
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
@@ -288,13 +297,21 @@ const onRefresh = () => {
 };
 const exportExcel = () => {
   debugger;
-  let text_string = '';
-  if(options.value.End_Date){
-    text_string = 'TỪ NGÀY '+ moment(new Date(options.value.Start_Date)).format("DD/MM/YYYY").toString()+' - '+
-           moment(new Date(options.value.End_Date)).format("DD/MM/YYYY").toString() 
-  }
-  else{
-        text_string = ' NGÀY '+ moment(new Date(options.value.Start_Date)).format("DD/MM/YYYY").toString()
+  let text_string = "";
+  if (options.value.End_Date) {
+    text_string =
+      "TỪ NGÀY " +
+      moment(new Date(options.value.Start_Date))
+        .format("DD/MM/YYYY")
+        .toString() +
+      " - " +
+      moment(new Date(options.value.End_Date)).format("DD/MM/YYYY").toString();
+  } else {
+    text_string =
+      " NGÀY " +
+      moment(new Date(options.value.Start_Date))
+        .format("DD/MM/YYYY")
+        .toString();
   }
   let name = "BC_suat_an_";
   let id = "tablequizz";
@@ -316,18 +333,23 @@ const exportExcel = () => {
   tab_text =
     tab_text +
     '<style>.cstd{font-family: Times New Roman;border:none!important; font-size: 17px; font-weight: 700; text-align: center; vertical-align: center;color:#1769aa}</style><table><td colspan="' +
-    (dataTime.value.length+6) +'" class="cstd" > BÁO CÁO CẮT CƠM '+text_string+'</td > ';
+    (dataTime.value.length + 6) +
+    '" class="cstd" > BÁO CÁO CẮT CƠM ' +
+    text_string +
+    "</td > ";
   tab_text = tab_text + "</table>";
 
   //var exportTable = $('#' + id).clone();
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
-tab_text = tab_text + "<style>th,table,tr{font-family: Times New Roman; font-size: 12px; vertical-align: middle; text-align: center;}</style><table border='1'>";
+  tab_text =
+    tab_text +
+    "<style>th,table,tr{font-family: Times New Roman; font-size: 12px; vertical-align: middle; text-align: center;}</style><table border='1'>";
   var exportTable = document
     .getElementById("table-bc")
     .cloneNode(true).innerHTML;
   tab_text = tab_text + exportTable;
   tab_text = tab_text + htmltable1;
-   tab_text = tab_text + '</table>';
+  tab_text = tab_text + "</table>";
   tab_text = tab_text + '<meta charset="utf-8"/></ta></body></html>';
   var data_type =
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -504,7 +526,7 @@ onMounted(() => {
             aria-haspopup="true"
             aria-controls="overlay_panelMonth"
           />
-                    <Button
+          <Button
             label="Xuất báo cáo"
             icon="pi pi-file-excel"
             class="mr-2 p-button-outlined p-button-secondary"
@@ -622,7 +644,14 @@ onMounted(() => {
               </span>
             </th>
           </tr>
-          <tr class="sticky" style="z-index:1 !important; top: 33px !important;background-color: #f8f9fa;">
+          <tr
+            class="sticky"
+            style="
+              z-index: 1 !important;
+              top: 33px !important;
+              background-color: #f8f9fa;
+            "
+          >
             <th
               class="text-lg item-date"
               style="padding: 0.5rem"

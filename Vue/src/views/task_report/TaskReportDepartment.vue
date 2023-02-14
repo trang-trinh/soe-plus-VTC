@@ -137,7 +137,7 @@ const onRefresh = () => {
         PageNo: 1,
         PageSize: 20,
         search: '',
-        IsType: null,
+        IsType: -1,
         SearchTextUser: '',
         filter_type: 0,
         Filteruser_id: null,
@@ -148,6 +148,8 @@ const onRefresh = () => {
         edate: null,
         filterStatus: null,
         filterPB: null,
+        filterDonvi: null,
+        filterDuan: null,
         filtergroup_id: null,
     };
     loadData(true);
@@ -160,7 +162,7 @@ const opition = ref({
     PageNo: 1,
     PageSize: 20,
     search: '',
-    IsType: null,
+    IsType: -1,
     SearchTextUser: '',
     filter_type: 0,
     Filteruser_id: null,
@@ -171,6 +173,8 @@ const opition = ref({
     edate: null,
     filterStatus: null,
     filterPB: null,
+    filterDonvi: null,
+    filterDuan: null,
     filtergroup_id: null,
 });
 const listDropdownProject = ref([]);
@@ -288,6 +292,7 @@ const loadData = (rf) => {
                             { par: "filterStatus", va: opition.value.filterStatus },
                             { par: "filtergroup_id", va: opition.value.filtergroup_id },
                             { par: "filterPB", va: opition.value.filterPB },
+                            { par: "filterDV", va: opition.value.filterDonvi },
                         ],
                     }),
                     SecretKey,
@@ -308,6 +313,7 @@ const loadData = (rf) => {
             } else {
                 listTaskReportDepartment.value = [];
             }
+            opition.value.totalRecords = data[1].totalRecords;
             if (rf) {
                 opition.value.loading = false;
                 swal.close();
@@ -361,7 +367,7 @@ const Del_ChangeFilter = () => {
         PageNo: 1,
         PageSize: 20,
         search: '',
-        IsType: null,
+        IsType: -1,
         SearchTextUser: '',
         filter_type: 0,
         Filteruser_id: null,
@@ -372,6 +378,8 @@ const Del_ChangeFilter = () => {
         edate: null,
         filterStatus: null,
         filterPB: null,
+        filterDonvi: null,
+        filterDuan: null,
         filtergroup_id: null,
     };
     loadData(true);
@@ -420,9 +428,10 @@ const renderTreeDV = (data, id, name, title) => {
     });
     return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
-const listOrganization = ref();
+const listOrganization = ref([]);
+const listOrganizationAll = ref();
 const listDropdownTaskGroup = ref();
-const listDropdownorganization = ref();
+const listDropdownDonvi = ref();
 const listtreeOrganization = () => {
     axios
         .post(
@@ -430,7 +439,7 @@ const listtreeOrganization = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "task_origin_list_pb",
+                        proc: "task_report_list_pbdv",
                         par: [{ par: "user_id", va: store.getters.user.user_id }],
                     }),
                     SecretKey,
@@ -440,15 +449,22 @@ const listtreeOrganization = () => {
             config,
         )
         .then((response) => {
-            let data = JSON.parse(response.data.data)[0];
-            let obj = renderTreeDV(
-                data,
-                "organization_id",
-                "organization_name",
-                "phòng ban",
-            );
-            listOrganization.value = data;
-            listDropdownorganization.value = obj.arrtreeChils;
+            if(store.state.user.is_admin == true){
+                let data = JSON.parse(response.data.data);
+                // let obj = renderTreeDV(
+                //     data,
+                //     "organization_id",
+                //     "organization_name",
+                //     "phòng ban",
+                // );
+                // listOrganization.value = data[0];
+                listOrganizationAll.value = data[0]
+                listDropdownDonvi.value = data[1];
+            }else{
+                let data = JSON.parse(response.data.data)[0];
+                listOrganization.value = data.filter(x=>x.parent_id != null);
+                listOrganizationAll.value = data;
+            }
         })
         .catch((error) => {
             console.log(error);
@@ -582,7 +598,7 @@ const ExportData = () => {
     htmltable += "<tbody>";
     if (arrNew.length > 0) {
         arrNew.forEach(function (t, index) {
-            htmltable += "<tr><th colspan='" + listColumExportNews.value.length + "' style='text-align: left;'>" + (t.organization_name) + "</th></tr>";
+            htmltable += "<tr><th colspan='" + listColumExportNews.value.length + "' style='text-align: left;'>" + (t.organization_name != null ? t.organization_name : '') + "</th></tr>";
             t.Group.forEach(function (d, index) {
                 htmltable += "<tr>";
                 htmltable += "<td style='width:30px;font-size:14px;text-align:center;'>" + (d.STT) + "</td>";
@@ -741,6 +757,46 @@ onMounted(() => {
     loadData(true);
     return {};
 });
+
+const changeDonvi = (event) => {
+    listOrganization.value = listOrganizationAll.value.filter(x=>x.parent_id == event.value);
+}
+const clickPhongBan = (event) => {
+    if(store.state.user.is_admin == true && listOrganization.value.length == 0){
+        swal.fire({
+        title: "Thông báo",
+        html: "Vui lòng chọn đơn vị trước khi chọn phòng ban!",
+        icon: "info",
+        confirmButtonText: "OK",
+        });
+    }
+}
+
+const onPage = (event) => {
+    if (event.rows != opition.value.PageSize) {
+        opition.value.PageSize = event.rows;
+    }
+    if (event.page == 0) {
+        //Trang đầu
+        opition.value.id = null;
+        opition.value.IsNext = true;
+    } else if (event.page > opition.value.PageNo + 1) {
+        //Trang cuối
+        opition.value.id = -1;
+        opition.value.IsNext = false;
+    } else if (event.page > opition.value.PageNo) {
+        //Trang sau
+
+        opition.value.id = listTaskReportDepartment.value[listTaskReportDepartment.value.length - 1].task_id;
+        opition.value.IsNext = true;
+    } else if (event.page < opition.value.PageNo) {
+        //Trang trước
+        opition.value.id = listTaskReportDepartment.value[0].task_id;
+        opition.value.IsNext = false;
+    }
+    opition.value.PageNo = event.page;
+    loadData(true);
+};
 </script>
 <template>
     <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2" id="task-report">
@@ -787,14 +843,26 @@ onMounted(() => {
                     </ul>
                     <OverlayPanel ref="menuFilterButs" id="task_report_filter">
                         <ul style="padding: 0px; margin: 0px">
-                            <li class="p-menuitem">
+                            <li class="p-menuitem" v-if="store.state.user.is_admin == true">
                                 <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
                                     <label>Đơn vị</label>
-                                    <Dropdown :filter="true" v-model="opition.filterDonvi" panelClass="d-design-dropdown" placeholder="Chọn đơn vị"
-                                        selectionLimit="1" :options="listDropdownProject" optionLabel="project_name"
-                                        optionValue="project_id" spellcheck="false" class="col-12 ip36 p-0">
+                                    <Dropdown :filter="true" @change="changeDonvi($event)" v-model="opition.filterDonvi" panelClass="d-design-dropdown" placeholder="Chọn đơn vị"
+                                        selectionLimit="1" :options="listDropdownDonvi" optionLabel="organization_name"
+                                        optionValue="organization_id" spellcheck="false" class="col-12 ip36 p-0">
                                         <template #option="slotProps">
-                                            <div class="pt-1">{{ slotProps.option.project_name }}</div>
+                                            <div class="pt-1">{{ slotProps.option.organization_name }}</div>
+                                        </template>
+                                    </Dropdown>
+                                </div>
+                            </li>
+                            <li class="p-menuitem">
+                                <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
+                                    <label>Phòng ban</label>
+                                    <Dropdown :filter="true" @click="clickPhongBan($event)" v-model="opition.filterPB" panelClass="d-design-dropdown" placeholder="Chọn phòng ban"
+                                        selectionLimit="1" :options="listOrganization" optionLabel="organization_name"
+                                        optionValue="organization_id" spellcheck="false" class="col-12 ip36 p-0">
+                                        <template #option="slotProps">
+                                            <div class="pt-1">{{ slotProps.option.organization_name }}</div>
                                         </template>
                                     </Dropdown>
                                 </div>
@@ -807,18 +875,6 @@ onMounted(() => {
                                         optionValue="project_id" spellcheck="false" class="col-12 ip36 p-0">
                                         <template #option="slotProps">
                                             <div class="pt-1">{{ slotProps.option.project_name }}</div>
-                                        </template>
-                                    </Dropdown>
-                                </div>
-                            </li>
-                            <li class="p-menuitem">
-                                <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
-                                    <label>Phòng ban</label>
-                                    <Dropdown :filter="true" v-model="opition.filterPB" panelClass="d-design-dropdown" placeholder="Chọn phòng ban"
-                                        selectionLimit="1" :options="listOrganization" optionLabel="organization_name"
-                                        optionValue="organization_id" spellcheck="false" class="col-12 ip36 p-0">
-                                        <template #option="slotProps">
-                                            <div class="pt-1">{{ slotProps.option.organization_name }}</div>
                                         </template>
                                     </Dropdown>
                                 </div>
@@ -882,8 +938,7 @@ onMounted(() => {
                         </ul>
                         <div style="float: right; padding: 10px">
                             <Button @click="ChangeFilter()" label="Thực hiện" />
-                            <Button @click="Del_ChangeFilter" id="btn_huy" 
-                            style="
+                            <Button @click="Del_ChangeFilter" id="btn_huy" style="
                             background-color: #f2f4f6;
                   border: 1px solid #f2f4f6;
                   color: #333;
@@ -908,9 +963,12 @@ onMounted(() => {
                 </template>
             </Toolbar>
         </div>
-        <DataTable :showGridlines="true" id="table-report-department" :value="listTaskReportDepartment"
+        <DataTable :showGridlines="true" :paginator="true" :rows="opition.PageSize" @page="onPage($event)"
+            :totalRecords="opition.totalRecords"
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            dataKey="task_id" :rowsPerPageOptions="[20, 30, 50, 100, 200]" id="table-report-department" :value="listTaskReportDepartment"
             rowGroupMode="subheader" groupRowsBy="organization_name" sortMode="single" :sortOrder="1" scrollable
-            style="max-height:calc(100vh - 145px);min-height: calc(100vh - 145px);" scrollHeight="calc(100vh - 115px)">
+            style="max-height:calc(100vh - 145px);min-height: calc(100vh - 145px);" scrollHeight="calc(100vh - 170px)">
             <Column field="STT" class="align-items-center justify-content-center text-center" header="STT"
                 headerStyle="min-height:3.125rem;min-width: 5rem;" bodyStyle="min-width: 5rem;"></Column>
             <Column field="task_name" header="Tên công việc" headerStyle="min-height:3.125rem;min-width: 25rem;"

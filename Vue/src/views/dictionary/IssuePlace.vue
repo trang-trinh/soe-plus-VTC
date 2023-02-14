@@ -35,12 +35,17 @@ const rules = {
 };
 const issuePlace = ref({
   issue_place_name: "",
-  year: 1970,
   current_num: 1,
   tracking_place: "",
   nav_type: 0,
   status: true,
   is_order: 1,
+  parent_id: null,
+  level: null,
+  static_code: "",
+  dynamic_code: "",
+  search_code: "",
+  display_code: "",
 });
 const selectedFields = ref();
 const submitted = ref(false);
@@ -1204,7 +1209,16 @@ onMounted(() => {
                 }}</span>
               </small>
             </div>
-
+            <div class="col-12 p-0 flex my-2">
+              <div class="col-3 text-left p-0 pb-2 line-height-4">
+                <span class="redsao">(*)</span>
+              </div>
+              <InputText
+                v-model="issuePlace.issue_place_name"
+                spellcheck="false"
+                class="col-9 p-0 m-0 ip36 px-2"
+              />
+            </div>
             <div class="col-12 p-0 my-3 flex">
               <div class="col-6 flex p-0">
                 <div class="pb-2 col-6 p-0 line-height-4">STT</div>

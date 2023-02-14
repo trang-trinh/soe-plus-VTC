@@ -2482,6 +2482,7 @@ onMounted(() => {
 															<Image v-if="f.is_image=='1'"
 																class="flex"
 																:src="basedomainURL+f.file_path"
+																@error="$event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'"
 																style="width: 100%; height: 100%; object-fit: contain;"
 																preview
 															/>
@@ -2711,7 +2712,7 @@ onMounted(() => {
 			:showCloseIcon="false"
 			id="overlay_panelEmoij4"
 		>
-			<VuemojiPicker @emojiClick="handleEmojiClick" />
+			<VuemojiPicker @emojiClick="handleEmojiClick" dataSource="/data_local_vuemoji_picker.json" />
 		</OverlayPanel>
 		<!-- panel menu message -->
 		<OverlayPanel

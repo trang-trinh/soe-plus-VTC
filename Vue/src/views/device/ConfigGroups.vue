@@ -1,16 +1,16 @@
 <script setup>
-import { ref, inject, onMounted    } from "vue";
+import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
- 
+
 import treeuser from "../../components/user/treeuser.vue";
 import { encr, checkURL } from "../../util/function.js";
 //Khai báo
 const router = inject("router");
 const cryoptojs = inject("cryptojs");
- 
+
 const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
@@ -21,9 +21,6 @@ const headerDialogUser = ref("Chọn người duyệt");
 const expandedKeys = ref([]);
 const isFirstCard = ref(false);
 const selectedUser = ref([]);
- 
-
- 
 
 const rules = {
   approved_group_name: {
@@ -39,7 +36,6 @@ const rules = {
 };
 
 const taskDateFilter = ref();
- 
 
 const bgColor = ref([
   "#F8E69A",
@@ -58,7 +54,7 @@ const showListAssets = () => {
 };
 const showListUser = () => {
   checkMultile.value = false;
-   selectedUser.value= [...listUserA.value];
+  selectedUser.value = [...listUserA.value];
   displayDialogUser.value = true;
 };
 let selectedTreeU = null;
@@ -67,21 +63,18 @@ const showTreeUser = (value) => {
   selectedTreeU = value;
   displayDialogUser.value = true;
 };
-const onChangeSWT=( )=>{
-  if(device_approved_group.value.is_approved_by_department==true){
-listUserA.value=[];
+const onChangeSWT = () => {
+  if (device_approved_group.value.is_approved_by_department == true) {
+    listUserA.value = [];
+  } else {
+    selectedUser.value = [];
   }
-  else{
-    selectedUser.value=[];
-  }
-}
+};
 
 const removeListUser = (value) => {
   listUserA.value = listUserA.value.filter((x) => x.user_id != value.user_id);
 };
 const listUserA = ref([]);
-  
- 
 
 const delCard = (Card) => {
   swal
@@ -110,7 +103,7 @@ const delCard = (Card) => {
             {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: Card != null ? [Card.approved_group_id] : 1,
-            },
+            }
           )
           .then((response) => {
             swal.close();
@@ -160,7 +153,7 @@ const filters = ref({
   status: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-  } 
+  },
 });
 //Phân trang dữ liệu
 const onPage = (event) => {
@@ -202,78 +195,88 @@ const loadDataSQL = () => {
           if (element.classify_fake.length > 0) {
             var panelst = "";
             element.classify_fake.forEach((item) => {
-              if (item == "1") {
-                element.config_type_name += panelst + "Duyệt phòng ban";
-                panelst = ", ";
-              }
-              if (item == "2") {
-                element.config_type_name +=
-                  panelst + "Duyệt cấp hành chính, lãnh đạo";
-                panelst = ", ";
-              }
-              if (item == "3") {
-                element.config_type_name += panelst + "Kiểm kho thiết bị";
-                panelst = ", ";
-              }
-              if (item == "4") {
-                element.config_type_name += panelst + "Mua sắm thiết bị";
-                panelst = ", ";
-              }
-              if (item == "5") {
-                element.config_type_name += panelst + "Duyệt mua sắm thiết bị";
-                panelst = ", ";
-              }
-              if (item == "6") {
-                element.config_type_name +=
-                  panelst + "Xác nhận mua sắm thiết bị";
-                panelst = ", ";
-              }
-              if (item == "7") {
-                element.config_type_name += panelst + "Lập thẻ thiết bị";
-                panelst = ", ";
-              }
-              if (item == "8") {
-                element.config_type_name += panelst + "Phòng chức năng duyệt";
-                panelst = ", ";
-              }
-              if (item == "9") {
-                element.config_type_name +=
-                  panelst + "Phòng chức năng đánh giá";
-                panelst = ", ";
-              }
-              if (item == "10") {
-                element.config_type_name += panelst + "Phòng kỹ thuật duyệt";
-                panelst = ", ";
-              }
               if (item == "11") {
-                element.config_type_name += panelst + "Phòng kỹ thuật đánh giá";
+                element.config_type_name += panelst + "Nhóm xử lý";
                 panelst = ", ";
-              }
-              if (item == "12") {
-                element.config_type_name += panelst + "Báo giá sửa chữa";
-                panelst = ", ";
-              }
-              if (item == "13") {
-                element.config_type_name +=
-                  panelst + "Lãnh đạo duyệt phí sửa chữa";
-                panelst = ", ";
-              }
-              if (item == "14") {
-                element.config_type_name += panelst + "Hoàn thành sửa chữa";
-                panelst = ", ";
-              }
-              if (item == "15") {
-                element.config_type_name += panelst + "Kế toán duyệt";
-                panelst = ", ";
-              }
-              if (item == "16") {
-                element.config_type_name += panelst + "Lãnh đạo duyệt";
-                panelst = ", ";
-              }
-              if (item == "17") {
+              } else if (item == "17") {
                 element.config_type_name += panelst + "Hoàn thành";
                 panelst = ", ";
+              } else {
+                element.config_type_name += panelst + "Nhóm duyệt";
+                panelst = ", ";
               }
+              // if (item == "1") {
+              //   element.config_type_name += panelst + "Duyệt phòng ban";
+              //   panelst = ", ";
+              // }
+              // if (item == "2") {
+              //   element.config_type_name +=
+              //     panelst + "Duyệt cấp hành chính, lãnh đạo";
+              //   panelst = ", ";
+              // }
+              // if (item == "3") {
+              //   element.config_type_name += panelst + "Kiểm kho thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "4") {
+              //   element.config_type_name += panelst + "Mua sắm thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "5") {
+              //   element.config_type_name += panelst + "Duyệt mua sắm thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "6") {
+              //   element.config_type_name +=
+              //     panelst + "Xác nhận mua sắm thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "7") {
+              //   element.config_type_name += panelst + "Lập thẻ thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "8") {
+              //   element.config_type_name += panelst + "Phòng chức năng duyệt";
+              //   panelst = ", ";
+              // }
+              // if (item == "9") {
+              //   element.config_type_name +=
+              //     panelst + "Phòng chức năng đánh giá";
+              //   panelst = ", ";
+              // }
+              // if (item == "10") {
+              //   element.config_type_name += panelst + "Phòng kỹ thuật duyệt";
+              //   panelst = ", ";
+              // }
+              // if (item == "11") {
+              //   element.config_type_name += panelst + "Phòng kỹ thuật đánh giá";
+              //   panelst = ", ";
+              // }
+              // if (item == "12") {
+              //   element.config_type_name += panelst + "Báo giá sửa chữa";
+              //   panelst = ", ";
+              // }
+              // if (item == "13") {
+              //   element.config_type_name +=
+              //     panelst + "Lãnh đạo duyệt phí sửa chữa";
+              //   panelst = ", ";
+              // }
+              // if (item == "14") {
+              //   element.config_type_name += panelst + "Hoàn thành sửa chữa";
+              //   panelst = ", ";
+              // }
+              // if (item == "15") {
+              //   element.config_type_name += panelst + "Kế toán duyệt";
+              //   panelst = ", ";
+              // }
+              // if (item == "16") {
+              //   element.config_type_name += panelst + "Lãnh đạo duyệt";
+              //   panelst = ", ";
+              // }
+              // if (item == "17") {
+              //   element.config_type_name += panelst + "Hoàn thành";
+              //   panelst = ", ";
+              // }
             });
           }
         });
@@ -306,10 +309,10 @@ const loadDataSQL = () => {
         store.commit("gologout");
       }
     });
-}; 
- 
+};
+
 const checkTypeHO = ref(false);
- 
+
 //Sort
 const onSort = (event) => {
   first.value = 0;
@@ -465,12 +468,9 @@ const choiceUser = () => {
       }
     });
   else {
- 
-    selectedUser.value.forEach(element => {
+    selectedUser.value.forEach((element) => {
       listUserA.value.push(element);
- 
     });
-  
   }
 
   closeDialogUser();
@@ -505,7 +505,7 @@ const openDetails = (data) => {
             { par: "search", va: null },
           ],
         },
-        config,
+        config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data);
@@ -513,9 +513,7 @@ const openDetails = (data) => {
 
         options.value.loadingU = false;
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   }
 };
 const loadCount = () => {
@@ -532,10 +530,10 @@ const loadCount = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -544,9 +542,7 @@ const loadCount = () => {
         sttCard.value = data[0].totalRecords + 1;
       } else options.value.totalRecords = 0;
     })
-    .catch(( ) => {
-      
-    });
+    .catch(() => {});
 };
 const saveHandover = (isFormValid) => {
   submitted.value = true;
@@ -598,7 +594,7 @@ const saveHandover = (isFormValid) => {
       .post(
         baseURL + "/api/device_approved_group/add_device_approved_group",
         formData,
-        config,
+        config
       )
       .then((response) => {
         if (response.data.err != "1") {
@@ -629,7 +625,7 @@ const saveHandover = (isFormValid) => {
       .put(
         baseURL + "/api/device_approved_group/update_device_approved_group",
         formData,
-        config,
+        config
       )
       .then((response) => {
         if (response.data.err != "1") {
@@ -676,10 +672,10 @@ const editCard = (data) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -700,9 +696,7 @@ const editCard = (data) => {
         });
       }
     })
-    .catch((error) => {
-     
-    });
+    .catch((error) => {});
   checkShowAssets.value = false;
   headerDialog.value = "Sửa nhóm duyệt";
   isSaveCard.value = true;
@@ -735,12 +729,9 @@ const displayBasic = ref(false);
 //   { name: "Lãnh đạo duyệt", code: "16" },
 //   { name: "Hoàn thành", code: "17" },
 const listSCard = ref([
- 
- 
- { name: "Nhóm xử lý", code: "11" },
+  { name: "Nhóm xử lý", code: "11" },
   { name: "Nhóm duyệt", code: "2" },
   { name: "Hoàn thành", code: "17" },
- 
 ]);
 const listTCard = ref([
   { name: "Duyệt một nhiều", code: 1 },
@@ -813,10 +804,10 @@ const loadData = (rf) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -833,78 +824,88 @@ const loadData = (rf) => {
           if (element.classify_fake.length > 0) {
             var panelst = "";
             element.classify_fake.forEach((item) => {
-              if (item == "1") {
-                element.config_type_name += panelst + "Duyệt phòng ban";
+                          if (item == "11") {
+                element.config_type_name += panelst + "Nhóm xử lý";
                 panelst = ", ";
-              }
-              if (item == "2") {
-                element.config_type_name +=
-                  panelst + "Duyệt cấp hành chính, lãnh đạo";
-                panelst = ", ";
-              }
-              if (item == "3") {
-                element.config_type_name += panelst + "Kiểm kho thiết bị";
-                panelst = ", ";
-              }
-              if (item == "4") {
-                element.config_type_name += panelst + "Mua sắm thiết bị";
-                panelst = ", ";
-              }
-              if (item == "5") {
-                element.config_type_name += panelst + "Duyệt mua sắm thiết bị";
-                panelst = ", ";
-              }
-              if (item == "6") {
-                element.config_type_name +=
-                  panelst + "Xác nhận mua sắm thiết bị";
-                panelst = ", ";
-              }
-              if (item == "7") {
-                element.config_type_name += panelst + "Lập thẻ thiết bị";
-                panelst = ", ";
-              }
-              if (item == "8") {
-                element.config_type_name += panelst + "Phòng chức năng duyệt";
-                panelst = ", ";
-              }
-              if (item == "9") {
-                element.config_type_name +=
-                  panelst + "Phòng chức năng đánh giá";
-                panelst = ", ";
-              }
-              if (item == "10") {
-                element.config_type_name += panelst + "Phòng kỹ thuật duyệt";
-                panelst = ", ";
-              }
-              if (item == "11") {
-                element.config_type_name += panelst + "Phòng kỹ thuật đánh giá";
-                panelst = ", ";
-              }
-              if (item == "12") {
-                element.config_type_name += panelst + "Báo giá sửa chữa";
-                panelst = ", ";
-              }
-              if (item == "13") {
-                element.config_type_name +=
-                  panelst + "Lãnh đạo duyệt phí sửa chữa";
-                panelst = ", ";
-              }
-              if (item == "14") {
-                element.config_type_name += panelst + "Hoàn thành sửa chữa";
-                panelst = ", ";
-              }
-              if (item == "15") {
-                element.config_type_name += panelst + "Kế toán duyệt";
-                panelst = ", ";
-              }
-              if (item == "16") {
-                element.config_type_name += panelst + "Lãnh đạo duyệt";
-                panelst = ", ";
-              }
-              if (item == "17") {
+              } else if (item == "17") {
                 element.config_type_name += panelst + "Hoàn thành";
                 panelst = ", ";
+              } else {
+                element.config_type_name += panelst + "Nhóm duyệt";
+                panelst = ", ";
               }
+              // if (item == "1") {
+              //   element.config_type_name += panelst + "Duyệt phòng ban";
+              //   panelst = ", ";
+              // }
+              // if (item == "2") {
+              //   element.config_type_name +=
+              //     panelst + "Duyệt cấp hành chính, lãnh đạo";
+              //   panelst = ", ";
+              // }
+              // if (item == "3") {
+              //   element.config_type_name += panelst + "Kiểm kho thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "4") {
+              //   element.config_type_name += panelst + "Mua sắm thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "5") {
+              //   element.config_type_name += panelst + "Duyệt mua sắm thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "6") {
+              //   element.config_type_name +=
+              //     panelst + "Xác nhận mua sắm thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "7") {
+              //   element.config_type_name += panelst + "Lập thẻ thiết bị";
+              //   panelst = ", ";
+              // }
+              // if (item == "8") {
+              //   element.config_type_name += panelst + "Phòng chức năng duyệt";
+              //   panelst = ", ";
+              // }
+              // if (item == "9") {
+              //   element.config_type_name +=
+              //     panelst + "Phòng chức năng đánh giá";
+              //   panelst = ", ";
+              // }
+              // if (item == "10") {
+              //   element.config_type_name += panelst + "Phòng kỹ thuật duyệt";
+              //   panelst = ", ";
+              // }
+              // if (item == "11") {
+              //   element.config_type_name += panelst + "Phòng kỹ thuật đánh giá";
+              //   panelst = ", ";
+              // }
+              // if (item == "12") {
+              //   element.config_type_name += panelst + "Báo giá sửa chữa";
+              //   panelst = ", ";
+              // }
+              // if (item == "13") {
+              //   element.config_type_name +=
+              //     panelst + "Lãnh đạo duyệt phí sửa chữa";
+              //   panelst = ", ";
+              // }
+              // if (item == "14") {
+              //   element.config_type_name += panelst + "Hoàn thành sửa chữa";
+              //   panelst = ", ";
+              // }
+              // if (item == "15") {
+              //   element.config_type_name += panelst + "Kế toán duyệt";
+              //   panelst = ", ";
+              // }
+              // if (item == "16") {
+              //   element.config_type_name += panelst + "Lãnh đạo duyệt";
+              //   panelst = ", ";
+              // }
+              // if (item == "17") {
+              //   element.config_type_name += panelst + "Hoàn thành";
+              //   panelst = ", ";
+              // }
             });
           }
         });
@@ -917,8 +918,6 @@ const loadData = (rf) => {
       options.value.loading = false;
     })
     .catch((error) => {
-     
-  
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -1034,7 +1033,7 @@ const refreshData = () => {
     status: {
       operator: FilterOperator.AND,
       constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-    } 
+    },
   };
   loadDataSQL();
 };
@@ -1106,7 +1105,7 @@ const renderTreeDV1 = (data, id, name, title, org_id) => {
   }
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
- 
+
 const listDropdownUserGive = ref();
 const listDropdownUserCheck = ref();
 const listDropdownUser = ref();
@@ -1119,7 +1118,7 @@ const onFilterUserDropdown = (value) => {
     listDropdownUserGive.value = listDropdownUser.value;
   else
     listDropdownUserGive.value = listDropdownUser.value.filter(
-      (x) => x.department_id == value.organization_id,
+      (x) => x.department_id == value.organization_id
     );
   loadingUser.value = false;
 };
@@ -1152,10 +1151,10 @@ const loadUser = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1166,7 +1165,8 @@ const loadUser = () => {
           code: element.user_id,
           avatar: element.avatar,
           department_name: element.department_name,
-          department_id: element.department_id, position_name:element.position_name,
+          department_id: element.department_id,
+          position_name: element.position_name,
           role_name: element.role_name,
           organization_id: element.organization_id,
         });
@@ -1174,10 +1174,8 @@ const loadUser = () => {
       });
       listUsers.value = data;
       listDropdownUserGive.value = listDropdownUser.value;
-    
     })
     .catch((error) => {
-    
       options.value.loading = false;
 
       if (error && error.status === 401) {
@@ -1207,10 +1205,10 @@ const listUser = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -1218,10 +1216,8 @@ const listUser = () => {
 
       options.value.loadingU = false;
     })
-    .catch((error) => {
-    
-    });
-}; 
+    .catch((error) => {});
+};
 const datalistsD = ref();
 const loadOrganization = (value) => {
   axios
@@ -1231,16 +1227,13 @@ const loadOrganization = (value) => {
         str: encr(
           JSON.stringify({
             proc: "sys_organization_list_d",
-            par: [
- 
-              { par: "user_id", va: store.getters.user.user_id },
-            ],
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1250,7 +1243,7 @@ const loadOrganization = (value) => {
           "organization_id",
           "organization_name",
           "đơn vị",
-          value,
+          value
         );
         datalistsD.value = obj.arrChils;
         datalistsDSave.value = obj.arrChils;
@@ -1259,7 +1252,6 @@ const loadOrganization = (value) => {
       }
     })
     .catch((error) => {
-  
       options.value.loading = false;
     });
 };
@@ -1302,7 +1294,7 @@ const onCheckBoxD = (value) => {
         .put(
           baseURL + "/api/device_approved_group/update_d_approved_group",
           data,
-          config,
+          config
         )
         .then((response) => {
           if (response.data.err != "1") {
@@ -1358,7 +1350,7 @@ const onCheckBox = (value) => {
       .put(
         baseURL + "/api/device_approved_group/update_s_approved_group",
         data,
-        config,
+        config
       )
       .then((response) => {
         if (response.data.err != "1") {
@@ -1393,8 +1385,9 @@ const onCheckBox = (value) => {
     loadData(true);
   }
 };
-onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-     //router.back();
+onMounted(() => {
+  if (!checkURL(window.location.pathname, store.getters.listModule)) {
+    //router.back();
   }
   loadUser();
   loadOrganization(store.getters.user.organization_id);
@@ -1596,7 +1589,6 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           </template>
 
           <Column
-      
             class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;max-width:70px;height:50px"
             bodyStyle="text-align:center;max-width:70px; "
@@ -1656,7 +1648,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
               </div>
             </template>
           </Column>
-             <Column
+          <Column
             class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;height:50px ;max-width:150px;"
             bodyStyle="text-align:center;max-width:150px;"
@@ -1667,15 +1659,15 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             <template #body="data">
               <div>
                 {{
-                  data.data.module == 'all'
+                  data.data.module == "all"
                     ? "Tất cả module"
-                    : data.data.module == 'TS_PhieuSuaChua'
+                    : data.data.module == "TS_PhieuSuaChua"
                     ? "Sửa chữa"
-                       : data.data.module == 'TS_PhieuKiemKe'
+                    : data.data.module == "TS_PhieuKiemKe"
                     ? "Kiểm kê"
-                       : data.data.module == 'TS_PhieuThuHoi'
+                    : data.data.module == "TS_PhieuThuHoi"
                     ? "Thu hồi"
-                    :"Tất cả module"
+                    : "Tất cả module"
                 }}
               </div>
             </template>
@@ -1786,13 +1778,19 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                 <Button
                   v-tooltip.top="'Sửa'"
                   @click="editCard(data.data)"
-                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                  class="
+                    p-button-rounded p-button-secondary p-button-outlined
+                    mx-1
+                  "
                   type="button"
                   icon="pi pi-pencil"
                 ></Button>
                 <Button
                   v-tooltip.top="'Xóa'"
-                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                  class="
+                    p-button-rounded p-button-secondary p-button-outlined
+                    mx-1
+                  "
                   type="button"
                   icon="pi pi-trash"
                   @click="delCard(data.data)"
@@ -1802,7 +1800,13 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           </Column>
           <template #empty>
             <div
-              class="align-items-center justify-content-center p-4 text-center m-auto"
+              class="
+                align-items-center
+                justify-content-center
+                p-4
+                text-center
+                m-auto
+              "
               v-if="!isFirst"
             >
               <img src="../../assets/background/nodata.png" height="144" />
@@ -1857,7 +1861,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                       ? ''
                       : slotProps.data.full_name.substring(
                           slotProps.data.full_name.lastIndexOf(' ') + 1,
-                          slotProps.data.full_name.lastIndexOf(' ') + 2,
+                          slotProps.data.full_name.lastIndexOf(' ') + 2
                         )
                   "
                   :image="basedomainURL + slotProps.data.avatar"
@@ -1942,7 +1946,16 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
               </div>
             </div>
             <div
-              class="field col-12 p-0 pl-5 flex m-0 cursor-pointer align-items-center"
+              class="
+                field
+                col-12
+                p-0
+                pl-5
+                flex
+                m-0
+                cursor-pointer
+                align-items-center
+              "
             >
               <div class="col-1 p-0 align-items-center">
                 <Avatar
@@ -1951,7 +1964,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                       ? ''
                       : slotProps.data.full_name.substring(
                           slotProps.data.full_name.lastIndexOf(' ') + 1,
-                          slotProps.data.full_name.lastIndexOf(' ') + 2,
+                          slotProps.data.full_name.lastIndexOf(' ') + 2
                         )
                   "
                   :image="basedomainURL + slotProps.data.avatar"
@@ -2116,7 +2129,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             <div class="col-6 p-0">
               <InputSwitch
                 class="w-4rem lck-checked"
-                  @change="onChangeSWT()"
+                @change="onChangeSWT()"
                 v-model="device_approved_group.is_approved_by_department"
               />
             </div>
@@ -2131,40 +2144,43 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             </div>
           </div>
         </div>
-        <div class="field p-0 pb-2 col-12 md:col-12 flex"    v-if="device_approved_group.module == 'TS_PhieuSuaChua'">
-          
-          <div
-            class="col-6 p-0 flex align-items-center"
-         
-          >
+        <div
+          class="field p-0 pb-2 col-12 md:col-12 flex"
+          v-if="device_approved_group.module == 'TS_PhieuSuaChua'"
+        >
+          <div class="col-6 p-0 flex align-items-center">
             <div class="col-6 p-0">Trả người đề nghị sửa</div>
             <div class="col-6 p-0">
               <InputSwitch
-              
                 class="w-4rem lck-checked"
                 v-model="device_approved_group.is_suggest_repair"
               />
             </div>
           </div>
-             <div class="col-6 p-0 flex align-items-center">
+          <div class="col-6 p-0 flex align-items-center">
             <div class="col-6 p-0">Đánh giá thiết bị sửa chữa</div>
             <div class="col-6 p-0">
               <InputSwitch
                 class="w-4rem lck-checked"
-              
                 v-model="device_approved_group.repair_property_assessment"
               />
             </div>
           </div>
         </div>
-         
 
         <div
           v-if="device_approved_group.is_approved_by_department"
           class="field p-0 pb-2 col-12 md:col-12 flex"
         >
           <div
-            class="col-6 p-0 flex align-items-center cursor-pointer text-blue-500"
+            class="
+              col-6
+              p-0
+              flex
+              align-items-center
+              cursor-pointer
+              text-blue-500
+            "
             @click="showListAssets"
           >
             <i class="pi pi-plus-circle pr-2"></i> Cấu hình người duyệt theo
@@ -2173,7 +2189,14 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         </div>
         <div class="field p-0 pb-2 col-12 md:col-12 flex" v-else>
           <div
-            class="col-6 p-0 flex align-items-center cursor-pointer text-blue-500"
+            class="
+              col-6
+              p-0
+              flex
+              align-items-center
+              cursor-pointer
+              text-blue-500
+            "
             @click="showListUser"
           >
             <i class="pi pi-plus-circle pr-2"></i> Cấu hình người duyệt
@@ -2182,36 +2205,36 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         <div
           v-if="!device_approved_group.is_approved_by_department"
           class="field p-0 pb-2 col-12 md:col-12"
-       
         >
-           <!-- style="display: grid; grid-template-columns: repeat(2, 1fr)" -->
- <OrderList v-model="listUserA" listStyle="height:auto" class="w-full" dataKey="id">
-            <template #header>
-                Danh sách người duyệt
-            </template>
+          <!-- style="display: grid; grid-template-columns: repeat(2, 1fr)" -->
+          <OrderList
+            v-model="listUserA"
+            listStyle="height:auto"
+            class="w-full"
+            dataKey="id"
+          >
+            <template #header> Danh sách người duyệt </template>
             <template #item="slotProps">
-               <Toolbar
-                class="surface-100 m-0 p-0 border-0 w-full"
-              
-              >
+              <Toolbar class="surface-100 m-0 p-0 border-0 w-full">
                 <template #start>
                   <div class="flex align-items-center">
                     <Avatar
                       v-bind:label="
                         slotProps.item.avatar
                           ? ''
-                          :  slotProps.item.full_name.substring(
-                               slotProps.item.full_name.lastIndexOf(' ') + 1,
-                               slotProps.item.full_name.lastIndexOf(' ') + 2,
+                          : slotProps.item.full_name.substring(
+                              slotProps.item.full_name.lastIndexOf(' ') + 1,
+                              slotProps.item.full_name.lastIndexOf(' ') + 2
                             )
                       "
-                      :image="basedomainURL +  slotProps.item.avatar"
+                      :image="basedomainURL + slotProps.item.avatar"
                       class="w-2rem h-2rem"
                       size="large"
                       :style="
                         slotProps.item.avatar
                           ? 'background-color: #2196f3'
-                          : 'background:' + bgColor[ slotProps.item.full_name.length % 7]
+                          : 'background:' +
+                            bgColor[slotProps.item.full_name.length % 7]
                       "
                       shape="circle"
                       @error="
@@ -2220,7 +2243,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                       "
                     />
                     <div class="pt-1 pl-2">
-                      {{  slotProps.item.full_name }}
+                      {{ slotProps.item.full_name }}
                     </div>
                   </div>
                 </template>
@@ -2228,18 +2251,17 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                   <div>
                     <Button
                       icon="pi pi-times"
-                      class="p-button-rounded p-button-secondary p-button-text ml-1"
-                      @click="removeListUser( slotProps.item)"
+                      class="
+                        p-button-rounded p-button-secondary p-button-text
+                        ml-1
+                      "
+                      @click="removeListUser(slotProps.item)"
                     ></Button>
                   </div>
                 </template>
               </Toolbar>
             </template>
-        </OrderList>
-
-
-
-
+          </OrderList>
 
           <!-- <div
             v-for="(item, index) in listUserA"
@@ -2316,7 +2338,8 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     header="Cập nhật nhóm duyệt phòng ban"
     v-model:visible="displayAssets"
     :maximizable="true"
-    :style="{ width: '50vw' }"  :modal="true"
+    :style="{ width: '50vw' }"
+    :modal="true"
   >
     <div>
       <div class="true flex-grow-1 p-2" id="scrollTop">
@@ -2369,13 +2392,17 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                     >
                       <template #value="slotProps">
                         <div
-                          class="country-item country-item-value flex align-items-center"
+                          class="
+                            country-item country-item-value
+                            flex
+                            align-items-center
+                          "
                           v-if="slotProps.value"
                         >
                           <Avatar
                             v-bind:label="
                               listDropdownUser.filter(
-                                (x) => x.code == slotProps.value,
+                                (x) => x.code == slotProps.value
                               )[0].avatar
                                 ? ''
                                 : listDropdownUser
@@ -2383,33 +2410,33 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                                     .name.substring(
                                       listDropdownUser
                                         .filter(
-                                          (x) => x.code == slotProps.value,
+                                          (x) => x.code == slotProps.value
                                         )[0]
                                         .name.lastIndexOf(' ') + 1,
                                       listDropdownUser
                                         .filter(
-                                          (x) => x.code == slotProps.value,
+                                          (x) => x.code == slotProps.value
                                         )[0]
-                                        .name.lastIndexOf(' ') + 2,
+                                        .name.lastIndexOf(' ') + 2
                                     )
                             "
                             :image="
                               basedomainURL +
                               listDropdownUser.filter(
-                                (x) => x.code == slotProps.value,
+                                (x) => x.code == slotProps.value
                               )[0].avatar
                             "
                             class="w-2rem h-2rem mr-2"
                             size="large"
                             :style="
                               listDropdownUser.filter(
-                                (x) => x.code == slotProps.value,
+                                (x) => x.code == slotProps.value
                               )[0].avatar
                                 ? 'background-color: #2196f3'
                                 : 'background:' +
                                   bgColor[
                                     listDropdownUser.filter(
-                                      (x) => x.code == slotProps.value,
+                                      (x) => x.code == slotProps.value
                                     )[0].name.length % 7
                                   ]
                             "
@@ -2422,7 +2449,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                           <div>
                             {{
                               listDropdownUser.filter(
-                                (x) => x.code == slotProps.value,
+                                (x) => x.code == slotProps.value
                               )[0].name
                             }}
                           </div>
@@ -2439,7 +2466,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                                 ? ''
                                 : slotProps.option.name.substring(
                                     slotProps.option.name.lastIndexOf(' ') + 1,
-                                    slotProps.option.name.lastIndexOf(' ') + 2,
+                                    slotProps.option.name.lastIndexOf(' ') + 2
                                   )
                             "
                             :image="basedomainURL + slotProps.option.avatar"
@@ -2631,5 +2658,4 @@ i {
     width: 3.5rem !important;
   }
 }
-
 </style>

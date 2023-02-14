@@ -6,7 +6,11 @@ import moment from "moment";
 import VueApexCharts from "vue3-apexcharts";
 import { forEach } from "jszip";
 const axios = inject("axios"); // inject axios
-const config = ref({});
+const config = ref({
+  working_days : [],
+  list_price: [],
+  price: null,
+});
 const store = inject("store");
 const swal = inject("$swal");
 const toast = useToast();
@@ -25,8 +29,8 @@ var chartOptions = ref({
   },
   markers: {
     size: 0,
-},
-  toolbar: {show: false},
+  },
+  toolbar: { show: false },
   stroke: {
     curve: "stepline",
   },
@@ -52,7 +56,7 @@ var chartOptions = ref({
     categories: [],
   },
 });
-
+const working_days = ref([]);
 const initConfig = () => {
   axios
     .get(baseURL + "/api/BookingMeal/GetConfig", {
@@ -61,16 +65,19 @@ const initConfig = () => {
     .then((response) => {
       swal.close();
       if (response.data.err != "1") {
-        config.value = response.data.data;
-        if (config.value.working_days) {
+        if(response.data.data) config.value = response.data.data;
+        if (config.value && config.value.working_days) {
           // for (let i = 0; i < config.value.working_days.length; i++) {
           //   config.value.working_days[i] = new Date(
           //     config.value.working_days[i]
           //   );
           // }
-          config.value.working_days.forEach((item)=>{
-          item = new Date(item);
-        })
+         // config.value.working_days = config.value.working_days.slice(0, 2);
+          config.value.working_days.forEach((item, index) => {
+            let dt = new Date(item);
+            let date = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+            config.value.working_days[index] = date;
+          });
         }
         if (config.value.list_price) {
           var prices = config.value.list_price.map((x) => x.price);
@@ -104,6 +111,7 @@ const saveConfig = () => {
       swal.showLoading();
     },
   });
+  debugger
   let dt = new Date();
   var string_date = moment(dt).format("DD/MM/yyyy");
   var obj_price = {
@@ -122,8 +130,11 @@ const saveConfig = () => {
       config.value.list_price.push(obj_price);
     }
   }
+  else if(!isEmpty(config.value.price)){
+          config.value.list_price.push(obj_price);
+  }
   // var arr = [];
-  // for (let y = 2022; y < 2028; y++) {
+  // for (let y = 2023; y < 2030; y++) {
   //   for (let m = 0; m < 12; m++) {
   //     if (m == 0 || m == 2 || m == 4 || m == 6 || m == 7 || m == 9 || m == 11) {
   //       for (let d = 1; d < 32; d++) {
@@ -150,7 +161,7 @@ const saveConfig = () => {
   //     }
   //   }
   // }
-  // config.value.working_days = arr;
+  //config.value.working_days = arr;
   axios
     .post(baseURL + "/api/BookingMeal/SetConfig", config.value, {
       headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -158,7 +169,7 @@ const saveConfig = () => {
     .then((response) => {
       swal.close();
       if (response.data.err != "1") {
-          initConfig();
+        initConfig();
         toast.success("Cập nhật thiết lập thành công!");
       } else {
         swal.fire({
@@ -178,6 +189,10 @@ const saveConfig = () => {
       }
     });
 };
+//check empy object
+function isEmpty(val) {
+  return val === undefined || val == null || val.length <= 0 ? true : false;
+}
 function formatNumber(a, b, c, d) {
   var e = isNaN((b = Math.abs(b))) ? 2 : b;
   b = void 0 == c ? "," : c;
@@ -205,7 +220,11 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="main-layout p-4" v-if="store.getters.islogin" style="max-height:calc(100vh - 50px); overflow:scroll">
+  <div
+    class="main-layout p-4"
+    v-if="store.getters.islogin"
+    style="max-height: calc(100vh - 50px); overflow: scroll"
+  >
     <Card class="px-4 py-3">
       <template #header>
         <h3><i class="pi pi-cog"></i> Thiết lập</h3>

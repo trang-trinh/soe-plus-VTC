@@ -4,6 +4,7 @@ import { inject, onMounted, ref } from "vue";
 import moment from "moment";
 import ModuleMenu from "../../components/base/ModuleMenu.vue";
 import Notify from "../../components/base/Notify.vue";
+import DetailedWork from "../task_origin/DetailedWork.vue";
 import { useRouter, useRoute } from "vue-router";
 import { encr } from "../../util/function.js";
 const cryoptojs = inject("cryptojs");
@@ -12,6 +13,7 @@ const axios = inject("axios"); // inject axios
 const swal = inject("$swal");
 const route = useRoute();
 const basedomainURL = fileURL;
+const width1 = ref(window.screen.availWidth);
 
 //Khai báo biến
 const bgColor = ref([
@@ -119,45 +121,70 @@ const list_modules = [
     type: -1,
     is_link: "taskmaindetail",
   },
-    {
+  {
     module_key: "M7",
     module_name: "Thiết bị",
     type: 0,
     is_link: "/device/doc_approved",
   },
-    {
+  {
     module_key: "M7",
     module_name: "Thiết bị",
     type: 1,
     is_link: "/device/accepthandover",
   },
-    {
+  {
     module_key: "M7",
     module_name: "Thiết bị",
     type: 2,
     is_link: "/device/repair",
   },
-    {
+  {
     module_key: "M7",
     module_name: "Thiết bị",
     type: 3,
     is_link: "/device/acceptinventory",
   },
-    {
+  {
     module_key: "M7",
     module_name: "Thiết bị",
     type: 4,
     is_link: "/device/recall",
   },
-      {
+  {
     module_key: "M7",
     module_name: "Thiết bị",
     type: 5,
     is_link: "/device/follows",
   },
+  {
+    module_key: "M2",
+    module_name: "Lịch họp tuần",
+    type: 0,
+    is_link: "calendardetail",
+  },
+  {
+    module_key: "M2",
+    module_name: "Lịch công tác",
+    type: 1,
+    is_link: "calendarplantripdetail",
+  },
+  {
+    module_key: "M2",
+    module_name: "Lịch trực ban",
+    type: 2,
+    is_link: "calendardutyapproved",
+  },
+  {
+    module_key: "M11",
+    module_name: "Kho dữ liệu",
+    type: 2,
+    is_link: "files/file_main_detail",
+  },
 ];
+const showDetail = ref(false);
+const selectedTaskID = ref();
 const goToNotify = (item) => {
-  
   if (!item.seen) {
     // update status seen
     axios
@@ -169,11 +196,11 @@ const goToNotify = (item) => {
         // }
       });
   }
-  
+
   let mds = list_modules.filter(
     (x) => x.type == item.is_type && x.module_key == item.module_key,
   );
-  
+
   if (mds.length > 0) {
     emitter.emit("emitData", {
       type: "closeNoti",
@@ -181,18 +208,37 @@ const goToNotify = (item) => {
         showSidebarNoti: false,
       },
     }); //close bar
-
-    if (mds[0].module_key == "M4") {
+    if (mds[0].module_key == "M2") {
+      // Lich cong tac
+      if (mds[0].type === 0 || mds[0].type === 1) {
+        router.push({
+          name: mds[0].is_link,
+          params: { id: item.id_key } || {},
+        });
+      } else {
+        router.push({ name: mds[0].is_link });
+      }
+    }
+    // if (mds[0].module_key == "M4") { //Cong viec
+    //   router
+    //     .push({ name: mds[0].is_link, params: { id: item.id_key } || {} })
+    //     .then(() => {
+    //       router.go(0);
+    //     });
+    // } else
+    if (mds[0].module_key == "M7") {
+      // Thiet bi
+      router.push(mds[0].is_link);
+    } else if (mds[0].module_key == "M11") {
+      // Kho dl
       router
-        .push({ name: mds[0].is_link, params: { id: item.id_key } || {} })
+        .push({
+          name: mds[0].is_link,
+          params: { id: item.id_key, type: item.is_type } || {},
+        })
         .then(() => {
           router.go(0);
         });
-    } else
-      if (mds[0].module_key == "M7") {
-      router
-        .push(mds[0].is_link)
-        
     } else {
       router
         .push({ name: mds[0].is_link, params: { id: item.id_key } || {} })

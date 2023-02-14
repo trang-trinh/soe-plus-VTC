@@ -1,7 +1,7 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
-import { required } from "@vuelidate/validators";
+import { required, maxLength } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
@@ -23,13 +23,25 @@ const filters = ref({
   },
 });
 const rules = {
-  insurance: {
+  insurance_id: {
     required,
+    maxLength: maxLength(50),
     $errors: [
       {
-        $property: "bank_name",
+        $property: "insurance_id",
         $validator: "required",
-        $message: "Tên thẻ bảo hiểm không được để trống!",
+        $message: "Số sổ bảo hiểm không được để trống!",
+      },
+    ],
+  },
+  insurance_code: {
+    required,
+    maxLength: maxLength(50),
+    $errors: [
+      {
+        $property: "insurance_code",
+        $validator: "required",
+        $message: "Số thẻ bảo hiểm không được để trống!",
       },
     ],
   },
@@ -292,15 +304,47 @@ const closeDialog = () => {
 
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
-  //   submitted.value = true;
-  //   if (!isFormValid) {
-  //     return;
-  //   }
-
+  submitted.value = true;
+  if (!isFormValid) {
+    return;
+  }
+  insurance_pays.value.forEach((item)=>{
+    item.is_duplicate = false;
+  })
+  if (insurance_pays.value.length >= 2) {
+    let count_duplicate = 0;
+    for (let i = 0; i < insurance_pays.value.length - 1; i++) {
+      for (let j = i + 1; j < insurance_pays.value.length; j++) {
+        if (
+          !isEmpty(insurance_pays.value[i].start_date) &&
+          !isEmpty(insurance_pays.value[j].start_date) &&
+          isMonth(
+            insurance_pays.value[i].start_date,
+            insurance_pays.value[j].start_date
+          )
+        ) {
+          insurance_pays.value[j].is_duplicate = true;
+          insurance_pays.value[i].is_duplicate = true;
+          count_duplicate++;
+        }
+      }
+      if (count_duplicate > 0) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Vui lòng nhập tháng đóng đóng bảo hiểm không được trùng nhau!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    }
+  }
+  insurance_pays.value.forEach((item)=>{
+    if(!isEmpty(item.is_duplicate)) item.is_duplicate = null;
+  })
   let formData = new FormData();
 
   formData.append("insurance", JSON.stringify(insurance.value));
-  debugger;
   formData.append(
     "insurance_pay",
     JSON.stringify(
@@ -815,6 +859,15 @@ const delRow_Item = (item, type) => {
     );
   }
 };
+//check month  date
+function isMonth(date1, date2) {
+  let dt1 = new Date(date1);
+  let dt2 = new Date(date2);
+  return dt1.getMonth() == dt2.getMonth() &&
+    dt1.getFullYear() == dt2.getFullYear()
+    ? true
+    : false;
+}
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
@@ -1068,11 +1121,11 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
       >
-      <template #body="{ data }">
+        <template #body="{ data }">
           {{ moment(new Date(data.batdaudong)).format("MM/YYYY ") }}
         </template>
       </Column>
-            <Column
+      <Column
         field="mucdong"
         header="Mức đóng"
         headerStyle="text-align:center;max-width:150px;height:50px"
@@ -1080,7 +1133,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
       </Column>
-            <Column
+      <Column
         field="congtydong"
         header="Công ty đóng"
         headerStyle="text-align:center;max-width:150px;height:50px"
@@ -1088,7 +1141,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
       </Column>
-            <Column
+      <Column
         field="nhanviendong"
         header="Người lao động đóng"
         headerStyle="text-align:center;max-width:150px;height:50px"
@@ -1156,7 +1209,48 @@ onMounted(() => {
             v-model="insurance.insurance_id"
             spellcheck="false"
             class="col-10 ip33"
+            :class="{ 'p-invalid': v$.insurance_id.$invalid && submitted }"
           />
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          v-if="
+            (v$.insurance_id.required.$invalid && submitted) ||
+            v$.insurance_id.required.$pending.$response
+          "
+        >
+          <small class="col-12 p-error block">
+            <div class="field col-12 md:col-12 flex">
+              <label class="col-2"></label>
+              <span class="col-10 p-0">
+                {{
+                  v$.insurance_id.required.$message
+                    .replace("Value", "Số sổ ")
+                    .replace("is required", "không được để trống")
+                }}
+              </span>
+            </div>
+          </small>
+          <small
+            class="col-12 p-error block"
+            v-if="
+              (v$.insurance_id.maxLength.$invalid && submitted) ||
+              v$.insurance_id.maxLength.$pending.$response
+            "
+          >
+            <div class="field col-12 md:col-12 flex">
+              <label class="col-2 text-left"></label>
+              <span class="col-4 p-0">
+                {{
+                  v$.insurance_id.maxLength.$message.replace(
+                    "The maximum length allowed is",
+                    "Số sổ không được vượt quá"
+                  )
+                }}
+                ký tự
+              </span>
+            </div>
+          </small>
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left p-0">Trạng thái</label>
@@ -1187,7 +1281,48 @@ onMounted(() => {
             v-model="insurance.insurance_code"
             spellcheck="false"
             class="col-10 ip33"
+            :class="{ 'p-invalid': v$.insurance_code.$invalid && submitted }"
           />
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          v-if="
+            (v$.insurance_code.required.$invalid && submitted) ||
+            v$.insurance_code.required.$pending.$response
+          "
+        >
+          <small class="col-12 p-error block">
+            <div class="field col-12 md:col-12 flex">
+              <label class="col-2"></label>
+              <span class="col-10 p-0">
+                {{
+                  v$.insurance_code.required.$message
+                    .replace("Value", "Số thẻ BHYT ")
+                    .replace("is required", "không được để trống")
+                }}
+              </span>
+            </div>
+          </small>
+          <small
+            class="col-12 p-error block"
+            v-if="
+              (v$.insurance_code.maxLength.$invalid && submitted) ||
+              v$.insurance_code.maxLength.$pending.$response
+            "
+          >
+            <div class="field col-12 md:col-12 flex">
+              <label class="col-2 text-left"></label>
+              <span class="col-4 p-0">
+                {{
+                  v$.insurance_code.maxLength.$message.replace(
+                    "The maximum length allowed is",
+                    "Số thẻ BHYT không được vượt quá"
+                  )
+                }}
+                ký tự
+              </span>
+            </div>
+          </small>
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left p-0">Mã tỉnh cấp</label>
@@ -1214,13 +1349,6 @@ onMounted(() => {
         </div>
         <h4 class="my-2">Lịch sử đóng bảo hiểm</h4>
         <div style="text-align: end" class="field col-12 md:col-12">
-          <!-- <Button
-            label="Thêm"
-            icon="pi pi-plus"
-            style="padding: 0.3rem 0.6rem !important"
-            class="p-button-outlined p-button-secondary"
-            @click="addRow_Item(1)"
-          /> -->
           <a
             @click="addRow_Item(1)"
             class="cursor-pointer"
@@ -1230,130 +1358,128 @@ onMounted(() => {
           </a>
         </div>
         <div style="overflow-x: scroll" class="scroll-outer">
-          <table
-            class="table table-condensed table-hover tbpad table-child"
-            style="table-layout: fixed"
-          >
-            <thead>
-              <tr>
-                <th
-                  class="text-center row-bc sticky"
-                  style="width: 100px; left: 0px !important"
-                ></th>
-                <th class="text-center row-bc" style="width: 150px">
-                  Từ tháng
-                </th>
-                <th class="text-center row-bc" style="width: 150px">
-                  Hình thức
-                </th>
-                <th class="text-center row-bc" style="width: 150px">Lý do</th>
-                <th class="text-center row-bc" style="width: 200px">
-                  Pháp nhân đóng
-                </th>
-                <th class="text-center row-bc" style="width: 150px">
-                  Mức đóng
-                </th>
-                <th class="text-center row-bc" style="width: 150px">
-                  Công ty đóng
-                </th>
-                <th class="text-center row-bc" style="width: 150px">
-                  NLĐ đóng
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in insurance_pays" :key="index">
-                <td
-                  class="sticky"
-                  align="center"
-                  style="
-                    color: black;
-                    width: 100px;
-                    left: 0px !important;
-                    z-index: 100;
-                  "
-                >
-                  <i
-                    class="pi pi-times text-xl cursor-pointer"
-                    style="color: red"
-                    v-tooltip.top="'Xóa'"
-                    @click="delRow_Item(item, 1)"
-                  ></i>
-                </td>
-                <td align="center">
-                  <Calendar
-                    v-model="item.start_date"
-                    view="month"
-                    dateFormat="mm/yy"
-                    class="ip33"
-                    style="width: 150px"
-                    placeholder="Bắt đầu"
-                  />
-                </td>
-                <td align="center">
-                  <Dropdown
-                    class="ip33"
-                    v-model="item.payment_form"
-                    :options="hinhthucs"
-                    optionLabel="text"
-                    optionValue="text"
-                    style="width: 150px"
-                    :showClear="true"
-                  />
-                </td>
-                <td align="center">
-                  <InputText
-                    spellcheck="false"
-                    class="ip33"
-                    style="width: 150px"
-                    v-model="item.reason"
-                  />
-                </td>
-                <td align="center">
-                  <Dropdown
-                    class="ip33"
-                    v-model="item.organization_payment"
-                    :options="dictionarys[0]"
-                    optionLabel="organization_name"
-                    optionValue="organization_name"
-                    :editable="true"
-                    style="width: 200px"
-                  />
-                </td>
-                <td align="center">
-                  <InputNumber
-                    class="ip33 p-0"
-                    v-model="item.total_payment"
-                    style="witdh: 150px"
-                  />
-                </td>
-                <td align="center">
-                  <InputNumber
-                    class="ip33 p-0"
-                    v-model="item.company_payment"
-                    style="witdh: 150px"
-                  />
-                </td>
-                <td align="center">
-                  <InputNumber
-                    class="ip33 p-0"
-                    v-model="item.member_payment"
-                    style="witdh: 150px"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="scroll-inner">
+            <table
+              class="table table-condensed table-hover tbpad table-child"
+              style="table-layout: fixed"
+            >
+              <thead>
+                <tr>
+                  <th
+                    class="text-center row-bc sticky"
+                    style="width: 100px; left: 0px !important"
+                  ></th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    Từ tháng
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    Hình thức
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">Lý do</th>
+                  <th class="text-center row-bc" style="width: 200px">
+                    Pháp nhân đóng
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    Mức đóng
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    Công ty đóng
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    NLĐ đóng
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in insurance_pays" :key="index">
+                  <td
+                    class="sticky"
+                    align="center"
+                    style="
+                      color: black;
+                      width: 100px;
+                      left: 0px !important;
+                      z-index: 100;
+                    "
+                  >
+                    <i
+                      class="pi pi-times text-xl cursor-pointer"
+                      style="color: red"
+                      v-tooltip.top="'Xóa'"
+                      @click="delRow_Item(item, 1)"
+                    ></i>
+                  </td>
+                  <td align="center">
+                    <Calendar
+                      v-model="item.start_date"
+                      view="month"
+                      dateFormat="mm/yy"
+                      class="ip33"
+                      style="width: 150px"
+                      placeholder="Bắt đầu"
+                      :class="{
+                        'p-invalid': insurance_pays[index].is_duplicate,
+                      }"
+                    />
+                  </td>
+                  <td align="center">
+                    <Dropdown
+                      class="ip33"
+                      v-model="item.payment_form"
+                      :options="hinhthucs"
+                      optionLabel="text"
+                      optionValue="text"
+                      style="width: 150px"
+                      :showClear="true"
+                    />
+                  </td>
+                  <td align="center">
+                    <InputText
+                      spellcheck="false"
+                      class="ip33"
+                      style="width: 150px"
+                      v-model="item.reason"
+                    />
+                  </td>
+                  <td align="center">
+                    <Dropdown
+                      class="ip33"
+                      v-model="item.organization_payment"
+                      :options="dictionarys[0]"
+                      optionLabel="organization_name"
+                      optionValue="organization_name"
+                      :editable="true"
+                      style="width: 200px"
+                    />
+                  </td>
+                  <td align="center">
+                    <InputNumber
+                      class="ip33 p-0"
+                      v-model="item.total_payment"
+                      style="witdh: 150px"
+                    />
+                  </td>
+                  <td align="center">
+                    <InputNumber
+                      class="ip33 p-0"
+                      v-model="item.company_payment"
+                      style="witdh: 150px"
+                    />
+                  </td>
+                  <td align="center">
+                    <InputNumber
+                      class="ip33 p-0"
+                      v-model="item.member_payment"
+                      style="witdh: 150px"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
         <h4 class="my-2">Lịch sử giải quyết chế độ</h4>
         <div style="text-align: end" class="field col-12 md:col-12">
-          <!-- <Button
-            label="Thêm"
-            icon="pi pi-plus"
-            style="padding: 0.3rem 0.6rem !important"
-            class="p-button-outlined p-button-secondary"
-            @click="addRow_Item(2)"
-          /> -->
           <a
             @click="addRow_Item(2)"
             class="cursor-pointer"
@@ -1363,98 +1489,102 @@ onMounted(() => {
           </a>
         </div>
         <div style="overflow-x: auto" class="scroll-outer">
-          <table
-            class="table table-condensed table-hover tbpad table-child"
-            style="table-layout: fixed"
-          >
-            <thead>
-              <tr>
-                <th
-                  class="text-center row-bc sticky"
-                  style="width: 100px; left: 0px !important"
-                ></th>
-                <th class="text-center row-bc" style="width: 200px">
-                  Loại chế độ
-                </th>
-                <th class="text-center row-bc" style="width: 150px">
-                  Ngày nhận hồ sơ
-                </th>
-                <th class="text-center row-bc" style="width: 150px">
-                  Ngày hoàn thiện thủ tục
-                </th>
-                <th class="text-center row-bc" style="width: 150px">
-                  Ngày nhận tiền BH trả
-                </th>
-                <th class="text-center row-bc" style="width: 150px">Số tiền</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in insurance_resolves" :key="index">
-                <td
-                  class="sticky"
-                  align="center"
-                  style="
-                    color: black;
-                    width: 100px;
-                    left: 0px !important;
-                    z-index: 100;
-                  "
-                >
-                  <i
-                    class="pi pi-times text-xl cursor-pointer"
-                    style="color: red"
-                    v-tooltip.top="'Xóa'"
-                    @click="delRow_Item(item, 2)"
-                  ></i>
-                </td>
-                <td align="center">
-                  <Dropdown
-                    class="ip33"
-                    v-model="item.type_mode"
-                    :options="dictionarys[3]"
-                    optionLabel="insurance_type_mode_name"
-                    optionValue="insurance_type_mode_name"
-                    :editable="true"
-                    style="width: 200px"
-                  />
-                </td>
-                <td align="center">
-                  <Calendar
-                    style="width: 150px"
-                    class="ip33"
-                    id="icon"
-                    v-model="item.received_file_date"
-                    :showIcon="true"
-                  />
-                </td>
-                <td align="center">
-                  <Calendar
-                    style="width: 150px"
-                    class="ip33"
-                    id="icon"
-                    v-model="item.completed_date"
-                    :showIcon="true"
-                  />
-                </td>
-                <td align="center">
-                  <Calendar
-                    style="width: 150px"
-                    class="ip33"
-                    id="icon"
-                    v-model="item.received_money_date"
-                    :showIcon="true"
-                  />
-                </td>
-                <td align="center">
-                  <InputNumber
-                    class="ip33 p-0"
-                    v-model="item.money"
-                    style="witdh: 150px"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="scroll-inner">
+            <table
+              class="table table-condensed table-hover tbpad table-child"
+              style="table-layout: fixed"
+            >
+              <thead>
+                <tr>
+                  <th
+                    class="text-center row-bc sticky"
+                    style="width: 100px; left: 0px !important"
+                  ></th>
+                  <th class="text-center row-bc" style="width: 200px">
+                    Loại chế độ
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    Ngày nhận hồ sơ
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    Ngày hoàn thiện thủ tục
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    Ngày nhận tiền BH trả
+                  </th>
+                  <th class="text-center row-bc" style="width: 150px">
+                    Số tiền
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in insurance_resolves" :key="index">
+                  <td
+                    class="sticky"
+                    align="center"
+                    style="
+                      color: black;
+                      width: 100px;
+                      left: 0px !important;
+                      z-index: 100;
+                    "
+                  >
+                    <i
+                      class="pi pi-times text-xl cursor-pointer"
+                      style="color: red"
+                      v-tooltip.top="'Xóa'"
+                      @click="delRow_Item(item, 2)"
+                    ></i>
+                  </td>
+                  <td align="center">
+                    <Dropdown
+                      class="ip33"
+                      v-model="item.type_mode"
+                      :options="dictionarys[3]"
+                      optionLabel="insurance_type_mode_name"
+                      optionValue="insurance_type_mode_name"
+                      :editable="true"
+                      style="width: 200px"
+                    />
+                  </td>
+                  <td align="center">
+                    <Calendar
+                      style="width: 150px"
+                      class="ip33"
+                      id="icon"
+                      v-model="item.received_file_date"
+                      :showIcon="true"
+                    />
+                  </td>
+                  <td align="center">
+                    <Calendar
+                      style="width: 150px"
+                      class="ip33"
+                      id="icon"
+                      v-model="item.completed_date"
+                      :showIcon="true"
+                    />
+                  </td>
+                  <td align="center">
+                    <Calendar
+                      style="width: 150px"
+                      class="ip33"
+                      id="icon"
+                      v-model="item.received_money_date"
+                      :showIcon="true"
+                    />
+                  </td>
+                  <td align="center">
+                    <InputNumber
+                      class="ip33 p-0"
+                      v-model="item.money"
+                      style="witdh: 150px"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </form>
@@ -1477,10 +1607,16 @@ onMounted(() => {
 </template>
     
     <style scoped>
-.scroll-outer {
-  margin: 0 1rem;
-}
 .ip33 {
   height: 33px !important;
+}
+.scroll-outer {
+  visibility: hidden;
+  margin: 0 1rem;
+}
+.scroll-inner,
+.scroll-outer:hover,
+.scroll-outer:focus {
+  visibility: visible;
 }
 </style>

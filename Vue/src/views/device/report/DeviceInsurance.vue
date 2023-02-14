@@ -1753,6 +1753,18 @@ onMounted(() => {
                   p-button-status-d
                 "
               />
+                  <Chip
+                v-else-if="data.data.status == 'TPTH'"
+                :label="data.data.device_status_name"
+           v-tooltip.top="data.data.device_status_name"
+                class="
+                textonelinec
+                  w-full
+               bg-purple-300
+                  justify-content-center
+                  p-button-status-d
+                "
+              />
             </div>
           </template>
         </Column>

@@ -256,7 +256,9 @@ const loadOrganization = (data) => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
         data.forEach((item) => {
-          item.is_checked =  false;
+               item.is_checked = pb_string.includes(parseInt(item.organization_id))
+            ? true
+            : false;
         });
         // data = data.map(obj => ({ ...obj, Active: 'false' }))
         let obj = renderTree(
@@ -644,10 +646,11 @@ onMounted(() => {
                 "
                 v-tooltip.top="
                   item.full_name +
-                  '<br>' +
-                  item.position_name +
-                  '<br>' +
-                  item.department_name
+                 (item.position_name != null ?'<br>' +
+                  item.position_name:'')  +
+                  
+                 (item.department_name != null ?'<br>' +
+                  item.department_name:'')
                 "
                 :key="item.user_id"
                 style="border: 2px solid orange; color: white"

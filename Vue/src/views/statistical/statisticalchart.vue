@@ -863,6 +863,26 @@ const initData = (rf) => {
         if (data != null) {
           let tbs = JSON.parse(data);
           if (tbs[0] != null && tbs[0].length > 0) {
+            tbs[0].forEach((x) => {
+              if(x["soluong"] != null){
+                x["soluong_name"] = x["soluong"].toLocaleString();
+              }
+              if(x["soluong_1"] != null){
+                x["soluong_1_name"] = x["soluong_1"].toLocaleString();
+              }
+              if(x["soluong_2"] != null){
+                x["soluong_2_name"] = x["soluong_2"].toLocaleString();
+              }
+              if(x["soluong_TN"] != null){
+                x["soluong_TN_name"] = x["soluong_TN"].toLocaleString();
+              }
+              if(x["soluong_GQ"] != null){
+                x["soluong_GQ_name"] = x["soluong_GQ"].toLocaleString();
+              }
+              if(x["soluong_CHUA"] != null){
+                x["soluong_CHUA_name"] = x["soluong_CHUA"].toLocaleString();
+              }
+            });
             temps.value = [...tbs[0]];
             tables.value = [...tbs[0]];
             renderData(tbs[0]);
@@ -1252,7 +1272,7 @@ onMounted(() => {
                   options.loai === 9 ||
                   options.loai === 10
                 "
-                field="soluong"
+                field="soluong_name"
                 header="Số lượng"
                 headerStyle="text-align:center;max-width:150px;height:50px"
                 bodyStyle="text-align:center;max-width:150px;"
@@ -1261,7 +1281,7 @@ onMounted(() => {
               </Column>
               <Column
                 v-if="options.loai === 11 || options.loai === 12"
-                field="soluong_TN"
+                field="soluong_TN_name"
                 header="Tiếp nhận"
                 headerStyle="text-align:center;max-width:150px;height:50px"
                 bodyStyle="text-align:center;max-width:150px;"
@@ -1270,7 +1290,7 @@ onMounted(() => {
               </Column>
               <Column
                 v-if="options.loai === 11 || options.loai === 12"
-                field="soluong_GQ"
+                field="soluong_GQ_name"
                 header="Đã giải quyết"
                 headerStyle="text-align:center;max-width:150px;height:50px"
                 bodyStyle="text-align:center;max-width:150px;"
@@ -1279,7 +1299,7 @@ onMounted(() => {
               </Column>
               <Column
                 v-if="options.loai === 11 || options.loai === 12"
-                field="soluong_CHUA"
+                field="soluong_CHUA_name"
                 header="Chưa giải quyết"
                 headerStyle="text-align:center;max-width:150px;height:50px"
                 bodyStyle="text-align:center;max-width:150px;"
@@ -1292,7 +1312,7 @@ onMounted(() => {
                   options.loai === 14 ||
                   options.loai === 15
                 "
-                field="soluong_1"
+                field="soluong_1_name"
                 header="Quân nhân"
                 headerStyle="text-align:center;max-width:150px;height:50px"
                 bodyStyle="text-align:center;max-width:150px;"
@@ -1315,7 +1335,7 @@ onMounted(() => {
                   options.loai === 14 ||
                   options.loai === 15
                 "
-                field="soluong_2"
+                field="soluong_2_name"
                 header="Khác quân nhân"
                 headerStyle="text-align:center;max-width:150px;height:50px"
                 bodyStyle="text-align:center;max-width:150px;"
