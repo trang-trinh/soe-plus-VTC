@@ -110,6 +110,8 @@ const folder = ref();
 const filemain = ref();
 const foldermain = ref();
 const displayAddFile = ref(false);
+const dataInfoNoti = ref();
+const displayShowFileNoti = ref(false);
 const displayAddFolder = ref(false);
 const DataDetail = ref();
 const ModalDetail = ref(false);
@@ -262,7 +264,7 @@ const itemSortButs = ref([
     },
   },
 ]);
-const itemButMe = ref([
+const optionsClick_List = ref([
   {
     label: "Sửa",
     icon: "pi pi-pencil",
@@ -296,7 +298,7 @@ const itemButMe = ref([
     },
   },
 ]);
-const itemButShare = ref([
+const optionsShare_List = ref([
   {
     label: "Thông tin",
     icon: "pi pi-pencil",
@@ -312,7 +314,8 @@ const itemButShare = ref([
     },
   },
 ]);
-const itemButModule = ref([
+
+const optionsModule_List = ref([
   {
     label: "Thông tin",
     icon: "pi pi-pencil",
@@ -324,11 +327,50 @@ const itemButModule = ref([
 const checkOverlay = (type) => {
   let check_share = [];
   if (type) {
-    if (type.is_module) check_share = itemButModule.value;
+    if (type.is_module) {
+      check_share = [...optionsModule_List.value];
+      if (!type.is_folder)
+        check_share.push({
+          label: "Chia sẻ",
+          icon: "pi pi-share-alt",
+          command: (event) => {
+            file_edit.value.is_folder
+              ? showModalShareFolder(file_edit.value)
+              : showModalShareFile(file_edit.value);
+          },
+        });
+    }
     // cua toi
-    else if (type.is_share) check_share = itemButShare.value;
+    else if (type.is_share) {
+      check_share = [...optionsShare_List.value];
+      if (!type.is_folder && folder.value.is_read)
+        check_share.push({
+          label: "Tải xuống",
+          icon: "pi pi-download",
+          command: (event) => {
+            openFile(file_edit.value);
+          },
+        }); // file -> cho download ve may
+      // check quyen
+      if (type.is_delete || folder.value.is_delete)
+        check_share.push({
+          label: "Xóa",
+          icon: "pi pi-trash",
+          command: (event) => {
+            delFile(file_edit.value);
+          },
+        });
+      if (type.is_edit || folder.value.is_edit)
+        check_share.push({
+          label: "Sửa",
+          icon: "pi pi-pencil",
+          command: (event) => {
+            openFile(file_edit.value);
+          },
+        });
+    }
     // chia se
-    else check_share = itemButMe.value;
+    else check_share = optionsClick_List.value;
   }
   return check_share;
 };
@@ -592,7 +634,7 @@ const loadTudien = (f) => {
             folder_id: "me",
             folder_name: "Của tôi",
             parent_id: null,
-            is_filepath:  "/Portals/file/folder_me.png",
+            is_filepath: "/Portals/file/folder_me.png",
             count_folder: data[0].filter(
               (x) => x.module_key == null && !x.is_share && x.parent_id == null
             ).length,
@@ -603,7 +645,7 @@ const loadTudien = (f) => {
             folder_id: "share",
             folder_name: "Được chia sẻ",
             parent_id: null,
-            is_filepath:  "/Portals/file/folder_share.png",
+            is_filepath: "/Portals/file/folder_share.png",
             count_folder: data[1].length,
             count_file:
               data[3].length > 0 ? data[3][0].count_share_file || 0 : 0,
@@ -633,20 +675,48 @@ const loadTudien = (f) => {
         RenderFolder(ListFolder);
 
         // active folder "me" - when firt load
-        if (f) loadThumuc("me");
-        // folder_tree.value.forEach((element) => {
-        //   expandNode(element);
-        // });
+        if (!isEmpty(route.params.id) && !isEmpty(route.params.type)) {
+          loadThumuc("share");
+          if (route.params.type == 1) loadThumuc(id);
+          if (route.params.type == 2) {
+            getInfoFileNoti(route.params.id);
+          }
+        } else if (f) loadThumuc("me");
       }
+    });
+};
+const getInfoFileNoti = (id) => {
+  axios
+    .post(
+      baseUrlCheck + "/api/FileMain/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "file_info_get",
+            par: [{ par: "file_id", va: id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        dataInfoNoti.value = data[0][0];
+        displayShowFileNoti.value = true;
+      }
+
     })
     .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Thông báo!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
     });
 };
 const onNodeSelect = (node) => {
@@ -857,9 +927,7 @@ const saveFolder = (isFormValid) => {
     });
 };
 //file upload
-const removeUploadedFile = (event) => {
-  debugger;
-};
+const removeUploadedFile = (event) => {};
 const files = ref([]);
 const uploadFile = ref(null);
 const onUploadFile = (event) => {
@@ -879,7 +947,7 @@ const onUploadFile = (event) => {
     })
       .then((response) => {
         if (response.data.err != "1") {
-          if (fi.size  > max_length_file.value * 1024 * 1024) {
+          if (fi.size > max_length_file.value * 1024 * 1024) {
             swal.fire({
               title: "Thông báo!",
               text:
@@ -889,8 +957,8 @@ const onUploadFile = (event) => {
               icon: "error",
               confirmButtonText: "OK",
             });
-          uploadFile.value.clear();
-          files.value = [];
+            uploadFile.value.clear();
+            files.value = [];
           }
           // accept
           else files.value[index] = fi;
@@ -1150,7 +1218,6 @@ const delListFiles = (listItem) => {
             });
           swal.close();
           if (is_check_folder) {
-            debugger;
             toast.success("Xoá tài liệu thành công!");
             isShowBtnDel.value = false;
             loadTudien();
@@ -1423,7 +1490,7 @@ function useBoxForClickOutside(target) {
   }, target);
   return {};
 }
-const optionsClick = [
+const optionsClick_Grid = [
   {
     name: "<i class='pi pi-pencil mr-2'></i>Sửa",
     type: 1,
@@ -1455,7 +1522,7 @@ const optionsShare = [
     type: 5,
   },
 ];
-const optionsModule = [
+const optionsModule_Grid = [
   {
     name: "<i class='pi pi-info-circle mr-2'></i>Thông tin",
     type: 6,
@@ -1465,7 +1532,7 @@ const checkoption = (data) => {
   let check_share = [];
   if (data) {
     if (data.is_module) {
-      check_share = [...optionsModule];
+      check_share = [...optionsModule_Grid];
       if (!data.is_folder)
         check_share.push({
           name: "<i class='pi pi-share-alt mr-2'></i>Chia sẻ",
@@ -1493,7 +1560,7 @@ const checkoption = (data) => {
         });
     }
     // chia se
-    else check_share = optionsClick;
+    else check_share = optionsClick_Grid;
   }
   return check_share;
 };
@@ -1651,7 +1718,6 @@ const showInfo = (item) => {
 };
 // start observing for resize
 const saveShareFile = (data, type) => {
-  debugger;
   let formData = new FormData();
   if (!type) formData.append("file_id", file_edit.value.file_id);
   else {
@@ -1747,10 +1813,10 @@ const onSearch = () => {
   }
 };
 const goToModule = (data) => {
-  let mds = list_modules.filter((x) => x.module_key == data.module_key);
-  if (mds.length > 0) {
-    router.push({ name: mds[0].is_link, params: {} });
-  }
+  // let mds = list_modules.filter((x) => x.module_key == data.module_key);
+  // if (mds.length > 0) {
+  //   router.push({ name: mds[0].is_link, params: {} });
+  // }
 };
 const initModulesMenu = () => {
   axios
@@ -1937,6 +2003,9 @@ const ChangeSortFile = (type_sort) => {
   }
   // loadData(true, opition.value.type_view);
 };
+function isEmpty(val) {
+  return val === undefined || val == null || val.length <= 0 ? true : false;
+}
 //var pressedKeys = {};
 const pressedKeys = ref({
   Control: false,
@@ -2020,7 +2089,7 @@ export default {
                       >
                         <div class="col-2 p-0">
                           <img
-                            :src="basedomainURL+data.node.data.is_filepath"
+                            :src="basedomainURL + data.node.data.is_filepath"
                             width="28"
                             height="36"
                             style="object-fit: contain"
@@ -3109,6 +3178,67 @@ export default {
           </div>
         </div>
       </Dialog>
+      <Dialog
+        v-model:visible="displayShowFileNoti"
+        header="Chi tiết"
+        :modal="true"
+        :closable="true"
+        :style="{ width: '70vw' }"
+        :maximizable="true"
+        :autoZIndex="true"
+      >
+        <div class="grid formgrid m-2 h-full">
+          <div v-if="dataInfoNoti" class="w-full">
+            <video
+              v-if="
+                'mp4,flv,mov,wmv'.includes(dataInfoNoti.file_type.toLowerCase())
+              "
+              style="width: 100%; height: 60vh; height: 100%"
+              controls
+              :src="basedomainURL + dataInfoNoti.is_filepath"
+            ></video>
+            <audio
+              style="width: 100%; margin: 0px auto"
+              controls
+              v-if="
+                'mp3,wma,aac,flac,alac,wav'.includes(
+                  dataInfoNoti.file_type.toLowerCase()
+                )
+              "
+            >
+              <source :src="basedomainURL + dataInfoNoti.is_filepath" />
+            </audio>
+            <iframe
+              v-if="
+                'pptx,ppt,doc,docx,xls,xlsx, pdf, txt'.includes(
+                  dataInfoNoti.file_type.toLowerCase()
+                )
+              "
+              allowfullscreen
+              :src="
+                basedomainURL +
+                '/Viewer/?title=' +
+                dataInfoNoti.file_name +
+                '&url=' +
+                dataInfoNoti.is_filepath
+              "
+              style="width: 100%; min-height: 66vh; height: 100%"
+              title="Iframe Example"
+            >
+            </iframe>
+            <Image
+              v-if="dataInfoNoti.is_image"
+              height="110"
+              class="w-full cursor-pointer"
+              v-bind:src="
+                dataInfoNoti.is_filepath
+                  ? basedomainURL + dataInfoNoti.is_filepath
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              "
+            />
+          </div>
+        </div>
+      </Dialog>
       <div v-if="displayShareFolder">
         <foldershare
           :displayDialog="displayShareFolder"
@@ -3515,7 +3645,8 @@ export default {
                   style="border-bottom: 1px solid #e9ecef"
                 >
                   <div class="col-1 p-0 format-center">
-                    <Avatar v-if="item.last_name"
+                    <Avatar
+                      v-if="item.last_name"
                       v-bind:label="
                         item.avatar ? '' : item.last_name.substring(0, 1)
                       "

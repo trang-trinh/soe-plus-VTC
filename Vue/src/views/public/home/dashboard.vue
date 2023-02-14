@@ -2159,13 +2159,7 @@ onMounted(() => {
                                   ? basedomainURL + item.avatar
                                   : basedomainURL + '/Portals/Image/noimg.jpg'
                               "
-                              v-tooltip.top="
-                                item.full_name +
-                                '<br>' +
-                                item.role_name +
-                                '<br>' +
-                                item.birthday
-                              "
+                              v-tooltip.top="item.full_name"
                               :key="item.user_id"
                               style="border: 2px solid white; color: white"
                               @error="

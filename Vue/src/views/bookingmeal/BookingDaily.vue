@@ -172,9 +172,14 @@ const loadData = (f) => {
     const today = new Date();
     const firstDay = getFirstDayOfWeek(today);
     const lastDay = new Date(firstDay);
-    lastDay.setDate(lastDay.getDate() + 6);
-    options.value.Start_Date = firstDay;
-    options.value.End_Date = lastDay;
+    debugger
+    if(today.getDay()== 4 || today.getDay()== 5 || today.getDay()== 6 ) {
+          lastDay.setDate(lastDay.getDate() + 7);
+    }
+    else
+     lastDay.setDate(today.getDate()+1);
+    options.value.Start_Date = lastDay;
+    options.value.End_Date = null;
   }
   working_days.forEach((item) => {
     let dt = new Date(item);
@@ -279,8 +284,9 @@ const initConfig = () => {
       if (response.data.err != "1") {
         if (response.data.data) {
           working_days = response.data.data.working_days;
-          loadData(true);
         }
+        else working_days = [];
+         loadData(true);
       } else {
         loadData(true);
         swal.fire({
@@ -390,7 +396,6 @@ const initTudien = () => {
 function getFirstDayOfWeek(d) {
   const date = new Date(d);
   const day = date.getDay();
-
   const diff = date.getDate() - day + (day === 0 ? -6 : 1);
 
   return new Date(date.setDate(diff));
@@ -658,7 +663,7 @@ onMounted(() => {
                       ? 'background: red;border:1px solid red'
                       : 'background:green;border:1px solid green'
                   "
-                  v-bind:label="slotProps.data.booking_days"
+                  v-bind:label="slotProps.data.booking_days != ''?slotProps.data.booking_days: '0'"
                   class="p-button-rounded text-xs dot-status"
                 />
               </div>

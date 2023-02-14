@@ -1096,3 +1096,34 @@ li.p-chips-token {
 .black-text.p-dialog .p-dialog-content {
     color: #000 !important;
 }
+
+.p-tooltip,
+.p-autocomplete-panel,
+.p-treeselect-panel,
+.p-dropdown-panel,
+.p-multiselect-panel {
+    z-index: 999999 !important;
+}
+
+.form-group {
+    display: grid;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.form-group>label {
+    margin-bottom: 0.5rem;
+}
+
+.form-group .p-multiselect .p-multiselect-label,
+.form-group .p-dropdown .p-dropdown-label,
+.form-group .p-treeselect .p-treeselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100% !important;
+}

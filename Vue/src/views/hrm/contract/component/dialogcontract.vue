@@ -19,21 +19,12 @@ const props = defineProps({
   displayDialog: Boolean,
   closeDialog: Function,
   isAdd: Boolean,
+  isView: Boolean,
   model: Object,
   files: Array,
   selectFile: Function,
   removeFile: Function,
-  profiles: Array,
-  type_contracts: Array,
-  departments: Array,
-  work_positions: Array,
-  positions: Array,
-  formalitys: Array,
-  wages: Array,
-  users: Array,
-  allowance_formalitys: Array,
-  allowance_wages: Array,
-  professional_works: Array,
+  dictionarys: Array,
   initData: Function,
 });
 const bgColor = ref([
@@ -385,7 +376,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Nhân sự <span class="redsao">(*)</span></label>
                 <Dropdown
-                  :options="props.profiles"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[1]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -487,6 +479,7 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Mã hợp đồng <span class="redsao">(*)</span></label>
                 <InputText
+                  :disabled="props.isView"
                   v-model="props.model.contract_no"
                   spellcheck="false"
                   class="ip36"
@@ -504,7 +497,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Tên hợp đồng </label>
                 <Dropdown
-                  :options="props.type_contracts"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[2]"
                   :filter="true"
                   :showClear="true"
                   :editable="true"
@@ -528,7 +522,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Phòng ban </label>
                 <Dropdown
-                  :options="props.departments"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[3]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -552,7 +547,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Vị trí </label>
                 <Dropdown
-                  :options="props.work_positions"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[4]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -576,7 +572,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Chức vụ </label>
                 <Dropdown
-                  :options="props.positions"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[5]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -600,7 +597,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Công việc chuyên môn </label>
                 <MultiSelect
-                  :options="props.professional_works"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[11]"
                   v-model="props.model.professional_works"
                   optionLabel="professional_work_name"
                   optionValue="professional_work_id"
@@ -651,6 +649,7 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Nơi làm việc </label>
                 <InputText
+                  :disabled="props.isView"
                   v-model="props.model.employment"
                   spellcheck="false"
                   class="ip36"
@@ -661,7 +660,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Hình thức làm việc </label>
                 <Dropdown
-                  :options="props.formalitys"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[6]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -685,7 +685,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Ngạch lương </label>
                 <Dropdown
-                  :options="props.wages"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[7]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -710,6 +711,7 @@ onMounted(() => {});
                 <label>Hiệu lực từ ngày <span class="redsao">(*)</span></label>
                 <div>
                   <Calendar
+                    :disabled="props.isView"
                     :showIcon="true"
                     class="ip36"
                     autocomplete="on"
@@ -735,6 +737,7 @@ onMounted(() => {});
                 <label>Hiệu lực đến ngày</label>
                 <div>
                   <Calendar
+                    :disabled="props.isView"
                     :showIcon="true"
                     class="ip36"
                     autocomplete="on"
@@ -751,6 +754,7 @@ onMounted(() => {});
                 <label>Ngày ký</label>
                 <div>
                   <Calendar
+                    :disabled="props.isView"
                     :showIcon="true"
                     class="ip36"
                     autocomplete="on"
@@ -764,7 +768,8 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Người ký</label>
                 <Dropdown
-                  :options="props.users"
+                  :disabled="props.isView"
+                  :options="props.dictionarys[8]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -865,7 +870,8 @@ onMounted(() => {});
             <!-- <div class="col-6 md:col-6">
           <div class="form-group">
             <label>STT </label>
-            <InputNumber v-model="props.model.is_order" class="ip36" />
+            <InputNumber
+:disabled="props.isView" v-model="props.model.is_order" class="ip36" />
           </div>
         </div>
         <div class="col-6 md:col-6 format-center">
@@ -908,7 +914,10 @@ onMounted(() => {});
                     </td>
                     <td>
                       <ul
-                        v-if="key === props.model.allowances.length - 1"
+                        v-if="
+                          !props.isView &&
+                          key === props.model.allowances.length - 1
+                        "
                         class="flex p-0 m-0 format-center"
                         style="list-style: none"
                       >
@@ -934,6 +943,7 @@ onMounted(() => {});
                       <div class="col-12 md:col-12">
                         <div class="form-group">
                           <Calendar
+                            :disabled="props.isView"
                             :showIcon="true"
                             class="ip36"
                             autocomplete="on"
@@ -947,6 +957,7 @@ onMounted(() => {});
                       <div class="col-12 md:col-12">
                         <div class="form-group">
                           <InputText
+                            :disabled="props.isView"
                             v-model="allowance.note"
                             spellcheck="false"
                             placeholder="Viết mô tả"
@@ -1004,7 +1015,10 @@ onMounted(() => {});
                       </td>
                       <td>
                         <ul
-                          v-if="key === allowance.formalitys.length - 1"
+                          v-if="
+                            !props.isView &&
+                            key === allowance.formalitys.length - 1
+                          "
                           class="flex p-0 m-0 format-center"
                           style="list-style: none"
                         >
@@ -1032,7 +1046,8 @@ onMounted(() => {});
                         <div class="col-12 md:col-12">
                           <div class="form-group">
                             <Dropdown
-                              :options="props.allowance_formalitys"
+                              :disabled="props.isView"
+                              :options="props.dictionarys[9]"
                               :filter="true"
                               :showClear="true"
                               :editable="true"
@@ -1061,6 +1076,7 @@ onMounted(() => {});
                         <div class="col-12 md:col-12">
                           <div class="form-group">
                             <InputNumber
+                              :disabled="props.isView"
                               v-model="formality.money"
                               mode="decimal"
                               :minFractionDigits="0"
@@ -1124,7 +1140,9 @@ onMounted(() => {});
                       </td>
                       <td>
                         <ul
-                          v-if="key === allowance.wages.length - 1"
+                          v-if="
+                            !props.isView && key === allowance.wages.length - 1
+                          "
                           class="flex p-0 m-0 format-center"
                           style="list-style: none"
                         >
@@ -1150,7 +1168,8 @@ onMounted(() => {});
                         <div class="col-12 md:col-12">
                           <div class="form-group">
                             <Dropdown
-                              :options="props.allowance_wages"
+                              :disabled="props.isView"
+                              :options="props.dictionarys[10]"
                               :filter="true"
                               :showClear="true"
                               :editable="true"
@@ -1177,6 +1196,7 @@ onMounted(() => {});
                         <div class="col-12 md:col-12">
                           <div class="form-group">
                             <InputNumber
+                              :disabled="props.isView"
                               v-model="wage.money"
                               mode="decimal"
                               :minFractionDigits="0"
@@ -1224,11 +1244,12 @@ onMounted(() => {});
               <div class="form-group">
                 <label><h3 class="m-0">Tài liệu đính kèm</h3></label>
                 <FileUpload
+                  v-if="!props.isView"
                   :multiple="true"
                   :show-upload-button="false"
                   :show-cancel-button="true"
-                  @remove="removeFile"
-                  @select="selectFile"
+                  @remove="props.removeFile"
+                  @select="props.selectFile"
                   name="demo[]"
                   url="./upload.php"
                   accept=""
@@ -1298,6 +1319,7 @@ onMounted(() => {});
               <div class="form-group">
                 <label>Ghi chú</label>
                 <Textarea
+                  :disabled="props.isView"
                   v-model="props.model.note"
                   :autoResize="true"
                   rows="5"
@@ -1322,7 +1344,12 @@ onMounted(() => {});
         icon="pi pi-check"
         @click="saveModel(true)"
       />
-      <Button label="Lưu" icon="pi pi-check" @click="saveModel()" />
+      <Button
+        v-if="!props.isView"
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveModel()"
+      />
     </template>
   </Dialog>
 </template>

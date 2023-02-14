@@ -178,8 +178,19 @@ import {
     faQuoteLeft,
     faQuoteRightAlt,
     faMoneyBillWave,
-
+    faListCheck,
+    faFileContract,
+    faBuildingCircleCheck,
+    faMoneyCheckDollar,
+    faFileShield,
+    faPersonChalkboard,
+    faEnvelopeOpen,
+    faEllipsis,
 } from "@fortawesome/free-solid-svg-icons";
+import {
+    faAddressCard,
+    faCalendarDays,
+} from "@fortawesome/free-regular-svg-icons";
 /* add icons to the library */
 library.add(
     faBarcode,
@@ -217,7 +228,18 @@ library.add(
     faRotateLeft,
     faQuoteLeft,
     faQuoteRight,
-    faQuoteRightAlt, faMoneyBillWave
+    faQuoteRightAlt,
+    faMoneyBillWave,
+    faAddressCard,
+    faListCheck,
+    faFileContract,
+    faBuildingCircleCheck,
+    faMoneyCheckDollar,
+    faFileShield,
+    faCalendarDays,
+    faPersonChalkboard,
+    faEnvelopeOpen,
+    faEllipsis
 );
 import "animate.css";
 Date.prototype.toISOString = function() {

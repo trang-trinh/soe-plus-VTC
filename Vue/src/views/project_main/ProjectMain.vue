@@ -910,9 +910,9 @@ onMounted(() => {
                 headerStyle="height:50px;max-width:100px;text-align:center;"
                 bodyStyle="max-height:60px;max-width:100px;text-align:center;">
             </Column>
-            <Column field="group_code" header="Mã nhóm" class="align-items-center justify-content-center text-center"
-                headerStyle="height:50px;max-width:100px;text-align:center;"
-                bodyStyle="max-height:60px;max-width:100px;text-align:center;">
+            <Column field="group_name" header="Nhóm dự án" class="align-items-center justify-content-center text-center"
+                headerStyle="height:50px;max-width:300px;text-align:center;"
+                bodyStyle="max-height:60px;max-width:300px;text-align:center;">
             </Column>
             <Column field="status" header="Trạng thái" class="align-items-center justify-content-center text-center"
                 headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px">
@@ -1002,7 +1002,7 @@ onMounted(() => {
                         </small>
                     </div>
                     <div class="field col-12 md:col-12">
-                        <label class="col-3 text-left p-0">Mã nhóm</label>
+                        <label class="col-3 text-left p-0">Nhóm dự án</label>
                         <MultiSelect :filter="true" v-model="arrNhom" :options="listProjectGroups" optionValue="code"
                             optionLabel="name" class="col-9 ip36 p-0" placeholder="----Chọn nhóm dự án----"
                             @change="changeMaNhom($event)" display="chip">

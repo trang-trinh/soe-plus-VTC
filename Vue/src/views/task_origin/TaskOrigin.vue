@@ -8,11 +8,14 @@ import moment from "moment";
 import { encr } from "../../util/function.js";
 import treeuser from "../../components/user/treeuser.vue";
 const cryoptojs = inject("cryptojs");
+const router = inject("router");
 const basedomainURL = fileURL;
 const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
+const width1 = ref(window.screen.availWidth);
+
 const checkDelList = ref(false);
 const toast = useToast();
 const swal = inject("$swal");
@@ -64,7 +67,7 @@ const opition = ref({
   search: "",
   Filteruser_id: null,
   user_id: store.getters.user_id,
-  IsType: -1,
+  IsType: 0,
   SearchTextUser: "",
   filter_type: 0,
   sdate: null,
@@ -900,8 +903,6 @@ const groupBy = (list, props) => {
 const loadData = (rf, type) => {
   if (type == 3 || type == 2 || type == 4 || type == 5) {
     opition.value.PageSize = 10000;
-  } else {
-    opition.value.PageSize = 20;
   }
   if (rf) {
     opition.value.loading = true;
@@ -1443,7 +1444,7 @@ const onRefresh = () => {
     search: "",
     Filteruser_id: null,
     user_id: store.getters.user_id,
-    IsType: -1,
+    IsType: 0,
     SearchTextUser: "",
     filter_type: 0,
     sdate: null,
@@ -1689,8 +1690,12 @@ const onNodeSelect = (id) => {
 emitter.on("SideBar", (obj) => {
   showDetail.value = false;
   selectedTaskID.value = null;
-  console.log(showDetail.value, selectedTaskID.value);
   loadData(false, opition.value.type_view);
+});
+const PositionSideBar = ref("right");
+emitter.on("psb", (obj) => {
+  PositionSideBar.value = obj;
+  console.log(obj);
 });
 const onRowUnselect = (id) => {};
 
@@ -3797,14 +3802,27 @@ const choiceTreeUser = () => {
       </div>
     </div>
     <!-- end -->
-    <DetailedWork
-      :key="componentKey"
-      v-if="showDetail == true && selectedTaskID != null"
-      :isShow="showDetail"
-      :id="selectedTaskID"
-      :turn="0"
+    <Sidebar
+      v-model:visible="showDetail"
+      :position="PositionSideBar"
+      :style="{
+        width:
+          PositionSideBar == 'right'
+            ? width1 > 1800
+              ? ' 55vw'
+              : '75vw'
+            : '100vw',
+        'min-height': '100vh !important',
+      }"
+      :showCloseIcon="false"
     >
-    </DetailedWork>
+      <DetailedWork
+        :isShow="showDetail"
+        :id="selectedTaskID"
+        :turn="0"
+      >
+      </DetailedWork
+    ></Sidebar>
   </div>
   <Dialog
     :header="headerAddTask"

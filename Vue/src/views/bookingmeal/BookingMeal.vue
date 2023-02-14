@@ -331,7 +331,6 @@ const headerDialog = ref();
 const invalidDates = ref([]);
 const displayBasic = ref(false);
 const onChangeUser = (user_id) => {
-  debugger
   axios
     .post(
         baseURL + "/api/BookingMeal/GetDataProc",
@@ -454,6 +453,7 @@ const editBooking = (data) => {
         booking.value.listdates = [];
       }
       if (data[1].length > 0) {
+        debugger
         data[1].forEach((item) => {
           let dt = new Date(item.booking_date);
           let datedis = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
@@ -793,6 +793,7 @@ const renderTreeDV = (data, id, name, title) => {
     });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
+
 //Tìm kiếm
 watch(selectedBookings, () => {
   if (selectedBookings.value.length > 0) {

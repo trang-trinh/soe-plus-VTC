@@ -739,7 +739,7 @@ onMounted(() => {
     :visible="DialogVisible"
     :header="'Gửi báo cáo công việc'"
     :breakpoints="{ '1366px': '90vw', '960px': '90vw', '640px': '95vw' }"
-    :style="{ width: '85vw', 'z-index': '10000' }"
+    :style="{ width: '85vw' }"
     :closable="false"
   >
     <DataTable
@@ -1004,7 +1004,7 @@ onMounted(() => {
     v-model:visible="DialogFileVisible"
     :closable="true"
     :modal="true"
-    :style="{ width: '60vw', 'z-index': '10000' }"
+    :style="{ width: '60vw' }"
   >
     <form>
       <div class="col-12">
@@ -1144,7 +1144,7 @@ onMounted(() => {
     <template #footer>
       <Button
         label="Hủy"
-        icon="pi pi-check"
+        icon="pi pi-times"
         class="p-button-raised p-button-text"
         @click="
           (DialogFileVisible = false),
@@ -1165,7 +1165,7 @@ onMounted(() => {
     v-model:visible="DialogMoreVisible"
     :closable="true"
     :modal="true"
-    :style="{ width: '60vw', 'z-index': '10000' }"
+    :style="{ width: '60vw' }"
   >
     <form>
       <div class="col-12 flex">

@@ -1359,6 +1359,7 @@ const loadCount = () => {
 const print = () => {
   var htmltable = "";
   htmltable = renderhtml("formprint", htmltable);
+
   var printframe = window.frames["printframe"];
   printframe.document.write(htmltable);
   setTimeout(function () {
@@ -1442,21 +1443,84 @@ function renderhtmlWord(id, htmltable) {
 function renderhtml(id, htmltable) {
   htmltable = "";
 
+  htmltable += `<style>
+ 
+    .formword-d  {
+      background: #fff !important;
+    }
+    .formword-d * {
+      font-family: "Times New Roman", Times, serif !important;
+      font-size: 16pt;
+    }
+    .title1,
+    .title1 * {
+      font-size: 24pt !important;
+    }
+    .title2,
+    .title2 * {
+      font-size: 20pt !important;
+    }
+    .title3,
+    .title3 * {
+      font-size: 18pt !important;
+    }
+    .boder tr th,
+    .boder tr td {
+      border: 1px solid #999999 !important;
+      padding: 0.5rem;
+    }
+    table {
+      min-width: 100% !important;
+      page-break-inside: auto !important;
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
+    }
+    thead {
+      display: table-header-group !important;
+    }
+    tbody {
+      display: table-header-group !important;
+    }
+    tr {
+      -webkit-column-break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+    tfoot {
+      display: table-footer-group !important;
+    }
+    .uppercase,
+    .uppercase * {
+      text-transform: uppercase !important;
+    }
+    .text-center {
+      text-align: center !important;
+    }
+    .text-left {
+      text-align: left !important;
+    }
+    .text-right {
+      text-align: right !important;
+    }
+    .html p{
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  </style>`;
   htmltable +=
-    "   <table  border='0' width='1024' cellpadding='0'> <thead> <tr> ";
+    " <div class='formword-d '>  <table  border='0' width='1024' cellpadding='0'> <thead> <tr> ";
   htmltable +=
     "<td   colspan='2' style='width: 40%; vertical-align: bottom ;text-align:center' >";
   htmltable +=
-    "    <div  style='text-transform: uppercase'>Bộ quốc phòng</div>";
+    "    <div  style='text-transform: uppercase '>Bộ quốc phòng</div>";
   htmltable +=
-    "    <div style='text-transform: uppercase'> <b>Bảo hiểm xã hội</b> <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 125px'></div></div></td>";
+    "    <div style='text-transform: uppercase'> <b>Bảo hiểm xã hội</b> <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 110px'></div></div></td>";
   htmltable +=
     "   <td  colspan='4' style='min-width: 40%; vertical-align: bottom;text-align:center' >";
   htmltable +=
     "  <div style='text-transform: uppercase'> <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b> </div>";
   htmltable += "    <div><b>Độc lập - Tự do - Hạnh phúc</b></div>";
   htmltable +=
-    "     <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 200px'  ></div>  </td>  </tr>";
+    "     <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 180px'  ></div>  </td>  </tr>";
   htmltable +=
     "<tr> <td   colspan='2'>  <div style='text-align:center;padding: 1rem 0'>Số: " +
     device_handover.value.handover_number +
@@ -1479,34 +1543,11 @@ function renderhtml(id, htmltable) {
     ", năm " +
     new Date(device_handover.value.handover_created_date).getFullYear() +
     "</i>    </div>   </td>  </tr> </thead>  </table>";
-
-  // htmltable +=
-  //   "<table border='0' width='1024' cellpadding='0'><tbody><tr><td style='padding:0px 10px;'><img src='" +
-  //   basedomainURL +
-  //   store.getters.user.logo +
-  //   " ' style='height:60px;width:auto;'/></td></tr></tbody></table>";
-  // htmltable +=
-  //   "<table border='0' width='1024' cellpadding='0'><tbody><tr><td style='padding:0px 10px;'><p style='text-transform:uppercase;text-align:justify;'> " +
-  //   store.getters.user.organization_name +
-  //   " </p></td></tr></tbody></table>";
-  // htmltable += "<table border='0' width='1024' cellpadding='0'><tbody><tr><td><div style='border-bottom:1px solid #000;margin:0px 10px;'></div></td></tr></tbody></table>";
-  // htmltable += "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:11px;'>Địa chỉ: " + device_handover.value.diaChi + (device_handover.value.dienThoai != '' ? (' - Điện thoại: ' + device_handover.value.dienThoai) : '') + (device_handover.value.fax != '' ? (' - Fax: ' + device_handover.value.fax) : '') + (device_handover.value.email != '' ? (' - Email: ' + device_handover.value.email) : '') + (device_handover.value.website != '' ? (' - Website: ' + device_handover.value.website) : '') + "</p></td></tr></tbody></table>";// 041019 Quan
+ htmltable +=
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><h3 style='text-align:center;padding-top:30px;font-size:20pt;font-weight:bold;'>BIÊN BẢN BÀN GIAO</h3></td></tr></tbody></table>";
+ 
   htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><h3 style='text-align:center;padding-top:30px;font-size:20px;font-weight:bold;'>BIÊN BẢN BÀN GIAO</h3></td></tr></tbody></table>";
-  // htmltable +=
-  //   "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='text-align:center;font-size:16px;'>Hà Nội, ngày " +
-  //   new Date(device_handover.value.handover_created_date).getDate() +
-  //   " tháng " +
-  //   (new Date(device_handover.value.handover_created_date).getMonth() + 1) +
-  //   " năm " +
-  //   new Date(device_handover.value.handover_created_date).getFullYear() +
-  //   "</p></td></tr></tbody></table>";
-  // htmltable +=
-  //   "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='text-align:center;font-size:16px;'>Số phiếu: " +
-  //   device_handover.value.handover_number +
-  //   "</p></td></tr></tbody></table>";
-  htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;'>Hôm nay, ngày ";
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt;'>Hôm nay, ngày ";
   var strD =
     new Date(device_handover.value.handover_created_date).getDate() > 9
       ? new Date(device_handover.value.handover_created_date).getDate()
@@ -1532,17 +1573,20 @@ function renderhtml(id, htmltable) {
     strM1 +
     ", chúng tôi gồm:</p></td></tr></tbody></table>";
   htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'>" +
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt;text-transform:uppercase;font-weight:bold;'>" +
     "A. Bên giao: " +
     strM2 +
     "</p></td></tr></tbody></table>";
   htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: " +
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16pt;'>Đồng chí: " +
     device_handover.value.user_deliver_name +
     "</p></td>";
+      var strM5 = device_handover.value.user_deliver_position
+    ? device_handover.value.user_deliver_position
+    : "";
   htmltable +=
-    "<td width='50%'><p style='font-size:16px;'>Chức vụ: " +
-    device_handover.value.user_deliver_position +
+    "<td width='50%'><p style='font-size:16pt;'>Chức vụ: " +
+    strM5 +
     "</p></td></tr>";
   htmltable += " </tbody></table>";
   var strM3 = device_handover.value.user_receiver_department_name
@@ -1552,54 +1596,60 @@ function renderhtml(id, htmltable) {
     ? device_handover.value.user_verifier_department_name
     : "";
   htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'>" +
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt;text-transform:uppercase;font-weight:bold;'>" +
     "B. Bên nhận: " +
     strM3 +
     "</p></td></tr></tbody></table>";
   htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: " +
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16pt;'>Đồng chí: " +
     device_handover.value.user_receiver_name +
     "</p></td>";
+        var strM6 = device_handover.value.user_receiver_position
+    ? device_handover.value.user_receiver_position
+    : "";
   htmltable +=
-    "<td width='50%'><p style='font-size:16px;'>Chức vụ: " +
-    device_handover.value.user_receiver_position +
+    "<td width='50%'><p style='font-size:16pt;'>Chức vụ: " +
+    strM6 +
     "</p></td></tr>";
   htmltable += " </tbody></table>";
   if (device_handover.value.handover_type == 1) {
     htmltable +=
-      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'>" +
+      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt;text-transform:uppercase;font-weight:bold;'>" +
       "C. Bên xác nhận: " +
       strM4 +
       "</p></td></tr></tbody></table>";
     htmltable +=
-      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: " +
+      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16pt;'>Đồng chí: " +
       device_handover.value.user_verifier_name +
       "</p></td>";
+         var strM7 = device_handover.value.user_verifier_position
+    ? device_handover.value.user_verifier_position
+    : "";
     htmltable +=
-      "<td width='50%'><p style='font-size:16px;'>Chức vụ: " +
-      device_handover.value.user_verifier_position +
+      "<td width='50%'><p style='font-size:16pt;'>Chức vụ: " +
+     strM7 +
       "</p></td></tr>";
     htmltable += " </tbody></table>";
   }
   htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;'>Bên giao tiến hành bàn giao các tài sản như sau:</p></td></tr></tbody></table>";
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt;'>Bên giao tiến hành bàn giao các tài sản như sau:</p></td></tr></tbody></table>";
   htmltable +=
     "<table border='0' width='1024' cellpadding='10' style='border-spacing:0;padding-left:15px;padding-right:15px;'><thead><tr>";
   htmltable +=
-    "<th align='center' width='30' style='border:1px solid #000 !important;font-size:16px !important;'>STT</th>";
+    "<th align='center' width='30' style='border:1px solid #000 !important;font-size:14pt !important;'>STT</th>";
   htmltable +=
-    "<th align='center' width='100' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Số hiệu</th>";
+    "<th align='center' width='100' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Số hiệu</th>";
   htmltable +=
-    "<th align='center' width='100' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Mã barcode</th>";
+    "<th align='center' width='100' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Mã barcode</th>";
   htmltable +=
-    "<th align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Tên thiết bị</th>";
-  //htmltable += "<th align='center' width='100' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Ngày mua</th>";
+    "<th align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Tên thiết bị</th>";
+  //htmltable += "<th align='center' width='100' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Ngày mua</th>";
   htmltable +=
-    "<th align='center' width='90' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Đơn vị tính</th>";
+    "<th align='center' width='90' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Đơn vị tính</th>";
   htmltable +=
-    "<th align='center' width='90' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Giá trị</th>";
+    "<th align='center' width='90' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Giá trị</th>";
   htmltable +=
-    "<th align='center' width='150' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Tình trạng</th>";
+    "<th align='center' width='150' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Tình trạng</th>";
   htmltable += "</tr></thead>";
   htmltable += "<tbody>";
   var stt = 0;
@@ -1608,35 +1658,35 @@ function renderhtml(id, htmltable) {
     stt += 1;
     sum += ts.price;
     htmltable +=
-      "<tr><td width='30' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-top:none !important;'>" +
+      "<tr><td width='30' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-top:none !important;'>" +
       stt +
       "</td>";
     htmltable +=
-      "<td width='100' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>" +
+      "<td width='100' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
       ts.device_number +
       "</td>";
     htmltable +=
-      "<td width='100' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>" +
+      "<td width='100' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
       (ts.barcode_id != null ? ts.barcode_id : "") +
       "</td>";
     htmltable +=
-      "<td align='left' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>" +
+      "<td align='left' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
       ts.device_name +
       "</td>";
-    //htmltable += "<td width='100' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>" + moment(ts.ngaymua).format('DD/MM/YYYY') + "</td>";
+    //htmltable += "<td width='100' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" + moment(ts.ngaymua).format('DD/MM/YYYY') + "</td>";
 
     var dv = ts.device_unit ? ts.device_unit : "";
     htmltable +=
-      "<td width='90' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>" +
+      "<td width='90' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
       dv +
       "</td>";
     htmltable +=
-      "<td width='90' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;padding:10px 5px;'>" +
+      "<td width='90' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;padding:10px 5px;'>" +
       (ts.price != null ? ts.price.toLocaleString() : " 0 ") +
       " VND " +
       "</td>";
     htmltable +=
-      "<td width='150' align='left' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>" +
+      "<td width='150' align='left' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
       ts.assets_condition +
       "</td></tr>";
   });
@@ -1644,7 +1694,7 @@ function renderhtml(id, htmltable) {
   htmltable +=
     "<table border='0' width='1024' cellpadding='0' style='padding:10px 15px 0px;'><tbody>";
   htmltable +=
-    "<tr><td style='font-size:16px;font-weight:bold;text-align:right;'><a style='padding-right:20px'>Tổng giá trị: </a>" +
+    "<tr><td style='font-size:16pt;font-weight:bold;text-align:right; padding-top:12px'><a style='padding-right:20px'>Tổng giá trị: </a>" +
     sum.toLocaleString() +
     " VND </td></tr></tbody></table>";
   if (
@@ -1652,11 +1702,11 @@ function renderhtml(id, htmltable) {
     device_handover.value.print_note == ""
   ) {
     htmltable +=
-      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td colspan='7'><p style='font-size:16px;text-align:justify;'>" +
+      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td colspan='7'><p style='font-size:16pt;text-align:justify;'>" +
       "Biên bản được lập thành 04 bản, mỗi bên giữ 02 bản có giá trị như nhau.</p></td></tr></tbody></table>";
   } else {
     htmltable +=
-      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td colspan='7'><p style='font-size:16px;text-align:justify;'>" +
+      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td colspan='7'><p style='font-size:16pt;text-align:justify;'>" +
       device_handover.value.print_note +
       "</p></td></tr></tbody></table>";
   }
@@ -1666,14 +1716,14 @@ function renderhtml(id, htmltable) {
     (device_handover.value.handover_type == 1 ? 33 : 50) +
     "%' style='text-align:center;'> ";
   htmltable +=
-    "<p style='font-weight:bold;font-size:16px;text-align:center;text-transform:uppercase;'>Bên nhận</p>";
+    "<p style='font-weight:bold;font-size:16pt;text-align:center;text-transform:uppercase;'>Bên nhận</p>";
   // if (device_handover.value.chuKyNBG != '') {
   //     htmltable += "<img src='" + $rootScope.fileUrl + device_handover.value.chuKyNBG + "' style='height:60px;width:auto;' />";
   // } else {
   //     htmltable += "<p style='padding-top:30px;padding-bottom:30px;'></p>";
   // }
   htmltable +=
-    "<p style='font-size:16px;text-align:center'>" +
+    "<p style='font-size:16pt;text-align:center; padding-top:30px'>" +
     device_handover.value.user_receiver_name +
     "</p></td>";
   htmltable +=
@@ -1681,30 +1731,30 @@ function renderhtml(id, htmltable) {
     (device_handover.value.handover_type == 1 ? 33 : 50) +
     "%' style='text-align:center;'> ";
   htmltable +=
-    "<p style='font-weight:bold;font-size:16px;text-align:center;text-transform:uppercase;'>Bên giao</p>";
+    "<p style='font-weight:bold;font-size:16pt;text-align:center;text-transform:uppercase;'>Bên giao</p>";
   // if (device_handover.value.chuKyNN != '') {
   //     htmltable += "<img src='" + $rootScope.fileUrl + device_handover.value.chuKyNN + "' style='height:60px;width:auto;' />";
   // } else {
   //     htmltable += "<p style='padding-top:30px;padding-bottom:30px;'></p>";
   // }
   htmltable +=
-    "<p style='font-size:16px;text-align:center'>" +
+    "<p style='font-size:16pt;text-align:center ; padding-top:30px'>" +
     device_handover.value.user_deliver_name +
     "</p></td>";
   if (device_handover.value.handover_type == 1) {
     htmltable +=
-      "<td width='34%'><p style='font-size:16px;text-align:center'> ";
+      "<td width='34%'><p style='font-size:16pt;text-align:center'> ";
     htmltable +=
-      "<p style='font-weight:bold;font-size:16px;text-align:center;text-transform:uppercase;'>Bên xác nhận</p>";
+      "<p style='font-weight:bold;font-size:16pt;text-align:center;text-transform:uppercase;'>Bên xác nhận</p>";
 
     htmltable +=
-      "<p style='font-size:16px;text-align:center'>" +
+      "<p style='font-size:16pt;text-align:center;padding-top:30px'>" + 
       (device_handover.value.user_verifier_name != null
         ? device_handover.value.user_verifier_name
         : "") +
       "</p></td>";
   }
-  htmltable += "</tr></tbody></table>";
+  htmltable += "</tr></tbody></table>   </div>";
   return htmltable;
 }
 const saveHandover = (isFormValid, isPrint) => {
@@ -4414,9 +4464,7 @@ onMounted(() => {
                   <div
                     v-tooltip.bottom="{
                       value:
-                        data.data.department_name +
-                        '<br/>' +
-                        data.data.position_name,
+                        data.data.department_name  ,
                       class: 'custom-error-tl1',
                     }"
                     class="

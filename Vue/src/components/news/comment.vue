@@ -2421,7 +2421,7 @@ const commentSize = ref(10);
       :showCloseIcon="false"
       id="overlay_panelEmoij4"
     >
-      <VuemojiPicker @emojiClick="handleEmojiClick" />
+      <VuemojiPicker @emojiClick="handleEmojiClick" dataSource="/data_local_vuemoji_picker.json" />
     </OverlayPanel>
     <Dialog
       :style="{ width: '30vw' }"

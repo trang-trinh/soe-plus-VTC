@@ -2,8 +2,10 @@
 import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
-import dialogcontract from "../contract/component/dialogcontract.vue";
+import dilogprofile from "../profile/component/dilogprofile.vue";
+import dialogreceipt from "../profile/component/dialogreceipt.vue";
 import moment from "moment";
+const router = inject("router");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -18,15 +20,6 @@ const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
 
 //Declare
-const isFilter = ref(false);
-const tabs = ref([
-  { id: -1, title: "Tất cả", icon: "", total: 0 },
-  { id: 0, title: "Chưa hiệu lực", icon: "", total: 0 },
-  { id: 1, title: "Đang hiệu lực", icon: "", total: 0 },
-  { id: 2, title: "Hết hiệu lực", icon: "", total: 0 },
-  { id: 3, title: "Đã thanh lý", icon: "", total: 0 },
-  { id: 4, title: "Hết hạn trong tháng", icon: "", total: 0 },
-]);
 const options = ref({
   loading: true,
   user_id: store.getters.user.user_id,
@@ -37,19 +30,28 @@ const options = ref({
   sort: "created_date desc",
   orderBy: "desc",
   tab: -1,
-  filterContract_id: null,
-  organizations: [],
-  departments: [],
-  type_contracts: [],
-  work_positions: [],
-  sign_start_date: null,
-  sign_end_date: null,
-  users: [],
-  start_start_date: null,
-  end_start_date: null,
-  start_end_date: null,
-  end_end_date: null,
+  filterProfile_id: null,
 });
+const isFilter = ref(false);
+const isFirst = ref(true);
+const datas = ref([]);
+const counts = ref([]);
+const profile = ref({});
+const selectedNodes = ref({});
+const dictionarys = ref([]);
+const datachilds = ref([]);
+
+//declare dictionary
+const tabs = ref([
+  { status: -1, title: "Tất cả", icon: "", total: 0 },
+  { status: 1, title: "Đang làm việc", icon: "", total: 0 },
+  { status: 2, title: "Nghỉ việc", icon: "", total: 0 },
+  { status: 3, title: "Nghỉ thai sản", icon: "", total: 0 },
+  { status: 4, title: "Nghỉ không lương", icon: "", total: 0 },
+  { status: 5, title: "Nghỉ đi học", icon: "", total: 0 },
+  { status: 6, title: "Nghỉ khác", icon: "", total: 0 },
+  { status: 0, title: "Chưa phân công", icon: "", total: 0 },
+]);
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -59,163 +61,168 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
-const typestatus = ref([
-  { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
-  { value: 1, title: "Đang hiệu lực", bg_color: "#2196f3", text_color: "#fff" },
-  { value: 2, title: "Hết hiệu lực", bg_color: "red", text_color: "#fff" },
-  { value: 3, title: "Đã thanh lý", bg_color: "#ff8b4e", text_color: "#fff" },
+const genders = ref([
+  { value: 1, text: "Nam" },
+  { value: 2, text: "Nữ" },
 ]);
-const liquidations = ref([
-  { value: 0, title: "Thôi việc" },
-  { value: 1, title: "Ký hợp đồng mới" },
-  { value: 2, title: "Chấm dứt HĐLĐ" },
-  { value: 3, title: "Chấm dứt HĐLĐ" },
-  { value: 4, title: "Khác..." },
+const places = ref();
+const marital_status = ref([
+  { value: 0, text: "Độc thân" },
+  { value: 1, text: "Kết hôn" },
+  { value: 2, text: "Ly hôn" },
 ]);
-const selectedNodes = ref({});
-const selectedKeys = ref([]);
-const expandedKeys = ref([]);
-const isFirst = ref(true);
-const datas = ref([]);
-const counts = ref([]);
-const dictionarys = ref([]);
-const contract = ref({});
-
-const menuButMores = ref();
-const itemButMores = ref([
-  {
-    label: "Hiệu chỉnh nội dung",
-    icon: "pi pi-pencil",
-    command: (event) => {
-      editItem(contract.value, "Chỉnh sửa hợp đồng");
-    },
-  },
-  {
-    label: "Xoá",
-    icon: "pi pi-trash",
-    command: (event) => {
-      deleteItem(contract.value);
-    },
-  },
-]);
-const toggleMores = (event, item) => {
-  contract.value = item;
-  menuButMores.value.toggle(event);
-  //selectedNodes.value = item;
-};
-
-watch(selectedNodes, () => {
-  options.value["filterContract_id"] = selectedNodes.value["contract_id"];
-});
 
 //filter
+const activeTab = (tab) => {
+  options.value.tab = tab.status;
+  initData(true);
+};
 const search = () => {
   options.value.pageNo = 1;
   initCount();
   initData(true);
 };
-const opfilter = ref();
-const toggleFilter = (event) => {
-  opfilter.value.toggle(event);
-};
-const resetFilter = () => {
-  options.value.organizations = [];
-  options.value.departments = [];
-  options.value.type_contracts = [];
-  options.value.work_positions = [];
-  options.value.sign_start_date = null;
-  options.value.sign_end_date = null;
-  options.value.users = [];
-  options.value.start_start_date = null;
-  options.value.end_start_date = null;
-  options.value.start_end_date = null;
-  options.value.end_end_date = null;
-};
-const removeFilter = (idx, array) => {
-  array.splice(idx, 1);
-};
-const filter = (event) => {
-  opfilter.value.toggle(event);
-  isFilter.value = true;
-  initCount();
-  initData(true);
-};
-
-//export
-const menuButs = ref();
-const itemButs = ref([
-  {
-    label: "Export dữ liệu ra Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      //exportData("ExportExcel");
-    },
-  },
-  {
-    label: "Import dữ liệu từ Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      //exportData("ExportExcel");
-    },
-  },
-]);
-const toggleExport = (event) => {
-  menuButs.value.toggle(event);
-};
+//Watch
+watch(selectedNodes, () => {
+  goProfile(selectedNodes.value);
+});
 
 //Function
 const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
-function CreateGuid() {
-  function _p8(s) {
-    var p = (Math.random().toString(16) + "000000000").substr(2, 8);
-    return s ? "-" + p.substr(0, 4) + "-" + p.substr(4, 4) : p;
-  }
-  return _p8() + _p8(true) + _p8(true) + _p8();
-}
-const activeTab = (tab) => {
-  options.value.tab = tab.id;
-  initData(true);
-};
-const opstatus = ref();
-const toggleStatus = (item, event) => {
-  contract.value = item;
-  opstatus.value.toggle(event);
+const menuButMores = ref();
+const itemButMores = ref([
+  {
+    label: "Hiệu chỉnh sơ yếu lý lịch",
+    icon: "pi pi-file",
+    command: (event) => {
+      editItem(profile.value, "Chỉnh sửa hồ sơ");
+    },
+  },
+  {
+    label: "Cập nhật thay đổi thông tin",
+    icon: "pi pi-pencil",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Cấp tài khoản truy cập",
+    icon: "pi pi-key",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Khóa tài khoản truy cập",
+    icon: "pi pi-lock",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Gửi thông báo Notify",
+    icon: "pi pi-send",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Gán nhãn",
+    icon: "pi pi-tags",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Thiết lập trạng thái",
+    icon: "pi pi-cog",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Xoá",
+    icon: "pi pi-trash",
+    command: (event) => {
+      deleteItem(profile.value);
+    },
+  },
+]);
+const toggleMores = (event, item) => {
+  profile.value = item;
+  menuButMores.value.toggle(event);
 };
 
-//add model
+const menuButMoresPlus = ref();
+const itemButMoresPlus = ref([
+  {
+    label: "Xác nhận tiếp nhận hồ sơ",
+    icon: "pi pi-check-circle",
+    command: (event) => {
+      openEditDialogReceipt(profile.value, "Xác nhận tiếp nhận hồ sơ");
+    },
+  },
+  {
+    label: "Hợp đồng lao động",
+    icon: "pi pi-file",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Bảo hiểm",
+    icon: "pi pi-book",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Sức khỏe",
+    icon: "pi pi-user",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Xác nhận là vợ/chồng",
+    icon: "pi pi-check",
+    command: (event) => {
+      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+]);
+const toggleMoresPlus = (event, item) => {
+  profile.value = item;
+  menuButMoresPlus.value.toggle(event);
+};
+const goFile = (file) => {
+  window.open(basedomainURL + file.file_path, "_blank");
+};
+const goProfile = (profile) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: profile.profile_id },
+  });
+};
+
+//Function update model
 const isAdd = ref(false);
 const submitted = ref(false);
 const model = ref({});
+const files = ref([]);
 const headerDialog = ref();
 const displayDialog = ref(false);
-const files = ref([]);
 const openAddDialog = (str) => {
   forceRerender();
   isAdd.value = true;
   model.value = {
-    profile: null,
-    sign_user: null,
-    contract_no: "",
-    contract_name: "",
-    employment:
-      dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
-    start_date: new Date(),
-    sign_date: new Date(),
     status: 0,
     is_order: options.value.total + 1,
-    allowances: [
-      {
-        allowance_id: CreateGuid(),
-        start_date: new Date(),
-        formalitys: [{}],
-        wages: [{}],
-      },
-    ],
-    files: [],
   };
+  files.value = [];
   headerDialog.value = str;
   displayDialog.value = true;
 };
@@ -223,6 +230,7 @@ const closeDialog = () => {
   displayDialog.value = false;
 };
 const editItem = (item, str) => {
+  datachilds.value = [];
   files.value = [];
   submitted.value = false;
   options.value.loading = true;
@@ -239,8 +247,8 @@ const editItem = (item, str) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contract_get",
-            par: [{ par: "contract_id", va: item.contract_id }],
+            proc: "hrm_profile_get_2",
+            par: [{ par: "profile_id", va: item.profile_id }],
           }),
           SecretKey,
           cryoptojs
@@ -254,61 +262,101 @@ const editItem = (item, str) => {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
           model.value = tbs[0][0];
-          if (model.value["profiles"] != null) {
-            model.value["profile"] = JSON.parse(model.value["profiles"])[0];
+          model.value["select_birthplace"] = {};
+          model.value["select_birthplace"][
+            model.value["birthplace_id"] || -1
+          ] = true;
+          model.value["select_birthplace_origin"] = {};
+          model.value["select_birthplace_origin"][
+            model.value["birthplace_origin_id"] || -1
+          ] = true;
+          model.value["select_place_register_permanent"] = {};
+          model.value["select_place_register_permanent"][
+            model.value["place_register_permanent"] || -1
+          ] = true;
+          if (model.value["recruitment_date"] != null) {
+            model.value["recruitment_date"] = new Date(
+              model.value["recruitment_date"]
+            );
           }
-          if (model.value["sign_users"] != null) {
-            model.value["sign_user"] = JSON.parse(model.value["sign_users"])[0];
+          if (model.value["birthday"] != null) {
+            model.value["birthday"] = new Date(model.value["birthday"]);
           }
-          if (model.value["start_date"] != null) {
-            model.value["start_date"] = new Date(model.value["start_date"]);
-          }
-          if (model.value["end_date"] != null) {
-            model.value["end_date"] = new Date(model.value["end_date"]);
-          }
-          if (model.value["sign_date"] != null) {
-            model.value["sign_date"] = new Date(model.value["sign_date"]);
-          }
-          if (model.value["professional_works"] != null) {
-            model.value["professional_works"] = model.value[
-              "professional_works"
-            ]
-              .split(",")
-              .map((x) => parseInt(x));
+          if (model.value["identity_date_issue"] != null) {
+            model.value["identity_date_issue"] = new Date(
+              model.value["identity_date_issue"]
+            );
           }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
-          model.value["allowances"] = tbs[1];
-          if (tbs[2] != null && tbs[2].length > 0) {
-            var formalitys = tbs[2].filter((x) => x["is_type"] === 0);
-            formalitys.forEach((x) => {
-              if (x["allowance_formality_id"] == null) {
-                x["allowance_formality_id"] = x["allowance_formality"];
-              }
-            });
-            var wages = tbs[2].filter((x) => x["is_type"] === 1);
-            wages.forEach((x) => {
-              if (x["allowance_wage_id"] == null) {
-                x["allowance_wage_id"] = x["allowance_wage"];
-              }
-            });
-            model.value["allowances"].forEach((allowance) => {
-              if (allowance["start_date"] != null) {
-                allowance["start_date"] = new Date(allowance["start_date"]);
-              }
-              allowance.formalitys = formalitys.filter(
-                (x) => x["allowance_id"] === allowance["allowance_id"]
+          tbs[1].forEach((x) => {
+            if (x["identification_date_issue"] != null) {
+              x["identification_date_issue"] = new Date(
+                x["identification_date_issue"]
               );
-              allowance.wages = wages.filter(
-                (x) => x["allowance_id"] === allowance["allowance_id"]
-              );
-            });
-          }
+            }
+            if (x["start_date"] != null) {
+              x["start_date"] = new Date(x["start_date"]);
+            }
+            if (x["end_date"] != null) {
+              x["end_date"] = new Date(x["end_date"]);
+            }
+          });
+          datachilds.value[1] = tbs[1];
         } else {
-          model.value.allowances = [];
+          datachilds.value[1] = [];
+        }
+        if (tbs[2] != null && tbs[2].length > 0) {
+          tbs[2].forEach((x) => {
+            if (x["start_date"] != null) {
+              x["start_date"] = new Date(x["start_date"]);
+            }
+            if (x["end_date"] != null) {
+              x["end_date"] = new Date(x["end_date"]);
+            }
+            if (x["certificate_start_date"] != null) {
+              x["certificate_start_date"] = new Date(
+                x["certificate_start_date"]
+              );
+            }
+            if (x["certificate_end_date"] != null) {
+              x["certificate_end_date"] = new Date(x["certificate_end_date"]);
+            }
+          });
+          datachilds.value[2] = tbs[2];
+        } else {
+          datachilds.value[2] = [];
         }
         if (tbs[3] != null && tbs[3].length > 0) {
-          model.value["files"] = tbs[3];
+          tbs[3].forEach((x) => {
+            if (x["start_date"] != null) {
+              x["start_date"] = new Date(x["start_date"]);
+            }
+            if (x["end_date"] != null) {
+              x["end_date"] = new Date(x["end_date"]);
+            }
+          });
+          datachilds.value[3] = tbs[3];
+        } else {
+          datachilds.value[3] = [];
+        }
+        if (tbs[4] != null && tbs[4].length > 0) {
+          tbs[4].forEach((x) => {
+            if (x["start_date"] != null) {
+              x["start_date"] = new Date(x["start_date"]);
+            }
+            if (x["end_date"] != null) {
+              x["end_date"] = new Date(x["end_date"]);
+            }
+          });
+          datachilds.value[4] = tbs[4];
+        } else {
+          datachilds.value[4] = [];
+        }
+        if (tbs[5] != null && tbs[5].length > 0) {
+          model.value["files"] = tbs[5];
+        } else {
+          model.value["files"] = [];
         }
       }
       swal.close();
@@ -340,72 +388,12 @@ const editItem = (item, str) => {
       }
     });
 };
-const udpateStatusItem = (item) => {
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  axios
-    .put(
-      baseURL + "/api/position/updateStatusPosition",
-      {
-        str: encr(
-          JSON.stringify({
-            id: item.contract_id,
-            status: !(item.status || false),
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      if (response.data.err === "1") {
-        swal.fire({
-          title: "Thông báo!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      } else {
-        swal.close();
-        toast.success("Cập nhật trạng thái thành công!");
-        initData(true);
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-        return;
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    });
-};
 const deleteItem = (item) => {
-  if (item != null || options.value["filterContract_id"] != null) {
+  if (item != null || options.value["filterProfile_id"] != null) {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá hợp đồng này không!",
+        text: "Bạn có muốn xoá hồ sơ này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -424,11 +412,12 @@ const deleteItem = (item) => {
           });
           var ids = [];
           if (item != null) {
-            ids = [item["contract_id"]];
-          } else {
+            ids = [item["profile_id"]];
+          } else if (options.value["filterProfile_id"] != null) {
+            ids = [options.value["filterProfile_id"]];
           }
           axios
-            .delete(baseURL + "/api/hrm_contract/delete_contract", {
+            .delete(baseURL + "/api/hrm_profile/delete_profile", {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: ids,
             })
@@ -445,6 +434,7 @@ const deleteItem = (item) => {
                 return;
               }
               toast.success("Xoá thành công!");
+              initCount();
               initData(true);
               swal.close();
               if (options.value.loading) options.value.loading = false;
@@ -476,48 +466,160 @@ const deleteItem = (item) => {
   }
 };
 const onUpload = () => {};
+const clickChange = ref(false);
+const chooseImage = (id) => {
+  clickChange.value = true;
+  document.getElementById(id).click();
+};
+const handleFileAvtUpload = (event, id) => {
+  if (event.target.files[0] != null) {
+    files.value.push(event.target.files[0]);
+  }
+  if (files.value && files.value.length > 0) {
+    files.value.forEach((f) => {
+      f.key = id;
+    });
+  }
+  model.value["isDisplayAvt"] = true;
+  var output = document.getElementById(id);
+  output.src = URL.createObjectURL(event.target.files[0]);
+  output.onload = function () {
+    URL.revokeObjectURL(output.src);
+  };
+};
+const deleteImage = (id) => {
+  if (id === "avatar") {
+    if (files.value && files.value.length > 0) {
+      files.value = files.value.filter((x) => x["key"] !== id);
+    }
+    model.value["isDisplayAvt"] = false;
+    clickChange.value = false;
+    var output = document.getElementById(id);
+    output.src = basedomainURL + "/Portals/Image/noimg.jpg";
+    model.value["avatar"] = null;
+  }
+};
 const removeFile = (event) => {
-  files.value = [];
-  event.files.forEach((element) => {
-    files.value.push(element);
-  });
+  files.value = files.value.filter((x) => x["key"] === "avatar");
 };
 const selectFile = (event) => {
-  files.value = [];
   event.files.forEach((element) => {
     files.value.push(element);
   });
 };
-const setStar = (item) => {
-  submitted.value = true;
+const addRow = (type) => {
+  let obj = {};
+  if (type === 1) {
+    //relative
+    obj = {
+      relative_name: null,
+      relationship_id: null,
+      birthday: null,
+      phone: null,
+      tax_code: null,
+      identification_citizen: null,
+      identification_date_issue: null,
+      identification_place_issue: null,
+      is_dependent: null,
+      start_date: null,
+      end_date: null,
+      info: null,
+      note: null,
+    };
+  } else if (type === 2) {
+    // skill
+    obj = {
+      university_name: null,
+      specialized: null,
+      start_date: null,
+      end_date: null,
+      form_traning_id: null,
+      certificate_id: null,
+      certificate_start_date: null,
+      certificate_end_date: null,
+      certificate_key_code: null,
+      certificate_version: null,
+      certificate_release_time: null,
+    };
+  } else if (type === 3) {
+    obj = {
+      card_number: null,
+      form: null,
+      start_date: null,
+      end_date: null,
+      admission_place: null,
+      transfer_place: null,
+    };
+  } else if (type === 4) {
+    obj = {
+      company: null,
+      role: null,
+      start_date: null,
+      end_date: null,
+      reference_name: null,
+      reference_phone: null,
+      description: null,
+    };
+  }
+  if (datachilds.value[type] == null) {
+    datachilds.value[type] = [];
+  }
+  datachilds.value[type].push(obj);
+};
+const deleteRow = (type, idx) => {
+  datachilds.value[type].splice(idx, 1);
+};
+
+//function receipt
+const receipts = ref([]);
+const headerDialogReceipt = ref();
+const displayDialogReceipt = ref(false);
+const openEditDialogReceipt = (item, str) => {
+  options.value.loading = true;
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
   });
-  let formData = new FormData();
-  item.is_star = !(item.is_star || false);
-  formData.append("is_star", item.is_star);
-  formData.append("ids", JSON.stringify([item["contract_id"]]));
+  isAdd.value = false;
   axios
-    .put(baseURL + "/api/hrm_contract/update_star_contract", formData, config)
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_receipt_get",
+            par: [{ par: "profile_id", va: item.profile_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
     .then((response) => {
-      if (response.data.err === "1") {
-        swal.fire({
-          title: "Thông báo!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          receipts.value = tbs[0];
+          receipts.value.forEach((x) => {
+            if (x["receipt_date"] != null) {
+              x["receipt_date"] = new Date(x["receipt_date"]);
+            }
+          });
+        }
       }
       swal.close();
-      toast.success("Cập nhật thành công!");
-      initData(true);
+      if (options.value.loading) options.value.loading = false;
+      forceRerender();
+      headerDialogReceipt.value = str;
+      displayDialogReceipt.value = true;
     })
     .catch((error) => {
       swal.close();
+      if (options.value.loading) options.value.loading = false;
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
@@ -537,85 +639,86 @@ const setStar = (item) => {
         return;
       }
     });
-  if (submitted.value) submitted.value = true;
 };
-const setStatus = (status, event) => {
-  if (status === 3) {
-    openAddDialogLiquidation("Thanh lý hợp đồng");
-  } else {
-    updateStatus(contract.value, status, event);
-  }
-};
-const updateStatus = (item, status, event, model) => {
-  opstatus.value.toggle(event);
-  closeDialogLiquidation();
-  if (status === 3 && (!model || !model.date)) {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  let data = {
-    id: item["contract_id"],
-    status: status,
-    content: model != null ? model.content : "",
-    date: model != null ? model.date : null,
-  };
+const closeDialogReceipt = () => {
+  displayDialogReceipt.value = false;
+}
+
+//Init
+const initPlace = () => {
   axios
-    .put(baseURL + "/api/hrm_contract/update_status_contract", data, config)
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "ca_places_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
     .then((response) => {
-      if (response.data.err === "1") {
+      renderPlace(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+
+      if (error && error.status === 401) {
         swal.fire({
-          title: "Thông báo!",
-          text: response.data.ms,
+          title: "Thông báo",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
-        return;
-      } else {
-        swal.close();
-        toast.success("Cập nhật trạng thái thành công!");
-        initCount();
-        initData(true);
+        store.commit("gologout");
       }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Thông báo!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
     });
 };
-const headerDialogLiquidation = ref();
-const displayDialogLiquidation = ref(false);
-const modelLiquidation = ref();
-const openAddDialogLiquidation = (str) => {
-  forceRerender();
-  modelLiquidation.value = {
-    content: "",
-    date: null,
-  };
-  headerDialogLiquidation.value = str;
-  displayDialogLiquidation.value = true;
+const renderPlace = (response) => {
+  let list1 = [];
+  let list2 = [];
+  let list3 = [];
+  let d1 = JSON.parse(response.data.data)[0];
+  d1.forEach((element, i) => {
+    let c = {
+      key: element.place_id,
+      data: element.place_id,
+      label: element.name,
+      children: null,
+    };
+    if (d1[i].children) {
+      list2 = JSON.parse(d1[i].children);
+      if (list2 != null) {
+        list2.forEach((element, i) => {
+          element.label = element.data.name;
+          element.data = parseInt(element.data.place_id);
+          element.key = element.data;
+          //đổi is_order
+          if (list2[i].children != null && list2[i].children.length > 0) {
+            // list3 = list2[i].children;
+            // list2[i].children = list3;
+            list2[i].children.forEach((element, i) => {
+              element.label = element.data.name;
+              element.data = parseInt(element.data.place_id);
+              element.key = element.data;
+            });
+          }
+        });
+      }
+      c.children = list2;
+    }
+    list1.push(c);
+  });
+  places.value = list1;
 };
-const closeDialogLiquidation = () => {
-  displayDialogLiquidation.value = false;
-};
-
-//Init
 const initDictionary = () => {
   axios
     .post(
@@ -623,7 +726,7 @@ const initDictionary = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contract_dictionary",
+            proc: "hrm_profile_dictionary",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
@@ -642,97 +745,7 @@ const initDictionary = () => {
       }
     });
 };
-const initCountFilter = () => {
-  var organizations = null;
-  if (
-    options.value.organizations != null &&
-    options.value.organizations.length > 0
-  ) {
-    organizations = options.value.organizations
-      .map((x) => x["organization_id"])
-      .join(",");
-  }
-  var departments = null;
-  if (
-    options.value.departments != null &&
-    options.value.departments.length > 0
-  ) {
-    departments = options.value.departments
-      .map((x) => x["department_id"])
-      .join(",");
-  }
-  var type_contracts = null;
-  if (
-    options.value.type_contracts != null &&
-    options.value.type_contracts.length > 0
-  ) {
-    type_contracts = options.value.type_contracts
-      .map((x) => x["type_contract_id"])
-      .join(",");
-  }
-  var work_positions = null;
-  if (
-    options.value.work_positions != null &&
-    options.value.work_positions.length > 0
-  ) {
-    work_positions = options.value.work_positions
-      .map((x) => x["work_position_id"])
-      .join(",");
-  }
-  var users = null;
-  if (options.value.users != null && options.value.users.length > 0) {
-    users = options.value.users.map((x) => x["user_id"]).join(",");
-  }
-  tabs.value.forEach((x) => {
-    x["total"] = 0;
-  });
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_contract_count_filter",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "search", va: options.value.search },
-              { par: "organizations", va: organizations },
-              { par: "departments", va: departments },
-              { par: "type_contracts", va: type_contracts },
-              { par: "work_positions", va: work_positions },
-              { par: "users", va: users },
-              { par: "sign_start_date", va: options.value.sign_start_date },
-              { par: "sign_end_date", va: options.value.sign_end_date },
-              { par: "start_start_date", va: options.value.start_start_date },
-              { par: "end_start_date", va: options.value.end_start_date },
-              { par: "start_end_date", va: options.value.start_end_date },
-              { par: "end_end_date", va: options.value.end_end_date },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      if (response != null && response.data != null) {
-        var data = response.data.data;
-        if (data != null) {
-          let tbs = JSON.parse(data);
-          if (tbs[0] != null && tbs[0].length > 0) {
-            counts.value = tbs[0];
-            tabs.value.forEach((x) => {
-              var idx = counts.value.findIndex((c) => c["status"] == x["id"]);
-              if (idx !== -1) {
-                x["total"] = counts.value[idx]["total"];
-              }
-            });
-          }
-        }
-      }
-    });
-};
+const initCountFilter = () => {};
 const initCount = () => {
   if (isFilter.value) {
     initCountFilter();
@@ -747,7 +760,7 @@ const initCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contract_count",
+            proc: "hrm_profile_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -767,7 +780,9 @@ const initCount = () => {
           if (tbs[0] != null && tbs[0].length > 0) {
             counts.value = tbs[0];
             tabs.value.forEach((x) => {
-              var idx = counts.value.findIndex((c) => c["status"] == x["id"]);
+              var idx = counts.value.findIndex(
+                (c) => c["status"] == x["status"]
+              );
               if (idx !== -1) {
                 x["total"] = counts.value[idx]["total"];
               }
@@ -777,161 +792,7 @@ const initCount = () => {
       }
     });
 };
-const initDataFilter = () => {
-  var organizations = null;
-  if (
-    options.value.organizations != null &&
-    options.value.organizations.length > 0
-  ) {
-    organizations = options.value.organizations
-      .map((x) => x["organization_id"])
-      .join(",");
-  }
-  var departments = null;
-  if (
-    options.value.departments != null &&
-    options.value.departments.length > 0
-  ) {
-    departments = options.value.departments
-      .map((x) => x["department_id"])
-      .join(",");
-  }
-  var type_contracts = null;
-  if (
-    options.value.type_contracts != null &&
-    options.value.type_contracts.length > 0
-  ) {
-    type_contracts = options.value.type_contracts
-      .map((x) => x["type_contract_id"])
-      .join(",");
-  }
-  var work_positions = null;
-  if (
-    options.value.work_positions != null &&
-    options.value.work_positions.length > 0
-  ) {
-    work_positions = options.value.work_positions
-      .map((x) => x["work_position_id"])
-      .join(",");
-  }
-  var users = null;
-  if (options.value.users != null && options.value.users.length > 0) {
-    users = options.value.users.map((x) => x["user_id"]).join(",");
-  }
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_contract_list_filter",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "search", va: options.value.search },
-              { par: "pageNo", va: options.value.pageNo },
-              { par: "pageSize", va: options.value.pageSize },
-              { par: "tab", va: options.value.tab },
-              { par: "organizations", va: organizations },
-              { par: "departments", va: departments },
-              { par: "type_contracts", va: type_contracts },
-              { par: "work_positions", va: work_positions },
-              { par: "users", va: users },
-              { par: "sign_start_date", va: options.value.sign_start_date },
-              { par: "sign_end_date", va: options.value.sign_end_date },
-              { par: "start_start_date", va: options.value.start_start_date },
-              { par: "end_start_date", va: options.value.end_start_date },
-              { par: "start_end_date", va: options.value.start_end_date },
-              { par: "end_end_date", va: options.value.end_end_date },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      if (response != null && response.data != null) {
-        let data = JSON.parse(response.data.data);
-        if (data != null) {
-          if (data[0] != null && data[0].length > 0) {
-            data[0].forEach((item, i) => {
-              item["STT"] = i + 1;
-              var idx = typestatus.value.findIndex(
-                (x) => x["value"] === item["status"]
-              );
-              if (idx != -1) {
-                item["status_name"] = typestatus.value[idx]["title"];
-                item["bg_color"] = typestatus.value[idx]["bg_color"];
-                item["text_color"] = typestatus.value[idx]["text_color"];
-              } else {
-                item["status_name"] = "Chưa xác định";
-                item["bg_color"] = "#bbbbbb";
-                item["text_color"] = "#fff";
-              }
-              if (item["sign_date"] != null) {
-                item["sign_date"] = moment(new Date(item["sign_date"])).format(
-                  "DD/MM/YYYY"
-                );
-              }
-              if (item["start_date"] != null) {
-                item["start_date"] = moment(
-                  new Date(item["start_date"])
-                ).format("DD/MM/YYYY");
-              }
-              if (item["end_date"] != null) {
-                item["end_date"] = moment(new Date(item["end_date"])).format(
-                  "DD/MM/YYYY"
-                );
-              }
-              if (item["created_date"] != null) {
-                item["created_date"] = moment(
-                  new Date(item["created_date"])
-                ).format("DD/MM/YYYY");
-              }
-              if (item["liquidation_date"] != null) {
-                item["liquidation_date"] = moment(
-                  new Date(item["liquidation_date"])
-                ).format("DD/MM/YYYY");
-              }
-            });
-            datas.value = data[0];
-            if (data[1] != null && data[1].length > 0) {
-              options.value.total = data[1][0].total;
-            }
-          } else {
-            datas.value = [];
-            options.value.total = 0;
-          }
-        }
-      }
-      if (isFirst.value) isFirst.value = false;
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-    })
-    .catch((error) => {
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-        return;
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    });
-};
+const initDataFilter = () => {};
 const initData = (ref) => {
   if (ref) {
     swal.fire({
@@ -951,7 +812,7 @@ const initData = (ref) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contract_list",
+            proc: "hrm_profile_list_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -973,41 +834,19 @@ const initData = (ref) => {
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((item, i) => {
               item["STT"] = i + 1;
-              var idx = typestatus.value.findIndex(
-                (x) => x["value"] === item["status"]
-              );
-              if (idx != -1) {
-                item["status_name"] = typestatus.value[idx]["title"];
-                item["bg_color"] = typestatus.value[idx]["bg_color"];
-                item["text_color"] = typestatus.value[idx]["text_color"];
-              } else {
-                item["status_name"] = "Chưa xác định";
-                item["bg_color"] = "#bbbbbb";
-                item["text_color"] = "#fff";
-              }
-              if (item["sign_date"] != null) {
-                item["sign_date"] = moment(new Date(item["sign_date"])).format(
-                  "DD/MM/YYYY"
-                );
-              }
-              if (item["start_date"] != null) {
-                item["start_date"] = moment(
-                  new Date(item["start_date"])
-                ).format("DD/MM/YYYY");
-              }
-              if (item["end_date"] != null) {
-                item["end_date"] = moment(new Date(item["end_date"])).format(
-                  "DD/MM/YYYY"
-                );
-              }
               if (item["created_date"] != null) {
                 item["created_date"] = moment(
                   new Date(item["created_date"])
                 ).format("DD/MM/YYYY");
               }
-              if (item["liquidation_date"] != null) {
-                item["liquidation_date"] = moment(
-                  new Date(item["liquidation_date"])
+              if (item["birthday"] != null) {
+                item["birthday"] = moment(new Date(item["birthday"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+              if (item["recruitment_date"] != null) {
+                item["recruitment_date"] = moment(
+                  new Date(item["recruitment_date"])
                 ).format("DD/MM/YYYY");
               }
             });
@@ -1060,32 +899,14 @@ const refresh = () => {
     sort: "created_date desc",
     orderBy: "desc",
     tab: -1,
-    filterContract_id: null,
-    organizations: [],
-    departments: [],
-    type_contracts: [],
-    work_positions: [],
-    sign_start_date: null,
-    sign_end_date: null,
-    users: [],
-    start_start_date: null,
-    end_start_date: null,
-    start_end_date: null,
-    end_end_date: null,
+    filterProfile_id: null,
   };
   isFilter.value = false;
   initCount();
   initData(true);
 };
-//page
-const onPage = (event) => {
-  if (event.rows != options.value.pageSize) {
-    options.value.pageSize = event.rows;
-  }
-  options.value.pageNo = event.page + 1;
-  initData(true);
-};
 onMounted(() => {
+  initPlace();
   initDictionary();
   initCount();
   initData(true);
@@ -1143,7 +964,7 @@ onMounted(() => {
                       <div class="form-group">
                         <label>Đơn vị</label>
                         <MultiSelect
-                          :options="dictionarys[12]"
+                          :options="organizations"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
@@ -1648,7 +1469,7 @@ onMounted(() => {
       </template>
       <template #end>
         <Button
-          @click="openAddDialog('Thêm mới hợp đồng')"
+          @click="openAddDialog('Thêm mới hồ sơ')"
           label="Thêm mới"
           icon="pi pi-plus"
           class="mr-2"
@@ -1663,8 +1484,8 @@ onMounted(() => {
           icon="pi pi-trash"
           label="Xóa"
           :class="{
-            'p-button-danger': options.filterContract_id != null,
-            'btn-hidden p-button-danger': options.filterContract_id == null,
+            'p-button-danger': options.filterProfile_id != null,
+            'btn-hidden p-button-danger': options.filterProfile_id == null,
           }"
           @click="deleteItem()"
           class="mr-2"
@@ -1698,7 +1519,7 @@ onMounted(() => {
             :key="key"
             @click="activeTab(tab)"
             class="tableview-header"
-            :class="{ highlight: options.tab === tab.id }"
+            :class="{ highlight: options.tab === tab.status }"
           >
             <a>
               <i :class="tab.icon"></i>
@@ -1710,310 +1531,169 @@ onMounted(() => {
     </div>
     <div class="d-lang-table">
       <DataTable
-        @page="onPage($event)"
         :value="datas"
-        :paginator="true"
-        :rows="options.pageSize"
-        :rowsPerPageOptions="[25, 50, 100, 200]"
-        :totalRecords="options.total"
+        :virtualScrollerOptions="{ itemSize: 78 }"
         :scrollable="true"
-        :lazy="true"
-        :rowHover="true"
-        :showGridlines="false"
-        :globalFilterFields="['type_contract_name']"
         v-model:selection="selectedNodes"
         selectionMode="single"
-        dataKey="contract_id"
-        scrollHeight="flex"
-        filterDisplay="menu"
-        filterMode="lenient"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        responsiveLayout="scroll"
+        dataKey="profile_id"
+        scrollHeight="calc(100vh - 170px)"
+        class="disable-header"
       >
-        <!-- <Column
-          field="STT"
-          header="STT"
-          headerStyle="text-align:center;max-width:75px;height:50px"
-          bodyStyle="text-align:center;max-width:75px;"
-          class="align-items-center justify-content-center text-center"
-        >
-        </Column> -->
         <Column
-          field="contract_no"
-          header="Mã HĐ"
-          headerStyle="text-align:center;max-width:80px;height:50px"
-          bodyStyle="text-align:center;max-width:80px;"
-          class="align-items-center justify-content-center text-center"
-        />
-        <Column
-          field="profile_user_name"
-          header="Tên nhân sự"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.profile_user_name }}
-          </template>
-        </Column>
-        <Column
-          field="department_name"
-          header="Phòng ban"
-          headerStyle="height:50px;max-width:auto;"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.department_name }}
-          </template>
-        </Column>
-        <Column
-          field="type_contract_name"
-          header="Loại hợp đồng"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.type_contract_name }}
-          </template>
-        </Column>
-        <Column
-          field="sign_date"
-          header="Ngày ký"
+          field="Avatar"
+          header="Ảnh"
           headerStyle="text-align:center;max-width:100px;height:50px"
           bodyStyle="text-align:center;max-width:100px;"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <span>{{ slotProps.data.sign_date }}</span>
-          </template>
-        </Column>
-        <Column
-          field="start_date"
-          header="Ngày hiệu lực"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <span>{{ slotProps.data.start_date }}</span>
-          </template>
-        </Column>
-        <Column
-          field="end_date"
-          header="Ngày hết hạn"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <span>{{ slotProps.data.end_date }}</span>
-          </template>
-        </Column>
-        <Column
-          field="sign_user_name"
-          header="Người ký"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.sign_user_name }}
-          </template>
-        </Column>
-        <Column
-          field="created_date"
-          header="Ngày/Người lập"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <span class="mr-2">{{ slotProps.data.created_date }}</span>
-            <div>
-              <Avatar
-                v-bind:label="
-                  slotProps.data.avatar
-                    ? ''
-                    : slotProps.data.full_name.substring(0, 1)
-                "
-                v-bind:image="
-                  slotProps.data.avatar
-                    ? basedomainURL + slotProps.data.avatar
-                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-                style="
-                  background-color: #2196f3;
-                  color: #ffffff;
-                  width: 2rem;
-                  height: 2rem;
-                  font-size: 1rem !important;
-                "
-                :style="{
-                  background: bgColor[slotProps.data.created_is_order % 7],
-                }"
-                class="text-avatar"
-                size="xlarge"
-                shape="circle"
-                v-tooltip.top="slotProps.data.full_name"
-              />
-            </div>
-          </template>
-        </Column>
-        <Column
-          field="status"
-          header="Trạng thái"
-          headerStyle="text-align:center;max-width:140px;height:50px"
-          bodyStyle="text-align:center;max-width:140px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <div
-              class="m-2"
-              @click="
-                toggleStatus(slotProps.data, $event);
-                $event.stopPropagation();
+            <Avatar
+              v-bind:label="
+                slotProps.data.avatar
+                  ? ''
+                  : (slotProps.data.profile_user_name ?? '')
+                      .substring(0, 1)
+                      .toUpperCase()
               "
-              aria:haspopup="true"
-              aria-controls="overlay_panel_status"
-            >
-              <Button
-                :label="slotProps.data.status_name"
-                icon="pi pi-chevron-down"
-                iconPos="right"
-                :style="{
-                  border: slotProps.data.bg_color,
-                  backgroundColor: slotProps.data.bg_color,
-                  color: slotProps.data.text_color,
-                }"
-              />
-            </div>
-            <OverlayPanel
-              :showCloseIcon="false"
-              ref="opstatus"
-              appendTo="body"
-              class="p-0 m-0"
-              id="overlay_panel_status"
-              style="width: 200px"
-            >
-              <div class="form-group">
-                <label>Trạng thái</label>
-                <Dropdown
-                  :options="typestatus"
-                  :filter="false"
-                  :showClear="false"
-                  :editable="false"
-                  v-model="contract.status"
-                  optionLabel="title"
-                  optionValue="value"
-                  placeholder="Chọn trạng thái"
-                  class="ip36"
-                  @change="setStatus(contractstatus, $event)"
-                >
-                  <template #option="slotProps">
-                    <div class="country-item flex align-items-center">
-                      <div class="pt-1 pl-2">
-                        {{ slotProps.option.title }}
-                      </div>
-                    </div>
-                  </template>
-                </Dropdown>
-              </div>
-              <div v-if="contract.status === 3" class="form-group">
-                <label>Ngày thanh lý</label>
-                <Calendar
-                  :showIcon="true"
-                  class="ip36"
-                  autocomplete="on"
-                  inputId="time24"
-                  v-model="contract.liquidation_date"
-                  placeholder="DD/MM/YYYY"
-                  disabled="true"
-                />
-              </div>
-              <div v-if="contract.status === 3" class="form-group m-0">
-                <label>Nội dung</label>
-                <Textarea
-                  v-model="contract.liquidation_content"
-                  :autoResize="true"
-                  rows="2"
-                  cols="30"
-                  disabled="true"
-                />
-              </div>
-            </OverlayPanel>
-          </template>
-        </Column>
-        <!-- <Column
-          header="Chức năng"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <div v-if="slotProps.data.is_function">
-              <Button
-                @click="editItem(slotProps.data, 'Cập nhật thông tin nhóm')"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                "
-                type="button"
-                icon="pi pi-pencil"
-                v-tooltip.top="'Sửa'"
-              ></Button>
-              <Button
-                @click="deleteItem(slotProps.data, true)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                "
-                type="button"
-                icon="pi pi-trash"
-                v-tooltip.top="'Xóa'"
-              ></Button>
-            </div>
-          </template>
-        </Column> -->
-        <Column
-          header=""
-          headerStyle="text-align:center;max-width:50px"
-          bodyStyle="text-align:center;max-width:50px"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <div>
-              <a
-                @click="setStar(slotProps.data)"
-                v-tooltip.top="
-                  slotProps.data.is_star ? 'Hợp đồng cần lưu ý' : ''
-                "
-              >
-                <i
-                  :class="{
-                    'pi pi-star-fill icon-star': slotProps.data.is_star,
-                    'pi pi-star': !slotProps.data.is_star,
-                  }"
-                  style="font-size: 15px"
-                ></i>
-              </a>
-            </div>
-          </template>
-        </Column>
-        <Column
-          header=""
-          headerStyle="text-align:center;max-width:50px"
-          bodyStyle="text-align:center;max-width:50px"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <Button
-              icon="pi pi-ellipsis-h"
-              class="p-button-rounded p-button-text ml-2"
-              @click="toggleMores($event, slotProps.data)"
-              aria-haspopup="true"
-              aria-controls="overlay_More"
-              v-tooltip.top="'Tác vụ'"
+              v-bind:image="
+                slotProps.data.avatar
+                  ? basedomainURL + slotProps.data.avatar
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              "
+              style="
+                background-color: #2196f3;
+                color: #ffffff;
+                width: 5rem;
+                height: 5rem;
+                font-size: 1.5rem !important;
+              "
+              :style="{
+                background: bgColor[slotProps.index % 7],
+              }"
+              size="xlarge"
             />
+          </template>
+        </Column>
+        <Column
+          field="profile_user_name"
+          header="Họ và tên"
+          headerStyle="height:50px;max-width:auto;"
+        >
+          <template #body="slotProps">
+            <div class="mr-2" style="min-width: 200px">
+              <div class="mb-2">
+                <b>{{ slotProps.data.profile_user_name }}</b>
+              </div>
+              <div class="mb-1 description">
+                <span>{{ slotProps.data.profile_id }}</span>
+              </div>
+              <div
+                class="mb-1 description"
+                v-if="slotProps.data.recruitment_date"
+              >
+                Ngày vào: {{ slotProps.data.recruitment_date }}
+              </div>
+            </div>
+            <div class="mr-2" style="min-width: 200px">
+              <div class="mb-1 description" v-if="slotProps.data.gender">
+                <span>{{ slotProps.data.gender == 1 ? "Nam" : "Nữ" }}</span>
+              </div>
+              <div class="mb-1 description">
+                <span>{{ slotProps.data.birthday }}</span>
+              </div>
+              <div class="mb-1 description">
+                <span>{{ slotProps.data.birthplace_name }}</span>
+              </div>
+            </div>
+            <div class="mr-2" style="min-width: 200px">
+              <div class="mb-1 description">
+                <span
+                  >{{ slotProps.data.phone }}
+                  <span
+                    v-if="
+                      slotProps.data.phone != null &&
+                      slotProps.data.email != null
+                    "
+                    >|</span
+                  >
+                  {{ slotProps.data.email }}</span
+                >
+              </div>
+              <div class="mb-1 description">
+                <span>{{ slotProps.data.identity_papers_code }}</span>
+              </div>
+              <div class="mb-1 description">
+                <span>{{ slotProps.data.place_residence }}</span>
+              </div>
+            </div>
+            <div class="mr-2" style="min-width: 200px">
+              <div class="mb-1 description">
+                <span>{{ slotProps.data.department_name }}</span>
+              </div>
+              <div class="mb-1 description">
+                <span>{{ slotProps.data.work_position_name }}</span>
+              </div>
+              <div class="mb-1 description">
+                <span>{{ slotProps.data.position_name }}</span>
+              </div>
+            </div>
+          </template>
+        </Column>
+        <Column
+          header=""
+          headerStyle="text-align:center;max-width:100px"
+          bodyStyle="text-align:center;max-width:100px"
+          class="align-items-center justify-content-center text-center"
+        >
+          <template #body="slotProps">
+            <ul class="flex p-0" style="list-style: none">
+              <li>
+                <Button
+                  :icon="
+                    slotProps.data.is_star ? 'pi pi-star-fill' : 'pi pi-star'
+                  "
+                  :class="{ 'icon-star': slotProps.data.is_star }"
+                  class="p-button-rounded p-button-text"
+                  @click="
+                    setStar(slotProps.data);
+                    $event.stopPropagation();
+                  "
+                  aria-haspopup="true"
+                  aria-controls="overlay_MorePlus"
+                  v-tooltip.top="
+                    slotProps.data.is_star ? 'Hợp đồng cần lưu ý' : ''
+                  "
+                  style="font-size: 15px; color: #000"
+                />
+              </li>
+              <li>
+                <Button
+                  icon="pi pi-plus-circle"
+                  class="p-button-rounded p-button-text"
+                  @click="
+                    toggleMoresPlus($event, slotProps.data);
+                    $event.stopPropagation();
+                  "
+                  aria-haspopup="true"
+                  aria-controls="overlay_MorePlus"
+                  v-tooltip.top="'Nhập bổ sung hồ sơ'"
+                />
+              </li>
+              <li>
+                <Button
+                  icon="pi pi-ellipsis-h"
+                  class="p-button-rounded p-button-text"
+                  @click="
+                    toggleMores($event, slotProps.data);
+                    $event.stopPropagation();
+                  "
+                  aria-haspopup="true"
+                  aria-controls="overlay_More"
+                  v-tooltip.top="'Tác vụ'"
+                />
+              </li>
+            </ul>
           </template>
         </Column>
         <template #empty>
@@ -2028,7 +1708,7 @@ onMounted(() => {
             style="
               display: flex;
               width: 100%;
-              height: calc(100vh - 326px);
+              height: calc(100vh - 210px);
               background-color: #fff;
             "
           >
@@ -2041,104 +1721,55 @@ onMounted(() => {
       </DataTable>
     </div>
   </div>
-  <dialogcontract
+
+  <!-- Dialog -->
+  <dilogprofile
     :key="componentKey"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
     :isAdd="isAdd"
-    :isView="false"
     :model="model"
     :files="files"
+    :chooseImage="chooseImage"
+    :deleteImage="deleteImage"
+    :handleFileAvtUpload="handleFileAvtUpload"
     :selectFile="selectFile"
     :removeFile="removeFile"
+    :addRow="addRow"
+    :deleteRow="deleteRow"
+    :datachilds="datachilds"
     :dictionarys="dictionarys"
+    :genders="genders"
+    :places="places"
+    :marital_status="marital_status"
     :initData="initData"
   />
-  <Dialog
-    :header="headerDialogLiquidation"
-    v-model:visible="displayDialogLiquidation"
-    :style="{ width: '30vw' }"
-    :maximizable="true"
-    :closable="false"
-    style="z-index: 9000"
-  >
-    <form @submit.prevent="" name="submitform">
-      <div class="grid formgrid m-2">
-        <div class="col-12 md:col-12">
-          <div class="form-group">
-            <label>Ngày thanh lý <span class="redsao">(*)</span></label>
-            <Calendar
-              :showIcon="true"
-              class="ip36"
-              autocomplete="on"
-              inputId="time24"
-              :class="{
-                'p-invalid': !modelLiquidation.date && submitted,
-              }"
-              v-model="modelLiquidation.date"
-              placeholder="DD/MM/YYYY"
-            />
-            <div v-if="!modelLiquidation.date && submitted">
-              <small class="p-error">
-                <span class="col-12 p-0"
-                  >Hiệu lực từ ngày không được để trống</span
-                >
-              </small>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 md:col-12">
-          <div class="form-group">
-            <label>Nội dung</label>
-            <Dropdown
-              :options="liquidations"
-              :filter="true"
-              :showClear="true"
-              :editable="true"
-              v-model="modelLiquidation.content"
-              optionLabel="title"
-              optionValue="title"
-              placeholder="Chọn kiểu thanh lý"
-              class="ip36"
-            >
-              <template #option="slotProps">
-                <div class="country-item flex align-items-center">
-                  <div class="pt-1 pl-2">
-                    {{ slotProps.option.title }}
-                  </div>
-                </div>
-              </template>
-            </Dropdown>
-          </div>
-        </div>
-      </div>
-    </form>
-    <template #footer>
-      <Button
-        label="Hủy"
-        icon="pi pi-times"
-        @click="closeDialogLiquidation()"
-        class="p-button-text"
-      />
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="updateStatus(contract, 3, $event, modelLiquidation)"
-      />
-    </template>
-  </Dialog>
+  <dialogreceipt
+    :key="componentKey"
+    :headerDialog="headerDialogReceipt"
+    :displayDialog="displayDialogReceipt"
+    :closeDialog="closeDialogReceipt"
+    :profile="profile"
+    :receipts="receipts"
+  />
   <Menu
     id="overlay_More"
     ref="menuButMores"
     :model="itemButMores"
     :popup="true"
   />
+  <Menu
+    id="overlay_MorePlus"
+    ref="menuButMoresPlus"
+    :model="itemButMoresPlus"
+    :popup="true"
+  />
 </template>
 <style scoped>
-@import url(../contract/component/stylehrm.css);
+@import url(../profile/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 166px) !important;
+  height: calc(100vh - 170px) !important;
   background-color: #fff;
 }
 .icon-star {
@@ -2146,44 +1777,9 @@ onMounted(() => {
 }
 </style>
 <style lang="scss" scoped>
-::v-deep(.d-lang-table) {
-  .p-datatable-thead .justify-content-center .p-column-header-content {
-    justify-content: center !important;
-  }
-
-  .p-datatable-table {
-    position: absolute;
-  }
-
-  .p-datatable-thead {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-}
-::v-deep(.form-group) {
-  .p-multiselect .p-multiselect-label,
-  .p-dropdown .p-dropdown-label {
-    height: 100%;
-    display: flex;
-    align-items: center;
-  }
-  .p-chip img {
-    margin: 0;
-  }
-  .p-avatar-text {
-    font-size: 1rem;
-  }
-}
-::v-deep(.avatar-item) {
-  .p-avatar.p-avatar-lg {
-    width: 3rem;
-    height: 3rem;
-  }
-}
-::v-deep(.is-close) {
-  .p-panel-header {
-    color: red;
+::v-deep(.disable-header) {
+  table thead {
+    display: none;
   }
 }
 </style>

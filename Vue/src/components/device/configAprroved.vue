@@ -273,6 +273,7 @@ const loadData = () => {
                 : "Xác nhận hoàn thành";
           }
           element.device_approved_li = JSON.parse(element.device_approved_li);
+             if(element.device_approved_li)
           element.device_approved_li.forEach((otem) => {
             if (otem.avatar == "") {
               otem.avatar = null;
@@ -370,7 +371,7 @@ const loadUser = () => {
       }
     });
 };
-const listFilesS = ref();
+const listFilesS = ref([]);
 const hideAccept = () => {
   emitter.emit("emitData", { type: "hideAccept", data: null });
 };

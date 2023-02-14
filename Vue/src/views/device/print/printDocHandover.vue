@@ -77,12 +77,7 @@ const props = defineProps({
               <div style="padding: 1rem 0">
                 <div class="uppercase title2"><b>Biên bản bàn giao</b></div>
                 <div class="">
-                     
-                  <!-- <i>
-                    (Từ ngày
-                    {{ moment(props.week_start_date).format("DD/MM/YYYY") }} đến ngày
-                    {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
-                  </i> -->
+       
                 </div>
               </div>
             </td>
@@ -132,7 +127,7 @@ const props = defineProps({
  <table border='0' width='100%' cellpadding='10' style='border-spacing:0;padding-left:15px;padding-right:15px;'><thead><tr> 
  <th align='center' width='10%' style='border:1px solid #000 !important;font-size:16px !important;'>STT</th> 
  <th align='center' width='15%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Số hiệu</th> 
-  <th align='center' width='15%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Mã barcode</th> 
+  <th align='center' width='12%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Barcode</th> 
  <th align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Tên thiết bị</th> 
    <th align='center' width='10%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Đơn vị tính</th> 
  <th align='center' width='10%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Giá trị</th> 
@@ -146,7 +141,7 @@ const props = defineProps({
 <td width='15%' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'>
     {{ ts.device_number}}
 </td>
-<td width='15%' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'> 
+<td width='12%' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'> 
   {{ts.barcode_id}}  </td>
 <td align='left' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'> 
       {{ts.device_name}}  </td>
@@ -158,13 +153,7 @@ const props = defineProps({
 <td width='20%' align='left' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'> 
      {{ ts.assets_condition}}  </td></tr>
  </tbody></table> 
-  <!-- htmltable +=
-    "<table border='0' width='1024' cellpadding='0' style='padding:10px 15px 0px;'><tbody>";
-  htmltable +=
-    "<tr><td style='font-size:16px;font-weight:bold;text-align:right;'><a style='padding-right:20px'>Tổng giá trị: </a>" +
-    sum.toLocaleString() +
-    " VND </td></tr></tbody></table>"; -->
-
+ 
     <table v-if="  props.datas.print_note == null ||
     props.datas.print_note ==''" border='0' width='100%' cellpadding='10'><tbody><tr><td colspan='7'><p style='font-size:16px;text-align:justify;'> 
  Biên bản được lập thành 04 bản, mỗi bên giữ 02 bản có giá trị như nhau.</p></td></tr></tbody></table>

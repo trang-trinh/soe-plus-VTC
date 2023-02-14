@@ -246,7 +246,7 @@ const loadTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      debugger;
+      
       Dictionarys.value = data;
       if (Dictionarys.value[16].length > 0) {
         headers.value = Dictionarys.value[16];
@@ -597,7 +597,7 @@ const saveProfile = (isFormValid) => {
       : Object.keys(select_place_register_permanent.value)[0];
   let formData = new FormData();
   formData.append("profile", JSON.stringify(profile.value));
-  debugger;
+  
   formData.append(
     "skill",
     JSON.stringify(
