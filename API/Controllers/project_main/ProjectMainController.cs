@@ -1,4 +1,5 @@
-﻿using API.Models;
+﻿using API.Helper;
+using API.Models;
 using Helper;
 using Newtonsoft.Json;
 using System;
@@ -13,7 +14,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
@@ -92,22 +92,10 @@ namespace API.Controllers
                         if (file.Count > 0)
                         {
                             #region file
-                            string path = "/" + projectmain.organization_id + "/ProjectMain/" + projectmain.project_id;
-
-                            var listPathEdit_0 = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
-                            var pathEdit_0 = "";
-                            foreach (var itemEdit in listPathEdit_0)
-                            {
-                                if (itemEdit.Trim() != "")
-                                {
-                                    pathEdit_0 += "/" + Path.GetFileName(itemEdit);
-                                }
-                            }
-
-                            exists = Directory.Exists(root + pathEdit_0);
+                            string path = root + "/" + projectmain.organization_id + "/ProjectMain/" + projectmain.project_id;
+                            bool exists = Directory.Exists(path);
                             if (!exists)
-                                Directory.CreateDirectory(root + pathEdit_0);
-
+                                Directory.CreateDirectory(path);
                             foreach (MultipartFileData fileData in provider.FileData)
                             {
                                 string org_name_file = fileData.Headers.ContentDisposition.FileName;
@@ -120,14 +108,13 @@ namespace API.Controllers
                                     org_name_file = System.IO.Path.GetFileName(org_name_file);
                                 }
                                 string name_file = helper.UniqueFileName(org_name_file);
-                                string pathTemp = root + pathEdit_0;
-                                string rootPath = pathTemp + "/" + name_file;
+                                string rootPath = path + "/" + name_file;
                                 string Duongdan = "/Portals/" + projectmain.organization_id + "/ProjectMain/" + projectmain.project_id + "/" + name_file;
                                 string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
                                 if (rootPath.Length > 260)
                                 {
                                     name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
-                                    int le = 260 - (pathTemp.Length + 1) - Dinhdang.Length;
+                                    int le = 260 - (path.Length + 1) - Dinhdang.Length;
                                     name_file = name_file.Substring(0, le) + Dinhdang;
                                 }
                                 if (File.Exists(rootPath))
@@ -154,6 +141,7 @@ namespace API.Controllers
                 {
                     contents = "";
                 }
+                Log.Error(contents);
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
             catch (Exception e)
@@ -164,6 +152,7 @@ namespace API.Controllers
                 {
                     contents = "";
                 }
+                Log.Error(contents);
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
@@ -272,6 +261,7 @@ namespace API.Controllers
                 {
                     contents = "";
                 }
+                Log.Error(contents);
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
             catch (Exception e)
@@ -282,6 +272,7 @@ namespace API.Controllers
                 {
                     contents = "";
                 }
+                Log.Error(contents);
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
@@ -296,8 +287,8 @@ namespace API.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            try
-            {
+            //try
+            //{
                 string ip = getipaddress();
                 string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
                 string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
@@ -316,14 +307,17 @@ namespace API.Controllers
                             foreach (var da in das)
                             {
                                 del.Add(da);
-                                var delPath = Path.Combine(HttpContext.Current.Server.MapPath("~/" + "/Portals/"), Path.GetFileName(da.organization_id.ToString()), "ProjectMain", Path.GetFileName(da.project_id.ToString()), Path.GetFileName(da.logo));
-                                //if (File.Exists(root + model.logo))
-                                //{
-                                //    File.Delete(root + model.logo);
-                                //}
-                                if (File.Exists(delPath))
+                                if(da.logo != null)
                                 {
-                                    File.Delete(delPath);
+                                    var delPath = Path.Combine(HttpContext.Current.Server.MapPath("~/" + "/Portals/"), Path.GetFileName(da.organization_id.ToString()), "ProjectMain", Path.GetFileName(da.project_id.ToString()), Path.GetFileName(da.logo));
+                                    //if (File.Exists(root + model.logo))
+                                    //{
+                                    //    File.Delete(root + model.logo);
+                                    //}
+                                    if (File.Exists(delPath))
+                                    {
+                                        File.Delete(delPath);
+                                    }
                                 }
                                 //if (File.Exists(root + da.logo))
                                 //    File.Delete(root + da.logo);
@@ -364,6 +358,7 @@ namespace API.Controllers
                     {
                         contents = "";
                     }
+                    Log.Error(contents);
                     return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
                 catch (Exception e)
@@ -374,14 +369,15 @@ namespace API.Controllers
                     {
                         contents = "";
                     }
+                    Log.Error(contents);
                     return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
 
-            }
-            catch (Exception)
-            {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
-            }
+            //}
+            //catch (Exception)
+            //{
+            //    return Request.CreateResponse(HttpStatusCode.BadRequest);
+            //}
         }
 
         string PortalConfigs = ConfigurationManager.AppSettings["Portals"] ?? "";
@@ -395,8 +391,8 @@ namespace API.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            try
-            {
+            //try
+            //{
                 if (string.IsNullOrWhiteSpace(PortalConfigs))
                 {
                     PortalConfigs = HttpContext.Current.Server.MapPath("~/");
@@ -432,6 +428,7 @@ namespace API.Controllers
                     {
                         contents = "";
                     }
+                    Log.Error(contents);
                     return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
                 catch (Exception e)
@@ -442,13 +439,14 @@ namespace API.Controllers
                     {
                         contents = "";
                     }
+                    Log.Error(contents);
                     return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
-            }
-            catch (Exception)
-            {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
-            }
+            //}
+            //catch (Exception)
+            //{
+            //    return Request.CreateResponse(HttpStatusCode.BadRequest);
+            //}
 
         }
     }
