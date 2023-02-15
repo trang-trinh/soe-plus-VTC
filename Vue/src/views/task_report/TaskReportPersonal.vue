@@ -146,7 +146,9 @@ const onRefresh = () => {
         loctitle: 'Lọc',
         sdate: null,
         edate: null,
+        filterDuan: null,
         filterStatus: null,
+        filterUser: null,
     };
     loadData(true);
 }
@@ -169,6 +171,7 @@ const opition = ref({
     edate: null,
     filterDuan: null,
     filterStatus: null,
+    filterUser: null
 });
 const listDropdownProject = ref([]);
 const listDropdownVaitro = ref([
@@ -283,6 +286,7 @@ const loadData = (rf) => {
                             { par: "edate", va: opition.value.edate },
                             { par: "filterDuan", va: opition.value.filterDuan },
                             { par: "filterStatus", va: opition.value.filterStatus },
+                            { par: "filterUser", va: opition.value.filterUser },
                         ],
                     }),
                     SecretKey,
@@ -349,7 +353,85 @@ const toggleExport = (event) => {
 };
 const Del_ChangeFilter = () => {
     menuFilterButs.value.toggle();
+    opition.value = {
+        IsNext: true,
+        sort: "created_date",
+        ob: "DESC",
+        PageNo: 1,
+        PageSize: 20,
+        search: '',
+        IsType: null,
+        SearchTextUser: '',
+        filter_type: 0,
+        Filteruser_id: null,
+        organization_type: null,
+        user_id: store.getters.user_id,
+        loctitle: 'Lọc',
+        sdate: null,
+        edate: null,
+        filterDuan: null,
+        filterStatus: null,
+        filterUser: null
+    };
     loadData(true);
+};
+
+const listDropdownUser = ref();
+
+const listUser = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_users_list_task_origin",
+            par: [
+              { par: "search", va: opition.value.SearchTextUser },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "role_id", va: null },
+              {
+                par: "organization_id",
+                va: store.getters.user.organization_id,
+              },
+              { par: "department_id", va: null },
+              { par: "position_id", va: null },
+
+              { par: "isadmin", va: null },
+              { par: "status", va: null },
+              { par: "start_date", va: null },
+              { par: "end_date", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listDropdownUser.value = data.map((x,i) => ({
+        stt: i,
+        name: x.full_name,
+        code: x.user_id,
+        avatar: x.avatar,
+        ten: x.last_name,
+      }));
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
 };
 
 const listTudien = () => {
@@ -399,6 +481,7 @@ const ChangeFilter = () => {
 
 onMounted(() => {
     listTudien();
+    listUser();
     loadData(true);
     return {};
 });
@@ -657,13 +740,12 @@ const onPage = (event) => {
                                 v-model="opition.search" placeholder="Tìm kiếm" @keyup.enter="loadData(true)" />
                         </span>
                         <h3>BÁO CÁO THỐNG KÊ TỔNG HỢP CÔNG VIỆC CÁ NHÂN</h3>
-                        <!-- <span v-if="opition.sdate && opition.edate">(từ ngày 01/12/2022 đến ngày 19/12/2022)</span> -->
                     </div>
                 </template>
                 <template #end>
                     <ul id="toolbar_right" style="padding: 0px; margin: 0px; display: flex">
                         <li @click="onRefresh">
-                            <a><i class="pi pi-refresh"></i> Refresh</a>
+                            <a><i class="pi pi-refresh"></i> Tải lại</a>
                         </li>
                         <li @click="toggleFilter" aria-haspopup="true" :class="{ active: opition.filter_type != 0 }"
                             aria-controls="overlay_Export">
@@ -677,12 +759,47 @@ const onPage = (event) => {
                                 <i class="pi pi-angle-down"></i></a>
                         </li>
                         <li @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export">
-                            <a><i class="pi pi-file"></i> Export
+                            <a><i class="pi pi-file"></i> Tiện ích
                                 <i class="pi pi-angle-down"></i></a>
                         </li>
                     </ul>
                     <OverlayPanel ref="menuFilterButs" id="task_report_filter">
                         <ul style="padding: 0px; margin: 0px">
+                            <li class="p-menuitem" v-if="store.state.user.is_admin == true">
+                                <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
+                                    <label>Người dùng</label>
+                                    <Dropdown :filter="true" @change="changeDonvi($event)" v-model="opition.filterUser" panelClass="d-design-dropdown" placeholder="Chọn người dùng"
+                                        selectionLimit="1" :options="listDropdownUser" optionLabel="name"
+                                        optionValue="code" spellcheck="false" class="col-12 ip36 p-0">
+                                        <template #option="slotProps">
+                                            <div style="display: flex;align-items: center;">
+                                                <Avatar
+                                                v-bind:label="
+                                                slotProps.option.avatar
+                                                    ? ''
+                                                    : (slotProps.option.ten ?? '').substring(0, 1)
+                                                "
+                                                v-bind:image="basedomainURL + slotProps.option.avatar"
+                                                style="
+                                                background-color: #2196f3;
+                                                color: #ffffff;
+                                                width: 2.5rem;
+                                                height: 2.5rem;
+                                                font-size: 15px !important;
+                                                "
+                                                :style="{
+                                                background: bgColor[slotProps.option.stt % 7] + '!important',
+                                                }"
+                                                class="cursor-pointer"
+                                                size="xlarge"
+                                                shape="circle"
+                                            />
+                                            <div class="pt-1" style="margin-left: 10px;">{{ slotProps.option.name }}</div>
+                                            </div>
+                                        </template>
+                                    </Dropdown>
+                                </div>
+                            </li>
                             <li class="p-menuitem">
                                 <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
                                     <label>Dự án</label>
@@ -741,7 +858,8 @@ const onPage = (event) => {
                         </ul>
                         <div style="float: right; padding: 10px">
                             <Button @click="ChangeFilter()" label="Thực hiện" />
-                            <Button @click="Del_ChangeFilter" id="btn_huy" style="
+                            <Button @click="Del_ChangeFilter" id="btn_huy" 
+                            style="
                 background-color: #f2f4f6;
                   border: 1px solid #f2f4f6;
                   color: #333;
