@@ -23,6 +23,7 @@ const store = inject("store");
 const axios = inject("axios"); // inject axios
 const menuSortButs = ref();
 const menuListTypeButs = ref();
+const menuGroupListTypeButs = ref();
 const menuFilterButs = ref();
 const selectedTasks = ref();
 const listTask = ref();
@@ -74,6 +75,7 @@ const opition = ref({
   edate: null,
   loctitle: "Lọc",
   type_view: 2,
+  type_group_view: null,
   filter_date: null,
 });
 const listDropdownStatus = ref([
@@ -247,6 +249,26 @@ const itemSortButs = ref([
     label: "Số ngày quá hạn",
   },
 ]);
+const itemGroupListTypeButs = ref([
+  {
+    label: "Dự án",
+    active: false,
+    icon: "pi pi-briefcase",
+    type: 1,
+    command: (event) => {
+      ChangeGroupView(1);
+    },
+  },
+  {
+    label: "Nhóm công việc",
+    active: false,
+    icon: "pi pi-clone",
+    type: 2,
+    command: (event) => {
+      ChangeGroupView(2);
+    },
+  },
+]);
 const itemListTypeButs = ref([
   {
     label: "LIST",
@@ -294,6 +316,20 @@ const itemListTypeButs = ref([
     },
   },
 ]);
+
+const ChangeGroupView = (data) => {
+  itemGroupListTypeButs.value.forEach((t) => {
+    if (data.type != t.type) {
+      t.active = false;
+    } else {
+      t.active = true;
+      opition.value.type_group_view = t.type;
+    }
+  });
+  loadData(true, opition.value.type_view);
+  menuGroupListTypeButs.value.toggle();
+}
+
 const ChangeView = (data) => {
   if (data.type == 3) {
     opition.value.PageSize = 10000;
@@ -380,6 +416,9 @@ const toggleFilter = (event) => {
 };
 const toggleListType = (event) => {
   menuListTypeButs.value.toggle(event);
+};
+const toggleGroupListType = (event) => {
+  menuGroupListTypeButs.value.toggle(event);
 };
 const ChangeSortTask = (sort, ob) => {
   opition.value.sort = sort;
@@ -541,6 +580,9 @@ const Del_ChangeFilter = () => {
   opition.value.filter_date = null;
   opition.value.loctitle = "Lọc";
   itemFilterButs.value.forEach((i) => {
+    if(i.istype == 5 || i.istype == 6){
+      i.filter_date = new Date();
+    }
     i.active = false;
   });
   menuFilterButs.value.toggle();
@@ -872,7 +914,7 @@ const RenderData = (data) => {
     )
     .forEach((m, i) => {
       m.STT2 = opition.value.PageNo * opition.value.PageSize + i + 1;
-      let om = { key: m.task_id, data: m };
+      let om = { key: m.task_id, data: m, project_name: m.project_name, group_name: m.group_name };
       const rechildren = (mm, task_id) => {
         let dts = data.filter((x) => x.parent_id == task_id);
         if (dts.length > 0) {
@@ -1023,28 +1065,68 @@ const loadData = (rf, type) => {
         sttTask.value = data[1][0].total + 1;
       }
       if (type == 2) {
-        RenderData(data1);
+        if(opition.value.type_group_view){
+          RenderData(data1);
+        }else{
+          RenderData(data1);
+        }
       }
       if (type == 3) {
-        var listCV = groupBy(data1, "status");
-        var arrNew = [];
-        for (let k in listCV) {
-          var CVGroup = [];
-          listCV[k].forEach(function (r) {
-            CVGroup.push(r);
-          });
-          arrNew.push({
-            status: k,
-            status_name: listDropdownStatus.value.filter((x) => x.value == k)[0]
-              .text,
-            status_bg_color: listDropdownStatus.value.filter(
-              (x) => x.value == k,
-            )[0].bg_color,
-            CVGroup: CVGroup,
-          });
+        if(opition.value.type_group_view){
+          if(opition.value.type_group_view == 1){
+            var listCV = groupBy(data1, "project_id");
+            var arrNew = [];
+            for (let k in listCV) {
+              var CVGroup = [];
+              listCV[k].forEach(function (r) {
+                CVGroup.push(r);
+              });
+              arrNew.push({
+                status: k,
+                group_view_name: (k == 'null' ? '' : listDropdownProject.value.filter((x) => x.project_id == k)[0].project_name),
+                CVGroup: CVGroup,
+              });
+            }
+            listTask.value = arrNew;
+            sttTask.value = data[1][0].total + 1;
+          }else{
+            var listCV = groupBy(data1, "group_id");
+            var arrNew = [];
+            for (let k in listCV) {
+              var CVGroup = [];
+              listCV[k].forEach(function (r) {
+                CVGroup.push(r);
+              });
+              arrNew.push({
+                status: k,
+                group_view_name: (k == 'null' ? '' : listDropdownTaskGroup.value.filter((x) => x.group_id == k)[0].group_name),
+                CVGroup: CVGroup,
+              });
+            }
+            listTask.value = arrNew;
+            sttTask.value = data[1][0].total + 1;
+          }
+        }else{
+          var listCV = groupBy(data1, "status");
+          var arrNew = [];
+          for (let k in listCV) {
+            var CVGroup = [];
+            listCV[k].forEach(function (r) {
+              CVGroup.push(r);
+            });
+            arrNew.push({
+              status: k,
+              group_view_name: listDropdownStatus.value.filter((x) => x.value == k)[0]
+                .text,
+                group_view_bg_color: listDropdownStatus.value.filter(
+                (x) => x.value == k,
+              )[0].bg_color,
+              CVGroup: CVGroup,
+            });
+          }
+          listTask.value = arrNew;
+          sttTask.value = data[1][0].total + 1;
         }
-        listTask.value = arrNew;
-        sttTask.value = data[1][0].total + 1;
       }
       if (type == 4 || type == 5) {
         listTask.value = data1;
@@ -1827,6 +1909,23 @@ const choiceTreeUser = () => {
                 ></i
               ></a>
             </li>
+            <!-- <li
+              @click="toggleGroupListType"
+              aria-haspopup="true"
+              :class="{ active: opition.type_group_view != null }"
+              aria-controls="overlay_Export1"
+            >
+              <a
+                ><i
+                  style="margin-right: 5px"
+                  class="pi pi-bars"
+                ></i
+                >Nhóm dữ liệu<i
+                  style="margin-left: 5px"
+                  class="pi pi-angle-down"
+                ></i
+              ></a>
+            </li> -->
             <li
               @click="toggleFilter"
               aria-haspopup="true"
@@ -1857,7 +1956,7 @@ const choiceTreeUser = () => {
               ></a>
             </li>
             <li @click="onRefresh">
-              <a><i class="pi pi-refresh"></i> Refresh</a>
+              <a><i class="pi pi-refresh"></i> Tải lại</a>
             </li>
           </ul>
           <OverlayPanel
@@ -2016,6 +2115,20 @@ const choiceTreeUser = () => {
             </template>
           </Menu>
           <Menu
+            id="task_group_list_type"
+            :model="itemGroupListTypeButs"
+            ref="menuGroupListTypeButs"
+            :popup="true"
+          >
+            <template #item="{ item }">
+              <div @click="ChangeGroupView(item)">
+                <a :class="{ active: item.active }"
+                  ><i :class="item.icon"></i>{{ item.label }}</a
+                >
+              </div>
+            </template>
+          </Menu>
+          <Menu
             id="task_sort"
             :model="itemSortButs"
             ref="menuSortButs"
@@ -2118,10 +2231,14 @@ const choiceTreeUser = () => {
       @sort="onSort($event)"
       @filter="onFilter($event)"
       :lazy="true"
+      rowGroupMode="subheader" :groupRowsBy="opition.type_group_view == 1 ? 'project_name' : 'group_name'" 
       selectionMode="single"
       @rowSelect="onRowSelect($event.data)"
       @rowUnselect="onRowUnselect($event.data)"
     >
+      <template v-if="opition.type_group_view != null" #groupheader="slotProps">
+          <span>{{ (opition.type_group_view == 1) ? slotProps.data.project_name : slotProps.data.group_name}}</span>
+      </template>
       <Column
         field="STT"
         headerStyle="text-align:center;max-width:4rem;min-height:3.125rem"
@@ -2531,11 +2648,14 @@ const choiceTreeUser = () => {
       :expandedKeys="expandedKeys"
       :rowHover="true"
       responsiveLayout="scroll"
-      :totalRecords="opition.totalRecords"
+      :totalRecords="opition.totalRecords" rowGroupMode="subheader" :groupRowsBy="opition.type_group_view == 1 ? 'project_name' : 'group_name'" 
       selectionMode="single"
       filterMode="lenient"
       @page="onPage($event)"
     >
+      <template v-if="opition.type_group_view != null" #groupheader="slotProps">
+          <span>{{ (opition.type_group_view == 1) ? slotProps.node.data.project_name : slotProps.node.data.group_name}}</span>
+      </template>
       <Column
         field="STT"
         headerStyle="text-align:center;max-width:75px;height:50px"
@@ -2543,7 +2663,7 @@ const choiceTreeUser = () => {
         class="align-items-center justify-content-center text-center"
       >
         <template #body="menu">
-          <div
+          <div 
             v-if="menu.node.data.parent_id == null"
             style="font-weight: 1000"
           >
@@ -2962,9 +3082,9 @@ const choiceTreeUser = () => {
             color: #ffffff;
           "
           :style="{
-            background: item.status_bg_color + '!important',
+            background: item.group_view_bg_color + '!important',
           }"
-          >{{ item.status_name }} ({{ item.CVGroup.length }})</span
+          >{{ item.group_view_name }} ({{ item.CVGroup.length }})</span
         >
         <div
           style="width: 106%; height: 95%; overflow: hidden auto"
@@ -3317,8 +3437,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in GrandsDate"
                 >
@@ -3333,8 +3453,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in GrandsDate"
                 >
@@ -3448,8 +3568,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.Name
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in l.dateArray"
                 >
@@ -3609,8 +3729,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in GrandsDate"
                 >
@@ -3625,8 +3745,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in GrandsDate"
                 >
@@ -3688,8 +3808,7 @@ const choiceTreeUser = () => {
                         "
                       >
                         <b style="font-size: 13px">{{ l.user_name }}</b>
-                        <div
-                          style="
+                        <div style="
                             font-weight: 600;
                             color: #72777a;
                             font-size: 12px;
@@ -3766,8 +3885,7 @@ const choiceTreeUser = () => {
                 <td
                   @click="onRowSelect(l)"
                   rowspan="1"
-                  class="no-fixcol-hover"
-                  style="
+                  class="no-fixcol-hover" style="
                     background-color: #fff;
                     border: 1px solid #e9e9e9;
                     height: 40px;
@@ -3777,8 +3895,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.Name
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in l.dateArray"
                 >
@@ -4091,8 +4209,7 @@ const choiceTreeUser = () => {
                       ? ''
                       : (slotProps.option.name ?? '').substring(0, 1)
                   "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
+                  v-bind:image="basedomainURL + slotProps.option.avatar" style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
@@ -4899,6 +5016,25 @@ const choiceTreeUser = () => {
 }
 
 #task_list_type .p-menuitem i {
+  margin-right: 5px;
+}
+
+#task_group_list_type .p-menuitem div {
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+}
+
+#task_group_list_type .p-menuitem:hover {
+  cursor: pointer;
+  background-color: #e9ecef;
+}
+
+#task_group_list_type .p-menuitem .active {
+  color: #2196f3 !important;
+}
+
+#task_group_list_type .p-menuitem i {
   margin-right: 5px;
 }
 
