@@ -1415,10 +1415,7 @@ function renderhtmlWord(id, htmltable) {
     tfoot {
       display: table-footer-group !important;
     }
-    .uppercase,
-    .uppercase * {
-      text-transform: uppercase !important;
-    }
+     
     .text-center {
       text-align: center !important;
     }
@@ -1488,10 +1485,7 @@ function renderhtml(id, htmltable) {
     tfoot {
       display: table-footer-group !important;
     }
-    .uppercase,
-    .uppercase * {
-      text-transform: uppercase !important;
-    }
+     
     .text-center {
       text-align: center !important;
     }
@@ -1511,13 +1505,13 @@ function renderhtml(id, htmltable) {
   htmltable +=
     "<td   colspan='2' style='width: 40%; vertical-align: bottom ;text-align:center' >";
   htmltable +=
-    "    <div  style='text-transform: uppercase '>Bộ quốc phòng</div>";
+    "    <div>BỘ QUỐC PHÒNG</div>";
   htmltable +=
-    "    <div style='text-transform: uppercase'> <b>Bảo hiểm xã hội</b> <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 110px'></div></div></td>";
+    "    <div  > <b>BẢO HIỂM XÃ HỘI</b> <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 110px'></div></div></td>";
   htmltable +=
     "   <td  colspan='4' style='min-width: 40%; vertical-align: bottom;text-align:center' >";
   htmltable +=
-    "  <div style='text-transform: uppercase'> <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b> </div>";
+    "  <div  > <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b> </div>";
   htmltable += "    <div><b>Độc lập - Tự do - Hạnh phúc</b></div>";
   htmltable +=
     "     <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 180px'  ></div>  </td>  </tr>";
@@ -1573,8 +1567,8 @@ function renderhtml(id, htmltable) {
     strM1 +
     ", chúng tôi gồm:</p></td></tr></tbody></table>";
   htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt;text-transform:uppercase;font-weight:bold;'>" +
-    "A. Bên giao: " +
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt; font-weight:bold;'>" +
+    "A. BÊN GIAO: " +
     strM2 +
     "</p></td></tr></tbody></table>";
   htmltable +=
@@ -1596,8 +1590,8 @@ function renderhtml(id, htmltable) {
     ? device_handover.value.user_verifier_department_name
     : "";
   htmltable +=
-    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt;text-transform:uppercase;font-weight:bold;'>" +
-    "B. Bên nhận: " +
+    "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt; font-weight:bold;'>" +
+    "B. BÊN NHẬN: " +
     strM3 +
     "</p></td></tr></tbody></table>";
   htmltable +=
@@ -1614,8 +1608,8 @@ function renderhtml(id, htmltable) {
   htmltable += " </tbody></table>";
   if (device_handover.value.handover_type == 1) {
     htmltable +=
-      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt;text-transform:uppercase;font-weight:bold;'>" +
-      "C. Bên xác nhận: " +
+      "<table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16pt ;font-weight:bold;'>" +
+      "C. BÊN XÁC NHẬN: " +
       strM4 +
       "</p></td></tr></tbody></table>";
     htmltable +=
@@ -1716,7 +1710,7 @@ function renderhtml(id, htmltable) {
     (device_handover.value.handover_type == 1 ? 33 : 50) +
     "%' style='text-align:center;'> ";
   htmltable +=
-    "<p style='font-weight:bold;font-size:16pt;text-align:center;text-transform:uppercase;'>Bên nhận</p>";
+    "<p style='font-weight:bold;font-size:16pt;text-align:center; '>BÊN NHẬN</p>";
   // if (device_handover.value.chuKyNBG != '') {
   //     htmltable += "<img src='" + $rootScope.fileUrl + device_handover.value.chuKyNBG + "' style='height:60px;width:auto;' />";
   // } else {
@@ -1731,7 +1725,7 @@ function renderhtml(id, htmltable) {
     (device_handover.value.handover_type == 1 ? 33 : 50) +
     "%' style='text-align:center;'> ";
   htmltable +=
-    "<p style='font-weight:bold;font-size:16pt;text-align:center;text-transform:uppercase;'>Bên giao</p>";
+    "<p style='font-weight:bold;font-size:16pt;text-align:center; '>BÊN GIAO</p>";
   // if (device_handover.value.chuKyNN != '') {
   //     htmltable += "<img src='" + $rootScope.fileUrl + device_handover.value.chuKyNN + "' style='height:60px;width:auto;' />";
   // } else {
@@ -1745,7 +1739,7 @@ function renderhtml(id, htmltable) {
     htmltable +=
       "<td width='34%'><p style='font-size:16pt;text-align:center'> ";
     htmltable +=
-      "<p style='font-weight:bold;font-size:16pt;text-align:center;text-transform:uppercase;'>Bên xác nhận</p>";
+      "<p style='font-weight:bold;font-size:16pt;text-align:center; '>BÊN XÁC NHẬN</p>";
 
     htmltable +=
       "<p style='font-size:16pt;text-align:center;padding-top:30px'>" + 

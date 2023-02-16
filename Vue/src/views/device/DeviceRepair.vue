@@ -1511,13 +1511,13 @@ function renderhtml(id, htmltable) {
   htmltable +=
     "<td   colspan='2' style='width: 40%; vertical-align: bottom ;text-align:center' >";
   htmltable +=
-    "    <div  style='text-transform: uppercase'>Bộ quốc phòng</div>";
+    "    <div  >BỘ QUỐC PHÒNG</div>";
   htmltable +=
-    "    <div style='text-transform: uppercase'> <b>Bảo hiểm xã hội</b> <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 125px'></div></div></td>";
+    "    <div > <b>BẢO HIỂM XÃ HỘI</b> <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 125px'></div></div></td>";
   htmltable +=
     "   <td  colspan='4' style='min-width: 40%; vertical-align: bottom;text-align:center' >";
   htmltable +=
-    "  <div style='text-transform: uppercase'> <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b> </div>";
+    "  <div > <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b> </div>";
   htmltable += "    <div><b>Độc lập - Tự do - Hạnh phúc</b></div>";
   htmltable +=
     "     <div   style='text-align:center;border-top: 1.5px solid #000; margin: 0px 200px'  ></div>  </td>  </tr>";
@@ -1536,7 +1536,7 @@ function renderhtml(id, htmltable) {
 
   htmltable += "<table border='0' width='1024' cellpadding='10'><tbody>";
   htmltable +=
-    "<tr><td colspan='2' align='center' style='font-size:25px;padding-top:30px;padding-bottom:25px;font-weight:bold;text-transform:uppercase;'>PHIẾU SỬA CHỮA</td></tr>";
+    "<tr><td colspan='2' align='center' style='font-size:25px;padding-top:30px;padding-bottom:25px;font-weight:bold; '>PHIẾU SỬA CHỮA</td></tr>";
   htmltable +=
     "<tr><td colspan='2' align='left' style='font-size:16px;'><a style='font-weight:bold;'>Người đề nghị: </a><a style='width:calc(100% - 120px);float:right;'>" +
     device_repair.value.proposer +
@@ -1937,10 +1937,7 @@ function renderhtmlWord(id, htmltable) {
     tfoot {
       display: table-footer-group !important;
     }
-    .uppercase,
-    .uppercase * {
-      text-transform: uppercase !important;
-    }
+   
     .text-center {
       text-align: center !important;
     }

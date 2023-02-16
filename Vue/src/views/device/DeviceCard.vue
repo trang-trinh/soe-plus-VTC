@@ -240,10 +240,7 @@ function renderhtmlWord(id, htmltable) {
     tfoot {
       display: table-footer-group !important;
     }
-    .uppercase,
-    .uppercase * {
-      text-transform: uppercase !important;
-    }
+    
     .text-center {
       text-align: center !important;
     }
