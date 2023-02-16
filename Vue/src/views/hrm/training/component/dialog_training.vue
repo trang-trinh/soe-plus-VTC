@@ -433,7 +433,7 @@ const addRow_Item = (type) => {
       is_order: list_schedule.value.length + 1,
       class_schedule_name: null,
       limit: 1,
-      lecturers: null,
+      lecturers_name: null,
       phone_number: null,
       date_study: null,
       start_time: null,
@@ -477,6 +477,109 @@ const initTudien = () => {
       }
     })
     .catch((error) => {});
+
+axios
+         .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+          proc: "hrm_ca_enecting_group_list",
+          par: [
+            { par: "pageno", va: 0 },
+            { par: "pagesize", va:100000 },
+            { par: "user_id", va: store.getters.user.user_id },
+            { par: "status", va: true },
+          ],
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
+    )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+      listTrainingGroups.value=[];
+        data.forEach((element, i) => {
+          listTrainingGroups.value.push({
+            name:element.enecting_group_name,code:element.enecting_group_id
+          })
+        });
+   
+      })
+      .catch((error) => {
+        console.log(error);
+      
+      });
+axios
+         .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+          proc: "hrm_ca_classroom_list",
+          par: [
+            { par: "pageno", va: 0 },
+            { par: "pagesize", va:100000 },
+            { par: "user_id", va: store.getters.user.user_id },
+            { par: "status", va: true },
+          ],
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
+    )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+      listClasroom.value=[];
+        data.forEach((element, i) => {
+          listClasroom.value.push({
+            name:element.classroom_name,code:element.classroom_id
+          })
+        });
+   
+      })
+      .catch((error) => {
+        console.log(error);
+      
+      });
+
+      axios
+         .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+          proc: "hrm_ca_lecturers_list",
+          par: [
+            { par: "pageno", va: 0 },
+            { par: "pagesize", va:100000 },
+            { par: "user_id", va: store.getters.user.user_id },
+            { par: "status", va: true },
+          ],
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
+    )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+      listLectures.value=[];
+        data.forEach((element, i) => {
+          listLectures.value.push({
+            name:element.lecturers_name,code:element.lecturers_id 
+            ,avatar:element.avatar,
+            phone_number:element.phone_number
+          })
+        });
+ 
+      })
+      .catch((error) => {
+        console.log(error);
+      
+      });
 };
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -592,14 +695,7 @@ const listLimit = ref([
   },
 ]);
 const listLectures = ref([
-  {
-    name: "Gianrg viên 1",
-    code: 1,
-  },
-  {
-    name: "Gianrg viên 2",
-    code: 2,
-  },
+ 
 ]);
 const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
@@ -668,6 +764,19 @@ const loadUserProfiles = () => {
       }
     });
 };
+const  changeLecturers=(value,index)=>{
+if(value){
+  var arf=listLectures.value.find(x=>x.code==value);
+  list_schedule.value[index-1].phone_number=arf.phone_number;
+  list_schedule.value[index-1].avatar=arf.avatar;
+    list_schedule.value[index-1].lecturers_name=arf.name;
+}
+else{
+  list_schedule.value[index-1].phone_number=null;
+  list_schedule.value[index-1].avatar= null;
+  list_schedule.value[index-1].lecturers_name= null;
+}
+}
 const changeUserTrainding = (data, index) => {
   if (data && list_users_training.value[index]) {
     list_users_training.value[index].is_order = index + 1;
@@ -699,14 +808,7 @@ const changeUserTrainding = (data, index) => {
   }
 };
 const listClasroom = ref([
-  {
-    name: "Lớp 1",
-    code: 1,
-  },
-  {
-    name: "Lớp 2",
-    code: 2,
-  },
+ 
 ]);
 
 const delRow_Item = (item, type) => {
@@ -729,16 +831,8 @@ const delRow_Item = (item, type) => {
 };
 //Thêm bản ghi
 const listTrainingGroups = ref([
-  {
-    name: "Nhóm đào tạo 1",
-    code: 1,
-  },
-  {
-    name: "Nhóm đào tạo 2",
-    code: 2,
-  },
+ 
 ]);
-
 onMounted(() => {
   loadData();
   initTudien();
@@ -1661,11 +1755,11 @@ onMounted(() => {
                       field="start_date"
                       header="Phạm vi"
                       headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
+                      bodyStyle=" width:150px;"
                       class="
                         align-items-center
                         justify-content-center
-                        text-center
+                       
                       "
                     >
                       <template #body="slotProps">
@@ -1685,30 +1779,78 @@ onMounted(() => {
                       field="end_date"
                       header="Giảng viên"
                       headerStyle="text-align:center;width:16rem;height:50px"
-                      bodyStyle="text-align:center;width:16rem;"
+                      bodyStyle="width:16rem;"
                       class="
                         align-items-center
                         justify-content-center
-                        text-center
+                        
                       "
                     >
                       <template #body="slotProps">
                            <InputText
                           spellcheck="false"
                           class="w-full"
-                          v-model="slotProps.data.lecturers"
+                          v-model="slotProps.data.lecturers_name"
                           v-if="slotProps.data.limit == 2"
-                        />  <Dropdown
-                          v-else
-                          v-model="slotProps.data.lecturers"
+                        /> 
+                        <Dropdown    v-else
                           :options="listLectures"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
                           optionLabel="name"
                           optionValue="code"
-                          :filter="true"
-                          class="w-full"
-                          panelClass="d-design-dropdown"
-                          placeholder="--- Chọn giảng viên ---"
-                        />
+                        v-model="slotProps.data.lecturers_id"
+                          class="w-full "
+                      
+                             placeholder="--- Chọn giảng viên ---"
+                             @change="changeLecturers(slotProps.data.lecturers_id,slotProps.data.is_order)"
+                         
+                        >
+                         
+                          <template #option="slotProps">
+                            <div v-if="slotProps.option" class="flex">
+                              <div class="format-center">
+                                <Avatar
+                                  v-bind:label="
+                                    slotProps.option.avatar
+                                      ? ''
+                                      : slotProps.option.name.substring(
+                                          0,
+                                          1
+                                        )
+                                  "
+                                  v-bind:image="
+                                    slotProps.option.avatar
+                                      ? basedomainURL + slotProps.option.avatar
+                                      : basedomainURL +
+                                        '/Portals/Image/noimg.jpg'
+                                  "
+                                  style="
+                                    background-color: #2196f3;
+                                    color: #ffffff;
+                                    width: 3rem;
+                                    height: 3rem;
+                                    font-size: 1.4rem !important;
+                                  "
+                                  :style="{
+                                    background:
+                                      bgColor[slotProps.option.name % 7],
+                                  }"
+                                  class="text-avatar"
+                                  size="xlarge"
+                                  shape="circle"
+                                />
+                              </div>
+                              <div class="ml-3 format-center">
+                                <div class="mb-1">
+                                  {{ slotProps.option.name }}
+                                </div>
+                              </div>
+                            </div>
+                            <span v-else> Chưa có dữ liệu </span>
+                          </template>
+                        </Dropdown>
                       </template>
                     </Column>
                     <Column
@@ -1805,11 +1947,11 @@ onMounted(() => {
                       field="transfer_place"
                       header="Phòng học"
                       headerStyle="text-align:center;width:16rem ;height:50px"
-                      bodyStyle="text-align:center ;width:16rem;"
+                      bodyStyle="  width:16rem;"
                       class="
                         align-items-center
                         justify-content-center
-                        text-center
+                        
                       "
                     >
                       <template #body="slotProps">

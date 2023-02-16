@@ -127,7 +127,10 @@ const loadData = (rf) => {
           if (element.li_user_verify) {
             element.li_user_verify = JSON.parse(element.li_user_verify);
           }
+          else
+           element.li_user_verify =[];
         });
+         
         datalists.value = data;
 
         options.value.loading = false;
@@ -1422,6 +1425,18 @@ onMounted(() => {
                         0,
                         4
                       )"
+                       v-bind:label="
+                                      item.avatar
+                                        ? ''
+                                        : item.full_name.substring(
+                                            item.full_name.lastIndexOf(
+                                              ' '
+                                            ) + 1,
+                                            item.full_name.lastIndexOf(
+                                              ' '
+                                            ) + 2
+                                          )
+                                    "
                       :key="index"
                       :style="
                         item.avatar
