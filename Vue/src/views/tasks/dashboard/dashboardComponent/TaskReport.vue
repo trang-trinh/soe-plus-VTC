@@ -64,7 +64,6 @@ const first = ref(0);
 const PositionSideBar = ref("right");
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
-  console.log(obj);
 });
 const loadData = () => {
   axios

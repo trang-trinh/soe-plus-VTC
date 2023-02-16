@@ -143,7 +143,6 @@ const openDialog = () => {
 const PositionSideBar = ref("right");
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
-  console.log(obj);
 });
 const TempData = ref();
 const openFile = (data) => {

@@ -240,7 +240,7 @@ const openBasic = (str) => {
   } else {
     issuePlace.value.organization_id = store.state.user.organization_id;
   }
-  console.log(datalists.value);
+
   issuePlace.value.is_order =
     datalists.value.length > 0 ? datalists.value[0].data.is_order + 1 : 1;
   issaveField.value = false;
@@ -539,7 +539,6 @@ const loadDataSQL = () => {
       let dt = JSON.parse(response.data.data);
 
       let data = dt[0];
-      console.log(dt);
 
       let obj = renderTree(data, "issue_place_id", "", "");
 

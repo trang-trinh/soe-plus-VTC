@@ -303,7 +303,6 @@ emitter.on("SideBar", (obj) => {
 });
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
-  console.log(obj);
 });
 onMounted(() => {
   LoadCountTask(0);

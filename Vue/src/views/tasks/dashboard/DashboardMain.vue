@@ -8,7 +8,6 @@ import TaskReview from "./dashboardComponent/TaskReview.vue";
 import TaskExtendDashboard from "./dashboardComponent/TaskExtendDashboard.vue";
 const emitter = inject("emitter");
 emitter.on("count", (obj) => {
-  console.log(obj);
   ListButtonLabel.value[5].badgeCount = obj.data[0].report;
   ListButtonLabel.value[6].badgeCount = obj.data[0].extend;
 });
@@ -69,7 +68,7 @@ const ChangeView = (value) => {
   });
 };
 onMounted(() => {
-  ChangeView(0);
+  ChangeView(3);
   return;
 });
 </script>

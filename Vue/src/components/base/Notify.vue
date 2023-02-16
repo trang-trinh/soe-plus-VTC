@@ -79,7 +79,7 @@ const toggleFilter = (event) => {
   filterButs.value.toggle(event);
 };
 const filterNoti = (check) => {
-  opition.value.module_key = filterModule.value
+   opition.value.module_key = filterModule.value
     ? filterModule.value.module_key
     : "";
   opition.value.PageNo = 1;
@@ -92,15 +92,15 @@ const filterNoti = (check) => {
 };
 const reFilterNoti = () => {
   checkFilter.value = false;
-  opition.value = {
-    search: "",
-    PageNo: 1,
-    PageSize: 15,
-    totalRecords: 0,
-    status: null,
-    module_key: null,
-  };
-  filterModule.value = "";
+   opition.value = {
+  search: "",
+  PageNo: 1,
+  PageSize: 15,
+  totalRecords: 0,
+  status: null,
+  module_key: null
+};
+   filterModule.value = "";
   filterButs.value.hide();
   notis.value = [];
   loadNoti(true);
