@@ -14,6 +14,7 @@ const swal = inject("$swal");
 const route = useRoute();
 const basedomainURL = fileURL;
 const width1 = ref(window.screen.availWidth);
+const filterModule = ref();
 
 //Khai báo biến
 const bgColor = ref([
@@ -60,7 +61,6 @@ emitter.on("emitData", (obj) => {
 // noti
 const opition = ref({
   search: "",
-  rSearch: "",
   PageNo: 1,
   PageSize: 15,
   totalRecords: 0,
@@ -79,15 +79,30 @@ const toggleFilter = (event) => {
   filterButs.value.toggle(event);
 };
 const filterNoti = (check) => {
+  opition.value.module_key = filterModule.value
+    ? filterModule.value.module_key
+    : "";
+  opition.value.PageNo = 1;
+  opition.value.PageSize = 15;
+  opition.value.totalRecords = 0;
   checkFilter.value = true;
   filterButs.value.hide();
+  notis.value = [];
   loadNoti(true);
 };
 const reFilterNoti = () => {
   checkFilter.value = false;
-  opition.value.status = null;
-  opition.value.module_key = null;
+  opition.value = {
+    search: "",
+    PageNo: 1,
+    PageSize: 15,
+    totalRecords: 0,
+    status: null,
+    module_key: null,
+  };
+  filterModule.value = "";
   filterButs.value.hide();
+  notis.value = [];
   loadNoti(true);
 };
 const list_modules = [
@@ -305,7 +320,7 @@ const loadModule = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_modules_listmodulestop",
+            proc: "sys_modules_listmodule_noti",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
@@ -417,7 +432,7 @@ onMounted(() => {
               <div class="field col-12 md:col-12 flex align-items-center">
                 <div class="col-4 p-0">Module:</div>
                 <Dropdown
-                  v-model="opition.module_key"
+                  v-model="filterModule"
                   :options="modules"
                   optionLabel="module_name"
                   placeholder="Chọn module"
