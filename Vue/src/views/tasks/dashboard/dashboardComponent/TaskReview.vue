@@ -16,7 +16,7 @@ const basedomainURL = baseURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
-const width = window.screen.width;
+const width1 = window.screen.width;
 const addLog = (log) => {
   // eslint-disable-next-line no-undef
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
@@ -140,6 +140,11 @@ const openDialog = () => {
     x.file_display = [];
   });
 };
+const PositionSideBar = ref("right");
+emitter.on("psb", (obj) => {
+  PositionSideBar.value = obj;
+  console.log(obj);
+});
 const TempData = ref();
 const openFile = (data) => {
   DialogFileVisible.value = true;
@@ -263,7 +268,89 @@ const delImgComment = (value, index) => {
     }
   });
 };
+const Review = ref({
+  project_id: null,
+  task_id: null,
+  report_id: null,
+  contents: "",
+  point: null,
+  progress: null,
+  is_type: null,
+});
+const SaveData = () => {
+  listSelected.value.forEach((x) => {
+    if (x.contents == null || x.contents == "") {
+      swal.fire({
+        title: "Thông báo!",
+        html: "Nội dung đánh giá không được để trống",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
 
+    Review.value = {
+      project_id: x.project_id,
+      task_id: x.task_id,
+      report_id: x.report_id,
+      contents: x.contentsReview,
+      point: x.pointRating,
+      progress: x.progressReview,
+      is_type: x.is_agree == true ? 0 : 1,
+    };
+    Review.value.contents =
+      Review.value.contents != null
+        ? Review.value.contents.replace(/\n/g, "<br/>")
+        : "";
+    let formData = new FormData();
+    if (x.file != null)
+      for (var i = 0; i < x.file.length; i++) {
+        let file = x.file[i];
+        formData.append("url_file", file);
+      }
+    formData.append("comment", JSON.stringify(Review.value));
+    axios({
+      method: "post",
+      url: baseURL + `/api/Review/${"addReview"}`,
+      data: formData,
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+      },
+    })
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Thêm mới báo cáo công việc thành công!");
+          Review.value = {
+            project_id: null,
+            task_id: null,
+            report_id: null,
+            contents: "",
+            point: null,
+            progress: null,
+            is_type: null,
+          };
+          loadData();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch(() => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  });
+};
 onMounted(() => {
   loadData();
 });
@@ -486,8 +573,8 @@ onMounted(() => {
       <Column
         header="Thông tin báo cáo"
         field=""
-        headerClass="align-items-center justify-content-center p-2 max-w-30rem"
-        bodyClass=" p-2 max-w-30rem"
+        headerClass="align-items-center justify-content-center"
+        class="max-w-30rem"
       >
         <template #body="data">
           <div class="p-0">
@@ -600,9 +687,6 @@ onMounted(() => {
       :rowHover="true"
       :showGridlines="true"
     >
-      <template #header>
-        {{ listSelected }}
-      </template>
       <Column
         header="STT"
         field="STT"
@@ -781,6 +865,7 @@ onMounted(() => {
             suffix=" %"
             v-tooltip.top="{
               value: 'Tiến độ công việc <br/> (0<= x <=100)',
+              escape: true,
             }"
           ></InputNumber>
         </template>
@@ -865,7 +950,7 @@ onMounted(() => {
         @click="SaveData()"
         class=""
         icon="pi pi-check"
-        label="Gửi báo cáo"
+        label="Gửi đánh giá"
       ></Button>
     </template>
   </Dialog>
@@ -1030,13 +1115,27 @@ onMounted(() => {
     </template>
     <!-- Chức năng đang chỉnh sửa vui lòng liên hệ quản trị viên phần mềm -->
   </Dialog>
-  <DetailedWork
-    v-if="showDetail == true && selectedTaskID != null"
-    :isShow="showDetail"
-    :id="selectedTaskID"
-    :turn="0"
+  <Sidebar
+    v-model:visible="showDetail"
+    :position="PositionSideBar"
+    :style="{
+      width:
+        PositionSideBar == 'right'
+          ? width1 > 1800
+            ? ' 55vw'
+            : '75vw'
+          : '100vw',
+      'min-height': '100vh !important',
+    }"
+    :showCloseIcon="false"
   >
-  </DetailedWork>
+    <DetailedWork
+      :isShow="showDetail"
+      :id="selectedTaskID"
+      :turn="0"
+    >
+    </DetailedWork
+  ></Sidebar>
 </template>
 
 <style lang="scss" scoped>

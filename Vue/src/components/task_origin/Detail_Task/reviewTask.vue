@@ -172,6 +172,7 @@ const LoadReview = () => {
 
           x.review = x.review != null ? JSON.parse(x.review) : null;
           if (x.review != null) {
+            x.review.contents = x.review.contents[0].contents;
             x.review.reviewer.tooltip =
               "Người đánh giá <br/>" +
               x.review.reviewer.creator_full_name +
@@ -338,10 +339,6 @@ const sendReport = () => {
   ReportProgress.value.contents =
     ReportProgress.value.contents != null
       ? ReportProgress.value.contents.replace(/\n/g, "<br/>")
-      : "";
-  ReportProgress.value.contents =
-    ReportProgress.value.contents != null
-      ? ReportProgress.value.contents.replaceAll('"', "'")
       : "";
   ReportProgress.value.task_id = props.id;
   ReportProgress.value.status = 0;
@@ -631,7 +628,7 @@ onMounted(() => {
                                   ? '#59D05D'
                                   : '#FF0000',
                             }"
-                            class="font-bold"
+                            class="font-bold py-1 px-4"
                           >
                             <span v-if="rp.status == 0">Đang đợi đánh giá</span>
                             <span v-if="rp.status == 1">Đã đánh giá</span>
@@ -888,7 +885,7 @@ onMounted(() => {
                     <div class="col-12 flex pt-1">
                       <div class="col-1"></div>
                       <div
-                        class="col-11 pl-4"
+                        class="col-11 pl-4 div-contents"
                         v-html="rp.review.contents"
                       ></div>
                     </div>
@@ -1154,6 +1151,7 @@ onMounted(() => {
                   suffix=" %"
                   class="w-full pr-3 h-full"
                   v-tooltip.top="{
+                    escape: true,
                     value: 'Tiến độ công việc <br/> (0<= x <=100)',
                   }"
                   v-model="ReportProgress.request_progress"
@@ -1270,7 +1268,7 @@ onMounted(() => {
   <Dialog
     :header="headerReview"
     v-model:visible="openReviewDialog"
-    :style="{ width: '60vw' }"
+    :style="{ width: '60vw', 'z-index': '100000' }"
     :closable="false"
   >
     <form>
@@ -1684,6 +1682,10 @@ a {
   font-size: 14px;
   width: 100%;
   background-color: #f5f5f5;
+  border-radius: 10px;
+}
+.div-contents {
+  background-color: #e4fcff;
   border-radius: 10px;
 }
 </style>

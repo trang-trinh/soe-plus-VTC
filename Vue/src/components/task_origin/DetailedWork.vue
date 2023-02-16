@@ -5771,7 +5771,7 @@ const choiceTreeUser = () => {
                 <Button
                   class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
                   @click="showEmoji($event, 1)"
-                  v-tooltip="{ value: 'Emoiji' }"
+                  v-tooltip="{ value: 'Biểu cảm' }"
                 >
                   <img
                     alt="logo"

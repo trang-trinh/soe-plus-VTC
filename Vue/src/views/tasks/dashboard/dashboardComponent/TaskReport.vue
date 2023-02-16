@@ -16,7 +16,7 @@ const basedomainURL = baseURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
-const width = window.screen.width;
+const width1 = window.screen.width;
 const addLog = (log) => {
   // eslint-disable-next-line no-undef
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
@@ -61,6 +61,11 @@ const listStatus = ref([
 const user = store.state.user;
 const listTask = ref([]);
 const first = ref(0);
+const PositionSideBar = ref("right");
+emitter.on("psb", (obj) => {
+  PositionSideBar.value = obj;
+  console.log(obj);
+});
 const loadData = () => {
   axios
     .post(
@@ -365,6 +370,7 @@ const sendData = (x) => {
     .then((response) => {
       if (response.data.err != "1") {
         toast.success("Thêm mới báo cáo công việc thành công!");
+        loadData();
       } else {
         swal.fire({
           title: "Error!",
@@ -471,6 +477,11 @@ const onNodeSelect = (id) => {
 emitter.on("SideBar", (obj) => {
   showDetail.value = obj;
   loadData();
+});
+watch(showDetail, () => {
+  if (showDetail.value == false) {
+    loadData();
+  }
 });
 onMounted(() => {
   loadData();
@@ -1200,13 +1211,27 @@ onMounted(() => {
       />
     </template>
   </Dialog>
-  <DetailedWork
-    v-if="showDetail == true && selectedTaskID != null"
-    :isShow="showDetail"
-    :id="selectedTaskID"
-    :turn="0"
+  <Sidebar
+    v-model:visible="showDetail"
+    :position="PositionSideBar"
+    :style="{
+      width:
+        PositionSideBar == 'right'
+          ? width1 > 1800
+            ? ' 55vw'
+            : '75vw'
+          : '100vw',
+      'min-height': '100vh !important',
+    }"
+    :showCloseIcon="false"
   >
-  </DetailedWork>
+    <DetailedWork
+      :isShow="showDetail"
+      :id="selectedTaskID"
+      :turn="0"
+    >
+    </DetailedWork
+  ></Sidebar>
 </template>
 
 <style lang="scss" scoped>
