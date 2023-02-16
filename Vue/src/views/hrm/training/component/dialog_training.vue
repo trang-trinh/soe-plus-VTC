@@ -142,8 +142,12 @@ const loadData = () => {
     listDataUsers.value = arr;
   }
   data2.forEach(element => {
+     
+    if(  element.date_study)
     element.date_study= new Date(element.date_study);
+     if(  element.start_time)
  element.start_time= new Date(element.start_time);
+  if(  element.end_time)
   element.end_time= new Date(element.end_time);
 
   });
@@ -358,9 +362,11 @@ const listFormTraining = ref([
   { name: "Cả hai", code: 3 },
 ]);
 const listStatus = ref([
-  { name: "Dự kiến tổ chức", code: 1 },
-  { name: "Chưa hoàn thành", code: 2 },
+  { name: "Lên kế hoạch", code: 1 },
+  { name: "Đang thực hiện", code: 2 },
   { name: "Đã hoàn thành", code: 3 },
+    { name: "Tạm dừng", code: 4 },
+  { name: "Đã hủy", code: 5 },
 ]);
 const listObjTraining = ref([
   { name: "Cấp lãnh đạo", code: 1 },
@@ -753,7 +759,7 @@ onMounted(() => {
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="col-12 field p-0 text-lg font-bold">Thông tin thẻ</div>
+        <div class="col-12 field p-0 text-lg font-bold">Thông tin</div>
         <div class="col-12 flex p-0">
           <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
@@ -841,7 +847,7 @@ onMounted(() => {
               <div class="p-inputgroup">
                 <Textarea
                   :autoResize="true"
-                  rows="2"
+                  rows="1"
                   cols="30"
                   v-model="training_emps.training_emps_name"
                   class="w-full"
@@ -1190,7 +1196,7 @@ onMounted(() => {
               <div class="p-inputgroup">
                 <Textarea
                   :autoResize="true"
-                  rows="2"
+                  rows="1"
                   cols="30"
                   v-model="training_emps.training_place"
                   class="w-full"
@@ -1253,54 +1259,75 @@ onMounted(() => {
                 style="font-size: 1.25rem"
               ></i>
               <div class="pl-2">
-                Thông tin học viên
+                Danh sách học viên
                 <span v-if="list_users_training.length > 0">
                   ( {{ list_users_training.length }} )</span
                 >
               </div>
             </div>
-            <div class="w-1 text-right">
-              <Button
-                class="p-button-outlined p-button-rounded p-button-secondary"
-                icon="pi pi-plus"
-                @click="addRow_Item(1)"
-                v-tooltip.top="'Thêm học viên'"
-              ></Button>
+            <div class="w-1 text-right" v-if="!view">
+                <a
+                     @click="addRow_Item(1)"
+                      class="hover"
+                      v-tooltip.top="'Thêm học viên'"
+                    >
+                      <i
+                        class="pi pi-plus-circle"
+                        
+                        style="font-size: 18px"
+                      ></i>
+                    </a>
+           
             </div>
           </div>
 
           <div class="w-full px-3 pt-3" v-if="checkShow == true">
-            <div style="overflow-x: scroll">
-              <table
-                v-if="list_users_training.length > 0"
-                class="table table-condensed table-hover tbpad table-child"
-                style="table-layout: fixed"
-              >
-                <thead class="pb-3">
-                  <tr class="w-full">
-                    <td class="text-center" style="width: 120px">STT</td>
-                    <td class="text-center" style="width: 25%">Họ và tên</td>
-                    <td class="text-center" style="width: 20%">Phòng ban</td>
-                    <td class="text-center" style="width: 15%">Vị trí</td>
-                    <td class="text-center" style="width: 15%">Chức vụ</td>
-                    <td class="text-center" style="width: 30%">Ghi chú</td>
-                    <td
-                      class="text-center sticky"
-                      style="width: 5%; left: 0px !important"
-                    ></td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    id="add_thanhpham"
-                    v-for="(item, index) in list_users_training"
-                    :key="index"
+<div  v-if="list_users_training.length>0">
+                  <DataTable
+                    :value="list_users_training"
+                    :scrollable="true"
+                    :lazy="true"
+                    :rowHover="true"
+                    :showGridlines="true"
+                    scrollDirection="both"
                   >
-                    <td class="row-content-pdx" align="center">
-                      {{ index + 1 }}
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="mx-2">
+                  
+                    <Column
+                      field="card_number"
+                      header="STT"
+                      headerStyle="text-align:center;width:70px;height:50px"
+                      bodyStyle="text-align:center;width:70px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                        
+                        {{slotProps.data.is_order}}
+                        <!-- <InputText
+                          v-model="slotProps.data.card_number"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="50"
+                        /> -->
+                      </template>
+                    </Column>
+                    <Column
+                      field="form"
+                      header="Họ và tên"
+                      headerStyle="text-align:center;width:250px;height:50px"
+                      bodyStyle="text-align:center;width:250px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                        <div class="form-group m-0">
                         <Dropdown
                           :options="listDataUsers"
                           :filter="true"
@@ -1308,43 +1335,42 @@ onMounted(() => {
                           :editable="false"
                           optionLabel="profile_user_name"
                           optionValue="code"
-                          placeholder="Chọn học viên"
-                          v-model="item.data"
-                          class="w-full"
-                          style="height: auto; min-height: 36px"
+                          v-model="slotProps.data.data"
+                          class="w-full d-design-padding-drd"
+                          style="  min-height: 36px"
                           :class="{
-                            'p-invalid': item.data == null && submitted,
+                            'p-invalid': slotProps.data.data == null && submitted,
                           }"
-                          @change="changeUserTrainding(item.data, index)"
+                          @change="changeUserTrainding(slotProps.data.data, slotProps.data.is_order -1)"
                         >
-                          <template #value="slotProps">
-                            <div v-if="slotProps.value">
+                          <template #value="slotProps_N">
+                            <div v-if="slotProps_N.value">
                               <div
                                 class="flex w-full align-items-center pr-2 p-0"
                               >
                                 <Avatar
                                   v-bind:label="
-                                    slotProps.value.avatar
+                                    slotProps_N.value.avatar
                                       ? ''
-                                      : slotProps.value.profile_user_name.substring(
-                                          slotProps.value.profile_user_name.lastIndexOf(
+                                      : slotProps_N.value.profile_user_name.substring(
+                                          slotProps_N.value.profile_user_name.lastIndexOf(
                                             ' '
                                           ) + 1,
-                                          slotProps.value.profile_user_name.lastIndexOf(
+                                          slotProps_N.value.profile_user_name.lastIndexOf(
                                             ' '
                                           ) + 2
                                         )
                                   "
                                   :image="
-                                    basedomainURL + slotProps.value.avatar
+                                    basedomainURL + slotProps_N.value.avatar
                                   "
                                   size="small"
                                   :style="
-                                    slotProps.value.avatar
+                                    slotProps_N.value.avatar
                                       ? 'background-color: #2196f3'
                                       : 'background:' +
                                         bgColor[
-                                          slotProps.value.profile_user_name
+                                          slotProps_N.value.profile_user_name
                                             .length % 7
                                         ]
                                   "
@@ -1356,12 +1382,12 @@ onMounted(() => {
                                   "
                                 />
                                 <div class="px-2">
-                                  {{ slotProps.value.profile_user_name }}
+                                  {{ slotProps_N.value.profile_user_name }}
                                 </div>
                               </div>
                             </div>
                             <span v-else>
-                              {{ slotProps.placeholder }}
+                              {{ slotProps_N.placeholder }}
                             </span>
                           </template>
                           <template #option="slotProps">
@@ -1407,51 +1433,106 @@ onMounted(() => {
                             <span v-else> Chưa có dữ liệu </span>
                           </template>
                         </Dropdown>
-                      </div>
-                    </td>
-                    <td class="row-content-pdx" align="center">
-                      <InputText
-                        spellcheck="false"
-                        class="w-full"
-                        style="width: 170px"
-                        v-model="item.department_name"
-                        disabled
-                      />
-                    </td>
-                    <td class="row-content-pdx" align="center">
-                      <InputText
-                        spellcheck="false"
-                        class="w-full"
-                        style="width: 170px"
-                        v-model="item.work_position_name"
-                        disabled
-                      />
-                    </td>
-                    <td class="row-content-pdx" align="center">
-                      <InputText
-                        spellcheck="false"
-                        class="w-full"
-                        style="width: 170px"
-                        v-model="item.position_name"
-                        disabled
-                      />
-                    </td>
-
-                    <td class="row-content-pdx" align="center">
-                      <InputText
-                        spellcheck="false"
-                        class="ip33"
-                        style="width: 170px"
-                        v-model="item.note"
-                      />
-                    </td>
-                    <td
-                      class="row-content-pdx sticky"
-                      align="center"
-                      style="color: black; width: 100px; left: 0px !important"
+                        </div>
+                      </template>
+                    </Column>
+                    <Column
+                      field="start_date"
+                      header="Phòng ban"
+                      headerStyle="text-align:center;width:200px;height:50px"
+                      bodyStyle="text-align:center;width:200px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
                     >
-                      <a
-                        @click="delRow_Item(item, 1)"
+                      <template #body="slotProps">
+                           <InputText
+                        spellcheck="false"
+                        class="w-full h-full d-design-it"
+                        style="width: 170px"
+                        v-model="slotProps.data.department_name"
+                        disabled
+                      />
+                      </template>
+                    </Column>
+                    <Column
+                      field="end_date"
+                      header="Vị trí"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                       <InputText
+                        spellcheck="false"
+                        class="w-full d-design-it"
+                        style="width: 170px"
+                        v-model="slotProps.data.work_position_name"
+                        disabled
+                      />
+                      </template>
+                    </Column>
+                    <Column
+                      field="admission_place"
+                      header="Chức vụ"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                           <InputText
+                        spellcheck="false"
+                        class="w-full d-design-it"
+                        style="width: 170px"
+                        v-model="slotProps.data.position_name"
+                        disabled
+                      />
+                      </template>
+                    </Column>
+                    <Column
+                      field="transfer_place"
+                      header="Ghi chú"
+                      headerStyle="text-align:center;width:200px ;height:50px"
+                      bodyStyle="text-align:center ;width:200px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.note"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="250"
+                        />
+                      </template>
+                    </Column>
+                      <Column
+                      header=""
+                      headerStyle="text-align:center;width:50px"
+                      bodyStyle="text-align:center;width:50px"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                     <a
+                        @click="delRow_Item(slotProps.data, 1)"
                         class="hover cursor-pointer"
                         v-tooltip.top="'Xóa học viên'"
                       >
@@ -1460,11 +1541,24 @@ onMounted(() => {
                           style="font-size: 18px"
                         ></i>
                       </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                      </template>
+                    </Column>
+                    <template #empty>
+                      <div
+                        class="
+                          align-items-center
+                          justify-content-center
+                          p-4
+                          text-center
+                          m-auto
+                        "
+                        style="display: flex; width: 100%; min-height: 200px"
+                      ></div>
+                    </template>
+                  </DataTable>
+</div>
+
+           
           </div>
         </div>
         <div class="col-12 p-0 border-1 border-300 border-solid">
@@ -1490,160 +1584,261 @@ onMounted(() => {
                 >
               </div>
             </div>
-            <div class="w-1 text-right">
-              <Button
-                class="p-button-outlined p-button-rounded p-button-secondary"
-                icon="pi pi-plus"
-                @click="addRow_Item(2)"
-                v-tooltip.top="'Thêm lịch học'"
-              ></Button>
+            <div class="w-1 text-right" v-if="!view">
+               <a
+                     @click="addRow_Item(2)"
+                      class="hover"
+                      v-tooltip.top="'Thêm lịch học'"
+                    >
+                      <i
+                        class="pi pi-plus-circle"
+                        
+                        style="font-size: 18px"
+                      ></i>
+                    </a>
+              
             </div>
           </div>
 
           <div class="w-full px-3 pt-3" v-if="checkShow2 == true">
-            <div style="overflow-x: scroll">
-              <table
-                v-if="list_schedule.length > 0"
-                class="table table-condensed table-hover tbpad table-child"
-                style="table-layout: fixed"
-              >
-                <thead>
-                  <tr>
-                    <td class="text-center" style="width: 120px">STT</td>
-                    <td class="text-center" style="width: 170px">
-                      Nội dung đào tạo
-                    </td>
-                    <td class="text-center" style="width: 170px">Phạm vi</td>
-                    <td class="text-center" style="width: 170px">Giảng viên</td>
-                    <td class="text-center" style="width: 170px">
-                      Số điện thoại
-                    </td>
-                    <td class="text-center" style="width: 170px">Ngày học</td>
-                    <td class="text-center" style="width: 170px">Bắt đầu</td>
-                    <td class="text-center" style="width: 170px">Kết thúc</td>
-                    <td class="text-center" style="width: 170px">Phòng học</td>
-                    <td
-                      class="text-center sticky"
-                      style="width: 170px; left: 0px !important"
-                    ></td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(item, index) in list_schedule" :key="index">
-                    <td class="row-content-pdx" align="center">
-                      {{ index + 1 }}
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="mx-2">
+
+
+            <div style="overflow-x: scroll" v-if="list_schedule.length>0" >
+               <DataTable
+                    :value="list_schedule"
+                    :scrollable="true"
+                    :lazy="true"
+                    :rowHover="true"
+                    :showGridlines="true"
+                    scrollDirection="both"
+                  >
+                  
+                    <Column
+                      field="card_number"
+                      header="STT"
+                      headerStyle="text-align:center;width:70px;height:50px"
+                      bodyStyle="text-align:center;width:70px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                        
+                        {{slotProps.data.is_order}}
+                 
+                      </template>
+                    </Column>
+                    <Column
+                      field="form"
+                      header="Nội dung đào tạo"
+                      headerStyle="text-align:center;width:250px;height:50px"
+                      bodyStyle="text-align:center;width:250px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                        <div class="form-group m-0">
                         <Textarea
                           :autoResize="true"
-                          rows="2"
+                          rows="1"
                           cols="40"
-                          v-model="item.class_schedule_name"
+                          v-model="slotProps.data.class_schedule_name"
                           class="w-30rem"
                           :class="{
                             'p-invalid':
-                              item.class_schedule_name == null && submitted,
+                              slotProps.data.class_schedule_name == null && submitted,
                           }"
                         />
-                      </div>
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
+                        </div>
+                      </template>
+                    </Column>
+                    <Column
+                      field="start_date"
+                      header="Phạm vi"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
                       <Dropdown
-                        v-model="item.limit"
+                        v-model="slotProps.data.limit"
                         :options="listLimit"
                         optionLabel="name"
                         optionValue="code"
-                        :filter="true"
-                        class="  w-10rem"
+                        :filter="false"
+                        class="  w-full"
                         panelClass="d-design-dropdown"
                         placeholder="---- Phạm vi ----"
                       />
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="mx-2">
-                        <InputText
+                      </template>
+                    </Column>
+                    <Column
+                      field="end_date"
+                      header="Giảng viên"
+                      headerStyle="text-align:center;width:16rem;height:50px"
+                      bodyStyle="text-align:center;width:16rem;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                           <InputText
                           spellcheck="false"
-                          class="w-12rem"
-                          v-model="item.lecturers"
-                          v-if="item.limit == 2"
-                        />
-                        <Dropdown
+                          class="w-full"
+                          v-model="slotProps.data.lecturers"
+                          v-if="slotProps.data.limit == 2"
+                        />  <Dropdown
                           v-else
-                          v-model="item.lecturers"
+                          v-model="slotProps.data.lecturers"
                           :options="listLectures"
                           optionLabel="name"
                           optionValue="code"
                           :filter="true"
-                          class="w-15rem"
+                          class="w-full"
                           panelClass="d-design-dropdown"
-                          placeholder="---- Chọn giảng viên ----"
+                          placeholder="--- Chọn giảng viên ---"
                         />
-                      </div>
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="mx-2">
-                        <InputText
+                      </template>
+                    </Column>
+                    <Column
+                      field="admission_place"
+                      header="Điện thoại"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                         <InputText
                           spellcheck="false"
-                          class="w-12rem"
-                          v-model="item.phone_number"
+                          class="w-full"
+                          v-model="slotProps.data.phone_number"
                         />
-                      </div>
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <Calendar
-                        class="w-12rem"
+                      </template>
+                    </Column>
+                    <Column
+                      field="transfer_place"
+                      header="Ngày học"
+                      headerStyle="text-align:center;width:180px ;height:50px"
+                      bodyStyle="text-align:center ;width:180px;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                     
+                         <Calendar
+                        class="w-full"
                         id="basic_purchase_date"
-                        v-model="item.date_study"
+                        v-model="slotProps.data.date_study"
                         autocomplete="on"
                         :showIcon="true"
                       />
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="w-full">
-                        <Calendar
+                      </template>
+                    </Column>
+                     <Column
+                      field="transfer_place"
+                      header="Bắt đầu"
+                      headerStyle="text-align:center;width:7rem ;height:50px"
+                      bodyStyle="text-align:center ;width:7rem;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                          <Calendar
                           inputId="time12"
                           hourFormat="24"
-                          class="w-5rem"
+                          class="w-full"
                           autocomplete="on"
                           icon="pi pi-clock"
                           :showIcon="false"
                           :timeOnly="true"
-                          v-model="item.start_time"
+                          v-model="slotProps.data.start_time"
                         />
-                      </div>
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <Calendar
+                        
+                      </template>
+                    </Column>
+                     <Column
+                      field="transfer_place"
+                      header="Kết thúc"
+                      headerStyle="text-align:center;width:7rem ;height:50px"
+                      bodyStyle="text-align:center ;width:7rem;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                         <Calendar
                         inputId="time12"
                         hourFormat="24"
-                        class="w-5rem"
+                        class="w-full"
                         autocomplete="on"
                         icon="pi pi-clock"
                         :showIcon="false"
                         :timeOnly="true"
-                        v-model="item.end_time"
+                        v-model="slotProps.data.end_time"
                       />
-                    </td>
-                    <td class="row-content-pdx mx-2"  >
+                      </template>
+                    </Column>
+                     <Column
+                      field="transfer_place"
+                      header="Phòng học"
+                      headerStyle="text-align:center;width:16rem ;height:50px"
+                      bodyStyle="text-align:center ;width:16rem;"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
+                    >
+                      <template #body="slotProps">
+                     
                       <Dropdown
-                        v-model="item.training_class_id"
+                        v-model="slotProps.data.training_class_id"
                         :options="listClasroom"
                         optionLabel="name"
                         optionValue="code"
                         :filter="true"
-                        class="w-15rem"
+                        class="w-full"
                         panelClass="d-design-dropdown"
-                        placeholder="----Chọn phòng học----"
+                        placeholder="---Chọn phòng học---"
                       />
-                    </td>
-                    <td
-                      class="row-content-pdx sticky"
-                      align="center"
-                      style="color: black; width: 100px; left: 0px !important"
+                      </template>
+                    </Column>
+                      <Column
+                      header=""
+                      headerStyle="text-align:center;width:50px"
+                      bodyStyle="text-align:center;width:50px"
+                      class="
+                        align-items-center
+                        justify-content-center
+                        text-center
+                      "
                     >
-                      <a
-                        @click="delRow_Item(item, 2)"
+                      <template #body="slotProps">
+                     <a
+                        @click="delRow_Item(slotProps.data, 2)"
                         class="hover cursor-pointer"
                         v-tooltip.top="'Xóa lịch học'"
                       >
@@ -1652,10 +1847,36 @@ onMounted(() => {
                           style="font-size: 18px"
                         ></i>
                       </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      </template>
+                    </Column>
+                    <template #empty>
+                      <div
+                        class="
+                          align-items-center
+                          justify-content-center
+                          p-4
+                          text-center
+                          m-auto
+                        "
+                        style="display: flex; width: 100%; min-height: 200px"
+                      ></div>
+                    </template>
+                  </DataTable>
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+             
             </div>
           </div>
         </div>
@@ -1677,13 +1898,7 @@ onMounted(() => {
               ></i>
               <div class="pl-2">File đính kèm</div>
             </div>
-            <!-- <div class="w-1 text-right">
-              <Button
-                class="p-button-outlined p-button-rounded p-button-secondary"
-                icon="pi pi-plus"
-                @click="addRow_Item(3)"
-              ></Button>
-            </div> -->
+        
           </div>
           <div class="w-full" v-if="checkShow3 == true">
             <FileUpload
@@ -1705,7 +1920,7 @@ onMounted(() => {
       </div>
     </form>
     <template #footer>
-      <div class="pt-3">
+      <div class="pt-3" v-if="!view">
         <Button
           label="Hủy"
           icon="pi pi-times"
@@ -1730,6 +1945,10 @@ onMounted(() => {
 #formprint * {
   font-family: "Times New Roman", Times, serif !important;
   font-size: 13pt;
+}
+.hover:hover {
+    cursor: pointer;
+    color: #2196F3 !important;
 }
 .title1,
 .title1 * {

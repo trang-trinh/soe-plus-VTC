@@ -1160,6 +1160,7 @@ const saveCard = (isFormValid) => {
 
   if (!isSaveCard.value) {
     if (devicecard.value.status == "CXN") {
+       device_handover.value.device_department_id=devicecard.value.manage_department_id
       formData.append("handover", JSON.stringify(device_handover.value));
     }
     axios
@@ -1233,6 +1234,7 @@ const addDeviceHanover = () => {
       is_receiver_accept: false,
       is_individual: true,
       organization_id: store.getters.user.organization_id,
+     
     };
     axios
       .post(
