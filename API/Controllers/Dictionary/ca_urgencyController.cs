@@ -288,7 +288,7 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.doc_ca_urgency.Where(a => (a.urgency_id == trangthai.IntID)).FirstOrDefault<doc_ca_urgency>();
+                    var das = db.doc_ca_urgency.FirstOrDefault(a => (a.urgency_id == trangthai.IntID));
                     if (das != null)
                     {
                         das.modified_by = uid;

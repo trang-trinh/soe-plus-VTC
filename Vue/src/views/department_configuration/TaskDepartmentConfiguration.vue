@@ -17,6 +17,7 @@ const swal = inject("$swal");
 const store = inject("store");
 const axios = inject("axios"); // inject axios
 
+const expandedKeys = ref({});
 const config = {
     headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -28,6 +29,16 @@ const Department = {
     department_id: null,
     user_id: null
 }
+
+const expandNode = (node) => {
+  if (node.children && node.children.length) {
+    expandedKeys.value[node.key] = true;
+    for (let child of node.children) {
+      expandNode(child);
+    }
+  }
+};
+
 const listDepartments = ref();
 const listTreeDepartments = ref();
 const opition = ref({
@@ -139,7 +150,11 @@ const loadData = (rf) => {
                     "organization_name",
                     "đơn vị"
                 );
+                
                 listDepartments.value = obj.arrChils;
+                listDepartments.value.forEach((element) => {
+                    expandNode(element);
+                });
                 listTreeDepartments.value = obj.arrtreeChils;
                 opition.value.totalRecords = data[1][0].totalrecords;
             } else {
@@ -265,7 +280,7 @@ onMounted(() => {
 </script>
 <template>
     <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
-        <TreeTable :value="listDepartments" v-model:selectionKeys="selectedKey" v-model:first="first"
+        <TreeTable :value="listDepartments" :expandedKeys="expandedKeys" v-model:selectionKeys="selectedKey" v-model:first="first"
             :loading="opition.loading" @page="onPage($event)" @sort="onSort($event)" :paginator="true"
             :rows="opition.PageSize" :totalRecords="opition.totalRecords"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"

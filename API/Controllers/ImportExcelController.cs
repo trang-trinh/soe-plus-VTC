@@ -297,20 +297,20 @@ namespace API.Controllers
                                 }
                                 if (dvs.Count > 0)
                                 {
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
-
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
                                 }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
+                                }
+
                             }
                             catch (DbEntityValidationException e)
                             {
@@ -545,19 +545,20 @@ namespace API.Controllers
                                 {
                                     db.ca_positions.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0";
                                     listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -881,18 +882,18 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_dispatch_books.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -1134,18 +1135,18 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_email_groups.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -1408,18 +1409,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_emails.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -1661,18 +1663,18 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_fields.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -1925,18 +1927,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_groups.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -2076,7 +2079,7 @@ namespace API.Controllers
                                 List<doc_ca_issue_places> dvs = new List<doc_ca_issue_places>();
                                 ExcelWorksheet ws = pck.Workbook.Worksheets.First();
                                 List<string> cols = new List<string>();
-                                if (ws.Dimension.End.Column != 4) // số cột khác x (x phụ thuộc vào mẫu excel)
+                                if (ws.Dimension.End.Column != 8) // số cột khác x (x phụ thuộc vào mẫu excel)
                                 {
                                     errorCode = "1"; listErr = "Sai mẫu Excel!<br> Vui lòng kiểm tra lại!";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
@@ -2102,16 +2105,16 @@ namespace API.Controllers
 
                                 for (int i = 5; i <= ws.Dimension.End.Row; i++)
                                 {
-                                    if (ws.Cells[i, 4].Value != null) // kiểm tra đơn vị có trong dtb
+                                    if (ws.Cells[i, 8].Value != null) // kiểm tra đơn vị có trong dtb
                                     {
-                                        if (ws.Cells[i, 4].Value.ToString().ToUpper() == "HỆ THỐNG" && sp == false)
+                                        if (ws.Cells[i, 8].Value.ToString().ToUpper() == "HỆ THỐNG" && sp == false)
                                         {
                                             listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
                                         }
-                                        else if (ws.Cells[i, 4].Value.ToString().ToUpper() != "HỆ THỐNG")
+                                        else if (ws.Cells[i, 8].Value.ToString().ToUpper() != "HỆ THỐNG")
                                         {
-                                            string celli4 = ws.Cells[i, 4].Value.ToString();
-                                            var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            string celli8 = ws.Cells[i, 8].Value.ToString();
+                                            var org = db.sys_organization.Where(x => celli8.Contains(x.organization_name)).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
@@ -2125,7 +2128,7 @@ namespace API.Controllers
                                     listErr += ws.Cells[i, 2].Value != null && ws.Cells[i, 2].Value.ToString().Length > 250
                                       ? "Dòng thứ " + i + " cột <b>Nơi ban hành</b> không quá 250 ký tự <br>" : null;
 
-                                    listErr += ws.Cells[i, 4].Value == null ? "Dòng thứ " + i + " cột <b>Đơn vị</b> không được để trống <br>" : null;
+                                    listErr += ws.Cells[i, 8].Value == null ? "Dòng thứ " + i + " cột <b>Đơn vị</b> không được để trống <br>" : null;
 
                                 }
 
@@ -2162,6 +2165,18 @@ namespace API.Controllers
                                             case "issue_place_name":
                                                 dv.issue_place_name = vl != null ? vl.ToString() : null;
                                                 break;
+                                            case "static_code":
+                                                dv.static_code = vl != null ? vl.ToString() : null;
+                                                break;
+                                            case "dynamic_code":
+                                                dv.dynamic_code = vl != null ? vl.ToString() : null;
+                                                break;
+                                            case "search_code":
+                                                dv.search_code = vl != null ? vl.ToString() : null;
+                                                break;
+                                            case "display_code":
+                                                dv.display_code = vl != null ? vl.ToString() : null;
+                                                break;
                                             case "status":
                                                 dv.status = vl.ToString().ToUpper() == "HIỂN THỊ" ? true : false;
                                                 break;
@@ -2182,18 +2197,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_issue_places.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -2454,18 +2470,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_urgency.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -2726,18 +2743,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_security.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -2992,18 +3010,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_send_ways.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -3299,18 +3318,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_signers.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -3559,18 +3579,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_receive_places.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -3818,18 +3839,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_stamps.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -4068,18 +4090,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_status.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -4321,18 +4344,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_tags.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -4601,18 +4625,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_types.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -4881,18 +4906,19 @@ namespace API.Controllers
                                 {
                                     db.doc_ca_positions.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0"; listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)
@@ -5101,11 +5127,11 @@ namespace API.Controllers
                                                 break;
                                             case "organization_id":
                                                 bool check_organization = (vl != null && db.sys_organization.AsEnumerable().FirstOrDefault(x => x.organization_id == int.Parse(vl.ToString())) != null) ? true : false;
-                                                user.organization_id = check_organization == true ? int.Parse(vl.ToString()) : (int?)null;
+                                                user.organization_id = check_organization == true ? int.Parse(vl.ToString()) : int.Parse(dvid);
                                                 break;
                                             case "department_id":
                                                 bool check_department = (vl != null && db.sys_organization.AsEnumerable().FirstOrDefault(x => x.organization_id == int.Parse(vl.ToString())) != null) ? true : false;
-                                                user.department_id = check_department == true ? int.Parse(vl.ToString()) : (int?)null;
+                                                user.department_id = check_department == true ? int.Parse(vl.ToString()) : int.Parse(dvid);
                                                 break;
                                         }
                                     }
@@ -5128,19 +5154,20 @@ namespace API.Controllers
                                 {
                                     db.sys_users.AddRange(dvs);
                                     db.SaveChanges();
-                                    bool exists1 = File.Exists(fpath);
-                                    if (exists1)
-                                    {
-                                        System.IO.File.Delete(fpath);
-                                    }
-                                    bool exists2 = File.Exists(pathConfigTemp);
-                                    if (exists2)
-                                    {
-                                        System.IO.File.Delete(pathConfigTemp);
-                                    }
+
                                     errorCode = "0";
                                     listErr = "";
                                     return Request.CreateResponse(HttpStatusCode.OK, new { err = errorCode, ms = listErr, count = dvs.Count });
+                                }
+                                bool exists1 = File.Exists(fpath);
+                                if (exists1)
+                                {
+                                    System.IO.File.Delete(fpath);
+                                }
+                                bool exists2 = File.Exists(pathConfigTemp);
+                                if (exists2)
+                                {
+                                    System.IO.File.Delete(pathConfigTemp);
                                 }
                             }
                             catch (DbEntityValidationException e)

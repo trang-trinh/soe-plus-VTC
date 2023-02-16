@@ -289,7 +289,7 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.doc_ca_tags.Where(a => (a.tag_id == trangthai.IntID)).FirstOrDefault<doc_ca_tags>();
+                    var das = db.doc_ca_tags.FirstOrDefault(a => (a.tag_id == trangthai.IntID));
                     if (das != null)
                     {
 
