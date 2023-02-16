@@ -60,10 +60,10 @@ namespace API.Controllers
                     }
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
-                    string strPath = root + "/TaskOrigin";
-                    bool exists = Directory.Exists(strPath);
-                    if (!exists)
-                        Directory.CreateDirectory(strPath);
+                    //string strPath = root + "/" + task_origin.organization_id + "/TaskOrigin/" + task_origin.task_id;
+                    //bool exists = Directory.Exists(strPath);
+                    //if (!exists)
+                    //    Directory.CreateDirectory(strPath);
                     var provider = new MultipartFormDataStreamProvider(root);
 
                     // Read the form data and return an async task.
@@ -205,27 +205,41 @@ namespace API.Controllers
                         #region add sendhub
                         if (helper.wlog)
                         {
-                            var ns_sh = db.sys_users.Find(task_origin.created_by);
+                            if (members.Count > 0)
+                            {
+                                List<sys_sendhub> listsendhubs = new List<sys_sendhub>();
+                                foreach (var item in members)
+                                {
+                                    if(listsendhubs.Where(x=>x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
+                                    {
+                                        var ns_sh = db.sys_users.Find(item.user_id);
 
-                            var sh = new sys_sendhub();
-                            sh.senhub_id = helper.GenKey();
-                            sh.user_send = uid;
-                            sh.module_key = "M4";
-                            sh.receiver = ns_sh.user_id;
-                            sh.icon = ns_sh.avatar;
-                            sh.title = "Công việc";
-                            sh.contents = "Thêm công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
-                            sh.type = 2;
-                            sh.is_type = -1;
-                            sh.date_send = DateTime.Now;
-                            sh.id_key = task_origin.task_id.ToString();
-                            //sh.group_id = task_origin.group_id;
-                            sh.token_id = tid;
-                            sh.created_date = DateTime.Now;
-                            sh.created_by = uid;
-                            sh.created_token_id = tid;
-                            sh.created_ip = ip;
-                            db.sys_sendhub.Add(sh);
+                                        var sh = new sys_sendhub();
+                                        sh.senhub_id = helper.GenKey();
+                                        sh.user_send = uid;
+                                        sh.module_key = "M4";
+                                        sh.receiver = ns_sh.user_id;
+                                        sh.icon = ns_sh.avatar;
+                                        sh.title = "Công việc";
+                                        sh.contents = "Thêm công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
+                                        sh.type = 2;
+                                        sh.is_type = -1;
+                                        sh.date_send = DateTime.Now;
+                                        sh.id_key = task_origin.task_id.ToString();
+                                        //sh.group_id = task_origin.group_id;
+                                        sh.token_id = tid;
+                                        sh.created_date = DateTime.Now;
+                                        sh.created_by = uid;
+                                        sh.created_token_id = tid;
+                                        sh.created_ip = ip;
+                                        listsendhubs.Add(sh);
+                                    }
+                                }
+                                if (listsendhubs.Count > 0)
+                                {
+                                    db.sys_sendhub.AddRange(listsendhubs);
+                                }
+                            }
                         }
                         #endregion
                         db.SaveChanges();
@@ -287,10 +301,10 @@ namespace API.Controllers
                     }
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
-                    string strPath = root + "/TaskOrigin";
-                    bool exists = Directory.Exists(strPath);
-                    if (!exists)
-                        Directory.CreateDirectory(strPath);
+                    //string strPath = root + "/TaskOrigin";
+                    //bool exists = Directory.Exists(strPath);
+                    //if (!exists)
+                    //    Directory.CreateDirectory(strPath);
                     var provider = new MultipartFormDataStreamProvider(root);
 
                     // Read the form data and return an async task.
@@ -516,27 +530,41 @@ namespace API.Controllers
                         #region add sendhub
                         if (helper.wlog)
                         {
-                            var ns_sh = db.sys_users.Find(task_origin.created_by);
+                            if (members.Count > 0)
+                            {
+                                List<sys_sendhub> listsendhubs = new List<sys_sendhub>();
+                                foreach (var item in members)
+                                {
+                                    if (listsendhubs.Where(x => x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
+                                    {
+                                        var ns_sh = db.sys_users.Find(item.user_id);
 
-                            var sh = new sys_sendhub();
-                            sh.senhub_id = helper.GenKey();
-                            sh.user_send = uid;
-                            sh.module_key = "M4";
-                            sh.receiver = ns_sh.user_id;
-                            sh.icon = ns_sh.avatar;
-                            sh.title = "Công việc";
-                            sh.contents = "Sửa công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
-                            sh.type = 2;
-                            sh.is_type = -1;
-                            sh.date_send = DateTime.Now;
-                            sh.id_key = task_origin.task_id.ToString();
-                            //sh.group_id = task_origin.group_id;
-                            sh.token_id = tid;
-                            sh.created_date = DateTime.Now;
-                            sh.created_by = uid;
-                            sh.created_token_id = tid;
-                            sh.created_ip = ip;
-                            db.sys_sendhub.Add(sh);
+                                        var sh = new sys_sendhub();
+                                        sh.senhub_id = helper.GenKey();
+                                        sh.user_send = uid;
+                                        sh.module_key = "M4";
+                                        sh.receiver = ns_sh.user_id;
+                                        sh.icon = ns_sh.avatar;
+                                        sh.title = "Công việc";
+                                        sh.contents = "Sửa công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
+                                        sh.type = 2;
+                                        sh.is_type = -1;
+                                        sh.date_send = DateTime.Now;
+                                        sh.id_key = task_origin.task_id.ToString();
+                                        //sh.group_id = task_origin.group_id;
+                                        sh.token_id = tid;
+                                        sh.created_date = DateTime.Now;
+                                        sh.created_by = uid;
+                                        sh.created_token_id = tid;
+                                        sh.created_ip = ip;
+                                        listsendhubs.Add(sh);
+                                    }
+                                }
+                                if (listsendhubs.Count > 0)
+                                {
+                                    db.sys_sendhub.AddRange(listsendhubs);
+                                }
+                            }
                         }
                         #endregion
                         db.SaveChanges();
@@ -713,27 +741,41 @@ namespace API.Controllers
                             #region add sendhub
                             if (helper.wlog)
                             {
-                                var ns_sh = db.sys_users.Find(da.created_by);
+                                if (members.Count > 0)
+                                {
+                                    List<sys_sendhub> listsendhubs = new List<sys_sendhub>();
+                                    foreach (var item in members)
+                                    {
+                                        if (listsendhubs.Where(x => x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
+                                        {
+                                            var ns_sh = db.sys_users.Find(item.user_id);
 
-                                var sh = new sys_sendhub();
-                                sh.senhub_id = helper.GenKey();
-                                sh.user_send = uid;
-                                sh.module_key = "M4";
-                                sh.receiver = ns_sh.user_id;
-                                sh.icon = ns_sh.avatar;
-                                sh.title = "Công việc";
-                                sh.contents = "Xóa công việc: " + (da.task_name.Length > 100 ? da.task_name.Substring(0, 97) + "..." : da.task_name);
-                                sh.type = 2;
-                                sh.is_type = -1;
-                                sh.date_send = DateTime.Now;
-                                sh.id_key = da.task_id.ToString();
-                                //sh.group_id = task_origin.group_id;
-                                sh.token_id = tid;
-                                sh.created_date = DateTime.Now;
-                                sh.created_by = uid;
-                                sh.created_token_id = tid;
-                                sh.created_ip = ip;
-                                db.sys_sendhub.Add(sh);
+                                            var sh = new sys_sendhub();
+                                            sh.senhub_id = helper.GenKey();
+                                            sh.user_send = uid;
+                                            sh.module_key = "M4";
+                                            sh.receiver = ns_sh.user_id;
+                                            sh.icon = ns_sh.avatar;
+                                            sh.title = "Công việc";
+                                            sh.contents = "Xóa công việc: " + (da.task_name.Length > 100 ? da.task_name.Substring(0, 97) + "..." : da.task_name);
+                                            sh.type = 2;
+                                            sh.is_type = -1;
+                                            sh.date_send = DateTime.Now;
+                                            sh.id_key = da.task_id.ToString();
+                                            //sh.group_id = task_origin.group_id;
+                                            sh.token_id = tid;
+                                            sh.created_date = DateTime.Now;
+                                            sh.created_by = uid;
+                                            sh.created_token_id = tid;
+                                            sh.created_ip = ip;
+                                            listsendhubs.Add(sh);
+                                        }
+                                    }
+                                    if (listsendhubs.Count > 0)
+                                    {
+                                        db.sys_sendhub.AddRange(listsendhubs);
+                                    }
+                                }
                             }
                             #endregion
                         }

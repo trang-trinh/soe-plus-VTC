@@ -213,7 +213,7 @@ namespace API.Controllers
                         }
                         fdstamp = provider.FormData.GetValues("stamp").SingleOrDefault();
                         doc_ca_stamps stamp = JsonConvert.DeserializeObject<doc_ca_stamps>(fdstamp);
-                        var stampOld = db.doc_ca_stamps.AsNoTracking().Where(s => s.stamp_id == stamp.stamp_id).FirstOrDefault<doc_ca_stamps>();
+                        var stampOld = db.doc_ca_stamps.AsNoTracking().FirstOrDefault(s => s.stamp_id == stamp.stamp_id);
                         if (stampOld.image != null && stampOld.image != "")
                         {
                             string fileOld = stampOld.image.Substring(8);
@@ -257,7 +257,7 @@ namespace API.Controllers
                         }
                         if (stamp.is_default == true)
                         {
-                            var das1 = db.doc_ca_stamps.AsNoTracking().Where(a => (a.is_default == true)).FirstOrDefault<doc_ca_stamps>();
+                            var das1 = db.doc_ca_stamps.AsNoTracking().FirstOrDefault(a => (a.is_default == true));
                             if (das1 != null && das1.stamp_id != stamp.stamp_id)
                             {
 
@@ -298,7 +298,16 @@ namespace API.Controllers
 
                         if (stampOld.image != "" && stampOld.image != stamp.image && stamp.image == "")
                         {
-                            File.Delete(root + stampOld.image.Substring(8));
+                            var listPathEdit = Regex.Replace(stampOld.image.Substring(8).Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit = "";
+                            foreach (var itemEdit in listPathEdit)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            File.Delete(root + pathEdit);
                         }
                         #region add cms_logs
                         if (helper.wlog)
@@ -465,7 +474,7 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.doc_ca_stamps.Where(a => (a.stamp_id == trangthai.IntID)).FirstOrDefault<doc_ca_stamps>();
+                    var das = db.doc_ca_stamps.FirstOrDefault(a => (a.stamp_id == trangthai.IntID));
                     if (das != null)
                     {
                         das.modified_by = uid;

@@ -411,7 +411,7 @@ namespace API.Controllers.Dictionary
                 using (DBEntities db = new DBEntities())
                 {
                     var oldDef = db.doc_ca_role_groups.Where(x => x.is_default == true).FirstOrDefault();
-                    var das = db.doc_ca_role_groups.Where(a => (a.role_group_id == trangthai.IntID)).FirstOrDefault<doc_ca_role_groups>();
+                    var das = db.doc_ca_role_groups.FirstOrDefault(a => (a.role_group_id == trangthai.IntID));
                     if (das != null)
                     {
                         if (oldDef != null)

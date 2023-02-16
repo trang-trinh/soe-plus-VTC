@@ -280,7 +280,7 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.doc_ca_status.Where(a => (a.status_id == trangthai.TextID)).FirstOrDefault<doc_ca_status>();
+                    var das = db.doc_ca_status.FirstOrDefault(a => (a.status_id == trangthai.TextID));
                     if (das != null)
                     {
                         das.modified_by = uid;
@@ -357,7 +357,7 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.doc_ca_status.Where(a => (a.status_id == trangthai.TextID)).FirstOrDefault<doc_ca_status>();
+                    var das = db.doc_ca_status.FirstOrDefault(a => (a.status_id == trangthai.TextID));
                     if (das != null)
                     {
                         das.modified_by = uid;
