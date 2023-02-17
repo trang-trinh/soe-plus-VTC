@@ -345,6 +345,9 @@ const DeviceManufacturer = () =>
     import ("../views/device/DeviceManufacturer.vue");
 const DeviceStatus = () =>
     import ("../views/device/DeviceStatus.vue");
+const MyAssets = () =>
+    import ("../views/device/MyAssets.vue");
+
 // Chat
 const Chat_Message = () =>
     import ("../views/chat/Chat_Message.vue");
@@ -1290,6 +1293,10 @@ const router = createRouter({
             path: "/device/category/status",
             name: "devicestatus",
             component: DeviceStatus,
+        }, {
+            path: "/device/my_assets",
+            name: "myAssets",
+            component: MyAssets,
         },
 
         // Chat

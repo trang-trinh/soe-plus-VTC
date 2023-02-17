@@ -191,7 +191,7 @@ const saveData = (isFormValid) => {
     });
     return;
   }
-    if (training_emps.value.training_emps_code.length > 50) {
+  if (training_emps.value.training_emps_code.length > 50) {
     swal.fire({
       title: "Error!",
       text: "Mã đào tạo không được vượt quá 50 ký tự!",
@@ -201,6 +201,7 @@ const saveData = (isFormValid) => {
     return;
   }
   list_schedule.value.forEach((element) => {
+     if(element.class_schedule_name)
     if (element.class_schedule_name.length >= 250) {
       swal.fire({
         title: "Error!",
@@ -210,6 +211,9 @@ const saveData = (isFormValid) => {
       });
       return;
     }
+    else
+    return
+    if(element.phone_number)
     if (element.phone_number.length >= 11) {
       swal.fire({
         title: "Error!",
@@ -218,8 +222,8 @@ const saveData = (isFormValid) => {
         confirmButtonText: "OK",
       });
       return;
-    }
-        if (element.lecturers_name.length >= 250) {
+    }if(element.lecturers_name)
+    if (element.lecturers_name.length >= 250) {
       swal.fire({
         title: "Error!",
         text: "Tên giảng viên không được vượt quá 250 ký tự!",
@@ -1051,7 +1055,11 @@ onMounted(() => {
                 id="basic_purchase_date"
                 v-model="training_emps.end_date"
                 autocomplete="on"
-                :minDate="training_emps.start_date?new Date(training_emps.start_date):null"
+                :minDate="
+                  training_emps.start_date
+                    ? new Date(training_emps.start_date)
+                    : null
+                "
                 :showIcon="true"
               />
             </div>
@@ -1108,7 +1116,11 @@ onMounted(() => {
                 class="w-full"
                 id="basic_purchase_date"
                 v-model="training_emps.registration_deadline"
-                   :maxDate="training_emps.start_date?new Date(training_emps.start_date):null"
+                :maxDate="
+                  training_emps.start_date
+                    ? new Date(training_emps.start_date)
+                    : null
+                "
                 autocomplete="on"
                 :showIcon="true"
                 :showTime="true"
@@ -1284,6 +1296,36 @@ onMounted(() => {
             </div>
           </div>
         </div>
+           <div class="col-12 flex p-0">
+          <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+               Học phí
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <InputNumber
+                  v-model="training_emps.tuition"
+                  class="w-full"
+                   suffix=" VND"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+               Chi phí 
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                   <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full"
+                   suffix=" VND"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="col-12 field flex p-0 align-items-center">
           <div class="w-10rem">Địa điểm đào tạo</div>
           <div style="width: calc(100% - 10rem)">
@@ -1305,6 +1347,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
+      
         <div class="col-12 field p-0 flex">
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">Đơn vị thực hiện</div>
@@ -1819,8 +1862,16 @@ onMounted(() => {
                       v-model="slotProps.data.date_study"
                       autocomplete="on"
                       :showIcon="true"
-                           :maxDate="training_emps.end_date?new Date(training_emps.end_date):null"
-                                :minDate="training_emps.start_date?new Date(training_emps.start_date):null"
+                      :maxDate="
+                        training_emps.end_date
+                          ? new Date(training_emps.end_date)
+                          : null
+                      "
+                      :minDate="
+                        training_emps.start_date
+                          ? new Date(training_emps.start_date)
+                          : null
+                      "
                     />
                   </template>
                 </Column>
@@ -1951,7 +2002,7 @@ onMounted(() => {
               </template>
             </FileUpload>
 
-            <div class="col-12 p-0 flex">
+            <div class="col-12 p-0">
               <div
                 class="p-0 w-full flex"
                 v-for="(item, index) in listFilesS"
@@ -1964,52 +2015,58 @@ onMounted(() => {
                   <Toolbar class="w-full py-3">
                     <template #start>
                       <div class="flex">
-                        <Image
-                          v-if="checkImg(item.file_path)"
-                          :src="basedomainURL + item.file_path"
-                          :alt="item.file_name"
-                          width="70"
-                          height="50"
-                          style="
-                            object-fit: contain;
-                            border: 1px solid #ccc;
-                            width: 70px;
-                            height: 50px;
-                          "
-                          preview
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                          class="pr-2"
-                        />
+                        <div v-if="item.is_image" class="align-items-center flex">
+                          <Image
+                            :src="basedomainURL + item.file_path"
+                            :alt="item.file_name"
+                            width="70"
+                            height="50"
+                            style="
+                              object-fit: contain;
+                              border: 1px solid #ccc;
+                              width: 70px;
+                              height: 50px;
+                            "
+                            preview
+                            
+                            class="pr-2"
+                          />
+                          <div class="ml-2">
+                            {{ item.file_name }}
+                         
+                          </div>
+                        </div>
                         <div v-else>
                           <a
                             :href="basedomainURL + item.file_path"
                             download
-                            class="w-full no-underline"
+                            class="w-full no-underline cursor-pointer"
                           >
-                            <img
-                              :src="
-                                basedomainURL +
-                                '/Portals/Image/file/' +
-                                item.file_path.substring(
-                                  item.file_path.lastIndexOf('.') + 1
-                                ) +
-                                '.png'
-                              "
-                              style="
-                                width: 70px;
-                                height: 50px;
-                                object-fit: contain;
-                              "
-                              :alt="item.file_name"
-                            />
+                            <div class="align-items-center flex">
+                              <div>
+                                <img
+                                  :src="
+                                    basedomainURL +
+                                    '/Portals/Image/file/' +
+                                    item.file_path.substring(
+                                      item.file_path.lastIndexOf('.') + 1
+                                    ) +
+                                    '.png'
+                                  "
+                                  style="
+                                    width: 70px;
+                                    height: 50px;
+                                    object-fit: contain;
+                                  "
+                                  :alt="item.file_name"
+                                />
+                              </div>
+                              <div class="ml-2">
+                                {{ item.file_name }}
+                              </div>
+                            </div>
                           </a>
                         </div>
-                        <span class="ml-2" style="line-height: 50px">
-                          {{ item.file_name }}</span
-                        >
                       </div>
                     </template>
                     <template #end>
