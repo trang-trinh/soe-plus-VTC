@@ -222,6 +222,9 @@ const closeDialogContract = () => {
   displayDialogContract.value = false;
 };
 
+//data view 6
+const insurances = ref([]);
+
 //data view 11
 const receipts = ref([]);
 
@@ -920,6 +923,67 @@ const initView3 = (rf) => {
       }
     });
 };
+const initView6 = (rf) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_insurance_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "profile_id", va: options.value["profile_id"] },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          insurances.value = tbs[0][0];
+        } else {
+          insurances.value = {};
+        }
+      }
+      swal.close();
+    })
+    .catch((error) => {
+      swal.close();
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 const initView11 = (rf) => {
   if (ref) {
     swal.fire({
@@ -951,7 +1015,7 @@ const initView11 = (rf) => {
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((x) => {
               if (x["receipt_date"] != null) {
-                x["receipt_date"] = new Date(x["receipt_date"]);
+                x["receipt_date"] = moment(new Date(x["receipt_date"])).format("DD/MM/YYYY");
               }
             });
             receipts.value = data[0];
@@ -1093,6 +1157,8 @@ const initData = () => {
   } else if (options.value.view === 3) {
     initDictionary3();
     initView3(true);
+  } else if (options.value.view === 6) {
+    initView6(true);
   } else if (options.value.view === 11) {
     initView11(true);
   } else if (options.value.view === 12) {
@@ -2874,7 +2940,27 @@ const onPage = (event) => {
             </div>
             <div v-show="options.view === 4" class="f-full">Chấm công</div>
             <div v-show="options.view === 5" class="f-full">Phiếu lương</div>
-            <div v-show="options.view === 6" class="f-full">Bảo hiểm</div>
+            <div v-show="options.view === 6" class="f-full">
+              <div class="d-lang-table-1 p-2">
+                <!-- <DataTable
+                  :value="insurances"
+                  :scrollable="true"
+                  :lazy="true"
+                  :rowHover="true"
+                  :showGridlines="true"
+                  disableSelection="true"
+                  v-model:selection="selectedNodes"
+                  dataKey="insurance_id"
+                  scrollHeight="flex"
+                  filterDisplay="menu"
+                  filterMode="lenient"
+                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                  responsiveLayout="scroll"
+                >
+                  
+                </DataTable> -->
+              </div>
+            </div>
             <div v-show="options.view === 7" class="f-full">Phép năm</div>
             <div v-show="options.view === 8" class="f-full">Đào tạo</div>
             <div v-show="options.view === 9" class="f-full">Quyết định</div>
@@ -2918,14 +3004,7 @@ const onPage = (event) => {
                     "
                   >
                     <template #body="slotProps">
-                      <Calendar
-                        class="ip36"
-                        id="icon"
-                        v-model="slotProps.data.receipt_date"
-                        :showIcon="true"
-                        placeholder="dd/mm/yyyy"
-                        :disabled="true"
-                      />
+                      <span>{{ slotProps.data.receipt_date }}</span>
                     </template>
                   </Column>
                   <Column
@@ -2940,13 +3019,7 @@ const onPage = (event) => {
                     "
                   >
                     <template #body="slotProps">
-                      <Textarea
-                        :autoResize="true"
-                        rows="1"
-                        v-model="slotProps.data.note"
-                        style="width: 100%"
-                        :disabled="true"
-                      />
+                      <span>{{ slotProps.data.note }}</span>
                     </template>
                   </Column>
                 </DataTable>
