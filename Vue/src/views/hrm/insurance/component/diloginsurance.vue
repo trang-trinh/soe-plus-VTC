@@ -333,11 +333,15 @@ onMounted(() => {});
             :editable="true"
           />
         </div>
-        <h4 class="my-2">Lịch sử đóng bảo hiểm</h4>
-        <div style="text-align: end" class="field col-12 md:col-12">
-          <a @click="addRow(1)" class="cursor-pointer" v-tooltip.top="'Thêm'">
-            <i class="pi pi-plus-circle" style="font-size: 18px"></i>
-          </a>
+        <div class="field col-12 md:col-12 flex m-0">
+          <div class="col-10 text-left p-0">
+            <h4>Lịch sử đóng bảo hiểm</h4>
+          </div>
+          <div class="col-2 p-0 format-center" style="justify-content:end">
+            <a @click="addRow(1)" class="cursor-pointer" v-tooltip.top="'Thêm'">
+              <i class="pi pi-plus-circle" style="font-size: 18px"></i>
+            </a>
+          </div>
         </div>
         <div style="overflow-x: scroll" class="scroll-outer">
           <div class="scroll-inner">
@@ -461,11 +465,15 @@ onMounted(() => {});
             </table>
           </div>
         </div>
-        <h4 class="my-2">Lịch sử giải quyết chế độ</h4>
-        <div style="text-align: end" class="field col-12 md:col-12">
-          <a @click="addRow(2)" class="cursor-pointer" v-tooltip.top="'Thêm'">
-            <i class="pi pi-plus-circle" style="font-size: 18px"></i>
-          </a>
+        <div class="field col-12 md:col-12 flex m-0">
+          <div class="col-10 text-left p-0">
+            <h4>Lịch sử giải quyết chế độ</h4>
+          </div>
+          <div class="col-2 p-0 format-center" style="justify-content:end">
+            <a @click="addRow(2)" class="cursor-pointer" v-tooltip.top="'Thêm'">
+              <i class="pi pi-plus-circle" style="font-size: 18px"></i>
+            </a>
+          </div>
         </div>
         <div style="overflow-x: auto" class="scroll-outer">
           <div class="scroll-inner">
