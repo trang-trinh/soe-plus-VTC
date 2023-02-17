@@ -186,10 +186,12 @@ import {
     faPersonChalkboard,
     faEnvelopeOpen,
     faEllipsis,
+    faBriefcaseMedical,
 } from "@fortawesome/free-solid-svg-icons";
 import {
     faAddressCard,
     faCalendarDays,
+    faFile,
 } from "@fortawesome/free-regular-svg-icons";
 /* add icons to the library */
 library.add(
@@ -239,7 +241,9 @@ library.add(
     faCalendarDays,
     faPersonChalkboard,
     faEnvelopeOpen,
-    faEllipsis
+    faEllipsis,
+    faFile,
+    faBriefcaseMedical,
 );
 import "animate.css";
 Date.prototype.toISOString = function() {

@@ -1907,7 +1907,7 @@ onMounted(() => {
                   optionValue="value"
                   placeholder="Chọn trạng thái"
                   class="ip36"
-                  @change="setStatus(contractstatus, $event)"
+                  @change="setStatus(contract.status, $event)"
                 >
                   <template #option="slotProps">
                     <div class="country-item flex align-items-center">
