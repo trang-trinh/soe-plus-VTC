@@ -1270,6 +1270,7 @@ const configRole = (md) => {
       opition.value.moduleloading = false;
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
+      debugger
       if (data1.length > 0) {
         is_role.value = data1[0].is_role;
         role_name.value = data1[0].role_name;
