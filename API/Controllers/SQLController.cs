@@ -2948,7 +2948,7 @@ namespace Controllers
                 if (!string.IsNullOrWhiteSpace(filterSQL.Search))
                 {
 
-                    WhereSQL += (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "") + " issue_place_name like N'%" + filterSQL.Search + "%'";
+                    WhereSQL += (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "") + " issue_place_name like N'%" + filterSQL.Search + "%' or search_code like N'%" + filterSQL.Search + "%'";
 
                 }
                 if (WhereSQL.StartsWith(" and "))
@@ -2982,12 +2982,11 @@ namespace Controllers
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_issue_places where " + WhereSQL;
+                    sql = @" select *,(select max(z.is_order) from doc_ca_issue_places z where z.parent_id=p.issue_place_id And z.organization_id=" + (uid == "administrator" ? 0 : int.Parse(dvid)) + ") AS maxIsOrder from doc_ca_issue_places p where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
-                        ORDER BY " + (filterSQL.sqlO != null ? filterSQL.sqlO : "is_order asc") + @"
-                        OFFSET " + OFFSET + " ROWS FETCH NEXT " + filterSQL.PageSize + " ROWS ONLY ";
+                        ORDER BY " + (filterSQL.sqlO != null ? filterSQL.sqlO : "is_order asc") + @" ";
                 sql += sqlCount;
                 sql = sql.Replace("\r", " ").Replace("\n", " ").Replace("   ", " ").Trim();
                 sql = Regex.Replace(sql, @"\s+", " ").Trim();
@@ -3027,7 +3026,6 @@ namespace Controllers
             //}
 
         }
-
         [HttpPost]
         public async Task<HttpResponseMessage> Filter_Field([System.Web.Mvc.Bind(Include = "Search,sqlS,sqlF,sqlO,PageNo,PageSize")][FromBody] FilterSQL filterSQL)
         {
@@ -5423,11 +5421,11 @@ namespace Controllers
                     "su.full_name AS device_user_name, so.organization_name AS manage_department_name from device_card tm LEFT JOIN sys_users su ON tm.device_user_id=su.user_id LEFT JOIN sys_organization so ON tm.manage_department_id =so.organization_id ";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
-                
+
                 string checkOrgz = super == "True" ? " tm.organization_id is not null " : (" ( tm.organization_id = 0 or tm.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
-                    var check = false; 
+                    var check = false;
                     foreach (var field in filterSQL.fieldSQLS)
                     {
                         string WhereSQLR = "";
@@ -5519,15 +5517,15 @@ namespace Controllers
                     }
                 }
 
-                
+
                 //Search
                 if (!string.IsNullOrWhiteSpace(filterSQL.Search))
                 {
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
-                        + "(" 
+                        + "("
 
                         + " CONTAINS( tm.device_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
-                       
+
                         " or ( tm.barcode_id like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
                             " or ( tm.device_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
                         ")";
@@ -5821,7 +5819,7 @@ namespace Controllers
         }
 
         [HttpPost]
-        public async Task<HttpResponseMessage> Filter_device_report_insurance([System.Web.Mvc.Bind(Include = "fieldSQLS,Search,sqlO,PageNo,PageSize,next,id,Date")]  [FromBody] FilterSQL filterSQL)
+        public async Task<HttpResponseMessage> Filter_device_report_insurance([System.Web.Mvc.Bind(Include = "fieldSQLS,Search,sqlO,PageNo,PageSize,next,id,Date")][FromBody] FilterSQL filterSQL)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -6733,7 +6731,7 @@ namespace Controllers
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "") + "( tm.handover_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )"
 
                         + " or CONTAINS( tm.user_receiver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
-                         " or CONTAINS( tm.user_deliver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " ;
+                         " or CONTAINS( tm.user_deliver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') "
                 }
                 var offSetSQL = "";
                 if (filterSQL.next)//Trang tiếp
@@ -7142,7 +7140,7 @@ namespace Controllers
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
                          + "(( tm.repair_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )" +
 
-                         " or CONTAINS( tm.proposer,'\"*"+ filterSQL.Search.ToUpper() + "*\"') "  +
+                         " or CONTAINS( tm.proposer,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
 
                          ")";
 
@@ -7269,7 +7267,7 @@ namespace Controllers
                         }
                         else
                         {
-                          
+
                             srcWhere += field.filterconstraints.Count > 1 ? "(" : "";
                             foreach (var m in field.filterconstraints.Where(a => a.value != null))
                             {
@@ -7322,7 +7320,7 @@ namespace Controllers
                             }
 
                             srcWhere += field.filterconstraints.Count > 1 ? ")" : "";
-                         
+
                         }
                         if (srcWhere.StartsWith("( and"))
                         {
@@ -8083,7 +8081,7 @@ namespace Controllers
             string dvid = claims.Where(x => x.Type == "dvid").FirstOrDefault()?.Value;
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             string sql = "";
-         
+
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
@@ -8091,7 +8089,7 @@ namespace Controllers
 + " (SELECT su.full_name FROM sys_users su WHERE su.user_id = dp.created_by) as created_name,"
 + " (SELECT su.avatar FROM sys_users su WHERE su.user_id = dp.created_by) AS created_avatar INTO #bangTamDL1 "
 + " FROM device_process dp";
- 
+
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
                 string checkOrgz = super == "True" ? " dp.organization_id is not null " : (" ( dp.organization_id = 0 or dp.organization_id =" + dvid + " ) ");
@@ -8212,10 +8210,10 @@ namespace Controllers
                 {
                     sql += " WHERE " + WhereSQL + " and " +
                         " ( dp.device_process_code in  ( SELECT de.device_process_code from dbo.udfGetProcess(  '" + uid + "' ) de )     and " +
-                         " dp.device_note_id in  ( SELECT de.device_note_id from dbo.udfGetProcess(  '" + uid + "' ) de ) AND dp.is_view = 1  ) AND (dp.organization_id = 0 OR dp.organization_id = '" + dvid + "')"; 
-                        sql += " SELECT * FROM #bangTamDL1 dp where " + checkOrgz + @"
+                         " dp.device_note_id in  ( SELECT de.device_note_id from dbo.udfGetProcess(  '" + uid + "' ) de ) AND dp.is_view = 1  ) AND (dp.organization_id = 0 OR dp.organization_id = '" + dvid + "')";
+                    sql += " SELECT * FROM #bangTamDL1 dp where " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
-                  
+
                 }
                 else
                 {
@@ -8227,7 +8225,7 @@ namespace Controllers
 
 
                 }
- 
+
                 sql += "   SELECT COUNT(*) as totalRecords FROM #bangTamDL1  "
                 + " SELECT COUNT(*) as totalRecordsHandover FROM #bangTamDL1 dt WHERE dt.device_process_type= -2"
                  + " SELECT COUNT(*) as totalRecordsRepair FROM #bangTamDL1  dt WHERE dt.device_process_type= 1"
@@ -8692,7 +8690,7 @@ namespace Controllers
                         {
                             sql += " SELECT field_id,field_name into #Linhvuc FROM doc_ca_fields dcf WHERE dcf.field_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + " dm.field_name in (select field_name from #Linhvuc)";  
+                            WhereSQL += " " + " dm.field_name in (select field_name from #Linhvuc)";
                         }
                         else if (field.key == "department_id")
                         {

@@ -283,7 +283,7 @@ namespace API.Controllers.Dictionary
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.doc_ca_positions.Where(a => (a.position_id == trangthai.IntID)).FirstOrDefault<doc_ca_positions>();
+                    var das = db.doc_ca_positions.FirstOrDefault(a => (a.position_id == trangthai.IntID));
                     if (das != null)
                     {
                         das.modified_by = uid;

@@ -1,10 +1,11 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
-import diloginsurance from "../insurance/component/diloginsurance.vue";
+import { required } from "@vuelidate/validators";
+import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
-import moment from "moment";
+//Khai báo
 
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -16,32 +17,24 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  insurance_id: {
+  leaving_reason_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
-//khai bao bien
-const statuss = ref([
-  { value: 1, text: "Trả" },
-  { value: 2, text: "Sửa" },
-  { value: 3, text: "Chốt" },
-  { value: 4, text: "Xin cấp" },
-  { value: 5, text: "Gộp" },
-  { value: 6, text: "Người lao động giữ sổ" },
-]);
-const hinhthucs = ref([
-  { value: 1, text: "Bao tăng" },
-  { value: 2, text: "Báo giảm" },
-]);
-const insurance_pays = ref();
-const insurance_resolves = ref();
-const dictionarys = ref();
-//Function
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
+const rules = {
+  leaving_reason_name: {
+    required,
+    $errors: [
+      {
+        $property: "leaving_reason_name",
+        $validator: "required",
+        $message: "Lý do nghỉ việc không được để trống!",
+      },
+    ],
+  },
 };
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -50,8 +43,11 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_insurance_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_ca_leaving_reason_count",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -68,42 +64,8 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-const loadTudien = () => {
-  axios
-    .post(
-      baseURL + "api/insurance/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_insurance_dictionary",
-            par: [{ par: "user_id", va: store.state.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      dictionarys.value = data;
-      options.value.loading = false;
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-//Lấy dữ liệu bank
-const initData = (rf) => {
+//Lấy dữ liệu leaving_reason
+const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -120,7 +82,7 @@ const initData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_insurance_list",
+              proc: "hrm_ca_leaving_reason_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -174,30 +136,42 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].bank_id;
+    options.value.id =
+      datalists.value[datalists.value.length - 1].leaving_reason_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].bank_id;
+    options.value.id = datalists.value[0].leaving_reason_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
-  initData(true);
+  loadData(true);
 };
-
-const insurance = ref({
-  status: null,
-  organization_payment: null,
-  insurance_province_id: null,
-  hospital_name: null,
-  organization_id: store.getters.user.organization_id,
+const units = ref([
+  { value: 0, text: "Ngày/ Năm" },
+  { value: 1, text: "Ngày/ Tháng" },
+  { value: 2, text: "Ngày/ Tuần" },
+]);
+const statuss = ref([
+  { value: 1, text: "Hoạt động" },
+  { value: 0, text: "Không hoạt động" },
+]);
+const payrolls = ref([
+  { value: 1, text: "Có" },
+  { value: 0, text: "Không" },
+]);
+const leaving_reason = ref({
+  leaving_reason_name: "",
+  emote_file: "",
+  status: true,
+  is_default: false,
   is_order: 1,
-  profile_id: 1,
 });
+
 const selectedStamps = ref();
 const submitted = ref(false);
-const isAdd = ref(false);
-const isView = ref(false);
+const v$ = useVuelidate(rules, leaving_reason);
+const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
 const basedomainURL = baseURL;
@@ -217,47 +191,32 @@ const options = ref({
 const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
-  forceRerender();
   submitted.value = false;
-  insurance.value = {
-    status: null,
-    organization_payment: null,
-    insurance_province_id: null,
-    hospital_name: null,
+  leaving_reason.value = {
+    leaving_reason_name: "",
+    status: true,
+    is_default: false,
+    is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-    profile_id: 1,
   };
-  insurance_pays.value = [
-    {
-      start_date: null,
-      payment_form: null,
-      reason: null,
-      end_date: null,
-      organization_payment: null,
-      total_payment: null,
-      company_payment: null,
-      member_payment: null,
-    },
-  ];
-  insurance_resolves.value = [
-    {
-      type_mode: null,
-      payment_form: null,
-      type_mode: null,
-      completed_date: null,
-      received_money_date: null,
-      money: null,
-    },
-  ];
+
   checkIsmain.value = false;
-  isAdd.value = true;
+  isSaveTem.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
 };
 
 const closeDialog = () => {
+  leaving_reason.value = {
+    leaving_reason_name: "",
+    emote_file: "",
+    status: true,
+    is_default: false,
+    is_order: 1,
+  };
+
   displayBasic.value = false;
-  initData(true);
+  loadData(true);
 };
 
 //Thêm bản ghi
@@ -268,58 +227,23 @@ const saveData = (isFormValid) => {
   if (!isFormValid) {
     return;
   }
-  insurance_pays.value.forEach((item) => {
-    item.is_duplicate = false;
-  });
-  if (insurance_pays.value.length >= 2) {
-    let count_duplicate = 0;
-    for (let i = 0; i < insurance_pays.value.length - 1; i++) {
-      for (let j = i + 1; j < insurance_pays.value.length; j++) {
-        if (
-          !isEmpty(insurance_pays.value[i].start_date) &&
-          !isEmpty(insurance_pays.value[j].start_date) &&
-          isMonth(
-            insurance_pays.value[i].start_date,
-            insurance_pays.value[j].start_date
-          )
-        ) {
-          insurance_pays.value[j].is_duplicate = true;
-          insurance_pays.value[i].is_duplicate = true;
-          count_duplicate++;
-        }
-      }
-      if (count_duplicate > 0) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Vui lòng nhập tháng đóng đóng bảo hiểm không được trùng nhau!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    }
+
+  if (leaving_reason.value.leaving_reason_name.length > 250) {
+    swal.fire({
+      title: "Error!",
+      text: "Lý do nghỉ việc không được vượt quá 250 ký tự!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
   }
-  insurance_pays.value.forEach((item) => {
-    if (!isEmpty(item.is_duplicate)) item.is_duplicate = null;
-  });
   let formData = new FormData();
 
-  formData.append("insurance", JSON.stringify(insurance.value));
+  if (leaving_reason.value.countryside_fake)
+    leaving_reason.value.countryside = leaving_reason.value.countryside_fake;
   formData.append(
-    "insurance_pay",
-    JSON.stringify(
-      insurance_pays.value.filter(
-        (item) => !Object.values(item).every((o) => isEmpty(o))
-      )
-    )
-  );
-  formData.append(
-    "insurance_resolve",
-    JSON.stringify(
-      insurance_resolves.value.filter(
-        (item) => !Object.values(item).every((o) => isEmpty(o))
-      )
-    )
+    "hrm_ca_leaving_reason",
+    JSON.stringify(leaving_reason.value)
   );
   swal.fire({
     width: 110,
@@ -327,94 +251,86 @@ const saveData = (isFormValid) => {
       swal.showLoading();
     },
   });
-  axios({
-    method: isAdd.value == false ? "put" : "post",
-    url:
-      baseURL +
-      `/api/insurance/${
-        isAdd.value == false ? "update_insurance" : "add_insurance"
-      }`,
-    data: formData,
-    headers: {
-      Authorization: `Bearer ${store.getters.token}`,
-    },
-  }).then((response) => {
-    if (response.data.err === "0") {
-      swal.close();
-      toast.success("Cập nhật thành công!");
-      displayBasic.value = false;
-      initData(true);
-    } else {
-      swal.fire({
-        title: "Thông báo!",
-        text: "Đã có mã sổ này trong hệ thống rồi!",
-        icon: "error",
-        confirmButtonText: "OK",
+  if (!isSaveTem.value) {
+    axios
+      .post(
+        baseURL + "/api/hrm_ca_leaving_reason/add_hrm_ca_leaving_reason",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Thêm lý do nghỉ việc thành công!");
+          loadData(true);
+
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
       });
-    }
-  });
+  } else {
+    axios
+      .put(
+        baseURL + "/api/hrm_ca_leaving_reason/update_hrm_ca_leaving_reason",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa lý do nghỉ việc thành công!");
+
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  }
 };
 const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  axios
-    .post(
-      baseURL + "/api/Profile/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_insurance_get",
-            par: [{ par: "insurance_id", va: dataTem.insurance_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      let data = JSON.parse(response.data.data);
-      if (data.length > 0) {
-        insurance.value = data[0][0];
-        //get child
-        if (data[1].length > 0) {
-          insurance_pays.value = data[1];
-          insurance_pays.value.forEach((item) => {
-            if (item.start_date != null) {
-              item.start_date = new Date(item.start_date);
-            }
-          });
-        } else insurance_pays.value = [];
-
-        if (data[2].length > 0) {
-          insurance_resolves.value = data[2];
-          insurance_resolves.value.forEach((item) => {
-            if (item.received_file_date != null) {
-              item.received_file_date = new Date(item.received_file_date);
-            }
-            if (item.completed_date != null) {
-              item.completed_date = new Date(item.completed_date);
-            }
-            if (item.received_money_date != null) {
-              item.received_money_date = new Date(item.received_money_date);
-            }
-          });
-        } else insurance_resolves.value = [];
-      }
-      headerDialog.value = "Sửa thông tin";
-      isAdd.value = false;
-      displayBasic.value = true;
-    })
-    .catch((error) => {
-      if (error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-      }
-    });
+  leaving_reason.value = dataTem;
+  if (leaving_reason.value.countryside)
+    leaving_reason.value.countryside_fake = leaving_reason.value.countryside;
+  if (leaving_reason.value.is_default) {
+    checkIsmain.value = false;
+  } else {
+    checkIsmain.value = true;
+  }
+  headerDialog.value = "Sửa lý do nghỉ việc";
+  isSaveTem.value = true;
+  displayBasic.value = true;
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -439,16 +355,19 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/insurance/del_insurance", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: [Tem.insurance_id],
-          })
+          .delete(
+            baseURL + "/api/hrm_ca_leaving_reason/delete_hrm_ca_leaving_reason",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.leaving_reason_id] : 1,
+            }
+          )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá thẻ bảo hiểm thành công!");
-              initData(true);
+              toast.success("Xoá lý do nghỉ việc thành công!");
+              loadData(true);
             } else {
               swal.fire({
                 title: "Error!",
@@ -478,7 +397,7 @@ const onSort = (event) => {
 
   if (event.sortField == null) {
     isDynamicSQL.value = false;
-    initData(true);
+    loadData(true);
   } else {
     options.value.sort =
       event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
@@ -497,7 +416,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "bank_id",
+    id: "leaving_reason_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -509,7 +428,11 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_bank", data, config)
+    .post(
+      baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_leaving_reason",
+      data,
+      config
+    )
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -550,11 +473,11 @@ const searchStamp = (event) => {
     if (options.value.SearchText == "") {
       isDynamicSQL.value = false;
       options.value.loading = true;
-      initData(true);
+      loadData(true);
     } else {
       isDynamicSQL.value = true;
       options.value.loading = true;
-      initData(true);
+      loadData(true);
     }
   }
 };
@@ -565,7 +488,7 @@ const refreshStamp = () => {
   selectedStamps.value = [];
   isDynamicSQL.value = false;
   filterSQL.value = [];
-  initData(true);
+  loadData(true);
 };
 const onFilter = (event) => {
   filterSQL.value = [];
@@ -600,13 +523,90 @@ const onFilter = (event) => {
   isDynamicSQL.value = true;
   loadDataSQL();
 };
+//Checkbox
+const onCheckBox = (value, check, checkIsmain) => {
+  if (check) {
+    let data = {
+      IntID: value.leaving_reason_id,
+      TextID: value.leaving_reason_id + "",
+      IntTrangthai: 1,
+      BitTrangthai: value.status,
+    };
+    axios
+      .put(
+        baseURL + "/api/hrm_ca_leaving_reason/update_s_hrm_ca_leaving_reason",
+        data,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa trạng thái lý do nghỉ việc thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  } else {
+    let data1 = {
+      IntID: value.leaving_reason_id,
+      TextID: value.leaving_reason_id + "",
+      BitMain: value.is_default,
+    };
+    axios
+      .put(
+        baseURL + "/api/hrm_ca_leaving_reason/Update_DefaultStamp",
+        data1,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa trạng thái lý do nghỉ việc thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  }
+};
 //Xóa nhiều
 const deleteList = () => {
   let listId = new Array(selectedStamps.value.length);
   let checkD = false;
   selectedStamps.value.forEach((item) => {
     if (item.is_default) {
-      toast.error("Không được xóa thẻ bảo hiểm mặc định!");
+      toast.error("Không được xóa lý do nghỉ việc mặc định!");
       checkD = true;
       return;
     }
@@ -615,7 +615,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá thẻ bảo hiểm này không!",
+        text: "Bạn có muốn xoá lý do nghỉ việc này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -633,21 +633,25 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.bank_id);
+            listId.push(item.leaving_reason_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_ca_bank/delete_hrm_ca_bank", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
+            .delete(
+              baseURL +
+                "/api/hrm_ca_leaving_reason/delete_hrm_ca_leaving_reason",
+              {
+                headers: { Authorization: `Bearer ${store.getters.token}` },
+                data: listId != null ? listId : 1,
+              }
+            )
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá thẻ bảo hiểm thành công!");
+                toast.success("Xoá lý do nghỉ việc thành công!");
                 checkDelList.value = false;
 
-                initData(true);
+                loadData(true);
               } else {
                 swal.fire({
                   title: "Error!",
@@ -681,6 +685,26 @@ const trangThai = ref([
 
 const filterTrangthai = ref();
 
+const reFilterEmail = () => {
+  filterTrangthai.value = null;
+  isDynamicSQL.value = false;
+  checkFilter.value = false;
+  filterSQL.value = [];
+  options.value.SearchText = null;
+  op.value.hide();
+  loadData(true);
+};
+const filterFileds = () => {
+  filterSQL.value = [];
+  checkFilter.value = true;
+  let filterS = {
+    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
+    filteroperator: "and",
+    key: "status",
+  };
+  filterSQL.value.push(filterS);
+  loadDataSQL();
+};
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
     checkDelList.value = true;
@@ -692,72 +716,17 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
-const addRow = (type) => {
-  //relative
-  if (type == 1) {
-    let obj = {
-      start_date: null,
-      payment_form: null,
-      reason: null,
-      end_date: null,
-      organization_payment: null,
-      total_payment: null,
-      company_payment: null,
-      member_payment: null,
-    };
-    insurance_pays.value.push(obj);
-  }
-  if (type == 2) {
-    let obj = {
-      type_mode: null,
-      payment_form: null,
-      type_mode: null,
-      completed_date: null,
-      received_money_date: null,
-      money: null,
-    };
-    insurance_resolves.value.push(obj);
-  }
-};
-const deleteRow = (idx, type) => {
-  if (type == 1) {
-    insurance_pays.value.splice(idx, 1);
-  }
-  if (type == 2) {
-    insurance_resolves.value.splice(idx, 1);
-  }
-};
-//check empy object
-function isEmpty(val) {
-  return val === undefined || val == null || val.length <= 0 ? true : false;
-}
-function formatNumber(a, b, c, d) {
-  var e = isNaN((b = Math.abs(b))) ? 2 : b;
-  b = void 0 == c ? "," : c;
-  d = void 0 == d ? "," : d;
-  c = 0 > a ? "-" : "";
-  var g = parseInt((a = Math.abs(+a || 0).toFixed(e))) + "",
-    n = 3 < (n = g.length) ? n % 3 : 0;
-  return (
-    c +
-    (n ? g.substr(0, n) + d : "") +
-    g.substr(n).replace(/(\d{3})(?=\d)/g, "$1" + d) +
-    (e
-      ? b +
-        Math.abs(a - g)
-          .toFixed(e)
-          .slice(2)
-      : "")
-  );
-}
+
 onMounted(() => {
-  initData(true);
-  loadTudien();
+  if (!checkURL(window.location.pathname, store.getters.listModule)) {
+    //router.back();
+  }
+  loadData(true);
   return {
     datalists,
     options,
     onPage,
-    initData,
+    loadData,
     loadCount,
     openBasic,
     closeDialog,
@@ -766,6 +735,7 @@ onMounted(() => {
     saveData,
     isFirst,
     searchStamp,
+    onCheckBox,
     selectedStamps,
     deleteList,
   };
@@ -795,14 +765,14 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="insurance_id"
+      dataKey="leaving_reason_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-building"></i> Danh sách thẻ bảo hiểm ({{
+          <i class="pi pi-building"></i> Danh sách lý do nghỉ việc ({{
             options.totalRecords
           }})
         </h3>
@@ -834,7 +804,7 @@ onMounted(() => {
               <OverlayPanel
                 ref="op"
                 appendTo="body"
-                class=""
+                class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
                 style="width: 300px"
@@ -849,7 +819,7 @@ onMounted(() => {
                     </div>
                     <div class="col-8">
                       <Dropdown
-                        class="col-12"
+                        class="col-12 p-0 m-0"
                         v-model="filterTrangthai"
                         :options="trangThai"
                         optionLabel="name"
@@ -888,7 +858,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm thẻ bảo hiểm')"
+              @click="openBasic('Thêm lý do nghỉ việc')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -930,109 +900,62 @@ onMounted(() => {
         field="STT"
         header="STT"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:50px;height:50px"
-        bodyStyle="text-align:center;max-width:50px"
+        headerStyle="text-align:center;max-width:70px;height:50px"
+        bodyStyle="text-align:center;max-width:70px"
         :sortable="true"
       ></Column>
 
       <Column
-        field="profile_id"
-        header="Mã nhân sự"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px"
-        class="align-items-center justify-content-center text-center"
-      >
-      </Column>
-
-      <Column
-        field="profile_user_name"
-        header="Họ và tên"
+        field="leaving_reason_name"
+        header="Lý do nghỉ việc"
+        :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
       >
-      </Column>
-      <Column
-        field="organization_name"
-        header="Phòng ban"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-      </Column>
-      <Column
-        field="organization_name"
-        header="Chức vụ"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-      </Column>
-      <Column
-        field="recruitment_date"
-        header="Ngày vào"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-      </Column>
-      <Column
-        field="insurance_id"
-        header="Số sổ"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-      </Column>
-      <Column
-        field="insurance_code"
-        header="Số thẻ"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-      </Column>
-      <Column
-        field="batdaudong"
-        header="Bắt đầu đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="{ data }">
-          {{ moment(new Date(data.batdaudong)).format("MM/YYYY ") }}
+        <template #filter="{ filterModel }">
+          <InputText
+            type="text"
+            v-model="filterModel.value"
+            class="p-column-filter"
+            placeholder="Từ khoá"
+          />
         </template>
       </Column>
+
       <Column
-        field="mucdong"
-        header="Mức đóng"
+        field="status"
+        header="Trạng thái"
         headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;max-height:60px"
-        class="align-items-center justify-content-end text-right"
+        bodyStyle="text-align:center;max-width:150px"
+        class="align-items-center justify-content-center text-center"
       >
-        <template #body="{ data }">
-          {{ formatNumber(data.mucdong, 0, ".", ".") }}
-        </template>
-      </Column>
+        <template #body="data">
+          <Checkbox
+            :disabled="
+              !(
+                store.state.user.is_super == true ||
+                store.state.user.user_id == data.data.created_by ||
+                (store.state.user.role_id == 'admin' &&
+                  store.state.user.organization_id == data.data.organization_id)
+              )
+            "
+            :binary="true"
+            v-model="data.data.status"
+            @click="onCheckBox(data.data, true, true)"
+          /> </template
+      ></Column>
       <Column
-        field="congtydong"
-        header="Công ty đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-end text-right"
+        field="organization_id"
+        header="Hệ thống"
+        headerStyle="text-align:center;max-width:125px;height:50px"
+        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
+        class="align-items-center justify-content-center text-center"
       >
-        <template #body="{ data }">
-          {{ formatNumber(data.congtydong, 0, ".", ".") }}
-        </template>
-      </Column>
-      <Column
-        field="nhanviendong"
-        header="Người lao động đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-end text-right"
-      >
-        <template #body="{ data }">
-          {{ formatNumber(data.nhanviendong, 0, ".", ".") }}
+        <template #body="data">
+          <div v-if="data.data.organization_id == 0">
+            <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
+          </div>
+          <div v-else></div>
         </template>
       </Column>
       <Column
@@ -1042,7 +965,14 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px"
       >
         <template #body="Tem">
-          <div>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == Tem.data.created_by ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id == Tem.data.organization_id)
+            "
+          >
             <Button
               @click="editTem(Tem.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
@@ -1078,36 +1008,125 @@ onMounted(() => {
     </DataTable>
   </div>
 
-  <diloginsurance
-    :key="componentKey"
-    :headerDialog="headerDialog"
-    :displayDialog="displayBasic"
-    :closeDialog="closeDialog"
-    :isAdd="isAdd"
-    :isView="isView"
-    :model="insurance"
-    :addRow="addRow"
-    :deleteRow="deleteRow"
-    :insurance_pays="insurance_pays"
-    :insurance_resolves="insurance_resolves"
-    :statuss="statuss"
-    :hinhthucs="hinhthucs"
-    :dictionarys="dictionarys"
-    :initData="initData"
-  />
+  <Dialog
+    :header="headerDialog"
+    v-model:visible="displayBasic"
+    :style="{ width: '48vw' }"
+    :closable="true"
+    :modal="true"
+  >
+    <form>
+      <div class="grid formgrid m-2">
+        <div class="field col-12 md:col-12 flex">
+          <label class="col-2 text-left"
+            >Lý do <span class="redsao">(*)</span></label
+          >
+          <Textarea
+            :autoResize="true"
+            rows="5"
+            class="col-10 ip36"
+            v-model="leaving_reason.leaving_reason_name"
+          />
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left">Ký hiệu</div>
+            <InputText spellcheck="false" class="col-8 ip36"              v-model="leaving_reason.symbol"/>
+          </div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left pl-7">Tối đa</div>
+            <InputNumber class="col-8 ip36" placeholder="Nhập số ngày" v-model="leaving_reason.max_day"/>
+          </div>
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left">Đơn vị</div>
+            <Dropdown
+              class="col-8 ip36"
+              :options="units"
+              optionLabel="text"
+              optionValue="value"
+              :showClear="true"
+              v-model="leaving_reason.unit"
+            />
+          </div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left pl-7">Tính công</div>
+            <Dropdown
+              class="col-8 ip36"
+              :options="payrolls"
+              optionLabel="text"
+              optionValue="value"
+              :showClear="true"
+              v-model="leaving_reason.is_payroll"
+            />
+          </div>
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left">Hoạt động</div>
+            <Dropdown
+              class="col-8 ip36"
+              :options="statuss"
+              optionLabel="text"
+              optionValue="value"
+              :showClear="true"
+              v-model="leaving_reason.is_active"
+            />
+          </div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left pl-7">Mô tả</div>
+            <InputText spellcheck="false" class="col-8 ip36" placeholder="Nhập mô tả" v-model="leaving_reason.description"/>
+          </div>
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 align-items-center flex p-0">
+            <div class="col-4 text-left">STT</div>
+            <InputNumber class="col-4 ip36 " v-model="leaving_reason.is_order"/>
+          </div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left pl-7">Trạng thái</div>
+            <InputSwitch v-model="leaving_reason.status"/>
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialog"
+        class="p-button-outlined"
+      />
+
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveData(!v$.$invalid)"
+        autofocus
+      />
+    </template>
+  </Dialog>
 </template>
     
     <style scoped>
-.ip33 {
-  height: 33px !important;
+.inputanh {
+  border: 1px solid #ccc;
+  width: 8rem;
+  height: 8rem;
+  cursor: pointer;
+  padding: 0.063rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
-.scroll-outer {
-  visibility: hidden;
-  margin: 0 1rem;
+.ipnone {
+  display: none;
 }
-.scroll-inner,
-.scroll-outer:hover,
-.scroll-outer:focus {
-  visibility: visible;
+.inputanh img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
 }
 </style>
+    

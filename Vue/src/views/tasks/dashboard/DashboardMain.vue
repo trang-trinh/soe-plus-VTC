@@ -1,10 +1,16 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, inject } from "vue";
 import MyTaskInfo from "./dashboardComponent/MyTaskInfo.vue";
 import MembersTask from "./dashboardComponent/MembersTask.vue";
 import OrganizationTasks from "./dashboardComponent/OrganizationTask.vue";
 import TaskReport from "./dashboardComponent/TaskReport.vue";
 import TaskReview from "./dashboardComponent/TaskReview.vue";
+import TaskExtendDashboard from "./dashboardComponent/TaskExtendDashboard.vue";
+const emitter = inject("emitter");
+emitter.on("count", (obj) => {
+  ListButtonLabel.value[5].badgeCount = obj.data[0].report;
+  ListButtonLabel.value[6].badgeCount = obj.data[0].extend;
+});
 const ListButtonLabel = ref([
   { label: "Cá nhân", icon: "pi pi-user", code: "0", count: "", status: false },
   {
@@ -41,6 +47,7 @@ const ListButtonLabel = ref([
     code: "5",
     count: "",
     status: false,
+    badgeCount: null,
   },
   {
     label: "Gia hạn công việc",
@@ -48,6 +55,7 @@ const ListButtonLabel = ref([
     code: "6",
     count: "",
     status: false,
+    badgeCount: null,
   },
 ]);
 const ChangeView = (value) => {
@@ -60,7 +68,7 @@ const ChangeView = (value) => {
   });
 };
 onMounted(() => {
-  ChangeView(5);
+  ChangeView(3);
   return;
 });
 </script>
@@ -75,8 +83,11 @@ onMounted(() => {
         <Button
           :label="item.label"
           :icon="item.icon"
-          class="font-bold m-1px"
+          class="font-bold m-px"
+          :class="item.status == true ? 'active' : ''"
           @click="ChangeView(item.code)"
+          :badge="item.badgeCount"
+          badgeClass="p-badge-danger"
         ></Button>
       </span>
     </div>
@@ -88,13 +99,17 @@ onMounted(() => {
       ></OrganizationTasks>
       <TaskReport v-if="ListButtonLabel[4].status == true"></TaskReport>
       <TaskReview v-if="ListButtonLabel[5].status == true"></TaskReview>
+      <TaskExtendDashboard
+        v-if="ListButtonLabel[6].status == true"
+      ></TaskExtendDashboard>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.m-1px {
-  margin: 1px;
+.m-px {
+  margin-left: 2px;
+  margin-right: 2px;
 }
 .format-center {
   justify-content: center;
@@ -124,4 +139,7 @@ onMounted(() => {
 /*.div-info {
   height: calc(100vh - 110px);
 }*/
+.active {
+  background-color: #f18636;
+}
 </style>

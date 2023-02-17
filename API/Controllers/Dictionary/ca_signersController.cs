@@ -280,7 +280,7 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.doc_ca_signers.Where(a => (a.signer_id == trangthai.IntID)).FirstOrDefault<doc_ca_signers>();
+                    var das = db.doc_ca_signers.FirstOrDefault(a => (a.signer_id == trangthai.IntID));
                     if (das != null)
                     {
 

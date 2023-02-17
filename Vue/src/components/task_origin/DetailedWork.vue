@@ -223,13 +223,13 @@ const loadFile = () => {
             (element.creator.department_name != null
               ? element.creator.department_name
               : element.creator.organiztion_name);
-        console.log(element);
+        
       });
       listFile.value = [];
       listFile.value = data;
       countFiles.value = count[0].count;
       countAllFile.value = count2[0].countALLFile;
-      console.log(listFile.value, countFiles.value, countAllFile.value);
+      
     })
     .catch((error) => {
       // toast.error("Tải dữ liệu không thành công!");
@@ -1583,7 +1583,7 @@ const listProjectMain = () => {
     .catch((error) => {
       console.log(error);
       toast.error("Tải dữ liệu không thành công!");
-      opition.value.loading = false;
+   
 
       if (error && error.status === 401) {
         swal.fire({
@@ -2594,7 +2594,7 @@ const Upload = () => {
     axios
       .post(baseURL + "/api/task_Files/add_Task_File", formData, config)
       .then((response) => {
-        console.log(response.data);
+    
         if (response.data.err != "1") {
           swal.close();
           toast.success("Tải tệp tài liệu lên thành công!");
@@ -3268,14 +3268,7 @@ onMounted(() => {
   loadData(true);
   startProgress();
   listUser();
-  console.log(
-    window.location.href
-      .substring(
-        window.location.href.indexOf("/") + 2,
-        window.location.href.lastIndexOf("/") + 1,
-      )
-      .includes("/tasks/taskmain"),
-  );
+
   return {};
 });
 onBeforeUnmount(() => {
@@ -5771,7 +5764,7 @@ const choiceTreeUser = () => {
                 <Button
                   class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
                   @click="showEmoji($event, 1)"
-                  v-tooltip="{ value: 'Emoiji' }"
+                  v-tooltip="{ value: 'Biểu cảm' }"
                 >
                   <img
                     alt="logo"

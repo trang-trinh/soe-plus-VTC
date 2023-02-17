@@ -78,6 +78,10 @@ const logout = () => {
       if (result.isConfirmed) {
         axios.get(baseURL + "/api/Login/Logout", {
           headers: { Authorization: `Bearer ${store.getters.token}` },
+        }).then((response) => {
+          if (response.data.ms != null) {
+            var dataMs = response.data.ms;
+          }
         });
         store.commit("gologout");
         if (router) router.push({ path: "/login" });

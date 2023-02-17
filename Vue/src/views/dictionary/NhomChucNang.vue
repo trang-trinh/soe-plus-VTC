@@ -429,7 +429,7 @@ const saveEmailGroup = (isFormValid) => {
 
 const saveEmail = (isFormValid) => {
   submitted.value = true;
-  console.log(isFormValid);
+
   if (isFormValid.length == 0 || isFormValid == null || isFormValid == []) {
     return;
   }

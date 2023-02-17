@@ -221,9 +221,7 @@ const sendExtendReport = (e) => {
     TaskExtend.value.answer = TaskExtend.value.answer
       ? TaskExtend.value.answer.replace(/\n/g, "<br/>")
       : TaskExtend.value.answer;
-    TaskExtend.value.answer = TaskExtend.value.answer
-      ? TaskExtend.value.answer.replaceAll('"', "'")
-      : TaskExtend.value.answer;
+
     axios
       .put(
         baseURL + "/api/TaskExtend/Upgrade_Status_TaskExtend",
@@ -251,10 +249,7 @@ const sendExtendReport = (e) => {
           let ms = response.data.ms;
           swal.fire({
             title: "Thông báo!",
-            html:
-              ms.includes("group_name") == true
-                ? "Tên nhóm công việc không quá 250 ký tự!"
-                : ms,
+            html: ms,
             icon: "error",
             confirmButtonText: "OK",
           });
@@ -435,7 +430,7 @@ onMounted(() => {
                                   ? '#59D05D'
                                   : '#FF0000',
                             }"
-                            class="font-bold"
+                            class="font-bold py-1 px-4"
                           >
                             <span v-if="rp.is_agree == null"
                               >Đang chờ duyệt</span
@@ -679,7 +674,7 @@ onMounted(() => {
                       :showIcon="true"
                       class="w-full h-full"
                       placeholder="Thời gian xử lý mới"
-                      :minDate="new Date(today)"
+                      :minDate="new Date(props.data.end_date)"
                     />
                   </div>
                 </div>
@@ -712,7 +707,7 @@ onMounted(() => {
   <Dialog
     :header="headerTaskExtend"
     v-model:visible="openDialogTaskExtend"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw', 'z-index': '10000' }"
     :closable="false"
   >
     <form>
@@ -721,7 +716,7 @@ onMounted(() => {
         v-if="TaskExtend.is_agree == true"
       >
         <label class="col-4 p-0 m-0 format-left">Hạn xử lý hiện tại</label>
-        <div :class="height1 < 1000 ? 'col-4 p-0 m-0' : 'col-3'">
+        <div :class="height1 < 1000 ? 'col-4 p-0 m-0' : 'col-4'">
           <div class="col-12">
             <Chip
               :label="
@@ -730,7 +725,7 @@ onMounted(() => {
                 )
               "
               icon="pi pi-calendar"
-              class="old-date col-12 format-center"
+              class="old-date col-12 format-center px-1"
               v-if="TaskExtend.is_agree == true"
               v-tooltip="{ value: 'Thời gian xử lý cũ' }"
             />
@@ -751,7 +746,7 @@ onMounted(() => {
                 )
               "
               icon="pi pi-calendar"
-              class="old-date col-12 format-center"
+              class="old-date col-12 format-center px-1"
               :class="'acept-new-date'"
               v-tooltip="{ value: 'Thời gian xử lý đề xuất' }"
             />

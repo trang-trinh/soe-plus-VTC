@@ -216,7 +216,7 @@ const RenderData = (data) => {
         }
       };
       rechildren(om, m.group_id);
-      
+
       arrChils.push(om);
     });
   datalists.value = arrChils;
@@ -786,40 +786,6 @@ onMounted(() => {
                 "
               >
                 <div class="grid formgrid m-0">
-                  <div class="flex field col-12 p-0">
-                    <div
-                      :class="
-                        store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 p-0'
-                          : 'col-4 text-left pt-2 p-0'
-                      "
-                      style="text-align: left"
-                    >
-                      Phân loại
-                    </div>
-
-                    <div :class="user.is_super == 1 ? 'col-10' : 'col-8'">
-                      <TreeSelect
-                        v-model="filterPhanloai"
-                        :options="treedonvis"
-                        optionLabel="data.organization_name"
-                        optionValue="data.organization_id"
-                        placeholder="Chọn đơn vị"
-                        class="col-12 p-0 m-0 md:col-12"
-                        v-if="user.is_super == 1"
-                      />
-                      <Dropdown
-                        class="col-12 p-0 m-0"
-                        v-model="filterPhanloai"
-                        :options="phanLoai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Phân loại"
-                        v-else
-                      />
-                    </div>
-                  </div>
-
                   <div class="flex field col-12 p-0">
                     <div
                       :class="

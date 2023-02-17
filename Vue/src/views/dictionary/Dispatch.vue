@@ -1263,7 +1263,7 @@ onMounted(() => {
 
       <Column
         field="dispatch_book_name"
-        header="Tên sổ"
+        header="Tên khối"
         :sortable="true"
         headerStyle="height:50px"
         bodyStyle="max-height:60px"
@@ -1395,7 +1395,7 @@ onMounted(() => {
           <div class="col-12 p-0">
             <div class="col-12 p-0 flex my-2">
               <div class="col-2 text-left p-0 pb-2 line-height-4">
-                Tên sổ <span class="redsao">(*)</span>
+                Tên khối <span class="redsao">(*)</span>
               </div>
               <InputText
                 v-model="dispatch.dispatch_book_name"
