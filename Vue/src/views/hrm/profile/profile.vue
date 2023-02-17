@@ -4,6 +4,7 @@ import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dilogprofile from "../profile/component/dilogprofile.vue";
 import dialogreceipt from "../profile/component/dialogreceipt.vue";
+import dialoghealth from "../profile/component/dialoghealth.vue";
 import moment from "moment";
 const router = inject("router");
 const store = inject("store");
@@ -183,7 +184,7 @@ const itemButMoresPlus = ref([
     label: "Sức khỏe",
     icon: "pi pi-user",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openEditDialogHealth(profile.value, "Thông tin sức khỏe");
     },
   },
   {
@@ -575,74 +576,25 @@ const receipts = ref([]);
 const headerDialogReceipt = ref();
 const displayDialogReceipt = ref(false);
 const openEditDialogReceipt = (item, str) => {
-  options.value.loading = true;
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  isAdd.value = false;
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_profile_receipt_get",
-            par: [{ par: "profile_id", va: item.profile_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      var data = response.data.data;
-      if (data != null) {
-        var tbs = JSON.parse(data);
-        if (tbs[0] != null && tbs[0].length > 0) {
-          receipts.value = tbs[0];
-          receipts.value.forEach((x) => {
-            if (x["receipt_date"] != null) {
-              x["receipt_date"] = new Date(x["receipt_date"]);
-            }
-          });
-        }
-      }
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      forceRerender();
-      headerDialogReceipt.value = str;
-      displayDialogReceipt.value = true;
-    })
-    .catch((error) => {
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-        return;
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    });
+  forceRerender();
+  headerDialogReceipt.value = str;
+  displayDialogReceipt.value = true;
 };
 const closeDialogReceipt = () => {
   displayDialogReceipt.value = false;
-}
+};
+
+//function helth
+const headerDialogHealth = ref();
+const displayDialogHealth = ref(false);
+const openEditDialogHealth = (item, str) => {
+  forceRerender();
+  headerDialogHealth.value = str;
+  displayDialogHealth.value = true;
+};
+const closeDialogHealth = () => {
+  displayDialogHealth.value = false;
+};
 
 //Init
 const initPlace = () => {
@@ -1363,7 +1315,7 @@ onMounted(() => {
                                 <div class="mb-1">
                                   {{ slotProps.option.full_name }}
                                 </div>
-                                <div class="description">
+                                <div class="description-2">
                                   <div>
                                     {{ slotProps.option.position_name }}
                                   </div>
@@ -1751,7 +1703,14 @@ onMounted(() => {
     :displayDialog="displayDialogReceipt"
     :closeDialog="closeDialogReceipt"
     :profile="profile"
-    :receipts="receipts"
+  />
+  <dialoghealth
+    :key="componentKey"
+    :headerDialog="headerDialogHealth"
+    :displayDialog="displayDialogHealth"
+    :closeDialog="closeDialogHealth"
+    :profile="profile"
+    :users="dictionarys[19]"
   />
   <Menu
     id="overlay_More"

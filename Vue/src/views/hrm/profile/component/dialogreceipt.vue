@@ -2,10 +2,11 @@
 import moment from "moment";
 import { onMounted, inject, ref } from "vue";
 import { useToast } from "vue-toastification";
-
+import { encr } from "../../../../util/function";
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
+const cryoptojs = inject("cryptojs");
 const toast = useToast();
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -19,7 +20,6 @@ const props = defineProps({
   displayDialog: Boolean,
   closeDialog: Function,
   profile: Object,
-  receipts: Array,
 });
 const bgColor = ref([
   "#F8E69A",
@@ -35,6 +35,7 @@ const reciptstatus = ref([
   { status: 1, title: "Nộp còn thiếu" },
   { status: 0, title: "Chưa nộp" },
 ]);
+const receipts = ref([]);
 const selectedNodes = ref([]);
 
 //function
@@ -107,8 +108,70 @@ const saveModel = () => {
 };
 
 //init
+const initData = (rf) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_receipt_get",
+            par: [{ par: "profile_id", va: props.profile["profile_id"] }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          receipts.value = tbs[0];
+          receipts.value.forEach((x) => {
+            if (x["receipt_date"] != null) {
+              x["receipt_date"] = new Date(x["receipt_date"]);
+            }
+          });
+        }
+      }
+      swal.close();
+      selectedNodes.value = receipts.value.filter((x) => x["is_active"]);
+    })
+    .catch((error) => {
+      swal.close();
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 onMounted(() => {
-  selectedNodes.value = props.receipts.filter((x) => x["is_active"]);
+  initData(true);
 });
 </script>
 <template>
@@ -123,22 +186,25 @@ onMounted(() => {
     <form @submit.prevent="" name="submitform">
       <Toolbar class="outline-none surface-0 border-none">
         <template #start>
-          <div v-for="(value, key) in reciptstatus" :key="key" class="field-radiobutton mr-5">
+          <div
+            v-for="(value, key) in reciptstatus"
+            :key="key"
+            class="field-radiobutton mr-5"
+          >
             <RadioButton
-              :inputId="'status'+key"
+              :inputId="'status' + key"
               name="city"
               :value="value.status"
               v-model="props.profile.receipt_status"
             />
-            <label for="city1">{{value.title}}</label>
+            <label for="city1">{{ value.title }}</label>
           </div>
         </template>
-        
       </Toolbar>
       <div class="grid formgrid m-2">
         <div class="col-12 md:col-12">
           <DataTable
-            :value="props.receipts"
+            :value="receipts"
             :scrollable="true"
             :lazy="true"
             :rowHover="true"
