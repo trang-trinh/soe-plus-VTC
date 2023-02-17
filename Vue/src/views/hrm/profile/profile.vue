@@ -1519,6 +1519,7 @@ onMounted(() => {
                 width: 5rem;
                 height: 5rem;
                 font-size: 1.5rem !important;
+                border-radius: 10px;
               "
               :style="{
                 background: bgColor[slotProps.index % 7],
@@ -1537,29 +1538,29 @@ onMounted(() => {
               <div class="mb-2">
                 <b>{{ slotProps.data.profile_user_name }}</b>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.profile_id }}</span>
               </div>
               <div
-                class="mb-1 description"
+                class="mb-1"
                 v-if="slotProps.data.recruitment_date"
               >
                 Ngày vào: {{ slotProps.data.recruitment_date }}
               </div>
             </div>
             <div class="mr-2" style="min-width: 200px">
-              <div class="mb-1 description" v-if="slotProps.data.gender">
+              <div class="mb-1" v-if="slotProps.data.gender">
                 <span>{{ slotProps.data.gender == 1 ? "Nam" : "Nữ" }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.birthday }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.birthplace_name }}</span>
               </div>
             </div>
             <div class="mr-2" style="min-width: 200px">
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span
                   >{{ slotProps.data.phone }}
                   <span
@@ -1572,21 +1573,21 @@ onMounted(() => {
                   {{ slotProps.data.email }}</span
                 >
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.identity_papers_code }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.place_residence }}</span>
               </div>
             </div>
             <div class="mr-2" style="min-width: 200px">
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.department_name }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.work_position_name }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.position_name }}</span>
               </div>
             </div>
