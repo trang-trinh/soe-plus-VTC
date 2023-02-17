@@ -1,8 +1,7 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
-import { required, maxLength } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
+import diloginsurance from "../insurance/component/diloginsurance.vue";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
@@ -22,30 +21,6 @@ const filters = ref({
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
-const rules = {
-  insurance_id: {
-    required,
-    maxLength: maxLength(50),
-    $errors: [
-      {
-        $property: "insurance_id",
-        $validator: "required",
-        $message: "Số sổ bảo hiểm không được để trống!",
-      },
-    ],
-  },
-  insurance_code: {
-    required,
-    maxLength: maxLength(50),
-    $errors: [
-      {
-        $property: "insurance_code",
-        $validator: "required",
-        $message: "Số thẻ bảo hiểm không được để trống!",
-      },
-    ],
-  },
-};
 //khai bao bien
 const statuss = ref([
   { value: 1, text: "Trả" },
@@ -62,12 +37,16 @@ const hinhthucs = ref([
 const insurance_pays = ref();
 const insurance_resolves = ref();
 const dictionarys = ref();
-
+//Function
+const componentKey = ref(0);
+const forceRerender = () => {
+  componentKey.value += 1;
+};
 //Lấy số bản ghi
 const loadCount = () => {
   axios
     .post(
-      baseURL + "/api/Profile/GetDataProc",
+      baseURL + "/api/insurance/GetDataProc",
       {
         str: encr(
           JSON.stringify({
@@ -92,7 +71,7 @@ const loadCount = () => {
 const loadTudien = () => {
   axios
     .post(
-      baseURL + "api/Profile/GetDataProc",
+      baseURL + "api/insurance/GetDataProc",
       {
         str: encr(
           JSON.stringify({
@@ -113,12 +92,7 @@ const loadTudien = () => {
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
-      addLog({
-        title: "Lỗi Console loadData",
-        controller: "SQLView.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
+
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -129,7 +103,7 @@ const loadTudien = () => {
     });
 };
 //Lấy dữ liệu bank
-const loadData = (rf) => {
+const initData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -142,7 +116,7 @@ const loadData = (rf) => {
     }
     axios
       .post(
-        baseURL + "/api/Profile/GetDataProc",
+        baseURL + "/api/insurance/GetDataProc",
         {
           str: encr(
             JSON.stringify({
@@ -208,16 +182,9 @@ const onPage = (event) => {
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
-  loadData(true);
+  initData(true);
 };
 
-const bank = ref({
-  bank_name: "",
-  emote_file: "",
-  status: true,
-  is_default: false,
-  is_order: 1,
-});
 const insurance = ref({
   status: null,
   organization_payment: null,
@@ -229,8 +196,8 @@ const insurance = ref({
 });
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, insurance);
 const isAdd = ref(false);
+const isView = ref(false);
 const datalists = ref();
 const toast = useToast();
 const basedomainURL = baseURL;
@@ -250,6 +217,7 @@ const options = ref({
 const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
+  forceRerender();
   submitted.value = false;
   insurance.value = {
     status: null,
@@ -288,16 +256,8 @@ const openBasic = (str) => {
 };
 
 const closeDialog = () => {
-  bank.value = {
-    bank_name: "",
-    emote_file: "",
-    status: true,
-    is_default: false,
-    is_order: 1,
-  };
-
   displayBasic.value = false;
-  loadData(true);
+  initData(true);
 };
 
 //Thêm bản ghi
@@ -308,9 +268,9 @@ const saveData = (isFormValid) => {
   if (!isFormValid) {
     return;
   }
-  insurance_pays.value.forEach((item)=>{
+  insurance_pays.value.forEach((item) => {
     item.is_duplicate = false;
-  })
+  });
   if (insurance_pays.value.length >= 2) {
     let count_duplicate = 0;
     for (let i = 0; i < insurance_pays.value.length - 1; i++) {
@@ -339,9 +299,9 @@ const saveData = (isFormValid) => {
       }
     }
   }
-  insurance_pays.value.forEach((item)=>{
-    if(!isEmpty(item.is_duplicate)) item.is_duplicate = null;
-  })
+  insurance_pays.value.forEach((item) => {
+    if (!isEmpty(item.is_duplicate)) item.is_duplicate = null;
+  });
   let formData = new FormData();
 
   formData.append("insurance", JSON.stringify(insurance.value));
@@ -383,7 +343,7 @@ const saveData = (isFormValid) => {
       swal.close();
       toast.success("Cập nhật thành công!");
       displayBasic.value = false;
-      loadData(true);
+      initData(true);
     } else {
       swal.fire({
         title: "Thông báo!",
@@ -488,7 +448,7 @@ const delTem = (Tem) => {
             if (response.data.err != "1") {
               swal.close();
               toast.success("Xoá thẻ bảo hiểm thành công!");
-              loadData(true);
+              initData(true);
             } else {
               swal.fire({
                 title: "Error!",
@@ -518,7 +478,7 @@ const onSort = (event) => {
 
   if (event.sortField == null) {
     isDynamicSQL.value = false;
-    loadData(true);
+    initData(true);
   } else {
     options.value.sort =
       event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
@@ -590,11 +550,11 @@ const searchStamp = (event) => {
     if (options.value.SearchText == "") {
       isDynamicSQL.value = false;
       options.value.loading = true;
-      loadData(true);
+      initData(true);
     } else {
       isDynamicSQL.value = true;
       options.value.loading = true;
-      loadData(true);
+      initData(true);
     }
   }
 };
@@ -605,7 +565,7 @@ const refreshStamp = () => {
   selectedStamps.value = [];
   isDynamicSQL.value = false;
   filterSQL.value = [];
-  loadData(true);
+  initData(true);
 };
 const onFilter = (event) => {
   filterSQL.value = [];
@@ -639,75 +599,6 @@ const onFilter = (event) => {
   options.value.id = null;
   isDynamicSQL.value = true;
   loadDataSQL();
-};
-//Checkbox
-const onCheckBox = (value, check, checkIsmain) => {
-  if (check) {
-    let data = {
-      IntID: value.bank_id,
-      TextID: value.bank_id + "",
-      IntTrangthai: 1,
-      BitTrangthai: value.status,
-    };
-    axios
-      .put(baseURL + "/api/hrm_ca_bank/update_s_hrm_ca_bank", data, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái thẻ bảo hiểm thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  } else {
-    let data1 = {
-      IntID: value.bank_id,
-      TextID: value.bank_id + "",
-      BitMain: value.is_default,
-    };
-    axios
-      .put(baseURL + "/api/hrm_ca_bank/Update_DefaultStamp", data1, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái thẻ bảo hiểm thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
 };
 //Xóa nhiều
 const deleteList = () => {
@@ -756,7 +647,7 @@ const deleteList = () => {
                 toast.success("Xoá thẻ bảo hiểm thành công!");
                 checkDelList.value = false;
 
-                loadData(true);
+                initData(true);
               } else {
                 swal.fire({
                   title: "Error!",
@@ -790,26 +681,6 @@ const trangThai = ref([
 
 const filterTrangthai = ref();
 
-const reFilterEmail = () => {
-  filterTrangthai.value = null;
-  isDynamicSQL.value = false;
-  checkFilter.value = false;
-  filterSQL.value = [];
-  options.value.SearchText = null;
-  op.value.hide();
-  loadData(true);
-};
-const filterFileds = () => {
-  filterSQL.value = [];
-  checkFilter.value = true;
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
-  loadDataSQL();
-};
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
     checkDelList.value = true;
@@ -821,7 +692,7 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
-const addRow_Item = (type) => {
+const addRow = (type) => {
   //relative
   if (type == 1) {
     let obj = {
@@ -848,38 +719,45 @@ const addRow_Item = (type) => {
     insurance_resolves.value.push(obj);
   }
 };
-const delRow_Item = (item, type) => {
+const deleteRow = (idx, type) => {
   if (type == 1) {
-    insurance_pays.value.splice(insurance_pays.value.lastIndexOf(item), 1);
+    insurance_pays.value.splice(idx, 1);
   }
   if (type == 2) {
-    insurance_resolves.value.splice(
-      insurance_resolves.value.lastIndexOf(item),
-      1
-    );
+    insurance_resolves.value.splice(idx, 1);
   }
 };
-//check month  date
-function isMonth(date1, date2) {
-  let dt1 = new Date(date1);
-  let dt2 = new Date(date2);
-  return dt1.getMonth() == dt2.getMonth() &&
-    dt1.getFullYear() == dt2.getFullYear()
-    ? true
-    : false;
-}
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
 }
+function formatNumber(a, b, c, d) {
+  var e = isNaN((b = Math.abs(b))) ? 2 : b;
+  b = void 0 == c ? "," : c;
+  d = void 0 == d ? "," : d;
+  c = 0 > a ? "-" : "";
+  var g = parseInt((a = Math.abs(+a || 0).toFixed(e))) + "",
+    n = 3 < (n = g.length) ? n % 3 : 0;
+  return (
+    c +
+    (n ? g.substr(0, n) + d : "") +
+    g.substr(n).replace(/(\d{3})(?=\d)/g, "$1" + d) +
+    (e
+      ? b +
+        Math.abs(a - g)
+          .toFixed(e)
+          .slice(2)
+      : "")
+  );
+}
 onMounted(() => {
-  loadData(true);
+  initData(true);
   loadTudien();
   return {
     datalists,
     options,
     onPage,
-    loadData,
+    initData,
     loadCount,
     openBasic,
     closeDialog,
@@ -888,7 +766,6 @@ onMounted(() => {
     saveData,
     isFirst,
     searchStamp,
-    onCheckBox,
     selectedStamps,
     deleteList,
   };
@@ -918,7 +795,7 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="bank_id"
+      dataKey="insurance_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
@@ -1077,8 +954,8 @@ onMounted(() => {
       <Column
         field="organization_name"
         header="Phòng ban"
-        headerStyle="text-align:center;max-width:200px;height:50px"
-        bodyStyle="text-align:center;max-width:200px;;max-height:60px"
+        headerStyle="text-align:center;max-width:100px;height:50px"
+        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
@@ -1129,25 +1006,34 @@ onMounted(() => {
         field="mucdong"
         header="Mức đóng"
         headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        bodyStyle="text-align:center;max-width:150px;max-height:60px"
+        class="align-items-center justify-content-end text-right"
       >
+        <template #body="{ data }">
+          {{ formatNumber(data.mucdong, 0, ".", ".") }}
+        </template>
       </Column>
       <Column
         field="congtydong"
         header="Công ty đóng"
         headerStyle="text-align:center;max-width:150px;height:50px"
         bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-end text-right"
       >
+        <template #body="{ data }">
+          {{ formatNumber(data.congtydong, 0, ".", ".") }}
+        </template>
       </Column>
       <Column
         field="nhanviendong"
         header="Người lao động đóng"
         headerStyle="text-align:center;max-width:150px;height:50px"
         bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-end text-right"
       >
+        <template #body="{ data }">
+          {{ formatNumber(data.nhanviendong, 0, ".", ".") }}
+        </template>
       </Column>
       <Column
         header="Chức năng"
@@ -1192,418 +1078,23 @@ onMounted(() => {
     </DataTable>
   </div>
 
-  <Dialog
-    :header="headerDialog"
-    v-model:visible="displayBasic"
-    :style="{ width: '55vw' }"
-    :closable="true"
-    :modal="true"
-  >
-    <form>
-      <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
-            >Số sổ bảo hiểm <span class="redsao">(*)</span></label
-          >
-          <InputText
-            v-model="insurance.insurance_id"
-            spellcheck="false"
-            class="col-10 ip33"
-            :class="{ 'p-invalid': v$.insurance_id.$invalid && submitted }"
-          />
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="
-            (v$.insurance_id.required.$invalid && submitted) ||
-            v$.insurance_id.required.$pending.$response
-          "
-        >
-          <small class="col-12 p-error block">
-            <div class="field col-12 md:col-12 flex">
-              <label class="col-2"></label>
-              <span class="col-10 p-0">
-                {{
-                  v$.insurance_id.required.$message
-                    .replace("Value", "Số sổ ")
-                    .replace("is required", "không được để trống")
-                }}
-              </span>
-            </div>
-          </small>
-          <small
-            class="col-12 p-error block"
-            v-if="
-              (v$.insurance_id.maxLength.$invalid && submitted) ||
-              v$.insurance_id.maxLength.$pending.$response
-            "
-          >
-            <div class="field col-12 md:col-12 flex">
-              <label class="col-2 text-left"></label>
-              <span class="col-4 p-0">
-                {{
-                  v$.insurance_id.maxLength.$message.replace(
-                    "The maximum length allowed is",
-                    "Số sổ không được vượt quá"
-                  )
-                }}
-                ký tự
-              </span>
-            </div>
-          </small>
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Trạng thái</label>
-          <Dropdown
-            class="col-10 ip33"
-            v-model="insurance.status"
-            :options="statuss"
-            optionLabel="text"
-            optionValue="value"
-            placeholder="Trạng thái"
-            :showClear="true"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Pháp nhân đóng</label>
-          <Dropdown
-            class="col-10 ip33"
-            v-model="insurance.organization_payment"
-            :options="dictionarys[0]"
-            optionLabel="organization_name"
-            optionValue="organization_name"
-            :editable="true"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Số thẻ BHYT</label>
-          <InputText
-            v-model="insurance.insurance_code"
-            spellcheck="false"
-            class="col-10 ip33"
-            :class="{ 'p-invalid': v$.insurance_code.$invalid && submitted }"
-          />
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="
-            (v$.insurance_code.required.$invalid && submitted) ||
-            v$.insurance_code.required.$pending.$response
-          "
-        >
-          <small class="col-12 p-error block">
-            <div class="field col-12 md:col-12 flex">
-              <label class="col-2"></label>
-              <span class="col-10 p-0">
-                {{
-                  v$.insurance_code.required.$message
-                    .replace("Value", "Số thẻ BHYT ")
-                    .replace("is required", "không được để trống")
-                }}
-              </span>
-            </div>
-          </small>
-          <small
-            class="col-12 p-error block"
-            v-if="
-              (v$.insurance_code.maxLength.$invalid && submitted) ||
-              v$.insurance_code.maxLength.$pending.$response
-            "
-          >
-            <div class="field col-12 md:col-12 flex">
-              <label class="col-2 text-left"></label>
-              <span class="col-4 p-0">
-                {{
-                  v$.insurance_code.maxLength.$message.replace(
-                    "The maximum length allowed is",
-                    "Số thẻ BHYT không được vượt quá"
-                  )
-                }}
-                ký tự
-              </span>
-            </div>
-          </small>
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Mã tỉnh cấp</label>
-          <Dropdown
-            class="col-10 ip33"
-            v-model="insurance.insurance_province_id"
-            :options="dictionarys[1]"
-            optionLabel="insurance_province_name"
-            optionValue="insurance_province_id"
-            placeholder="Mã tỉnh"
-            :showClear="true"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Nơi đăng ký</label>
-          <Dropdown
-            class="col-10 ip33"
-            v-model="insurance.hospital_name"
-            :options="dictionarys[2]"
-            optionLabel="hospital_name"
-            optionValue="hospital_name"
-            :editable="true"
-          />
-        </div>
-        <h4 class="my-2">Lịch sử đóng bảo hiểm</h4>
-        <div style="text-align: end" class="field col-12 md:col-12">
-          <a
-            @click="addRow_Item(1)"
-            class="cursor-pointer"
-            v-tooltip.top="'Thêm'"
-          >
-            <i class="pi pi-plus-circle" style="font-size: 18px"></i>
-          </a>
-        </div>
-        <div style="overflow-x: scroll" class="scroll-outer">
-          <div class="scroll-inner">
-            <table
-              class="table table-condensed table-hover tbpad table-child"
-              style="table-layout: fixed"
-            >
-              <thead>
-                <tr>
-                  <th
-                    class="text-center row-bc sticky"
-                    style="width: 100px; left: 0px !important"
-                  ></th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Từ tháng
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Hình thức
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">Lý do</th>
-                  <th class="text-center row-bc" style="width: 200px">
-                    Pháp nhân đóng
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Mức đóng
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Công ty đóng
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    NLĐ đóng
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, index) in insurance_pays" :key="index">
-                  <td
-                    class="sticky"
-                    align="center"
-                    style="
-                      color: black;
-                      width: 100px;
-                      left: 0px !important;
-                      z-index: 100;
-                    "
-                  >
-                    <i
-                      class="pi pi-times text-xl cursor-pointer"
-                      style="color: red"
-                      v-tooltip.top="'Xóa'"
-                      @click="delRow_Item(item, 1)"
-                    ></i>
-                  </td>
-                  <td align="center">
-                    <Calendar
-                      v-model="item.start_date"
-                      view="month"
-                      dateFormat="mm/yy"
-                      class="ip33"
-                      style="width: 150px"
-                      placeholder="Bắt đầu"
-                      :class="{
-                        'p-invalid': insurance_pays[index].is_duplicate,
-                      }"
-                    />
-                  </td>
-                  <td align="center">
-                    <Dropdown
-                      class="ip33"
-                      v-model="item.payment_form"
-                      :options="hinhthucs"
-                      optionLabel="text"
-                      optionValue="text"
-                      style="width: 150px"
-                      :showClear="true"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputText
-                      spellcheck="false"
-                      class="ip33"
-                      style="width: 150px"
-                      v-model="item.reason"
-                    />
-                  </td>
-                  <td align="center">
-                    <Dropdown
-                      class="ip33"
-                      v-model="item.organization_payment"
-                      :options="dictionarys[0]"
-                      optionLabel="organization_name"
-                      optionValue="organization_name"
-                      :editable="true"
-                      style="width: 200px"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputNumber
-                      class="ip33 p-0"
-                      v-model="item.total_payment"
-                      style="witdh: 150px"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputNumber
-                      class="ip33 p-0"
-                      v-model="item.company_payment"
-                      style="witdh: 150px"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputNumber
-                      class="ip33 p-0"
-                      v-model="item.member_payment"
-                      style="witdh: 150px"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <h4 class="my-2">Lịch sử giải quyết chế độ</h4>
-        <div style="text-align: end" class="field col-12 md:col-12">
-          <a
-            @click="addRow_Item(2)"
-            class="cursor-pointer"
-            v-tooltip.top="'Thêm'"
-          >
-            <i class="pi pi-plus-circle" style="font-size: 18px"></i>
-          </a>
-        </div>
-        <div style="overflow-x: auto" class="scroll-outer">
-          <div class="scroll-inner">
-            <table
-              class="table table-condensed table-hover tbpad table-child"
-              style="table-layout: fixed"
-            >
-              <thead>
-                <tr>
-                  <th
-                    class="text-center row-bc sticky"
-                    style="width: 100px; left: 0px !important"
-                  ></th>
-                  <th class="text-center row-bc" style="width: 200px">
-                    Loại chế độ
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Ngày nhận hồ sơ
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Ngày hoàn thiện thủ tục
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Ngày nhận tiền BH trả
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Số tiền
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, index) in insurance_resolves" :key="index">
-                  <td
-                    class="sticky"
-                    align="center"
-                    style="
-                      color: black;
-                      width: 100px;
-                      left: 0px !important;
-                      z-index: 100;
-                    "
-                  >
-                    <i
-                      class="pi pi-times text-xl cursor-pointer"
-                      style="color: red"
-                      v-tooltip.top="'Xóa'"
-                      @click="delRow_Item(item, 2)"
-                    ></i>
-                  </td>
-                  <td align="center">
-                    <Dropdown
-                      class="ip33"
-                      v-model="item.type_mode"
-                      :options="dictionarys[3]"
-                      optionLabel="insurance_type_mode_name"
-                      optionValue="insurance_type_mode_name"
-                      :editable="true"
-                      style="width: 200px"
-                    />
-                  </td>
-                  <td align="center">
-                    <Calendar
-                      style="width: 150px"
-                      class="ip33"
-                      id="icon"
-                      v-model="item.received_file_date"
-                      :showIcon="true"
-                    />
-                  </td>
-                  <td align="center">
-                    <Calendar
-                      style="width: 150px"
-                      class="ip33"
-                      id="icon"
-                      v-model="item.completed_date"
-                      :showIcon="true"
-                    />
-                  </td>
-                  <td align="center">
-                    <Calendar
-                      style="width: 150px"
-                      class="ip33"
-                      id="icon"
-                      v-model="item.received_money_date"
-                      :showIcon="true"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputNumber
-                      class="ip33 p-0"
-                      v-model="item.money"
-                      style="witdh: 150px"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </form>
-    <template #footer>
-      <Button
-        label="Hủy"
-        icon="pi pi-times"
-        @click="closeDialog"
-        class="p-button-outlined"
-      />
-
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveData(!v$.$invalid)"
-        autofocus
-      />
-    </template>
-  </Dialog>
+  <diloginsurance
+    :key="componentKey"
+    :headerDialog="headerDialog"
+    :displayDialog="displayBasic"
+    :closeDialog="closeDialog"
+    :isAdd="isAdd"
+    :isView="isView"
+    :model="insurance"
+    :addRow="addRow"
+    :deleteRow="deleteRow"
+    :insurance_pays="insurance_pays"
+    :insurance_resolves="insurance_resolves"
+    :statuss="statuss"
+    :hinhthucs="hinhthucs"
+    :dictionarys="dictionarys"
+    :initData="initData"
+  />
 </template>
     
     <style scoped>
