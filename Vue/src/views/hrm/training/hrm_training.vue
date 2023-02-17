@@ -185,7 +185,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "created_date",
+  sort: "created_date desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -1667,6 +1667,8 @@ onMounted(() => {
                       :image="basedomainURL + item.avatar"
                       class="w-3rem h-3rem"
                       shape="circle"
+
+                      v-tooltip.top="item.full_name"
                     />
                     <Avatar
                       v-if="data.data.li_user_verify.length > 4"

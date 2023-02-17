@@ -481,8 +481,7 @@ const caHRMWage = () =>
     import ("../views/hrm/category/caWage.vue");
 const caLeavingReason = () =>
     import ("../views/hrm/category/caLeavingReason.vue");
-const caLecturers = () =>
-    import ("../views/hrm/category/caLecturers.vue");
+
 const caClassroom = () =>
     import ("../views/hrm/category/caClassroom.vue");
 const caReceipt = () =>
@@ -1760,11 +1759,7 @@ const router = createRouter({
             name: "caHRMLeavingReason",
             component: caLeavingReason,
         },
-        {
-            path: "/hrm/category/ca_lecturers",
-            name: "caHRMLecturers",
-            component: caLecturers,
-        },
+
         {
             path: "/hrm/category/ca_classroom",
             name: "caHRMClassroom",
