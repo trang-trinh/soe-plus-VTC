@@ -396,6 +396,7 @@ const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
 const Insurance = () =>
     import ("../views/hrm/insurance/insurance.vue");
+    const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 //end
 // TV
 const ConfigScreenTV = () =>
@@ -1799,6 +1800,11 @@ const router = createRouter({
             name: "insurance",
             component: Insurance,
         },
+        {
+            path: "/hrm/hrm_file",
+            name: "Hrm_File",
+            component: Hrm_File,
+          },
     ],
 });
 // router.beforeEach((to, from) => {
