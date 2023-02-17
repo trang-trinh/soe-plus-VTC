@@ -126,11 +126,9 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
           if (element.li_user_verify) {
             element.li_user_verify = JSON.parse(element.li_user_verify);
-          }
-          else
-           element.li_user_verify =[];
+          } else element.li_user_verify = [];
         });
-         
+
         datalists.value = data;
 
         options.value.loading = false;
@@ -187,7 +185,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "created_date",
+  sort: "created_date desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -363,7 +361,7 @@ const loadDataSQL = () => {
       if (isFirst.value) isFirst.value = false;
       options.value.loading = false;
       //Show Count nếu có
-      if (dt.length >= 2 &&checkLoadCount.value==true) {
+      if (dt.length >= 2 && checkLoadCount.value == true) {
         options.value.totalRecords = dt[1][0].totalRecords;
         options.value.totalRecords1 = dt[2][0].totalRecords1;
         options.value.totalRecords2 = dt[3][0].totalRecords2;
@@ -388,45 +386,45 @@ const loadDataSQL = () => {
     });
 };
 
-const setStatus =(value)=>{
-   opstatus.value.hide();
-    let data = {
+const setStatus = (value) => {
+  opstatus.value.hide();
+  let data = {
     IntID: value.training_emps_id,
     TextID: value.training_emps_id + "",
-    IntTrangthai:  value.status,
+    IntTrangthai: value.status,
     BitTrangthai: false,
   };
-   axios
-      .put(
-        baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
-        data,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Cập nhật trạng thái thành công!");
-          loadData(true);
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-       
-      })
-      .catch((error) => {
+  axios
+    .put(
+      baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
+      data,
+      config
+    )
+    .then((response) => {
+      if (response.data.err != "1") {
         swal.close();
+        toast.success("Cập nhật trạng thái thành công!");
+        loadData(true);
+      } else {
         swal.fire({
           title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          text: response.data.ms,
           icon: "error",
           confirmButtonText: "OK",
         });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
       });
-}
+    });
+};
+
 const opstatus = ref();
 const toggleStatus = (item, event) => {
   training_emps.value = item;
@@ -574,13 +572,12 @@ const onCheckBox = (value, check) => {
   }
 };
 const activeTab = (tab) => {
-   
   options.value.tab = tab.id;
   reFilter();
   if (tab.id) {
-    checkLoadCount.value=false;
+    checkLoadCount.value = false;
     let filterS1 = {
-      filterconstraints: [{ value: tab.id , matchMode: "equals" }],
+      filterconstraints: [{ value: tab.id, matchMode: "equals" }],
       filteroperator: "and",
       key: "status",
     };
@@ -683,18 +680,23 @@ const deleteList = () => {
 };
 
 //Filter
-const reFilter=()=>{
- options.value.type_formtraining = null;
+const reFilter = () => {
+  options.value.user_follows = null;
+  options.value.training_groups_id = null;
+  options.value.user_verify = null;
+options.value.start_date=null;
+options.value.end_date=null
+  options.value.type_formtraining = null;
 
   options.value.status_filter = null;
-  checkLoadCount.value=true;
+  checkLoadCount.value = true;
   isDynamicSQL.value = false;
   checkFilter.value = false;
   filterSQL.value = [];
   options.value.SearchText = null;
-}
+};
 const reFilterEmail = () => {
- reFilter();
+  reFilter();
   op.value.hide();
   loadData(true);
 };
@@ -731,8 +733,120 @@ const filterFileds = () => {
       filterSQL.value.push(filterS2);
     }
   }
+  if (options.value.user_follows) {
+    let filterS3 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "user_follows",
+    };
+    if (options.value.user_follows.length > 0) {
+      options.value.user_follows.forEach((element) => {
+        var addr = { value: element.code, matchMode: "contains" };
+        filterS3.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS3);
+    }
+  }
+  if (options.value.training_groups_id) {
+    let filterS4 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "training_groups_id",
+    };
+    if (options.value.training_groups_id.length > 0) {
+      options.value.training_groups_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS4.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS4);
+    }
+  }
+  if (options.value.user_verify) {
+    let filterS5 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "user_verify",
+    };
+    if (options.value.user_verify.length > 0) {
+      options.value.user_verify.forEach((element) => {
+        var addr = { value: element.code, matchMode: "contains" };
+        filterS5.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS5);
+    }
+  }
+
+  onDayClick();
   loadDataSQL();
   op.value.hide();
+};
+
+
+const onDayClick = () => {
+  if (options.value.start_date != null)  
+  {
+ 
+    if (!options.value.end_date)
+      options.value.end_date = options.value.start_date;
+    
+    if (
+      options.value.start_date &&
+      options.value.start_date != options.value.end_date
+    ) {
+      let sDate = new Date(options.value.start_date);
+      sDate.setDate(sDate.getDate() - 1);
+      options.value.start_date = sDate;
+      let filterS = {
+        filterconstraints: [
+          { value: options.value.start_date, matchMode: "dateAfter" },
+        ],
+        filteroperator: "and",
+        key: "start_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (
+      options.value.end_date &&
+      options.value.start_date != options.value.end_date
+    ) {
+      let eDate = new Date(options.value.end_date);
+      eDate.setDate(eDate.getDate() + 1);
+      options.value.end_date = eDate;
+      let filterS = {
+        filterconstraints: [
+          { value: options.value.end_date, matchMode: "dateBefore" },
+        ],
+        filteroperator: "and",
+        key: "end_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (
+      options.value.start_date &&
+      options.value.start_date == options.value.end_date
+    ) {
+      let filterS1 = {
+        filterconstraints: [
+          { value: options.value.start_date, matchMode: "dateIs" },
+        ],
+        filteroperator: "and",
+        key: "start_date",
+      };
+      filterSQL.value.push(filterS1);
+        let filterS2 = {
+        filterconstraints: [
+          { value: options.value.end_date, matchMode: "dateIs" },
+        ],
+        filteroperator: "and",
+        key: "end_date",
+      };
+      filterSQL.value.push(filterS2);
+    }
+  }
+   
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -746,10 +860,148 @@ const toggle = (event) => {
   op.value.toggle(event);
 };
 
+const listDropdownUserCheck = ref();
+const listDropdownUser = ref();
+
+const loadUser = () => {
+  listDropdownUser.value = [];
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_users_list_dd",
+            par: [
+              { par: "search", va: null },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "role_id", va: null },
+              {
+                par: "organization_id",
+                va: store.getters.user.organization_id,
+              },
+              { par: "department_id", va: null },
+              { par: "position_id", va: null },
+              { par: "pageno", va: 1 },
+              { par: "pagesize", va: 10000 },
+              { par: "isadmin", va: null },
+              { par: "status", va: null },
+              { par: "start_date", va: null },
+              { par: "end_date", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listDropdownUser.value.push({
+          name: element.full_name,
+          code: element.user_id,
+          avatar: element.avatar,
+          department_name: element.department_name,
+          role_name: element.role_name,
+          position_name: element.position_name,
+        });
+      });
+
+      listDropdownUserCheck.value = [...listDropdownUser.value];
+    })
+    .catch((error) => {
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
+const listTrainingGroups = ref([]);
+const listClasroom = ref([]);
+
+const initTudien = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_enecting_group_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listTrainingGroups.value = [];
+      data.forEach((element) => {
+        listTrainingGroups.value.push({
+          name: element.enecting_group_name,
+          code: element.enecting_group_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_classroom_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listClasroom.value = [];
+      data.forEach((element) => {
+        listClasroom.value.push({
+          name: element.classroom_name,
+          code: element.classroom_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  loadUser();
+};
+
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
   }
+  initTudien();
   loadData(true);
 
   return {
@@ -834,125 +1086,135 @@ onMounted(() => {
                             <div class="form-group">
                               <label>Nhóm đào tạo</label>
                               <MultiSelect
-                                :options="organizations"
+                                :options="listTrainingGroups"
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.organizations"
-                                optionLabel="organization_name"
+                                v-model="options.training_groups_id"
+                                optionLabel="name"
+                                optionValue="code"
                                 placeholder="Chọn nhóm đào tạo"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
                               >
-                                <template #value="slotProps">
-                                  <ul
-                                    class="p-ulchip"
-                                    v-if="
-                                      slotProps.value &&
-                                      slotProps.value.length > 0
-                                    "
-                                  >
-                                    <li
-                                      class="p-lichip"
-                                      v-for="(value, index) in slotProps.value"
-                                      :key="index"
-                                    >
-                                      <Chip class="mr-2 mb-2 px-3 py-2">
-                                        <div class="flex">
-                                          <div>
-                                            <span>{{
-                                              value.organization_name
-                                            }}</span>
-                                          </div>
-                                          <span
-                                            tabindex="0"
-                                            class="
-                                              p-chip-remove-icon
-                                              pi pi-times-circle
-                                              format-flex-center
-                                            "
-                                            @click="
-                                              removeFilter(
-                                                index,
-                                                options.organizations
-                                              );
-                                              $event.stopPropagation();
-                                            "
-                                            v-tooltip.top="'Xóa'"
-                                          ></span>
-                                        </div>
-                                      </Chip>
-                                    </li>
-                                  </ul>
-                                  <span v-else>
-                                    {{ slotProps.placeholder }}
-                                  </span>
-                                </template>
                               </MultiSelect>
                             </div>
                           </div>
                           <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
+                                <div class="col-12 p-0 ">
                               <label>Người phụ trách</label>
+                                </div>
                               <MultiSelect
-                                :options="departments"
+                                :options="listDropdownUser"
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.departments"
-                                optionLabel="department_name"
+                                display="chip"
+                                v-model="options.user_verify"
+                                optionLabel="name"
                                 placeholder="Chọn người phụ trách"
-                                class="w-full limit-width"
+                                                   panelClass="d-design-dropdown  d-tree-input"
+         class="col-12 my-2   "
+                                
                                 style="min-height: 36px"
-                                panelClass="d-design-dropdown"
+                              
                               >
-                                <template #value="slotProps">
-                                  <ul
-                                    class="p-ulchip"
-                                    v-if="
-                                      slotProps.value &&
-                                      slotProps.value.length > 0
-                                    "
+                                <template #option="slotProps">
+                                  <div
+                                    class="country-item flex align-items-center"
                                   >
-                                    <li
-                                      class="p-lichip"
-                                      v-for="(value, index) in slotProps.value"
-                                      :key="index"
-                                    >
-                                      <Chip class="mr-2 mb-2 px-3 py-2">
-                                        <div class="flex">
-                                          <div>
-                                            <span>{{
-                                              value.department_name
-                                            }}</span>
-                                          </div>
-                                          <span
-                                            tabindex="0"
-                                            class="
-                                              p-chip-remove-icon
-                                              pi pi-times-circle
-                                              format-flex-center
+                                    <div class="grid w-full p-0">
+                                      <div
+                                        class="
+                                          field
+                                          p-0
+                                          py-1
+                                          col-12
+                                          flex
+                                          m-0
+                                          cursor-pointer
+                                          align-items-center
+                                        "
+                                      >
+                                        <div
+                                          class="
+                                            col-1
+                                            mx-2
+                                            p-0
+                                            align-items-center
+                                          "
+                                        >
+                                          <Avatar
+                                            v-bind:label="
+                                              slotProps.option.avatar
+                                                ? ''
+                                                : slotProps.option.name.substring(
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 1,
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 2
+                                                  )
                                             "
-                                            @click="
-                                              removeFilter(
-                                                index,
-                                                options.departments
-                                              );
-                                              $event.stopPropagation();
+                                            :image="
+                                              basedomainURL +
+                                              slotProps.option.avatar
                                             "
-                                            v-tooltip.top="'Xóa'"
-                                          ></span>
+                                            size="small"
+                                            :style="
+                                              slotProps.option.avatar
+                                                ? 'background-color: #2196f3'
+                                                : 'background:' +
+                                                  bgColor[
+                                                    slotProps.option.name
+                                                      .length % 7
+                                                  ]
+                                            "
+                                            shape="circle"
+                                            @error="
+                                              $event.target.src =
+                                                basedomainURL +
+                                                '/Portals/Image/nouser1.png'
+                                            "
+                                          />
                                         </div>
-                                      </Chip>
-                                    </li>
-                                  </ul>
-                                  <span v-else>
-                                    {{ slotProps.placeholder }}
-                                  </span>
+                                        <div
+                                          class="
+                                            col-11
+                                            p-0
+                                            ml-3
+                                            align-items-center
+                                          "
+                                        >
+                                          <div class="pt-2">
+                                            <div class="font-bold">
+                                              {{ slotProps.option.name }}
+                                            </div>
+                                            <div
+                                              class="
+                                                flex
+                                                w-full
+                                                text-sm
+                                                font-italic
+                                                text-500
+                                              "
+                                            >
+                                              <div>
+                                                {{
+                                                  slotProps.option.position_name
+                                                }}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </template>
                               </MultiSelect>
-                            </div>
+                          
                           </div>
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
@@ -991,9 +1253,7 @@ onMounted(() => {
                                   class="ip36"
                                   autocomplete="on"
                                   inputId="time24"
-                                  v-model="options.sign_start_date"
-                                  @date-select="changeSignDate()"
-                                  @input="changeSignDate()"
+                                  v-model="options.start_date"
                                   placeholder="Từ ngày"
                                 />
                               </div>
@@ -1005,162 +1265,127 @@ onMounted(() => {
                                   class="ip36"
                                   autocomplete="on"
                                   inputId="time24"
-                                  v-model="options.sign_end_date"
-                                  @date-select="changeSignDate()"
-                                  @input="changeSignDate()"
+                                  v-model="options.end_date"
                                   placeholder="Đến ngày"
                                 />
                               </div>
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
-                              <label>Giảng viên</label>
-                              <MultiSelect
-                                :options="users"
-                                v-model="options.users"
+                           
+                             <div class="col-12 p-0 ">
+                               <label>Người theo dõi</label>
+                             </div>
+                             <MultiSelect
+                                :options="listDropdownUser"
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                optionLabel="full_name"
-                                placeholder="Chọn giảng viên"
-                                class="w-full limit-width"
+                                display="chip"
+                                v-model="options.user_follows"
+                                optionLabel="name"
+                                placeholder="Chọn người theo dõi"
+                               
                                 style="min-height: 36px"
-                                panelClass="d-design-dropdown"
+                                    panelClass="d-design-dropdown  d-tree-input"
+         class="col-12 my-2   "
+                                
                               >
-                                <template #value="slotProps">
-                                  <ul
-                                    class="p-ulchip"
-                                    v-if="
-                                      slotProps.value &&
-                                      slotProps.value.length > 0
-                                    "
-                                  >
-                                    <li
-                                      class="p-lichip"
-                                      v-for="(value, index) in slotProps.value"
-                                      :key="index"
-                                    >
-                                      <Chip
-                                        :image="value.avatar"
-                                        :label="value.full_name"
-                                        class="mr-2 mb-2 px-3 py-2"
-                                      >
-                                        <div class="flex">
-                                          <div class="format-flex-center">
-                                            <Avatar
-                                              v-bind:label="
-                                                value.avatar
-                                                  ? ''
-                                                  : (
-                                                      value.last_name ?? ''
-                                                    ).substring(0, 1)
-                                              "
-                                              v-bind:image="
-                                                value.avatar
-                                                  ? basedomainURL + value.avatar
-                                                  : basedomainURL +
-                                                    '/Portals/Image/noimg.jpg'
-                                              "
-                                              style="
-                                                background-color: #2196f3;
-                                                color: #ffffff;
-                                                width: 2rem;
-                                                height: 2rem;
-                                              "
-                                              :style="{
-                                                background:
-                                                  bgColor[value.is_order % 7],
-                                              }"
-                                              class="mr-2 text-avatar"
-                                              size="xlarge"
-                                              shape="circle"
-                                            />
-                                          </div>
-                                          <div
-                                            class="format-flex-center text-left"
-                                          >
-                                            <span>{{ value.full_name }}</span>
-                                          </div>
-                                          <span
-                                            tabindex="0"
-                                            class="
-                                              p-chip-remove-icon
-                                              pi pi-times-circle
-                                              format-flex-center
-                                            "
-                                            @click="
-                                              removeFilter(
-                                                index,
-                                                options.users
-                                              );
-                                              $event.stopPropagation();
-                                            "
-                                            v-tooltip.top="'Xóa'"
-                                          ></span>
-                                        </div>
-                                      </Chip>
-                                    </li>
-                                  </ul>
-                                  <span v-else>
-                                    {{ slotProps.placeholder }}
-                                  </span>
-                                </template>
                                 <template #option="slotProps">
-                                  <div v-if="slotProps.option" class="flex">
-                                    <div class="format-center">
-                                      <Avatar
-                                        v-bind:label="
-                                          slotProps.option.avatar
-                                            ? ''
-                                            : slotProps.option.last_name.substring(
-                                                0,
-                                                1
-                                              )
+                                  <div
+                                    class="country-item flex align-items-center"
+                                  >
+                                    <div class="grid w-full p-0">
+                                      <div
+                                        class="
+                                          field
+                                          p-0
+                                          py-1
+                                          col-12
+                                          flex
+                                          m-0
+                                          cursor-pointer
+                                          align-items-center
                                         "
-                                        v-bind:image="
-                                          slotProps.option.avatar
-                                            ? basedomainURL +
+                                      >
+                                        <div
+                                          class="
+                                            col-1
+                                            mx-2
+                                            p-0
+                                            align-items-center
+                                          "
+                                        >
+                                          <Avatar
+                                            v-bind:label="
                                               slotProps.option.avatar
-                                            : basedomainURL +
-                                              '/Portals/Image/noimg.jpg'
-                                        "
-                                        style="
-                                          background-color: #2196f3;
-                                          color: #ffffff;
-                                          width: 3rem;
-                                          height: 3rem;
-                                          font-size: 1.4rem !important;
-                                        "
-                                        :style="{
-                                          background:
-                                            bgColor[
-                                              slotProps.option.is_order % 7
-                                            ],
-                                        }"
-                                        class="text-avatar"
-                                        size="xlarge"
-                                        shape="circle"
-                                      />
-                                    </div>
-                                    <div class="ml-3">
-                                      <div class="mb-1">
-                                        {{ slotProps.option.full_name }}
-                                      </div>
-                                      <div class="description">
-                                        <div>
-                                          {{ slotProps.option.position_name }}
+                                                ? ''
+                                                : slotProps.option.name.substring(
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 1,
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 2
+                                                  )
+                                            "
+                                            :image="
+                                              basedomainURL +
+                                              slotProps.option.avatar
+                                            "
+                                            size="small"
+                                            :style="
+                                              slotProps.option.avatar
+                                                ? 'background-color: #2196f3'
+                                                : 'background:' +
+                                                  bgColor[
+                                                    slotProps.option.name
+                                                      .length % 7
+                                                  ]
+                                            "
+                                            shape="circle"
+                                            @error="
+                                              $event.target.src =
+                                                basedomainURL +
+                                                '/Portals/Image/nouser1.png'
+                                            "
+                                          />
                                         </div>
-                                        <div>
-                                          {{ slotProps.option.department_name }}
+                                        <div
+                                          class="
+                                            col-11
+                                            p-0
+                                            ml-3
+                                            align-items-center
+                                          "
+                                        >
+                                          <div class="pt-2">
+                                            <div class="font-bold">
+                                              {{ slotProps.option.name }}
+                                            </div>
+                                            <div
+                                              class="
+                                                flex
+                                                w-full
+                                                text-sm
+                                                font-italic
+                                                text-500
+                                              "
+                                            >
+                                              <div>
+                                                {{
+                                                  slotProps.option.position_name
+                                                }}
+                                              </div>
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
-                                  <span v-else> Chưa có dữ liệu </span>
                                 </template>
                               </MultiSelect>
-                            </div>
+                          
                           </div>
 
                           <div class="col-12 md:col-12">
@@ -1425,18 +1650,14 @@ onMounted(() => {
                         0,
                         4
                       )"
-                       v-bind:label="
-                                      item.avatar
-                                        ? ''
-                                        : item.full_name.substring(
-                                            item.full_name.lastIndexOf(
-                                              ' '
-                                            ) + 1,
-                                            item.full_name.lastIndexOf(
-                                              ' '
-                                            ) + 2
-                                          )
-                                    "
+                      v-bind:label="
+                        item.avatar
+                          ? ''
+                          : item.full_name.substring(
+                              item.full_name.lastIndexOf(' ') + 1,
+                              item.full_name.lastIndexOf(' ') + 2
+                            )
+                      "
                       :key="index"
                       :style="
                         item.avatar
@@ -1446,6 +1667,8 @@ onMounted(() => {
                       :image="basedomainURL + item.avatar"
                       class="w-3rem h-3rem"
                       shape="circle"
+
+                      v-tooltip.top="item.full_name"
                     />
                     <Avatar
                       v-if="data.data.li_user_verify.length > 4"
@@ -1546,26 +1769,23 @@ onMounted(() => {
                   style="width: 200px"
                 >
                   <div class="form-group">
-                   <div class="col-12 p-0 field">
-                    Chọn trạng thái
-                   </div> <div class="col-12 p-0  ">
-                    <Dropdown
-                  :options="listStatus"
-                  :filter="false"
-                  :showClear="false"
-                  :editable="false"
-                  v-model="training_emps.status"
-                  optionLabel="name"
-                  optionValue="code"
-                  placeholder="Chọn trạng thái"
-                  class="w-full"
-                  @change="setStatus(training_emps)"
-                >
-                  
-                </Dropdown>
-                </div>
+                    <div class="col-12 p-0 field">Chọn trạng thái</div>
+                    <div class="col-12 p-0">
+                      <Dropdown
+                        :options="listStatus"
+                        :filter="false"
+                        :showClear="false"
+                        :editable="false"
+                        v-model="training_emps.status"
+                        optionLabel="name"
+                        optionValue="code"
+                        placeholder="Chọn trạng thái"
+                        class="w-full"
+                        @change="setStatus(training_emps)"
+                      >
+                      </Dropdown>
+                    </div>
                   </div>
-                 
                 </OverlayPanel>
               </template>
             </Column>
