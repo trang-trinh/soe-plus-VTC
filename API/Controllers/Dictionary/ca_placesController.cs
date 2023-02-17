@@ -320,7 +320,7 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.ca_places.Where(a => (a.place_id == trangthai.IntID)).FirstOrDefault<ca_places>();
+                    var das = db.ca_places.FirstOrDefault(a => (a.place_id == trangthai.IntID));
                     if (das != null)
                     {
                         das.modified_by = uid;

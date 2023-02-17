@@ -281,7 +281,7 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.doc_ca_role_groups.Where(a => (a.role_group_id == trangthai.IntID)).FirstOrDefault<doc_ca_role_groups>();
+                    var das = db.doc_ca_role_groups.FirstOrDefault(a => (a.role_group_id == trangthai.IntID));
                     if (das != null)
                     {
 

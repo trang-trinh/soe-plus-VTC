@@ -674,6 +674,19 @@ li.p-chips-token {
     z-index: 99999 !important;
 }
 
+.d-design-padding-drd.p-dropdown.p-component .p-dropdown-label {
+    padding: 2px 0px 2px 8px!important;
+}
+
+.d-design-padding-drd.p-dropdown.p-component .p-dropdown-label.p-placeholder {
+    padding: 0px !important;
+}
+
+.d-design-it.p-inputtext.p-component {
+    background-color: white !important;
+    opacity: 1 !important;
+}
+
 
 /* scroolbar
 ::-webkit-scrollbar {

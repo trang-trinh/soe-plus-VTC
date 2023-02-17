@@ -6,16 +6,19 @@ import moment from "moment";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
 const cryoptojs = inject("cryptojs");
 //khai báo
+const emitter = inject("emitter");
 const axios = inject("axios");
 const store = inject("store");
 const toast = useToast();
 const swal = inject("$swal");
+
 // eslint-disable-next-line no-undef
 const basedomainURL = baseURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const width = window.screen.width;
+const width1 = window.screen.width;
 const addLog = (log) => {
   // eslint-disable-next-line no-undef
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
@@ -104,6 +107,8 @@ const simpleDateName = (date) => {
     );
   }
 };
+const PositionSideBar = ref("right");
+
 const LoadCountTask = (page) => {
   axios
     .post(
@@ -129,6 +134,8 @@ const LoadCountTask = (page) => {
       let data = JSON.parse(response.data.data)[0];
       let listdata = JSON.parse(response.data.data)[1];
       let listact = JSON.parse(response.data.data)[2];
+      let countToButton = JSON.parse(response.data.data)[3];
+      emitter.emit("count", { data: countToButton });
       let gotData = data[0];
       listCountTaskButton.value[0].count = gotData.TatCa;
       listCountTaskButton.value[1].count = gotData.DuocGiao;
@@ -286,13 +293,16 @@ const ViewTask = (id) => {
   showDetail.value = true;
   selectedTaskID.value = id;
 };
-const emitter = inject("emitter");
+
 const showDetail = ref(false);
 const selectedTaskID = ref();
 
 emitter.on("SideBar", (obj) => {
   showDetail.value = obj;
   LoadCountTask(0);
+});
+emitter.on("psb", (obj) => {
+  PositionSideBar.value = obj;
 });
 onMounted(() => {
   LoadCountTask(0);
@@ -375,12 +385,13 @@ onMounted(() => {
           <div class="col-12 font-bold">Hoạt động gần đây</div>
           <ScrollPanel :style="{ height: width > 1900 ? '62vh' : '39.5vh' }">
             <div
-              class="col-12 border-bottom-1 border-gray-500 p-0"
+              class="col-12 border-gray-500 p-0"
               v-for="(item, index) in listActive"
               :key="index"
             >
               <div
-                class="col-12 font-bold text-blue-500 border-gray-500 p-0 border-bottom-1"
+                class="col-12 font-bold text-blue-500 border-gray-500"
+                style="padding: 10px; background-color: aliceblue"
               >
                 {{ item.date_display }}
               </div>
@@ -415,11 +426,13 @@ onMounted(() => {
                   />
                 </div>
                 <div class="col-7">
-                  {{
-                    item.description.length > 100
-                      ? item.description.substring(0, 100) + "..."
-                      : item.description
-                  }}
+                  <span
+                    v-html="
+                      item.description.length > 100
+                        ? item.description.substring(0, 100)
+                        : item.description
+                    "
+                  ></span>
                 </div>
                 <div class="col-4 format-right">
                   <Button
@@ -614,13 +627,27 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <DetailedWork
-    v-if="showDetail == true && selectedTaskID != null"
-    :isShow="showDetail"
-    :id="selectedTaskID"
-    :turn="0"
+  <Sidebar
+    v-model:visible="showDetail"
+    :position="PositionSideBar"
+    :style="{
+      width:
+        PositionSideBar == 'right'
+          ? width1 > 1800
+            ? ' 55vw'
+            : '75vw'
+          : '100vw',
+      'min-height': '100vh !important',
+    }"
+    :showCloseIcon="false"
   >
-  </DetailedWork>
+    <DetailedWork
+      :isShow="showDetail"
+      :id="selectedTaskID"
+      :turn="0"
+    >
+    </DetailedWork>
+  </Sidebar>
 </template>
 
 <style lang="scss" scoped>

@@ -3313,13 +3313,14 @@ const choiceTreeUser = () => {
                 <th
                   class="no-fixcol p-3"
                   width="40"
-                  style="border: 1px solid #e9e9e9"
                   :style="
                     (g.bg == ''
-                      ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      ? 'background: #fff;'
+                      : 'background:' + g.bg + ';'),
+                    'color:' + g.color
                   "
+                  style="border: 1px solid #e9e9e9;"
+                  
                   v-for="g in GrandsDate"
                 >
                   {{ g.DayName }}
@@ -3333,8 +3334,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in GrandsDate"
                 >
@@ -3448,8 +3449,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.Name
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in l.dateArray"
                 >
@@ -3609,8 +3610,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in GrandsDate"
                 >
@@ -3622,11 +3623,7 @@ const choiceTreeUser = () => {
                   class="no-fixcol p-3"
                   width="40"
                   style="border: 1px solid #e9e9e9"
-                  :style="
-                    (g.bg == ''
-                      ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                  :style="(g.bg == '' ? 'background-color: #fff;' : 'background-color:' + g.bg + ';'),'color:' + g.color
                   "
                   v-for="g in GrandsDate"
                 >
@@ -3766,8 +3763,7 @@ const choiceTreeUser = () => {
                 <td
                   @click="onRowSelect(l)"
                   rowspan="1"
-                  class="no-fixcol-hover"
-                  style="
+                  class="no-fixcol-hover" style="
                     background-color: #fff;
                     border: 1px solid #e9e9e9;
                     height: 40px;
@@ -3777,8 +3773,8 @@ const choiceTreeUser = () => {
                   :style="
                     (g.Name
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';',
-                    'color:' + g.color)
+                      : 'background-color:' + g.bg + ';'),
+                    'color:' + g.color
                   "
                   v-for="g in l.dateArray"
                 >

@@ -345,6 +345,9 @@ const DeviceManufacturer = () =>
     import ("../views/device/DeviceManufacturer.vue");
 const DeviceStatus = () =>
     import ("../views/device/DeviceStatus.vue");
+const MyAssets = () =>
+    import ("../views/device/MyAssets.vue");
+
 // Chat
 const Chat_Message = () =>
     import ("../views/chat/Chat_Message.vue");
@@ -388,7 +391,7 @@ const Hrm_Info = () =>
 const HrmProfile = () =>
     import ("../views/hrm/profile/profile.vue");
 const HrmProfileInfo = () =>
-    import ("../views/hrm/profile/component/profileinfo.vue")
+    import ("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
 const Insurance = () =>
@@ -479,6 +482,16 @@ const caHRMVacancy = () =>
     import ("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () =>
     import ("../views/hrm/category/caWage.vue");
+const caLeavingReason = () =>
+    import ("../views/hrm/category/caLeavingReason.vue");
+
+const caClassroom = () =>
+    import ("../views/hrm/category/caClassroom.vue");
+const caReceipt = () =>
+    import ("../views/hrm/category/caReceipt.vue");
+const caEnectingGroup = () =>
+    import ("../views/hrm/category/caEnectingGroup.vue");
+
 const FileMain_Detail = () =>
     import ("../views/files/FileMain.vue");
 
@@ -1280,6 +1293,10 @@ const router = createRouter({
             path: "/device/category/status",
             name: "devicestatus",
             component: DeviceStatus,
+        }, {
+            path: "/device/my_assets",
+            name: "myAssets",
+            component: MyAssets,
         },
 
         // Chat
@@ -1560,7 +1577,7 @@ const router = createRouter({
             name: "TaskDashboard",
             component: TaskDashboard,
         },
-        // hrm 
+        // hrm
         // {
         //     path: "/hrm/category/interview",
         //     name: "Interview",
@@ -1743,6 +1760,29 @@ const router = createRouter({
             name: "caHRMWage",
             component: caHRMWage,
         },
+
+        {
+            path: "/hrm/category/ca_leavingreason",
+            name: "caHRMLeavingReason",
+            component: caLeavingReason,
+        },
+
+        {
+            path: "/hrm/category/ca_classroom",
+            name: "caHRMClassroom",
+            component: caClassroom,
+        },
+        {
+            path: "/hrm/category/ca_receipt",
+            name: "caHRMReceipt",
+            component: caReceipt,
+        },
+        {
+            path: "/hrm/category/ca_enectinggroup",
+            name: "caHRMEnectingGroup",
+            component: caEnectingGroup,
+        },
+
         //HRM
         {
             path: "/hrm/hrm_training",
@@ -1759,7 +1799,6 @@ const router = createRouter({
             name: "insurance",
             component: Insurance,
         },
-
     ],
 });
 // router.beforeEach((to, from) => {

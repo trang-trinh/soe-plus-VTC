@@ -33,9 +33,9 @@ const props = defineProps({
               colspan="2"
               style="width: 40%; vertical-align: bottom"
             >
-              <div class="uppercase">Bộ quốc phòng</div>
-              <div class="uppercase">
-                <b>Bảo hiểm xã hội</b>
+              <div  >BỘ QUỐC PHÒNG</div>
+              <div  >
+                <b>BẢO HIỂM XÃ HỘI</b>
                 <div
                   class="text-center"
                   style="border-top: 1.5px solid #000; margin: 0px 100px"
@@ -47,7 +47,7 @@ const props = defineProps({
               colspan="4"
               style="min-width: 40%; vertical-align: bottom"
             >
-              <div class="uppercase">
+              <div  >
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
               <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
@@ -59,10 +59,10 @@ const props = defineProps({
           </tr>
           <tr>
             <td class="text-center" colspan="2">
-              <div style="padding: 1rem 0">Số:{{props.datas.handover_number}}</div>
+              <div style="padding:  0.5rem 0 1rem 0">Số:{{props.datas.handover_number}}</div>
             </td>
             <td class="text-center" colspan="4">
-              <div style="padding: 1rem 0">
+              <div style="padding: 0.5rem 0 1rem 0">
                 <i>Hà Nội, ngày {{ new Date(props.datas.handover_created_date).getDate() > 9
       ? new Date(props.datas.handover_created_date).getDate()
       : "0" + new Date(props.datas.handover_created_date).getDate()}}, tháng {{ new Date(props.datas.handover_created_date).getMonth() + 1 > 9
@@ -74,8 +74,8 @@ const props = defineProps({
           </tr>
           <tr>
             <td class="text-center" colspan="6">
-              <div style="padding: 1rem 0">
-                <div class="uppercase title2"><b>Biên bản bàn giao</b></div>
+              <div style="padding: 1.5rem 0 1rem 0">
+                <div class="  title2"><b>BIÊN BẢN BÀN GIAO</b></div>
                 <div class="">
        
                 </div>
@@ -97,8 +97,8 @@ const props = defineProps({
       : "0" +
         (new Date(props.datas.handover_created_date).getMonth() + 1)}} năm  
         {{new Date(props.datas.handover_created_date).getFullYear()}} tại {{ props.datas.user_receiver_department_name}}, chúng tôi gồm:</p></td></tr></tbody></table>
- <table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'> 
-  A. Bên giao: 
+ <table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px; font-weight:bold;'> 
+  A. BÊN GIAO: 
     {{props.datas.user_deliver_department_name}}  
     </p></td></tr></tbody></table>
  <table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: 
@@ -106,16 +106,16 @@ const props = defineProps({
  <td width='50%'><p style='font-size:16px;'>Chức vụ: 
    {{ props.datas.user_deliver_position}}</p></td></tr>
   </tbody></table>
- <table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'> 
-    B. Bên nhận:  
+ <table border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px; font-weight:bold;'> 
+    B. BÊN NHẬN:  
    {{ props.datas.user_receiver_department_name}}</p></td></tr></tbody></table> 
    <table border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: 
     {{ props.datas.user_receiver_name}}</p></td> 
  <td width='50%'><p style='font-size:16px;'>Chức vụ: 
    {{props.datas.user_receiver_position}}</p></td></tr> 
    </tbody></table> 
- <table v-if="props.datas.handover_type == 1" border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px;text-transform:uppercase;font-weight:bold;'> 
-      C. Bên xác nhận: 
+ <table v-if="props.datas.handover_type == 1" border='0' width='1024' cellpadding='10'><tbody><tr><td><p style='font-size:16px; font-weight:bold;'> 
+      C. BÊN XÁC NHẬN: 
      {{ props.datas.user_verifier_department_name}}  
  </p></td></tr></tbody></table> 
  <table v-if="props.datas.handover_type == 1"  border='0' width='1024' cellpadding='10'><tbody><tr><td width='50%'><p style='font-size:16px;'>Đồng chí: 
@@ -161,18 +161,18 @@ const props = defineProps({
       {{props.datas.print_note }}</p></td></tr></tbody></table>
  <table border='0' width='100%' cellpadding='10'><tbody><tr> 
  <td :width="(props.datas.handover_type == 1 ? 33 : 50)" style='text-align:center'>  
- <p style='font-weight:bold;font-size:16px;text-align:center;text-transform:uppercase;'>Bên nhận</p> 
+ <p style='font-weight:bold;font-size:16px;text-align:center; '>BÊN NHẬN</p> 
  <p style='font-size:16px;text-align:center; padding-top:24px'> 
     {{props.datas.user_receiver_name}}  </p>
     </td> 
  <td :width="(props.datas.handover_type == 1 ? 33 : 50)" style='text-align:center;'> 
-    <p style='font-weight:bold;font-size:16px;text-align:center;text-transform:uppercase;'>Bên giao</p> 
+    <p style='font-weight:bold;font-size:16px;text-align:center; '>BÊN GIAO</p> 
  <p style='font-size:16px;text-align:center; padding-top:24px'> 
     {{props.datas.user_deliver_name}}  
     </p>
     </td> 
  <td v-if="props.datas.handover_type == 1" width='34%'><p style='font-size:16px;text-align:center'>  
-    <p style='font-weight:bold;font-size:16px;text-align:center;text-transform:uppercase;'>Bên xác nhận</p> 
+    <p style='font-weight:bold;font-size:16px;text-align:center; '>BÊN XÁC NHẬN</p> 
     <p style='font-size:16px;text-align:center; padding-top:24px'> 
       {{(props.datas.user_verifier_name != null
         ? props.datas.user_verifier_name
@@ -198,84 +198,7 @@ const props = defineProps({
 
 
 
-
-
-
-
-
-
-
-
-      <!-- <table style="width: 100%;">
-        <thead class="boder">
-          <tr>
-            <th style="width: 50px">TT</th>
-            <th style="width: 180px">Họ và tên</th>
-            <th style="width: 150px">Cấp bậc, chức vụ</th>
-           
-            <th style="width: 110px">Thời gian</th>
-            <th style="width: 100px">Thứ</th>
-            <th style="width: 180px">Trực chỉ huy</th>
-          </tr>
-        </thead>
-        <tbody class="boder">
-          <tr v-for="(value, index) in props.datas" :key="index">
-            <td align="center">
-              <div>{{ index + 1 }}</div>
-            </td>
-            <td>
-              <div v-if="value.trucbans && value.trucbans.length > 0">
-                {{ value.trucbans[0].full_name }}
-              </div>
-            </td>
-            <td>
-              <div v-if="value.trucbans && value.trucbans.length > 0">
-                {{ value.trucbans[0].position_name }}
-              </div>
-            </td>
-         
-            <td align="center">
-              <div>{{ value.day_string }}</div>
-            </td>
-            <td align="center">
-              <div>{{ value.day_name }}</div>
-            </td>
-            <td>
-              <div v-if="value.chihuys && value.chihuys.length > 0">
-                {{ value.chihuys[0].full_name }}
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table> -->
-      
-      <!-- <table style="width: 100%">
-        <tbody>
-          <tr>
-            <td colspan="6">
-              <div style="padding: 0.5rem 0; text-decoration: underline">
-                <b><i>Trực ban có nhiệm vụ:</i></b>
-              </div>
-              <div class="html" v-html="props.mission.mission"></div>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="4" style="vertical-align: top">
-              <div style="padding: 0.5rem 0; text-decoration: underline">
-                <b><i>Nơi nhận:</i></b>
-              </div>
-              <div class="html" v-html="props.mission.address"></div>
-            </td>
-            <td align="center" colspan="2" style="vertical-align: top">
-              <div style="padding-top: 1rem; min-height: 150px">
-                <div style="text-transform: uppercase"><b>KT.Giám Đốc</b></div>
-                <div style="text-transform: uppercase"><b>Phó GIám Đốc</b></div>
-                <div style="height: 170px; position: relative"></div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table> -->
+ 
     </div> </div>
   </Dialog>
 </template>
@@ -323,10 +246,7 @@ tr {
 tfoot {
   display: table-footer-group !important;
 }
-.uppercase,
-.uppercase * {
-  text-transform: uppercase !important;
-}
+ 
 .text-center {
   text-align: center !important;
 }

@@ -810,13 +810,12 @@ const onPage = (event) => {
                             placeholder="Tìm kiếm" @keyup.enter="loadData(true)" />
                     </span>
                         <h3>BÁO CÁO THỐNG KÊ TỔNG HỢP CÔNG VIỆC THEO PHÒNG BAN</h3>
-                        <!-- <span v-if="opition.sdate && opition.edate">(từ ngày 01/12/2022 đến ngày 19/12/2022)</span> -->
                     </div>
                 </template>
                 <template #end>
                     <ul id="toolbar_right" style="padding: 0px; margin: 0px; display: flex">
                         <li @click="onRefresh">
-                            <a><i class="pi pi-refresh"></i> Refresh</a>
+                            <a><i class="pi pi-refresh"></i> Tải lại</a>
                         </li>
                         <li @click="toggleFilter" aria-haspopup="true" :class="{ active: opition.filter_type != 0 }"
                             aria-controls="overlay_Export">
@@ -829,15 +828,9 @@ const onPage = (event) => {
                             <a><i class="pi pi-sort"></i> Sắp xếp
                                 <i class="pi pi-angle-down"></i></a>
                         </li>
-                        <!-- <li @click="openExportData()">
-                            <a><i class="pi pi-file"></i> Export</a>
-                        </li>
-                        <li @click="openExportXML()">
-                            <a><i class="pi pi-file"></i> XML</a>
-                        </li> -->
                         <li @click="toggleExport" aria-haspopup="true"
                             aria-controls="overlay_Export">
-                            <a><i class="pi pi-file"></i> Export
+                            <a><i class="pi pi-file"></i> Tiện ích
                                 <i class="pi pi-angle-down"></i></a>
                         </li>
                     </ul>
