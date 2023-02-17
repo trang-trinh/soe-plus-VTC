@@ -6731,7 +6731,7 @@ namespace Controllers
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "") + "( tm.handover_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )"
 
                         + " or CONTAINS( tm.user_receiver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
-                         " or CONTAINS( tm.user_deliver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') "
+                         " or CONTAINS( tm.user_deliver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') ";
                 }
                 var offSetSQL = "";
                 if (filterSQL.next)//Trang tiếp

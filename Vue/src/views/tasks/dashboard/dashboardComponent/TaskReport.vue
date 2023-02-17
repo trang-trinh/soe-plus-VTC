@@ -389,6 +389,26 @@ const sendData = (x) => {
       });
     });
 };
+const configMail = ref();
+const getConfigMail = () => {
+  axios
+    .get(baseURL + "/api/SendEmail/GetConfigMail", {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    })
+    .then((response) => {
+      if (response.data.err != "1") {
+        configMail.value = response.data.data;
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
 const bodymail = ref();
 const sendMail = (x) => {
   mailInfo.value = {
@@ -409,6 +429,7 @@ const sendMail = (x) => {
   mailInfo.value.body = bodymail.value.toString();
 
   let formData = new FormData();
+  formData.append("pwMail", configMail.value.kpmail);
   formData.append("mailinfo", JSON.stringify(mailInfo.value));
   axios({
     method: "post",
@@ -484,6 +505,7 @@ watch(showDetail, () => {
 });
 onMounted(() => {
   loadData();
+  getConfigMail();
   bodymail.value = "";
 });
 </script>

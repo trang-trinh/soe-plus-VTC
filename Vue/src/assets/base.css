@@ -201,14 +201,6 @@ input[disabled] {
     width: 100% !important;
 }
 
-.d-card-design.p-card .p-card-body {
-    padding: 0px !important;
-}
-
-.d-card-design.p-card .p-card-body .p-card-content {
-    padding: 0px !important;
-}
-
 .app-system .v-sidebar-menu.vsm_expanded,
 .app-system .vsm--menu {
     max-width: calc(100vw - 88%) !important;
@@ -674,19 +666,6 @@ li.p-chips-token {
     z-index: 99999 !important;
 }
 
-.d-design-padding-drd.p-dropdown.p-component .p-dropdown-label {
-    padding: 2px 0px 2px 8px!important;
-}
-
-.d-design-padding-drd.p-dropdown.p-component .p-dropdown-label.p-placeholder {
-    padding: 0px !important;
-}
-
-.d-design-it.p-inputtext.p-component {
-    background-color: white !important;
-    opacity: 1 !important;
-}
-
 
 /* scroolbar
 ::-webkit-scrollbar {
@@ -1036,7 +1015,7 @@ li.p-chips-token {
 .modal-tivi-config .grid-nogutter {
     /* max-height: calc(100vh - 220px); */
     max-height: calc(100vh - 235px);
-    min-height: calc(100vh - 400px);
+    /* min-height: calc(100vh - 400px); */
     overflow-y: auto;
 }
 
@@ -1059,84 +1038,38 @@ li.p-chips-token {
 .modal-tivi-config .p-dialog-header-icons {
     display: none !important;
 }
-
 .modal-tivi-config .item-image-screen {
     height: fit-content;
 }
-
-.modal-report-config .p-dialog-content,
-.modal-choice-user .p-dialog-content {
+.modal-report-config .p-dialog-content, .modal-choice-user .p-dialog-content {
     overflow-y: hidden !important;
 }
-
-.modal-report-config .p-datatable-wrapper {
-    max-height: calc(100vh - 322px) !important;
+.modal-report-config .p-datatable-wrapper{
+    max-height:calc(100vh - 322px) !important;
 }
-
-.modal-report-config .p-datatable-header,
-.modal-choice-user .p-datatable-header {
+.modal-report-config .p-datatable-header, .modal-choice-user .p-datatable-header{
     width: 98%;
 }
-
-.modal-report-config .not-vaild,
-.modal-report-config .not-vaild .p-inputtext,
-.modal-report-config .not-vaild .p-button {
+.modal-report-config .not-vaild, .modal-report-config .not-vaild .p-inputtext,.modal-report-config .not-vaild .p-button{
     color: red !important;
 }
-
-.file-report-config .not-vaild,
-.file-report-config .not-vaild .p-inputtext,
-.file-report-config .not-vaild .p-button {
+.file-report-config .not-vaild, .file-report-config .not-vaild .p-inputtext, .file-report-config .not-vaild .p-button{
     color: red !important;
 }
-
-.modal-choice-user .p-datatable-wrapper {
-    max-height: calc(100vh - 292px) !important;
+.modal-choice-user .p-datatable-wrapper{
+    max-height:calc(100vh - 292px) !important;
 }
 
-.dispatch-input.p-inputtext {
-    color: red;
-    font-size: 2rem;
-    font-weight: bold;
+.dispatch-input.p-inputtext{
+    color: red; font-size: 2rem; font-weight: bold;
     padding-left: 0.5rem !important;
 }
 
-.p-toolbar.custoolbar .p-toolbar-group-left {
+.p-toolbar.custoolbar .p-toolbar-group-left{
     flex-wrap: wrap !important;
     row-gap: 0.3rem;
 }
 
-.black-text.p-dialog .p-dialog-content {
+.black-text.p-dialog .p-dialog-content{
     color: #000 !important;
-}
-
-.p-tooltip,
-.p-autocomplete-panel,
-.p-treeselect-panel,
-.p-dropdown-panel,
-.p-multiselect-panel {
-    z-index: 999999 !important;
-}
-
-.form-group {
-    display: grid;
-    margin-bottom: 1rem;
-    flex: 1;
-}
-
-.form-group>label {
-    margin-bottom: 0.5rem;
-}
-
-.form-group .p-multiselect .p-multiselect-label,
-.form-group .p-dropdown .p-dropdown-label,
-.form-group .p-treeselect .p-treeselect-label {
-    height: 100%;
-    display: flex;
-    align-items: center;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100% !important;
 }

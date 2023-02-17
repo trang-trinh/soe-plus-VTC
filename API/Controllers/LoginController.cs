@@ -87,6 +87,7 @@ namespace Controllers
                         }
                         if (user != null)
                         {
+                            user.wrong_pass_count = 0;
                             tk = await db.sys_token.FirstOrDefaultAsync(x => x.user_id == user.user_id);
                             if (tk == null)
                             {
@@ -149,7 +150,7 @@ namespace Controllers
                                     token_id = tk.token_id,
                                     user_id = tk.user_id,
                                     user_key = user.user_key,
-                                    full_name = tk.full_name,
+                                    full_name = user.full_name,
                                     avatar = user.avatar,
                                     logo= org?.logo,
                                     position_name = str_position,
@@ -187,7 +188,7 @@ namespace Controllers
                                 user = db.sys_users.FirstOrDefault(us => us.user_id == u.user_id);
                                 if (user != null)
                                 {
-                                    user.wrong_pass_count = user.wrong_pass_count ?? 0 + 1;
+                                    user.wrong_pass_count = ((user.wrong_pass_count ?? 0) + 1);
                                     if (user.wrong_pass_count >= config.wrongAcceptPass)
                                     {
                                         user.status = 0;
