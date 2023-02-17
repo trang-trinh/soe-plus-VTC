@@ -678,11 +678,7 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
-const deleteFileH = (value) => {
-  filesList.value = filesList.value.filter(
-    (x) => x.handover_files_id != value.handover_files_id
-  );
-};
+ 
 
 const listLimit = ref([
   {
