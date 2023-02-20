@@ -80,9 +80,6 @@ const saveModel = () => {
         "YYYY-MM-DDTHH:mm:ssZZ"
       );
     }
-    if (x["sign_user"] != null) {
-      x["sign_user_id"] = x["sign_user"]["user_id"];
-    }
   });
   let formData = new FormData();
   formData.append("profile_id", props.profile["profile_id"]);
@@ -172,9 +169,6 @@ const initData = (rf) => {
           tbs[1].forEach((x) => {
             if (x["injection_date"] != null) {
               x["injection_date"] = new Date(x["injection_date"]);
-            }
-            if (x["sign_users"] != null) {
-              x["sign_user"] = JSON.parse(x["sign_users"])[0];
             }
           });
           vaccines.value = tbs[1];
@@ -430,121 +424,26 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="sign_user_id"
+              field="sign_user"
               header="Người ký"
-              headerStyle="text-align:center;width:250px;height:50px"
-              bodyStyle="text-align:center;width:250px;"
+              headerStyle="text-align:center;width:200px;height:50px"
+              bodyStyle="text-align:center;width:200px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
-                <div class="form-group m-0">
-                  <Dropdown
-                    :options="props.users"
-                    :filter="true"
-                    :showClear="true"
-                    :editable="false"
-                    optionLabel="full_name"
-                    placeholder="Chọn người ký"
-                    v-model="slotProps.data.sign_user"
-                    class="ip36"
-                    style="height: auto; min-height: 36px"
-                  >
-                    <template #value="slotProps">
-                      <div class="mt-2" v-if="slotProps.value">
-                        <Chip
-                          :image="slotProps.value.avatar"
-                          :label="slotProps.value.full_name"
-                          class="mr-2 mb-2 pl-0"
-                        >
-                          <div class="flex">
-                            <div class="format-flex-center">
-                              <Avatar
-                                v-bind:label="
-                                  slotProps.value.avatar
-                                    ? ''
-                                    : (
-                                        slotProps.value.last_name ?? ''
-                                      ).substring(0, 1)
-                                "
-                                v-bind:image="
-                                  slotProps.value.avatar
-                                    ? basedomainURL + slotProps.value.avatar
-                                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                                "
-                                style="
-                                  background-color: #2196f3;
-                                  color: #ffffff;
-                                  width: 2rem;
-                                  height: 2rem;
-                                "
-                                :style="{
-                                  background:
-                                    bgColor[slotProps.value.is_order % 7],
-                                }"
-                                class="mr-2 text-avatar"
-                                size="xlarge"
-                                shape="circle"
-                              />
-                            </div>
-                            <div class="format-flex-center">
-                              <span>{{ slotProps.value.full_name }}</span>
-                            </div>
-                          </div>
-                        </Chip>
-                      </div>
-                      <span v-else> {{ slotProps.placeholder }} </span>
-                    </template>
-                    <template #option="slotProps">
-                      <div v-if="slotProps.option" class="flex">
-                        <div class="format-center">
-                          <Avatar
-                            v-bind:label="
-                              slotProps.option.avatar
-                                ? ''
-                                : slotProps.option.last_name.substring(0, 1)
-                            "
-                            v-bind:image="
-                              slotProps.option.avatar
-                                ? basedomainURL + slotProps.option.avatar
-                                : basedomainURL + '/Portals/Image/noimg.jpg'
-                            "
-                            style="
-                              background-color: #2196f3;
-                              color: #ffffff;
-                              width: 3rem;
-                              height: 3rem;
-                              font-size: 1.4rem !important;
-                            "
-                            :style="{
-                              background:
-                                bgColor[slotProps.option.is_order % 7],
-                            }"
-                            class="text-avatar"
-                            size="xlarge"
-                            shape="circle"
-                          />
-                        </div>
-                        <div class="ml-3">
-                          <div class="mb-1">
-                            {{ slotProps.option.full_name }}
-                          </div>
-                          <div class="description">
-                            <div>{{ slotProps.option.position_name }}</div>
-                            <div>{{ slotProps.option.department_name }}</div>
-                          </div>
-                        </div>
-                      </div>
-                      <span v-else> Chưa có dữ liệu </span>
-                    </template>
-                  </Dropdown>
-                </div>
+                <InputText
+                  spellcheck="false"
+                  class="ip36"
+                  v-model="slotProps.data.sign_user"
+                  maxLength="250"
+                />
               </template>
             </Column>
             <Column
               field="sign_user_position"
               header="Chức vụ"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
+              headerStyle="text-align:center;width:200px;height:50px"
+              bodyStyle="text-align:center;width:200px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
