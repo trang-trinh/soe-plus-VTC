@@ -202,6 +202,9 @@ const closedisplayAddRole = () => {
 };
 //Thêm sửa xoá
 const onRefersh = () => {
+  is_coppy_module.value = false;
+  different_module_move.value = false;
+  role_id_check.value = null;
   selectedNodes.value = [];
   options.value = {
     IsNext: true,

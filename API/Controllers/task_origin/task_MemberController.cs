@@ -44,42 +44,62 @@ namespace API.Controllers.Task_Origin1
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    task_Member.member_id = helper.GenKey();
-                    task_Member.created_by = uid;
-                    task_Member.created_date = DateTime.Now;
-                    task_Member.created_ip = ip;
-                    task_Member.created_token_id = tid;
-                    db.task_member.Add(task_Member);
-                    await db.SaveChangesAsync();
-                    // notify
-                    var listuser = db.task_member.Where(x => x.task_id == task_Member.task_id).Select(x => x.user_id).Distinct().ToList();
-                    string task_name = db.task_origin.Where(x => x.task_id == task_Member.task_id).Select(x => x.task_name).FirstOrDefault().ToString();
-                    listuser.Remove(uid);
-                    foreach (var l in listuser)
+                    var obj_task = db.task_origin.FirstOrDefault(x => x.task_id == task_Member.task_id);
+                    if (obj_task != null)
                     {
-                        helper.saveNotify(uid, l, null, "Công việc", "Đã thêm thành viên tham gia vào công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
-                            null, 2, -1, false, module_key, task_Member.task_id, null, null, tid, ip);
+                        task_Member.member_id = helper.GenKey();
+                        task_Member.created_by = uid;
+                        task_Member.created_date = DateTime.Now;
+                        task_Member.created_ip = ip;
+                        task_Member.created_token_id = tid;
+                        db.task_member.Add(task_Member);
+                        await db.SaveChangesAsync();
+                        // notify
+                        //var listuser = db.task_member.Where(x => x.task_id == task_Member.task_id).Select(x => x.user_id).Distinct().ToList();
+                        //string task_name = db.task_origin.Where(x => x.task_id == task_Member.task_id).Select(x => x.task_name).FirstOrDefault().ToString();
+                        //listuser.Remove(uid);
+                        //foreach (var l in listuser)
+                        //{
+                        //    helper.saveNotify(uid, l, null, "Công việc", "Đã thêm thành viên tham gia vào công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                        //        null, 2, -1, false, module_key, task_Member.task_id, null, null, tid, ip);
+                        //}
+
+                        List<string> list_member_task = new List<string>();
+                        var listuser = db.task_member.Where(x => x.task_id == obj_task.task_id && x.user_id != uid);
+                        foreach (var mem in listuser)
+                        {
+                            if (!list_member_task.Contains(mem.user_id))
+                            {
+                                list_member_task.Add(mem.user_id);
+
+                                helper.saveNotify(uid, mem.user_id, null, "Công việc",
+                                "Đã thêm thành viên tham gia vào công việc: " + (obj_task.task_name.Length > 100 ? obj_task.task_name.Substring(0, 97) + "..." : obj_task.task_name),
+                                null, 2, -1, false, module_key, obj_task.task_id, null, null, tid, ip);
+                            }
+                        }
+                        #region add cms_logs
+                        if (helper.wlog)
+                        {
+                            task_logs log = new task_logs();
+                            log.log_id = helper.GenKey();
+                            log.task_id = task_Member.task_id;
+                            log.project_id = null;
+                            log.description = "Thêm mới thành viên ";
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.task_logs.Add(log);
+                            db.SaveChanges();
+
+                        }
+                        #endregion
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     }
-                    #region add cms_logs
-                    if (helper.wlog)
+                    else
                     {
-
-
-                        task_logs log = new task_logs();
-                        log.log_id = helper.GenKey();
-                        log.task_id = task_Member.task_id;
-                        log.project_id = null;
-                        log.description = "Thêm mới thành viên ";
-                        log.created_date = DateTime.Now;
-                        log.created_by = uid;
-                        log.created_token_id = tid;
-                        log.created_ip = ip;
-                        db.task_logs.Add(log);
-                        db.SaveChanges();
-
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Công việc không tồn tại." });
                     }
-                    #endregion
-                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
 
             }

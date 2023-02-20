@@ -322,6 +322,9 @@ const DeviceWareHouse = () =>
     import ("../views/device/DeviceWareHouse.vue");
 const ConfigDeHandover = () =>
     import ("../views/device/ConfigDeHandover.vue");
+const MyAssets = () =>
+    import ("../views/device/MyAssets.vue");
+
 // Cấu hình
 const DeviceRepair = () =>
     import ("../views/device/DeviceRepair.vue");
@@ -345,9 +348,6 @@ const DeviceManufacturer = () =>
     import ("../views/device/DeviceManufacturer.vue");
 const DeviceStatus = () =>
     import ("../views/device/DeviceStatus.vue");
-const MyAssets = () =>
-    import ("../views/device/MyAssets.vue");
-
 // Chat
 const Chat_Message = () =>
     import ("../views/chat/Chat_Message.vue");
@@ -396,6 +396,7 @@ const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
 const Insurance = () =>
     import ("../views/hrm/insurance/insurance.vue");
+    const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 //end
 // TV
 const ConfigScreenTV = () =>
@@ -403,6 +404,8 @@ const ConfigScreenTV = () =>
 const ScreenTV = () =>
     import ("../views/tivi/tivi_screen.vue");
 // Tài liệu
+const FileMain_Detail = () =>
+    import ("../views/files/FileMain.vue");
 const FileFolder = () =>
     import ("../views/files/FileFolder.vue");
 const FileMain = () =>
@@ -1242,6 +1245,12 @@ const router = createRouter({
             name: "configdehandover",
             component: ConfigDeHandover,
         },
+        {
+            path: "/device/my_assets",
+            name: "myassets",
+            component: MyAssets,
+        },
+
 
         //Cấu hình
         {
@@ -1318,6 +1327,11 @@ const router = createRouter({
             component: Chat_Detail,
         },
         // Tài liệu
+        {
+            path: "/files/file_main/:id/:type",
+            name: "files/file_main_detail",
+            component: FileMain_Detail,
+        },
         {
             path: "/files/file_folder",
             name: "file_folder",
@@ -1577,7 +1591,7 @@ const router = createRouter({
             name: "TaskDashboard",
             component: TaskDashboard,
         },
-        // hrm
+        // hrm 
         // {
         //     path: "/hrm/category/interview",
         //     name: "Interview",
@@ -1588,7 +1602,6 @@ const router = createRouter({
             name: "Hrm_Info",
             component: Hrm_Info,
         },
-
         {
             path: "/sqldb",
             name: "SQLDB_Query",
@@ -1799,6 +1812,11 @@ const router = createRouter({
             name: "insurance",
             component: Insurance,
         },
+        {
+            path: "/hrm/hrm_file",
+            name: "Hrm_File",
+            component: Hrm_File,
+          },
     ],
 });
 // router.beforeEach((to, from) => {
