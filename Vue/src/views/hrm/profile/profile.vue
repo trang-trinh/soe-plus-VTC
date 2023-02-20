@@ -570,6 +570,57 @@ const addRow = (type) => {
 const deleteRow = (type, idx) => {
   datachilds.value[type].splice(idx, 1);
 };
+const setStar = (item) => {
+  submitted.value = true;
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  let formData = new FormData();
+  item.is_star = !(item.is_star || false);
+  formData.append("is_star", item.is_star);
+  formData.append("ids", JSON.stringify([item["profile_id"]]));
+  axios
+    .put(baseURL + "/api/hrm_profile/update_star_profile", formData, config)
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+      swal.close();
+      toast.success("Cập nhật thành công!");
+      initData(true);
+    })
+    .catch((error) => {
+      swal.close();
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+  if (submitted.value) submitted.value = true;
+};
 
 //function receipt
 const receipts = ref([]);
@@ -1615,7 +1666,7 @@ onMounted(() => {
                   aria-haspopup="true"
                   aria-controls="overlay_MorePlus"
                   v-tooltip.top="
-                    slotProps.data.is_star ? 'Hợp đồng cần lưu ý' : ''
+                    slotProps.data.is_star ? 'Hồ sơ cần lưu ý' : ''
                   "
                   style="font-size: 15px; color: #000"
                 />
