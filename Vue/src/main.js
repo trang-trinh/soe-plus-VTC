@@ -1,7 +1,7 @@
 import { createApp, ref } from "vue";
 import App from "./App.vue";
+import cors from "cors"
 import router from "./router";
-
 import devtools from "devtools-detect";
 import timeago from "vue-timeago3";
 import Datepicker from "@vuepic/vue-datepicker";
@@ -230,6 +230,7 @@ const { cookies } = useCookies();
 const app = createApp(App);
 const socket = io(socketURL, { autoConnect: false });
 app.use(VueSocketIOExt, socket);
+app.use(cors);
 app.provide("socket", socket);
 app.use(devtools);
 app.provide("devtools", devtools);

@@ -48,9 +48,7 @@ const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
   let vl = data.filter((x) => x.parent_id == null);
-  data.forEach((x) => {
-    x.progress = x.finished / x.total;
-  });
+
   if (vl.length > 0) {
     data
       .filter((x) => x.parent_id == null)
@@ -121,6 +119,10 @@ const loadData = () => {
 
       let data = JSON.parse(response.data.data)[0];
       let count = JSON.parse(response.data.data)[1];
+      data.forEach((x) => {
+        x.progress =
+          x.total > 0 ? Math.floor((x.finished / x.total) * 100) : 100;
+      });
       let obj = renderTree(data, "organization_id", "", "");
       datalists.value = obj.arrChils;
       options.value.totalRecords = count[0].totalRecords;
@@ -223,6 +225,37 @@ onMounted(() => {
         headerClass="align-items-center justify-content-center text-center "
         :expander="true"
       ></Column>
+      <Column
+        class="align-items-center justify-content-center text-center max-w-8rem"
+        header="Tiến độ"
+        field=""
+      >
+        <template #body="data">
+          <div class="align-items-center justify-content-center text-center">
+            <Knob
+              class="w-full"
+              v-model="data.node.data.progress"
+              :readonly="true"
+              valueTemplate="{value}%"
+              :valueColor="
+                data.node.data.progress < 33
+                  ? '#FF0000'
+                  : data.node.data.progress < 66
+                  ? '#2196f3'
+                  : '#6dd230'
+              "
+              :textColor="
+                data.node.data.progress < 33
+                  ? '#FF0000'
+                  : data.node.data.progress < 66
+                  ? '#2196f3'
+                  : '#6dd230'
+              "
+              size="75"
+            />
+          </div>
+        </template>
+      </Column>
       <Column
         class="align-items-center justify-content-center text-center max-w-8rem"
         header="Tất cả"
