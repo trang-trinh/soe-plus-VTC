@@ -396,7 +396,8 @@ const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
 const Insurance = () =>
     import ("../views/hrm/insurance/insurance.vue");
-    const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
+const Hrm_File = () =>
+    import ("../views/hrm/files/hrm_file.vue");
 //end
 // TV
 const ConfigScreenTV = () =>
@@ -495,8 +496,11 @@ const caReceipt = () =>
 const caEnectingGroup = () =>
     import ("../views/hrm/category/caEnectingGroup.vue");
 
-const FileMain_Detail = () =>
-    import ("../views/files/FileMain.vue");
+<<<<<<< HEAD
+=======
+// const FileMain_Detail = () =>
+//     import ("../views/files/FileMain.vue");
+>>>>>>> 4ae6777b57f53e2ffb2ae8e74b6cde0288814bbe
 
 ///HRM
 const HRM_Training = () =>
@@ -1816,7 +1820,7 @@ const router = createRouter({
             path: "/hrm/hrm_file",
             name: "Hrm_File",
             component: Hrm_File,
-          },
+        },
     ],
 });
 // router.beforeEach((to, from) => {

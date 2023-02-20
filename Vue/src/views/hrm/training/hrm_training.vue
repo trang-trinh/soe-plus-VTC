@@ -185,7 +185,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "created_date desc ",
+  sort: "training_emps_id desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -571,6 +571,94 @@ const onCheckBox = (value, check) => {
       });
   }
 };
+
+//Xuất excel
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Xuất Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportData("ExportExcel");
+    },
+  },
+ 
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
+const exportData = (method) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/Excel/ExportExcelWithLogo",
+      {
+        excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
+        proc: "hrm_training_emps_export",
+        par: [
+ 
+          { par: "user_id", va: store.state.user.user_id },
+          { par: "search", va: options.value.SearchText },
+          { par: "training_groups", va:  options.value.training_groups_id  },
+          { par: "user_verify", va:  options.value.user_verify  },
+          { par: "user_follows", va: options.value.user_follows},
+           { par: "form_training", va: options.value.type_formtraining},
+          { par: "status ", va: options.value.status_filter},
+          { par: "start_date", va: options.value.start_date },
+          { par: "end_date", va: options.value.end_date },
+             { par: "sort", va: options.value.sort },
+          { par: "pageno", va: options.value.PageNo },
+          { par: "pagesize", va: options.value.PageSize },
+        ],
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
+        swal.close();
+
+        toast.success("Kết xuất Data thành công!");
+        debugger
+        if (response.data.path != null) {
+          let pathReplace = response.data.path
+            .replace(/\\+/g, "/")
+            .replace(/\/+/g, "/")
+            .replace(/^\//g, "");
+          var listPath = pathReplace.split("/");
+          var pathFile = "";
+          listPath.forEach((item) => {
+            if (item.trim() != "") {
+              pathFile += "/" + item;
+            }
+          });
+          window.open(baseURL + pathFile);
+        }
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
 const activeTab = (tab) => {
   options.value.tab = tab.id;
   reFilter();
@@ -1461,18 +1549,19 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="toggleExport"
-              label="Tiện ích"
-              icon="pi pi-file-excel"
-              class="p-button-outlined p-button-secondary"
-              aria-haspopup="true"
-              aria-controls="overlay_Export"
-            >
-              <div>
-                <span class="mr-2">Tiện ích</span>
-                <span><i class="pi pi-chevron-down"></i></span>
-              </div>
-            </Button>
+                label="Tiện ích"
+                icon="pi pi-file-excel"
+                class="mr-2 p-button-outlined p-button-secondary"
+                @click="toggleExport"
+                aria-haspopup="true"
+                aria-controls="overlay_Export"
+              />
+              <Menu
+                id="overlay_Export"
+                ref="menuButs"
+                :model="itemButs"
+                :popup="true"
+              />
           </template>
         </Toolbar>
       </div>
