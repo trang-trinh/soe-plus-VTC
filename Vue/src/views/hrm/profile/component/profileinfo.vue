@@ -4,6 +4,7 @@ import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import { useRoute } from "vue-router";
 import dialogcontract from "../../contract/component/dialogcontract.vue";
+import dialoginfo from "../../profile/component/dialoginfo.vue"
 import moment from "moment";
 
 const route = useRoute();
@@ -97,6 +98,7 @@ const contract = ref({});
 const headerDialogContract = ref();
 const displayDialogContract = ref(false);
 const openViewDialogContract = (str) => {
+  forceRerender();
   isView.value = true;
   options.value.loading = true;
   swal.fire({
@@ -295,12 +297,57 @@ const goBack = () => {
 };
 
 //Function
+const componentKey = ref(0);
+const forceRerender = () => {
+  componentKey.value += 1;
+};
 const changeView = (view) => {
   options.value.view = view;
   initData();
 };
 
+
+//function edit
+const isType = ref();
+const headerDialog = ref();
+const displayDialog = ref(false);
+const openEditDialog = (type, str) => {
+  forceRerender();
+  if (type === 1) {
+    isType.value = type;
+  } else if (type === 2) {
+    isType.value = type;
+    headerDialog.value = str;
+    displayDialog.value = true;
+  }
+};
+const closeDialog = () => {
+  displayDialog.value = false;
+};
+
 //Function mores
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Thông tin liên hệ",
+    icon: "pi pi-file",
+    command: (event) => {},
+  },
+  {
+    label: "Gia đình, người phụ thuộc",
+    icon: "pi pi-users",
+    command: (event) => {
+      openEditDialog(
+        2,
+        "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
+      );
+    },
+  },
+]);
+const toggleEdit = (event) => {
+  menuButs.value.toggle(event);
+};
+
 const menuButMores = ref();
 const itemButMores = ref([
   {
@@ -1041,20 +1088,38 @@ const initView6 = (rf) => {
         }
         if (tbs[1] != null && tbs[1].length > 0) {
           tbs[1].forEach((x) => {
-            x["start_date"] = moment(new Date(x["start_date"])).format("MM/YYYY");
+            x["start_date"] = moment(new Date(x["start_date"])).format(
+              "MM/YYYY"
+            );
             x["total_payment"] = formatNumber(x["total_payment"], 0, ".", ".");
-            x["company_payment"] = formatNumber(x["company_payment"], 0, ".", ".");
-            x["member_payment"] = formatNumber(x["member_payment"], 0, ".", ".");
-          })
+            x["company_payment"] = formatNumber(
+              x["company_payment"],
+              0,
+              ".",
+              "."
+            );
+            x["member_payment"] = formatNumber(
+              x["member_payment"],
+              0,
+              ".",
+              "."
+            );
+          });
           insurance_pays.value = tbs[1];
         } else {
           insurance_pays.value = [];
         }
         if (tbs[2] != null && tbs[2].length > 0) {
           tbs[2].forEach((x) => {
-            x["received_file_date"] = moment(new Date(x["received_file_date"])).format("DD/MM/YYYY");
-            x["completed_date"] = moment(new Date(x["completed_date"])).format("DD/MM/YYYY");
-            x["received_money_date"] = moment(new Date(x["received_money_date"])).format("DD/MM/YYYY");
+            x["received_file_date"] = moment(
+              new Date(x["received_file_date"])
+            ).format("DD/MM/YYYY");
+            x["completed_date"] = moment(new Date(x["completed_date"])).format(
+              "DD/MM/YYYY"
+            );
+            x["received_money_date"] = moment(
+              new Date(x["received_money_date"])
+            ).format("DD/MM/YYYY");
           });
           insurance_resolves.value = tbs[2];
         } else {
@@ -1196,9 +1261,6 @@ const initView12 = (rf) => {
                 new Date(x["injection_date"])
               ).format("DD/MM/YYYY");
             }
-            if (x["sign_users"] != null) {
-              x["sign_user"] = JSON.parse(x["sign_users"])[0];
-            }
             if (x["injection_id"] != null) {
               var idx = injections.value.findIndex(
                 (a) => a["id"] === x["injection_id"]
@@ -1213,14 +1275,6 @@ const initView12 = (rf) => {
               );
               if (idx !== -1) {
                 x["type_vaccine_name"] = type_vaccines.value[idx]["title"];
-              }
-            }
-            if (x["sign_user_id"]) {
-              var idx = dictionarys.value[0].findIndex(
-                (a) => a["user_id"] === x["sign_user_id"]
-              );
-              if (idx !== -1) {
-                x["sign_user_name"] = dictionarys.value[0][idx]["full_name"];
               }
             }
           });
@@ -1306,7 +1360,26 @@ const onPage = (event) => {
           </li>
         </ul>
       </template>
-      <template #end> </template>
+      <template #end>
+        <Button
+          @click="toggleEdit"
+          label="Cập nhật thay đổi thông tin"
+          icon="pi pi-file-excel"
+          aria-haspopup="true"
+          aria-controls="overlay_Export"
+        >
+          <div>
+            <span class="mr-2">Cập nhật thay đổi thông tin</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
+        <Menu
+          :model="itemButs"
+          :popup="true"
+          id="overlay_Export"
+          ref="menuButs"
+        />
+      </template>
     </Toolbar>
     <Toolbar class="outline-none surface-0 border-none pt-0">
       <template #start>
@@ -1846,6 +1919,22 @@ const onPage = (event) => {
                           style="display: grid"
                           class="empty-full"
                         >
+                          <Column
+                            field="is_root"
+                            header=""
+                            headerStyle="text-align:center;width:30px;height:50px"
+                            bodyStyle="text-align:center;width:30px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span v-if="slotProps.data.is_root" v-tooltip.right="'Bản gốc'"><i class="pi pi-flag-fill"></i></span>
+                              <span v-if="!slotProps.data.is_root" v-tooltip.right="'Bản cập nhật'"><i class="pi pi-pencil"></i></span>
+                            </template>
+                          </Column>
                           <Column
                             field="relative_name"
                             header="Họ tên"
@@ -2751,7 +2840,6 @@ const onPage = (event) => {
                       </template>
                       <div class="col-12 md:col-12">
                         <div class="form-group">
-                          <label>Tải file lên </label>
                           <div
                             v-if="
                               profile.files != null && profile.files.length > 0
@@ -3148,9 +3236,7 @@ const onPage = (event) => {
                           >
                             <template #body="slotProps">
                               <div class="form-group m-0">
-                                <span>{{
-                                  slotProps.data.payment_form
-                                }}</span>
+                                <span>{{ slotProps.data.payment_form }}</span>
                               </div>
                             </template>
                           </Column>
@@ -3397,6 +3483,23 @@ const onPage = (event) => {
                   responsiveLayout="scroll"
                 >
                   <Column
+                    field="is_active"
+                    header=""
+                    headerStyle="text-align:center;max-width:50px;height:50px"
+                    bodyStyle="text-align:center;max-width:50px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      <span v-if="slotProps.data.is_active"
+                        ><i class="pi pi-check"></i
+                      ></span>
+                    </template>
+                  </Column>
+                  <Column
                     field="receipt_name"
                     header="Danh sách giấy tờ"
                     headerStyle="max-width:auto;"
@@ -3606,10 +3709,10 @@ const onPage = (event) => {
                             </template>
                           </Column>
                           <Column
-                            field="sign_user_id"
+                            field="sign_user"
                             header="Người ký"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
+                            headerStyle="text-align:center;width:200px;height:50px"
+                            bodyStyle="text-align:center;width:200px;"
                             class="
                               align-items-center
                               justify-content-center
@@ -3617,14 +3720,14 @@ const onPage = (event) => {
                             "
                           >
                             <template #body="slotProps">
-                              {{ slotProps.data.sign_user_name }}
+                              {{ slotProps.data.sign_user }}
                             </template>
                           </Column>
                           <Column
                             field="sign_user_position"
                             header="Chức vụ"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
+                            headerStyle="text-align:center;width:200px;height:50px"
+                            bodyStyle="text-align:center;width:200px;"
                             class="
                               align-items-center
                               justify-content-center
@@ -3681,6 +3784,15 @@ const onPage = (event) => {
     :isView="isView"
     :model="contract"
     :dictionarys="dictionarys"
+  />
+  <dialoginfo
+    :key="componentKey"
+    :headerDialog="headerDialog"
+    :displayDialog="displayDialog"
+    :closeDialog="closeDialog"
+    :profile_id="options.profile_id"
+    :isType="isType"
+    :initData="initView1"
   />
 </template>
 <style scoped>

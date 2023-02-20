@@ -782,11 +782,12 @@ onMounted(() => {});
                     :rowHover="true"
                     :showGridlines="true"
                     scrollDirection="both"
+                    class="empty-full"
                   >
                     <Column
                       header=""
-                      headerStyle="text-align:center;max-width:50px"
-                      bodyStyle="text-align:center;max-width:50px"
+                      headerStyle="text-align:center;width:50px"
+                      bodyStyle="text-align:center;width:50px"
                       class="
                         align-items-center
                         justify-content-center
@@ -1157,11 +1158,12 @@ onMounted(() => {});
                     :rowHover="true"
                     :showGridlines="true"
                     scrollDirection="both"
+                    class="empty-full"
                   >
                     <Column
                       header=""
-                      headerStyle="text-align:center;max-width:50px"
-                      bodyStyle="text-align:center;max-width:50px"
+                      headerStyle="text-align:center;width:50px"
+                      bodyStyle="text-align:center;width:50px"
                       class="
                         align-items-center
                         justify-content-center
@@ -1490,11 +1492,12 @@ onMounted(() => {});
                     :rowHover="true"
                     :showGridlines="true"
                     scrollDirection="both"
+                    class="empty-full"
                   >
                     <Column
                       header=""
-                      headerStyle="text-align:center;max-width:50px"
-                      bodyStyle="text-align:center;max-width:50px"
+                      headerStyle="text-align:center;width:50px"
+                      bodyStyle="text-align:center;width:50px"
                       class="
                         align-items-center
                         justify-content-center
@@ -1823,11 +1826,12 @@ onMounted(() => {});
                     :rowHover="true"
                     :showGridlines="true"
                     scrollDirection="both"
+                    class="empty-full"
                   >
                     <Column
                       header=""
-                      headerStyle="text-align:center;max-width:50px"
-                      bodyStyle="text-align:center;max-width:50px"
+                      headerStyle="text-align:center;width:50px"
+                      bodyStyle="text-align:center;width:50px"
                       class="
                         align-items-center
                         justify-content-center
@@ -2216,6 +2220,11 @@ onMounted(() => {});
 ::v-deep(.limit-width) {
   .p-multiselect-label {
     white-space: normal !important;
+  }
+}
+::v-deep(.empty-full) {
+  .p-datatable-emptymessage td {
+    width: 100% !important;
   }
 }
 </style>
