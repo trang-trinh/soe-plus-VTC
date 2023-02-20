@@ -25,12 +25,12 @@ export default defineConfig({
 
     // Local test
     // define: {
-    //     baseURL: JSON.stringify("https://localhost:44393/"),
-    //     fileURL: JSON.stringify("https://localhost:44393/"),
+    //     baseURL: JSON.stringify("http://localhost:8080/"),
+    //     fileURL: JSON.stringify("http://localhost:8080/"),
     //     socketURL: JSON.stringify("https://socket2.soe.vn/"),
     //     SecretKey: JSON.stringify("1012198815021989"),
     //     isDev: true,
-    // },
+    //   },
     // Của BHBQP
     // define: {
     //     baseURL: JSON.stringify("http://172.16.102.211:8080/"),

@@ -396,7 +396,11 @@ const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
 const Insurance = () =>
     import ("../views/hrm/insurance/insurance.vue");
-    const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
+const Hrm_File = () =>
+    import ("../views/hrm/files/hrm_file.vue");
+const Hrm_campaign = () =>
+    import ("../views/hrm/recruitment/hrm_campaign.vue");
+
 //end
 // TV
 const ConfigScreenTV = () =>
@@ -495,8 +499,8 @@ const caReceipt = () =>
 const caEnectingGroup = () =>
     import ("../views/hrm/category/caEnectingGroup.vue");
 
-const FileMain_Detail = () =>
-    import ("../views/files/FileMain.vue");
+// const FileMain_Detail = () =>
+//     import ("../views/files/FileMain.vue");
 
 ///HRM
 const HRM_Training = () =>
@@ -1326,12 +1330,7 @@ const router = createRouter({
             name: "chat_message/detail",
             component: Chat_Detail,
         },
-        // Tài liệu
-        {
-            path: "/files/file_main/:id/:type",
-            name: "files/file_main_detail",
-            component: FileMain_Detail,
-        },
+
         {
             path: "/files/file_folder",
             name: "file_folder",
@@ -1816,7 +1815,13 @@ const router = createRouter({
             path: "/hrm/hrm_file",
             name: "Hrm_File",
             component: Hrm_File,
-          },
+        },
+        {
+            path: "/hrm/recruitment/campaign",
+            name: "Hrm_campaign",
+            component: Hrm_campaign,
+        },
+
     ],
 });
 // router.beforeEach((to, from) => {

@@ -318,7 +318,7 @@ namespace Controllers
                             {
                                 del.Add(da);
                                 #region  add Log
-                                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = da, contents = "" }), domainurl + "Roles/Del_Roles", ip, tid, "Xoá Role (role_name)", 1, "Role");
+                              //  helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = da, contents = "" }), domainurl + "Roles/Del_Roles", ip, tid, "Xoá Role (role_name)", 1, "Role");
                                 #endregion
                             }
                         }
