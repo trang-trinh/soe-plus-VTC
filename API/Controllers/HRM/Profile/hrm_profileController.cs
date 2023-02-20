@@ -623,7 +623,7 @@ namespace API.Controllers.HRM.Profile
                                 model.type_vaccine = vaccine.type_vaccine;
                                 model.lot_number = vaccine.lot_number;
                                 model.vaccination_facility = vaccine.vaccination_facility;
-                                model.sign_user_id = vaccine.sign_user_id;
+                                model.sign_user = vaccine.sign_user;
                                 model.sign_user_position = vaccine.sign_user_position;
                             }
                         }
