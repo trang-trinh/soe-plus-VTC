@@ -321,7 +321,7 @@ const itemListTypeButs = ref([
 ]);
 
 const ChangeGroupView = (data) => {
-  opition.value.type_group_view = data;
+  type_group_view_refresh.value = data;
   menuGroupListTypeButs.value.toggle();
   loadData(true, opition.value.type_view);
   itemGroupListTypeButs.value.forEach((t) => {
@@ -980,7 +980,7 @@ const RenderData = (data) => {
   let arrChils = [];
   data.filter((x) =>x.parent_id == null ||(x.parent_id != null && data.filter((y) => y.task_id == x.parent_id).length == 0),).forEach((m, i) => {
       m.STT2 = opition.value.PageNo * opition.value.PageSize + i + 1;
-      let om = { key: m.task_id, data: m, project_name: m.project_name, group_name: m.group_name };
+      let om = { key: m.task_id, data: m };
       const rechildren = (mm, task_id) => {
         let dts = data.filter((x) => x.parent_id == task_id);
         if (dts.length > 0) {
@@ -1128,6 +1128,7 @@ const loadData = (rf, type) => {
       opition.value.total_toitao = data[5][0].total_toitao;
       opition.value.total_hoanthanh = data[6][0].total_hoanthanh;
       opition.value.type_view = type;
+      opition.value.type_group_view = type_group_view_refresh.value;
       if (type == 1) {
         listTask.value = data1;
         sttTask.value = data[1][0].total + 1;
@@ -1651,7 +1652,9 @@ const onPage = (event) => {
   opition.value.PageNo = event.page;
   loadData(true, opition.value.type_view);
 };
+const type_group_view_refresh = ref();
 const onRefresh = () => {
+  type_group_view_refresh.value = null;
   opition.value = {
     IsNext: true,
     sort: "modified_date",
@@ -1667,9 +1670,9 @@ const onRefresh = () => {
     sdate: null,
     edate: null,
     loctitle: "Lọc",
-    type_view: opition.value.type_view,
+    type_view: 2,
     filter_date: null,
-    type_group_view: null,
+    type_group_view: opition.value.type_group_view,
     filter_duan: null,
     filter_taskgroup: null,
   };
@@ -2860,7 +2863,7 @@ const ChangeShowListCVGroup = (model) => {
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
      -->
     <!-- kiểu TREE -->
-    <div id="task-tree" style="overflow-x: auto;" v-if="opition.type_view == 2 && opition.type_group_view != null">
+    <div id="task-tree" style="overflow-x: auto;" v-if="opition.type_view == 2 && (opition.type_group_view == 1 || opition.type_group_view == 2)">
       <div v-for="l in listTask">
         <div class="task-tree-lable" @click="ChangeShowListCVGroup(l)" style="height: 40px; display: flex;align-items: center;background-color: rgb(220 220 220); font-weight: bold;padding: 10px;border-bottom: 1px solid #aaa;">
           <i style="margin-right: 5px;font-weight: bold" :class="(l.isShow == false) ? 'pi pi-angle-right' : 'pi pi-angle-down'"></i>
@@ -4778,8 +4781,7 @@ const ChangeShowListCVGroup = (model) => {
                           >
                           <span
                             v-if="l.count_istype_3 > 0"
-                            style="
-                              background-color: #5bc0de;
+                            style="background-color: #5bc0de;
                               color: #ffffff;
                               display: inline;
                               padding: 0.4em 0.6em;

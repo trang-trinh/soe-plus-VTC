@@ -495,8 +495,8 @@ const caReceipt = () =>
 const caEnectingGroup = () =>
     import ("../views/hrm/category/caEnectingGroup.vue");
 
-const FileMain_Detail = () =>
-    import ("../views/files/FileMain.vue");
+// const FileMain_Detail = () =>
+//     import ("../views/files/FileMain.vue");
 
 ///HRM
 const HRM_Training = () =>
