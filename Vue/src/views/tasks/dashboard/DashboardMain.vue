@@ -69,7 +69,7 @@ const ChangeView = (value) => {
   });
 };
 onMounted(() => {
-  ChangeView(3);
+  ChangeView(0);
   return;
 });
 </script>
