@@ -223,7 +223,36 @@ const closeDialogContract = () => {
 };
 
 //data view 6
-const insurances = ref([]);
+const insurance_status = ref([
+  { status: 1, title: "Trả" },
+  { status: 2, title: "Sửa" },
+  { status: 3, title: "Chốt" },
+  { status: 4, title: "Xin cấp" },
+  { status: 5, title: "Gộp" },
+  { status: 6, title: "Người lao động giữ sổ" },
+]);
+const insurance = ref({});
+const insurance_pays = ref([]);
+const insurance_resolves = ref([]);
+function formatNumber(a, b, c, d) {
+  var e = isNaN((b = Math.abs(b))) ? 2 : b;
+  b = void 0 == c ? "," : c;
+  d = void 0 == d ? "," : d;
+  c = 0 > a ? "-" : "";
+  var g = parseInt((a = Math.abs(+a || 0).toFixed(e))) + "",
+    n = 3 < (n = g.length) ? n % 3 : 0;
+  return (
+    c +
+    (n ? g.substr(0, n) + d : "") +
+    g.substr(n).replace(/(\d{3})(?=\d)/g, "$1" + d) +
+    (e
+      ? b +
+        Math.abs(a - g)
+          .toFixed(e)
+          .slice(2)
+      : "")
+  );
+}
 
 //data view 11
 const receipts = ref([]);
@@ -433,7 +462,38 @@ const initDictionary3 = () => {
       }
     });
 };
-//init dictionary view 4
+//init dictionary view 6
+const initDictionary6 = () => {
+  dictionarys.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_insurance_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          dictionarys.value = tbs;
+        }
+      }
+    })
+    .then(() => {
+      initView6(true);
+    });
+};
+//init dictionary view 12
 const initDictionary12 = () => {
   dictionarys.value = [];
   axios
@@ -464,6 +524,7 @@ const initDictionary12 = () => {
       initView12(true);
     });
 };
+
 //Init data
 const initView1 = (rf) => {
   datachilds.value = [];
@@ -955,9 +1016,49 @@ const initView6 = (rf) => {
       if (data != null) {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
-          insurances.value = tbs[0][0];
+          insurance.value = tbs[0][0];
+          if (insurance.value["status"] != null) {
+            var idx = insurance_status.value.findIndex(
+              (x) => x["status"] === insurance.value["status"]
+            );
+            if (idx != -1) {
+              insurance.value["status_name"] = insurance_status.value["title"];
+            }
+          }
+          if (insurance.value["insurance_province_id"] != null) {
+            var idx = dictionarys.value.findIndex(
+              (x) =>
+                x["insurance_province_id"] ===
+                insurance.value["insurance_province_id"]
+            );
+            if (idx != -1) {
+              insurance.value["insurance_province_name"] =
+                dictionarys.value[1]["insurance_province_name"];
+            }
+          }
         } else {
-          insurances.value = {};
+          insurance.value = {};
+        }
+        if (tbs[1] != null && tbs[1].length > 0) {
+          tbs[1].forEach((x) => {
+            x["start_date"] = moment(new Date(x["start_date"])).format("MM/YYYY");
+            x["total_payment"] = formatNumber(x["total_payment"], 0, ".", ".");
+            x["company_payment"] = formatNumber(x["company_payment"], 0, ".", ".");
+            x["member_payment"] = formatNumber(x["member_payment"], 0, ".", ".");
+          })
+          insurance_pays.value = tbs[1];
+        } else {
+          insurance_pays.value = [];
+        }
+        if (tbs[2] != null && tbs[2].length > 0) {
+          tbs[2].forEach((x) => {
+            x["received_file_date"] = moment(new Date(x["received_file_date"])).format("DD/MM/YYYY");
+            x["completed_date"] = moment(new Date(x["completed_date"])).format("DD/MM/YYYY");
+            x["received_money_date"] = moment(new Date(x["received_money_date"])).format("DD/MM/YYYY");
+          });
+          insurance_resolves.value = tbs[2];
+        } else {
+          insurance_resolves.value = [];
         }
       }
       swal.close();
@@ -1015,7 +1116,9 @@ const initView11 = (rf) => {
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((x) => {
               if (x["receipt_date"] != null) {
-                x["receipt_date"] = moment(new Date(x["receipt_date"])).format("DD/MM/YYYY");
+                x["receipt_date"] = moment(new Date(x["receipt_date"])).format(
+                  "DD/MM/YYYY"
+                );
               }
             });
             receipts.value = data[0];
@@ -1158,12 +1261,11 @@ const initData = () => {
     initDictionary3();
     initView3(true);
   } else if (options.value.view === 6) {
-    initView6(true);
+    initDictionary6();
   } else if (options.value.view === 11) {
     initView11(true);
   } else if (options.value.view === 12) {
     initDictionary12();
-    initView12(true);
   }
 };
 onMounted(() => {
@@ -2941,24 +3043,335 @@ const onPage = (event) => {
             <div v-show="options.view === 4" class="f-full">Chấm công</div>
             <div v-show="options.view === 5" class="f-full">Phiếu lương</div>
             <div v-show="options.view === 6" class="f-full">
-              <div class="d-lang-table-1 p-2">
-                <!-- <DataTable
-                  :value="insurances"
-                  :scrollable="true"
-                  :lazy="true"
-                  :rowHover="true"
-                  :showGridlines="true"
-                  disableSelection="true"
-                  v-model:selection="selectedNodes"
-                  dataKey="insurance_id"
-                  scrollHeight="flex"
-                  filterDisplay="menu"
-                  filterMode="lenient"
-                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                  responsiveLayout="scroll"
-                >
-                  
-                </DataTable> -->
+              <div class="row p-2">
+                <div class="col-12 md:col-12 p-0">
+                  <Accordion Accordion class="w-full" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <span>1. Thông tin chung</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <label
+                          >Số sổ bảo hiểm:
+                          <span class="description-2">{{
+                            insurance.insurance_id
+                          }}</span></label
+                        >
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <label
+                          >Trạng thái:
+                          <span class="description-2">{{
+                            insurance.status_name
+                          }}</span></label
+                        >
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <label
+                          >Pháp nhân đóng:
+                          <span class="description-2">{{
+                            insurance.organization_name
+                          }}</span></label
+                        >
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <label
+                          >Số thẻ BHYT:
+                          <span class="description-2">{{
+                            insurance.insurance_code
+                          }}</span></label
+                        >
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <label
+                          >Mã tỉnh cấp:
+                          <span class="description-2">{{
+                            insurance.insurance_province_name
+                          }}</span></label
+                        >
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <label
+                          >Nơi đăng ký:
+                          <span class="description-2">{{
+                            insurance.hospital_name
+                          }}</span></label
+                        >
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <Accordion
+                    Accordion
+                    class="w-full padding-0"
+                    :activeIndex="0"
+                  >
+                    <AccordionTab>
+                      <template #header>
+                        <span>2. Lịch sử đóng bảo hiểm</span>
+                      </template>
+                      <div class="col-12 md:col-12 p-0">
+                        <DataTable
+                          :value="insurance_pays"
+                          :scrollable="true"
+                          :lazy="true"
+                          :rowHover="true"
+                          :showGridlines="true"
+                          scrollDirection="both"
+                          style="display: grid"
+                          class="empty-full"
+                        >
+                          <Column
+                            field="start_date"
+                            header="Từ tháng"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.start_date }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="payment_form"
+                            header="Hình thức"
+                            headerStyle="text-align:center;width:170px;height:50px"
+                            bodyStyle="text-align:center;width:170px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <span>{{
+                                  slotProps.data.payment_form
+                                }}</span>
+                              </div>
+                            </template>
+                          </Column>
+                          <Column
+                            field="reason"
+                            header="Lý do"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.reason }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="organization_payment"
+                            header="Pháp nhân đóng"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{
+                                slotProps.data.organization_payment
+                              }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="total_payment"
+                            header="Mức đóng"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.total_payment }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="company_payment"
+                            header="Công ty đóng"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.company_payment }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="member_payment"
+                            header="NLĐ đóng"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              {{ slotProps.data.member_payment }}
+                            </template>
+                          </Column>
+                          <template #empty>
+                            <div
+                              class="
+                                align-items-center
+                                justify-content-center
+                                p-4
+                                text-center
+                                m-auto
+                              "
+                              style="
+                                display: flex;
+                                width: 100%;
+                                min-height: 200px;
+                              "
+                            ></div>
+                          </template>
+                        </DataTable>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <Accordion
+                    Accordion
+                    class="w-full padding-0"
+                    :activeIndex="0"
+                  >
+                    <AccordionTab>
+                      <template #header>
+                        <span>3. Lịch sử giải quyết chế độ</span>
+                      </template>
+                      <div class="col-12 md:col-12 p-0">
+                        <DataTable
+                          :value="insurance_resolves"
+                          :scrollable="true"
+                          :lazy="true"
+                          :rowHover="true"
+                          :showGridlines="true"
+                          style="display: grid"
+                          class="empty-full"
+                        >
+                          <Column
+                            field="type_mode"
+                            header="Loại chế độ"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.type_mode }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="received_file_date"
+                            header="Ngày nhận hồ sơ"
+                            headerStyle="text-align:center;width:170px;height:50px"
+                            bodyStyle="text-align:center;width:170px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <span>{{
+                                  slotProps.data.received_file_date
+                                }}</span>
+                              </div>
+                            </template>
+                          </Column>
+                          <Column
+                            field="completed_date"
+                            header="Ngày HT thủ tục"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.completed_date }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="received_money_date"
+                            header="Ngày NT BH trả"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{
+                                slotProps.data.received_money_date
+                              }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="money"
+                            header="Số tiền"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="
+                              align-items-center
+                              justify-content-center
+                              text-center
+                            "
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.money }}</span>
+                            </template>
+                          </Column>
+                          <template #empty>
+                            <div
+                              class="
+                                align-items-center
+                                justify-content-center
+                                p-4
+                                text-center
+                                m-auto
+                              "
+                              style="
+                                display: flex;
+                                width: 100%;
+                                min-height: 200px;
+                              "
+                            ></div>
+                          </template>
+                        </DataTable>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                </div>
               </div>
             </div>
             <div v-show="options.view === 7" class="f-full">Phép năm</div>
