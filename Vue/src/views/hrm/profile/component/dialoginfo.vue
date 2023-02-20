@@ -108,6 +108,9 @@ const saveModel = () => {
 const addRow = (type) => {
   datas.value.push({});
 };
+const deleteRow = (type, idx) => {
+  datas.value.splice(idx, 1);
+};
 
 //init
 const initDictionary2 = () => {
@@ -260,6 +263,22 @@ onMounted(() => {
               scrollDirection="both"
               class="empty-full"
             >
+              <Column
+                header=""
+                headerStyle="text-align:center;width:50px"
+                bodyStyle="text-align:center;width:50px"
+                class="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <a
+                    @click="deleteRow(2, slotProps.index)"
+                    class="hover"
+                    v-tooltip.top="'Xóa'"
+                  >
+                    <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                  </a>
+                </template>
+              </Column>
               <Column
                 field="relative_name"
                 header="Họ tên"
