@@ -1196,9 +1196,6 @@ const initView12 = (rf) => {
                 new Date(x["injection_date"])
               ).format("DD/MM/YYYY");
             }
-            if (x["sign_users"] != null) {
-              x["sign_user"] = JSON.parse(x["sign_users"])[0];
-            }
             if (x["injection_id"] != null) {
               var idx = injections.value.findIndex(
                 (a) => a["id"] === x["injection_id"]
@@ -1213,14 +1210,6 @@ const initView12 = (rf) => {
               );
               if (idx !== -1) {
                 x["type_vaccine_name"] = type_vaccines.value[idx]["title"];
-              }
-            }
-            if (x["sign_user_id"]) {
-              var idx = dictionarys.value[0].findIndex(
-                (a) => a["user_id"] === x["sign_user_id"]
-              );
-              if (idx !== -1) {
-                x["sign_user_name"] = dictionarys.value[0][idx]["full_name"];
               }
             }
           });
@@ -3397,6 +3386,21 @@ const onPage = (event) => {
                   responsiveLayout="scroll"
                 >
                   <Column
+                    field="is_active"
+                    header=""
+                    headerStyle="text-align:center;max-width:50px;height:50px"
+                    bodyStyle="text-align:center;max-width:50px;"
+                    class="
+                      align-items-center
+                      justify-content-center
+                      text-center
+                    "
+                  >
+                    <template #body="slotProps">
+                      <span v-if="slotProps.data.is_active"><i class="pi pi-check"></i></span>
+                    </template>
+                  </Column>
+                  <Column
                     field="receipt_name"
                     header="Danh sách giấy tờ"
                     headerStyle="max-width:auto;"
@@ -3606,10 +3610,10 @@ const onPage = (event) => {
                             </template>
                           </Column>
                           <Column
-                            field="sign_user_id"
+                            field="sign_user"
                             header="Người ký"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
+                            headerStyle="text-align:center;width:200px;height:50px"
+                            bodyStyle="text-align:center;width:200px;"
                             class="
                               align-items-center
                               justify-content-center
@@ -3617,14 +3621,14 @@ const onPage = (event) => {
                             "
                           >
                             <template #body="slotProps">
-                              {{ slotProps.data.sign_user_name }}
+                              {{ slotProps.data.sign_user }}
                             </template>
                           </Column>
                           <Column
                             field="sign_user_position"
                             header="Chức vụ"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
+                            headerStyle="text-align:center;width:200px;height:50px"
+                            bodyStyle="text-align:center;width:200px;"
                             class="
                               align-items-center
                               justify-content-center
