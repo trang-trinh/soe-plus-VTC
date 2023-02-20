@@ -60,6 +60,7 @@ const rules = {
     ],
   },
 };
+const listFilesS = ref([]);
 const training_emps = ref({});
 const submitted = ref(false);
 const list_users_training = ref([]);
@@ -94,9 +95,10 @@ const loadData = () => {
         let data = JSON.parse(response.data.data)[0];
         let data1 = JSON.parse(response.data.data)[1];
         let data2 = JSON.parse(response.data.data)[2];
+        let data3 = JSON.parse(response.data.data)[3];
         if (data) {
           training_emps.value = data[0];
- 
+
           if (training_emps.value.start_date)
             training_emps.value.start_date = new Date(
               training_emps.value.start_date
@@ -113,16 +115,15 @@ const loadData = () => {
             training_emps.value.user_verify.split(",");
           training_emps.value.user_follows_fake =
             training_emps.value.user_follows.split(",");
-
         }
-         training_emps.value.organization_training_fake={};
-         training_emps.value.organization_training_fake[training_emps.value.organization_training]=true;
-          
-          
- 
-      data1.forEach(element => {
-        element.data={
-             profile_id: element.profile_id,
+        training_emps.value.organization_training_fake = {};
+        training_emps.value.organization_training_fake[
+          training_emps.value.organization_training
+        ] = true;
+
+        data1.forEach((element) => {
+          element.data = {
+            profile_id: element.profile_id,
             avatar: element.avatar,
             profile_user_name: element.profile_user_name,
             department_name: element.department_name,
@@ -131,24 +132,28 @@ const loadData = () => {
             position_name: element.position_name,
             position_id: element.position_id,
             work_position_id: element.work_position_id,
+          };
+          list_users_training.value.push(element);
+        });
+        if (list_users_training.value.length > 0) {
+          var arr = [...listDataUsersSave.value];
+          list_users_training.value.forEach((element) => {
+            arr = arr.filter((x) => x.code.profile_id != element.profile_id);
+          });
+          listDataUsers.value = arr;
         }
-        list_users_training.value.push(element);
-      });
-          if (list_users_training.value.length > 0) {
-    var arr = [...listDataUsersSave.value];
-    list_users_training.value.forEach((element) => {
-      arr = arr.filter((x) => x.code.profile_id != element.profile_id);
-    });
-    listDataUsers.value = arr;
-  }
-  data2.forEach(element => {
-    element.date_study= new Date(element.date_study);
- element.start_time= new Date(element.start_time);
-  element.end_time= new Date(element.end_time);
+        data2.forEach((element) => {
+          if (element.date_study)
+            element.date_study = new Date(element.date_study);
+          if (element.start_time)
+            element.start_time = new Date(element.start_time);
+          if (element.end_time) element.end_time = new Date(element.end_time);
+        });
+        list_schedule.value = data2;
+        if (data3) {
+          listFilesS.value = data3;
+        }
 
-  });
-        list_schedule.value = data2 ;
-        
         checkShow.value = true;
         checkShow2.value = true;
         checkShow3.value = true;
@@ -169,11 +174,14 @@ const saveData = (isFormValid) => {
   ) {
     return;
   }
-  if(list_users_training.value.filter(x=>x.profile_id==null || x.profile_id=="").length>0)
-  {
+  if (
+    list_users_training.value.filter(
+      (x) => x.profile_id == null || x.profile_id == ""
+    ).length > 0
+  ) {
     return;
   }
-   
+
   if (training_emps.value.training_emps_name.length > 250) {
     swal.fire({
       title: "Error!",
@@ -183,7 +191,48 @@ const saveData = (isFormValid) => {
     });
     return;
   }
-
+  if (training_emps.value.training_emps_code.length > 50) {
+    swal.fire({
+      title: "Error!",
+      text: "Mã đào tạo không được vượt quá 50 ký tự!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  list_schedule.value.forEach((element) => {
+     if(element.class_schedule_name)
+    if (element.class_schedule_name.length >= 250) {
+      swal.fire({
+        title: "Error!",
+        text: "Tồn tại tên nội dung đào tạo vượt quá 250 ký tự!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+    else
+    return
+    if(element.phone_number)
+    if (element.phone_number.length >= 11) {
+      swal.fire({
+        title: "Error!",
+        text: "Số điện thoại giảng viên không được vượt quá 11 ký tự!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }if(element.lecturers_name)
+    if (element.lecturers_name.length >= 250) {
+      swal.fire({
+        title: "Error!",
+        text: "Tên giảng viên không được vượt quá 250 ký tự!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+  });
   if (training_emps.value.user_verify_fake.length > 0)
     training_emps.value.user_verify =
       training_emps.value.user_verify_fake.toString();
@@ -202,11 +251,11 @@ const saveData = (isFormValid) => {
     let file = filesList.value[i];
     formData.append("image", file);
   }
- 
+
   formData.append("hrm_training_emps", JSON.stringify(training_emps.value));
   formData.append("hrm_students", JSON.stringify(list_users_training.value));
   formData.append("hrm_schedule", JSON.stringify(list_schedule.value));
-    formData.append("hrm_files", JSON.stringify([]));
+  formData.append("hrm_files", JSON.stringify(listFilesS.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -328,7 +377,7 @@ const loadUser = () => {
           department_id: element.department_id,
           role_name: element.role_name,
           position_name: element.position_name,
-          phone: element.phone,
+          phone_number: element.phone,
           organization_id: element.organization_id,
         });
         listUsers.value.push({ data: element, active: false });
@@ -358,9 +407,11 @@ const listFormTraining = ref([
   { name: "Cả hai", code: 3 },
 ]);
 const listStatus = ref([
-  { name: "Dự kiến tổ chức", code: 1 },
-  { name: "Chưa hoàn thành", code: 2 },
+  { name: "Lên kế hoạch", code: 1 },
+  { name: "Đang thực hiện", code: 2 },
   { name: "Đã hoàn thành", code: 3 },
+  { name: "Tạm dừng", code: 4 },
+  { name: "Đã hủy", code: 5 },
 ]);
 const listObjTraining = ref([
   { name: "Cấp lãnh đạo", code: 1 },
@@ -413,13 +464,13 @@ const addRow_Item = (type) => {
       profile_id: null,
     };
     list_users_training.value.push(obj);
-      if (list_users_training.value.length > 0) {
-    var arr = [...listDataUsersSave.value];
-    list_users_training.value.forEach((element) => {
-      arr = arr.filter((x) => x.code.profile_id != element.profile_id);
-    });
-    listDataUsers.value = arr;
-  }
+    if (list_users_training.value.length > 0) {
+      var arr = [...listDataUsersSave.value];
+      list_users_training.value.forEach((element) => {
+        arr = arr.filter((x) => x.code.profile_id != element.profile_id);
+      });
+      listDataUsers.value = arr;
+    }
   }
   if (type == 2) {
     checkShow2.value = true;
@@ -427,7 +478,7 @@ const addRow_Item = (type) => {
       is_order: list_schedule.value.length + 1,
       class_schedule_name: null,
       limit: 1,
-      lecturers: null,
+      lecturers_name: null,
       phone_number: null,
       date_study: null,
       start_time: null,
@@ -439,6 +490,9 @@ const addRow_Item = (type) => {
   if (type == 3) {
     checkShow3.value = true;
   }
+};
+const deleteFileH = (value) => {
+  listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
 };
 const treedonvis = ref();
 const initTudien = () => {
@@ -471,6 +525,73 @@ const initTudien = () => {
       }
     })
     .catch((error) => {});
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_enecting_group_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listTrainingGroups.value = [];
+      data.forEach((element, i) => {
+        listTrainingGroups.value.push({
+          name: element.enecting_group_name,
+          code: element.enecting_group_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_classroom_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listClasroom.value = [];
+      data.forEach((element, i) => {
+        listClasroom.value.push({
+          name: element.classroom_name,
+          code: element.classroom_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 };
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -569,11 +690,6 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
-const deleteFileH = (value) => {
-  filesList.value = filesList.value.filter(
-    (x) => x.handover_files_id != value.handover_files_id
-  );
-};
 
 const listLimit = ref([
   {
@@ -585,16 +701,10 @@ const listLimit = ref([
     code: 2,
   },
 ]);
-const listLectures = ref([
-  {
-    name: "Gianrg viên 1",
-    code: 1,
-  },
-  {
-    name: "Gianrg viên 2",
-    code: 2,
-  },
-]);
+const checkImg = (src) => {
+  let allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
+  return allowedExtensions.exec(src);
+};
 const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
@@ -662,6 +772,18 @@ const loadUserProfiles = () => {
       }
     });
 };
+const changeLecturers = (value, index) => {
+  if (value) {
+    var arf = listDropdownUserGive.value.find((x) => x.code == value);
+    list_schedule.value[index - 1].phone_number = arf.phone_number;
+    list_schedule.value[index - 1].avatar = arf.avatar;
+    list_schedule.value[index - 1].lecturers_name = arf.name;
+  } else {
+    list_schedule.value[index - 1].phone_number = null;
+    list_schedule.value[index - 1].avatar = null;
+    list_schedule.value[index - 1].lecturers_name = null;
+  }
+};
 const changeUserTrainding = (data, index) => {
   if (data && list_users_training.value[index]) {
     list_users_training.value[index].is_order = index + 1;
@@ -692,16 +814,7 @@ const changeUserTrainding = (data, index) => {
     listDataUsers.value = arr;
   }
 };
-const listClasroom = ref([
-  {
-    name: "Lớp 1",
-    code: 1,
-  },
-  {
-    name: "Lớp 2",
-    code: 2,
-  },
-]);
+const listClasroom = ref([]);
 
 const delRow_Item = (item, type) => {
   if (type == 1) {
@@ -722,17 +835,7 @@ const delRow_Item = (item, type) => {
   }
 };
 //Thêm bản ghi
-const listTrainingGroups = ref([
-  {
-    name: "Nhóm đào tạo 1",
-    code: 1,
-  },
-  {
-    name: "Nhóm đào tạo 2",
-    code: 2,
-  },
-]);
-
+const listTrainingGroups = ref([]);
 onMounted(() => {
   loadData();
   initTudien();
@@ -746,14 +849,14 @@ onMounted(() => {
   <Dialog
     :header="props.headerDialog"
     v-model:visible="props.displayBasic"
-    :style="{ width: '55vw' }"
+    :style="{ width: '65vw' }"
     :maximizable="true"
     :modal="true"
     :closable="false"
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="col-12 field p-0 text-lg font-bold">Thông tin thẻ</div>
+        <div class="col-12 field p-0 text-lg font-bold">Thông tin</div>
         <div class="col-12 flex p-0">
           <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
@@ -841,7 +944,7 @@ onMounted(() => {
               <div class="p-inputgroup">
                 <Textarea
                   :autoResize="true"
-                  rows="2"
+                  rows="1"
                   cols="30"
                   v-model="training_emps.training_emps_name"
                   class="w-full"
@@ -952,6 +1055,11 @@ onMounted(() => {
                 id="basic_purchase_date"
                 v-model="training_emps.end_date"
                 autocomplete="on"
+                :minDate="
+                  training_emps.start_date
+                    ? new Date(training_emps.start_date)
+                    : null
+                "
                 :showIcon="true"
               />
             </div>
@@ -1008,6 +1116,11 @@ onMounted(() => {
                 class="w-full"
                 id="basic_purchase_date"
                 v-model="training_emps.registration_deadline"
+                :maxDate="
+                  training_emps.start_date
+                    ? new Date(training_emps.start_date)
+                    : null
+                "
                 autocomplete="on"
                 :showIcon="true"
                 :showTime="true"
@@ -1183,6 +1296,36 @@ onMounted(() => {
             </div>
           </div>
         </div>
+           <div class="col-12 flex p-0">
+          <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+               Học phí
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <InputNumber
+                  v-model="training_emps.tuition"
+                  class="w-full"
+                   suffix=" VND"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+               Chi phí 
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                   <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full"
+                   suffix=" VND"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="col-12 field flex p-0 align-items-center">
           <div class="w-10rem">Địa điểm đào tạo</div>
           <div style="width: calc(100% - 10rem)">
@@ -1190,7 +1333,7 @@ onMounted(() => {
               <div class="p-inputgroup">
                 <Textarea
                   :autoResize="true"
-                  rows="2"
+                  rows="1"
                   cols="30"
                   v-model="training_emps.training_place"
                   class="w-full"
@@ -1204,6 +1347,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
+      
         <div class="col-12 field p-0 flex">
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">Đơn vị thực hiện</div>
@@ -1253,217 +1397,268 @@ onMounted(() => {
                 style="font-size: 1.25rem"
               ></i>
               <div class="pl-2">
-                Thông tin học viên
+                Danh sách học viên
                 <span v-if="list_users_training.length > 0">
                   ( {{ list_users_training.length }} )</span
                 >
               </div>
             </div>
-            <div class="w-1 text-right">
-              <Button
-                class="p-button-outlined p-button-rounded p-button-secondary"
-                icon="pi pi-plus"
+            <div class="w-1 text-right" v-if="!view">
+              <a
                 @click="addRow_Item(1)"
+                class="hover"
                 v-tooltip.top="'Thêm học viên'"
-              ></Button>
+              >
+                <i class="pi pi-plus-circle" style="font-size: 18px"></i>
+              </a>
             </div>
           </div>
 
-          <div class="w-full px-3 pt-3" v-if="checkShow == true">
-            <div style="overflow-x: scroll">
-              <table
-                v-if="list_users_training.length > 0"
-                class="table table-condensed table-hover tbpad table-child"
-                style="table-layout: fixed"
+          <div class="w-full p-0" v-if="checkShow == true">
+            <div v-if="list_users_training.length > 0">
+              <DataTable
+                :value="list_users_training"
+                :scrollable="true"
+                :lazy="true"
+                :rowHover="true"
+                :showGridlines="true"
+                scrollDirection="both"
               >
-                <thead class="pb-3">
-                  <tr class="w-full">
-                    <td class="text-center" style="width: 120px">STT</td>
-                    <td class="text-center" style="width: 25%">Họ và tên</td>
-                    <td class="text-center" style="width: 20%">Phòng ban</td>
-                    <td class="text-center" style="width: 15%">Vị trí</td>
-                    <td class="text-center" style="width: 15%">Chức vụ</td>
-                    <td class="text-center" style="width: 30%">Ghi chú</td>
-                    <td
-                      class="text-center sticky"
-                      style="width: 5%; left: 0px !important"
-                    ></td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    id="add_thanhpham"
-                    v-for="(item, index) in list_users_training"
-                    :key="index"
-                  >
-                    <td class="row-content-pdx" align="center">
-                      {{ index + 1 }}
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="mx-2">
-                        <Dropdown
-                          :options="listDataUsers"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          optionLabel="profile_user_name"
-                          optionValue="code"
-                          placeholder="Chọn học viên"
-                          v-model="item.data"
-                          class="w-full"
-                          style="height: auto; min-height: 36px"
-                          :class="{
-                            'p-invalid': item.data == null && submitted,
-                          }"
-                          @change="changeUserTrainding(item.data, index)"
-                        >
-                          <template #value="slotProps">
-                            <div v-if="slotProps.value">
-                              <div
-                                class="flex w-full align-items-center pr-2 p-0"
-                              >
-                                <Avatar
-                                  v-bind:label="
-                                    slotProps.value.avatar
-                                      ? ''
-                                      : slotProps.value.profile_user_name.substring(
-                                          slotProps.value.profile_user_name.lastIndexOf(
-                                            ' '
-                                          ) + 1,
-                                          slotProps.value.profile_user_name.lastIndexOf(
-                                            ' '
-                                          ) + 2
-                                        )
-                                  "
-                                  :image="
-                                    basedomainURL + slotProps.value.avatar
-                                  "
-                                  size="small"
-                                  :style="
-                                    slotProps.value.avatar
-                                      ? 'background-color: #2196f3'
-                                      : 'background:' +
-                                        bgColor[
-                                          slotProps.value.profile_user_name
-                                            .length % 7
-                                        ]
-                                  "
-                                  shape="circle"
-                                  @error="
-                                    $event.target.src =
-                                      basedomainURL +
-                                      '/Portals/Image/nouser1.png'
-                                  "
-                                />
-                                <div class="px-2">
-                                  {{ slotProps.value.profile_user_name }}
-                                </div>
-                              </div>
-                            </div>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                          <template #option="slotProps">
-                            <div v-if="slotProps.option" class="flex">
-                              <div class="format-center">
-                                <Avatar
-                                  v-bind:label="
-                                    slotProps.option.avatar
-                                      ? ''
-                                      : slotProps.option.profile_user_name.substring(
-                                          0,
-                                          1
-                                        )
-                                  "
-                                  v-bind:image="
-                                    slotProps.option.avatar
-                                      ? basedomainURL + slotProps.option.avatar
-                                      : basedomainURL +
-                                        '/Portals/Image/noimg.jpg'
-                                  "
-                                  style="
-                                    background-color: #2196f3;
-                                    color: #ffffff;
-                                    width: 3rem;
-                                    height: 3rem;
-                                    font-size: 1.4rem !important;
-                                  "
-                                  :style="{
-                                    background:
-                                      bgColor[slotProps.option.is_order % 7],
-                                  }"
-                                  class="text-avatar"
-                                  size="xlarge"
-                                  shape="circle"
-                                />
-                              </div>
-                              <div class="ml-3 format-center">
-                                <div class="mb-1">
-                                  {{ slotProps.option.profile_user_name }}
-                                </div>
-                              </div>
-                            </div>
-                            <span v-else> Chưa có dữ liệu </span>
-                          </template>
-                        </Dropdown>
-                      </div>
-                    </td>
-                    <td class="row-content-pdx" align="center">
-                      <InputText
-                        spellcheck="false"
-                        class="w-full"
-                        style="width: 170px"
-                        v-model="item.department_name"
-                        disabled
-                      />
-                    </td>
-                    <td class="row-content-pdx" align="center">
-                      <InputText
-                        spellcheck="false"
-                        class="w-full"
-                        style="width: 170px"
-                        v-model="item.work_position_name"
-                        disabled
-                      />
-                    </td>
-                    <td class="row-content-pdx" align="center">
-                      <InputText
-                        spellcheck="false"
-                        class="w-full"
-                        style="width: 170px"
-                        v-model="item.position_name"
-                        disabled
-                      />
-                    </td>
-
-                    <td class="row-content-pdx" align="center">
-                      <InputText
-                        spellcheck="false"
-                        class="ip33"
-                        style="width: 170px"
-                        v-model="item.note"
-                      />
-                    </td>
-                    <td
-                      class="row-content-pdx sticky"
-                      align="center"
-                      style="color: black; width: 100px; left: 0px !important"
-                    >
-                      <a
-                        @click="delRow_Item(item, 1)"
-                        class="hover cursor-pointer"
-                        v-tooltip.top="'Xóa học viên'"
+                <Column
+                  field="card_number"
+                  header="STT"
+                  headerStyle="text-align:center;width:70px;height:50px"
+                  bodyStyle="text-align:center;width:70px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    {{ slotProps.data.is_order }}
+                    <!-- <InputText
+                          v-model="slotProps.data.card_number"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="50"
+                        /> -->
+                  </template>
+                </Column>
+                <Column
+                  field="form"
+                  header="Họ và tên"
+                  headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="text-align:center;width:250px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <div class="form-group m-0">
+                      <Dropdown
+                        :options="listDataUsers"
+                        :filter="true"
+                        :showClear="true"
+                        :editable="false"
+                        optionLabel="profile_user_name"
+                        optionValue="code"
+                        v-model="slotProps.data.data"
+                        class="w-full d-design-padding-drd"
+                        style="min-height: 36px"
+                        :class="{
+                          'p-invalid': slotProps.data.data == null && submitted,
+                        }"
+                        @change="
+                          changeUserTrainding(
+                            slotProps.data.data,
+                            slotProps.data.is_order - 1
+                          )
+                        "
                       >
-                        <i
-                          class="pi pi-times-circle"
-                          style="font-size: 18px"
-                        ></i>
-                      </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                        <template #value="slotProps_N">
+                          <div v-if="slotProps_N.value">
+                            <div
+                              class="flex w-full align-items-center pr-2 p-0"
+                            >
+                              <Avatar
+                                v-bind:label="
+                                  slotProps_N.value.avatar
+                                    ? ''
+                                    : slotProps_N.value.profile_user_name.substring(
+                                        slotProps_N.value.profile_user_name.lastIndexOf(
+                                          ' '
+                                        ) + 1,
+                                        slotProps_N.value.profile_user_name.lastIndexOf(
+                                          ' '
+                                        ) + 2
+                                      )
+                                "
+                                :image="
+                                  basedomainURL + slotProps_N.value.avatar
+                                "
+                                size="small"
+                                :style="
+                                  slotProps_N.value.avatar
+                                    ? 'background-color: #2196f3'
+                                    : 'background:' +
+                                      bgColor[
+                                        slotProps_N.value.profile_user_name
+                                          .length % 7
+                                      ]
+                                "
+                                shape="circle"
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
+                              />
+                              <div class="px-2">
+                                {{ slotProps_N.value.profile_user_name }}
+                              </div>
+                            </div>
+                          </div>
+                          <span v-else>
+                            {{ slotProps_N.placeholder }}
+                          </span>
+                        </template>
+                        <template #option="slotProps">
+                          <div v-if="slotProps.option" class="flex">
+                            <div class="format-center">
+                              <Avatar
+                                v-bind:label="
+                                  slotProps.option.avatar
+                                    ? ''
+                                    : slotProps.option.profile_user_name.substring(
+                                        0,
+                                        1
+                                      )
+                                "
+                                v-bind:image="
+                                  slotProps.option.avatar
+                                    ? basedomainURL + slotProps.option.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                  width: 3rem;
+                                  height: 3rem;
+                                  font-size: 1.4rem !important;
+                                "
+                                :style="{
+                                  background:
+                                    bgColor[slotProps.option.is_order % 7],
+                                }"
+                                class="text-avatar"
+                                size="xlarge"
+                                shape="circle"
+                              />
+                            </div>
+                            <div class="ml-3 format-center">
+                              <div class="mb-1">
+                                {{ slotProps.option.profile_user_name }}
+                              </div>
+                            </div>
+                          </div>
+                          <span v-else> Chưa có dữ liệu </span>
+                        </template>
+                      </Dropdown>
+                    </div>
+                  </template>
+                </Column>
+                <Column
+                  field="start_date"
+                  header="Phòng ban"
+                  headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full h-full d-design-it"
+                      style="width: 170px"
+                      v-model="slotProps.data.department_name"
+                      disabled
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="end_date"
+                  header="Vị trí"
+                  headerStyle="text-align:center;width:180px;height:50px"
+                  bodyStyle="text-align:center;width:180px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full d-design-it"
+                      style="width: 170px"
+                      v-model="slotProps.data.work_position_name"
+                      disabled
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="admission_place"
+                  header="Chức vụ"
+                  headerStyle="text-align:center;width:180px;height:50px"
+                  bodyStyle="text-align:center;width:180px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full d-design-it"
+                      style="width: 170px"
+                      v-model="slotProps.data.position_name"
+                      disabled
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="transfer_place"
+                  header="Ghi chú"
+                  headerStyle="text-align:center;width:300px ;height:50px"
+                  bodyStyle="text-align:center ;width:300px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      v-model="slotProps.data.note"
+                      spellcheck="false"
+                      type="text"
+                      class="w-full"
+                      maxLength="250"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  header=""
+                  headerStyle="text-align:center;width:50px"
+                  bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <a
+                      @click="delRow_Item(slotProps.data, 1)"
+                      class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa học viên'"
+                    >
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
+                <template #empty>
+                  <div
+                    class="
+                      align-items-center
+                      justify-content-center
+                      p-4
+                      text-center
+                      m-auto
+                    "
+                    style="display: flex; width: 100%; min-height: 200px"
+                  ></div>
+                </template>
+              </DataTable>
             </div>
           </div>
         </div>
@@ -1490,172 +1685,285 @@ onMounted(() => {
                 >
               </div>
             </div>
-            <div class="w-1 text-right">
-              <Button
-                class="p-button-outlined p-button-rounded p-button-secondary"
-                icon="pi pi-plus"
+            <div class="w-1 text-right" v-if="!view">
+              <a
                 @click="addRow_Item(2)"
+                class="hover"
                 v-tooltip.top="'Thêm lịch học'"
-              ></Button>
+              >
+                <i class="pi pi-plus-circle" style="font-size: 18px"></i>
+              </a>
             </div>
           </div>
 
-          <div class="w-full px-3 pt-3" v-if="checkShow2 == true">
-            <div style="overflow-x: scroll">
-              <table
-                v-if="list_schedule.length > 0"
-                class="table table-condensed table-hover tbpad table-child"
-                style="table-layout: fixed"
+          <div class="w-full px-0 pt-0" v-if="checkShow2 == true">
+            <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
+              <DataTable
+                :value="list_schedule"
+                :scrollable="true"
+                :lazy="true"
+                :rowHover="true"
+                :showGridlines="true"
+                scrollDirection="both"
               >
-                <thead>
-                  <tr>
-                    <td class="text-center" style="width: 120px">STT</td>
-                    <td class="text-center" style="width: 170px">
-                      Nội dung đào tạo
-                    </td>
-                    <td class="text-center" style="width: 170px">Phạm vi</td>
-                    <td class="text-center" style="width: 170px">Giảng viên</td>
-                    <td class="text-center" style="width: 170px">
-                      Số điện thoại
-                    </td>
-                    <td class="text-center" style="width: 170px">Ngày học</td>
-                    <td class="text-center" style="width: 170px">Bắt đầu</td>
-                    <td class="text-center" style="width: 170px">Kết thúc</td>
-                    <td class="text-center" style="width: 170px">Phòng học</td>
-                    <td
-                      class="text-center sticky"
-                      style="width: 170px; left: 0px !important"
-                    ></td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(item, index) in list_schedule" :key="index">
-                    <td class="row-content-pdx" align="center">
-                      {{ index + 1 }}
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="mx-2">
-                        <Textarea
-                          :autoResize="true"
-                          rows="2"
-                          cols="40"
-                          v-model="item.class_schedule_name"
-                          class="w-30rem"
-                          :class="{
-                            'p-invalid':
-                              item.class_schedule_name == null && submitted,
-                          }"
-                        />
-                      </div>
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <Dropdown
-                        v-model="item.limit"
-                        :options="listLimit"
-                        optionLabel="name"
-                        optionValue="code"
-                        :filter="true"
-                        class="  w-10rem"
-                        panelClass="d-design-dropdown"
-                        placeholder="---- Phạm vi ----"
+                <Column
+                  field="card_number"
+                  header="STT"
+                  headerStyle="text-align:center;width:70px;height:50px"
+                  bodyStyle="text-align:center;width:70px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    {{ slotProps.data.is_order }}
+                  </template>
+                </Column>
+                <Column
+                  field="form"
+                  header="Nội dung đào tạo"
+                  headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="text-align:center;width:250px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <div class="form-group m-0">
+                      <Textarea
+                        :autoResize="true"
+                        rows="1"
+                        cols="40"
+                        v-model="slotProps.data.class_schedule_name"
+                        class="w-30rem"
+                        :class="{
+                          'p-invalid':
+                            slotProps.data.class_schedule_name == null &&
+                            submitted,
+                        }"
                       />
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="mx-2">
-                        <InputText
-                          spellcheck="false"
-                          class="w-12rem"
-                          v-model="item.lecturers"
-                          v-if="item.limit == 2"
-                        />
-                        <Dropdown
-                          v-else
-                          v-model="item.lecturers"
-                          :options="listLectures"
-                          optionLabel="name"
-                          optionValue="code"
-                          :filter="true"
-                          class="w-15rem"
-                          panelClass="d-design-dropdown"
-                          placeholder="---- Chọn giảng viên ----"
-                        />
-                      </div>
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="mx-2">
-                        <InputText
-                          spellcheck="false"
-                          class="w-12rem"
-                          v-model="item.phone_number"
-                        />
-                      </div>
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <Calendar
-                        class="w-12rem"
-                        id="basic_purchase_date"
-                        v-model="item.date_study"
-                        autocomplete="on"
-                        :showIcon="true"
-                      />
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <div class="w-full">
-                        <Calendar
-                          inputId="time12"
-                          hourFormat="24"
-                          class="w-5rem"
-                          autocomplete="on"
-                          icon="pi pi-clock"
-                          :showIcon="false"
-                          :timeOnly="true"
-                          v-model="item.start_time"
-                        />
-                      </div>
-                    </td>
-                    <td class="row-content-pdx mx-2" align="center">
-                      <Calendar
-                        inputId="time12"
-                        hourFormat="24"
-                        class="w-5rem"
-                        autocomplete="on"
-                        icon="pi pi-clock"
-                        :showIcon="false"
-                        :timeOnly="true"
-                        v-model="item.end_time"
-                      />
-                    </td>
-                    <td class="row-content-pdx mx-2"  >
-                      <Dropdown
-                        v-model="item.training_class_id"
-                        :options="listClasroom"
-                        optionLabel="name"
-                        optionValue="code"
-                        :filter="true"
-                        class="w-15rem"
-                        panelClass="d-design-dropdown"
-                        placeholder="----Chọn phòng học----"
-                      />
-                    </td>
-                    <td
-                      class="row-content-pdx sticky"
-                      align="center"
-                      style="color: black; width: 100px; left: 0px !important"
+                    </div>
+                  </template>
+                </Column>
+                <Column
+                  field="start_date"
+                  header="Phạm vi"
+                  headerStyle="text-align:center;width:150px;height:50px"
+                  bodyStyle=" width:150px;"
+                  class="align-items-center justify-content-center"
+                >
+                  <template #body="slotProps">
+                    <Dropdown
+                      v-model="slotProps.data.limit"
+                      :options="listLimit"
+                      optionLabel="name"
+                      optionValue="code"
+                      :filter="false"
+                      class="w-full"
+                      panelClass="d-design-dropdown"
+                      placeholder="---- Phạm vi ----"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="end_date"
+                  header="Giảng viên"
+                  headerStyle="text-align:center;width:16rem;height:50px"
+                  bodyStyle="width:16rem;"
+                  class="align-items-center justify-content-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full"
+                      v-model="slotProps.data.lecturers_name"
+                      v-if="slotProps.data.limit == 2"
+                    />
+                    <Dropdown
+                      v-else
+                      :options="listDropdownUserGive"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      optionLabel="name"
+                      optionValue="code"
+                      v-model="slotProps.data.lecturers_id"
+                      class="w-full"
+                      placeholder="--- Chọn giảng viên ---"
+                      @change="
+                        changeLecturers(
+                          slotProps.data.lecturers_id,
+                          slotProps.data.is_order
+                        )
+                      "
                     >
-                      <a
-                        @click="delRow_Item(item, 2)"
-                        class="hover cursor-pointer"
-                        v-tooltip.top="'Xóa lịch học'"
-                      >
-                        <i
-                          class="pi pi-times-circle"
-                          style="font-size: 18px"
-                        ></i>
-                      </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      <template #option="slotProps">
+                        <div v-if="slotProps.option" class="flex">
+                          <div class="format-center">
+                            <Avatar
+                              v-bind:label="
+                                slotProps.option.avatar
+                                  ? ''
+                                  : slotProps.option.name.substring(0, 1)
+                              "
+                              v-bind:image="
+                                slotProps.option.avatar
+                                  ? basedomainURL + slotProps.option.avatar
+                                  : basedomainURL + '/Portals/Image/noimg.jpg'
+                              "
+                              style="
+                                background-color: #2196f3;
+                                color: #ffffff;
+                                width: 3rem;
+                                height: 3rem;
+                                font-size: 1.4rem !important;
+                              "
+                              :style="{
+                                background: bgColor[slotProps.option.name % 7],
+                              }"
+                              class="text-avatar"
+                              size="xlarge"
+                              shape="circle"
+                            />
+                          </div>
+                          <div class="ml-3 format-center">
+                            <div class="mb-1">
+                              {{ slotProps.option.name }}
+                            </div>
+                          </div>
+                        </div>
+                        <span v-else> Chưa có dữ liệu </span>
+                      </template>
+                    </Dropdown>
+                  </template>
+                </Column>
+                <Column
+                  field="admission_place"
+                  header="Điện thoại"
+                  headerStyle="text-align:center;width:150px;height:50px"
+                  bodyStyle="text-align:center;width:150px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full"
+                      v-model="slotProps.data.phone_number"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="transfer_place"
+                  header="Ngày học"
+                  headerStyle="text-align:center;width:180px ;height:50px"
+                  bodyStyle="text-align:center ;width:180px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <Calendar
+                      class="w-full"
+                      id="basic_purchase_date"
+                      v-model="slotProps.data.date_study"
+                      autocomplete="on"
+                      :showIcon="true"
+                      :maxDate="
+                        training_emps.end_date
+                          ? new Date(training_emps.end_date)
+                          : null
+                      "
+                      :minDate="
+                        training_emps.start_date
+                          ? new Date(training_emps.start_date)
+                          : null
+                      "
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="transfer_place"
+                  header="Bắt đầu"
+                  headerStyle="text-align:center;width:7rem ;height:50px"
+                  bodyStyle="text-align:center ;width:7rem;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <Calendar
+                      inputId="time12"
+                      hourFormat="24"
+                      class="w-full"
+                      autocomplete="on"
+                      icon="pi pi-clock"
+                      :showIcon="false"
+                      :timeOnly="true"
+                      v-model="slotProps.data.start_time"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="transfer_place"
+                  header="Kết thúc"
+                  headerStyle="text-align:center;width:7rem ;height:50px"
+                  bodyStyle="text-align:center ;width:7rem;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <Calendar
+                      inputId="time12"
+                      hourFormat="24"
+                      class="w-full"
+                      autocomplete="on"
+                      icon="pi pi-clock"
+                      :showIcon="false"
+                      :timeOnly="true"
+                      v-model="slotProps.data.end_time"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="transfer_place"
+                  header="Phòng học"
+                  headerStyle="text-align:center;width:16rem ;height:50px"
+                  bodyStyle="  width:16rem;"
+                  class="align-items-center justify-content-center"
+                >
+                  <template #body="slotProps">
+                    <Dropdown
+                      v-model="slotProps.data.training_class_id"
+                      :options="listClasroom"
+                      optionLabel="name"
+                      optionValue="code"
+                      :filter="true"
+                      class="w-full"
+                      panelClass="d-design-dropdown"
+                      placeholder="---Chọn phòng học---"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  header=""
+                  headerStyle="text-align:center;width:50px"
+                  bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <a
+                      @click="delRow_Item(slotProps.data, 2)"
+                      class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa lịch học'"
+                    >
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
+                <template #empty>
+                  <div
+                    class="
+                      align-items-center
+                      justify-content-center
+                      p-4
+                      text-center
+                      m-auto
+                    "
+                    style="display: flex; width: 100%; min-height: 200px"
+                  ></div>
+                </template>
+              </DataTable>
             </div>
           </div>
         </div>
@@ -1677,13 +1985,6 @@ onMounted(() => {
               ></i>
               <div class="pl-2">File đính kèm</div>
             </div>
-            <!-- <div class="w-1 text-right">
-              <Button
-                class="p-button-outlined p-button-rounded p-button-secondary"
-                icon="pi pi-plus"
-                @click="addRow_Item(3)"
-              ></Button>
-            </div> -->
           </div>
           <div class="w-full" v-if="checkShow3 == true">
             <FileUpload
@@ -1700,12 +2001,91 @@ onMounted(() => {
                 <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
               </template>
             </FileUpload>
+
+            <div class="col-12 p-0">
+              <div
+                class="p-0 w-full flex"
+                v-for="(item, index) in listFilesS"
+                :key="index"
+              >
+                <div
+                  class="p-0 surface-50"
+                  style="width: 100%; border-radius: 10px"
+                >
+                  <Toolbar class="w-full py-3">
+                    <template #start>
+                      <div class="flex">
+                        <div v-if="item.is_image" class="align-items-center flex">
+                          <Image
+                            :src="basedomainURL + item.file_path"
+                            :alt="item.file_name"
+                            width="70"
+                            height="50"
+                            style="
+                              object-fit: contain;
+                              border: 1px solid #ccc;
+                              width: 70px;
+                              height: 50px;
+                            "
+                            preview
+                            
+                            class="pr-2"
+                          />
+                          <div class="ml-2">
+                            {{ item.file_name }}
+                         
+                          </div>
+                        </div>
+                        <div v-else>
+                          <a
+                            :href="basedomainURL + item.file_path"
+                            download
+                            class="w-full no-underline cursor-pointer"
+                          >
+                            <div class="align-items-center flex">
+                              <div>
+                                <img
+                                  :src="
+                                    basedomainURL +
+                                    '/Portals/Image/file/' +
+                                    item.file_path.substring(
+                                      item.file_path.lastIndexOf('.') + 1
+                                    ) +
+                                    '.png'
+                                  "
+                                  style="
+                                    width: 70px;
+                                    height: 50px;
+                                    object-fit: contain;
+                                  "
+                                  :alt="item.file_name"
+                                />
+                              </div>
+                              <div class="ml-2">
+                                {{ item.file_name }}
+                              </div>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </template>
+                    <template #end>
+                      <Button
+                        icon="pi pi-times"
+                        class="p-button-rounded p-button-danger"
+                        @click="deleteFileH(item)"
+                      />
+                    </template>
+                  </Toolbar>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </form>
     <template #footer>
-      <div class="pt-3">
+      <div class="pt-3" v-if="!view">
         <Button
           label="Hủy"
           icon="pi pi-times"
@@ -1730,6 +2110,10 @@ onMounted(() => {
 #formprint * {
   font-family: "Times New Roman", Times, serif !important;
   font-size: 13pt;
+}
+.hover:hover {
+  cursor: pointer;
+  color: #2196f3 !important;
 }
 .title1,
 .title1 * {

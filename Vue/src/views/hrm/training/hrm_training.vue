@@ -23,7 +23,7 @@ const filters = ref({
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
-    training_emps_code: {
+  training_emps_code: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -39,9 +39,16 @@ const bgColor = ref([
 ]);
 
 const listStatus = ref([
-  { name: "Dự kiến tổ chức", code: 1 },
-  { name: "Chưa hoàn thành", code: 2 },
+  { name: "Lên kế hoạch", code: 1 },
+  { name: "Đang thực hiện", code: 2 },
   { name: "Đã hoàn thành", code: 3 },
+  { name: "Tạm dừng", code: 4 },
+  { name: "Đã hủy", code: 5 },
+]);
+const listFormTraining = ref([
+  { name: "Bắt buộc", code: 1 },
+  { name: "Đăng ký", code: 2 },
+  { name: "Cả hai", code: 3 },
 ]);
 //Lấy số bản ghi
 const loadCount = () => {
@@ -62,15 +69,19 @@ const loadCount = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-          let data1 = JSON.parse(response.data.data)[1];
-              let data2 = JSON.parse(response.data.data)[2];
-                  let data3 = JSON.parse(response.data.data)[3];
+      let data1 = JSON.parse(response.data.data)[1];
+      let data2 = JSON.parse(response.data.data)[2];
+      let data3 = JSON.parse(response.data.data)[3];
+      let data4 = JSON.parse(response.data.data)[4];
+      let data5 = JSON.parse(response.data.data)[5];
       if (data.length > 0) {
-         
         options.value.totalRecords = data[0].totalRecords;
-         options.value.totalRecords1 = data1[0].totalRecords1;
-          options.value.totalRecords2 = data2[0].totalRecords2;
-           options.value.totalRecords3 = data3[0].totalRecords3;
+        options.value.totalRecords1 = data1[0].totalRecords1;
+        options.value.totalRecords2 = data2[0].totalRecords2;
+        options.value.totalRecords3 = data3[0].totalRecords3;
+        options.value.totalRecords4 = data4[0].totalRecord4;
+        options.value.totalRecords5 = data5[0].totalRecords5;
+
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
@@ -115,8 +126,9 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
           if (element.li_user_verify) {
             element.li_user_verify = JSON.parse(element.li_user_verify);
-          }
+          } else element.li_user_verify = [];
         });
+
         datalists.value = data;
 
         options.value.loading = false;
@@ -124,14 +136,6 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-
-        if (error && error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
-          store.commit("gologout");
-        }
       });
   }
 };
@@ -181,17 +185,18 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "created_date",
+  sort: "created_date desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
   loading: true,
   totalRecords: 0,
   tab: -1,
-  totalRecords1:0,
-  totalRecords2:0,
-  totalRecords3:0
-
+  totalRecords1: 0,
+  totalRecords2: 0,
+  totalRecords3: 0,
+  totalRecords4: 0,
+  totalRecords5: 0,
 });
 
 //Hiển thị dialog
@@ -239,7 +244,7 @@ const sttStamp = ref(1);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   training_emps.value = dataTem;
-  headerDialog.value = "Sửa thông tin đào tạo";
+  headerDialog.value = "Sửa đào tạo";
   isSaveTem.value = false;
   displayBasic.value = true;
 };
@@ -320,12 +325,13 @@ const onSort = (event) => {
 const checkFilter = ref(false);
 const filterSQL = ref([]);
 const isFirst = ref(true);
+const checkLoadCount = ref(true);
 const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
     id: "training_emps_id",
-    sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
+    sqlS: null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
     PageNo: options.value.PageNo,
@@ -343,7 +349,7 @@ const loadDataSQL = () => {
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-            if (element.li_user_verify) {
+          if (element.li_user_verify) {
             element.li_user_verify = JSON.parse(element.li_user_verify);
           }
         });
@@ -355,8 +361,13 @@ const loadDataSQL = () => {
       if (isFirst.value) isFirst.value = false;
       options.value.loading = false;
       //Show Count nếu có
-      if (dt.length == 2) {
+      if (dt.length >= 2 && checkLoadCount.value == true) {
         options.value.totalRecords = dt[1][0].totalRecords;
+        options.value.totalRecords1 = dt[2][0].totalRecords1;
+        options.value.totalRecords2 = dt[3][0].totalRecords2;
+        options.value.totalRecords3 = dt[4][0].totalRecords3;
+        options.value.totalRecords4 = dt[5][0].totalRecords4;
+        options.value.totalRecords5 = dt[6][0].totalRecords5;
       }
     })
     .catch((error) => {
@@ -375,6 +386,50 @@ const loadDataSQL = () => {
     });
 };
 
+const setStatus = (value) => {
+  opstatus.value.hide();
+  let data = {
+    IntID: value.training_emps_id,
+    TextID: value.training_emps_id + "",
+    IntTrangthai: value.status,
+    BitTrangthai: false,
+  };
+  axios
+    .put(
+      baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
+      data,
+      config
+    )
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+        toast.success("Cập nhật trạng thái thành công!");
+        loadData(true);
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
+
+const opstatus = ref();
+const toggleStatus = (item, event) => {
+  training_emps.value = item;
+  opstatus.value.toggle(event);
+};
 //Tìm kiếm
 const searchStamp = (event) => {
   if (event.code == "Enter") {
@@ -391,7 +446,7 @@ const searchStamp = (event) => {
 };
 const refreshStamp = () => {
   options.value.SearchText = null;
-  filterTrangthai.value = null;
+  options.value.status_filter = null;
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -432,10 +487,12 @@ const onFilter = (event) => {
   loadDataSQL();
 };
 const tabs = ref([
-  { id: -1, title: "Tất cả", icon: "", total: options.value.totalRecords },
-    { id: 0, title: "Dự kiến tổ chức", icon: "", total: 0 },
-  { id: 1, title: "Chưa hoàn thành", icon: "", total: 0 },
-  { id: 2, title: "Đã hoàn thành", icon: "", total: 0 },
+  { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
+  { id: 1, title: "Lên kế hoạch", icon: "", total: 0 },
+  { id: 2, title: "Đang thực hiện", icon: "", total: 0 },
+  { id: 3, title: "Đã hoàn thành", icon: "", total: 0 },
+  { id: 4, title: "Tạm dừng", icon: "", total: 0 },
+  { id: 5, title: "Đã hủy", icon: "", total: 0 },
 ]);
 //Checkbox
 const onCheckBox = (value, check) => {
@@ -514,7 +571,22 @@ const onCheckBox = (value, check) => {
       });
   }
 };
+const activeTab = (tab) => {
+  options.value.tab = tab.id;
+  reFilter();
+  if (tab.id) {
+    checkLoadCount.value = false;
+    let filterS1 = {
+      filterconstraints: [{ value: tab.id, matchMode: "equals" }],
+      filteroperator: "and",
+      key: "status",
+    };
 
+    filterSQL.value.push(filterS1);
+  }
+
+  loadDataSQL();
+};
 const menuButMores = ref();
 const itemButMores = ref([
   {
@@ -541,7 +613,7 @@ const toggleMores = (event, item) => {
 const deleteList = () => {
   let listId = new Array(selectedStamps.value.length);
   let checkD = false;
-  
+
   if (!checkD) {
     swal
       .fire({
@@ -608,32 +680,173 @@ const deleteList = () => {
 };
 
 //Filter
-const trangThai = ref([
-  { name: "Hiển thị", code: 1 },
-  { name: "Không hiển thị", code: 0 },
-]);
+const reFilter = () => {
+  options.value.user_follows = null;
+  options.value.training_groups_id = null;
+  options.value.user_verify = null;
+options.value.start_date=null;
+options.value.end_date=null
+  options.value.type_formtraining = null;
 
-const filterTrangthai = ref();
-
-const reFilterEmail = () => {
-  filterTrangthai.value = null;
+  options.value.status_filter = null;
+  checkLoadCount.value = true;
   isDynamicSQL.value = false;
   checkFilter.value = false;
   filterSQL.value = [];
   options.value.SearchText = null;
+};
+const reFilterEmail = () => {
+  reFilter();
   op.value.hide();
   loadData(true);
 };
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
+  if (options.value.status_filter) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "status",
+    };
+    if (options.value.status_filter.length > 0) {
+      options.value.status_filter.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
+  }
+  if (options.value.type_formtraining) {
+    let filterS2 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "form_training",
+    };
+    if (options.value.type_formtraining.length > 0) {
+      options.value.type_formtraining.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS2.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS2);
+    }
+  }
+  if (options.value.user_follows) {
+    let filterS3 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "user_follows",
+    };
+    if (options.value.user_follows.length > 0) {
+      options.value.user_follows.forEach((element) => {
+        var addr = { value: element.code, matchMode: "contains" };
+        filterS3.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS3);
+    }
+  }
+  if (options.value.training_groups_id) {
+    let filterS4 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "training_groups_id",
+    };
+    if (options.value.training_groups_id.length > 0) {
+      options.value.training_groups_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS4.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS4);
+    }
+  }
+  if (options.value.user_verify) {
+    let filterS5 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "user_verify",
+    };
+    if (options.value.user_verify.length > 0) {
+      options.value.user_verify.forEach((element) => {
+        var addr = { value: element.code, matchMode: "contains" };
+        filterS5.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS5);
+    }
+  }
+
+  onDayClick();
   loadDataSQL();
+  op.value.hide();
+};
+
+
+const onDayClick = () => {
+  if (options.value.start_date != null)  
+  {
+ 
+    if (!options.value.end_date)
+      options.value.end_date = options.value.start_date;
+    
+    if (
+      options.value.start_date &&
+      options.value.start_date != options.value.end_date
+    ) {
+      let sDate = new Date(options.value.start_date);
+      sDate.setDate(sDate.getDate() - 1);
+      options.value.start_date = sDate;
+      let filterS = {
+        filterconstraints: [
+          { value: options.value.start_date, matchMode: "dateAfter" },
+        ],
+        filteroperator: "and",
+        key: "start_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (
+      options.value.end_date &&
+      options.value.start_date != options.value.end_date
+    ) {
+      let eDate = new Date(options.value.end_date);
+      eDate.setDate(eDate.getDate() + 1);
+      options.value.end_date = eDate;
+      let filterS = {
+        filterconstraints: [
+          { value: options.value.end_date, matchMode: "dateBefore" },
+        ],
+        filteroperator: "and",
+        key: "end_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (
+      options.value.start_date &&
+      options.value.start_date == options.value.end_date
+    ) {
+      let filterS1 = {
+        filterconstraints: [
+          { value: options.value.start_date, matchMode: "dateIs" },
+        ],
+        filteroperator: "and",
+        key: "start_date",
+      };
+      filterSQL.value.push(filterS1);
+        let filterS2 = {
+        filterconstraints: [
+          { value: options.value.end_date, matchMode: "dateIs" },
+        ],
+        filteroperator: "and",
+        key: "end_date",
+      };
+      filterSQL.value.push(filterS2);
+    }
+  }
+   
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -647,10 +860,148 @@ const toggle = (event) => {
   op.value.toggle(event);
 };
 
+const listDropdownUserCheck = ref();
+const listDropdownUser = ref();
+
+const loadUser = () => {
+  listDropdownUser.value = [];
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_users_list_dd",
+            par: [
+              { par: "search", va: null },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "role_id", va: null },
+              {
+                par: "organization_id",
+                va: store.getters.user.organization_id,
+              },
+              { par: "department_id", va: null },
+              { par: "position_id", va: null },
+              { par: "pageno", va: 1 },
+              { par: "pagesize", va: 10000 },
+              { par: "isadmin", va: null },
+              { par: "status", va: null },
+              { par: "start_date", va: null },
+              { par: "end_date", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listDropdownUser.value.push({
+          name: element.full_name,
+          code: element.user_id,
+          avatar: element.avatar,
+          department_name: element.department_name,
+          role_name: element.role_name,
+          position_name: element.position_name,
+        });
+      });
+
+      listDropdownUserCheck.value = [...listDropdownUser.value];
+    })
+    .catch((error) => {
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
+const listTrainingGroups = ref([]);
+const listClasroom = ref([]);
+
+const initTudien = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_enecting_group_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listTrainingGroups.value = [];
+      data.forEach((element) => {
+        listTrainingGroups.value.push({
+          name: element.enecting_group_name,
+          code: element.enecting_group_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_classroom_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listClasroom.value = [];
+      data.forEach((element) => {
+        listClasroom.value.push({
+          name: element.classroom_name,
+          code: element.classroom_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  loadUser();
+};
+
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
   }
+  initTudien();
   loadData(true);
 
   return {
@@ -676,7 +1027,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách đào tạo 
+          <i class="pi pi-book"></i> Danh sách đào tạo
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -689,6 +1040,7 @@ onMounted(() => {
                 spellcheck="false"
                 placeholder="Tìm kiếm"
               />
+
               <Button
                 @click="toggle"
                 type="button"
@@ -696,7 +1048,9 @@ onMounted(() => {
                 aria:haspopup="true"
                 aria-controls="overlay_panel"
                 :class="
-                  filterTrangthai != null && checkFilter
+                  options.status_filter == null &&
+                  options.form_training == null &&
+                  !checkFilter
                     ? ''
                     : 'p-button-secondary p-button-outlined'
                 "
@@ -707,452 +1061,388 @@ onMounted(() => {
                   <span><i class="pi pi-chevron-down"></i></span>
                 </div>
               </Button>
-              <!-- <Button
-                type="button"
-                class="ml-2"
-                icon="pi pi-filter"
-                @click="toggle"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                v-tooltip="'Bộ lọc'"
-                :class="
-                  filterTrangthai != null && checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
-                "
-              /> -->
+
               <OverlayPanel
                 ref="op"
                 appendTo="body"
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-               style="width: 700px"
-              > <div class="grid formgrid m-0">
-            <div
-              class="col-12 md:col-12 p-0"
-              style="
-                min-height: unset;
-                max-height: calc(100vh - 300px);
-                overflow: auto;
-              "
-            >
-              <div class=" flex">
-                <div class="col-6 md:col-6">
-                  <div class="row">
-                    <div class="col-12 md:col-12 p-0">
-                      <div class="form-group">
-                        <label>Đơn vị</label>
-                        <MultiSelect
-                          :options="organizations"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.organizations"
-                          optionLabel="organization_name"
-                          placeholder="Chọn đơn vị"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
+                style="width: 700px"
+              >
+                <div class="grid formgrid m-0">
+                  <div
+                    class="col-12 md:col-12 p-0"
+                    style="
+                      min-height: unset;
+                      max-height: calc(100vh - 300px);
+                      overflow: auto;
+                    "
+                  >
+                    <div class="flex">
+                      <div class="col-6 md:col-6">
+                        <div class="row">
+                          <div class="col-12 md:col-12 p-0">
+                            <div class="form-group">
+                              <label>Nhóm đào tạo</label>
+                              <MultiSelect
+                                :options="listTrainingGroups"
+                                :filter="true"
+                                :showClear="true"
+                                :editable="false"
+                                v-model="options.training_groups_id"
+                                optionLabel="name"
+                                optionValue="code"
+                                placeholder="Chọn nhóm đào tạo"
+                                class="w-full limit-width"
+                                style="min-height: 36px"
+                                panelClass="d-design-dropdown"
                               >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.organization_name }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
-                                      @click="
-                                        removeFilter(
-                                          index,
-                                          options.organizations
-                                        );
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-12 p-0">
-                      <div class="form-group">
-                        <label>Phòng ban</label>
-                        <MultiSelect
-                          :options="departments"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.departments"
-                          optionLabel="department_name"
-                          placeholder="Chọn phòng ban"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
+                              </MultiSelect>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12 p-0">
+                                <div class="col-12 p-0 ">
+                              <label>Người phụ trách</label>
+                                </div>
+                              <MultiSelect
+                                :options="listDropdownUser"
+                                :filter="true"
+                                :showClear="true"
+                                :editable="false"
+                                display="chip"
+                                v-model="options.user_verify"
+                                optionLabel="name"
+                                placeholder="Chọn người phụ trách"
+                                                   panelClass="d-design-dropdown  d-tree-input"
+         class="col-12 my-2   "
+                                
+                                style="min-height: 36px"
+                              
                               >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.department_name }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
-                                      @click="
-                                        removeFilter(
-                                          index,
-                                          options.departments
-                                        );
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-12 p-0">
-                      <div class="form-group">
-                        <label>Hình thức đào tạo</label>
-                        <MultiSelect
-                          :options="type_contracts"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.type_contracts"
-                          optionLabel="type_contract_name"
-                          placeholder="Chọn hình thức đào tạo"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{
-                                        value.type_contract_name
-                                      }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
-                                      @click="
-                                        removeFilter(
-                                          index,
-                                          options.type_contracts
-                                        );
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                    
-                  </div>
-                </div>
-                <div class="col-6 md:col-6">
-                  <div class="row">
-                    <div class="col-12 md:col-12">
-                      <div class="form-group m-0">
-                        <label>Thời gian đào tạo</label>
-                      </div>
-                    </div>
-                    <div class="col-12 p-0 flex">
-                      
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <Calendar
-                          :showIcon="true"
-                          class="ip36"
-                          autocomplete="on"
-                          inputId="time24"
-                          v-model="options.sign_start_date"
-                          @date-select="changeSignDate()"
-                          @input="changeSignDate()"
-                          placeholder="Từ ngày"
-                        />
-                      </div>
-                    </div>
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <Calendar
-                          :showIcon="true"
-                          class="ip36"
-                          autocomplete="on"
-                          inputId="time24"
-                          v-model="options.sign_end_date"
-                          @date-select="changeSignDate()"
-                          @input="changeSignDate()"
-                          placeholder="Đến ngày"
-                        />
-                      </div>
-                    </div>
-                    
-                    </div>
-                    <div class="col-12 md:col-12">
-                      <div class="form-group">
-                        <label>Giảng viên</label>
-                        <MultiSelect
-                          :options="users"
-                          v-model="options.users"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          optionLabel="full_name"
-                          placeholder="Chọn giảng viên"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip
-                                  :image="value.avatar"
-                                  :label="value.full_name"
-                                  class="mr-2 mb-2 px-3 py-2"
-                                >
-                                  <div class="flex">
-                                    <div class="format-flex-center">
-                                      <Avatar
-                                        v-bind:label="
-                                          value.avatar
-                                            ? ''
-                                            : (value.last_name ?? '').substring(
-                                                0,
-                                                1
-                                              )
+                                <template #option="slotProps">
+                                  <div
+                                    class="country-item flex align-items-center"
+                                  >
+                                    <div class="grid w-full p-0">
+                                      <div
+                                        class="
+                                          field
+                                          p-0
+                                          py-1
+                                          col-12
+                                          flex
+                                          m-0
+                                          cursor-pointer
+                                          align-items-center
                                         "
-                                        v-bind:image="
-                                          value.avatar
-                                            ? basedomainURL + value.avatar
-                                            : basedomainURL +
-                                              '/Portals/Image/noimg.jpg'
-                                        "
-                                        style="
-                                          background-color: #2196f3;
-                                          color: #ffffff;
-                                          width: 2rem;
-                                          height: 2rem;
-                                        "
-                                        :style="{
-                                          background:
-                                            bgColor[value.is_order % 7],
-                                        }"
-                                        class="mr-2 text-avatar"
-                                        size="xlarge"
-                                        shape="circle"
-                                      />
+                                      >
+                                        <div
+                                          class="
+                                            col-1
+                                            mx-2
+                                            p-0
+                                            align-items-center
+                                          "
+                                        >
+                                          <Avatar
+                                            v-bind:label="
+                                              slotProps.option.avatar
+                                                ? ''
+                                                : slotProps.option.name.substring(
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 1,
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 2
+                                                  )
+                                            "
+                                            :image="
+                                              basedomainURL +
+                                              slotProps.option.avatar
+                                            "
+                                            size="small"
+                                            :style="
+                                              slotProps.option.avatar
+                                                ? 'background-color: #2196f3'
+                                                : 'background:' +
+                                                  bgColor[
+                                                    slotProps.option.name
+                                                      .length % 7
+                                                  ]
+                                            "
+                                            shape="circle"
+                                            @error="
+                                              $event.target.src =
+                                                basedomainURL +
+                                                '/Portals/Image/nouser1.png'
+                                            "
+                                          />
+                                        </div>
+                                        <div
+                                          class="
+                                            col-11
+                                            p-0
+                                            ml-3
+                                            align-items-center
+                                          "
+                                        >
+                                          <div class="pt-2">
+                                            <div class="font-bold">
+                                              {{ slotProps.option.name }}
+                                            </div>
+                                            <div
+                                              class="
+                                                flex
+                                                w-full
+                                                text-sm
+                                                font-italic
+                                                text-500
+                                              "
+                                            >
+                                              <div>
+                                                {{
+                                                  slotProps.option.position_name
+                                                }}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div class="format-flex-center text-left">
-                                      <span>{{ value.full_name }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
-                                      @click="
-                                        removeFilter(index, options.users);
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
                                   </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                          <template #option="slotProps">
-                            <div v-if="slotProps.option" class="flex">
-                              <div class="format-center">
-                                <Avatar
-                                  v-bind:label="
-                                    slotProps.option.avatar
-                                      ? ''
-                                      : slotProps.option.last_name.substring(
-                                          0,
-                                          1
-                                        )
-                                  "
-                                  v-bind:image="
-                                    slotProps.option.avatar
-                                      ? basedomainURL + slotProps.option.avatar
-                                      : basedomainURL +
-                                        '/Portals/Image/noimg.jpg'
-                                  "
-                                  style="
-                                    background-color: #2196f3;
-                                    color: #ffffff;
-                                    width: 3rem;
-                                    height: 3rem;
-                                    font-size: 1.4rem !important;
-                                  "
-                                  :style="{
-                                    background:
-                                      bgColor[slotProps.option.is_order % 7],
-                                  }"
-                                  class="text-avatar"
-                                  size="xlarge"
-                                  shape="circle"
+                                </template>
+                              </MultiSelect>
+                          
+                          </div>
+                          <div class="col-12 md:col-12 p-0">
+                            <div class="form-group">
+                              <label>Hình thức đào tạo</label>
+                              <MultiSelect
+                                :options="listFormTraining"
+                                :filter="false"
+                                :showClear="true"
+                                :editable="false"
+                                v-model="options.type_formtraining"
+                                optionLabel="name"
+                                optionValue="code"
+                                display="chip"
+                                placeholder="Chọn hình thức đào tạo"
+                                class="w-full limit-width"
+                                style="min-height: 36px"
+                                panelClass="d-design-dropdown"
+                              >
+                              </MultiSelect>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="row">
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label>Thời gian đào tạo</label>
+                            </div>
+                          </div>
+                          <div class="col-12 p-0 flex">
+                            <div class="col-6 md:col-6">
+                              <div class="form-group">
+                                <Calendar
+                                  :showIcon="true"
+                                  class="ip36"
+                                  autocomplete="on"
+                                  inputId="time24"
+                                  v-model="options.start_date"
+                                  placeholder="Từ ngày"
                                 />
                               </div>
-                              <div class="ml-3">
-                                <div class="mb-1">
-                                  {{ slotProps.option.full_name }}
-                                </div>
-                                <div class="description">
-                                  <div>
-                                    {{ slotProps.option.position_name }}
-                                  </div>
-                                  <div>
-                                    {{ slotProps.option.department_name }}
-                                  </div>
-                                </div>
+                            </div>
+                            <div class="col-6 md:col-6">
+                              <div class="form-group">
+                                <Calendar
+                                  :showIcon="true"
+                                  class="ip36"
+                                  autocomplete="on"
+                                  inputId="time24"
+                                  v-model="options.end_date"
+                                  placeholder="Đến ngày"
+                                />
                               </div>
                             </div>
-                            <span v-else> Chưa có dữ liệu </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                    
-                        <div class="col-12 md:col-12">
-                      <div class="form-group">
-                        <label>Trạng thái</label>
-                        <MultiSelect
-                          :options="listStatus"
-                          v-model="filterTrangthai"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          optionLabel="name"
-                          optionValue="code"
-                          placeholder="Chọn trạng thái"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
+                          </div>
+                          <div class="col-12 md:col-12">
+                           
+                             <div class="col-12 p-0 ">
+                               <label>Người theo dõi</label>
+                             </div>
+                             <MultiSelect
+                                :options="listDropdownUser"
+                                :filter="true"
+                                :showClear="true"
+                                :editable="false"
+                                display="chip"
+                                v-model="options.user_follows"
+                                optionLabel="name"
+                                placeholder="Chọn người theo dõi"
+                               
+                                style="min-height: 36px"
+                                    panelClass="d-design-dropdown  d-tree-input"
+         class="col-12 my-2   "
+                                
+                              >
+                                <template #option="slotProps">
+                                  <div
+                                    class="country-item flex align-items-center"
+                                  >
+                                    <div class="grid w-full p-0">
+                                      <div
+                                        class="
+                                          field
+                                          p-0
+                                          py-1
+                                          col-12
+                                          flex
+                                          m-0
+                                          cursor-pointer
+                                          align-items-center
+                                        "
+                                      >
+                                        <div
+                                          class="
+                                            col-1
+                                            mx-2
+                                            p-0
+                                            align-items-center
+                                          "
+                                        >
+                                          <Avatar
+                                            v-bind:label="
+                                              slotProps.option.avatar
+                                                ? ''
+                                                : slotProps.option.name.substring(
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 1,
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 2
+                                                  )
+                                            "
+                                            :image="
+                                              basedomainURL +
+                                              slotProps.option.avatar
+                                            "
+                                            size="small"
+                                            :style="
+                                              slotProps.option.avatar
+                                                ? 'background-color: #2196f3'
+                                                : 'background:' +
+                                                  bgColor[
+                                                    slotProps.option.name
+                                                      .length % 7
+                                                  ]
+                                            "
+                                            shape="circle"
+                                            @error="
+                                              $event.target.src =
+                                                basedomainURL +
+                                                '/Portals/Image/nouser1.png'
+                                            "
+                                          />
+                                        </div>
+                                        <div
+                                          class="
+                                            col-11
+                                            p-0
+                                            ml-3
+                                            align-items-center
+                                          "
+                                        >
+                                          <div class="pt-2">
+                                            <div class="font-bold">
+                                              {{ slotProps.option.name }}
+                                            </div>
+                                            <div
+                                              class="
+                                                flex
+                                                w-full
+                                                text-sm
+                                                font-italic
+                                                text-500
+                                              "
+                                            >
+                                              <div>
+                                                {{
+                                                  slotProps.option.position_name
+                                                }}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </template>
+                              </MultiSelect>
                           
-                       
-                        </MultiSelect>
+                          </div>
+
+                          <div class="col-12 md:col-12">
+                            <div class="form-group">
+                              <label>Trạng thái</label>
+                              <MultiSelect
+                                :options="listStatus"
+                                v-model="options.status_filter"
+                                :filter="true"
+                                :showClear="true"
+                                :editable="false"
+                                display="chip"
+                                optionLabel="name"
+                                optionValue="code"
+                                placeholder="Chọn trạng thái"
+                                class="w-full limit-width"
+                                style="min-height: 36px"
+                                panelClass="d-design-dropdown"
+                              >
+                              </MultiSelect>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <div class="col-12 md:col-12 p-0">
+                    <Toolbar
+                      class="
+                        border-none
+                        surface-0
+                        outline-none
+                        px-0
+                        pb-0
+                        w-full
+                      "
+                    >
+                      <template #start>
+                        <Button
+                          @click="reFilterEmail()"
+                          class="p-button-outlined"
+                          label="Bỏ chọn"
+                        ></Button>
+                      </template>
+                      <template #end>
+                        <Button @click="filterFileds()" label="Lọc"></Button>
+                      </template>
+                    </Toolbar>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div class="col-12 md:col-12 p-0">
-              <Toolbar
-                class="border-none surface-0 outline-none px-0 pb-0 w-full"
-              >
-                <template #start>
-                  <Button
-                    @click="reFilterEmail()"
-                    class="p-button-outlined"
-                    label="Bỏ chọn"
-                  ></Button>
-                </template>
-                <template #end>
-                  <Button @click="filterFileds()" label="Lọc"></Button>
-                </template>
-              </Toolbar>
-            </div>
-          </div>
-                 
               </OverlayPanel>
             </span>
           </template>
 
           <template #end>
             <Button
-              @click="openBasic('Thêm mới thông tin đào tạo')"
+              @click="openBasic('Thêm mới đào tạo')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1198,8 +1488,21 @@ onMounted(() => {
             >
               <a>
                 <i :class="tab.icon"></i>
-                <span>{{ tab.title }} ({{ tab.id==0?options.totalRecords1:tab.id==1?options.totalRecords2
-                  :tab.id==2?options.totalRecords3:options.totalRecords}})</span>
+                <span
+                  >{{ tab.title }} ({{
+                    tab.id == 1
+                      ? options.totalRecords1
+                      : tab.id == 2
+                      ? options.totalRecords2
+                      : tab.id == 3
+                      ? options.totalRecords3
+                      : tab.id == 4
+                      ? options.totalRecords4
+                      : tab.id == 5
+                      ? options.totalRecords5
+                      : options.totalRecords
+                  }})</span
+                >
               </a>
             </li>
           </ul>
@@ -1255,8 +1558,9 @@ onMounted(() => {
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
-                   :sortable="true"
-            >   <template #filter="{ filterModel }">
+              :sortable="true"
+            >
+              <template #filter="{ filterModel }">
                 <InputText
                   type="text"
                   v-model="filterModel.value"
@@ -1308,7 +1612,7 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div>
+                <div v-if="data.data.start_date">
                   {{
                     moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
                   }}
@@ -1324,7 +1628,7 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div>
+                <div v-if="data.data.end_date">
                   {{
                     moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
                   }}
@@ -1340,13 +1644,20 @@ onMounted(() => {
             >
               <template #body="data">
                 <div>
-                 
                   <AvatarGroup>
                     <Avatar
                       v-for="(item, index) in data.data.li_user_verify.slice(
                         0,
                         4
                       )"
+                      v-bind:label="
+                        item.avatar
+                          ? ''
+                          : item.full_name.substring(
+                              item.full_name.lastIndexOf(' ') + 1,
+                              item.full_name.lastIndexOf(' ') + 2
+                            )
+                      "
                       :key="index"
                       :style="
                         item.avatar
@@ -1356,6 +1667,8 @@ onMounted(() => {
                       :image="basedomainURL + item.avatar"
                       class="w-3rem h-3rem"
                       shape="circle"
+
+                      v-tooltip.top="item.full_name"
                     />
                     <Avatar
                       v-if="data.data.li_user_verify.length > 4"
@@ -1381,10 +1694,7 @@ onMounted(() => {
             >
               <template #body="data">
                 <div>
-                  <Button
-                    class="p-button-rounded"
-                    :label="data.data.count_emps ? data.data.count_emps : '0'"
-                  ></Button>
+                  {{ data.data.count_emps ? data.data.count_emps : "0" }}
                 </div>
               </template>
             </Column>
@@ -1408,8 +1718,8 @@ onMounted(() => {
             <Column
               field="status"
               header="Trạng thái"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
+              headerStyle="text-align:center;max-width:11rem;height:50px"
+              bodyStyle="text-align:center;max-width:11rem"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -1425,21 +1735,29 @@ onMounted(() => {
                   <Button
                     :label="
                       slotProps.data.status == 1
-                        ? 'Dự kiến tổ chức'
+                        ? 'Lên kế hoạch'
                         : slotProps.data.status == 2
-                        ? 'Chưa hoàn thành'
-                        : 'Đã hoàn thành'
+                        ? 'Đang thực hiện'
+                        : slotProps.data.status == 3
+                        ? 'Đã hoàn thành'
+                        : slotProps.data.status == 4
+                        ? 'Tạm dừng'
+                        : 'Đã hủy'
                     "
                     :class="
                       slotProps.data.status == 1
                         ? 'bg-blue-500'
                         : slotProps.data.status == 2
                         ? 'bg-yellow-500'
-                        : 'bg-green-500'
+                        : slotProps.data.status == 3
+                        ? 'bg-green-500'
+                        : slotProps.data.status == 4
+                        ? 'bg-orange-500'
+                        : 'bg-pink-500'
                     "
                     icon="pi pi-chevron-down"
                     iconPos="right"
-                    class="px-2"
+                    class="px-2 w-10rem"
                   />
                 </div>
                 <OverlayPanel
@@ -1451,40 +1769,23 @@ onMounted(() => {
                   style="width: 200px"
                 >
                   <div class="form-group">
-                    <label>Trạng thái</label>
-                    <!-- <Dropdown
-                  :options="typestatus"
-                  :filter="false"
-                  :showClear="false"
-                  :editable="false"
-                  v-model="contract.status"
-                  optionLabel="title"
-                  optionValue="value"
-                  placeholder="Chọn trạng thái"
-                  class="ip36"
-                  @change="setStatus(contractstatus, $event)"
-                >
-                  <template #option="slotProps">
-                    <div class="country-item flex align-items-center">
-                      <div class="pt-1 pl-2">
-                        {{ slotProps.option.title }}
-                      </div>
+                    <div class="col-12 p-0 field">Chọn trạng thái</div>
+                    <div class="col-12 p-0">
+                      <Dropdown
+                        :options="listStatus"
+                        :filter="false"
+                        :showClear="false"
+                        :editable="false"
+                        v-model="training_emps.status"
+                        optionLabel="name"
+                        optionValue="code"
+                        placeholder="Chọn trạng thái"
+                        class="w-full"
+                        @change="setStatus(training_emps)"
+                      >
+                      </Dropdown>
                     </div>
-                  </template>
-                </Dropdown> -->
                   </div>
-                  <!-- <div v-if="contract.status === 3" class="form-group">
-                <label>Ngày thanh lý</label>
-                <Calendar
-                  :showIcon="true"
-                  class="ip36"
-                  autocomplete="on"
-                  inputId="time24"
-                  v-model="contract.liquidation_date"
-                  placeholder="DD/MM/YYYY"
-                  disabled="true"
-                />
-              </div> -->
                 </OverlayPanel>
               </template>
             </Column>
@@ -1563,18 +1864,18 @@ onMounted(() => {
         </div>
       </div>
     </div>
-     <div v-if="displayBasic">
-    <dialogTraining
-      :headerDialog="headerDialog"
-      :displayBasic="displayBasic"
-      :training_emps="training_emps"
-      :checkadd="isSaveTem"
-      :view="false"
-      :closeDialog="closeDialog"
-    />
+    <div v-if="displayBasic">
+      <dialogTraining
+        :headerDialog="headerDialog"
+        :displayBasic="displayBasic"
+        :training_emps="training_emps"
+        :checkadd="isSaveTem"
+        :view="false"
+        :closeDialog="closeDialog"
+      />
+    </div>
   </div>
-  </div>
- 
+
   <Menu
     id="overlay_More"
     ref="menuButMores"

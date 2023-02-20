@@ -51,13 +51,13 @@ const selectedFields = ref();
 const submitted = ref(false);
 const v$ = useVuelidate(rules, issuePlace);
 const issaveField = ref(false);
-const datalists = ref();
+const datalists = ref([]);
 const toast = useToast();
 const basedomainURL = baseURL;
 const checkDelList = ref(false);
 const options = ref({
   IsNext: true,
-  sort: "issue_place_id",
+  sort: "is_order desc",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -136,9 +136,12 @@ const loadData = (rf) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          element.is_order =
+            options.value.PageNo * options.value.PageSize + i + 1;
         });
-        datalists.value = data;
+        let obj = renderTree(data, "issue_place_id", "", "");
+        datalists.value = obj.arrChils;
+
         options.value.loading = false;
       })
       .catch((error) => {
@@ -162,48 +165,88 @@ const loadData = (rf) => {
       });
   }
 };
+const renderTree = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      m.IsOrder = i + 1;
+      let om = { key: m[id], data: m };
+      const rechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em };
+            rechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m[id]);
+      arrChils.push(om);
+      //
+      om = { key: m[id], data: m[id], label: m[name] };
+      const retreechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em[id], label: em[name] };
+            retreechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      retreechildren(om, m[id]);
+      arrtreeChils.push(om);
+    });
+  arrtreeChils.unshift({
+    key: -1,
+    data: -1,
+    label: "-----Chọn " + title + "----",
+  });
+  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+};
 //Phân trang dữ liệu
 const onPage = (event) => {
   if (event.rows != options.value.PageSize) {
     options.value.PageSize = event.rows;
   }
-  if (event.page == 0) {
-    //Trang đầu
-    options.value.id = null;
-    options.value.IsNext = true;
-  } else if (event.page > options.value.PageNo + 1) {
-    //Trang cuối
-    options.value.id = -1;
-    options.value.IsNext = false;
-  } else if (event.page > options.value.PageNo) {
-    //Trang sau
-
-    options.value.id =
-      datalists.value[datalists.value.length - 1].issue_place_id;
-    options.value.IsNext = true;
-  } else if (event.page < options.value.PageNo) {
-    //Trang trước
-    options.value.id = datalists.value[0].issue_place_id;
-    options.value.IsNext = false;
-  }
-  options.value.PageNo = event.page;
-  loadData(true);
 };
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
+  isLengthName.value = false;
+  isLengthDisplay_Code.value = false;
+  isLengthDynamic_Code.value = false;
+  isLengthSearch_Code.value = false;
+  isLengthStatic_Code.value = false;
   submitted.value = false;
   issuePlace.value = {
     issue_place_name: "",
-    is_order: sttField.value,
+    is_order: 1,
     status: true,
+    level: 1,
+    parent_id: null,
+    static_code: "",
+    dynamic_code: "",
+    search_code: "",
+    display_code: "",
+    is_slider: true,
   };
   if (store.state.user.is_super == true) {
     issuePlace.value.organization_id = 0;
   } else {
     issuePlace.value.organization_id = store.state.user.organization_id;
   }
+
+  issuePlace.value.is_order =
+    datalists.value.length > 0
+      ? datalists.value[datalists.value.length - 1].data.is_order + 1
+      : 1;
   issaveField.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -222,7 +265,14 @@ const closeDialog = () => {
 //Thêm bản ghi
 const saveField = (isFormValid) => {
   submitted.value = true;
-  if (!isFormValid) {
+  if (
+    !isFormValid ||
+    isLengthName.value == true ||
+    isLengthDisplay_Code.value == true ||
+    isLengthDynamic_Code.value == true ||
+    isLengthSearch_Code.value == true ||
+    isLengthStatic_Code.value == true
+  ) {
     return;
   }
   swal.fire({
@@ -257,10 +307,7 @@ const saveField = (isFormValid) => {
         let ms = response.data.ms;
         swal.fire({
           title: "Thông báo!",
-          text:
-            ms.includes("issue_place_name") == true
-              ? "Tên nơi ban hành không quá 250 ký tự!"
-              : ms,
+          text: ms,
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -494,33 +541,14 @@ const loadDataSQL = () => {
     .post(baseURL + "/api/SQL/Filter_IssuePlace", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
+
       let data = dt[0];
-      if (data.length > 0) {
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        });
-        if (options.value.sort == "is_order DESC") {
-          {
-            data.forEach((element, i) => {
-              element.STT =
-                options.value.totalRecords -
-                options.value.PageNo * options.value.PageSize -
-                i;
-              if (options.value.sort == "is_order DESC") {
-                {
-                  element.STT =
-                    options.value.totalRecords -
-                    options.value.PageNo * options.value.PageSize -
-                    i;
-                }
-              }
-            });
-          }
-        }
-        datalists.value = data;
-      } else {
-        datalists.value = [];
-      }
+
+      let obj = renderTree(data, "issue_place_id", "", "");
+
+      datalists.value = [];
+      datalists.value = obj.arrChils;
+
       if (isFirst.value) isFirst.value = false;
       options.value.loading = false;
       //Show Count nếu có
@@ -854,31 +882,103 @@ const Upload = () => {
   }
 };
 const item = "/Portals/Mau Excel/Mẫu Excel Nơi ban hành.xlsx";
-
+const isLengthName = ref(false);
+const isLengthStatic_Code = ref(false);
+const isLengthDynamic_Code = ref(false);
+const isLengthSearch_Code = ref(false);
+const isLengthDisplay_Code = ref(false);
+const checkName = () => {
+  const textbox = document.getElementById("name");
+  if (textbox.value.length > 250) {
+    isLengthName.value = true;
+  } else {
+    isLengthName.value = false;
+  }
+};
+const checkSttCode = () => {
+  const textbox = document.getElementById("stt");
+  if (textbox.value.length > 50) {
+    isLengthStatic_Code.value = true;
+  } else {
+    isLengthStatic_Code.value = false;
+  }
+};
+const checkDynCode = () => {
+  const textbox = document.getElementById("dyn");
+  if (textbox.value.length > 50) {
+    isLengthDynamic_Code.value = true;
+  } else {
+    isLengthDynamic_Code.value = false;
+  }
+};
+const checkSearchCode = () => {
+  const textbox = document.getElementById("search_code");
+  if (textbox.value.length > 50) {
+    isLengthSearch_Code.value = true;
+  } else {
+    isLengthSearch_Code.value = false;
+  }
+};
+const checkDisplayCode = () => {
+  const textbox = document.getElementById("display");
+  if (textbox.value.length > 50) {
+    isLengthDisplay_Code.value = true;
+  } else {
+    isLengthDisplay_Code.value = false;
+  }
+};
+const openChild = (data) => {
+  isLengthName.value = false;
+  isLengthDisplay_Code.value = false;
+  isLengthDynamic_Code.value = false;
+  isLengthSearch_Code.value = false;
+  isLengthStatic_Code.value = false;
+  submitted.value = false;
+  issuePlace.value = {
+    parent_name: "",
+    issue_place_name: "",
+    status: true,
+    static_code: "",
+    dynamic_code: "",
+    search_code: "",
+    display_code: "",
+    is_slider: true,
+  };
+  issuePlace.value.parent_name = data.data.issue_place_name;
+  issuePlace.value.level = data.data.level + 1;
+  issuePlace.value.parent_id = data.data.issue_place_id;
+  issuePlace.value.is_order =
+    data.data.maxIsOrder != null
+      ? data.data.maxIsOrder + 1
+      : data.children != null
+      ? data.children[0].data.is_order + 1
+      : 1;
+  if (store.state.user.is_super == true) {
+    issuePlace.value.organization_id = 0;
+  } else {
+    issuePlace.value.organization_id = store.state.user.organization_id;
+  }
+  issaveField.value = false;
+  headerDialog.value = "Thêm nơi ban hành con";
+  displayBasic.value = true;
+};
+const expandedKeys = ref();
+const selectedKeys = ref();
 onMounted(() => {
   loadData(true);
-  return {
-    datalists,
-    options,
-    onPage,
-    loadData,
-    loadCount,
-    openBasic,
-    closeDialog,
-    basedomainURL,
-    saveField,
-    isFirst,
-    searchFields,
-    onCheckBox,
-    selectedFields,
-    deleteList,
-  };
+  return {};
 });
 </script>
 <template>
   <div class="main-layout true flex-grow-1 p-2">
-    <DataTable
+    <TreeTable
+      ref="dt"
+      :rowHovers="true"
+      :showGridlines="true"
+      responsiveLayout="scroll"
+      @page="onPage($event)"
       v-model:first="first"
+      :expandedKeys="expandedKeys"
       :value="datalists"
       :paginator="true"
       :rows="options.PageSize"
@@ -886,20 +986,9 @@ onMounted(() => {
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :scrollable="true"
       scrollHeight="flex"
-      :loading="options.loading"
-      v-model:selection="selectedFields"
-      :lazy="true"
-      @page="onPage($event)"
-      @filter="onFilter($event)"
-      @sort="onSort($event)"
       :totalRecords="options.totalRecords"
       dataKey="issue_place_id"
-      :rowHover="true"
-      v-model:filters="filters"
-      filterDisplay="menu"
-      :showGridlines="true"
-      filterMode="lenient"
-      responsiveLayout="scroll"
+      v-model:selectionKeys="selectedKeys"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
@@ -931,7 +1020,7 @@ onMounted(() => {
               <OverlayPanel
                 ref="op"
                 appendTo="body"
-                class="p-0 m-0"
+                class="m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
                 :style="
@@ -939,12 +1028,12 @@ onMounted(() => {
                 "
               >
                 <div class="grid formgrid m-0">
-                  <div class="flex field col-12 p-0">
+                  <div class="flex field col-12">
                     <div
                       :class="
                         store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 p-0'
-                          : 'col-4 text-left pt-2 p-0'
+                          ? 'col-2 text-left pt-2 '
+                          : 'col-4 text-left pt-2 '
                       "
                       style="text-align: left"
                     >
@@ -962,11 +1051,11 @@ onMounted(() => {
                         optionLabel="data.organization_name"
                         optionValue="data.organization_id"
                         placeholder="Chọn đơn vị"
-                        class="col-12 p-0 m-0 md:col-12"
+                        class="col-12md:col-12"
                         v-if="store.state.user.is_super == 1"
                       />
                       <Dropdown
-                        class="col-12 p-0 m-0"
+                        class="col-12 m-0"
                         v-model="filterPhanloai"
                         :options="phanLoai"
                         optionLabel="name"
@@ -977,12 +1066,12 @@ onMounted(() => {
                     </div>
                   </div>
 
-                  <div class="flex field col-12 p-0">
+                  <div class="flex field col-12">
                     <div
                       :class="
                         store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 p-0'
-                          : 'col-4 text-left pt-2 p-0'
+                          ? 'col-2 text-left pt-2 '
+                          : 'col-4 text-left pt-2 '
                       "
                       style="text-align: center,justify-content:center"
                     >
@@ -994,7 +1083,7 @@ onMounted(() => {
                       "
                     >
                       <Dropdown
-                        class="col-12 p-0 m-0"
+                        class="col-12 m-0"
                         v-model="filterTrangthai"
                         :options="trangThai"
                         optionLabel="name"
@@ -1003,7 +1092,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="flex col-12 p-0">
+                  <div class="flex col-12">
                     <Toolbar
                       class="border-none surface-0 outline-none pb-0 w-full"
                     >
@@ -1067,18 +1156,17 @@ onMounted(() => {
       </template>
       <Column
         selectionMode="multiple"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        headerClass="align-items-center justify-content-center text-center max-w-2rem"
+        bodyClass="align-items-center justify-content-center text-center "
+        bodyStyle="max-width:calc(2rem + 2px)"
         v-if="store.state.user.is_super == true"
       ></Column>
       <Column
-        field="STT"
+        field="is_order"
         header="STT"
         :sortable="true"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        headerClass="align-items-center justify-content-center text-center max-w-4rem"
+        bodyClass="align-items-center justify-content-center text-center max-w-4rem"
       >
       </Column>
 
@@ -1086,35 +1174,34 @@ onMounted(() => {
         field="issue_place_name"
         header="Nơi ban hành"
         :sortable="true"
-        headerStyle="height:50px"
-        bodyStyle="max-height:60px"
+        headerClass="align-items-center justify-content-center text-center"
+        bodyClass="  word-break"
+        :expander="true"
       >
       </Column>
 
       <Column
         field="status"
         header="Hiển thị"
-        headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        headerClass="align-items-center justify-content-center text-center max-w-6rem"
+        bodyClass="align-items-center justify-content-center text-center max-w-6rem"
       >
         <template #body="data">
           <Checkbox
-            :binary="data.data.status"
-            v-model="data.data.status"
-            @click="onCheckBox(data.data)"
+            :binary="data.node.data.status"
+            v-model="data.node.data.status"
+            @click="onCheckBox(data.node.data)"
           />
         </template>
       </Column>
       <Column
         field="organization_id"
         header="Hệ thống"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        headerClass="align-items-center justify-content-center text-center max-w-8rem"
+        bodyClass="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.node.data.organization_id == 0">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
@@ -1124,29 +1211,50 @@ onMounted(() => {
         </template>
       </Column>
       <Column
+        header="Mã tra cứu"
+        field="search_code"
+        headerClass="align-items-center justify-content-center text-center max-w-12rem"
+        bodyClass=" max-w-12rem  justify-content-center word-break"
+      >
+      </Column>
+      <Column
+        header="Mã hiển thị"
+        field="display_code"
+        headerClass="align-items-center justify-content-center text-center max-w-12rem"
+        bodyClass=" max-w-12rem  justify-content-center word-break"
+      >
+      </Column>
+      <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        headerClass="align-items-center justify-content-center text-center max-w-10rem"
+        bodyClass="align-items-center justify-content-center text-center max-w-10rem"
       >
         <template #body="data">
+          <Button
+            @click="openChild(data.node)"
+            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+            type="button"
+            icon="pi pi-plus-circle"
+            v-tooltip="'Thêm nơi ban hành con'"
+          ></Button>
           <div
             v-if="
               store.state.user.is_super == true ||
-              store.state.user.user_id == data.data.created_by ||
+              store.state.user.user_id == data.node.data.created_by ||
               (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == data.data.organization_id)
+                store.state.user.organization_id ==
+                  data.node.data.organization_id)
             "
           >
             <Button
-              @click="editField(data.data)"
+              @click="editField(data.node.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-pencil"
               v-tooltip="'Sửa'"
             ></Button>
             <Button
-              @click="delField(data.data, true)"
+              @click="delField(data.node.data, true)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-trash"
@@ -1167,7 +1275,7 @@ onMounted(() => {
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
-    </DataTable>
+    </TreeTable>
   </div>
 
   <Dialog
@@ -1177,64 +1285,150 @@ onMounted(() => {
     :closable="false"
   >
     <form>
-      <div class="grid formgrid m-2">
+      <div class="col-12">
         <div
-          style="display: flex"
-          class="field col-12 md:col-12"
+          class="col-12 flex"
+          v-if="issuePlace.parent_name != null"
         >
-          <div class="col-12 p-0">
-            <div class="col-12 p-0 flex my-2">
-              <div class="col-3 text-left p-0 pb-2 line-height-4">
-                Nơi ban hành <span class="redsao">(*)</span>
-              </div>
-              <InputText
-                v-model="issuePlace.issue_place_name"
-                spellcheck="false"
-                class="col-9 p-0 m-0 ip36 px-2"
-              />
-            </div>
-            <div class="col-12 flex p-0">
-              <div class="col-3"></div>
-              <small
-                v-if="
-                  (v$.issue_place_name.$invalid && submitted) ||
-                  v$.issue_place_name.$pending.$response
-                "
-                class="col-9 p-error p-0"
-              >
-                <span class="col-12 p-0">{{
-                  v$.issue_place_name.required.$message
-                    .replace("Value", "Tên nơi ban hành")
-                    .replace("is required", "không được để trống")
-                }}</span>
-              </small>
-            </div>
-            <div class="col-12 p-0 flex my-2">
-              <div class="col-3 text-left p-0 pb-2 line-height-4">
-                <span class="redsao">(*)</span>
-              </div>
-              <InputText
-                v-model="issuePlace.issue_place_name"
-                spellcheck="false"
-                class="col-9 p-0 m-0 ip36 px-2"
-              />
-            </div>
-            <div class="col-12 p-0 my-3 flex">
-              <div class="col-6 flex p-0">
-                <div class="pb-2 col-6 p-0 line-height-4">STT</div>
-                <InputNumber
-                  v-model="issuePlace.is_order"
-                  class="col-6 p-0 ip36"
-                />
-              </div>
-              <div class="col-6 flex p-0">
-                <div class="pb-2 col-6 p-0 line-height-4 px-2">Trạng thái</div>
-                <InputSwitch
-                  v-model="issuePlace.status"
-                  class="col-6 p-0 ip36"
-                />
-              </div>
-            </div>
+          <div class="col-3 text-left">Cấp cha</div>
+          <InputText
+            v-model="issuePlace.parent_name"
+            spellcheck="false"
+            class="col-9 ip36"
+            disabled
+          />
+        </div>
+        <div class="col-12 flex">
+          <div class="col-3 text-left">
+            Nơi ban hành <span class="redsao">(*)</span>
+          </div>
+          <InputText
+            id="name"
+            v-model="issuePlace.issue_place_name"
+            spellcheck="false"
+            class="col-9 ip36"
+            @input="checkName()"
+            @paste="checkName()"
+          />
+        </div>
+        <div class="col-12 p-0 flex">
+          <div class="col-3"></div>
+          <small
+            v-if="
+              (v$.issue_place_name.$invalid && submitted) ||
+              v$.issue_place_name.$pending.$response
+            "
+            class="col-9 p-0 p-error"
+          >
+            <span class="col-12">{{
+              v$.issue_place_name.required.$message
+                .replace("Value", "Tên nơi ban hành")
+                .replace("is required", "không được để trống")
+            }}</span>
+          </small>
+        </div>
+        <div class="col-12 p-0 flex">
+          <div class="col-3"></div>
+          <small
+            v-if="isLengthName == true"
+            class="col-9 p-0 p-error"
+          >
+            <span class="col-12">Tên nơi ban hành không quá 250 ký tự.</span>
+          </small>
+        </div>
+        <div class="col-12 flex">
+          <div class="col-3 text-left">Mã đơn vị gốc</div>
+          <InputText
+            id="stt"
+            v-model="issuePlace.static_code"
+            spellcheck="false"
+            class="col-9 ip36"
+            @input="checkSttCode()"
+            @paste="checkSttCode()"
+          />
+        </div>
+        <div class="col-12 p-0 flex">
+          <div class="col-3"></div>
+          <small
+            v-if="isLengthStatic_Code == true"
+            class="col-9 p-0 p-error"
+          >
+            <span class="col-12">Mã đơn vị gốc không quá 50 ký tự.</span>
+          </small>
+        </div>
+        <div class="col-12 flex">
+          <div class="col-3 text-left">Mã đơn vị</div>
+          <InputText
+            id="dyn"
+            v-model="issuePlace.dynamic_code"
+            spellcheck="false"
+            class="col-9 ip36"
+            @input="checkDynCode()"
+            @paste="checkDynCode()"
+          />
+        </div>
+        <div class="col-12 p-0 flex">
+          <div class="col-3"></div>
+          <small
+            v-if="isLengthDynamic_Code == true"
+            class="col-9 p-0 p-error"
+          >
+            <span class="col-12">Mã đơn vị không quá 50 ký tự.</span>
+          </small>
+        </div>
+        <div class="col-12 flex">
+          <div class="col-3 text-left">Mã tra cứu</div>
+          <InputText
+            id="search_code"
+            v-model="issuePlace.search_code"
+            spellcheck="false"
+            class="col-9 ip36"
+            @input="checkSearchCode()"
+            @paste="checkSearchCode()"
+          />
+        </div>
+        <div class="col-12 p-0 flex">
+          <div class="col-3"></div>
+          <small
+            v-if="isLengthSearch_Code == true"
+            class="col-9 p-0 p-error"
+          >
+            <span class="col-12">Mã tìm kiếm không quá 50 ký tự.</span>
+          </small>
+        </div>
+        <div class="col-12 flex">
+          <div class="col-3 text-left">Mã hiển thị</div>
+          <InputText
+            id="display"
+            v-model="issuePlace.display_code"
+            spellcheck="false"
+            class="col-9 ip36"
+            @input="checkDisplayCode()"
+            @paste="checkDisplayCode()"
+          />
+        </div>
+        <div class="col-12 p-0 flex">
+          <div class="col-3"></div>
+          <small
+            v-if="isLengthDisplay_Code == true"
+            class="col-9 p-0 p-error"
+          >
+            <span class="col-12">Mã hiển thị không quá 50 ký tự.</span>
+          </small>
+        </div>
+        <div class="col-12 flex align-items-center">
+          <div class="col-3 text-left">STT</div>
+          <InputNumber
+            v-model="issuePlace.is_order"
+            class="col-1 ip-36 px-0"
+          />
+          <div class="col-2 text-center">Trạng thái</div>
+          <div class="col-1">
+            <InputSwitch v-model="issuePlace.status" />
+          </div>
+          <div class="col-3 text-center">Là nơi nhận qua mạng</div>
+          <div class="col-2">
+            <InputSwitch v-model="issuePlace.is_slider" />
           </div>
         </div>
       </div>
@@ -1307,5 +1501,8 @@ onMounted(() => {
 }
 .p-dropdown-item {
   white-space: normal !important;
+}
+.word-break {
+  word-break: break-all;
 }
 </style>

@@ -1749,44 +1749,19 @@ const listSig = () => {
 function renderhtml(id, htmltable) {
    var htmltable = "";
         htmltable = "<font face='Times New Roman'>";
-  //       htmltable +=
-  //   "<table border='0' width='1024' cellpadding='10'><tbody><tr><td style='padding:0px 30px;'><img src='" +
-  //   basedomainURL +
-  //   store.getters.user.logo +
-  //   " ' style='height:60px;width:auto;'/> </td></tr></tbody></table>";
-  // htmltable +=
-  //   "<table border='0' width='1024 !important' cellpadding='10'><thead><tr><th width='50%' style='font-weight:bold;text-align:center;padding:0px 15px;font-size:18px;word-wrap:break-word;text-transform:uppercase;'>BẢO HIỂM XÃ HỘI BỘ QUỐC PHÒNG</th>";
-  // htmltable +=
-  //   "<th width='50%' align='center' style='padding:0px 15px;font-size:17px;text-transform:uppercase;'><p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do – Hạnh phúc</p></th></tr></thead></table>";
-  // htmltable +=
-  //   "<table border='0' width='1024 !important' cellpadding='10'><tbody><tr><td width='50%' align='center'><div style='border-top:1.5px solid #000;margin:0px 100px;'></div></td>";
-  // htmltable +=
-  //   "<td width='50%' align='center'><div style='border-top:1.5px solid #000;margin:0px 100px;'></div></td></tr>";
-  // htmltable +=
-  //   "<tr><td align='center'> <div style=''>Số: " +
-  //   device_recall.value.recall_number +
-  //   "</div></td>";
-  // htmltable +=
-  //   "<td align='center'><div style='font-style:italic;'>..............., ngày " +
-  //   new Date(device_recall.value.created_date).getDate() +
-  //   " tháng  " +
-  //   (new Date(device_recall.value.created_date).getMonth() + 1) +
-  //   " năm " +
-  //   new Date(device_recall.value.created_date).getFullYear() +
-  //   "</div></td></tr></tbody></table>";
- 
+   
 htmltable +=
     "   <table  border='0' width='1024' cellpadding='0'> <thead> <tr> ";
   htmltable +=
     "<td   colspan='2' style='width: 40%; vertical-align: bottom ;text-align:center' >";
   htmltable +=
-    "    <div  style='text-transform: uppercase'>Bộ quốc phòng</div>";
+    "    <div  >BỘ QUỐC PHÒNG</div>";
   htmltable +=
-    "    <div style='text-transform: uppercase'> <b>Bảo hiểm xã hội</b> <div   style='text-align:center;border-top: 1.5px solid #000; margin: 5px 125px;margin-bottom: 0px '></div></div></td>";
+    "    <div > <b>BẢO HIỂM XÃ HỘI</b> <div   style='text-align:center;border-top: 1.5px solid #000; margin: 5px 125px;margin-bottom: 0px '></div></div></td>";
   htmltable +=
     "   <td  colspan='4' style='min-width: 40%; vertical-align: bottom;text-align:center' >";
   htmltable +=
-    "  <div style='text-transform: uppercase'> <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b> </div>";
+    "  <div  > <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b> </div>";
   htmltable += "    <div><b>Độc lập - Tự do - Hạnh phúc</b></div>";
   htmltable +=
     "     <div   style='text-align:center;border-top: 1.5px solid #000; margin: 5px 200px;margin-bottom: 0px '  ></div>  </td>  </tr>";
@@ -2104,10 +2079,7 @@ function renderhtmlWord(id, htmltable) {
     tfoot {
       display: table-footer-group !important;
     }
-    .uppercase,
-    .uppercase * {
-      text-transform: uppercase !important;
-    }
+     
     .text-center {
       text-align: center !important;
     }

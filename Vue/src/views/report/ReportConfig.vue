@@ -14,7 +14,7 @@ const cryoptojs = inject("cryptojs");
 const arrroutes = ref([]);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    full_name: {
+  full_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -240,8 +240,7 @@ const loadUser = (data) => {
 const initUser = (data) => {
   if (data_coppy.value && data.module_id !== data_coppy.value.module_id) {
     different_module_move.value = true;
-  }
-  else different_module_move.value = false;
+  } else different_module_move.value = false;
   row_module.value = data;
   axios
     .post(
@@ -459,22 +458,22 @@ function checkAllChildren(data) {
     });
   }
 }
-function pushItemChecked(data){
-    data.forEach((item)=>{
-    if(item.data.is_checked){
+function pushItemChecked(data) {
+  data.forEach((item) => {
+    if (item.data.is_checked) {
       datalists.value.push({
-      organization_id: item.data.organization_id,
-      organization_name: item.data.organization_name,
-    });
+        organization_id: item.data.organization_id,
+        organization_name: item.data.organization_name,
+      });
     }
-    if(item.children && item.children.length > 0){
+    if (item.children && item.children.length > 0) {
       pushItemChecked(item.children);
     }
-  })
+  });
 }
 const savePhongban = () => {
-  if(temporganizations.value.length>0)
-   pushItemChecked(temporganizations.value);
+  if (temporganizations.value.length > 0)
+    pushItemChecked(temporganizations.value);
   row_selected.value.report_module_organization = datalists.value.map(
     (obj) => ({ ...obj, user_sub: row_selected.value.user_id })
   );
@@ -707,7 +706,7 @@ onMounted(() => {
         <template #header> </template>
         <template #body="md">
           <Button
-          v-if="md.node.data.parent_id !== null"
+            v-if="md.node.data.parent_id !== null"
             type="button"
             icon="pi pi-key"
             class="p-button-rounded p-button-secondary p-button-outlined"
@@ -849,7 +848,7 @@ onMounted(() => {
             headerStyle="text-align:center;"
             bodyStyle="text-align:center;"
             :showFilterMatchModes="false"
-          >           
+          >
           </Column>
           <Column
             field="position_name"
@@ -883,6 +882,7 @@ onMounted(() => {
                 optionLabel="text"
                 optionValue="value"
                 placeholder="Chọn phạm vi"
+                :showClear="true"
               />
             </template>
           </Column>
@@ -934,10 +934,12 @@ onMounted(() => {
                     "
                     v-tooltip.top="
                       item.full_name +
-                      '<br>' +
-                      item.position_name +
-                      '<br>' +
-                      item.department_name
+                      (item.position_name != null
+                        ? '<br>' + item.position_name
+                        : '') +
+                      (item.department_name != null
+                        ? '<br>' + item.department_name
+                        : '')
                     "
                     :key="item.user_id"
                     style="border: 2px solid orange; color: white"

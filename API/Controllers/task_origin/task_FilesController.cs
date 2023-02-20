@@ -54,7 +54,7 @@ namespace API.Controllers.Task_Origin1
                         throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
                     }
 
-                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string root = HttpContext.Current.Server.MapPath("~/");
 
                     var provider = new MultipartFormDataStreamProvider(root);
 
@@ -74,18 +74,29 @@ namespace API.Controllers.Task_Origin1
                         string newFileName = "";
                         var task = db.task_origin.AsNoTracking().Where(x => x.task_id == report).FirstOrDefault();
                         var file = provider.FileData;
+                        var check = "";
 
                         if (file.Count > 0)
                         {
+                            check += "có " + file.Count + " file";
                             #region file
-                            string path = root + "/" + task.organization_id + "/TaskOrigin/" + task.task_id + "/";
+                            string path = root + "/Portals/" + task.organization_id + "/TaskOrigin/" + task.task_id + "/";
                             bool exists = Directory.Exists(path);
                             if (!exists)
+                            {
+                                check += "vừa tạo folder";
                                 Directory.CreateDirectory(path);
+                            }
+                            else
+                            {
+                                check += "đã có folder";
+                            }
+
                             List<task_file> dfs = new List<task_file>();
                             foreach (MultipartFileData fileData in provider.FileData)
                             {
                                 string org_name_file = fileData.Headers.ContentDisposition.FileName;
+                                check += "file " + org_name_file;
                                 if (org_name_file.StartsWith("\"") && org_name_file.EndsWith("\""))
                                 {
                                     org_name_file = org_name_file.Trim('"');
@@ -117,6 +128,7 @@ namespace API.Controllers.Task_Origin1
                                 {
                                     File.Delete(rootPath);
                                 }
+                                check += rootPath;
                                 File.Move(fileData.LocalFileName, rootPath);
                                 File.Delete(fileData.LocalFileName);
                                 //File.Copy(fileData.LocalFileName, rootPathFile, true);
@@ -171,7 +183,7 @@ namespace API.Controllers.Task_Origin1
                         db.task_logs.Add(log);
                         db.SaveChanges();
                         #endregion
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", });
                     });
                     return await task;
                 }
@@ -231,7 +243,7 @@ namespace API.Controllers.Task_Origin1
                         {
                             delTask.Add(de);
                         }
-                      
+
 
                     }
                     if (delTask.Count == 0)

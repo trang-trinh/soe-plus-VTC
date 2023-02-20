@@ -322,6 +322,9 @@ const DeviceWareHouse = () =>
     import ("../views/device/DeviceWareHouse.vue");
 const ConfigDeHandover = () =>
     import ("../views/device/ConfigDeHandover.vue");
+const MyAssets = () =>
+    import ("../views/device/MyAssets.vue");
+
 // Cấu hình
 const DeviceRepair = () =>
     import ("../views/device/DeviceRepair.vue");
@@ -388,11 +391,12 @@ const Hrm_Info = () =>
 const HrmProfile = () =>
     import ("../views/hrm/profile/profile.vue");
 const HrmProfileInfo = () =>
-    import ("../views/hrm/profile/component/profileinfo.vue")
+    import ("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () =>
     import ("../views/hrm/contract/contract.vue");
 const Insurance = () =>
     import ("../views/hrm/insurance/insurance.vue");
+    const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 //end
 // TV
 const ConfigScreenTV = () =>
@@ -400,6 +404,8 @@ const ConfigScreenTV = () =>
 const ScreenTV = () =>
     import ("../views/tivi/tivi_screen.vue");
 // Tài liệu
+const FileMain_Detail = () =>
+    import ("../views/files/FileMain.vue");
 const FileFolder = () =>
     import ("../views/files/FileFolder.vue");
 const FileMain = () =>
@@ -479,8 +485,16 @@ const caHRMVacancy = () =>
     import ("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () =>
     import ("../views/hrm/category/caWage.vue");
-    const caLeavingReason = () =>
+const caLeavingReason = () =>
     import ("../views/hrm/category/caLeavingReason.vue");
+
+const caClassroom = () =>
+    import ("../views/hrm/category/caClassroom.vue");
+const caReceipt = () =>
+    import ("../views/hrm/category/caReceipt.vue");
+const caEnectingGroup = () =>
+    import ("../views/hrm/category/caEnectingGroup.vue");
+
 const FileMain_Detail = () =>
     import ("../views/files/FileMain.vue");
 
@@ -1231,6 +1245,12 @@ const router = createRouter({
             name: "configdehandover",
             component: ConfigDeHandover,
         },
+        {
+            path: "/device/my_assets",
+            name: "myassets",
+            component: MyAssets,
+        },
+
 
         //Cấu hình
         {
@@ -1282,6 +1302,10 @@ const router = createRouter({
             path: "/device/category/status",
             name: "devicestatus",
             component: DeviceStatus,
+        }, {
+            path: "/device/my_assets",
+            name: "myAssets",
+            component: MyAssets,
         },
 
         // Chat
@@ -1303,6 +1327,11 @@ const router = createRouter({
             component: Chat_Detail,
         },
         // Tài liệu
+        {
+            path: "/files/file_main/:id/:type",
+            name: "files/file_main_detail",
+            component: FileMain_Detail,
+        },
         {
             path: "/files/file_folder",
             name: "file_folder",
@@ -1573,7 +1602,6 @@ const router = createRouter({
             name: "Hrm_Info",
             component: Hrm_Info,
         },
-
         {
             path: "/sqldb",
             name: "SQLDB_Query",
@@ -1745,11 +1773,29 @@ const router = createRouter({
             name: "caHRMWage",
             component: caHRMWage,
         },
+
         {
             path: "/hrm/category/ca_leavingreason",
             name: "caHRMLeavingReason",
             component: caLeavingReason,
         },
+
+        {
+            path: "/hrm/category/ca_classroom",
+            name: "caHRMClassroom",
+            component: caClassroom,
+        },
+        {
+            path: "/hrm/category/ca_receipt",
+            name: "caHRMReceipt",
+            component: caReceipt,
+        },
+        {
+            path: "/hrm/category/ca_enectinggroup",
+            name: "caHRMEnectingGroup",
+            component: caEnectingGroup,
+        },
+
         //HRM
         {
             path: "/hrm/hrm_training",
@@ -1766,7 +1812,11 @@ const router = createRouter({
             name: "insurance",
             component: Insurance,
         },
-
+        {
+            path: "/hrm/hrm_file",
+            name: "Hrm_File",
+            component: Hrm_File,
+          },
     ],
 });
 // router.beforeEach((to, from) => {

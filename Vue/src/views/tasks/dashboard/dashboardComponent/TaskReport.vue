@@ -16,7 +16,7 @@ const basedomainURL = baseURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
-const width = window.screen.width;
+const width1 = window.screen.width;
 const addLog = (log) => {
   // eslint-disable-next-line no-undef
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
@@ -61,6 +61,10 @@ const listStatus = ref([
 const user = store.state.user;
 const listTask = ref([]);
 const first = ref(0);
+const PositionSideBar = ref("right");
+emitter.on("psb", (obj) => {
+  PositionSideBar.value = obj;
+});
 const loadData = () => {
   axios
     .post(
@@ -365,6 +369,7 @@ const sendData = (x) => {
     .then((response) => {
       if (response.data.err != "1") {
         toast.success("Thêm mới báo cáo công việc thành công!");
+        loadData();
       } else {
         swal.fire({
           title: "Error!",
@@ -382,6 +387,26 @@ const sendData = (x) => {
         icon: "error",
         confirmButtonText: "OK",
       });
+    });
+};
+const configMail = ref();
+const getConfigMail = () => {
+  axios
+    .get(baseURL + "/api/SendEmail/GetConfigMail", {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    })
+    .then((response) => {
+      if (response.data.err != "1") {
+        configMail.value = response.data.data;
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
     });
 };
 const bodymail = ref();
@@ -404,6 +429,7 @@ const sendMail = (x) => {
   mailInfo.value.body = bodymail.value.toString();
 
   let formData = new FormData();
+  formData.append("pwMail", configMail.value.kpmail);
   formData.append("mailinfo", JSON.stringify(mailInfo.value));
   axios({
     method: "post",
@@ -472,8 +498,14 @@ emitter.on("SideBar", (obj) => {
   showDetail.value = obj;
   loadData();
 });
+watch(showDetail, () => {
+  if (showDetail.value == false) {
+    loadData();
+  }
+});
 onMounted(() => {
   loadData();
+  getConfigMail();
   bodymail.value = "";
 });
 </script>
@@ -1200,13 +1232,27 @@ onMounted(() => {
       />
     </template>
   </Dialog>
-  <DetailedWork
-    v-if="showDetail == true && selectedTaskID != null"
-    :isShow="showDetail"
-    :id="selectedTaskID"
-    :turn="0"
+  <Sidebar
+    v-model:visible="showDetail"
+    :position="PositionSideBar"
+    :style="{
+      width:
+        PositionSideBar == 'right'
+          ? width1 > 1800
+            ? ' 55vw'
+            : '75vw'
+          : '100vw',
+      'min-height': '100vh !important',
+    }"
+    :showCloseIcon="false"
   >
-  </DetailedWork>
+    <DetailedWork
+      :isShow="showDetail"
+      :id="selectedTaskID"
+      :turn="0"
+    >
+    </DetailedWork
+  ></Sidebar>
 </template>
 
 <style lang="scss" scoped>

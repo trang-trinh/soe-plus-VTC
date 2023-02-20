@@ -34,8 +34,8 @@ const props = defineProps({
               style="width: 100%; vertical-align: bottom"
             >
              
-              <div class="uppercase">
-                <b>Thông tin thẻ thiết bị</b>
+              <div  >
+                <b>THÔNG TIN THẺ THIẾT BỊ</b>
                 
               </div>
             </td>
@@ -114,10 +114,7 @@ tr {
 tfoot {
   display: table-footer-group !important;
 }
-.uppercase,
-.uppercase * {
-  text-transform: uppercase !important;
-}
+ 
 .text-center {
   text-align: center !important;
 }

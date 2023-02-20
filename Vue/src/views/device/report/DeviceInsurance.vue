@@ -614,10 +614,7 @@ function renderhtml(id, htmltable) {
     tfoot {
       display: table-footer-group !important;
     }
-    .uppercase,
-    .uppercase * {
-      text-transform: uppercase !important;
-    }
+   
     .text-center {
       text-align: center !important;
     }
@@ -641,7 +638,7 @@ function renderhtml(id, htmltable) {
           <tr>
             <td class="text-center" colspan="6">
               <div style="padding: 1rem 0">
-                <div class="uppercase title2"><b>BÁO CÁO TRANG THIẾT BỊ ĐẾN THỜI KỲ BẢO HÀNH, BẢO TRÌ</b></div>
+                <div class="  title2"><b>BÁO CÁO TRANG THIẾT BỊ ĐẾN THỜI KỲ BẢO HÀNH, BẢO TRÌ</b></div>
              
               </div>
             </td>

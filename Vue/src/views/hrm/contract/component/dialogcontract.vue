@@ -624,13 +624,13 @@ onMounted(() => {});
                           </span>
                           <span
                             v-if="
-                              props.professional_works.findIndex(
+                              props.dictionarys[11].findIndex(
                                 (x) => x.professional_work_id === item
                               ) !== -1
                             "
                           >
                             {{
-                              props.professional_works.find(
+                              props.dictionarys[11].find(
                                 (x) => x["professional_work_id"] == item
                               ).professional_work_name
                             }}

@@ -4,6 +4,7 @@ import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dilogprofile from "../profile/component/dilogprofile.vue";
 import dialogreceipt from "../profile/component/dialogreceipt.vue";
+import dialoghealth from "../profile/component/dialoghealth.vue";
 import moment from "moment";
 const router = inject("router");
 const store = inject("store");
@@ -183,7 +184,7 @@ const itemButMoresPlus = ref([
     label: "Sức khỏe",
     icon: "pi pi-user",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openEditDialogHealth(profile.value, "Thông tin sức khỏe");
     },
   },
   {
@@ -575,74 +576,25 @@ const receipts = ref([]);
 const headerDialogReceipt = ref();
 const displayDialogReceipt = ref(false);
 const openEditDialogReceipt = (item, str) => {
-  options.value.loading = true;
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  isAdd.value = false;
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_profile_receipt_get",
-            par: [{ par: "profile_id", va: item.profile_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      var data = response.data.data;
-      if (data != null) {
-        var tbs = JSON.parse(data);
-        if (tbs[0] != null && tbs[0].length > 0) {
-          receipts.value = tbs[0];
-          receipts.value.forEach((x) => {
-            if (x["receipt_date"] != null) {
-              x["receipt_date"] = new Date(x["receipt_date"]);
-            }
-          });
-        }
-      }
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      forceRerender();
-      headerDialogReceipt.value = str;
-      displayDialogReceipt.value = true;
-    })
-    .catch((error) => {
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-        return;
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    });
+  forceRerender();
+  headerDialogReceipt.value = str;
+  displayDialogReceipt.value = true;
 };
 const closeDialogReceipt = () => {
   displayDialogReceipt.value = false;
-}
+};
+
+//function helth
+const headerDialogHealth = ref();
+const displayDialogHealth = ref(false);
+const openEditDialogHealth = (item, str) => {
+  forceRerender();
+  headerDialogHealth.value = str;
+  displayDialogHealth.value = true;
+};
+const closeDialogHealth = () => {
+  displayDialogHealth.value = false;
+};
 
 //Init
 const initPlace = () => {
@@ -1363,7 +1315,7 @@ onMounted(() => {
                                 <div class="mb-1">
                                   {{ slotProps.option.full_name }}
                                 </div>
-                                <div class="description">
+                                <div class="description-2">
                                   <div>
                                     {{ slotProps.option.position_name }}
                                   </div>
@@ -1567,6 +1519,7 @@ onMounted(() => {
                 width: 5rem;
                 height: 5rem;
                 font-size: 1.5rem !important;
+                border-radius: 10px;
               "
               :style="{
                 background: bgColor[slotProps.index % 7],
@@ -1585,29 +1538,29 @@ onMounted(() => {
               <div class="mb-2">
                 <b>{{ slotProps.data.profile_user_name }}</b>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.profile_id }}</span>
               </div>
               <div
-                class="mb-1 description"
+                class="mb-1"
                 v-if="slotProps.data.recruitment_date"
               >
                 Ngày vào: {{ slotProps.data.recruitment_date }}
               </div>
             </div>
             <div class="mr-2" style="min-width: 200px">
-              <div class="mb-1 description" v-if="slotProps.data.gender">
+              <div class="mb-1" v-if="slotProps.data.gender">
                 <span>{{ slotProps.data.gender == 1 ? "Nam" : "Nữ" }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.birthday }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.birthplace_name }}</span>
               </div>
             </div>
             <div class="mr-2" style="min-width: 200px">
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span
                   >{{ slotProps.data.phone }}
                   <span
@@ -1620,21 +1573,21 @@ onMounted(() => {
                   {{ slotProps.data.email }}</span
                 >
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.identity_papers_code }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.place_residence }}</span>
               </div>
             </div>
             <div class="mr-2" style="min-width: 200px">
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.department_name }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.work_position_name }}</span>
               </div>
-              <div class="mb-1 description">
+              <div class="mb-1">
                 <span>{{ slotProps.data.position_name }}</span>
               </div>
             </div>
@@ -1751,7 +1704,14 @@ onMounted(() => {
     :displayDialog="displayDialogReceipt"
     :closeDialog="closeDialogReceipt"
     :profile="profile"
-    :receipts="receipts"
+  />
+  <dialoghealth
+    :key="componentKey"
+    :headerDialog="headerDialogHealth"
+    :displayDialog="displayDialogHealth"
+    :closeDialog="closeDialogHealth"
+    :profile="profile"
+    :users="dictionarys[19]"
   />
   <Menu
     id="overlay_More"

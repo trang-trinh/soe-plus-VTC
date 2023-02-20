@@ -541,8 +541,9 @@ div[contentEditable="true"]:empty:not(:focus):before {
     cursor: auto !important;
 }
 
-.description {
+.description-2 {
     color: #999;
+    font-size: 13px;
 }
 
 .inputanh2 {

@@ -848,7 +848,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             >
               <div class="grid formgrid m-0">
                 <div class="flex field col-12 p-0 align-items-center">
-                  <div class="col-4">Trạng thái</div>
+                  <div class="col-4">Mặc định</div>
                   <div class="col-8">
                     <Dropdown
                       class="col-12 p-0 m-0"
@@ -856,7 +856,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                       :options="trangThai"
                       optionLabel="name"
                       optionValue="code"
-                      placeholder="Trạng thái"
+                      placeholder="Mặc định"
                     />
                   </div>
                 </div>
@@ -1013,7 +1013,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       </Column>
       <Column
         field="status"
-        header="Trạng thái"
+        header="Mặc định"
         headerStyle="text-align:center;jusst;max-width:120px;height:50px"
         bodyStyle="text-align:center;max-width:120px;"
         class="align-items-center justify-content-center text-center"
@@ -1223,7 +1223,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         </div>
         <div class="field col-12 md:col-12 flex">
           <label style="vertical-align: text-bottom" class="col-4 text-left p-0"
-            >Trạng thái
+            >Mặc định
           </label>
           <InputSwitch
             class="w-4rem lck-checked"
