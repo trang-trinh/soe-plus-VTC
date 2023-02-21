@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 using System.Data.Entity.Validation;
 using System.Data.Entity;
 using System.IO;
+using Newtonsoft.Json.Linq;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 
 namespace API.Controllers.HRM.Profile
 {
@@ -122,25 +124,31 @@ namespace API.Controllers.HRM.Profile
                     }
                     #endregion
                     #region add relative
-                    var relatives_old = await db.hrm_profile_relative.Where(x => x.profile_id == model.profile_id).ToListAsync();
-                    if (relatives_old.Count > 0)
+                    var check = await db.hrm_profile_relative.CountAsync(x => (x.is_bout ?? 0) > 0) > 0;
+                    if (!check)
                     {
-                        db.hrm_profile_relative.RemoveRange(relatives_old);
-                    }
-                    if (relatives != null)
-                    {
-                        var count = 0;
-                        foreach (var rl in relatives)
+                        var relatives_old = await db.hrm_profile_relative.Where(x => x.profile_id == model.profile_id && x.is_root == true).ToListAsync();
+                        if (relatives_old.Count > 0)
                         {
-                            rl.profile_relative_id = helper.GenKey();
-                            rl.profile_id = model.profile_id;
-                            rl.is_order = count++;
-                            rl.created_token_id = tid;
-                            rl.created_date = DateTime.Now;
-                            rl.created_by = uid;
-                            rl.created_token_id = tid;
-                            rl.created_ip = ip;
-                            db.hrm_profile_relative.Add(rl);
+                            db.hrm_profile_relative.RemoveRange(relatives_old);
+                        }
+                        if (relatives != null)
+                        {
+                            var count = 0;
+                            foreach (var rl in relatives)
+                            {
+                                rl.profile_relative_id = helper.GenKey();
+                                rl.profile_id = model.profile_id;
+                                rl.is_order = count++;
+                                rl.created_token_id = tid;
+                                rl.created_date = DateTime.Now;
+                                rl.created_by = uid;
+                                rl.created_token_id = tid;
+                                rl.created_ip = ip;
+                                rl.is_root = true;
+                                rl.is_bout = 0;
+                                db.hrm_profile_relative.Add(rl);
+                            }
                         }
                     }
                     #endregion
@@ -287,6 +295,7 @@ namespace API.Controllers.HRM.Profile
                             df.created_date = DateTime.Now;
                             df.created_ip = ip;
                             df.created_token_id = tid;
+                            df.organization_id = user_now.organization_id;
                             dfs.Add(df);
                         }
                     }
@@ -313,6 +322,84 @@ namespace API.Controllers.HRM.Profile
             {
                 string contents = helper.ExceptionMessage(e);
                 helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_star_profile()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    // Params
+                    var is_star = bool.Parse(provider.FormData.GetValues("is_star").SingleOrDefault());
+                    var ids = provider.FormData.GetValues("ids").SingleOrDefault();
+                    List<string> profiles = JsonConvert.DeserializeObject<List<string>>(ids);
+                    if (profiles.Count > 0)
+                    {
+                        foreach (var profile_id in profiles)
+                        {
+                            var profile = db.hrm_profile.Find(profile_id);
+                            if (profile != null)
+                            {
+                                profile.is_star = is_star;
+                            }
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_star_contract", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_star_contract", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -650,6 +737,96 @@ namespace API.Controllers.HRM.Profile
             {
                 string contents = helper.ExceptionMessage(e);
                 helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile_health", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_profile_relative_late()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    string profile_id = provider.FormData.GetValues("profile_id").SingleOrDefault();
+                    var rel = provider.FormData.GetValues("relative").SingleOrDefault();
+
+                    List<hrm_profile_relative> relatives = JsonConvert.DeserializeObject<List<hrm_profile_relative>>(rel);
+                    List<hrm_profile_relative> new_relatives = new List<hrm_profile_relative>();
+                    int stt = 0;
+                    int is_bout = db.hrm_profile_relative.Max(x => x.is_bout) ?? 0;
+                    foreach (var rl in relatives)
+                    {
+                        hrm_profile_relative relative = new hrm_profile_relative();
+                        relative = rl;
+                        relative.profile_relative_id = helper.GenKey();
+                        relative.profile_id = profile_id;
+                        relative.is_order = stt++;
+                        relative.created_by = uid;
+                        relative.created_date = DateTime.Now;
+                        relative.created_ip = ip;
+                        relative.created_token_id = tid;
+                        relative.is_root = false;
+                        relative.is_bout = is_bout + 1;
+                        new_relatives.Add(relative);
+                    }
+                    if (new_relatives.Count > 0)
+                    {
+                        db.hrm_profile_relative.AddRange(new_relatives);
+                    }
+
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
                 if (!helper.debug)
                 {
                     contents = "";

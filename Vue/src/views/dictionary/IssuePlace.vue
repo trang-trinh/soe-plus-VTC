@@ -1426,7 +1426,7 @@ onMounted(() => {
           <div class="col-1">
             <InputSwitch v-model="issuePlace.status" />
           </div>
-          <div class="col-3 text-center">Là nơi nhận qua mạng</div>
+          <div class="col-3 text-center">Tích nơi nhận qua mạng</div>
           <div class="col-2">
             <InputSwitch v-model="issuePlace.is_slider" />
           </div>

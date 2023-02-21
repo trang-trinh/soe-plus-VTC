@@ -64,6 +64,7 @@ const dispatch = ref({
   nav_type: 0,
   status: true,
   is_order: 1,
+  code: "",
 });
 
 const selectedDispatchs = ref();
@@ -395,6 +396,7 @@ const openBasic = (str) => {
     open_date: new Date(),
     end_date: null,
     year: y,
+    code: "",
   };
 
   dispatch.value.organization_id = store.state.user.is_super
@@ -1488,6 +1490,13 @@ onMounted(() => {
               <InputText
                 class="col-10 ip36 px-2"
                 v-model="dispatch.tracking_place"
+              />
+            </div>
+            <div class="col-12 p-0 my-3 flex">
+              <div class="pb-2 col-2 p-0 line-height-4">Ký hiệu</div>
+              <InputText
+                class="col-10 ip36 px-2"
+                v-model="dispatch.code"
               />
             </div>
 
