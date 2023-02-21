@@ -290,7 +290,7 @@ onMounted(() => {
             class="row col-12 flex p-0 m-0 my-div"
             v-for="(m, index) in members"
             :key="m"
-            style="border-bottom: 1px solid"
+            style="border-bottom: 1px solid #ccc"
           >
             <div class="col-2 format-center p-0 m-0">
               <Avatar

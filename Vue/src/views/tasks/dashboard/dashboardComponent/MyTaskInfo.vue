@@ -87,7 +87,7 @@ const listCountIDoButton = ref([
 const listTask = ref();
 const chartData1 = ref();
 const chartData2 = ref();
-const listActive = ref();
+const listActive = ref([]);
 const simpleDateName = (date) => {
   let numOfDate = new Date(date).getDay() + 1;
   if (numOfDate == 1) {
@@ -108,8 +108,8 @@ const simpleDateName = (date) => {
   }
 };
 const PositionSideBar = ref("right");
-
-const LoadCountTask = (page) => {
+const page = ref();
+const LoadCountTask = () => {
   axios
     .post(
       // eslint-disable-next-line no-undef
@@ -120,7 +120,7 @@ const LoadCountTask = (page) => {
             proc: "task_dashboard_count",
             par: [
               { par: "user_id", va: user.user_id },
-              // { par: "page", va: 0 },
+              { par: "page", va: page.value },
             ],
           }),
           // eslint-disable-next-line no-undef
@@ -231,8 +231,6 @@ const LoadCountTask = (page) => {
         };
         listDate2.push(d);
       });
-
-      listActive.value = [];
       listDate2.forEach((z) => {
         z.data = [];
         listact.forEach((x) => {
@@ -241,7 +239,9 @@ const LoadCountTask = (page) => {
           }
         });
       });
-      listActive.value = listDate2;
+      listDate2.forEach((z) => {
+        listActive.value.push(z);
+      });
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!" + error);
@@ -304,7 +304,12 @@ emitter.on("SideBar", (obj) => {
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
 });
+const loadMore = () => {
+  page.value += 1;
+  LoadCountTask();
+};
 onMounted(() => {
+  page.value = 0;
   LoadCountTask(0);
 });
 </script>
@@ -396,7 +401,7 @@ onMounted(() => {
                 {{ item.date_display }}
               </div>
               <div
-                class="col-12 flex format-left border-bottom-1 border-gray-200 task-hover"
+                class="col-12 flex format-left border-bottom-1 border-gray-100 task-hover"
                 v-for="(item, index) in item.data"
                 :key="index"
               >
@@ -446,6 +451,14 @@ onMounted(() => {
                   ></Button>
                 </div>
               </div>
+            </div>
+            <div class="col-12 flex align-items-center justify-content-center">
+              <Button
+                label="Xem thêm..."
+                class="p-button-text"
+                @click="loadMore()"
+              >
+              </Button>
             </div>
           </ScrollPanel>
         </div>

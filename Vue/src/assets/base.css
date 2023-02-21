@@ -1092,3 +1092,32 @@ li.p-chips-token {
 .black-text.p-dialog .p-dialog-content {
     color: #000 !important;
 }
+.wrap-multi.p-multiselect{
+    height: auto; 
+    min-height: 36px
+  }
+  .wrap-multi.p-multiselect .p-chip-text {
+    word-break: break-word !important;
+  }
+
+  .wrap-multi.p-multiselect .p-chip img {
+    margin: 0;
+  }
+  .wrap-multi.p-multiselect .p-multiselect-label{
+    height: 100%;
+    display: flex;
+    align-items: center;
+    white-space: normal !important;
+    flex-wrap: wrap;
+    row-gap: 0.3rem;
+  }
+  .wrap-multi.p-multiselect .p-multiselect-token{
+    max-width: 100%;
+  }
+  .wrap-multi.p-multiselect .p-multiselect-token-label{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }

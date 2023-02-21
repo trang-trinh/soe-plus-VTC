@@ -162,6 +162,7 @@ const LoadLinkTaskOrigin = (user, list_task_id) => {
     });
 };
 const loadData = () => {
+  noData.value = true;
   options.value.loading = true;
   axios
     .post(
@@ -235,6 +236,7 @@ const refresh = () => {
     SearchText: null,
     DateTime: null,
   };
+  styleObj.value = "";
   loadData();
 };
 const checkDelList = ref(false);
