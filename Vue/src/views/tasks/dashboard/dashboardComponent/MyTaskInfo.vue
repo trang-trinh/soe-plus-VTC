@@ -388,7 +388,10 @@ onMounted(() => {
         <div class="p-1"></div>
         <div class="col-12 bg-white">
           <div class="col-12 font-bold">Hoạt động gần đây</div>
-          <ScrollPanel :style="{ height: width > 1900 ? '62vh' : '39.5vh' }">
+          <ScrollPanel
+            :style="{ height: width > 1900 ? '62vh' : '39.5vh' }"
+            v-if="listActive.length > 0"
+          >
             <div
               class="col-12 border-gray-500 p-0"
               v-for="(item, index) in listActive"
@@ -461,6 +464,17 @@ onMounted(() => {
               </Button>
             </div>
           </ScrollPanel>
+          <div
+            v-else
+            class="align-items-center justify-content-center p-4 text-center m-auto"
+            style="display: flex; flex-direction: column"
+          >
+            <img
+              src="../../../../assets/background/nodata.png"
+              height="144"
+            />
+            <h3 class="m-1">Không có dữ liệu</h3>
+          </div>
         </div>
       </div>
 
@@ -468,7 +482,10 @@ onMounted(() => {
         <div class="col-12 bg-white">
           <div class="col-12 font-bold">Công việc gần nhất đang thực hiện</div>
 
-          <ScrollPanel style="height: 33vh">
+          <ScrollPanel
+            style="height: 33vh"
+            v-if="listTask.length > 0"
+          >
             <div
               class="col-12 flex task-hover"
               v-for="(item, index) in listTask"
@@ -618,6 +635,17 @@ onMounted(() => {
               </div>
             </div>
           </ScrollPanel>
+          <div
+            v-else
+            class="align-items-center justify-content-center p-4 text-center m-auto"
+            style="display: flex; flex-direction: column"
+          >
+            <img
+              src="../../../../assets/background/nodata.png"
+              height="144"
+            />
+            <h3 class="m-1">Không có dữ liệu</h3>
+          </div>
         </div>
 
         <div class="p-1"></div>

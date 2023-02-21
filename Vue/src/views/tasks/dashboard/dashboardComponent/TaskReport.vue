@@ -782,6 +782,18 @@ onMounted(() => {
           />
         </template>
       </Column>
+      <template #empty>
+        <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          style="display: flex; flex-direction: column"
+        >
+          <img
+            src="../../../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div></template
+      >
     </DataTable>
   </div>
   <Dialog
