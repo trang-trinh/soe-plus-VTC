@@ -4,7 +4,8 @@ import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import { useRoute } from "vue-router";
 import dialogcontract from "../../contract/component/dialogcontract.vue";
-import dialoginfo from "../../profile/component/dialoginfo.vue"
+import dialoginfo from "../../profile/component/dialoginfo.vue";
+import dialogtraining from "../../training/component/dialog_training.vue";
 import moment from "moment";
 
 const route = useRoute();
@@ -62,6 +63,9 @@ watch(selectedNodes, () => {
   if (options.value.view === 3) {
     options.value["contract_id"] = selectedNodes.value["contract_id"];
     openViewDialogContract("Thông tin hợp đồng");
+  } else if (options.value.view === 8) {
+    options.value["training_emps_id"] = selectedNodes.value["training_emps_id"];
+    openViewDialogTranning("Thông tin khóa đào tạo");
   }
 });
 
@@ -256,6 +260,37 @@ function formatNumber(a, b, c, d) {
   );
 }
 
+//data view 8
+const statusTrannings = ref([
+  { name: "Lên kế hoạch", code: 1 },
+  { name: "Đang thực hiện", code: 2 },
+  { name: "Đã hoàn thành", code: 3 },
+  { name: "Tạm dừng", code: 4 },
+  { name: "Đã hủy", code: 5 },
+]);
+const typeTrannings = ref([
+  { name: "Cấp lãnh đạo", code: 1 },
+  { name: "Quản lý", code: 2 },
+  { name: "Nhân viên", code: 3 },
+]);
+const formTrannings = ref([
+  { name: "Bắt buộc", code: 1 },
+  { name: "Đăng ký", code: 2 },
+  { name: "Cả hai", code: 3 },
+]);
+const trannings = ref([]);
+const tranning = ref({});
+const headerDialogTranning = ref();
+const displayDialogTranning = ref(false);
+const openViewDialogTranning = (str) => {
+  forceRerender();
+  headerDialogTranning.value = str;
+  displayDialogTranning.value = true;
+};
+const closeDialogTranning = () => {
+  displayDialogTranning.value = false;
+}
+
 //data view 11
 const receipts = ref([]);
 
@@ -305,7 +340,6 @@ const changeView = (view) => {
   options.value.view = view;
   initData();
 };
-
 
 //function edit
 const isType = ref();
@@ -538,6 +572,37 @@ const initDictionary6 = () => {
     })
     .then(() => {
       initView6(true);
+    });
+};
+//init dictionary view 8
+const initDictionary8 = () => {
+  dictionarys.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_tranning_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          dictionarys.value = tbs;
+        }
+      }
+    })
+    .then(() => {
+      initView8(true);
     });
 };
 //init dictionary view 12
@@ -1150,6 +1215,90 @@ const initView6 = (rf) => {
       }
     });
 };
+const initView8 = (rf) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_tranning_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "profile_id", va: options.value["profile_id"] },
+              { par: "pageNo", va: options.value.pageNo },
+              { par: "pageSize", va: options.value.pageSize },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          tbs[0].forEach((element) => {
+            if (element["li_user_verify"]) {
+              element["li_user_verify"] = JSON.parse(element["li_user_verify"]);
+            } else {
+              element["li_user_verify"] = [];
+            }
+            if (element["start_date"] != null) {
+              element["start_date"] = moment(
+                new Date(element["start_date"])
+              ).format("DD/MM/YYYY");
+            }
+            if (element["end_date"] != null) {
+              element["end_date"] = moment(
+                new Date(element["end_date"])
+              ).format("DD/MM/YYYY");
+            }
+          });
+          trannings.value = tbs[0];
+          if (tbs[1] != null && tbs[1].length > 0) {
+            options.value.total = tbs[1][0].total;
+          }
+        } else {
+          trannings.value = [];
+          options.value.total = 0;
+        }
+      }
+      swal.close();
+    })
+    .catch((error) => {
+      swal.close();
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 const initView11 = (rf) => {
   if (ref) {
     swal.fire({
@@ -1316,6 +1465,8 @@ const initData = () => {
     initView3(true);
   } else if (options.value.view === 6) {
     initDictionary6();
+  } else if (options.value.view === 8) {
+    initDictionary8();
   } else if (options.value.view === 11) {
     initView11(true);
   } else if (options.value.view === 12) {
@@ -1924,15 +2075,19 @@ const onPage = (event) => {
                             header=""
                             headerStyle="text-align:center;width:30px;height:50px"
                             bodyStyle="text-align:center;width:30px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
-                              <span v-if="slotProps.data.is_root" v-tooltip.right="'Bản gốc'"><i class="pi pi-flag-fill"></i></span>
-                              <span v-if="!slotProps.data.is_root" v-tooltip.right="'Bản cập nhật'"><i class="pi pi-pencil"></i></span>
+                              <span
+                                v-if="slotProps.data.is_root"
+                                v-tooltip.right="'Bản gốc'"
+                                ><i class="pi pi-flag-fill"></i
+                              ></span>
+                              <span
+                                v-if="!slotProps.data.is_root"
+                                v-tooltip.right="'Bản cập nhật'"
+                                ><i class="pi pi-pencil"></i
+                              ></span>
                             </template>
                           </Column>
                           <Column
@@ -1940,11 +2095,7 @@ const onPage = (event) => {
                             header="Họ tên"
                             headerStyle="text-align:center;width:180px;height:50px"
                             bodyStyle="text-align:center;width:180px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.relative_name }}</span>
@@ -1955,11 +2106,7 @@ const onPage = (event) => {
                             header="Quan hệ"
                             headerStyle="text-align:center;width:170px;height:50px"
                             bodyStyle="text-align:center;width:170px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <div class="form-group m-0">
@@ -1974,11 +2121,7 @@ const onPage = (event) => {
                             header="Năm sinh"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{
@@ -1991,11 +2134,7 @@ const onPage = (event) => {
                             header="SĐT"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.phone }}</span>
@@ -2006,11 +2145,7 @@ const onPage = (event) => {
                             header="Mã số thuế"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.tax_code }}</span>
@@ -2021,11 +2156,7 @@ const onPage = (event) => {
                             header="CCCD/Hộ chiếu"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{
@@ -2038,11 +2169,7 @@ const onPage = (event) => {
                             header="Ngày cấp"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               {{ slotProps.data.identification_date_issue }}
@@ -2053,11 +2180,7 @@ const onPage = (event) => {
                             header="Nơi cấp"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               {{ slotProps.data.identification_place_issue }}
@@ -2068,11 +2191,7 @@ const onPage = (event) => {
                             header="Phụ thuộc"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <div class="form-group m-0">
@@ -2085,11 +2204,7 @@ const onPage = (event) => {
                             header="Từ ngày"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.start_date }}</span>
@@ -2100,11 +2215,7 @@ const onPage = (event) => {
                             header="Đến ngày"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.end_date }}</span>
@@ -2115,11 +2226,7 @@ const onPage = (event) => {
                             header="Thông tin cơ bản"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.info }}</span>
@@ -2130,11 +2237,7 @@ const onPage = (event) => {
                             header="Ghi chú"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.note }}</span>
@@ -2142,13 +2245,7 @@ const onPage = (event) => {
                           </Column>
                           <template #empty>
                             <div
-                              class="
-                                align-items-center
-                                justify-content-center
-                                p-4
-                                text-center
-                                m-auto
-                              "
+                              class="align-items-center justify-content-center p-4 text-center m-auto"
                               style="
                                 display: flex;
                                 width: 100%;
@@ -2192,11 +2289,7 @@ const onPage = (event) => {
                               header="Tên trường"
                               headerStyle="text-align:center;width:180px;height:50px"
                               bodyStyle="text-align:center;width:180px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2209,11 +2302,7 @@ const onPage = (event) => {
                               header="Chuyên ngành"
                               headerStyle="text-align:center;width:170px;height:50px"
                               bodyStyle="text-align:center;width:170px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2226,11 +2315,7 @@ const onPage = (event) => {
                               header="Từ tháng, năm"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.start_date }}</span>
@@ -2241,11 +2326,7 @@ const onPage = (event) => {
                               header="Đến tháng, năm"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.end_date }}</span>
@@ -2256,11 +2337,7 @@ const onPage = (event) => {
                               header="Hình thức đào tạo"
                               headerStyle="text-align:center;width:170px;height:50px"
                               bodyStyle="text-align:center;width:170px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2273,11 +2350,7 @@ const onPage = (event) => {
                               header="Văn bằng, chứng chỉ"
                               headerStyle="text-align:center;width:170px;height:50px"
                               bodyStyle="text-align:center;width:170px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2290,11 +2363,7 @@ const onPage = (event) => {
                               header="Ngày hiệu lực"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2307,11 +2376,7 @@ const onPage = (event) => {
                               header="Ngày hết hiệu lực"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2324,11 +2389,7 @@ const onPage = (event) => {
                               header="Số hiệu"
                               headerStyle="text-align:center;width:150px;height:50px"
                               bodyStyle="text-align:center;width:150px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2341,11 +2402,7 @@ const onPage = (event) => {
                               header="phiên bản"
                               headerStyle="text-align:center;width:150px;height:50px"
                               bodyStyle="text-align:center;width:150px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2358,11 +2415,7 @@ const onPage = (event) => {
                               header="Lần phát hành"
                               headerStyle="text-align:center;width:150px;height:50px"
                               bodyStyle="text-align:center;width:150px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2372,13 +2425,7 @@ const onPage = (event) => {
                             </Column>
                             <template #empty>
                               <div
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  p-4
-                                  text-center
-                                  m-auto
-                                "
+                                class="align-items-center justify-content-center p-4 text-center m-auto"
                                 style="
                                   display: flex;
                                   width: 100%;
@@ -2419,11 +2466,7 @@ const onPage = (event) => {
                               header="Số thẻ"
                               headerStyle="text-align:center;width:180px;height:50px"
                               bodyStyle="text-align:center;width:180px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.card_number }}</span>
@@ -2434,11 +2477,7 @@ const onPage = (event) => {
                               header="Hình thức"
                               headerStyle="text-align:center;width:170px;height:50px"
                               bodyStyle="text-align:center;width:170px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.form }}</span>
@@ -2449,11 +2488,7 @@ const onPage = (event) => {
                               header="Từ ngày"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.start_date }}</span>
@@ -2464,11 +2499,7 @@ const onPage = (event) => {
                               header="Đến ngày"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.end_date }}</span>
@@ -2479,11 +2510,7 @@ const onPage = (event) => {
                               header="Nơi kết nạp"
                               headerStyle="text-align:center;width:180px;height:50px"
                               bodyStyle="text-align:center;width:180px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2496,11 +2523,7 @@ const onPage = (event) => {
                               header="Nơi điều chuyển"
                               headerStyle="text-align:center;width:180px;height:50px"
                               bodyStyle="text-align:center;width:180px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.transfer_place }}</span>
@@ -2508,13 +2531,7 @@ const onPage = (event) => {
                             </Column>
                             <template #empty>
                               <div
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  p-4
-                                  text-center
-                                  m-auto
-                                "
+                                class="align-items-center justify-content-center p-4 text-center m-auto"
                                 style="
                                   display: flex;
                                   width: 100%;
@@ -2667,11 +2684,7 @@ const onPage = (event) => {
                               header="Từ tháng, năm"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.start_date }}</span>
@@ -2682,11 +2695,7 @@ const onPage = (event) => {
                               header="Đến tháng, năm"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.end_date }}</span>
@@ -2697,11 +2706,7 @@ const onPage = (event) => {
                               header="Công ty, đơn vị"
                               headerStyle="text-align:center;width:180px;height:50px"
                               bodyStyle="text-align:center;width:180px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.company }}</span>
@@ -2712,11 +2717,7 @@ const onPage = (event) => {
                               header="Vị trí"
                               headerStyle="text-align:center;width:150px;height:50px"
                               bodyStyle="text-align:center;width:150px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.role }}</span>
@@ -2727,11 +2728,7 @@ const onPage = (event) => {
                               header="Người tham chiếu"
                               headerStyle="text-align:center;width:150px;height:50px"
                               bodyStyle="text-align:center;width:150px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{ slotProps.data.reference_name }}</span>
@@ -2742,11 +2739,7 @@ const onPage = (event) => {
                               header="SĐT"
                               headerStyle="text-align:center;width:120px;height:50px"
                               bodyStyle="text-align:center;width:120px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2759,11 +2752,7 @@ const onPage = (event) => {
                               header="Mô tả công việc"
                               headerStyle="text-align:center;width:200px;height:50px"
                               bodyStyle="text-align:center;width:200px;"
-                              class="
-                                align-items-center
-                                justify-content-center
-                                text-center
-                              "
+                              class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
@@ -2773,13 +2762,7 @@ const onPage = (event) => {
                             </Column>
                             <template #empty>
                               <div
-                                class="
-                                  align-items-center
-                                  justify-content-center
-                                  p-4
-                                  text-center
-                                  m-auto
-                                "
+                                class="align-items-center justify-content-center p-4 text-center m-auto"
                                 style="
                                   display: flex;
                                   width: 100%;
@@ -2850,13 +2833,7 @@ const onPage = (event) => {
                               :value="profile.files"
                               :rowHover="true"
                               :scrollable="true"
-                              class="
-                                w-full
-                                h-full
-                                ptable
-                                p-datatable-sm
-                                flex flex-column
-                              "
+                              class="w-full h-full ptable p-datatable-sm flex flex-column"
                               layout="list"
                               responsiveLayout="scroll"
                             >
@@ -2936,11 +2913,7 @@ const onPage = (event) => {
                     header="Mã HĐ"
                     headerStyle="text-align:center;max-width:80px;height:50px"
                     bodyStyle="text-align:center;max-width:80px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   />
                   <Column
                     field="department_name"
@@ -2956,11 +2929,7 @@ const onPage = (event) => {
                     header="Loại hợp đồng"
                     headerStyle="text-align:center;max-width:120px;height:50px"
                     bodyStyle="text-align:center;max-width:120px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       {{ slotProps.data.type_contract_name }}
@@ -2971,11 +2940,7 @@ const onPage = (event) => {
                     header="Ngày ký"
                     headerStyle="text-align:center;max-width:100px;height:50px"
                     bodyStyle="text-align:center;max-width:100px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <span>{{ slotProps.data.sign_date }}</span>
@@ -2986,11 +2951,7 @@ const onPage = (event) => {
                     header="Ngày hiệu lực"
                     headerStyle="text-align:center;max-width:120px;height:50px"
                     bodyStyle="text-align:center;max-width:120px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <span v-html="slotProps.data.start_date"></span>
@@ -3001,11 +2962,7 @@ const onPage = (event) => {
                     header="Ngày hết hạn"
                     headerStyle="text-align:center;max-width:120px;height:50px"
                     bodyStyle="text-align:center;max-width:120px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <span v-html="slotProps.data.end_date"></span>
@@ -3016,11 +2973,7 @@ const onPage = (event) => {
                     header="Người ký"
                     headerStyle="text-align:center;max-width:120px;height:50px"
                     bodyStyle="text-align:center;max-width:120px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       {{ slotProps.data.sign_user_name }}
@@ -3031,11 +2984,7 @@ const onPage = (event) => {
                     header="Ngày/Người lập"
                     headerStyle="text-align:center;max-width:130px;height:50px"
                     bodyStyle="text-align:center;max-width:130px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <span class="mr-2">{{
@@ -3077,11 +3026,7 @@ const onPage = (event) => {
                     header="Trạng thái"
                     headerStyle="text-align:center;max-width:140px;height:50px"
                     bodyStyle="text-align:center;max-width:140px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <div
@@ -3102,13 +3047,7 @@ const onPage = (event) => {
                   </Column>
                   <template #empty>
                     <div
-                      class="
-                        align-items-center
-                        justify-content-center
-                        p-4
-                        text-center
-                        m-auto
-                      "
+                      class="align-items-center justify-content-center p-4 text-center m-auto"
                       style="
                         display: flex;
                         width: 100%;
@@ -3213,11 +3152,7 @@ const onPage = (event) => {
                             header="Từ tháng"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.start_date }}</span>
@@ -3228,11 +3163,7 @@ const onPage = (event) => {
                             header="Hình thức"
                             headerStyle="text-align:center;width:170px;height:50px"
                             bodyStyle="text-align:center;width:170px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <div class="form-group m-0">
@@ -3245,11 +3176,7 @@ const onPage = (event) => {
                             header="Lý do"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.reason }}</span>
@@ -3260,11 +3187,7 @@ const onPage = (event) => {
                             header="Pháp nhân đóng"
                             headerStyle="text-align:center;width:250px;height:50px"
                             bodyStyle="text-align:center;width:250px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{
@@ -3277,11 +3200,7 @@ const onPage = (event) => {
                             header="Mức đóng"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.total_payment }}</span>
@@ -3292,11 +3211,7 @@ const onPage = (event) => {
                             header="Công ty đóng"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.company_payment }}</span>
@@ -3307,11 +3222,7 @@ const onPage = (event) => {
                             header="NLĐ đóng"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               {{ slotProps.data.member_payment }}
@@ -3319,13 +3230,7 @@ const onPage = (event) => {
                           </Column>
                           <template #empty>
                             <div
-                              class="
-                                align-items-center
-                                justify-content-center
-                                p-4
-                                text-center
-                                m-auto
-                              "
+                              class="align-items-center justify-content-center p-4 text-center m-auto"
                               style="
                                 display: flex;
                                 width: 100%;
@@ -3361,11 +3266,7 @@ const onPage = (event) => {
                             header="Loại chế độ"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.type_mode }}</span>
@@ -3376,11 +3277,7 @@ const onPage = (event) => {
                             header="Ngày nhận hồ sơ"
                             headerStyle="text-align:center;width:170px;height:50px"
                             bodyStyle="text-align:center;width:170px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <div class="form-group m-0">
@@ -3395,11 +3292,7 @@ const onPage = (event) => {
                             header="Ngày HT thủ tục"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.completed_date }}</span>
@@ -3410,11 +3303,7 @@ const onPage = (event) => {
                             header="Ngày NT BH trả"
                             headerStyle="text-align:center;width:250px;height:50px"
                             bodyStyle="text-align:center;width:250px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{
@@ -3427,11 +3316,7 @@ const onPage = (event) => {
                             header="Số tiền"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.money }}</span>
@@ -3439,13 +3324,7 @@ const onPage = (event) => {
                           </Column>
                           <template #empty>
                             <div
-                              class="
-                                align-items-center
-                                justify-content-center
-                                p-4
-                                text-center
-                                m-auto
-                              "
+                              class="align-items-center justify-content-center p-4 text-center m-auto"
                               style="
                                 display: flex;
                                 width: 100%;
@@ -3461,7 +3340,182 @@ const onPage = (event) => {
               </div>
             </div>
             <div v-show="options.view === 7" class="f-full">Phép năm</div>
-            <div v-show="options.view === 8" class="f-full">Đào tạo</div>
+            <div v-show="options.view === 8" class="f-full">
+              <div class="d-lang-table-1 p-2">
+                <DataTable
+                  @page="onPage($event)"
+                  :value="trannings"
+                  :paginator="true"
+                  :rows="options.pageSize"
+                  :rowsPerPageOptions="[25, 50, 100, 200]"
+                  :totalRecords="options.total"
+                  :scrollable="true"
+                  :lazy="true"
+                  :rowHover="true"
+                  :showGridlines="false"
+                  :globalFilterFields="['type_contract_name']"
+                  v-model:selection="selectedNodes"
+                  selectionMode="single"
+                  dataKey="training_emps_id"
+                  scrollHeight="flex"
+                  filterDisplay="menu"
+                  filterMode="lenient"
+                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                  responsiveLayout="scroll"
+                >
+                  <Column
+                    field="training_emps_code"
+                    header="Mã số"
+                    headerStyle="text-align:center;max-width:80px;height:50px"
+                    bodyStyle="text-align:center;max-width:80px;"
+                    class="align-items-center justify-content-center text-center"
+                  />
+                  <Column
+                    field="training_emps_name"
+                    header="Tên khóa đào tạo"
+                    headerStyle="text-align:center;max-width:250px;height:50px"
+                    bodyStyle="text-align:center;max-width:250px;"
+                    class="align-items-center justify-content-center text-center"
+                  />
+                  <Column
+                    field="form_training_name"
+                    header="Hình thức"
+                    headerStyle="text-align:center;max-width:100px;height:50px"
+                    bodyStyle="text-align:center;max-width:100px;"
+                    class="align-items-center justify-content-center text-center"
+                  >
+                    <template #body="slotProps">
+                      <div>
+                        {{
+                          slotProps.data.form_training == 1
+                            ? "Bắt buộc"
+                            : slotProps.data.form_training == 2
+                            ? "Đăng ký"
+                            : "Cả hai"
+                        }}
+                      </div>
+                    </template>
+                  </Column>
+                  <Column
+                    field="start_date"
+                    header="Từ ngày"
+                    headerStyle="text-align:center;max-width:100px;height:50px"
+                    bodyStyle="text-align:center;max-width:100px;"
+                    class="align-items-center justify-content-center text-center"
+                  />
+                  <Column
+                    field="end_date"
+                    header="Đến ngày"
+                    headerStyle="text-align:center;max-width:100px;height:50px"
+                    bodyStyle="text-align:center;max-width:100px;"
+                    class="align-items-center justify-content-center text-center"
+                  />
+                  <Column
+                    field="li_user_verify"
+                    header="Giảng viên"
+                    headerStyle="text-align:center;max-width:100px;height:50px"
+                    bodyStyle="text-align:center;max-width:100px;"
+                    class="align-items-center justify-content-center text-center"
+                  >
+                    <template #body="slotProps">
+                      <AvatarGroup
+                        v-if="
+                          slotProps.data.li_user_verify &&
+                          slotProps.data.li_user_verify.length > 0
+                        "
+                      >
+                        <Avatar
+                          v-for="(
+                            item, index
+                          ) in slotProps.data.li_user_verify.slice(0, 3)"
+                          v-bind:label="
+                            item.avatar ? '' : item.last_name.substring(0, 1)
+                          "
+                          v-bind:image="
+                            item.avatar
+                              ? basedomainURL + item.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          v-tooltip.top="item.full_name"
+                          :key="item.user_id"
+                          style="color: white"
+                          @click="onTaskUserFilter(item)"
+                          @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                          size="large"
+                          shape="circle"
+                          class="cursor-pointer"
+                          :style="{ backgroundColor: bgColor[index % 7] }"
+                        />
+                        <Avatar
+                          v-if="
+                            slotProps.data.li_user_verify &&
+                            slotProps.data.li_user_verify.length > 3
+                          "
+                          v-bind:label="
+                            '+' +
+                            (
+                              slotProps.data.li_user_verify.length - 3
+                            ).toString()
+                          "
+                          shape="circle"
+                          size="large"
+                          style="background-color: #2196f3; color: #ffffff"
+                          class="cursor-pointer"
+                        />
+                      </AvatarGroup>
+                    </template>
+                  </Column>
+                  <Column
+                    field="count_emps"
+                    header="Học viên"
+                    headerStyle="text-align:center;max-width:100px;height:50px"
+                    bodyStyle="text-align:center;max-width:100px"
+                    class="align-items-center justify-content-center text-center"
+                  >
+                    <template #body="data">
+                      <div>
+                        {{ data.data.count_emps ? data.data.count_emps : "0" }}
+                      </div>
+                    </template>
+                  </Column>
+                  <Column
+                    field="status"
+                    header="Trạng thái"
+                    headerStyle="text-align:center;max-width:11rem;height:50px"
+                    bodyStyle="text-align:center;max-width:11rem"
+                    class="align-items-center justify-content-center text-center"
+                  >
+                    <template #body="slotProps">
+                      <Button
+                        :label="
+                          slotProps.data.status == 1
+                            ? 'Lên kế hoạch'
+                            : slotProps.data.status == 2
+                            ? 'Đang thực hiện'
+                            : slotProps.data.status == 3
+                            ? 'Đã hoàn thành'
+                            : slotProps.data.status == 4
+                            ? 'Tạm dừng'
+                            : 'Đã hủy'
+                        "
+                        :class="
+                          slotProps.data.status == 1
+                            ? 'bg-blue-500'
+                            : slotProps.data.status == 2
+                            ? 'bg-yellow-500'
+                            : slotProps.data.status == 3
+                            ? 'bg-green-500'
+                            : slotProps.data.status == 4
+                            ? 'bg-orange-500'
+                            : 'bg-pink-500'
+                        "
+                        class="px-2 w-10rem"
+                      />
+                    </template>
+                  </Column>
+                </DataTable>
+              </div>
+            </div>
             <div v-show="options.view === 9" class="f-full">Quyết định</div>
             <div v-show="options.view === 10" class="f-full">Tệp số hóa</div>
             <div v-show="options.view === 11" class="f-full">
@@ -3487,11 +3541,7 @@ const onPage = (event) => {
                     header=""
                     headerStyle="text-align:center;max-width:50px;height:50px"
                     bodyStyle="text-align:center;max-width:50px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <span v-if="slotProps.data.is_active"
@@ -3513,11 +3563,7 @@ const onPage = (event) => {
                     header="Ngày tiếp nhận"
                     headerStyle="text-align:center;max-width:150px;height:50px"
                     bodyStyle="text-align:center;max-width:150px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <span>{{ slotProps.data.receipt_date }}</span>
@@ -3528,11 +3574,7 @@ const onPage = (event) => {
                     header="Ghi chú"
                     headerStyle="text-align:center;max-width:300px;height:50px"
                     bodyStyle="text-align:center;max-width:300px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <span>{{ slotProps.data.note }}</span>
@@ -3634,11 +3676,7 @@ const onPage = (event) => {
                             header="Mũi"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.injection_name }}</span>
@@ -3649,11 +3687,7 @@ const onPage = (event) => {
                             header="Ngày tiêm"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.injection_date }}</span>
@@ -3664,11 +3698,7 @@ const onPage = (event) => {
                             header="Loại vắc xin"
                             headerStyle="text-align:center;width:250px;height:50px"
                             bodyStyle="text-align:center;width:250px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{
@@ -3681,11 +3711,7 @@ const onPage = (event) => {
                             header="Số lô"
                             headerStyle="text-align:center;width:150px;height:50px"
                             bodyStyle="text-align:center;width:150px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{ slotProps.data.lot_number }}</span>
@@ -3696,11 +3722,7 @@ const onPage = (event) => {
                             header="Cơ sở tiêm chủng"
                             headerStyle="text-align:center;width:250px;height:50px"
                             bodyStyle="text-align:center;width:250px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               <span>{{
@@ -3713,11 +3735,7 @@ const onPage = (event) => {
                             header="Người ký"
                             headerStyle="text-align:center;width:200px;height:50px"
                             bodyStyle="text-align:center;width:200px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               {{ slotProps.data.sign_user }}
@@ -3728,11 +3746,7 @@ const onPage = (event) => {
                             header="Chức vụ"
                             headerStyle="text-align:center;width:200px;height:50px"
                             bodyStyle="text-align:center;width:200px;"
-                            class="
-                              align-items-center
-                              justify-content-center
-                              text-center
-                            "
+                            class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
                               {{ slotProps.data.sign_user_position }}
@@ -3740,13 +3754,7 @@ const onPage = (event) => {
                           </Column>
                           <template #empty>
                             <div
-                              class="
-                                align-items-center
-                                justify-content-center
-                                p-4
-                                text-center
-                                m-auto
-                              "
+                              class="align-items-center justify-content-center p-4 text-center m-auto"
                               style="
                                 display: flex;
                                 width: 100%;
@@ -3793,6 +3801,15 @@ const onPage = (event) => {
     :profile_id="options.profile_id"
     :isType="isType"
     :initData="initView1"
+  />
+  <dialogtraining
+    :key="componentKey"
+    :headerDialog="headerDialogTranning"
+    :displayBasic="displayDialogTranning"
+    :training_emps="selectedNodes"
+    :checkadd="false"
+    :closeDialog="closeDialogTranning"
+    :view="true"
   />
 </template>
 <style scoped>
