@@ -244,7 +244,7 @@ const sttStamp = ref(1);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   training_emps.value = dataTem;
-  headerDialog.value = "Sửa đào tạo";
+  headerDialog.value = "Sửa chiến dịch";
   isSaveTem.value = false;
   displayBasic.value = true;
 };
@@ -279,7 +279,7 @@ const delTem = (Tem) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá thông tin đào tạo thành công!");
+              toast.success("Xoá thông tin chiến dịch thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -512,7 +512,7 @@ const onCheckBox = (value, check) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái đào tạo thành công!");
+          toast.success("Sửa trạng thái chiến dịch thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -548,7 +548,7 @@ const onCheckBox = (value, check) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái đào tạo thành công!");
+          toast.success("Sửa trạng thái chiến dịch thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -706,7 +706,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá thông tin đào tạo này không!",
+        text: "Bạn có muốn xoá thông tin chiến dịch này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -738,7 +738,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá thông tin đào tạo thành công!");
+                toast.success("Xoá thông tin chiến dịch thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -1115,7 +1115,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách đào tạo
+          <i class="pi pi-chart-line"></i> Danh sách chiến dịch
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1172,7 +1172,7 @@ onMounted(() => {
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <label>Nhóm đào tạo</label>
+                              <label>Nhóm chiến dịch</label>
                               <MultiSelect
                                 :options="listTrainingGroups"
                                 :filter="true"
@@ -1181,7 +1181,7 @@ onMounted(() => {
                                 v-model="options.training_groups_id"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn nhóm đào tạo"
+                                placeholder="Chọn nhóm chiến dịch"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1306,7 +1306,7 @@ onMounted(() => {
                           </div>
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <label>Hình thức đào tạo</label>
+                              <label>Hình thức chiến dịch</label>
                               <MultiSelect
                                 :options="listFormTraining"
                                 :filter="false"
@@ -1316,7 +1316,7 @@ onMounted(() => {
                                 optionLabel="name"
                                 optionValue="code"
                                 display="chip"
-                                placeholder="Chọn hình thức đào tạo"
+                                placeholder="Chọn hình thức chiến dịch"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1330,7 +1330,7 @@ onMounted(() => {
                         <div class="row">
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label>Thời gian đào tạo</label>
+                              <label>Thời gian chiến dịch</label>
                             </div>
                           </div>
                           <div class="col-12 p-0 flex">
@@ -1530,7 +1530,7 @@ onMounted(() => {
 
           <template #end>
             <Button
-              @click="openBasic('Thêm mới đào tạo')"
+              @click="openBasic('Thêm mới chiến dịch')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1660,7 +1660,7 @@ onMounted(() => {
             </Column>
             <Column
               field="training_emps_name"
-              header="Tên khoá đào tạo"
+              header="Tên khoá chiến dịch"
               :sortable="true"
               headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"

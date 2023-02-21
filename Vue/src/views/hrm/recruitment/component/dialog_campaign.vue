@@ -6,12 +6,10 @@ import { useVuelidate } from "@vuelidate/core";
 import { encr, checkURL } from "../../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
-
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
-const emitter = inject("emitter");
-const isDynamicSQL = ref(false);
+ 
 const basedomainURL = baseURL;
 const config = {
   headers: {
@@ -701,10 +699,7 @@ const listLimit = ref([
     code: 2,
   },
 ]);
-const checkImg = (src) => {
-  let allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
-  return allowedExtensions.exec(src);
-};
+ 
 const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
@@ -849,95 +844,19 @@ onMounted(() => {
   <Dialog
     :header="props.headerDialog"
     v-model:visible="props.displayBasic"
-    :style="{ width: '65vw' }"
+    :style="{ width: '55vw' }"
     :maximizable="true"
     :modal="true"
     :closable="false"
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="col-12 field p-0 text-lg font-bold">Thông tin</div>
-        <div class="col-12 flex p-0">
-          <div class="col-6 p-0">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-                Mã số<span class="redsao pl-1"> (*)</span>
-              </div>
-              <div style="width: calc(100% - 10rem)">
-                <InputText
-                  v-model="training_emps.training_emps_code"
-                  class="w-full"
-                  :class="{
-                    'p-invalid': v$.training_emps_code.$invalid && submitted,
-                  }"
-                />
-              </div>
-            </div>
-          </div>
-          <div class="col-6 flex p-0 text-center align-items-center">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-                Nhóm đào tạo<span class="redsao pl-1"> (*)</span>
-              </div>
-              <div style="width: calc(100% - 10rem)">
-                <Dropdown
-                  v-model="training_emps.training_groups_id"
-                  :options="listTrainingGroups"
-                  optionLabel="name"
-                  optionValue="code"
-                  placeholder="Chọn nhóm đào tạo"
-                  class="w-full"
-                  :class="{
-                    'p-invalid':
-                      training_emps.training_groups_id == null && submitted,
-                  }"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="col-12 p-0 field flex"
-          v-if="
-            (v$.training_emps_code.$invalid && submitted) ||
-            (training_emps.training_groups_id == null && submitted)
-          "
-        >
-          <div class="p-0 col-6">
-            <div
-              v-if="
-                (v$.training_emps_code.$invalid && submitted) ||
-                v$.training_emps_code.$pending.$response
-              "
-              class="col-12 p-0 flex"
-            >
-              <div class="w-10rem"></div>
-              <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full">{{
-                  v$.training_emps_code.required.$message
-                    .replace("Value", "Mã số")
-                    .replace("is required", "không được để trống!")
-                }}</span>
-              </small>
-            </div>
-          </div>
-          <div class="p-0 col-6">
-            <div
-              v-if="training_emps.training_groups_id == null && submitted"
-              class="col-12 p-0 flex"
-            >
-              <div class="w-10rem"></div>
-              <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                  >Nhóm đào tạo không được để trống!
-                </span>
-              </small>
-            </div>
-          </div>
-        </div>
+        <div class="col-12 field p-0 text-lg font-bold">Thông tin chiến dịch</div>
+        
+      
         <div class="col-12 field flex p-0 align-items-center">
           <div class="w-10rem">
-            Tên khóa đào tạo<span class="redsao pl-1"> (*)</span>
+            Tên chiến dịch<span class="redsao pl-1"> (*)</span>
           </div>
           <div style="width: calc(100% - 10rem)">
             <div class="col-12 p-0">
@@ -981,155 +900,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">
-              Đối tượng đào tạo<span class="redsao pl-1"> (*)</span>
-            </div>
-            <div style="width: calc(100% - 10rem)">
-              <Dropdown
-                v-model="training_emps.obj_training"
-                :options="listObjTraining"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="----- Chọn đối tượng đào tạo -----"
-                class="sel-placeholder w-full"
-                panelClass="d-design-dropdown"
-                :class="{
-                  'p-invalid': training_emps.obj_training == null && submitted,
-                }"
-              />
-            </div>
-          </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Hình thức</div>
-            <div style="width: calc(100% - 10rem)">
-              <Dropdown
-                v-model="training_emps.form_training"
-                :options="listFormTraining"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="----- Chọn hình thức đào tạo -----"
-                class="sel-placeholder w-full"
-                panelClass="d-design-dropdown"
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          class="col-12 p-0 field flex"
-          v-if="training_emps.obj_training == null && submitted"
-        >
-          <div class="p-0 col-6">
-            <div class="col-12 p-0 flex">
-              <div class="w-10rem"></div>
-              <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                  >Đối tượng đào tạo không được để trống!
-                </span>
-              </small>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">
-              Ngày bắt đầu<span class="redsao pl-1"> (*)</span>
-            </div>
-            <div style="width: calc(100% - 10rem)">
-              <Calendar
-                class="w-full"
-                id="basic_purchase_date"
-                v-model="training_emps.start_date"
-                autocomplete="on"
-                :showIcon="true"
-              />
-            </div>
-          </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Ngày kết thúc</div>
-            <div style="width: calc(100% - 10rem)">
-              <Calendar
-                class="w-full"
-                id="basic_purchase_date"
-                v-model="training_emps.end_date"
-                autocomplete="on"
-                :minDate="
-                  training_emps.start_date
-                    ? new Date(training_emps.start_date)
-                    : null
-                "
-                :showIcon="true"
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          class="col-12 p-0 field flex"
-          v-if="training_emps.start_date == null && submitted"
-        >
-          <div class="p-0 col-6">
-            <div class="col-12 p-0 flex">
-              <div class="w-10rem"></div>
-              <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                  >Ngày bắt đầu không được để trống!
-                </span>
-              </small>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">Thời lượng</div>
-            <div style="width: calc(100% - 10rem)">
-              <!-- <Calendar
-                inputId="time12"
-                hourFormat="24"
-                class="ip36 w-full"
-                autocomplete="on"
-                icon="pi pi-clock"
-                :showIcon="true"
-                :timeOnly="true"
-                v-model="training_emps.training_times"
-                suffix=" Tháng"
-              /> -->
-              <div class="p-inputgroup">
-                <InputNumber
-                  class="w-full"
-                  inputId="mile"
-                  v-model="training_emps.training_times"
-                  suffix=" Giờ"
-                />
-                <!-- <span class="p-inputgroup-addon bg-blue-500">
-                        <i class="pi pi-clock text-0"></i>
-                    </span> -->
-              </div>
-            </div>
-          </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Hạn đăng ký</div>
-            <div style="width: calc(100% - 10rem)">
-              <Calendar
-                class="w-full"
-                id="basic_purchase_date"
-                v-model="training_emps.registration_deadline"
-                :maxDate="
-                  training_emps.start_date
-                    ? new Date(training_emps.start_date)
-                    : null
-                "
-                autocomplete="on"
-                :showIcon="true"
-                :showTime="true"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 field p-0 flex text-left align-items-center">
+ <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">
               Người phụ trách <span class="redsao pl-1"> (*)</span>
@@ -1296,81 +1067,123 @@ onMounted(() => {
             </div>
           </div>
         </div>
-           <div class="col-12 flex p-0">
-          <div class="col-6 p-0">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-               Học phí
-              </div>
-              <div style="width: calc(100% - 10rem)">
-                <InputNumber
-                  v-model="training_emps.tuition"
-                  class="w-full"
-                   suffix=" VND"
-                />
-              </div>
+        <div class="col-12 field p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem">
+             Số lượng tuyển<span class="redsao pl-1"> (*)</span>
+            </div>
+            <div style="width: calc(100% - 10rem)">
+                <InputNumber class="w-full" suffix=" Người" v-model="training_emps.obj_training"  />
+              <!-- <Dropdown
+                v-model="training_emps.obj_training"
+                :options="listObjTraining"
+                optionLabel="name"
+                optionValue="code"
+                placeholder="----- Chọn đối tượng đào tạo -----"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+                :class="{
+                  'p-invalid': training_emps.obj_training == null && submitted,
+                }"
+              /> -->
             </div>
           </div>
-          <div class="col-6 flex p-0 text-center align-items-center">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-               Chi phí 
-              </div>
-              <div style="width: calc(100% - 10rem)">
-                   <InputNumber
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">Chi phí dự kiến</div>
+            <div style="width: calc(100% - 10rem)">
+               <InputNumber
                   v-model="training_emps.expense"
                   class="w-full"
                    suffix=" VND"
                 />
-              </div>
             </div>
           </div>
         </div>
-        <div class="col-12 field flex p-0 align-items-center">
-          <div class="w-10rem">Địa điểm đào tạo</div>
-          <div style="width: calc(100% - 10rem)">
-            <div class="col-12 p-0">
-              <div class="p-inputgroup">
-                <Textarea
-                  :autoResize="true"
-                  rows="1"
-                  cols="30"
-                  v-model="training_emps.training_place"
-                  class="w-full"
-                  :style="
-                    training_emps.training_emps_name
-                      ? 'background-color:white !important'
-                      : ''
-                  "
-                />
-              </div>
+        <div
+          class="col-12 p-0 field flex"
+          v-if="training_emps.obj_training == null && submitted"
+        >
+          <div class="p-0 col-6">
+            <div class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full"
+                  >Số lượng tuyển không được để trống!
+                </span>
+              </small>
             </div>
           </div>
         </div>
-      
-        <div class="col-12 field p-0 flex">
+        
+        <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">Đơn vị thực hiện</div>
+            <div class="w-10rem">
+              Ngày bắt đầu
+            </div>
             <div style="width: calc(100% - 10rem)">
-              <TreeSelect
-                class="w-full sel-placeholder"
-                v-model="training_emps.organization_training_fake"
-                :options="treedonvis"
-                :showClear="true"
-                :max-height="200"
-                optionLabel="label"
-                optionValue="data"
-                panelClass="d-design-dropdown"
-                placeholder="---------------  Chọn đơn vị thực hiện --------------- "
-              >
-              </TreeSelect>
+              <Calendar
+                class="w-full"
+                id="basic_purchase_date"
+                v-model="training_emps.start_date"
+                autocomplete="on"
+                :showIcon="true"
+              />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Trạng thái</div>
+            <div class="w-10rem pl-3">Ngày kết thúc</div>
+            <div style="width: calc(100% - 10rem)">
+              <Calendar
+                class="w-full"
+                id="basic_purchase_date"
+                v-model="training_emps.end_date"
+                autocomplete="on"
+                :minDate="
+                  training_emps.start_date
+                    ? new Date(training_emps.start_date)
+                    : null
+                "
+                :showIcon="true"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="col-12 p-0 field flex"
+          v-if="training_emps.start_date == null && submitted"
+        >
+          <div class="p-0 col-6">
+            <div class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full"
+                  >Ngày bắt đầu không được để trống!
+                </span>
+              </small>
+            </div>
+          </div>
+        </div>
+    <div class="col-12 field p-0 text-lg font-bold">Thông tin vị trí tuyển</div>
+   
+        <div class="col-12 field p-0 flex text-left align-items-center">
+           <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem ">Vị trí<span class="redsao pl-1"> (*)</span></div>
             <div style="width: calc(100% - 10rem)">
               <Dropdown
-                v-model="training_emps.status"
+                v-model="training_emps.position"
+                :options="listStatus"
+                optionLabel="name"
+                optionValue="code"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
+            </div>
+          </div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">Chức vụ</div>
+            <div style="width: calc(100% - 10rem)">
+               <Dropdown
+                v-model="training_emps.position"
                 :options="listStatus"
                 optionLabel="name"
                 optionValue="code"
@@ -1380,593 +1193,78 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 border-1 border-300 border-solid">
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div
-              class="font-bold flex align-items-center w-full cursor-pointer"
-              @click="showHidePanel(1)"
-            >
-              <i
-                class="pi pi-angle-right"
-                v-if="checkShow == false"
-                style="font-size: 1.25rem"
-              ></i>
-              <i
-                class="pi pi-angle-down"
-                v-if="checkShow == true"
-                style="font-size: 1.25rem"
-              ></i>
-              <div class="pl-2">
-                Danh sách học viên
-                <span v-if="list_users_training.length > 0">
-                  ( {{ list_users_training.length }} )</span
-                >
+
+       
+           <div class="col-12 flex p-0">
+              <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+             Hình thức làm việc
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                    <Dropdown
+                v-model="training_emps.position"
+                :options="listStatus"
+                optionLabel="name"
+                optionValue="code"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
               </div>
             </div>
-            <div class="w-1 text-right" v-if="!view">
-              <a
-                @click="addRow_Item(1)"
-                class="hover"
-                v-tooltip.top="'Thêm học viên'"
-              >
-                <i class="pi pi-plus-circle" style="font-size: 18px"></i>
-              </a>
-            </div>
           </div>
-
-          <div class="w-full p-0" v-if="checkShow == true">
-            <div v-if="list_users_training.length > 0">
-              <DataTable
-                :value="list_users_training"
-                :scrollable="true"
-                :lazy="true"
-                :rowHover="true"
-                :showGridlines="true"
-                scrollDirection="both"
-              >
-                <Column
-                  field="card_number"
-                  header="STT"
-                  headerStyle="text-align:center;width:70px;height:50px"
-                  bodyStyle="text-align:center;width:70px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    {{ slotProps.data.is_order }}
-                    <!-- <InputText
-                          v-model="slotProps.data.card_number"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="50"
-                        /> -->
-                  </template>
-                </Column>
-                <Column
-                  field="form"
-                  header="Họ và tên"
-                  headerStyle="text-align:center;width:250px;height:50px"
-                  bodyStyle="text-align:center;width:250px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <div class="form-group m-0">
-                      <Dropdown
-                        :options="listDataUsers"
-                        :filter="true"
-                        :showClear="true"
-                        :editable="false"
-                        optionLabel="profile_user_name"
-                        optionValue="code"
-                        v-model="slotProps.data.data"
-                        class="w-full d-design-padding-drd"
-                        style="min-height: 36px"
-                        :class="{
-                          'p-invalid': slotProps.data.data == null && submitted,
-                        }"
-                        @change="
-                          changeUserTrainding(
-                            slotProps.data.data,
-                            slotProps.data.is_order - 1
-                          )
-                        "
-                      >
-                        <template #value="slotProps_N">
-                          <div v-if="slotProps_N.value">
-                            <div
-                              class="flex w-full align-items-center pr-2 p-0"
-                            >
-                              <Avatar
-                                v-bind:label="
-                                  slotProps_N.value.avatar
-                                    ? ''
-                                    : slotProps_N.value.profile_user_name.substring(
-                                        slotProps_N.value.profile_user_name.lastIndexOf(
-                                          ' '
-                                        ) + 1,
-                                        slotProps_N.value.profile_user_name.lastIndexOf(
-                                          ' '
-                                        ) + 2
-                                      )
-                                "
-                                :image="
-                                  basedomainURL + slotProps_N.value.avatar
-                                "
-                                size="small"
-                                :style="
-                                  slotProps_N.value.avatar
-                                    ? 'background-color: #2196f3'
-                                    : 'background:' +
-                                      bgColor[
-                                        slotProps_N.value.profile_user_name
-                                          .length % 7
-                                      ]
-                                "
-                                shape="circle"
-                                @error="
-                                  $event.target.src =
-                                    basedomainURL + '/Portals/Image/nouser1.png'
-                                "
-                              />
-                              <div class="px-2">
-                                {{ slotProps_N.value.profile_user_name }}
-                              </div>
-                            </div>
-                          </div>
-                          <span v-else>
-                            {{ slotProps_N.placeholder }}
-                          </span>
-                        </template>
-                        <template #option="slotProps">
-                          <div v-if="slotProps.option" class="flex">
-                            <div class="format-center">
-                              <Avatar
-                                v-bind:label="
-                                  slotProps.option.avatar
-                                    ? ''
-                                    : slotProps.option.profile_user_name.substring(
-                                        0,
-                                        1
-                                      )
-                                "
-                                v-bind:image="
-                                  slotProps.option.avatar
-                                    ? basedomainURL + slotProps.option.avatar
-                                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                                "
-                                style="
-                                  background-color: #2196f3;
-                                  color: #ffffff;
-                                  width: 3rem;
-                                  height: 3rem;
-                                  font-size: 1.4rem !important;
-                                "
-                                :style="{
-                                  background:
-                                    bgColor[slotProps.option.is_order % 7],
-                                }"
-                                class="text-avatar"
-                                size="xlarge"
-                                shape="circle"
-                              />
-                            </div>
-                            <div class="ml-3 format-center">
-                              <div class="mb-1">
-                                {{ slotProps.option.profile_user_name }}
-                              </div>
-                            </div>
-                          </div>
-                          <span v-else> Chưa có dữ liệu </span>
-                        </template>
-                      </Dropdown>
-                    </div>
-                  </template>
-                </Column>
-                <Column
-                  field="start_date"
-                  header="Phòng ban"
-                  headerStyle="text-align:center;width:200px;height:50px"
-                  bodyStyle="text-align:center;width:200px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
-                      class="w-full h-full d-design-it"
-                      style="width: 170px"
-                      v-model="slotProps.data.department_name"
-                      disabled
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field="end_date"
-                  header="Vị trí"
-                  headerStyle="text-align:center;width:180px;height:50px"
-                  bodyStyle="text-align:center;width:180px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
-                      class="w-full d-design-it"
-                      style="width: 170px"
-                      v-model="slotProps.data.work_position_name"
-                      disabled
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field="admission_place"
-                  header="Chức vụ"
-                  headerStyle="text-align:center;width:180px;height:50px"
-                  bodyStyle="text-align:center;width:180px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
-                      class="w-full d-design-it"
-                      style="width: 170px"
-                      v-model="slotProps.data.position_name"
-                      disabled
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field="transfer_place"
-                  header="Ghi chú"
-                  headerStyle="text-align:center;width:300px ;height:50px"
-                  bodyStyle="text-align:center ;width:300px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <InputText
-                      v-model="slotProps.data.note"
-                      spellcheck="false"
-                      type="text"
-                      class="w-full"
-                      maxLength="250"
-                    />
-                  </template>
-                </Column>
-                <Column
-                  header=""
-                  headerStyle="text-align:center;width:50px"
-                  bodyStyle="text-align:center;width:50px"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <a
-                      @click="delRow_Item(slotProps.data, 1)"
-                      class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa học viên'"
-                    >
-                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                    </a>
-                  </template>
-                </Column>
-                <template #empty>
-                  <div
-                    class="
-                      align-items-center
-                      justify-content-center
-                      p-4
-                      text-center
-                      m-auto
-                    "
-                    style="display: flex; width: 100%; min-height: 200px"
-                  ></div>
-                </template>
-              </DataTable>
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+               Nơi làm việc
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                   <InputText
+                  v-model="training_emps.expense"
+                  class="w-full"
+                   
+                />
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 border-1 border-300 border-solid">
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div
-              class="font-bold flex align-items-center w-full cursor-pointer"
-              @click="showHidePanel(2)"
-            >
-              <i
-                class="pi pi-angle-right"
-                v-if="checkShow2 == false"
-                style="font-size: 1.25rem"
-              ></i>
-              <i
-                class="pi pi-angle-down"
-                v-if="checkShow2 == true"
-                style="font-size: 1.25rem"
-              ></i>
-              <div class="pl-2">
-                Lịch học
-                <span v-if="list_schedule.length > 0">
-                  ( {{ list_schedule.length }} )</span
-                >
+       
+        <div class="col-12 flex p-0">
+              <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+             Mức lương (từ)
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full d-input-design-number"
+                   suffix=" VND"
+                   placeholder="Từ"
+               
+                />
               </div>
             </div>
-            <div class="w-1 text-right" v-if="!view">
-              <a
-                @click="addRow_Item(2)"
-                class="hover"
-                v-tooltip.top="'Thêm lịch học'"
-              >
-                <i class="pi pi-plus-circle" style="font-size: 18px"></i>
-              </a>
-            </div>
           </div>
-
-          <div class="w-full px-0 pt-0" v-if="checkShow2 == true">
-            <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
-              <DataTable
-                :value="list_schedule"
-                :scrollable="true"
-                :lazy="true"
-                :rowHover="true"
-                :showGridlines="true"
-                scrollDirection="both"
-              >
-                <Column
-                  field="card_number"
-                  header="STT"
-                  headerStyle="text-align:center;width:70px;height:50px"
-                  bodyStyle="text-align:center;width:70px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    {{ slotProps.data.is_order }}
-                  </template>
-                </Column>
-                <Column
-                  field="form"
-                  header="Nội dung đào tạo"
-                  headerStyle="text-align:center;width:250px;height:50px"
-                  bodyStyle="text-align:center;width:250px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <div class="form-group m-0">
-                      <Textarea
-                        :autoResize="true"
-                        rows="1"
-                        cols="40"
-                        v-model="slotProps.data.class_schedule_name"
-                        class="w-30rem"
-                        :class="{
-                          'p-invalid':
-                            slotProps.data.class_schedule_name == null &&
-                            submitted,
-                        }"
-                      />
-                    </div>
-                  </template>
-                </Column>
-                <Column
-                  field="start_date"
-                  header="Phạm vi"
-                  headerStyle="text-align:center;width:150px;height:50px"
-                  bodyStyle=" width:150px;"
-                  class="align-items-center justify-content-center"
-                >
-                  <template #body="slotProps">
-                    <Dropdown
-                      v-model="slotProps.data.limit"
-                      :options="listLimit"
-                      optionLabel="name"
-                      optionValue="code"
-                      :filter="false"
-                      class="w-full"
-                      panelClass="d-design-dropdown"
-                      placeholder="---- Phạm vi ----"
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field="end_date"
-                  header="Giảng viên"
-                  headerStyle="text-align:center;width:16rem;height:50px"
-                  bodyStyle="width:16rem;"
-                  class="align-items-center justify-content-center"
-                >
-                  <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
-                      class="w-full"
-                      v-model="slotProps.data.lecturers_name"
-                      v-if="slotProps.data.limit == 2"
-                    />
-                    <Dropdown
-                      v-else
-                      :options="listDropdownUserGive"
-                      :filter="true"
-                      :showClear="true"
-                      :editable="false"
-                      optionLabel="name"
-                      optionValue="code"
-                      v-model="slotProps.data.lecturers_id"
-                      class="w-full"
-                      placeholder="--- Chọn giảng viên ---"
-                      @change="
-                        changeLecturers(
-                          slotProps.data.lecturers_id,
-                          slotProps.data.is_order
-                        )
-                      "
-                    >
-                      <template #option="slotProps">
-                        <div v-if="slotProps.option" class="flex">
-                          <div class="format-center">
-                            <Avatar
-                              v-bind:label="
-                                slotProps.option.avatar
-                                  ? ''
-                                  : slotProps.option.name.substring(0, 1)
-                              "
-                              v-bind:image="
-                                slotProps.option.avatar
-                                  ? basedomainURL + slotProps.option.avatar
-                                  : basedomainURL + '/Portals/Image/noimg.jpg'
-                              "
-                              style="
-                                background-color: #2196f3;
-                                color: #ffffff;
-                                width: 3rem;
-                                height: 3rem;
-                                font-size: 1.4rem !important;
-                              "
-                              :style="{
-                                background: bgColor[slotProps.option.name % 7],
-                              }"
-                              class="text-avatar"
-                              size="xlarge"
-                              shape="circle"
-                            />
-                          </div>
-                          <div class="ml-3 format-center">
-                            <div class="mb-1">
-                              {{ slotProps.option.name }}
-                            </div>
-                          </div>
-                        </div>
-                        <span v-else> Chưa có dữ liệu </span>
-                      </template>
-                    </Dropdown>
-                  </template>
-                </Column>
-                <Column
-                  field="admission_place"
-                  header="Điện thoại"
-                  headerStyle="text-align:center;width:150px;height:50px"
-                  bodyStyle="text-align:center;width:150px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
-                      class="w-full"
-                      v-model="slotProps.data.phone_number"
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field="transfer_place"
-                  header="Ngày học"
-                  headerStyle="text-align:center;width:180px ;height:50px"
-                  bodyStyle="text-align:center ;width:180px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <Calendar
-                      class="w-full"
-                      id="basic_purchase_date"
-                      v-model="slotProps.data.date_study"
-                      autocomplete="on"
-                      :showIcon="true"
-                      :maxDate="
-                        training_emps.end_date
-                          ? new Date(training_emps.end_date)
-                          : null
-                      "
-                      :minDate="
-                        training_emps.start_date
-                          ? new Date(training_emps.start_date)
-                          : null
-                      "
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field="transfer_place"
-                  header="Bắt đầu"
-                  headerStyle="text-align:center;width:7rem ;height:50px"
-                  bodyStyle="text-align:center ;width:7rem;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <Calendar
-                      inputId="time12"
-                      hourFormat="24"
-                      class="w-full"
-                      autocomplete="on"
-                      icon="pi pi-clock"
-                      :showIcon="false"
-                      :timeOnly="true"
-                      v-model="slotProps.data.start_time"
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field="transfer_place"
-                  header="Kết thúc"
-                  headerStyle="text-align:center;width:7rem ;height:50px"
-                  bodyStyle="text-align:center ;width:7rem;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <Calendar
-                      inputId="time12"
-                      hourFormat="24"
-                      class="w-full"
-                      autocomplete="on"
-                      icon="pi pi-clock"
-                      :showIcon="false"
-                      :timeOnly="true"
-                      v-model="slotProps.data.end_time"
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field="transfer_place"
-                  header="Phòng học"
-                  headerStyle="text-align:center;width:16rem ;height:50px"
-                  bodyStyle="  width:16rem;"
-                  class="align-items-center justify-content-center"
-                >
-                  <template #body="slotProps">
-                    <Dropdown
-                      v-model="slotProps.data.training_class_id"
-                      :options="listClasroom"
-                      optionLabel="name"
-                      optionValue="code"
-                      :filter="true"
-                      class="w-full"
-                      panelClass="d-design-dropdown"
-                      placeholder="---Chọn phòng học---"
-                    />
-                  </template>
-                </Column>
-                <Column
-                  header=""
-                  headerStyle="text-align:center;width:50px"
-                  bodyStyle="text-align:center;width:50px"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <a
-                      @click="delRow_Item(slotProps.data, 2)"
-                      class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa lịch học'"
-                    >
-                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                    </a>
-                  </template>
-                </Column>
-                <template #empty>
-                  <div
-                    class="
-                      align-items-center
-                      justify-content-center
-                      p-4
-                      text-center
-                      m-auto
-                    "
-                    style="display: flex; width: 100%; min-height: 200px"
-                  ></div>
-                </template>
-              </DataTable>
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+               Mức lương (đến)
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                    <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full d-input-design-number"
+                   suffix=" VND"
+                   placeholder="Đến"
+               
+                />
+              </div>
             </div>
           </div>
         </div>
+      
+        
         <div class="col-12 p-0 border-1 border-300 border-solid">
           <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
             <div
