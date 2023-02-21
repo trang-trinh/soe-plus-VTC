@@ -187,6 +187,10 @@ import {
     faEnvelopeOpen,
     faEllipsis,
     faBriefcaseMedical,
+    faUserGear,
+    faUserTie,
+    faUserLarge,
+    faUsers
 } from "@fortawesome/free-solid-svg-icons";
 import {
     faAddressCard,
@@ -195,6 +199,10 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 /* add icons to the library */
 library.add(
+    faUsers,
+    faUserLarge,
+    faUserTie,
+    faUserGear,
     faBarcode,
     faClock,
     faFlag,

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, inject, onMounted, watch } from "vue";
+import { ref, inject, onMounted, nextTick } from "vue";
 import { useToast } from "vue-toastification";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import moment from "moment";
@@ -111,7 +111,8 @@ const listCodesReceiver = ref();
 const listCodesSend = ref();
 
 const listCodesInternal = ref();
-const loadData = () => {
+const loadData = (is_clickfirst) => {
+  let nav_type = doc_number.value.doc_number_receiver ? 1 : (doc_number.value.doc_number_send ? 2 : 3);
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -119,7 +120,9 @@ const loadData = () => {
         encr(JSON.stringify(
           {
         proc: "doc_codes_list",
-        par: [{ par: "user_id", va: store.getters.user.user_id }],
+        par: [{ par: "organization_id", va: store.getters.user.organization_id },
+        { par: "nav_type", va: nav_type }
+        ],
       }
       ),
         SecretKey, cryoptojs)
@@ -129,17 +132,14 @@ const loadData = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-      let data2 = JSON.parse(response.data.data)[2];
-      if (data.length > 0) {
-        listCodesReceiver.value = data;
-        listCodesSend.value = data1;
-        listCodesInternal.value = data2;
-      } else {
-        listCodesReceiver.value = [];
-        listCodesSend.value = [];
-        listCodesInternal.value = [];
-      }
+     doc_codes.value = data;
+     debugger
+     if(is_clickfirst){
+      if(doc_codes.value.length > 0){
+        doc_code.value = doc_codes.value[0];
+        getDocCodeByID({value: {code_master_id: doc_codes.value[0].code_master_id}});
+     }
+     }
       options.value.loading = false;
     })
     .catch((error) => {
@@ -148,6 +148,46 @@ const loadData = () => {
       options.value.loading = false;
     });
 };
+const getDocCodeByID = (ev) => {
+  is_new.value = false;
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/DocProc/CallProc",
+      {str: 
+        encr(JSON.stringify(
+          {
+        proc: "doc_codes_get_byID",
+        par: [{ par: "code_master_id", va: ev.value.code_master_id }],
+      }
+      ),
+        SecretKey, cryoptojs)
+        .toString()
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      swal.close();
+      selected_doc_code.value = data[0][0];
+      filter_doc_code.value = selected_doc_code.value.code_name;
+      selected_doc_code.value.details = data[1];
+      selected_doc_code.value.groups = data[2];
+      selected_doc_code.value.dispatch_books = data[3];
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      console.log(error);
+
+      options.value.loading = false;
+    });
+}
 const onChangeTypeDoc = (value) => {
   if (value == 1) {
     if (doc_number.value.doc_number_receiver) {
@@ -163,7 +203,6 @@ const onChangeTypeDoc = (value) => {
       doc_number.value.doc_number_internal = false;
     } else {
       doc_number.value.doc_number_send = true;
-      loadData();
     }
   }
   if (value == 3) {
@@ -174,6 +213,7 @@ const onChangeTypeDoc = (value) => {
       doc_number.value.doc_number_send = true;
     }
   }
+  loadData();
 };
 function array_is_unique(array, size) {
   //flag =  1 =>  tồn tại phần tử trùng nhau
@@ -192,97 +232,71 @@ function array_is_unique(array, size) {
   return flag;
 }
 const saveDocConfig = () => {
-  
-  let arrP = [];
-  let sttR = [];
-  let sttS = [];
-  let sttI = [];
-  listCodesReceiver.value.forEach((element) => {
-    element.auto_gen = doc_number.value.auto_gen_receiver;
-    element.num_by_group = doc_number.value.num_by_group_receiver;
-    sttR.push(element.is_order);
-    arrP.push(element);
-  });
-  listCodesSend.value.forEach((element) => {
-    element.auto_gen = doc_number.value.auto_gen_send;
-    element.num_by_group = doc_number.value.num_by_group_send;
-    sttS.push(element.is_order);
-    arrP.push(element);
-  });
-  listCodesInternal.value.forEach((element) => {
-    element.auto_gen = doc_number.value.auto_gen_internal;
-    element.num_by_group = doc_number.value.num_by_group_internal;
-    sttI.push(element.is_order);
-    arrP.push(element);
-  });
-  for (let index = 0; index < sttI.length; index++) {
-    if (sttI[index] == null) {
-      swal.fire({
-        title: "Thông báo",
-        text: "Số thứ tự không được để trống!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
-  }
-  for (let index = 0; index < sttR.length; index++) {
-    if (sttR[index] == null) {
-      swal.fire({
-        title: "Thông báo",
-        text: "Số thứ tự không được để trống!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
-  }
-  for (let index = 0; index < sttS.length; index++) {
-    if (sttS[index] == null) {
-      swal.fire({
-        title: "Thông báo",
-        text: "Số thứ tự không được để trống!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
-  }
-  if (array_is_unique(sttR, sttR.length) == 1) {
+  if(!selected_doc_code.value.is_default && selected_doc_code.value.groups.length === 0 && selected_doc_code.value.dispatch_books.length === 0){
     swal.fire({
-      title: "Thông báo",
-      text: "Số thứ tự không được trùng nhau!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
+                    type: 'error',
+                    icon: 'error',
+                    title: 'Thông báo!',
+                    text: 'Không có loại cấu hình nào được chọn !'
+                });
+                return false;
   }
-  if (array_is_unique(sttS, sttS.length) == 1) {
+  if(!filter_doc_code.value){
     swal.fire({
-      title: "Thông báo",
-      text: "Số thứ tự không được trùng nhau!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
+                    type: 'error',
+                    icon: 'error',
+                    title: 'Thông báo!',
+                    text: 'Tên cấu hình số ký hiệu trống !'
+                });
+                return false;
   }
-  if (array_is_unique(sttI, sttI.length) == 1) {
-    swal.fire({
-      title: "Thông báo",
-      text: "Số thứ tự không được trùng nhau!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
+  let unique = selected_doc_code.value.details.filter((v, i, a) => a.findIndex(t => (t.is_order === v.is_order)) === i);
+  if (unique.length < selected_doc_code.value.details.length) {
+              swal.fire({
+                    type: 'error',
+                    icon: 'error',
+                    title: 'Thông báo!',
+                    text: 'Số thứ tự không được trùng nhau !'
+                });
+                return false;
+            }
+  if(doc_number.value.doc_number_receiver) selected_doc_code.value.nav_type === 1
+  else if(doc_number.value.doc_number_send) selected_doc_code.value.nav_type === 2
+  else if(doc_number.value.doc_number_internal) selected_doc_code.value.nav_type === 3
+  selected_doc_code.value.code_name = filter_doc_code.value;
+  let formData = new FormData();
+  formData.append("doc_code", JSON.stringify(selected_doc_code.value));
+  if(!selected_doc_code.value.is_default && selected_doc_code.value.groups.length > 0){
+    let grs = selected_doc_code.value.groups.map(x=>x.doc_group_id);
+    formData.append("groups", JSON.stringify(grs));
   }
-  console.log("alas",arrP);
-  axios
-    .put(baseURL + "/api/doc_codes/update_doc_codes", arrP, config)
+  if(!selected_doc_code.value.is_default && selected_doc_code.value.dispatch_books.length > 0)
+  {
+    let dpbs = selected_doc_code.value.dispatch_books.map(x=>x.dispatch_book_id);
+    formData.append("dispatch_books", JSON.stringify(dpbs));
+  }
+  formData.append("details", JSON.stringify(selected_doc_code.value.details));
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios({
+    method: 'post',
+    url: baseURL +
+    "/api/doc_codes/update_doc_codes",
+    data: formData,
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
+  })
     .then((response) => {
       
       if (response.data.err != "1") {
       
         swal.close();
+        loadData(true);
         toast.success("Cập nhật số hiệu thành công!");
       }
       else{
@@ -301,15 +315,189 @@ const saveDocConfig = () => {
       });
     });
 };
+const delDocConfig = () => {
+  debugger
+  let id = selected_doc_code.value.code_master_id;
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá cấu hình này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+
+        axios
+          .delete(baseURL + "/api/doc_codes/delete_doc_codes", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: [id],
+          })
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá cấu hình thành công!");
+              selected_doc_code.value = null;
+              loadData();
+            } else {
+              console.log(response.data.ms);
+              swal.fire({
+                title: "Thông báo",
+                text: "Xảy ra lỗi khi xóa cấu hình",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                title: "Thông báo",
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+}
+//Thêm log
+const addLog = (log) => {
+  axios.post(baseURL + "/api/Proc/AddLog", log, config);
+};
+// Load Category
+const category = ref({});
+const loadCategorys = () => {
+  axios
+    .post(
+      baseURL
+      //baseUrl
+      + "/api/DocProc/CallProc",
+      {str: 
+        encr(JSON.stringify(
+          {
+        proc: "doc_master_category_list",
+        par: [
+          { par: "organization_id", va: store.getters.user.organization_id },
+          { par: "user_id", va: store.getters.user.user_id }
+        ],
+      }
+      ),
+        SecretKey, cryoptojs)
+        .toString()
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      category.value.issue_places = data[0].filter(x=>!x.is_slider);
+      category.value.issue_places_checkbox = data[0].filter(x=>x.is_slider);
+
+      category.value.groups = data[1];
+      category.value.org_groups = data[1];
+      
+      category.value.urgency = data[3];
+      category.value.security = data[4];
+      category.value.fields = data[5];
+      category.value.send_ways = data[6];
+      category.value.receive_places = data[7];
+
+      category.value.dispatch_books = data[8];
+      category.value.org_dispatch_books = data[8];
+
+      category.value.positions = data[9];
+      category.value.signers = data[10];
+      category.value.email = data[11];
+      category.value.email_groups = data[12];
+      category.value.reservation_numbers = data[13];
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "SQLView.vue",
+        logcontent: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+// Init doc code
+const doc_codes = ref([]);
+const code_details_init = [
+  {idKey: 'Sovanban', is_order: 1, info_col: 'Số văn bản', separator: '/'},
+  {idKey: 'Nam', is_order: 2, info_col: 'Năm', separator: '/'},
+  {idKey: 'Nhomvanban', is_order: 3, info_col: 'Nhóm văn bản', separator: '/'},
+  {idKey: 'Maphongban', is_order: 4, info_col: 'Mã phòng ban', separator: '/'},
+  {idKey: 'Macongty', is_order: 5, info_col: 'Mã công ty', separator: '/'},
+  {idKey: 'Makhoi', is_order: 6, info_col: 'Mã khối cơ quan', separator: ''},
+]
+const selected_doc_code = ref();
+const filter_doc_code = ref();
+const doc_code = ref({
+    organization_id: store.getters.user.organization_id,
+    nav_type: 2,
+    is_default: true,
+    code_name: 'Cấu hình mới',
+    groups: [],
+    dispatch_books: [],
+    details: code_details_init
+});
+const is_new = ref(false);
+const createNewDocCode = () => {
+  is_new.value = true;
+  doc_code.value = {
+    organization_id: store.getters.user.organization_id,
+    nav_type: 2,
+    is_default: true,
+    code_name: 'Cấu hình mới',
+    groups: [],
+    dispatch_books: [],
+    details: code_details_init
+  }
+  // doc_codes.value.unshift(doc_code.value);
+  filter_doc_code.value = doc_code.value.code_name;
+  selected_doc_code.value = doc_code.value;
+  nextTick(() => {
+    let focus_ip = document.querySelector("#focus-input > input");
+  if(focus_ip){
+    focus_ip.focus();
+  }
+  })
+}
 onMounted(() => {
+  loadCategorys();
   loadOrg();
   loadData();
-  loadAddDocCodes();
+  // loadAddDocCodes();
 });
 </script>
 <template>
   <div class="d-container ">
-    <div class="d-lang-table surface-0">
+    <div class="d-lang-table surface-0 mr-0" style="overflow-y: auto">
       <div class=" w-full  p-4 style-vb-1  text-center text-3xl">
           BẢNG THIẾT LẬP SỐ HIỆU VĂN BẢN
         </div>
@@ -342,12 +530,46 @@ onMounted(() => {
             />
           </div>
         </div>
-      <div class="grid">
-      
-      
-       
+        <div class="col-12 md:col-12 format-center">
+          <div class="col-6 md:col-6 flex" style="justify-content: space-between; column-gap: 1rem">
+            <div class="flex" style="column-gap: 1rem;">
+              <div id="focus-input" class="flex align-items-center">
+                <div class="pr-2">Cấu hình:</div>
+                <InputText autoFocus v-if="is_new" v-model="filter_doc_code"/>
+                <Dropdown v-if="!is_new" @change="getDocCodeByID" :selectOnFocus="true" v-model="doc_code" :options="doc_codes" :filter="true" optionLabel="code_name" />
+              </div>
+              <div v-if="selected_doc_code" class="flex align-items-center">
+                <div class="pr-2">Mặc định:</div>
+                <InputSwitch
+                  @change="onChangeTypeDoc(1)"
+                  class="w-4rem lck-checked"
+                  v-model="selected_doc_code.is_default"
+                />
+              </div>
+            </div>
+            <div class="flex">
+              <Button v-if="selected_doc_code && selected_doc_code.code_master_id" @click="delDocConfig" label="Xoá" icon="pi pi-trash" class="mr-2 p-button-danger" />
+              <Button icon="pi pi-plus-circle" label="Thêm mới" @click="createNewDocCode" />
+            </div>
+          </div>
+        </div>
+        <div v-if="selected_doc_code && !selected_doc_code.is_default" class="col-12 md:col-12 format-center pb-5">
+          <div class="col-6 md:col-6" style="row-gap: 2rem">
+          <div class="flex align-items-center pb-5">
+            <div class="pr-2 col-3 p-0 text-left">Theo nhóm văn bản:</div>
+            <MultiSelect class="wrap-multi col-9 p-0" v-model="selected_doc_code.groups" :options="category.groups" optionLabel="doc_group_name"
+              placeholder="Nhóm văn bản" :filter="true" display="chip" />
+          </div>
+          <div class="flex align-items-center">
+            <div class="pr-2 col-3 p-0 text-left">Theo khối cơ quan:</div>
+            <MultiSelect class="wrap-multi col-9 p-0" v-model="selected_doc_code.dispatch_books" :options="category.dispatch_books" optionLabel="dispatch_book_name"
+              placeholder="Khối cơ quan" :filter="true" display="chip" />
+          </div>
+          </div>
+        </div>
+      <div v-if="selected_doc_code" class="grid">
         <div class="col-12 p-0 format-center">
-          <div class="col-6 p-0" v-show="doc_number.doc_number_receiver">
+          <div class="col-6 p-0">
             <DataTable
               class="w-full"
               :rowHover="true"
@@ -356,191 +578,7 @@ onMounted(() => {
               :scrollable="true"
               scrollHeight="flex"
               filterMode="strict"
-              :value="listCodesReceiver"
-            >
-              <Column
-                field="is_order"
-                header="STT"
-                class="align-items-center justify-content-center text-center"
-                headerStyle="text-align:center;max-width:80px"
-                bodyStyle="text-align:center;max-width:80px"
-              >
-                <template #body="data">
-                  <div class="w-full">
-                    <InputNumber
-                      inputStyle="text-align:center"
-                      class="w-full"
-                      v-model="data.data.is_order"
-                    />
-                  </div>
-                </template>
-              </Column>
-              <Column
-                field="info_col"
-                header="Cột thông tin"
-                class="align-items-center justify-content-center text-center"
-                headerStyle="text-align:center"
-                bodyStyle="text-align:center"
-              >
-                <template #body="data">
-                  <div class="w-full h-full">
-                    <Button
-                      class="
-                        w-full
-                        h-full
-                        text-center
-                        surface-200
-                        border-1 border-400
-                        text-900
-                      "
-                      :label="data.data.info_col"
-                    ></Button>
-                  </div> </template
-              ></Column>
-              <Column
-                field="is_used"
-                header="Sử dụng"
-                class="
-                  align-items-center
-                  justify-content-center
-                  text-center
-                  font-bold
-                "
-                headerStyle="text-align:center;max-width:100px"
-                bodyStyle="text-align:center;max-width:100px"
-              >
-                <template #body="data">
-                  <InputSwitch
-                    class="w-4rem lck-checked"
-                    v-model="data.data.is_used"
-                  ></InputSwitch> </template
-              ></Column>
-              <Column
-                field="separator"
-                header="Ký tự ngăn cách"
-                class="
-                  align-items-center
-                  justify-content-center
-                  text-center
-                  font-bold
-                "
-                headerStyle="text-align:center;max-width:200px"
-                bodyStyle="text-align:center;max-width:200px"
-              >
-                <template #body="data">
-                  <div class="w-full">
-                    <InputText
-                      class=""
-                      style="max-width: 120px; text-align: center"
-                      v-model="data.data.separator"
-                    />
-                  </div>
-                </template>
-              </Column>
-            </DataTable>
-          </div>
-          <div class="col-6 p-0" v-show="doc_number.doc_number_internal">
-            <DataTable
-              class="w-full"
-              :rowHover="true"
-              responsiveLayout="scroll"
-              :lazy="true"
-              :scrollable="true"
-              scrollHeight="flex"
-              filterMode="strict"
-              :value="listCodesInternal"
-            >
-              <Column
-                field="is_order"
-                header="STT"
-                class="align-items-center justify-content-center text-center"
-                headerStyle="text-align:center;max-width:80px"
-                bodyStyle="text-align:center;max-width:80px"
-              >
-                <template #body="data">
-                  <div class="w-full">
-                    <InputNumber
-                      inputStyle="text-align:center"
-                      class="w-full"
-                      v-model="data.data.is_order"
-                    />
-                  </div>
-                </template>
-              </Column>
-              <Column
-                field="info_col"
-                header="Cột thông tin"
-                class="align-items-center justify-content-center text-center"
-                headerStyle="text-align:center"
-                bodyStyle="text-align:center"
-              >
-                <template #body="data">
-                  <div class="w-full h-full">
-                    <Button
-                      class="
-                        w-full
-                        h-full
-                        text-center
-                        surface-200
-                        border-1 border-400
-                        text-900
-                      "
-                      :label="data.data.info_col"
-                    ></Button>
-                  </div> </template
-              ></Column>
-              <Column
-                field="is_used"
-                header="Sử dụng"
-                class="
-                  align-items-center
-                  justify-content-center
-                  text-center
-                  font-bold
-                "
-                headerStyle="text-align:center;max-width:100px"
-                bodyStyle="text-align:center;max-width:100px"
-              >
-                <template #body="data">
-                  <InputSwitch
-                    class="w-4rem lck-checked"
-                    v-model="data.data.is_used"
-                  ></InputSwitch> </template
-              ></Column>
-              <Column
-                field="separator"
-                header="Ký tự ngăn cách"
-                class="
-                  align-items-center
-                  justify-content-center
-                  text-center
-                  font-bold
-                "
-                headerStyle="text-align:center;max-width:200px"
-                bodyStyle="text-align:center;max-width:200px"
-              >
-                <template #body="data">
-                  <div class="w-full">
-                    <InputText
-                      class=""
-                      style="max-width: 120px; text-align: center"
-                      v-model="data.data.separator"
-                    />
-                  </div>
-                </template>
-              </Column>
-            </DataTable>
-          </div>
-          <div class="col-6 p-0" v-show="doc_number.doc_number_send">
-            <DataTable
-              class="w-full"
-              :rowHover="true"
-              responsiveLayout="scroll"
-              :lazy="true"
-              :scrollable="true"
-              scrollHeight="flex"
-              filterMode="strict"
-              :value="listCodesSend"
+              :value="selected_doc_code.details"
             >
               <Column
                 field="is_order"
@@ -625,52 +663,20 @@ onMounted(() => {
           </div>
         </div>
         <div
-          v-show="doc_number.doc_number_receiver"
           class="col-12 p-4 pb-2 text-center format-center"
         >
-          <div class="text-center format-center">
+        <div class="text-center format-center">
             <div class="pr-2">Tự động tạo ra ký hiệu:</div>
             <InputSwitch
               class="w-4rem lck-checked"
-              v-model="doc_number.auto_gen_receiver"
-            />
-          </div>
-        </div>
-        <div
-          v-show="doc_number.doc_number_internal"
-          class="col-12 p-4 pb-2 text-center format-center"
-        >
-          <div class="text-center format-center">
-            <div class="pr-2">Tự động tạo ra ký hiệu:</div>
-            <InputSwitch
-              class="w-4rem lck-checked"
-              v-model="doc_number.auto_gen_internal"
+              v-model="selected_doc_code.auto_gen"
             />
           </div>
           <div class="text-center format-center">
             <div class="pr-2 pl-4">Số văn bản được tạo theo nhóm văn bản:</div>
             <InputSwitch
               class="w-4rem lck-checked"
-              v-model="doc_number.num_by_group_internal"
-            />
-          </div>
-        </div>
-        <div
-          v-show="doc_number.doc_number_send"
-          class="col-12 p-4 pb-2 text-center format-center"
-        >
-          <div class="text-center format-center">
-            <div class="pr-2">Tự động tạo ra ký hiệu:</div>
-            <InputSwitch
-              class="w-4rem lck-checked"
-              v-model="doc_number.auto_gen_send"
-            />
-          </div>
-          <div class="text-center format-center">
-            <div class="pr-2 pl-4">Số văn bản được tạo theo nhóm văn bản:</div>
-            <InputSwitch
-              class="w-4rem lck-checked"
-              v-model="doc_number.num_by_group_send"
+              v-model="selected_doc_code.num_by_group"
             />
           </div>
         </div>
@@ -689,8 +695,8 @@ onMounted(() => {
               lập.
             </div>
             <div class="w-full">
-              Ví dụ: Đơn vị sử dụng cả 05 cột thông tin trên, theo thứ tự mặc
-              định (từ 1 đến 5):
+              Ví dụ: Đơn vị sử dụng cả 06 cột thông tin trên, theo thứ tự mặc
+              định (từ 1 đến 6):
             </div>
 
             <div class="w-full px-6">
@@ -699,9 +705,10 @@ onMounted(() => {
               <div>3. Loại văn bản: QĐ (Quyết định)</div>
               <div>4. Mã phòng ban: TCHC (Tổ chức hành chính)</div>
               <div>5: Mã công ty: ECP</div>
+              <div>6: Khối cơ quan: Đảng uỷ</div>
               <div>
                 Hệ thống tự động sinh ra bộ mã ký hiệu như sau:
-                1/2020/QĐ/TCHC-ECP
+                1/2020/QĐ/TCHC-ECP/ĐƯ
               </div>
             </div>
           </div>

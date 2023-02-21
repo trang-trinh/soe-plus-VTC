@@ -1073,19 +1073,8 @@ onMounted(() => {
              Số lượng tuyển<span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
-                <InputNumber class="w-full" suffix=" Người" v-model="training_emps.obj_training"  />
-              <!-- <Dropdown
-                v-model="training_emps.obj_training"
-                :options="listObjTraining"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="----- Chọn đối tượng đào tạo -----"
-                class="sel-placeholder w-full"
-                panelClass="d-design-dropdown"
-                :class="{
-                  'p-invalid': training_emps.obj_training == null && submitted,
-                }"
-              /> -->
+                <InputNumber  class="w-full" suffix=" Người" v-model="training_emps.obj_training"  />
+        
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
@@ -1126,7 +1115,7 @@ onMounted(() => {
                 id="basic_purchase_date"
                 v-model="training_emps.start_date"
                 autocomplete="on"
-                :showIcon="true"
+                :showIcon="true"    placeholder="dd/mm/yyyy"
               />
             </div>
           </div>
@@ -1134,7 +1123,7 @@ onMounted(() => {
             <div class="w-10rem pl-3">Ngày kết thúc</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
-                class="w-full"
+                class="w-full"    placeholder="dd/mm/yyyy"
                 id="basic_purchase_date"
                 v-model="training_emps.end_date"
                 autocomplete="on"
@@ -1187,7 +1176,8 @@ onMounted(() => {
                 :options="listStatus"
                 optionLabel="name"
                 optionValue="code"
-                class="sel-placeholder w-full"
+                class=" w-full"
+                placeholder="Chọn chức vụ"
                 panelClass="d-design-dropdown"
               />
             </div>
@@ -1207,8 +1197,9 @@ onMounted(() => {
                 :options="listStatus"
                 optionLabel="name"
                 optionValue="code"
-                class="sel-placeholder w-full"
+                class=" w-full"
                 panelClass="d-design-dropdown"
+                placeholder="Chọn hình thức làm việc"
               />
               </div>
             </div>
@@ -1241,7 +1232,6 @@ onMounted(() => {
                   class="w-full d-input-design-number"
                    suffix=" VND"
                    placeholder="Từ"
-               
                 />
               </div>
             </div>
@@ -1263,28 +1253,235 @@ onMounted(() => {
             </div>
           </div>
         </div>
-      
-        
-        <div class="col-12 p-0 border-1 border-300 border-solid">
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div
-              class="font-bold flex align-items-center w-full cursor-pointer"
-              @click="showHidePanel(3)"
-            >
-              <i
-                class="pi pi-angle-right"
-                v-if="checkShow3 == false"
-                style="font-size: 1.25rem"
-              ></i>
-              <i
-                class="pi pi-angle-down"
-                v-if="checkShow3 == true"
-                style="font-size: 1.25rem"
-              ></i>
-              <div class="pl-2">File đính kèm</div>
+       <div class="col-12 flex p-0">
+              <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+             Hạn tuyển<span class="redsao pl-1"> (*)</span>
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                  <Calendar
+                class="w-full"    placeholder="dd/mm/yyyy"
+               
+                v-model="training_emps.start_date"
+                autocomplete="on"
+                :showIcon="true"
+              />
+              </div>
             </div>
           </div>
-          <div class="w-full" v-if="checkShow3 == true">
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+              Số lượng
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                    <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full d-input-design-number"
+                   suffix=" Người"
+                   placeholder="Số lượng"
+               
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+          <div class="col-12 flex p-0">
+            
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+           Mẫu đánh giá
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                       <Dropdown
+                v-model="training_emps.position"
+                :options="listStatus"
+                optionLabel="name"
+                optionValue="code"
+                class="w-full"
+                panelClass="d-design-dropdown"
+                  placeholder="Chọn mẫu đánh giá ứng viên"
+              />
+              </div>
+           
+          </div>
+         
+        </div>
+        <div class="col-12 field p-0 text-lg font-bold">Yêu cầu ứng viên</div>
+   
+        <div class="col-12 field p-0 flex text-left align-items-center">
+           <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem ">Trình độ</div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                v-model="training_emps.position"
+                :options="listStatus"
+                optionLabel="name"
+                optionValue="code"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
+            </div>
+          </div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">Chuyên ngành</div>
+            <div style="width: calc(100% - 10rem)">
+               <Dropdown
+                v-model="training_emps.position"
+                :options="listStatus"
+                optionLabel="name"
+                optionValue="code"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
+            </div>
+          </div>
+        </div>
+
+       
+           <div class="col-12 flex p-0">
+              <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+          Kinh nghiệm
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                    <Dropdown
+                v-model="training_emps.position"
+                :options="listStatus"
+                optionLabel="name"
+                optionValue="code"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
+              </div>
+            </div>
+          </div>
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+             Ngoại ngữ
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                   <InputText
+                  v-model="training_emps.expense"
+                  class="w-full"
+                   
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+       
+        <div class="col-12 flex p-0">
+              <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+            Tuổi
+              </div>
+              <div style="width: calc(100% - 10rem)" class="flex">
+                <div class="w-full mr-2">
+                <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full  "
+                   suffix=" VND"
+                   placeholder="Từ"
+                /></div>
+                  <div class="w-full">
+                <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full "
+                   suffix=" VND"
+                   placeholder="Đến"
+                /></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+               Giới tính
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                     <Dropdown
+                v-model="training_emps.position"
+                :options="listStatus"
+                optionLabel="name"
+                optionValue="code"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 flex p-0">
+              <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+            Chiều cao
+              </div>
+              <div style="width: calc(100% - 10rem)" class="flex">
+                <div class="w-full mr-2">
+                <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full  "
+                   suffix=" Cm"
+                   placeholder="Từ"
+                /></div>
+                  <div class="w-full">
+                <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full "
+                   suffix=" Cm"
+                   placeholder="Đến"
+                /></div>
+              </div>
+            </div>
+          </div>
+           <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+            Cân nặng
+              </div>
+              <div style="width: calc(100% - 10rem)" class="flex">
+                <div class="w-full mr-2">
+                <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full  "
+                   suffix=" Kg"
+                   placeholder="Từ"
+                /></div>
+                  <div class="w-full">
+                <InputNumber
+                  v-model="training_emps.expense"
+                  class="w-full "
+                   suffix=" Kg"
+                   placeholder="Đến"
+                /></div>
+              </div>
+            </div>
+          </div>
+        </div>
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem ">
+            Mô tả công việc
+              </div>
+              <div style="width: calc(100% - 10rem)" class="flex">
+                 <Textarea
+                        :autoResize="true"
+                        rows="1"
+                        cols="40"
+                        v-model="training_emps.class_schedule_name"
+                        class="w-full"
+                        
+                      />
+                      </div>
+                      </div>
+
+                    <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
+        <div class="w-full col-12 field p-0" >
             <FileUpload
               chooseLabel="Chọn File"
               :showUploadButton="false"
@@ -1379,7 +1576,6 @@ onMounted(() => {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </form>
     <template #footer>

@@ -400,6 +400,8 @@ const Hrm_File = () =>
     import ("../views/hrm/files/hrm_file.vue");
 const Hrm_campaign = () =>
     import ("../views/hrm/recruitment/hrm_campaign.vue");
+const Hrm_paycheck = () =>
+    import ("../views/hrm/declare/hrm_paycheck.vue");
 
 //end
 // TV
@@ -1820,6 +1822,11 @@ const router = createRouter({
             path: "/hrm/recruitment/campaign",
             name: "Hrm_campaign",
             component: Hrm_campaign,
+        },
+        {
+            path: "/hrm/hrm_paycheck",
+            name: "Hrm_paycheck",
+            component: Hrm_paycheck,
         },
 
     ],
