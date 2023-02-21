@@ -449,7 +449,7 @@ const listtreeOrganization = () => {
             config,
         )
         .then((response) => {
-            if(store.state.user.is_admin == true){
+            if(store.state.user.is_super == true){
                 let data = JSON.parse(response.data.data);
                 // let obj = renderTreeDV(
                 //     data,
@@ -458,12 +458,17 @@ const listtreeOrganization = () => {
                 //     "phòng ban",
                 // );
                 // listOrganization.value = data[0];
-                listOrganizationAll.value = data[0]
+                listOrganizationAll.value = data[0];
                 listDropdownDonvi.value = data[1];
             }else{
-                let data = JSON.parse(response.data.data)[0];
-                listOrganization.value = data.filter(x=>x.parent_id != null);
-                listOrganizationAll.value = data;
+                let data = JSON.parse(response.data.data);
+                if(data[1][0].is_task == true || store.state.user.is_admin == true){
+                    listOrganization.value = data[0].filter(x=>x.parent_id != null && x.parent_id == store.getters.user.organization_id);
+                    listOrganizationAll.value = data[0];
+                }else{
+                    listOrganization.value = data[0].filter(x=>x.organization_id == data[1][0].department_id);
+                    listOrganizationAll.value = data[0];
+                }
             }
         })
         .catch((error) => {
@@ -762,7 +767,7 @@ const changeDonvi = (event) => {
     listOrganization.value = listOrganizationAll.value.filter(x=>x.parent_id == event.value);
 }
 const clickPhongBan = (event) => {
-    if(store.state.user.is_admin == true && listOrganization.value.length == 0){
+    if(store.state.user.is_super == true && listOrganization.value.length == 0){
         swal.fire({
         title: "Thông báo",
         html: "Vui lòng chọn đơn vị trước khi chọn phòng ban!",
@@ -836,7 +841,7 @@ const onPage = (event) => {
                     </ul>
                     <OverlayPanel ref="menuFilterButs" id="task_report_filter">
                         <ul style="padding: 0px; margin: 0px">
-                            <li class="p-menuitem" v-if="store.state.user.is_admin == true">
+                            <li class="p-menuitem" v-if="store.state.user.is_super == true">
                                 <div class="field col-12 md:col-12" style="display: flex; flex-direction: column;">
                                     <label>Đơn vị</label>
                                     <Dropdown :filter="true" @change="changeDonvi($event)" v-model="opition.filterDonvi" panelClass="d-design-dropdown" placeholder="Chọn đơn vị"
@@ -931,12 +936,13 @@ const onPage = (event) => {
                         </ul>
                         <div style="float: right; padding: 10px">
                             <Button @click="ChangeFilter()" label="Thực hiện" />
-                            <Button @click="Del_ChangeFilter" id="btn_huy" style="
+                            <Button @click="Del_ChangeFilter" id="btn_huy" 
+                            style="
                             background-color: #f2f4f6;
-                  border: 1px solid #f2f4f6;
-                  color: #333;
-                  margin-left: 10px;
-                " label="Hủy lọc" />
+                            border: 1px solid #f2f4f6;
+                            color: #333;
+                            margin-left: 10px;
+                            " label="Hủy lọc" />
                         </div>
                     </OverlayPanel>
                     <Menu id="task_sort" :model="itemSortButs" ref="menuSortButs" :popup="true">
