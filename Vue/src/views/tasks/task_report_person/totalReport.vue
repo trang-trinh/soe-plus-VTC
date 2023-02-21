@@ -439,7 +439,7 @@ const status = ref([
 ]);
 const loadData = () => {
   options.value.loading = true;
-
+  noData.value = true;
   axios
     .post(
       baseURL + "/api/TaskProc/getTaskData",
@@ -624,7 +624,8 @@ const refresh = () => {
     selectOrg: null,
     selectedOrg: null,
   };
-  drdModel.value = null;
+  styleObj.value = "";
+  drdModel.value = 1;
   loadData();
 };
 const length = ref(false);
@@ -659,6 +660,7 @@ const op = ref();
 const toggle = (event) => {
   drdModel.value = 1;
   op.value.toggle(event);
+  listDepartment();
 };
 const reNewFilter = () => {
   options.value.PageNo = 0;
@@ -669,7 +671,7 @@ const reNewFilter = () => {
   options.value.selectedUser = null;
   options.value.selectOrg = null;
   options.value.selectedOrg = null;
-  drdModel.value = null;
+  drdModel.value = 1;
   styleObj.value = null;
   first.value = 0;
   loadData();
@@ -738,7 +740,7 @@ const renderTree = (data) => {
   let arrChils = [];
   let arrtreeChils = [];
   data
-    .filter((x) => x.parent_id == null)
+    .filter((x) => x.parent_id != null)
     .forEach((m, i) => {
       m.IsOrder = i + 1;
       let om = { key: m.organization_id, label: m.organization_name };
@@ -783,7 +785,7 @@ const listDepartment = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let Data = renderTree(data);
-      listDropdownDepartment.value = Data.arrChils;
+      listDropdownDepartment.value = Data.arrtreeChils;
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");

@@ -146,7 +146,7 @@ namespace Controllers
                      //add role module
                      if (model.parent_id != null)
                      {
-                         List<sys_role_modules> list_role_modules = db.sys_role_modules.Where(x => x.module_id == model.parent_id.ToString()).ToList();
+                         List<sys_role_modules> list_role_modules = db.sys_role_modules.Where(x => x.module_id == model.parent_id).ToList();
                          if (list_role_modules.Count > 0)
                          {
                              foreach (var item in list_role_modules)
@@ -154,7 +154,7 @@ namespace Controllers
                                  sys_role_modules role_module = new sys_role_modules();
                                  role_module.role_id = item.role_id;
                                  role_module.user_id = item.user_id;
-                                 role_module.module_id = model.module_id.ToString();
+                                 role_module.module_id = model.module_id;
                                  role_module.module_functions = item.module_functions;
                                  role_module.is_level = item.is_level;
                                  role_module.is_permission = item.is_permission;
@@ -415,7 +415,7 @@ namespace Controllers
                                 if (!string.IsNullOrWhiteSpace(da.image))
                                     paths.Add(HttpContext.Current.Server.MapPath("~/") + da.image);
                                 // del role module
-                                List<sys_role_modules> itemToRemove = db.sys_role_modules.Where(a => a.module_id == da.module_id.ToString()).ToList();
+                                List<sys_role_modules> itemToRemove = db.sys_role_modules.Where(a => a.module_id == da.module_id).ToList();
                                 if (itemToRemove.Count > 0)
                                     db.sys_role_modules.RemoveRange(itemToRemove);
                             }

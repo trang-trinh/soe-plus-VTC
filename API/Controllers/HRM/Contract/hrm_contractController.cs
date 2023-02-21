@@ -217,6 +217,7 @@ namespace API.Controllers.Hrn
                         df.created_date = DateTime.Now;
                         df.created_ip = ip;
                         df.created_token_id = tid;
+                        df.organization_id = user_now.organization_id;
                         dfs.Add(df);
                     }
                     if (dfs.Count > 0)
