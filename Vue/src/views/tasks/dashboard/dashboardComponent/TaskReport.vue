@@ -690,12 +690,29 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
-          <span v-if="data.data.progress > 0">
-            <ProgressBar
-              :value="data.data.progress"
-              :show-value="true"
-          /></span>
-          <span v-else>0%</span>
+          <div class="align-items-center justify-content-center text-center">
+            <Knob
+              class="w-full"
+              v-model="data.data.progress"
+              :readonly="true"
+              valueTemplate="{value}%"
+              :valueColor="
+                data.data.progress < 33
+                  ? '#FF0000'
+                  : data.data.progress < 66
+                  ? '#2196f3'
+                  : '#6dd230'
+              "
+              :textColor="
+                data.data.progress < 33
+                  ? '#FF0000'
+                  : data.data.progress < 66
+                  ? '#2196f3'
+                  : '#6dd230'
+              "
+              size="75"
+            />
+          </div>
         </template>
       </Column>
       <Column
