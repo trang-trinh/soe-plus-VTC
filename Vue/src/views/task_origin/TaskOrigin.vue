@@ -3725,7 +3725,7 @@ const ChangeShowListCVGroup = (model) => {
         overflow-y: hidden;
       "
     >
-      <div
+      <div v-if="listTask.length > 0"
         class="md:col-md-3"
         v-for="item in listTask"
         style="width: 320px; height: 100%; margin: 0px 10px"
@@ -4263,6 +4263,22 @@ const ChangeShowListCVGroup = (model) => {
           </div>
         </div>
       </div>
+      <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          style="
+            min-height: calc(100vh - 215px);
+            max-height: calc(100vh - 215px);
+            display: flex;
+            flex-direction: column;
+          "
+          v-if="listTask != null || opition.totalRecords == 0"
+        >
+          <img
+            src="../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
     </div>
     <!-- end -->
     <!-- kiểu GANTT -->
@@ -4505,6 +4521,26 @@ const ChangeShowListCVGroup = (model) => {
                     "
                   >
                     {{ g.Name }}
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="listTask != null || opition.totalRecords == 0">
+                <td :colspan="GrandsDate.length + 4" style="text-align: center;">
+                  <div
+                    class="align-items-center justify-content-center p-4 text-center m-auto"
+                    style="
+                      min-height: calc(100vh - 215px);
+                      max-height: calc(100vh - 215px);
+                      display: flex;
+                      flex-direction: column;
+                    "
+                    v-if="listTask != null || opition.totalRecords == 0"
+                  >
+                    <img
+                      src="../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
                   </div>
                 </td>
               </tr>
@@ -4831,6 +4867,26 @@ const ChangeShowListCVGroup = (model) => {
                     "
                   >
                     {{ g.Name }}
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="listTask != null || opition.totalRecords == 0">
+                <td :colspan="GrandsDate.length + 4" style="text-align: center;">
+                  <div
+                    class="align-items-center justify-content-center p-4 text-center m-auto"
+                    style="
+                      min-height: calc(100vh - 215px);
+                      max-height: calc(100vh - 215px);
+                      display: flex;
+                      flex-direction: column;
+                    "
+                    v-if="listTask != null || opition.totalRecords == 0"
+                  >
+                    <img
+                      src="../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
                   </div>
                 </td>
               </tr>
