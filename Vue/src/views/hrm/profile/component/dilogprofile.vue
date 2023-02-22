@@ -774,7 +774,7 @@ onMounted(() => {});
                 </Toolbar>
               </template>
               <div class="col-12 md:col-12 p-0">
-                <div style="min-height: 250px">
+                <div style="">
                   <DataTable
                     :value="props.datachilds[1]"
                     :scrollable="true"
@@ -1113,7 +1113,7 @@ onMounted(() => {});
                           text-center
                           m-auto
                         "
-                        style="display: flex; width: 100%; min-height: 200px"
+                        style="display: flex; width: 100%; "
                       ></div>
                     </template>
                   </DataTable>
@@ -1150,7 +1150,7 @@ onMounted(() => {});
                 </Toolbar>
               </template>
               <div class="col-12 md:col-12 p-0">
-                <div style="min-height: 250px">
+                <div style="">
                   <DataTable
                     :value="props.datachilds[2]"
                     :scrollable="true"
@@ -1401,7 +1401,7 @@ onMounted(() => {});
                     </Column>
                     <Column
                       field="certificate_version"
-                      header="phiên bản"
+                      header="Phiên bản"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
                       class="
@@ -1450,7 +1450,7 @@ onMounted(() => {});
                           text-center
                           m-auto
                         "
-                        style="display: flex; width: 100%; min-height: 200px"
+                        style="display: flex; width: 100%; "
                       ></div>
                     </template>
                   </DataTable>
@@ -1484,7 +1484,7 @@ onMounted(() => {});
                 </Toolbar>
               </template>
               <div class="col-12 md:col-12 p-0">
-                <div style="min-height: 250px">
+                <div style="">
                   <DataTable
                     :value="props.datachilds[3]"
                     :scrollable="true"
@@ -1664,7 +1664,7 @@ onMounted(() => {});
                           text-center
                           m-auto
                         "
-                        style="display: flex; width: 100%; min-height: 200px"
+                        style="display: flex; width: 100%; "
                       ></div>
                     </template>
                   </DataTable>
@@ -1818,7 +1818,7 @@ onMounted(() => {});
                 </Toolbar>
               </template>
               <div class="col-12 md:col-12 p-0">
-                <div style="min-height: 250px">
+                <div style="">
                   <DataTable
                     :value="props.datachilds[4]"
                     :scrollable="true"
@@ -2008,7 +2008,7 @@ onMounted(() => {});
                           text-center
                           m-auto
                         "
-                        style="display: flex; width: 100%; min-height: 200px"
+                        style="display: flex; width: 100%; "
                       ></div>
                     </template>
                   </DataTable>
