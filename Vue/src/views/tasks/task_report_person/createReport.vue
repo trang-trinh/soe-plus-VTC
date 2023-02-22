@@ -388,6 +388,7 @@ const status = ref([
 ]);
 const loadData = () => {
   options.value.loading = true;
+  noData.value = true;
   axios
     .post(
       baseURL + "/api/TaskProc/getTaskData",
@@ -655,6 +656,8 @@ const refresh = () => {
     SearchText: null,
     DateTime: null,
   };
+  styleObj.value = "";
+
   loadData();
 };
 const length = ref(false);

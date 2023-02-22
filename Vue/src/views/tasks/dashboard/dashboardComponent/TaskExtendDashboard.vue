@@ -350,8 +350,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
-          <div v-if="data.data.progress == 0">{{ data.data.progress }} %</div>
-          <div v-else>
+          <div class="align-items-center justify-content-center text-center">
             <Knob
               class="w-full"
               v-model="data.data.progress"
@@ -371,7 +370,7 @@ onMounted(() => {
                   ? '#2196f3'
                   : '#6dd230'
               "
-              size="100"
+              size="75"
             />
           </div>
         </template>

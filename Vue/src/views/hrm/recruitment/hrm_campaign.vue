@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
-import dialogTraining from "./component/dialog_training.vue";
+import dialogCampaign from "./component/dialog_campaign.vue";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -1954,7 +1954,7 @@ onMounted(() => {
       </div>
     </div>
     <div v-if="displayBasic">
-      <dialogTraining
+      <dialogCampaign
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
         :training_emps="training_emps"

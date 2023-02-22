@@ -5819,7 +5819,7 @@ namespace Controllers
         }
 
         [HttpPost]
-        public async Task<HttpResponseMessage> Filter_device_report_insurance([System.Web.Mvc.Bind(Include = "fieldSQLS,Search,sqlO,PageNo,PageSize,next,id,Date")]romBody] FilterSQL filterSQL)
+        public async Task<HttpResponseMessage> Filter_device_report_insurance([System.Web.Mvc.Bind(Include = "fieldSQLS,Search,sqlO,PageNo,PageSize,next,id,Date")][FromBody] FilterSQL filterSQL)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -6731,7 +6731,7 @@ namespace Controllers
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "") + "( tm.handover_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )"
 
                         + " or CONTAINS( tm.user_receiver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
-                         " or CONTAINS( tm.user_deliver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') "
+                         " or CONTAINS( tm.user_deliver_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') ";
                 }
                 var offSetSQL = "";
                 if (filterSQL.next)//Trang tiếp
@@ -7140,7 +7140,7 @@ namespace Controllers
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
                          + "(( tm.repair_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )" +
 
-                         " or CONTAINS( tm.proposer,'\"*"  + filterSQL.Search.ToUpper() + "*\"') "+
+                         " or CONTAINS( tm.proposer,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
 
                          ")";
 
@@ -8211,7 +8211,7 @@ namespace Controllers
                     sql += " WHERE " + WhereSQL + " and " +
                         " ( dp.device_process_code in  ( SELECT de.device_process_code from dbo.udfGetProcess(  '" + uid + "' ) de )     and " +
                          " dp.device_note_id in  ( SELECT de.device_note_id from dbo.udfGetProcess(  '" + uid + "' ) de ) AND dp.is_view = 1  ) AND (dp.organization_id = 0 OR dp.organization_id = '" + dvid + "')";
-                sql += " SELECT * FROM #bangTamDL1 dp where " + checkOrgz + @"
+                    sql += " SELECT * FROM #bangTamDL1 dp where " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
 
                 }

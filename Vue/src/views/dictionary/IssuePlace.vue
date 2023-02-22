@@ -136,7 +136,8 @@ const loadData = (rf) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          element.is_order =
+            options.value.PageNo * options.value.PageSize + i + 1;
         });
         let obj = renderTree(data, "issue_place_id", "", "");
         datalists.value = obj.arrChils;
@@ -234,6 +235,7 @@ const openBasic = (str) => {
     dynamic_code: "",
     search_code: "",
     display_code: "",
+    is_slider: true,
   };
   if (store.state.user.is_super == true) {
     issuePlace.value.organization_id = 0;
@@ -242,7 +244,9 @@ const openBasic = (str) => {
   }
 
   issuePlace.value.is_order =
-    datalists.value.length > 0 ? datalists.value[0].data.is_order + 1 : 1;
+    datalists.value.length > 0
+      ? datalists.value[datalists.value.length - 1].data.is_order + 1
+      : 1;
   issaveField.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -938,6 +942,7 @@ const openChild = (data) => {
     dynamic_code: "",
     search_code: "",
     display_code: "",
+    is_slider: true,
   };
   issuePlace.value.parent_name = data.data.issue_place_name;
   issuePlace.value.level = data.data.level + 1;
@@ -1225,6 +1230,13 @@ onMounted(() => {
         bodyClass="align-items-center justify-content-center text-center max-w-10rem"
       >
         <template #body="data">
+          <Button
+            @click="openChild(data.node)"
+            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+            type="button"
+            icon="pi pi-plus-circle"
+            v-tooltip="'Thêm nơi ban hành con'"
+          ></Button>
           <div
             v-if="
               store.state.user.is_super == true ||
@@ -1234,13 +1246,6 @@ onMounted(() => {
                   data.node.data.organization_id)
             "
           >
-            <Button
-              @click="openChild(data.node)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-plus-circle"
-              v-tooltip="'Thêm nơi ban hành con'"
-            ></Button>
             <Button
               @click="editField(data.node.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
@@ -1415,12 +1420,15 @@ onMounted(() => {
           <div class="col-3 text-left">STT</div>
           <InputNumber
             v-model="issuePlace.is_order"
-            class="col-3 ip-36 px-0"
+            class="col-1 ip-36 px-0"
           />
-          <div class="col-1"></div>
-          <div class="col-3 text-center">Trạng thái</div>
-          <div class="col-2">
+          <div class="col-2 text-center">Trạng thái</div>
+          <div class="col-1">
             <InputSwitch v-model="issuePlace.status" />
+          </div>
+          <div class="col-3 text-center">Tích nơi nhận qua mạng</div>
+          <div class="col-2">
+            <InputSwitch v-model="issuePlace.is_slider" />
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import OrganizationTasks from "./dashboardComponent/OrganizationTask.vue";
 import TaskReport from "./dashboardComponent/TaskReport.vue";
 import TaskReview from "./dashboardComponent/TaskReview.vue";
 import TaskExtendDashboard from "./dashboardComponent/TaskExtendDashboard.vue";
+import DepartmentTask from "./dashboardComponent/DepartmentTask.vue";
 const emitter = inject("emitter");
 emitter.on("count", (obj) => {
   ListButtonLabel.value[5].badgeCount = obj.data[0].report;
@@ -68,7 +69,7 @@ const ChangeView = (value) => {
   });
 };
 onMounted(() => {
-  ChangeView(3);
+  ChangeView(0);
   return;
 });
 </script>
@@ -94,6 +95,7 @@ onMounted(() => {
     <div class="div-info bg-white">
       <MyTaskInfo v-if="ListButtonLabel[0].status == true"></MyTaskInfo>
       <MembersTask v-if="ListButtonLabel[1].status == true"></MembersTask>
+      <DepartmentTask v-if="ListButtonLabel[2].status == true"></DepartmentTask>
       <OrganizationTasks
         v-if="ListButtonLabel[3].status == true"
       ></OrganizationTasks>

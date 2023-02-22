@@ -1,7 +1,7 @@
 import { createApp, ref } from "vue";
 import App from "./App.vue";
+import cors from "cors"
 import router from "./router";
-
 import devtools from "devtools-detect";
 import timeago from "vue-timeago3";
 import Datepicker from "@vuepic/vue-datepicker";
@@ -186,10 +186,12 @@ import {
     faPersonChalkboard,
     faEnvelopeOpen,
     faEllipsis,
+    faBriefcaseMedical,
 } from "@fortawesome/free-solid-svg-icons";
 import {
     faAddressCard,
     faCalendarDays,
+    faFile,
 } from "@fortawesome/free-regular-svg-icons";
 /* add icons to the library */
 library.add(
@@ -239,7 +241,9 @@ library.add(
     faCalendarDays,
     faPersonChalkboard,
     faEnvelopeOpen,
-    faEllipsis
+    faEllipsis,
+    faFile,
+    faBriefcaseMedical,
 );
 import "animate.css";
 Date.prototype.toISOString = function() {
@@ -252,6 +256,7 @@ const { cookies } = useCookies();
 const app = createApp(App);
 const socket = io(socketURL, { autoConnect: false });
 app.use(VueSocketIOExt, socket);
+app.use(cors);
 app.provide("socket", socket);
 app.use(devtools);
 app.provide("devtools", devtools);

@@ -439,7 +439,7 @@ const status = ref([
 ]);
 const loadData = () => {
   options.value.loading = true;
-
+  noData.value = true;
   axios
     .post(
       baseURL + "/api/TaskProc/getTaskData",
@@ -624,7 +624,8 @@ const refresh = () => {
     selectOrg: null,
     selectedOrg: null,
   };
-  drdModel.value = null;
+  styleObj.value = "";
+  drdModel.value = 1;
   loadData();
 };
 const length = ref(false);
@@ -657,7 +658,9 @@ const style = ref({
 const styleObj = ref();
 const op = ref();
 const toggle = (event) => {
+  drdModel.value = 1;
   op.value.toggle(event);
+  listDepartment();
 };
 const reNewFilter = () => {
   options.value.PageNo = 0;
@@ -668,7 +671,7 @@ const reNewFilter = () => {
   options.value.selectedUser = null;
   options.value.selectOrg = null;
   options.value.selectedOrg = null;
-  drdModel.value = null;
+  drdModel.value = 1;
   styleObj.value = null;
   first.value = 0;
   loadData();
@@ -737,7 +740,7 @@ const renderTree = (data) => {
   let arrChils = [];
   let arrtreeChils = [];
   data
-    .filter((x) => x.parent_id == null)
+    .filter((x) => x.parent_id != null)
     .forEach((m, i) => {
       m.IsOrder = i + 1;
       let om = { key: m.organization_id, label: m.organization_name };
@@ -782,7 +785,7 @@ const listDepartment = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let Data = renderTree(data);
-      listDropdownDepartment.value = Data.arrChils;
+      listDropdownDepartment.value = Data.arrtreeChils;
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -1014,6 +1017,8 @@ onMounted(() => {
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       responsiveLayout="scroll"
       @row-dblclick="showInfo($event.data)"
+      rowGroupMode="subheader"
+      groupRowsBy="user_info.department_name"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
@@ -1049,11 +1054,13 @@ onMounted(() => {
               class="w-30rem p-0 m-0"
               :showCloseIcon="false"
               id="overlay_panel"
+              style="z-index: 999"
             >
               <div class="col-12 w-max-20rem">
                 <div class="col-12 flex format-left">
                   <div class="col-3">Lọc theo:</div>
                   <Dropdown
+                    :modelValue="1"
                     v-model="drdModel"
                     :options="opt"
                     optionLabel="label"
@@ -1248,6 +1255,11 @@ onMounted(() => {
             />
           </template>
         </Toolbar>
+      </template>
+      <template #groupheader="slotProps">
+        <span class="image-text">{{
+          slotProps.data.user_info.department_name
+        }}</span>
       </template>
       <Column
         field="stt"
