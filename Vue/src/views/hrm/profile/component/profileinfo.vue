@@ -1721,27 +1721,23 @@ const onPage = (event) => {
 <template>
   <div class="surface-100 p-2">
     <Toolbar class="outline-none surface-0 border-none">
-      <template #start>
-        <ul class="flex p-0 m-0" style="list-style: none">
+      <template #start> </template>
+      <template #end>
+        <ul class="flex p-0 m-0 mr-2" style="list-style: none">
           <li>
             <Button
               @click="goBack()"
               type="button"
               label="Quay lại"
               icon="pi pi-arrow-left"
-              class="p-button"
-              style="
-                background-color: #5bc0de !important;
-                border: 1px solid #5bc0de !important;
-              "
+              class="p-button p-button-outlined p-button-secondary"
             />
           </li>
         </ul>
-      </template>
-      <template #end>
         <Button
           @click="toggleEdit"
           label="Cập nhật thay đổi thông tin"
+          class="p-button-warning"
           icon="pi pi-file-excel"
           aria-haspopup="true"
           aria-controls="overlay_Export"
@@ -1834,7 +1830,7 @@ const onPage = (event) => {
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
                   <!-- 1. Thông tin chung -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <span>1. Thông tin chung</span>
@@ -2103,7 +2099,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 2. Trình độ học vấn -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-book mr-2"></i> -->
@@ -2186,7 +2182,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 3. Thông tin liên hệ -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-info-circle mr-2"></i> -->
@@ -2274,7 +2270,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 4. Thông tin gia đình, người phụ thuộc -->
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2481,7 +2477,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 5. Quá trình đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ, lý luận chính trị, ngoại ngữ, tin học -->
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2658,7 +2654,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 6. Lịch sử Đảng viên -->
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2760,7 +2756,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 7. Lịch sử tham gia quân đội -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-chart-line mr-2"></i> -->
@@ -2873,7 +2869,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 8. Kinh nghiệm làm việc -->
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2987,7 +2983,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- Đặc điểm lịch sử bản thân -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-chart-line mr-2"></i> -->
@@ -3026,7 +3022,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 10.	Đính kèm khác (file số hóa liên quan) -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-chart-line mr-2"></i> -->
@@ -3098,7 +3094,7 @@ const onPage = (event) => {
             <div v-show="options.view === 2" class="f-full">
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <span>Công việc hiện tại</span>
@@ -3217,7 +3213,7 @@ const onPage = (event) => {
                   </Accordion>
                 </div>
                 <div class="col-12 md:col-12 p-0">
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <span>Quá trình làm việc</span>
@@ -4046,7 +4042,7 @@ const onPage = (event) => {
             <div v-show="options.view === 12" class="f-full">
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <span>1. Thông tin chung</span>
@@ -4115,7 +4111,7 @@ const onPage = (event) => {
                       </div>
                     </AccordionTab>
                   </Accordion>
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <span>2. Thông tin tiêm Vắc xin</span>
@@ -4237,10 +4233,13 @@ const onPage = (event) => {
         >
           <div class="row p-2">
             <div class="col-12 md:col-12 p-0">
-              <Accordion class="w-full padding-0" :activeIndex="0">
+              <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                 <AccordionTab>
                   <template #header>
-                    <span>Nhân sự cùng phòng ban</span>
+                    <span
+                      ><span style="color: #005a9e">Nhân sự cùng </span>
+                      <span style="font-size: 18px">Phòng ban</span></span
+                    >
                   </template>
                   <div>
                     <DataTable
@@ -4324,10 +4323,13 @@ const onPage = (event) => {
                   </div>
                 </AccordionTab>
               </Accordion>
-              <Accordion class="w-full padding-0" :activeIndex="0">
+              <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                 <AccordionTab>
                   <template #header>
-                    <span>Nhân sự cùng tên</span>
+                    <span>
+                      <span style="color: #005a9e">Nhân sự cùng </span>
+                      <span style="font-size: 18px">Tên</span></span
+                    >
                   </template>
                   <div>
                     <DataTable
@@ -4411,10 +4413,13 @@ const onPage = (event) => {
                   </div>
                 </AccordionTab>
               </Accordion>
-              <Accordion class="w-full padding-0" :activeIndex="0">
+              <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                 <AccordionTab>
                   <template #header>
-                    <span>Nhân sự cùng họ</span>
+                    <span
+                      ><span style="color: #005a9e">Nhân sự cùng </span>
+                      <span style="font-size: 18px">Họ</span></span
+                    >
                   </template>
                   <div>
                     <DataTable
