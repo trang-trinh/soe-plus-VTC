@@ -165,7 +165,7 @@ const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
 const basedomainURL = baseURL;
-const baseUrlCheck = "http://localhost:8080/";
+const baseUrlCheck = baseURL;
 const checkDelList = ref(false);
 
 const options = ref({
