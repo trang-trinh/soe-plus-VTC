@@ -190,7 +190,8 @@ import {
     faUserGear,
     faUserTie,
     faUserLarge,
-    faUsers
+    faUsers,
+    faPlus
 } from "@fortawesome/free-solid-svg-icons";
 import {
     faAddressCard,
@@ -199,6 +200,7 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 /* add icons to the library */
 library.add(
+    faPlus,
     faUsers,
     faUserLarge,
     faUserTie,
