@@ -73,20 +73,15 @@ const selectRow = (event) => {
     openViewDialogTranning("Thông tin khóa đào tạo");
   }
 };
-function CreateGuid() {
-  function _p8(s) {
-    var p = (Math.random().toString(16) + "000000000").substring(2, 8);
-    return s ? "-" + p.substring(0, 4) + "-" + p.substring(4, 4) : p;
-  }
-  return _p8() + _p8(true) + _p8(true) + _p8();
-}
 const goProfile = (profile) => {
-  router.push({
-    name: "profileinfo",
-    params: { id: profile.profile_id },
-  }).then(() => {
-    router.go();
-  });
+  router
+    .push({
+      name: "profileinfo",
+      params: { id: profile.profile_id },
+    })
+    .then(() => {
+      router.go();
+    });
 };
 
 //data view 1
@@ -3959,6 +3954,25 @@ const onPage = (event) => {
                       />
                     </template>
                   </Column>
+                  <template #empty>
+                    <div
+                      class="align-items-center justify-content-center p-4 text-center m-auto"
+                      style="
+                        display: flex;
+                        width: 100%;
+                        height: calc(100vh - 303px);
+                        background-color: #fff;
+                      "
+                    >
+                      <div v-if="!options.loading && options.total == 0">
+                        <img
+                          src="../../../../assets/background/nodata.png"
+                          height="144"
+                        />
+                        <h3 class="m-1">Không có dữ liệu</h3>
+                      </div>
+                    </div>
+                  </template>
                 </DataTable>
               </div>
             </div>
