@@ -507,6 +507,19 @@ const caEnectingGroup = () =>
 ///HRM
 const HRM_Training = () =>
     import ("../views/hrm/training/hrm_training.vue");
+
+// Request
+const Request_Dashboard = () => import("../views/request/request_dashboard.vue");
+const Request_Request = () => import("../views/request/request.vue");
+const Request_Team = () => import("../views/request/request_team.vue");
+const Request_Document = () => import("../views/request/request_document.vue");
+const Request_Ca_Group = () => import("../views/request/category/ca_group.vue");
+const Request_Ca_GroupTeam = () => import("../views/request/category/ca_groupteam.vue");
+const Request_Ca_Team = () => import("../views/request/category/ca_team.vue");
+const Request_Ca_Form = () => import("../views/request/category/ca_form.vue");
+const Request_Config_Auth_Sign = () => import("../views/request/config/set_auth_sign.vue");
+const Request_Config_Number = () => import("../views/request/config/set_number_request.vue");
+
 const router = createRouter({
     history: createWebHistory(
         import.meta.env.BASE_URL),
@@ -1822,13 +1835,65 @@ const router = createRouter({
             path: "/hrm/recruitment/campaign",
             name: "Hrm_campaign",
             component: Hrm_campaign,
-        },
+        }, 
         {
             path: "/hrm/hrm_paycheck",
             name: "Hrm_paycheck",
             component: Hrm_paycheck,
         },
-
+        // Request
+        {
+          path: "/request/dashboard",
+          name: "Request_Dashboard",
+          component: Request_Dashboard,
+        },
+        {
+          path: "/request/request",
+          name: "Request_Request",
+          component: Request_Request,
+        },
+        {
+          path: "/request/team",
+          name: "Request_Team",
+          component: Request_Team,
+        },
+        {
+          path: "/request/document",
+          name: "Request_Document",
+          component: Request_Document,
+        },
+        // Request/Category
+        {
+          path: "/request/category/ca_group",
+          name: "Request_Ca_Group",
+          component: Request_Ca_Group,
+        },
+        {
+          path: "/request/category/ca_groupteam",
+          name: "Request_Ca_GroupTeam",
+          component: Request_Ca_GroupTeam,
+        },
+        {
+          path: "/request/category/ca_team",
+          name: "Request_Ca_Team",
+          component: Request_Ca_Team,
+        },
+        {
+          path: "/request/category/ca_form",
+          name: "Request_Ca_Form",
+          component: Request_Ca_Form,
+        },
+        // Request/Config
+        {
+          path: "/request/config/ca_team",
+          name: "Request_Config_Auth_Sign",
+          component: Request_Config_Auth_Sign,
+        },
+        {
+          path: "/request/config/ca_form",
+          name: "Request_Config_Number",
+          component: Request_Config_Number,
+        },
     ],
 });
 // router.beforeEach((to, from) => {

@@ -1570,12 +1570,13 @@ onMounted(() => {
                 width: 5rem;
                 height: 5rem;
                 font-size: 1.5rem !important;
-                border-radius: 10px;
+                border-radius: 5px;
               "
               :style="{
                 background: bgColor[slotProps.index % 7],
               }"
               size="xlarge"
+              class="border-radius"
             />
           </template>
         </Column>
@@ -1791,6 +1792,11 @@ onMounted(() => {
 ::v-deep(.disable-header) {
   table thead {
     display: none;
+  }
+}
+::v-deep(.border-radius){
+  img{
+    border-radius: 5px;
   }
 }
 </style>

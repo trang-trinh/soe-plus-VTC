@@ -23,7 +23,7 @@ using Newtonsoft.Json.Linq;
 namespace API.Controllers.HRM.Category
 {
     [Authorize(Roles = "login")]
-    public class hrm_ca_leaving_reasonController : ApiController
+    public class hrm_ca_leavingreasonController : ApiController
     {
         public string getipaddress()
         {
