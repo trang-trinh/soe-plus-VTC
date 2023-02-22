@@ -165,6 +165,7 @@ namespace API.Controllers
                             }
                         }
 
+                        string typeChangeChat = "";
                         if (isAddNew == true)
                         {
                             chat_main.created_by = uid;
@@ -208,7 +209,26 @@ namespace API.Controllers
                         {
                             var po = db.chat_group.AsNoTracking().FirstOrDefault(a => a.chat_group_id == chat_main.chat_group_id);
                             nencu = po.avatar_group;
-                            //if (chat_main.avatar_group == null)
+                            if (po.is_group_chat == true)
+                            {
+                                var isChangeAvtOrName = false;
+                                typeChangeChat += (user_now.full_name + " đã cập nhật ");
+                                if ((chat_main.avatar_group != null && po.avatar_group == null) || (chat_main.avatar_group == null && po.avatar_group != null))
+                                {
+                                    isChangeAvtOrName = true;
+                                    typeChangeChat += "ảnh đại diện";
+                                }
+                                if (chat_main.chat_group_name != po.chat_group_name)
+                                {
+                                    typeChangeChat += isChangeAvtOrName == true ? ", tên" : "tên";
+                                    isChangeAvtOrName = true;
+                                }
+                                typeChangeChat += " cuộc trò chuyện " + chat_main.chat_group_name;
+                                if (isChangeAvtOrName == false)
+                                {
+                                    typeChangeChat = "";
+                                }
+                            }
 
                             chat_main.modified_by = uid;
                             chat_main.modified_date = DateTime.Now;
@@ -222,7 +242,7 @@ namespace API.Controllers
                         string data_mess = provider.FormData.GetValues("messages").SingleOrDefault();
                         chat_message ms = JsonConvert.DeserializeObject<chat_message>(data_mess);
                         List<string> idMembers = new List<string>();
-                        List<string> userids = new List<string>();
+                        List<string> idMembersGetChange = new List<string>();
                         string pushname = "";
                         if (listMember.Count > 0)
                         {
@@ -244,6 +264,10 @@ namespace API.Controllers
                                     p.is_captain = false;
                                     p.is_notify = true;
                                     listMemberAdd.Add(p);
+                                }
+                                if (typeChangeChat != "")
+                                {
+                                    idMembersGetChange.Add(p.user_join);
                                 }
                             }
                             if (listMemberAdd.Count > 0)
@@ -342,7 +366,6 @@ namespace API.Controllers
                         }
                         db.SaveChanges();
                         #region SendNoti
-                        var lstsh = new List<sys_sendhub>();
                         List<string> tokens = new List<string>();
                         //string ConnectionSQL = db.Database.Connection.ConnectionString;
                         string ConnectionSQL = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
@@ -354,43 +377,18 @@ namespace API.Controllers
                         //var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(ConnectionSQL, "chat_member_token", arrpas).Tables[0]);
                         var tables = task;
 
+                        List<UserToken> dataMember = UserTokenByTable(tables);
                         if (idMembers.Count > 0)
                         {
-                            List<UserToken> dataMember = UserTokenByTable(tables);
-                            foreach (var to in dataMember)
-                            {
-                                userids.Add(to.users_id);
-                                if (to.tokens != null && to.tokens != "")
-                                {
-                                    tokens.AddRange(to.tokens.Split(','));
-                                }
-                                var sh = new sys_sendhub();
-                                sh.senhub_id = helper.GenKey();
-                                sh.title = "Tin nhắn";
-                                sh.id_key = chat_main.chat_group_id;
-                                sh.group_id = chat_main.chat_group_id;
-                                sh.user_send = user_now.user_id;
-                                sh.created_by = user_now.user_id;
-                                sh.created_date = DateTime.Now;
-                                sh.created_ip = ip;
-                                sh.created_token_id = tid;
-                                sh.receiver = to.users_id.ToString();
-                                sh.icon = to.avatar;
-                                sh.type = 4;
-                                sh.is_type = 0;
-                                sh.module_key = "M8";
-                                sh.token_id = tid;
-                                sh.contents = "<soe>" + user_now.full_name + "</soe> vừa thêm <soe>" + pushname + " vào nhóm chat: <soe>" + chat_main.chat_group_name + "</soe>";
-                                sh.date_send = DateTime.Now;
-                                lstsh.Add(sh);
-                            }
+                            var content = "<soe>" + user_now.full_name + "</soe> vừa thêm <soe>" + pushname + " vào nhóm chat: <soe>" + chat_main.chat_group_name + "</soe>";
+                            List<string> sendUsers = dataMember.Select(x => x.users_id).ToList();
+                            send_message(user_now.user_id, chat_main.chat_group_id, chat_main.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
                         }
-                        if (lstsh.Count() > 0)
+
+                        if (idMembersGetChange.Count > 0)
                         {
-                            var h = lstsh[0];
-                            db.sys_sendhub.AddRange(lstsh);
-                            db.SaveChanges();
-                            //SendGMS(tokens.Distinct().ToArray(), h.noiDungNoti, h.tieuDe, h.icon, 1, h);
+                            List<string> sendUsers = dataMember.Select(x => x.users_id).ToList();
+                            send_message(user_now.user_id, chat_main.chat_group_id, chat_main.chat_group_id, sendUsers, "Tin nhắn", typeChangeChat, 0, ip, tid);
                         }
                         #endregion Sendnoti
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", chatGroupID = chat_group_id_add });
@@ -1473,7 +1471,10 @@ namespace API.Controllers
                                             var tables = task;
 
                                             List<UserToken> fbs = UserTokenByTable(tables);
-                                            List<string> tokens = new List<string>();
+
+                                            var content = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (chatGet.is_group_chat == true ? ("đến nhóm chat <soe>\"" + chatGet.chat_group_name + "\"</soe>") : "đến bạn");
+                                            List<string> sendUsers = fbs.Select(x => x.users_id).ToList();
+                                            send_message(user_now.user_id, item, item, sendUsers, "Tin nhắn", content, 0, ip, tid);
                                             foreach (var to in fbs)
                                             {
                                                 users.Add(new Users()
@@ -1481,38 +1482,6 @@ namespace API.Controllers
                                                     chat_group_id = item,
                                                     user_id = to.users_id,
                                                 });
-                                                if (to.tokens != null && to.tokens != "")
-                                                {
-                                                    tokens.AddRange(to.tokens.Split(','));
-                                                }
-                                                var sh = new sys_sendhub();
-                                                sh.senhub_id = helper.GenKey();
-                                                sh.user_send = ng.user_id;
-                                                sh.receiver = to.users_id;
-                                                sh.icon = ng.avatar;
-                                                sh.title = "Tin nhắn";
-                                                sh.contents = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (chatGet.is_group_chat == true ? ("đến nhóm chat <soe>\"" + chatGet.chat_group_name + "\"</soe>") : "đến bạn");
-                                                sh.type = 4;
-                                                sh.is_type = 0;
-                                                sh.module_key = "M8";
-                                                sh.date_send = DateTime.Now;
-                                                sh.seen = false;
-                                                sh.date_seen = null;
-                                                sh.id_key = item;
-                                                sh.token_id = tid;
-                                                sh.group_id = item;
-                                                sh.created_by = uid;
-                                                sh.created_date = DateTime.Now;
-                                                sh.created_ip = ip;
-                                                sh.created_token_id = tid;
-                                                lstsh.Add(sh);
-                                            }
-                                            if (lstsh.Count() > 0)
-                                            {
-                                                var h = lstsh[0];
-                                                db.sys_sendhub.AddRange(lstsh);
-                                                db.SaveChanges();
-                                                //SendGMS(tokens.Distinct().ToArray(), h.noiDungNoti, h.tieuDe, h.icon, 1, h);
                                             }
                                             #endregion
                                         }
@@ -1671,7 +1640,9 @@ namespace API.Controllers
                                             var tables = task;
 
                                             List<UserToken> fbs = UserTokenByTable(tables);
-                                            List<string> tokens = new List<string>();
+                                            var content = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (chatGet.is_group_chat == true ? ("đến nhóm chat <soe>\"" + chatGet.chat_group_name + "\"</soe>") : "đến bạn");
+                                            List<string> sendUsers = fbs.Select(x => x.users_id).ToList();
+                                            send_message(user_now.user_id, chatGet.chat_group_id, chatGet.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
                                             foreach (var to in fbs)
                                             {
                                                 users.Add(new Users()
@@ -1679,38 +1650,6 @@ namespace API.Controllers
                                                     chat_group_id = chatGet.chat_group_id,
                                                     user_id = to.users_id,
                                                 });
-                                                if (to.tokens != null && to.tokens != "")
-                                                {
-                                                    tokens.AddRange(to.tokens.Split(','));
-                                                }
-                                                var sh = new sys_sendhub();
-                                                sh.senhub_id = helper.GenKey();
-                                                sh.user_send = ng.user_id;
-                                                sh.receiver = to.users_id;
-                                                sh.icon = ng.avatar;
-                                                sh.title = "Tin nhắn";
-                                                sh.contents = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (chatGet.is_group_chat == true ? ("đến nhóm chat <soe>\"" + chatGet.chat_group_name + "\"</soe>") : "đến bạn");
-                                                sh.type = 4;
-                                                sh.is_type = 0;
-                                                sh.module_key = "M8";
-                                                sh.date_send = DateTime.Now;
-                                                sh.seen = false;
-                                                sh.date_seen = null;
-                                                sh.id_key = chatGet.chat_group_id;
-                                                sh.token_id = tid;
-                                                sh.group_id = chatGet.chat_group_id;
-                                                sh.created_by = uid;
-                                                sh.created_date = DateTime.Now;
-                                                sh.created_ip = ip;
-                                                sh.created_token_id = tid;
-                                                lstsh.Add(sh);
-                                            }
-                                            if (lstsh.Count() > 0)
-                                            {
-                                                var h = lstsh[0];
-                                                db.sys_sendhub.AddRange(lstsh);
-                                                db.SaveChanges();
-                                                //SendGMS(tokens.Distinct().ToArray(), h.noiDungNoti, h.tieuDe, h.icon, 1, h);
                                             }
                                             #endregion
                                         }
@@ -1860,7 +1799,10 @@ namespace API.Controllers
                                                 var tables = task;
 
                                                 List<UserToken> fbs = UserTokenByTable(tables);
-                                                List<string> tokens = new List<string>();
+
+                                                var content = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (new_chat.is_group_chat == true ? ("đến nhóm chat <soe>\"" + new_chat.chat_group_name + "\"</soe>") : "đến bạn");
+                                                List<string> sendUsers = fbs.Select(x => x.users_id).ToList();
+                                                send_message(user_now.user_id, new_chat.chat_group_id, new_chat.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
                                                 foreach (var to in fbs)
                                                 {
                                                     users.Add(new Users()
@@ -1868,37 +1810,6 @@ namespace API.Controllers
                                                         chat_group_id = new_chat.chat_group_id,
                                                         user_id = to.users_id,
                                                     });
-                                                    if (to.tokens != null && to.tokens != "")
-                                                    {
-                                                        tokens.AddRange(to.tokens.Split(','));
-                                                    }
-                                                    var sh = new sys_sendhub();
-                                                    sh.senhub_id = helper.GenKey();
-                                                    sh.user_send = ng.user_id;
-                                                    sh.receiver = to.users_id;
-                                                    sh.icon = ng.avatar;
-                                                    sh.title = "Tin nhắn";
-                                                    sh.contents = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (new_chat.is_group_chat == true ? ("đến nhóm chat <soe>\"" + new_chat.chat_group_name + "\"</soe>") : "đến bạn");
-                                                    sh.type = 4;
-                                                    sh.is_type = 0;
-                                                    sh.module_key = "M8";
-                                                    sh.date_send = DateTime.Now;
-                                                    sh.seen = false;
-                                                    sh.date_seen = null;
-                                                    sh.id_key = new_chat.chat_group_id;
-                                                    sh.token_id = tid;
-                                                    sh.group_id = new_chat.chat_group_id;
-                                                    sh.created_by = uid;
-                                                    sh.created_date = DateTime.Now;
-                                                    sh.created_ip = ip;
-                                                    sh.created_token_id = tid;
-                                                    lstsh.Add(sh);
-                                                }
-                                                if (lstsh.Count() > 0)
-                                                {
-                                                    var h = lstsh[0];
-                                                    db.sys_sendhub.AddRange(lstsh);
-                                                    //SendGMS(tokens.Distinct().ToArray(), h.noiDungNoti, h.tieuDe, h.icon, 1, h);
                                                 }
                                                 #endregion
                                             }
@@ -2227,6 +2138,71 @@ namespace API.Controllers
         }
         #endregion
 
+        #region Send noti
+        public void send_message(string user_send, string id_key, string group_id, [System.Web.Mvc.Bind(Include = "")][FromBody] List<string> users, string title, string content, int is_type, string ip, string token_id)
+        {
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        #region Sendhub
+                        List<sys_sendhub> sendhubs = new List<sys_sendhub>();
+                        foreach (String user_id in users)
+                        {
+                            var sh = new sys_sendhub();
+                            sh.senhub_id = helper.GenKey();
+                            sh.title = title;
+                            sh.id_key = id_key;
+                            sh.group_id = group_id;
+                            sh.user_send = user_send;
+                            sh.created_by = user_send;
+                            sh.created_date = DateTime.Now;
+                            sh.created_ip = ip;
+                            sh.created_token_id = token_id;
+                            sh.receiver = user_id;
+                            sh.type = 4;
+                            sh.is_type = is_type;
+                            sh.module_key = "M8";
+                            sh.token_id = token_id;
+                            sh.contents = content;
+                            sh.date_send = DateTime.Now;
+                            sh.seen = false;
+                            sendhubs.Add(sh);
+                        }
+                        if (sendhubs.Count > 0)
+                        {
+                            db.sys_sendhub.AddRange(sendhubs);
+                            await db.SaveChangesAsync();
+                        }
+                        #endregion
+                        #region SendSocket
+                        //send socket
+                        var message = new Dictionary<string, dynamic>
+                        {
+                            { "event", "sendNotify" },
+                            { "user_id", user_send },
+                            { "title", title },
+                            { "contents", content },
+                            { "date", DateTime.Now },
+                            { "uids", users },
+                        };
+                        if (helper.socketClient != null && helper.socketClient.Connected == true)
+                        {
+                            try
+                            {
+                                await helper.socketClient.EmitAsync("sendData", message);
+                            }
+                            catch { };
+                        }
+                        #endregion
+                    }
+                }
+                catch { }
+            });
+        }
+        #endregion
         public List<UserToken> UserTokenByTable([System.Web.Mvc.Bind(Include = "Rows")] DataTable dt)
         {
             List<UserToken> uts = new List<UserToken>();
