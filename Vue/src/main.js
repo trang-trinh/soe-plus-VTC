@@ -187,6 +187,12 @@ import {
     faEnvelopeOpen,
     faEllipsis,
     faBriefcaseMedical,
+    faPrint,
+    faUserGear,
+    faUserTie,
+    faUserLarge,
+    faUsers,
+    faPlus
 } from "@fortawesome/free-solid-svg-icons";
 import {
     faAddressCard,
@@ -195,6 +201,11 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 /* add icons to the library */
 library.add(
+    faPlus,
+    faUsers,
+    faUserLarge,
+    faUserTie,
+    faUserGear,
     faBarcode,
     faClock,
     faFlag,
@@ -244,6 +255,7 @@ library.add(
     faEllipsis,
     faFile,
     faBriefcaseMedical,
+    faPrint,
 );
 import "animate.css";
 Date.prototype.toISOString = function() {

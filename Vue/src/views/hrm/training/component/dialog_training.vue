@@ -20,6 +20,7 @@ const config = {
 };
 const toast = useToast();
 const props = defineProps({
+ 
   headerDialog: String,
   displayBasic: Boolean,
   training_emps: Object,
@@ -837,6 +838,7 @@ const delRow_Item = (item, type) => {
 //Thêm bản ghi
 const listTrainingGroups = ref([]);
 onMounted(() => {
+   
   loadData();
   initTudien();
   loadUser();
@@ -1044,6 +1046,7 @@ onMounted(() => {
                 v-model="training_emps.start_date"
                 autocomplete="on"
                 :showIcon="true"
+                placeholder="dd/mm/yyyy"
               />
             </div>
           </div>
@@ -1059,7 +1062,7 @@ onMounted(() => {
                   training_emps.start_date
                     ? new Date(training_emps.start_date)
                     : null
-                "
+                "    placeholder="dd/mm/yyyy"
                 :showIcon="true"
               />
             </div>
@@ -1120,7 +1123,7 @@ onMounted(() => {
                   training_emps.start_date
                     ? new Date(training_emps.start_date)
                     : null
-                "
+                "    placeholder="dd/mm/yyyy"
                 autocomplete="on"
                 :showIcon="true"
                 :showTime="true"
@@ -1450,7 +1453,7 @@ onMounted(() => {
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <div class="form-group m-0">
+                    <div class="w-full">
                       <Dropdown
                         :options="listDataUsers"
                         :filter="true"
@@ -1459,7 +1462,7 @@ onMounted(() => {
                         optionLabel="profile_user_name"
                         optionValue="code"
                         v-model="slotProps.data.data"
-                        class="w-full d-design-padding-drd"
+                        class="w-full d-design-padding-drd p-design-dropdown"
                         style="min-height: 36px"
                         :class="{
                           'p-invalid': slotProps.data.data == null && submitted,
@@ -1474,9 +1477,10 @@ onMounted(() => {
                         <template #value="slotProps_N">
                           <div v-if="slotProps_N.value">
                             <div
-                              class="flex w-full align-items-center pr-2 p-0"
+                              class="flex w-full align-items-center pr-2 p-0 "
                             >
-                              <Avatar
+                                <div class="w-2rem">
+                                   <Avatar
                                 v-bind:label="
                                   slotProps_N.value.avatar
                                     ? ''
@@ -1508,6 +1512,7 @@ onMounted(() => {
                                     basedomainURL + '/Portals/Image/nouser1.png'
                                 "
                               />
+                                </div>
                               <div class="px-2">
                                 {{ slotProps_N.value.profile_user_name }}
                               </div>
@@ -1589,7 +1594,7 @@ onMounted(() => {
                   <template #body="slotProps">
                     <InputText
                       spellcheck="false"
-                      class="w-full d-design-it"
+                      class="w-full h-full d-design-it"
                       style="width: 170px"
                       v-model="slotProps.data.work_position_name"
                       disabled
@@ -1606,7 +1611,7 @@ onMounted(() => {
                   <template #body="slotProps">
                     <InputText
                       spellcheck="false"
-                      class="w-full d-design-it"
+                      class="w-full h-full d-design-it"
                       style="width: 170px"
                       v-model="slotProps.data.position_name"
                       disabled
@@ -1625,7 +1630,7 @@ onMounted(() => {
                       v-model="slotProps.data.note"
                       spellcheck="false"
                       type="text"
-                      class="w-full"
+                      class="w-full h-full"
                       maxLength="250"
                     />
                   </template>
@@ -1725,7 +1730,7 @@ onMounted(() => {
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <div class="form-group m-0">
+                    <div class="w-full">
                       <Textarea
                         :autoResize="true"
                         rows="1"
@@ -1861,7 +1866,7 @@ onMounted(() => {
                       id="basic_purchase_date"
                       v-model="slotProps.data.date_study"
                       autocomplete="on"
-                      :showIcon="true"
+                      :showIcon="true"    placeholder="dd/mm/yyyy"
                       :maxDate="
                         training_emps.end_date
                           ? new Date(training_emps.end_date)
@@ -2085,7 +2090,7 @@ onMounted(() => {
       </div>
     </form>
     <template #footer>
-      <div class="pt-3" v-if="!view">
+      <div class="pt-3">
         <Button
           label="Hủy"
           icon="pi pi-times"
@@ -2093,7 +2098,7 @@ onMounted(() => {
           class="p-button-outlined"
         />
 
-        <Button
+        <Button  v-if="!view"
           label="Lưu"
           icon="pi pi-check"
           @click="saveData(!v$.$invalid)"

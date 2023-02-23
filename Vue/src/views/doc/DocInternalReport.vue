@@ -719,6 +719,8 @@ const onFilterDM = () => {
       key: "department_id",
     };
     filterSQL.value.push(filterS);
+  }  else{
+    options.value.department_id =null;
   }
 
   strG = "";
