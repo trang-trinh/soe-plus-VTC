@@ -72,7 +72,7 @@ const loadCount = () => {
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
-    .catch((error) => {});
+    .catch((error) => { });
 };
 //Lấy dữ liệu
 const loadData = (rf) => {
@@ -324,7 +324,7 @@ const onFilter = (event) => {
   isDynamicSQL.value = true;
   loadDataSQL();
 };
-const goFile = (item)=>{
+const goFile = (item) => {
   updateView(item.file_id);
   axios
     .post(
@@ -350,24 +350,24 @@ const goFile = (item)=>{
       if (data1.length > 0) {
         data_log.value = data1;
       }
-       isDetail.value = true;
+      isDetail.value = true;
     })
-    .catch((error) => {});
+    .catch((error) => { });
 }
-const updateView = (id)=>{
-   axios({
-    method:  "put",
-    url:baseURL + "/api/HrmFile/Update_View",
-    data:{file_id:id},
+const updateView = (id) => {
+  axios({
+    method: "put",
+    url: baseURL + "/api/HrmFile/Update_View",
+    data: { file_id: id },
     headers: {
       Authorization: `Bearer ${store.getters.token}`,
     },
   })
 
-      // axios
-      // .put(baseURL + "/api/HrmFile/Update_View", id, config)
-      // .then((response) => {
-      // });
+  // axios
+  // .put(baseURL + "/api/HrmFile/Update_View", id, config)
+  // .then((response) => {
+  // });
 }
 const loadTudien = () => {
   axios
@@ -406,17 +406,22 @@ const loadTudien = () => {
       if (data.length > 0) {
         total_file.value = data2[0].total_file;
       }
-            let data3 = JSON.parse(response.data.data)[2];
+      let data3 = JSON.parse(response.data.data)[2];
       if (data.length > 0) {
         total_size.value = data2[0].total_size;
       }
     })
-    .catch((error) => {});
+    .catch((error) => { });
 };
 const filterTrangthai = ref();
-
+const clearDetail = ()=>{
+  selectedStamps.value = null;
+  isDetail.value = false;
+}
 watch(selectedStamps, () => {
-  goFile(selectedStamps.value);
+  if(selectedStamps.value){
+    goFile(selectedStamps.value);
+  }
 });
 const op = ref();
 const toggle = (event) => {
@@ -439,26 +444,16 @@ onMounted(() => {
   return {};
 });
 </script>
-    <template>
+<template>
   <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
     <div class="header-bar">
       <div class="flex w-full p-3">
         <div class="w-15rem mr-2">
-          <Dropdown
-            v-model="filterType"
-            :options="list_types"
-            optionLabel="label"
-            placeholder="Kho dữ liệu"
-            class="w-full"
-            showClear="true"
-             @change="loadData(true)"
-          >
+          <Dropdown v-model="filterType" :options="list_types" optionLabel="label" placeholder="Kho dữ liệu"
+            class="w-full" showClear="true" @change="loadData(true)">
             <template #value="slotProps">
               <div class="flex align-items-center" v-if="slotProps.value">
-                <img
-                  class="icon-modules"
-                  v-bind:src="basedomainURL + slotProps.value.img"
-                />
+                <img class="icon-modules" v-bind:src="basedomainURL + slotProps.value.img" />
                 <div class="ml-2">
                   {{ slotProps.value.label }}
                 </div>
@@ -469,10 +464,7 @@ onMounted(() => {
             </template>
             <template #option="slotProps">
               <div class="country-item flex">
-                <img
-                  class="icon-modules"
-                  v-bind:src="basedomainURL + slotProps.option.img"
-                />
+                <img class="icon-modules" v-bind:src="basedomainURL + slotProps.option.img" />
                 <div style="margin-left: 5px">
                   {{ slotProps.option.label }}
                 </div>
@@ -484,14 +476,8 @@ onMounted(() => {
           <div class="w-full flex">
             <span class="w-full p-input-icon-left ">
               <i class="pi pi-search" />
-              <InputText
-                type="text"
-                style="height:32px"
-                v-model="options.search"
-                spellcheck="false"
-                @keyup.enter="loadData(true)"
-                placeholder="Tìm kiếm"
-              />
+              <InputText type="text" style="height:32px" v-model="options.search" spellcheck="false"
+                @keyup.enter="loadData(true)" placeholder="Tìm kiếm" />
             </span>
           </div>
         </div>
@@ -499,85 +485,45 @@ onMounted(() => {
     </div>
     <div class="flex body-content">
       <div class="flex-1">
-        <DataTable
-          @page="onPage($event)"
-          @sort="onSort($event)"
-          @filter="onFilter($event)"
-          v-model:filters="filters"
-          filterDisplay="menu"
-          filterMode="lenient"
-          :filters="filters"
-          :scrollable="true"
-          scrollHeight="flex"
-          :showGridlines="true"
-          columnResizeMode="fit"
-          :lazy="true"
-          :totalRecords="options.totalRecords"
-          :loading="options.loading"
-          :reorderableColumns="true"
-          :value="datalists"
-          removableSort
+        <DataTable @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" v-model:filters="filters"
+          filterDisplay="menu" filterMode="lenient" :filters="filters" :scrollable="true" scrollHeight="flex"
+          :showGridlines="true" columnResizeMode="fit" :lazy="true" :totalRecords="options.totalRecords"
+          :loading="options.loading" :reorderableColumns="true" :value="datalists" removableSort
           v-model:rows="options.PageSize"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-          :paginator="true"
-          dataKey="file_id"
-          responsiveLayout="scroll"
-          v-model:selection="selectedStamps"
-          :row-hover="true"
-        selectionMode="single"
-        >
-          <Column
-            field="file_type"
-            class="align-items-center justify-content-center text-center"
+          :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="file_id" responsiveLayout="scroll"
+          v-model:selection="selectedStamps" :row-hover="true" selectionMode="single">
+          <Column field="file_type" class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
-            bodyStyle="text-align:center;max-width:50px;min-width:50px"
-          >
+            bodyStyle="text-align:center;max-width:50px;min-width:50px">
             <template #body="{ data }">
-              <img
-                style="height: 90%; object-fit: contain"
-                v-bind:src="
-                  basedomainURL + '/Portals/file/' + data.file_type + '.png'
-                "
-                @error="
-                  $event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-              />
+              <img style="height: 90%; object-fit: contain" v-bind:src="
+                basedomainURL + '/Portals/file/' + data.file_type + '.png'
+              " @error="
+                $event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'
+              " />
             </template>
           </Column>
 
-          <Column
-            field="file_name"
-            header="Tên file số hóa"
-            headerStyle="text-align:left;height:50px"
-            bodyStyle="text-align:left;word-break:break-word"
-          >
+          <Column field="file_name" header="Tên file số hóa" headerStyle="text-align:left;height:50px"
+            bodyStyle="text-align:left;word-break:break-word">
           </Column>
-          <Column
-            field="file_size"
-            header="Kích cỡ"
+          <Column field="file_size" header="Kích cỡ"
             headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px"
             bodyStyle="text-align:center;max-width:200px;min-width:150px"
-            class="align-items-center justify-content-center text-center"
-          >
+            class="align-items-center justify-content-center text-center">
             <template #body="{ data }">
               {{ formatBytes(data.file_size) }}
-            </template></Column
-          >
-          <Column
-            field="profile_name"
-            header="Nhân sự"
+            </template>
+          </Column>
+          <Column field="profile_name" header="Nhân sự"
             headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px"
             bodyStyle="text-align:center;max-width:200px;min-width:150px;"
-            class="align-items-center justify-content-center text-center"
-          ></Column>
-          <Column
-            field="created_date"
-            header="Ngày/ Người tạo"
+            class="align-items-center justify-content-center text-center"></Column>
+          <Column field="created_date" header="Ngày/ Người tạo"
             headerStyle="text-align:center;max-width:200px;min-width:200px;height:50px"
             bodyStyle="text-align:center;max-width:200px;min-width:200px;;max-height:60px"
-            class="align-items-center justify-content-center text-center"
-          >
+            class="align-items-center justify-content-center text-center">
             <template #body="slotProps">
               <span class="mr-2">{{
                 moment(new Date(slotProps.data.created_date)).format(
@@ -585,221 +531,237 @@ onMounted(() => {
                 )
               }}</span>
               <div>
-                <Avatar
-                  v-bind:label="
-                    slotProps.data.avatar
-                      ? ''
-                      : slotProps.data.last_name.substring(0, 1)
-                  "
-                  v-bind:image="
-                    slotProps.data.avatar
-                      ? basedomainURL + slotProps.data.avatar
-                      : basedomainURL + '/Portals/Image/noimg.jpg'
-                  "
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 2rem;
-                    height: 2rem;
-                    font-size: 1rem !important;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.data.is_order % 7],
-                  }"
-                  class="text-avatar"
-                  size="xlarge"
-                  shape="circle"
-                  v-tooltip.top="slotProps.data.full_name"
-                />
+                <Avatar v-bind:label="
+                  slotProps.data.avatar
+                    ? ''
+                    : slotProps.data.last_name.substring(0, 1)
+                " v-bind:image="
+                  slotProps.data.avatar
+                    ? basedomainURL + slotProps.data.avatar
+                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                " style="
+                          background-color: #2196f3;
+                          color: #ffffff;
+                          width: 2rem;
+                          height: 2rem;
+                          font-size: 1rem !important;
+                        " :style="{
+                          background: bgColor[slotProps.data.is_order % 7],
+                        }" class="text-avatar" size="xlarge" shape="circle" v-tooltip.top="slotProps.data.full_name" />
               </div>
             </template>
           </Column>
 
           <template #empty>
-            <div
-              class="
-                align-items-center
-                justify-content-center
-                p-4
-                text-center
-                m-auto
-              "
-              v-if="!isFirst"
-            >
+            <div class="
+                      align-items-center
+                      justify-content-center
+                      p-4
+                      text-center
+                      m-auto
+                    " v-if="!isFirst">
               <img src="../../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </template>
         </DataTable>
       </div>
-      <div
-        style="width: 320px !important; border: 1px solid rgba(0, 0, 0, 0.1)"
-      >
-      <div v-if="!isDetail">
-         <div
-          class="header-rigth w-full format-center"
-          style="
-            back-ground: #f8f9fa;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          "
-        >
-          <h3>Kho số hóa: {{ total_file }} files</h3>
+      <div style="width: 320px !important; border: 1px solid rgba(0, 0, 0, 0.1)">
+        <div v-if="!isDetail">
+          <div class="header-rigth w-full format-center" style="
+                  back-ground: #f8f9fa;
+                  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                ">
+            <h3>Kho số hóa: {{ total_file }} files</h3>
+          </div>
+          <div class="body-right format-center">
+            <Chart type="pie" style="width: 90% !important" :data="chartDatapie" :options="lightOptions" />
+          </div>
+          <div class=" format-center w-full ">
+            <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
+          </div>
         </div>
-        <div class="body-right format-center">
-          <Chart
-            type="pie"
-            style="width: 90% !important"
-            :data="chartDatapie"
-            :options="lightOptions"
-          />
-        </div>
-                <div
-          class=" format-center w-full "
-        >
-          <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
-        </div>
-      </div>
-       <div v-else class="p-3">
-          <div class="field col-12 font-bold text-lg pl-0">Thông tin chung</div>
-                  <div class="field col-12 flex">
-                     <div class="col-3 p-0 flex" style="align-items:center">Người tạo: </div>
-                     <div class="col-9 p-0 flex">
-                    <Avatar
-                    v-bind:label="
-                      file_detail.avatar ? '' : file_detail.last_name.substring(0, 1)
-                    "
-                    v-bind:image="basedomainURL + file_detail.avatar"
-                    style="
-                      background-color: #2196f3;
-                      color: #ffffff;
-                      width: 2rem;
-                      height: 2rem;
-                    "
-                    :style="{
-                      background: bgColor[file_detail.last_name.length % 7],
-                    }"
-                    class="mr-2"
-                    size="xlarge"
-                    shape="circle"
-                  />
-                      <div class="font-bold">{{file_detail.full_name}} </div>
-                     </div>
-                  </div>
-                  <div class="field col-12 flex">
-                     <div class="col-3 p-0 flex" style="align-items:center">Ngày tạo: </div>
-                        <div class="col-9 p-0 font-bold" >{{moment(new Date(file_detail.created_date)).format("DD/MM/YYYY ")}} </div>
-                  </div>
-                  <div class="field col-12 flex">
-                     <div class="col-3 p-0 flex" style="align-items:center">Kích thước: </div>
-                        <div class="col-9 p-0 font-bold" >{{formatBytes(file_detail.file_size)}} </div>
-                  </div>
-                  <div class="field col-12 flex">
-                     <div class="col-3 p-0 flex" style="align-items:center">Vị trí hồ sơ: </div>
-                        <div class="col-9 p-0 font-bold" >{{file_detail.is_type==0? 'Hồ sơ':file_detail.is_type==1?'Hợp đồng':file_detail.is_type==2?'Đào tạo':''}} </div>
-                  </div>
-          <div class="field col-12 font-bold text-lg pl-0">Thông tin truy cập</div>
-          <div v-for="(item, index) in data_log" :key="index" class="flex" :style="(index< data_log.length) ?'':'border-bottom:2px solid #eee'">
-                  <div class="log-image" >
-                      <div class="group-sign" >
-                          <div  style="display: inline-block; position: relative; z-index: 1;">
-                             <Avatar
-                    v-bind:label="
+        <div v-else class="p-3">
+          <div class="field col-12 pl-0 flex">
+            <div class="col-8 font-bold text-lg">
+              Thông tin chung
+            </div>
+            <div class="col-4 text-right">
+              <i class="pi pi-times-circle text-3xl cursor-pointer" @click="clearDetail()"></i>
+            </div>
+          </div>
+          <div class="field col-12 flex">
+            <div class="col-3 p-0 flex" style="align-items:center">Người tạo: </div>
+            <div class="col-9 p-0 flex">
+              <Avatar v-bind:label="
+                file_detail.avatar ? '' : file_detail.last_name.substring(0, 1)
+              " v-bind:image="basedomainURL + file_detail.avatar" style="background-color: #2196f3;
+                            color: #ffffff;
+                            width: 2rem;
+                            height: 2rem;
+                          " :style="{
+                            background: bgColor[file_detail.last_name.length % 7],
+                          }" class="mr-2" size="xlarge" shape="circle" />
+              <div class="text-bold">{{ file_detail.full_name }} </div>
+            </div>
+          </div>
+          <div class="field col-12 flex">
+            <div class="col-3 p-0 flex" style="align-items:center">Ngày tạo: </div>
+            <div class="col-9 p-0 text-bold">{{ moment(new Date(file_detail.created_date)).format("DD/MM/YYYY ") }} </div>
+          </div>
+          <div class="field col-12 flex">
+            <div class="col-3 p-0 flex" style="align-items:center">Kích thước: </div>
+            <div class="col-9 p-0 text-bold">{{ formatBytes(file_detail.file_size) }} </div>
+          </div>
+          <div class="field col-12 flex">
+            <div class="col-3 p-0 flex" style="align-items:center">Vị trí hồ sơ: </div>
+            <div class="col-9 p-0 text-bold">
+              {{ file_detail.is_type == 0 ? 'Hồ sơ' : file_detail.is_type == 1 ? 'Hợp đồng' : file_detail.is_type == 2 ? 'Đào tạo':''}}
+            </div>
+          </div>
+          <div class="field col-12 font-bold text-lg pl-0 pb-3">Thông tin truy cập</div>
+          <div class="scroll">
+            <div v-for="(item, index) in data_log" :key="index" class="flex mb-3"
+              :style="(index == data_log.length - 1) ? '' : 'border-bottom:2px solid #eee'">
+              <div class="log-image">
+                <div class="group-sign">
+                  <div style="display: inline-block; position: relative; z-index: 1;">
+                    <Avatar v-bind:label="
                       item.avatar ? '' : item.last_name.substring(0, 1)
-                    "
-                    v-bind:image="basedomainURL + item.avatar"
-                    style="
-                      background-color: #2196f3;
-                      color: #ffffff;
-                      width: 4rem;
-                      height: 4rem;
-                    "
-                    :style="{
-                      background: bgColor[index % 7],
-                    }"
-                    class="mr-2"
-                    size="xlarge"
-                    shape="circle"
-                  />
-                          </div>
-                          <span class="sign-date" >{{moment(new Date(item.created_date)).format("DD/MM/YYYY HH:mm")}} </span>
-                      </div>
+                    " v-bind:image="basedomainURL + item.avatar" style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 4rem;
+                            height: 4rem;
+                          " :style="{
+                            background: bgColor[index % 7],
+                          }" class="mr-2" size="xlarge" shape="circle" />
                   </div>
-                  <div class="log-detail" >
-                      <div >
-                          <h3 class="m-0 mb-2" >{{item.full_name}}</h3>
-                          <div class="description" >
-                              <div>{{item.position_name}}</div>
-                          </div>
-                          <div class="mt-2" >IP: <span class="description">{{item.created_ip}}</span></div>
-                          <div class="mt-2" >Thiết bị: <span class="description">{{item.from_device}}</span></div>
-                      </div>
-                  </div>
+                  <span class="sign-date description">{{ item.position_name }} </span>
+                </div>
               </div>
+              <div class="log-detail">
+                <div>
+                  <h4 class="m-0 mb-2">{{ item.full_name }}</h4>
+                  <div class="mt-2">Ngày xem: <span class="description">{{ moment(new
+                    Date(item.created_date)).format("DD/MM/YYYY HH:mm") }}</span></div>
+                  <div class="mt-2">IP: <span class="description">{{ item.created_ip }}</span></div>
+                  <div class="mt-2">Thiết bị: <span class="description">{{ item.from_device }}</span></div>
+                </div>
+              </div>
+              <!-- new -->
+              <!-- <div class="col-12 flex">
+                  <div class="col-3">
+                    <Avatar v-bind:label="
+                        item.avatar ? '' : item.last_name.substring(0, 1)
+                      " v-bind:image="basedomainURL + item.avatar" style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 4rem;
+                            height: 4rem;
+                          " :style="{
+                            background: bgColor[index % 7],
+                          }" class="mr-2" size="xlarge" shape="circle" />
+                  </div>
+                  <div class="col-9">
+                    <h3 class="m-0 mb-2">{{ item.full_name }}</h3>
+                    <div class="description mb-2">
+                      <div>{{ item.position_name }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="px-5">
+                  <div class="mt-2">IP: <span class="description">{{ item.created_ip }}</span></div>
+                    <div class="mt-2">Thiết bị: <span class="description">{{ item.from_device }}</span></div>
+                </div> -->
+            </div>
 
-           </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
     
-    <style scoped>
+<style scoped>
+.scroll {
+  overflow: auto;
+  max-height: calc(100vh - 408px);
+  min-height: calc(100vh - 408px);
+}
+
+.text-bold {
+  color: #000000;
+}
+
 .header-bar {
   background-color: #fff !important;
 }
+
 .body-content {
   background: #fff;
   min-height: calc(100vh - 130px);
   max-height: calc(100vh - 130px);
   overflow: auto;
 }
+
 .icon-modules {
   width: 16px;
   height: 16px;
 }
+
 .field {
-    margin-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
 }
+
 .log-image {
-    max-width: 90px;
-    min-width: 90px;
-    position: relative;
+  max-width: 90px;
+  min-width: 90px;
+  position: relative;
 }
+
 .group-sign {
-    text-align: center;
-    position: relative;
+  text-align: center;
+  position: relative;
 }
+
 .sign-date {
-    display: block;
-    clear: both;
-    padding: 5px;
-    margin: .5em 0;
-    background: #eee;
-    border-radius: 40px;
-    position: absolute;
-    top: 54px;
-    width: 100%;
-    z-index: 1;
-    text-align: center;
-    font-size: 11px;
+  display: block;
+  clear: both;
+  padding: 5px;
+  margin: .5em 0;
+  /* background: #eee;
+  border-radius: 40px; */
+  position: absolute;
+  top: 54px;
+  width: 100%;
+  z-index: 1;
+  text-align: center;
+  font-size: 11px;
 }
+
 .log-detail {
-    position: relative;
-    flex-grow: 1;
-    min-height: 80px;
+  position: relative;
+  flex-grow: 1;
+  min-height: 80px;
 }
+
 .description {
-    color: #aaa;
-    font-size: 12px;
+  color: #aaa;
+  font-size: 12px;
 }
-.signuser-detail>div, .log-detail>div {
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 10px 15px;
-    margin: 0 10px 10px;
+
+.signuser-detail>div,
+.log-detail>div {
+  /* border: 1px solid #eee;
+  border-radius: 10px; */
+  /* padding: 10px 15px; */
+  margin: 0 10px 10px;
 }
 </style>
 <style lang="scss" scoped>
 ::v-deep(.p-datatable-wrapper) {
+
   th,
   td {
     height: 50px;
@@ -807,6 +769,7 @@ onMounted(() => {
     border-top: 1px solid #e9ecef !important;
     border-bottom: 1px solid #e9ecef !important;
   }
+
   th {
     background: #fff !important;
   }
