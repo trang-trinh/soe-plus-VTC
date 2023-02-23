@@ -26,16 +26,16 @@ const basedomainURL = baseURL;
 
 //Declare
 const views = ref([
-  { view: 1, title: "Sơ yếu lý lịch", icon: "fa-regular fa-address-card" },
+  { view: 1, title: "Sơ yếu", icon: "fa-regular fa-address-card" },
   { view: 2, title: "Công việc", icon: "fa-solid fa-list-check" },
   { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
   { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
   { view: 5, title: "Phiếu lương", icon: "a-solid fa-money-check-dollar" },
   { view: 6, title: "Bảo hiểm", icon: "fa-solid fa-file-shield" },
-  { view: 7, title: "Phép năm", icon: "fa-regular fa-calendar-days" },
+  { view: 7, title: "Phép", icon: "fa-regular fa-calendar-days" },
   { view: 8, title: "Đào tạo", icon: "fa-solid fa-person-chalkboard" },
   { view: 9, title: "Quyết định", icon: "fa-solid fa-envelope-open" },
-  { view: 10, title: "Tệp số hóa", icon: "fa-solid fa-paperclip" },
+  { view: 10, title: "File", icon: "fa-solid fa-paperclip" },
 ]);
 const options = ref({
   loading: true,
@@ -48,6 +48,7 @@ const options = ref({
   orderBy: "desc",
   view: 1,
   profile_id: null,
+  key_id: null,
   contract_id: null,
   training_emps: {},
 });
@@ -77,7 +78,8 @@ const goProfile = (profile) => {
   router
     .push({
       name: "profileinfo",
-      params: { id: profile.profile_id },
+      params: { id: profile.key_id },
+      query: { id: profile.profile_id },
     })
     .then(() => {
       router.go();
@@ -347,7 +349,7 @@ const goFile = (file) => {
   window.open(basedomainURL + file.file_path, "_blank");
 };
 const goBack = () => {
-  router.back();
+  router.push({ name: "profile" });
 };
 
 //Function
@@ -1701,7 +1703,8 @@ const initData = () => {
 };
 onMounted(() => {
   if (route.params.id != null) {
-    options.value["profile_id"] = route.params.id;
+    options.value["key_id"] = route.params.id;
+    options.value["profile_id"] = route.query.id;
     initRelate();
     initData();
   } else {
@@ -1766,6 +1769,7 @@ const onPage = (event) => {
             optionLabel="view"
             dataKey="view"
             aria-labelledby="custom"
+            class="selectbutton-custom"
           >
             <template #option="slotProps">
               <div>
@@ -1779,6 +1783,21 @@ const onPage = (event) => {
               </div>
             </template>
           </SelectButton>
+          <Button
+            @click="
+              toggleMores($event);
+              $event.stopPropagation();
+            "
+            :class="{
+              'p-button-outlined p-button-secondary': options.view < 11,
+            }"
+            style="border: 1px solid #ced4da; height: 30px"
+          >
+            <span class="mr-2"
+              ><font-awesome-icon icon="fa-solid fa-print"
+            /></span>
+            In
+          </Button>
           <Button
             @click="
               toggleMores($event);
@@ -2065,7 +2084,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngân hàng:
                                 <span class="description-2">{{
@@ -2075,7 +2094,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số tài khoản:
                                 <span class="description-2">{{
@@ -2085,7 +2104,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tên tài khoản:
                                 <span class="description-2">{{
@@ -2148,7 +2167,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Lý luận chính trị:
                                 <span class="description-2">{{
@@ -2158,7 +2177,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngoại ngữ:
                                 <span class="description-2">{{
@@ -2168,7 +2187,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tin học:
                                 <span class="description-2">{{
@@ -2256,7 +2275,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Địa chỉ:
                                 <span class="description-2">{{
@@ -2844,7 +2863,7 @@ const onPage = (event) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6">
+                          <div class="col-6 md:col-6 m-0">
                             <div class="form-group">
                               <label
                                 >Thương binh hạng:
@@ -2854,7 +2873,7 @@ const onPage = (event) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6">
+                          <div class="col-6 md:col-6 m-0">
                             <div class="form-group">
                               <label
                                 >Con gia đình chính sách:
@@ -2982,7 +3001,7 @@ const onPage = (event) => {
                       </div>
                     </AccordionTab>
                   </Accordion>
-                  <!-- Đặc điểm lịch sử bản thân -->
+                  <!-- 9. Đặc điểm lịch sử bản thân -->
                   <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
@@ -3010,7 +3029,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Thông tin 3:
                             <span class="description-2">{{
@@ -3029,7 +3048,7 @@ const onPage = (event) => {
                         <span> 10. Đính kèm khác (file số hóa liên quan)</span>
                       </template>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <div
                             v-if="
                               profile.files != null && profile.files.length > 0
@@ -4225,15 +4244,18 @@ const onPage = (event) => {
         </div>
         <div
           style="
-            width: 350px !important;
+            width: 400px !important;
             border-left: solid 1px rgba(0, 0, 0, 0.1);
             overflow: auto;
             height: calc(100vh - 165px);
           "
         >
-          <div class="row p-2">
+          <div class="row">
             <div class="col-12 md:col-12 p-0">
-              <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
+              <Accordion
+                class="w-full border-none padding-0 mb-2"
+                :activeIndex="0"
+              >
                 <AccordionTab>
                   <template #header>
                     <span
@@ -4323,7 +4345,10 @@ const onPage = (event) => {
                   </div>
                 </AccordionTab>
               </Accordion>
-              <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
+              <Accordion
+                class="w-full border-none padding-0 mb-2"
+                :activeIndex="0"
+              >
                 <AccordionTab>
                   <template #header>
                     <span>
@@ -4413,7 +4438,10 @@ const onPage = (event) => {
                   </div>
                 </AccordionTab>
               </Accordion>
-              <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
+              <Accordion
+                class="w-full border-none padding-0 mb-2"
+                :activeIndex="0"
+              >
                 <AccordionTab>
                   <template #header>
                     <span
@@ -4587,6 +4615,25 @@ const onPage = (event) => {
 ::v-deep(.empty-full) {
   .p-datatable-emptymessage td {
     width: 100% !important;
+  }
+}
+::v-deep(.border-none) {
+  .p-accordion-header a {
+    border: none !important;
+  }
+  .p-accordion-content {
+    border: none !important;
+  }
+  .p-datatable-table tr th,
+  .p-datatable-table tr td {
+    border: none !important;
+  }
+}
+::v-deep(.selectbutton-custom) {
+  .p-button.p-highlight {
+    color: #ffffff;
+    background: #64748b;
+    border: 1px solid #64748b;
   }
 }
 </style>
