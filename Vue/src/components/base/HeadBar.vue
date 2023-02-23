@@ -152,6 +152,16 @@ const loadNoti = () => {
       }
     });
 };
+const clickNoti = ()=>{
+  showSidebarNoti.value = true;
+    axios({
+    method:  "put",
+    url:baseURL + "/api/Notify/Update_Noti",
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
+  })
+}
 //Vue App
 onMounted(() => {
   loadNoti();
@@ -260,10 +270,10 @@ onMounted(() => {
         aria-haspopup="true"
         aria-controls="overlay_menu"
         style="padding: 0.5rem"
+        @click="clickNoti()"
       >
         <span
           id="bell"
-          @click="showSidebarNoti = true"
           v-ripple
           :class="count_noti && count_noti>0 ?'': 'hide-bell'"
           class="pi pi-bell p-button-icon"

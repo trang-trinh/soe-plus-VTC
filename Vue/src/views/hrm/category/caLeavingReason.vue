@@ -1035,7 +1035,7 @@ onMounted(() => {
           </div>
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-4 text-left pl-7">Tối đa</div>
-            <InputNumber class="col-8 ip36" placeholder="Nhập số ngày" v-model="leaving_reason.max_day"/>
+            <InputNumber class="col-8 ip36 p-0" placeholder="Nhập số ngày" v-model="leaving_reason.max_day"/>
           </div>
         </div>
         <div class="col-12 field md:col-12 flex">
@@ -1082,7 +1082,7 @@ onMounted(() => {
         <div class="col-12 field md:col-12 flex">
           <div class="field col-6 md:col-6 align-items-center flex p-0">
             <div class="col-4 text-left">STT</div>
-            <InputNumber class="col-4 ip36 " v-model="leaving_reason.is_order"/>
+            <InputNumber class="col-4 ip36 p-0" v-model="leaving_reason.is_order"/>
           </div>
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-4 text-left pl-7">Trạng thái</div>
