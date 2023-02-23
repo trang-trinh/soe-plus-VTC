@@ -95,6 +95,7 @@ const loadData = () => {
     loadDataSQL();
     return false;
   }
+   
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -677,12 +678,14 @@ const onFilterDM = () => {
   }
   strG = "";
   strk = "";
+  
    if (options.value.department_id) {
     for (const key in options.value.department_id) {
       strG += strk + key;
       strk = ",";
     }
   }
+
 
   if (strG != "") {
     
@@ -692,6 +695,9 @@ const onFilterDM = () => {
       key: "department_id",
     };
     filterSQL.value.push(filterS);
+  }
+  else{
+    options.value.department_id =null;
   }
 
   strG = "";
@@ -1410,6 +1416,7 @@ onMounted(() => {
                           display="chip"
                           selectionMode="checkbox"
                           placeholder="Chọn phòng ban"
+                          :clear="true"
                         ></TreeSelect>
                       </div>
                     </div>

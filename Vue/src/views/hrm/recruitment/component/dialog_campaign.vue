@@ -9,7 +9,7 @@ const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
- 
+
 const basedomainURL = baseURL;
 const config = {
   headers: {
@@ -20,7 +20,7 @@ const toast = useToast();
 const props = defineProps({
   headerDialog: String,
   displayBasic: Boolean,
-  training_emps: Object,
+  campaign: Object,
 
   checkadd: Boolean,
   closeDialog: Function,
@@ -37,21 +37,21 @@ const bgColor = ref([
 ]);
 
 const rules = {
-  training_emps_code: {
+  campaign_code: {
     required,
     $errors: [
       {
-        $property: "training_emps_code",
+        $property: "campaign_code",
         $validator: "required",
         $message: "Tên đào tạo không được để trống!",
       },
     ],
   },
-  training_emps_name: {
+  campaign_name: {
     required,
     $errors: [
       {
-        $property: "training_emps_code",
+        $property: "campaign_code",
         $validator: "required",
         $message: "Tên đào tạo không được để trống!",
       },
@@ -59,7 +59,39 @@ const rules = {
   },
 };
 const listFilesS = ref([]);
-const training_emps = ref({});
+const campaign = ref({
+  campaign_name:null,
+  is_recruitment_proposal:null,
+  user_verify:null,
+  user_follows:null,
+  num_vacancies:null,
+  expected_cost:null,
+  start_date:null,
+  end_date:null,
+  rec_vacancies:null,
+  rec_position_id:null,
+  rec_formality_id:null,
+  rec_salary_from:null,
+  rec_workplace:null,
+  rec_salary_to:null,
+  rec_recruitment_deadline:null,
+  rec_number_vacancies:null,
+  rec_candidate_sheet_id:null,
+  can_academic_level_id:null,
+  can_specialization_id:null,
+  can_experience_id:null,
+  can_language_level_id:null,
+  can_age_from:null,
+  can_age_to:null,
+  can_gender:1,
+  can_height_from:null,
+  can_height_to:null,
+  can_weight_to:null,
+  can_weight_from:null,
+  job_description:null
+
+
+});
 const submitted = ref(false);
 const list_users_training = ref([]);
 const list_schedule = ref([]);
@@ -67,7 +99,7 @@ const loadData = () => {
   if (props.checkadd == true) {
     list_users_training.value = [];
     list_schedule.value = [];
-    training_emps.value = props.training_emps;
+    campaign.value = props.campaign;
   } else {
     axios
       .post(
@@ -75,11 +107,11 @@ const loadData = () => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_training_emps_get",
+              proc: "hrm_campaign_get",
               par: [
                 {
-                  par: "training_emps_id",
-                  va: props.training_emps.training_emps_id,
+                  par: "campaign_id",
+                  va: props.campaign.campaign_id,
                 },
               ],
             }),
@@ -95,28 +127,28 @@ const loadData = () => {
         let data2 = JSON.parse(response.data.data)[2];
         let data3 = JSON.parse(response.data.data)[3];
         if (data) {
-          training_emps.value = data[0];
+          campaign.value = data[0];
 
-          if (training_emps.value.start_date)
-            training_emps.value.start_date = new Date(
-              training_emps.value.start_date
+          if (campaign.value.start_date)
+            campaign.value.start_date = new Date(
+              campaign.value.start_date
             );
-          if (training_emps.value.end_date)
-            training_emps.value.end_date = new Date(
-              training_emps.value.end_date
+          if (campaign.value.end_date)
+            campaign.value.end_date = new Date(
+              campaign.value.end_date
             );
-          if (training_emps.value.registration_deadline)
-            training_emps.value.registration_deadline = new Date(
-              training_emps.value.registration_deadline
+          if (campaign.value.registration_deadline)
+            campaign.value.registration_deadline = new Date(
+              campaign.value.registration_deadline
             );
-          training_emps.value.user_verify_fake =
-            training_emps.value.user_verify.split(",");
-          training_emps.value.user_follows_fake =
-            training_emps.value.user_follows.split(",");
+          campaign.value.user_verify_fake =
+            campaign.value.user_verify.split(",");
+          campaign.value.user_follows_fake =
+            campaign.value.user_follows.split(",");
         }
-        training_emps.value.organization_training_fake = {};
-        training_emps.value.organization_training_fake[
-          training_emps.value.organization_training
+        campaign.value.organization_training_fake = {};
+        campaign.value.organization_training_fake[
+          campaign.value.organization_training
         ] = true;
 
         data1.forEach((element) => {
@@ -156,7 +188,7 @@ const loadData = () => {
         checkShow2.value = true;
         checkShow3.value = true;
       })
-      .catch((error) => {});
+      .catch((error) => { });
   }
 };
 const saveData = (isFormValid) => {
@@ -165,10 +197,10 @@ const saveData = (isFormValid) => {
     return;
   }
   if (
-    training_emps.value.start_date == null ||
-    training_emps.value.user_verify_fake == null ||
-    training_emps.value.form_training == null ||
-    training_emps.value.obj_training == null
+    campaign.value.start_date == null ||
+    campaign.value.user_verify_fake == null ||
+    campaign.value.form_training == null ||
+    campaign.value.obj_training == null
   ) {
     return;
   }
@@ -180,7 +212,7 @@ const saveData = (isFormValid) => {
     return;
   }
 
-  if (training_emps.value.training_emps_name.length > 250) {
+  if (campaign.value.campaign_name.length > 250) {
     swal.fire({
       title: "Error!",
       text: "Tên đào tạo không được vượt quá 250 ký tự!",
@@ -189,7 +221,7 @@ const saveData = (isFormValid) => {
     });
     return;
   }
-  if (training_emps.value.training_emps_code.length > 50) {
+  if (campaign.value.campaign_code.length > 50) {
     swal.fire({
       title: "Error!",
       text: "Mã đào tạo không được vượt quá 50 ký tự!",
@@ -199,48 +231,48 @@ const saveData = (isFormValid) => {
     return;
   }
   list_schedule.value.forEach((element) => {
-     if(element.class_schedule_name)
-    if (element.class_schedule_name.length >= 250) {
-      swal.fire({
-        title: "Error!",
-        text: "Tồn tại tên nội dung đào tạo vượt quá 250 ký tự!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
-    else
-    return
-    if(element.phone_number)
-    if (element.phone_number.length >= 11) {
-      swal.fire({
-        title: "Error!",
-        text: "Số điện thoại giảng viên không được vượt quá 11 ký tự!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
-    }if(element.lecturers_name)
-    if (element.lecturers_name.length >= 250) {
-      swal.fire({
-        title: "Error!",
-        text: "Tên giảng viên không được vượt quá 250 ký tự!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
+    if (element.class_schedule_name)
+      if (element.class_schedule_name.length >= 250) {
+        swal.fire({
+          title: "Error!",
+          text: "Tồn tại tên nội dung đào tạo vượt quá 250 ký tự!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+      else
+        return
+    if (element.phone_number)
+      if (element.phone_number.length >= 11) {
+        swal.fire({
+          title: "Error!",
+          text: "Số điện thoại giảng viên không được vượt quá 11 ký tự!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      } if (element.lecturers_name)
+      if (element.lecturers_name.length >= 250) {
+        swal.fire({
+          title: "Error!",
+          text: "Tên giảng viên không được vượt quá 250 ký tự!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
   });
-  if (training_emps.value.user_verify_fake.length > 0)
-    training_emps.value.user_verify =
-      training_emps.value.user_verify_fake.toString();
-  if (training_emps.value.user_follows_fake.length > 0)
-    training_emps.value.user_follows =
-      training_emps.value.user_follows_fake.toString();
-  if (training_emps.value.organization_training_fake)
-    Object.keys(training_emps.value.organization_training_fake).forEach(
+  if (campaign.value.user_verify_fake.length > 0)
+    campaign.value.user_verify =
+      campaign.value.user_verify_fake.toString();
+  if (campaign.value.user_follows_fake.length > 0)
+    campaign.value.user_follows =
+      campaign.value.user_follows_fake.toString();
+  if (campaign.value.organization_training_fake)
+    Object.keys(campaign.value.organization_training_fake).forEach(
       (key) => {
-        training_emps.value.organization_training = Number(key);
+        campaign.value.organization_training = Number(key);
       }
     );
 
@@ -250,7 +282,7 @@ const saveData = (isFormValid) => {
     formData.append("image", file);
   }
 
-  formData.append("hrm_training_emps", JSON.stringify(training_emps.value));
+  formData.append("hrm_campaign", JSON.stringify(campaign.value));
   formData.append("hrm_students", JSON.stringify(list_users_training.value));
   formData.append("hrm_schedule", JSON.stringify(list_schedule.value));
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
@@ -263,7 +295,7 @@ const saveData = (isFormValid) => {
   if (props.checkadd) {
     axios
       .post(
-        baseURL + "/api/hrm_training_emps/add_hrm_training_emps",
+        baseURL + "/api/hrm_campaign/add_hrm_campaign",
         formData,
         config
       )
@@ -294,7 +326,7 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_training_emps/update_hrm_training_emps",
+        baseURL + "/api/hrm_campaign/update_hrm_campaign",
         formData,
         config
       )
@@ -398,12 +430,23 @@ const loadUser = () => {
       }
     });
 };
-const v$ = useVuelidate(rules, training_emps);
-const listFormTraining = ref([
-  { name: "Bắt buộc", code: 1 },
-  { name: "Đăng ký", code: 2 },
-  { name: "Cả hai", code: 3 },
+const v$ = useVuelidate(rules, campaign);
+const listVacancies = ref([
+   
 ]);
+const listPosition = ref([
+   
+]);
+const listFormality = ref([
+   
+]);
+
+const listAcademic_level =ref([]);
+const listSpecialization =ref([]);
+const listExperience =ref([]);
+const listLanguage_level =ref([]);
+
+
 const listStatus = ref([
   { name: "Lên kế hoạch", code: 1 },
   { name: "Đang thực hiện", code: 2 },
@@ -411,10 +454,10 @@ const listStatus = ref([
   { name: "Tạm dừng", code: 4 },
   { name: "Đã hủy", code: 5 },
 ]);
-const listObjTraining = ref([
-  { name: "Cấp lãnh đạo", code: 1 },
-  { name: "Quản lý", code: 2 },
-  { name: "Nhân viên", code: 3 },
+const listGender = ref([
+  { name: "Nam", code: 1 },
+  { name: "Nữ", code: 2 },
+  { name: "Khác", code: 3 },
 ]);
 
 const checkShow = ref(false);
@@ -522,7 +565,7 @@ const initTudien = () => {
         treedonvis.value = obj.arrtreeChils;
       }
     })
-    .catch((error) => {});
+    .catch((error) => { });
 
   axios
     .post(
@@ -530,7 +573,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_enecting_group_list",
+            proc: "hrm_ca_vacancy_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -546,11 +589,11 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listTrainingGroups.value = [];
+      listVacancies.value = [];
       data.forEach((element, i) => {
-        listTrainingGroups.value.push({
-          name: element.enecting_group_name,
-          code: element.enecting_group_id,
+        listVacancies.value.push({
+          name: element.vacancy_name,
+          code: element.vacancy_id,
         });
       });
     })
@@ -563,7 +606,41 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_classroom_list",
+            proc: "ca_positions_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+             
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listPosition.value = [];
+      data.forEach((element, i) => {
+        listPosition.value.push({
+          name: element.position_name,
+          code: element.position_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
+    axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_formality_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -579,17 +656,151 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listClasroom.value = [];
+      listFormality.value = [];
       data.forEach((element, i) => {
-        listClasroom.value.push({
-          name: element.classroom_name,
-          code: element.classroom_id,
+        listFormality.value.push({
+          name: element.formality_name,
+          code: element.formality_id,
         });
       });
     })
     .catch((error) => {
       console.log(error);
     });
+    axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_academic_level_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listAcademic_level.value = [];
+      data.forEach((element, i) => {
+        listAcademic_level.value.push({
+          name: element.academic_level_name,
+          code: element.academic_level_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+    axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_specialization_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listSpecialization.value = [];
+      data.forEach((element, i) => {
+        listSpecialization.value.push({
+          name: element.specialization_name,
+          code: element.specialization_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
+    axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_language_level_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listLanguage_level.value = [];
+      data.forEach((element, i) => {
+        listLanguage_level.value.push({
+          name: element.language_level_name,
+          code: element.language_level_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+    axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_experience_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listExperience.value = [];
+      data.forEach((element, i) => {
+        listExperience.value.push({
+          name: element.experience_name,
+          code: element.experience_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+    
 };
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -699,7 +910,7 @@ const listLimit = ref([
     code: 2,
   },
 ]);
- 
+
 const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
@@ -841,19 +1052,13 @@ onMounted(() => {
 });
 </script>
 <template>
-  <Dialog
-    :header="props.headerDialog"
-    v-model:visible="props.displayBasic"
-    :style="{ width: '55vw' }"
-    :maximizable="true"
-    :modal="true"
-    :closable="false"
-  >
+  <Dialog :header="props.headerDialog" v-model:visible="props.displayBasic" :style="{ width: '55vw' }" :maximizable="true"
+    :modal="true" :closable="false">
     <form>
       <div class="grid formgrid m-2">
         <div class="col-12 field p-0 text-lg font-bold">Thông tin chiến dịch</div>
-        
-      
+
+
         <div class="col-12 field flex p-0 align-items-center">
           <div class="w-10rem">
             Tên chiến dịch<span class="redsao pl-1"> (*)</span>
@@ -861,38 +1066,27 @@ onMounted(() => {
           <div style="width: calc(100% - 10rem)">
             <div class="col-12 p-0">
               <div class="p-inputgroup">
-                <Textarea
-                  :autoResize="true"
-                  rows="1"
-                  cols="30"
-                  v-model="training_emps.training_emps_name"
-                  class="w-full"
-                  :style="
-                    training_emps.training_emps_name
-                      ? 'background-color:white !important'
-                      : ''
-                  "
-                  :class="{
-                    'p-invalid': v$.training_emps_name.$invalid && submitted,
-                  }"
-                />
+                <Textarea :autoResize="true" rows="1" cols="30" v-model="campaign.campaign_name" class="w-full" :style="
+                  campaign.campaign_name
+                    ? 'background-color:white !important'
+                    : ''
+                " :class="{
+  'p-invalid': v$.campaign_name.$invalid && submitted,
+}" />
               </div>
             </div>
           </div>
         </div>
-        <div
-          class="col-12 p-0 field flex"
-          v-if="
-            (v$.training_emps_name.$invalid && submitted) ||
-            v$.training_emps_name.$pending.$response
-          "
-        >
+        <div class="col-12 p-0 field flex" v-if="
+          (v$.campaign_name.$invalid && submitted) ||
+          v$.campaign_name.$pending.$response
+        ">
           <div class="p-0 col-12">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
                 <span style="color: red" class="w-full">{{
-                  v$.training_emps_name.required.$message
+                  v$.campaign_name.required.$message
                     .replace("Value", "Tên khóa đào tạo")
                     .replace("is required", "không được để trống!")
                 }}</span>
@@ -900,74 +1094,55 @@ onMounted(() => {
             </div>
           </div>
         </div>
- <div class="col-12 field p-0 flex text-left align-items-center">
+        <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">
               Người phụ trách <span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
-              <MultiSelect
-                v-model="training_emps.user_verify_fake"
-                :options="listDropdownUserGive"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="-------- Chọn người phụ trách --------"
-                panelClass="d-design-dropdown"
-                class="w-full p-0 d-tree-input"
-                :class="{
+              <MultiSelect v-model="campaign.user_verify_fake" :options="listDropdownUserGive" optionLabel="name"
+                optionValue="code" placeholder="-------- Chọn người phụ trách --------" panelClass="d-design-dropdown"
+                class="w-full p-0 d-tree-input" :class="{
                   'p-invalid':
-                    training_emps.user_verify_fake == null && submitted,
-                }"
-                display="chip"
-              >
+                    campaign.user_verify_fake == null && submitted,
+                }" display="chip">
                 <template #option="slotProps">
                   <div class="country-item flex align-items-center">
                     <div class="grid w-full p-0">
-                      <div
-                        class="
-                          field
-                          p-0
-                          py-1
-                          col-12
-                          flex
-                          m-0
-                          cursor-pointer
-                          align-items-center
-                        "
-                      >
+                      <div class="
+                            field
+                            p-0
+                            py-1
+                            col-12
+                            flex
+                            m-0
+                            cursor-pointer
+                            align-items-center
+                          ">
                         <div class="col-1 mx-2 p-0 align-items-center">
-                          <Avatar
-                            v-bind:label="
-                              slotProps.option.avatar
-                                ? ''
-                                : slotProps.option.name.substring(
-                                    slotProps.option.name.lastIndexOf(' ') + 1,
-                                    slotProps.option.name.lastIndexOf(' ') + 2
-                                  )
-                            "
-                            :image="basedomainURL + slotProps.option.avatar"
-                            size="small"
-                            :style="
-                              slotProps.option.avatar
-                                ? 'background-color: #2196f3'
-                                : 'background:' +
-                                  bgColor[slotProps.option.name.length % 7]
-                            "
-                            shape="circle"
-                            @error="
-                              $event.target.src =
-                                basedomainURL + '/Portals/Image/nouser1.png'
-                            "
-                          />
+                          <Avatar v-bind:label="
+                            slotProps.option.avatar
+                              ? ''
+                              : slotProps.option.name.substring(
+                                slotProps.option.name.lastIndexOf(' ') + 1,
+                                slotProps.option.name.lastIndexOf(' ') + 2
+                              )
+                          " :image="basedomainURL + slotProps.option.avatar" size="small" :style="
+  slotProps.option.avatar
+    ? 'background-color: #2196f3'
+    : 'background:' +
+    bgColor[slotProps.option.name.length % 7]
+" shape="circle" @error="
+  $event.target.src =
+  basedomainURL + '/Portals/Image/nouser1.png'
+" />
                         </div>
                         <div class="col-11 p-0 ml-3 align-items-center">
                           <div class="pt-2">
                             <div class="font-bold">
                               {{ slotProps.option.name }}
                             </div>
-                            <div
-                              class="flex w-full text-sm font-italic text-500"
-                            >
+                            <div class="flex w-full text-sm font-italic text-500">
                               <div>{{ slotProps.option.position_name }}</div>
                             </div>
                           </div>
@@ -982,64 +1157,46 @@ onMounted(() => {
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Người theo dõi</div>
             <div style="width: calc(100% - 10rem)">
-              <MultiSelect
-                v-model="training_emps.user_follows_fake"
-                :options="listDropdownUserGive"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="-------- Chọn người theo dõi --------"
-                panelClass="d-design-dropdown"
-                class="w-full p-0 d-tree-input"
-                display="chip"
-              >
+              <MultiSelect v-model="campaign.user_follows_fake" :options="listDropdownUserGive" optionLabel="name"
+                optionValue="code" placeholder="-------- Chọn người theo dõi --------" panelClass="d-design-dropdown"
+                class="w-full p-0 d-tree-input" display="chip">
                 <template #option="slotProps">
                   <div class="country-item flex align-items-center">
                     <div class="grid w-full p-0">
-                      <div
-                        class="
-                          field
-                          p-0
-                          py-1
-                          col-12
-                          flex
-                          m-0
-                          cursor-pointer
-                          align-items-center
-                        "
-                      >
+                      <div class="
+                            field
+                            p-0
+                            py-1
+                            col-12
+                            flex
+                            m-0
+                            cursor-pointer
+                            align-items-center
+                          ">
                         <div class="col-1 mx-2 p-0 align-items-center">
-                          <Avatar
-                            v-bind:label="
-                              slotProps.option.avatar
-                                ? ''
-                                : slotProps.option.name.substring(
-                                    slotProps.option.name.lastIndexOf(' ') + 1,
-                                    slotProps.option.name.lastIndexOf(' ') + 2
-                                  )
-                            "
-                            :image="basedomainURL + slotProps.option.avatar"
-                            size="small"
-                            :style="
-                              slotProps.option.avatar
-                                ? 'background-color: #2196f3'
-                                : 'background:' +
-                                  bgColor[slotProps.option.name.length % 7]
-                            "
-                            shape="circle"
-                            @error="
-                              $event.target.src =
-                                basedomainURL + '/Portals/Image/nouser1.png'
-                            "
-                          />
+                          <Avatar v-bind:label="
+                            slotProps.option.avatar
+                              ? ''
+                              : slotProps.option.name.substring(
+                                slotProps.option.name.lastIndexOf(' ') + 1,
+                                slotProps.option.name.lastIndexOf(' ') + 2
+                              )
+                          " :image="basedomainURL + slotProps.option.avatar" size="small" :style="
+  slotProps.option.avatar
+    ? 'background-color: #2196f3'
+    : 'background:' +
+    bgColor[slotProps.option.name.length % 7]
+" shape="circle" @error="
+  $event.target.src =
+  basedomainURL + '/Portals/Image/nouser1.png'
+" />
                         </div>
                         <div class="col-11 p-0 ml-3 align-items-center">
                           <div class="pt-2">
                             <div class="font-bold">
                               {{ slotProps.option.name }}
                             </div>
-                            <div
-                              class="flex w-full text-sm font-italic text-500"
-                            >
+                            <div class="flex w-full text-sm font-italic text-500">
                               <div>{{ slotProps.option.position_name }}</div>
                             </div>
                           </div>
@@ -1052,17 +1209,12 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div
-          class="col-12 p-0 field flex"
-          v-if="training_emps.user_verify_fake == null && submitted"
-        >
+        <div class="col-12 p-0 field flex" v-if="campaign.user_verify_fake == null && submitted">
           <div class="p-0 col-6">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                  >Người phụ trách không được để trống!</span
-                >
+                <span style="color: red" class="w-full">Người phụ trách không được để trống!</span>
               </small>
             </div>
           </div>
@@ -1070,529 +1222,361 @@ onMounted(() => {
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">
-             Số lượng tuyển<span class="redsao pl-1"> (*)</span>
+              Số lượng tuyển<span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
-                <InputNumber  class="w-full" suffix=" Người" v-model="training_emps.obj_training"  />
-        
+              <InputNumber class="w-full" suffix=" Người" v-model="campaign.num_vacancies" />
+
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Chi phí dự kiến</div>
             <div style="width: calc(100% - 10rem)">
-               <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full"
-                   suffix=" VND"
-                />
+              <InputNumber v-model="campaign.expected_cost" class="w-full" suffix=" VND" />
             </div>
           </div>
         </div>
-        <div
-          class="col-12 p-0 field flex"
-          v-if="training_emps.obj_training == null && submitted"
-        >
+        <div class="col-12 p-0 field flex" v-if="campaign.num_vacancies == null && submitted">
           <div class="p-0 col-6">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                  >Số lượng tuyển không được để trống!
+                <span style="color: red" class="w-full">Số lượng tuyển không được để trống!
                 </span>
               </small>
             </div>
           </div>
         </div>
-        
+
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">
               Ngày bắt đầu
             </div>
             <div style="width: calc(100% - 10rem)">
-              <Calendar
-                class="w-full"
-                id="basic_purchase_date"
-                v-model="training_emps.start_date"
-                autocomplete="on"
-                :showIcon="true"    placeholder="dd/mm/yyyy"
-              />
+              <Calendar class="w-full" id="basic_purchase_date" v-model="campaign.start_date" autocomplete="on"
+                :showIcon="true" placeholder="dd/mm/yyyy" />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Ngày kết thúc</div>
             <div style="width: calc(100% - 10rem)">
-              <Calendar
-                class="w-full"    placeholder="dd/mm/yyyy"
-                id="basic_purchase_date"
-                v-model="training_emps.end_date"
-                autocomplete="on"
-                :minDate="
-                  training_emps.start_date
-                    ? new Date(training_emps.start_date)
+              <Calendar class="w-full" placeholder="dd/mm/yyyy" id="basic_purchase_date" v-model="campaign.end_date"
+                autocomplete="on" :minDate="
+                  campaign.start_date
+                    ? new Date(campaign.start_date)
                     : null
-                "
-                :showIcon="true"
-              />
+                " :showIcon="true" />
             </div>
           </div>
         </div>
-        <div
-          class="col-12 p-0 field flex"
-          v-if="training_emps.start_date == null && submitted"
-        >
+        <div class="col-12 p-0 field flex" v-if="campaign.start_date == null && submitted">
           <div class="p-0 col-6">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                  >Ngày bắt đầu không được để trống!
+                <span style="color: red" class="w-full">Ngày bắt đầu không được để trống!
                 </span>
               </small>
             </div>
           </div>
         </div>
-    <div class="col-12 field p-0 text-lg font-bold">Thông tin vị trí tuyển</div>
-   
+        <div class="col-12 field p-0 text-lg font-bold">Thông tin vị trí tuyển</div>
+
         <div class="col-12 field p-0 flex text-left align-items-center">
-           <div class="col-6 p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem ">Vị trí<span class="redsao pl-1"> (*)</span></div>
             <div style="width: calc(100% - 10rem)">
-              <Dropdown
-                v-model="training_emps.position"
-                :options="listStatus"
-                optionLabel="name"
-                optionValue="code"
-                class="sel-placeholder w-full"
-                panelClass="d-design-dropdown"
-              />
+              <Dropdown :filter="true" v-model="campaign.rec_vacancies" :options="listVacancies" optionLabel="name" optionValue="code"
+                class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn vị trí" />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Chức vụ</div>
             <div style="width: calc(100% - 10rem)">
-               <Dropdown
-                v-model="training_emps.position"
-                :options="listStatus"
-                optionLabel="name"
-                optionValue="code"
-                class=" w-full"
-                placeholder="Chọn chức vụ"
-                panelClass="d-design-dropdown"
-              />
+              <Dropdown  :filter="true"  v-model="campaign.rec_position_id" :options="listPosition" optionLabel="name" optionValue="code"
+                class=" w-full" placeholder="Chọn chức vụ" panelClass="d-design-dropdown" />
             </div>
           </div>
         </div>
 
-       
-           <div class="col-12 flex p-0">
-              <div class="col-6 p-0">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-             Hình thức làm việc
-              </div>
-              <div style="width: calc(100% - 10rem)">
-                    <Dropdown
-                v-model="training_emps.position"
-                :options="listStatus"
-                optionLabel="name"
-                optionValue="code"
-                class=" w-full"
-                panelClass="d-design-dropdown"
-                placeholder="Chọn hình thức làm việc"
-              />
-              </div>
-            </div>
-          </div>
-          <div class="col-6 flex p-0 text-center align-items-center">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-               Nơi làm việc
-              </div>
-              <div style="width: calc(100% - 10rem)">
-                   <InputText
-                  v-model="training_emps.expense"
-                  class="w-full"
-                   
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-       
+
         <div class="col-12 flex p-0">
-              <div class="col-6 p-0">
+          <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem">
-             Mức lương (từ)
+                Hình thức làm việc
               </div>
               <div style="width: calc(100% - 10rem)">
-                <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full d-input-design-number"
-                   suffix=" VND"
-                   placeholder="Từ"
-                />
+                <Dropdown v-model="campaign.rec_formality_id" :options="listFormality" optionLabel="name" optionValue="code"
+                  class=" w-full" panelClass="d-design-dropdown" placeholder="Chọn hình thức làm việc" />
               </div>
             </div>
           </div>
           <div class="col-6 flex p-0 text-center align-items-center">
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem pl-3">
-               Mức lương (đến)
+                Nơi làm việc
               </div>
               <div style="width: calc(100% - 10rem)">
-                    <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full d-input-design-number"
-                   suffix=" VND"
-                   placeholder="Đến"
-               
-                />
+                <InputText v-model="campaign.rec_workplace" class="w-full" />
               </div>
             </div>
           </div>
         </div>
-       <div class="col-12 flex p-0">
-              <div class="col-6 p-0">
+
+        <div class="col-12 flex p-0">
+          <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem">
-             Hạn tuyển<span class="redsao pl-1"> (*)</span>
+                Mức lương (từ)
               </div>
               <div style="width: calc(100% - 10rem)">
-                  <Calendar
-                class="w-full"    placeholder="dd/mm/yyyy"
-               
-                v-model="training_emps.start_date"
-                autocomplete="on"
-                :showIcon="true"
-              />
+                <InputNumber v-model="campaign.rec_salary_from" class="w-full d-input-design-number" suffix=" VND"
+                  placeholder="Từ" />
               </div>
             </div>
           </div>
           <div class="col-6 flex p-0 text-center align-items-center">
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem pl-3">
-              Số lượng
+                Mức lương (đến)
               </div>
               <div style="width: calc(100% - 10rem)">
-                    <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full d-input-design-number"
-                   suffix=" Người"
-                   placeholder="Số lượng"
-               
-                />
+                <InputNumber v-model="campaign.rec_salary_to" class="w-full d-input-design-number" suffix=" VND"
+                  placeholder="Đến" />
               </div>
             </div>
           </div>
         </div>
-          <div class="col-12 flex p-0">
+        <div class="col-12 flex p-0">
+          <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+                Hạn tuyển<span class="redsao pl-1"> (*)</span>
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <Calendar class="w-full" placeholder="dd/mm/yyyy" v-model="campaign.rec_recruitment_deadline" autocomplete="on"
+                  :showIcon="true" />
+              </div>
+            </div>
+          </div>
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+                Số lượng
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <InputNumber v-model="campaign.rec_number_vacancies" class="w-full d-input-design-number" suffix=" Người"
+                  placeholder="Số lượng" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="col-12 flex p-0">
             
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-           Mẫu đánh giá
-              </div>
-              <div style="width: calc(100% - 10rem)">
-                       <Dropdown
-                v-model="training_emps.position"
-                :options="listStatus"
-                optionLabel="name"
-                optionValue="code"
-                class="w-full"
-                panelClass="d-design-dropdown"
-                  placeholder="Chọn mẫu đánh giá ứng viên"
-              />
-              </div>
+              <div class="col-12 field flex p-0 text-left align-items-center">
+                <div class="w-10rem">
+             Mẫu đánh giá
+                </div>
+                <div style="width: calc(100% - 10rem)">
+                         <Dropdown
+                  v-model="campaign.rec_candidate_sheet_id"
+                  :options="listStatus"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                    placeholder="Chọn mẫu đánh giá ứng viên"
+                />
+                </div>
            
-          </div>
+            </div>
          
-        </div>
+          </div> -->
         <div class="col-12 field p-0 text-lg font-bold">Yêu cầu ứng viên</div>
-   
+
         <div class="col-12 field p-0 flex text-left align-items-center">
-           <div class="col-6 p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem ">Trình độ</div>
             <div style="width: calc(100% - 10rem)">
-              <Dropdown
-                v-model="training_emps.position"
-                :options="listStatus"
-                optionLabel="name"
-                optionValue="code"
-                class="sel-placeholder w-full"
-                panelClass="d-design-dropdown"
-              />
+              <Dropdown v-model="campaign.can_academic_level_id" :options="listAcademic_level" optionLabel="name" optionValue="code"
+                class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn trình độ" />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Chuyên ngành</div>
             <div style="width: calc(100% - 10rem)">
-               <Dropdown
-                v-model="training_emps.position"
-                :options="listStatus"
-                optionLabel="name"
-                optionValue="code"
-                class="sel-placeholder w-full"
-                panelClass="d-design-dropdown"
-              />
+              <Dropdown v-model="campaign.can_specialization_id" :options="listSpecialization" optionLabel="name" optionValue="code"
+                class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn chuyên ngành" />
             </div>
           </div>
         </div>
 
-       
-           <div class="col-12 flex p-0">
-              <div class="col-6 p-0">
+
+        <div class="col-12 flex p-0">
+          <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem">
-          Kinh nghiệm
+                Kinh nghiệm
               </div>
               <div style="width: calc(100% - 10rem)">
-                    <Dropdown
-                v-model="training_emps.position"
-                :options="listStatus"
-                optionLabel="name"
-                optionValue="code"
-                class="sel-placeholder w-full"
-                panelClass="d-design-dropdown"
-              />
+                <Dropdown v-model="campaign.can_experience_id" :options="listExperience" optionLabel="name" optionValue="code"
+                  class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn kinh nghiệm" />
               </div>
             </div>
           </div>
           <div class="col-6 flex p-0 text-center align-items-center">
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem pl-3">
-             Ngoại ngữ
+                Ngoại ngữ
               </div>
               <div style="width: calc(100% - 10rem)">
-                   <InputText
-                  v-model="training_emps.expense"
-                  class="w-full"
-                   
-                />
+                <Dropdown v-model="campaign.can_language_level_id" :options="listLanguage_level" optionLabel="name" optionValue="code"
+                  class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn trình độ ngoại ngữ" />
+            
               </div>
             </div>
           </div>
         </div>
-       
+
         <div class="col-12 flex p-0">
-              <div class="col-6 p-0">
+          <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem">
-            Tuổi
+                Tuổi
               </div>
               <div style="width: calc(100% - 10rem)" class="flex">
                 <div class="w-full mr-2">
-                <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full  "
-                   suffix=" VND"
-                   placeholder="Từ"
-                /></div>
-                  <div class="w-full">
-                <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full "
-                   suffix=" VND"
-                   placeholder="Đến"
-                /></div>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 flex p-0 text-center align-items-center">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-               Giới tính
-              </div>
-              <div style="width: calc(100% - 10rem)">
-                     <Dropdown
-                v-model="training_emps.position"
-                :options="listStatus"
-                optionLabel="name"
-                optionValue="code"
-                class="sel-placeholder w-full"
-                panelClass="d-design-dropdown"
-              />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 flex p-0">
-              <div class="col-6 p-0">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-            Chiều cao
-              </div>
-              <div style="width: calc(100% - 10rem)" class="flex">
-                <div class="w-full mr-2">
-                <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full  "
-                   suffix=" Cm"
-                   placeholder="Từ"
-                /></div>
-                  <div class="w-full">
-                <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full "
-                   suffix=" Cm"
-                   placeholder="Đến"
-                /></div>
-              </div>
-            </div>
-          </div>
-           <div class="col-6 p-0">
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-            Cân nặng
-              </div>
-              <div style="width: calc(100% - 10rem)" class="flex">
-                <div class="w-full mr-2">
-                <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full  "
-                   suffix=" Kg"
-                   placeholder="Từ"
-                /></div>
-                  <div class="w-full">
-                <InputNumber
-                  v-model="training_emps.expense"
-                  class="w-full "
-                   suffix=" Kg"
-                   placeholder="Đến"
-                /></div>
-              </div>
-            </div>
-          </div>
-        </div>
-            <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem ">
-            Mô tả công việc
-              </div>
-              <div style="width: calc(100% - 10rem)" class="flex">
-                 <Textarea
-                        :autoResize="true"
-                        rows="1"
-                        cols="40"
-                        v-model="training_emps.class_schedule_name"
-                        class="w-full"
-                        
-                      />
-                      </div>
-                      </div>
-
-                    <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
-        <div class="w-full col-12 field p-0" >
-            <FileUpload
-              chooseLabel="Chọn File"
-              :showUploadButton="false"
-              :showCancelButton="false"
-              :multiple="false"
-              :maxFileSize="524288000"
-              @select="onUploadFile"
-              @remove="removeFile"
-              :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
-            >
-              <template #empty>
-                <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
-              </template>
-            </FileUpload>
-
-            <div class="col-12 p-0">
-              <div
-                class="p-0 w-full flex"
-                v-for="(item, index) in listFilesS"
-                :key="index"
-              >
-                <div
-                  class="p-0 surface-50"
-                  style="width: 100%; border-radius: 10px"
-                >
-                  <Toolbar class="w-full py-3">
-                    <template #start>
-                      <div class="flex">
-                        <div v-if="item.is_image" class="align-items-center flex">
-                          <Image
-                            :src="basedomainURL + item.file_path"
-                            :alt="item.file_name"
-                            width="70"
-                            height="50"
-                            style="
-                              object-fit: contain;
-                              border: 1px solid #ccc;
-                              width: 70px;
-                              height: 50px;
-                            "
-                            preview
-                            
-                            class="pr-2"
-                          />
-                          <div class="ml-2">
-                            {{ item.file_name }}
-                         
-                          </div>
-                        </div>
-                        <div v-else>
-                          <a
-                            :href="basedomainURL + item.file_path"
-                            download
-                            class="w-full no-underline cursor-pointer"
-                          >
-                            <div class="align-items-center flex">
-                              <div>
-                                <img
-                                  :src="
-                                    basedomainURL +
-                                    '/Portals/Image/file/' +
-                                    item.file_path.substring(
-                                      item.file_path.lastIndexOf('.') + 1
-                                    ) +
-                                    '.png'
-                                  "
-                                  style="
-                                    width: 70px;
-                                    height: 50px;
-                                    object-fit: contain;
-                                  "
-                                  :alt="item.file_name"
-                                />
-                              </div>
-                              <div class="ml-2">
-                                {{ item.file_name }}
-                              </div>
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-                    </template>
-                    <template #end>
-                      <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded p-button-danger"
-                        @click="deleteFileH(item)"
-                      />
-                    </template>
-                  </Toolbar>
+                  <InputNumber v-model="campaign.can_age_from" class="w-full  " suffix=" Tuổi" placeholder="Từ" />
+                </div>
+                <div class="w-full">
+                  <InputNumber v-model="campaign.can_age_to" class="w-full " suffix=" Tuổi" placeholder="Đến" />
                 </div>
               </div>
             </div>
           </div>
+          <div class="col-6 flex p-0 text-center align-items-center">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+                Giới tính
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <Dropdown v-model="campaign.can_gender" :options="listGender" optionLabel="name" optionValue="code"
+                  class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn giới tính" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 flex p-0">
+          <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem">
+                Chiều cao
+              </div>
+              <div style="width: calc(100% - 10rem)" class="flex">
+                <div class="w-full mr-2">
+                  <InputNumber v-model="campaign.can_height_from" class="w-full  " suffix=" Cm" placeholder="Từ" />
+                </div>
+                <div class="w-full">
+                  <InputNumber v-model="campaign.can_height_to" class="w-full " suffix=" Cm" placeholder="Đến" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 p-0">
+            <div class="col-12 field flex p-0 text-left align-items-center">
+              <div class="w-10rem pl-3">
+                Cân nặng
+              </div>
+              <div style="width: calc(100% - 10rem)" class="flex">
+                <div class="w-full mr-2">
+                  <InputNumber v-model="campaign.can_weight_from" class="w-full  " suffix=" Kg" placeholder="Từ" />
+                </div>
+                <div class="w-full">
+                  <InputNumber v-model="campaign.can_weight_to" class="w-full " suffix=" Kg" placeholder="Đến" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field flex p-0 text-left align-items-center">
+          <div class="w-10rem ">
+            Mô tả công việc
+          </div>
+          <div style="width: calc(100% - 10rem)" class="flex">
+            <Textarea :autoResize="true" rows="1" cols="40" v-model="campaign.job_description" class="w-full" />
+          </div>
+        </div>
+
+        <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
+        <div class="w-full col-12 field p-0">
+          <FileUpload chooseLabel="Chọn File" :showUploadButton="false" :showCancelButton="false" :multiple="false"
+            :maxFileSize="524288000" @select="onUploadFile" @remove="removeFile"
+            :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'">
+            <template #empty>
+              <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
+            </template>
+          </FileUpload>
+
+          <div class="col-12 p-0">
+            <div class="p-0 w-full flex" v-for="(item, index) in listFilesS" :key="index">
+              <div class="p-0 surface-50" style="width: 100%; border-radius: 10px">
+                <Toolbar class="w-full py-3">
+                  <template #start>
+                    <div class="flex">
+                      <div v-if="item.is_image" class="align-items-center flex">
+                        <Image :src="basedomainURL + item.file_path" :alt="item.file_name" width="70" height="50" style="
+                                object-fit: contain;
+                                border: 1px solid #ccc;
+                                width: 70px;
+                                height: 50px;
+                              " preview class="pr-2" />
+                        <div class="ml-2">
+                          {{ item.file_name }}
+
+                        </div>
+                      </div>
+                      <div v-else>
+                        <a :href="basedomainURL + item.file_path" download class="w-full no-underline cursor-pointer">
+                          <div class="align-items-center flex">
+                            <div>
+                              <img :src="
+                                basedomainURL +
+                                '/Portals/Image/file/' +
+                                item.file_path.substring(
+                                  item.file_path.lastIndexOf('.') + 1
+                                ) +
+                                '.png'
+                              " style="
+                                      width: 70px;
+                                      height: 50px;
+                                      object-fit: contain;
+                                    " :alt="item.file_name" />
+                            </div>
+                            <div class="ml-2">
+                              {{ item.file_name }}
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                  </template>
+                  <template #end>
+                    <Button icon="pi pi-times" class="p-button-rounded p-button-danger" @click="deleteFileH(item)" />
+                  </template>
+                </Toolbar>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </form>
     <template #footer>
       <div class="pt-3" v-if="!view">
-        <Button
-          label="Hủy"
-          icon="pi pi-times"
-          @click="props.closeDialog"
-          class="p-button-outlined"
-        />
+        <Button label="Hủy" icon="pi pi-times" @click="props.closeDialog" class="p-button-outlined" />
 
-        <Button
-          label="Lưu"
-          icon="pi pi-check"
-          @click="saveData(!v$.$invalid)"
-          autofocus
-        />
+        <Button label="Lưu" icon="pi pi-check" @click="saveData(!v$.$invalid)" autofocus />
       </div>
     </template>
   </Dialog>
@@ -1601,63 +1585,79 @@ onMounted(() => {
 #formprint {
   background: #fff !important;
 }
+
 #formprint * {
   font-family: "Times New Roman", Times, serif !important;
   font-size: 13pt;
 }
+
 .hover:hover {
   cursor: pointer;
   color: #2196f3 !important;
 }
+
 .title1,
 .title1 * {
   font-size: 17pt !important;
 }
+
 .title2,
 .title2 * {
   font-size: 16pt !important;
 }
+
 .title3,
 .title3 * {
   font-size: 15pt !important;
 }
+
 .boder tr th,
 .boder tr td {
   border: 1px solid #999999 !important;
   padding: 0.5rem;
 }
+
 table {
   min-width: 100% !important;
   page-break-inside: auto !important;
   border-collapse: collapse !important;
   table-layout: fixed !important;
 }
+
 thead {
   display: table-header-group !important;
 }
+
 tbody {
   display: table-header-group !important;
 }
+
 tr {
   -webkit-column-break-inside: avoid !important;
   page-break-inside: avoid !important;
 }
+
 tfoot {
   display: table-footer-group !important;
 }
+
 .uppercase,
 .uppercase * {
   text-transform: uppercase !important;
 }
+
 .text-center {
   text-align: center !important;
 }
+
 .text-left {
   text-align: left !important;
 }
+
 .text-right {
   text-align: right !important;
 }
+
 .html p {
   margin: 0 !important;
   padding: 0 !important;
