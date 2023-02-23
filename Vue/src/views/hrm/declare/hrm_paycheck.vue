@@ -56,6 +56,8 @@ const loadCount = () => {
           JSON.stringify({
             proc: "hrm_declare_count",
             par: [
+               { par: "search", va: options.value.search },
+              { par: "type", va: options.value.typeDeclare },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
             ],
@@ -95,6 +97,8 @@ const loadData = (rf) => {
             JSON.stringify({
               proc: "hrm_declare_list",
               par: [
+              { par: "search", va: options.value.search },
+              { par: "type", va: options.value.typeDeclare },
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
@@ -161,6 +165,31 @@ const onPage = (event) => {
   loadData(true);
 };
 
+const onPageP = (event) => {
+  if (event.rows != options.value.pagesizeP) {
+    options.value.pagesizeP = event.rows;
+  }
+  if (event.page == 0) {
+    //Trang đầu
+    options.value.id = null;
+    options.value.IsNext = true;
+  } else if (event.page > options.value.pagenoP + 1) {
+    //Trang cuối
+    options.value.id = -1;
+    options.value.IsNext = false;
+  } else if (event.page > options.value.pagenoP) {
+    //Trang sau
+
+    options.value.id = datalistsDetails.value[datalistsDetails.value.length - 1].paycheck_id;
+    options.value.IsNext = true;
+  } else if (event.page < options.value.pagenoP) {
+    //Trang trước
+    options.value.id = datalists.value[0].paycheck_id;
+    options.value.IsNext = false;
+  }
+  options.value.pagenoP = event.page;
+  loadDataDetails(true);
+};
 const declare = ref({
   declare_name: "",
   emote_file: "",
@@ -231,11 +260,10 @@ const openBasicP = (str) => {
     declare_id:declare.value.declare_id,
     status: true,
     paycheck_type:1,
-    is_order: sttStamp.value,
+    is_order: sttPaycheck.value,
     organization_id: store.getters.user.organization_id,
     parent_id:null
   };
- 
   isSaveTem.value = false;
   headerDialogP.value = str;
   displayBasicP.value = true;
@@ -284,7 +312,18 @@ const onChangeParent = () => {
 };
 
 const addWarehouseChild = (data) => {
+  var stt=1;
   if(declare.value){
+     
+    if(datalistsDetails.value.length>0){
+      var stv=datalistsDetails.value.find(x=>x.key==data.paycheck_id);
+      if(stv!=null){
+        if(stv.children){
+          stt=stv.children.length+1;
+        }
+      }
+    }
+   
   submittedP.value = false;
   selectCapcha.value = {};
   selectCapcha.value[data.paycheck_id] = true;
@@ -292,12 +331,12 @@ const addWarehouseChild = (data) => {
     declare_id:declare.value.declare_id,
     paycheck_name: null,
     paycheck_type:2,
-    is_order: datalistsDetails.value.filter((x) => x.parent_id == null).length + 1,
+    is_order: stt,
     status: true,
     organization_id: store.getters.user.organization_id,
     parent_id: -1,
   };
- 
+  isSaveTem.value=false;
   headerDialogP.value = "Thêm mới";
   displayBasicP.value = true;
 }
@@ -385,14 +424,14 @@ const savePaycheck = (isFormValid) => {
     });
     return;
   } 
-  debugger
+   
   if ((paycheck.value.paycheck_code==null || selectCapcha.value==null) && paycheck.value.paycheck_type==2) {
    
     return;
   }
 
   let arw = null;
-   debugger
+    
   if (selectCapcha.value)
     Object.keys(selectCapcha.value).forEach((key) => {
       arw = key;
@@ -411,6 +450,7 @@ const savePaycheck = (isFormValid) => {
       swal.showLoading();
     },
   });
+   
   if (!isSaveTem.value) {
     axios
       .post(baseURL + "/api/hrm_paycheck/add_hrm_paycheck", formData, config)
@@ -471,6 +511,7 @@ closeDialogP();
   }
 };
 const sttStamp = ref(1);
+const sttPaycheck = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
@@ -741,25 +782,43 @@ const loadDataSQL = () => {
 //Tìm kiếm
 const searchStamp = (event) => {
   if (event.code == "Enter") {
-    if (options.value.SearchText == "") {
-      isDynamicSQL.value = false;
+    if (options.value.search == "") {
+     
       options.value.loading = true;
       loadData(true);
     } else {
-      isDynamicSQL.value = true;
+    
       options.value.loading = true;
       loadData(true);
     }
   }
 };
+
+const searchPaycheck = (event) => {
+  if (event.code == "Enter") {
+    if (options.value.SearchText == "") {
+     
+      options.value.loading = true;
+      loadData(true);
+    } else {
+    
+      options.value.loading = true;
+      loadData(true);
+    }
+  }
+};
+
 const refreshStamp = () => {
   options.value.SearchText = null;
   filterTrangthai.value = null;
-  options.value.loading = true;
+  options.value.loadingP = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
   filterSQL.value = [];
+  options.value.typeDeclare =null;
+  options.value.search =null;
   loadData(true);
+   
 };
 const changeViewDeclare=(value)=>{
   declare.value=value;
@@ -800,7 +859,12 @@ const onFilter = (event) => {
 };
 const selectedDeclareId = ref({ icon: 'fa-solid fa-users', value: 'Tất cả', code: 0 });
 const onFilterDeclacre = () => {
-  console.log("Sa", selectedDeclareId.value);
+   
+  if(selectedDeclareId.value.code==0)
+  options.value.typeDeclare =null;
+  else
+  options.value.typeDeclare =selectedDeclareId.value.code;
+  loadData(true);
 }
 const justifyOptions = ref([
   { icon: 'fa-solid fa-users', value: 'Tất cả', code: 0 },
@@ -954,10 +1018,7 @@ watch(selectedStamps, () => {
     checkDelList.value = false;
   }
 });
-const op = ref();
-const toggle = (event) => {
-  op.value.toggle(event);
-};
+ 
 
 
 
@@ -965,6 +1026,91 @@ const toggle = (event) => {
 
 
 ///////////////////////////////////////////////////////////
+
+const op = ref();
+const toggle = (event) => {
+  op.value.toggle(event);
+};
+//Xuất excel
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Xuất Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportData("ExportExcel");
+    },
+  },
+ 
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
+const exportData = (method) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/Excel/ExportTreeExcelWithLogo",
+      {
+        excelname: "THÔNG TIN PHIẾU LƯƠNG " +declare.value.declare_name,
+        proc: "hrm_paycheck_list_export",
+        par: [
+          { par: "search", va: options.value.SearchText },
+            { par: "declare_id", va: declare.value.declare_id },
+            { par: "pageno", va: options.value.pagenoP },
+            { par: "pagesize", va: options.value.pagesizeP },
+            { par: "user_id", va: store.getters.user.user_id },
+            { par: "status", va: null },
+          ],
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
+        swal.close();
+
+        toast.success("Kết xuất Data thành công!");
+        debugger
+        if (response.data.path != null) {
+          let pathReplace = response.data.path
+            .replace(/\\+/g, "/")
+            .replace(/\/+/g, "/")
+            .replace(/^\//g, "");
+          var listPath = pathReplace.split("/");
+          var pathFile = "";
+          listPath.forEach((item) => {
+            if (item.trim() != "") {
+              pathFile += "/" + item;
+            }
+          });
+          window.open(baseURL + pathFile);
+        }
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
 const displayBasicP = ref(false);
 const datalistsDetails = ref();
  
@@ -1032,6 +1178,7 @@ const loadCountDetails = () => {
           JSON.stringify({
             proc: "hrm_paycheck_count",
             par: [
+            { par: "search", va: options.value.SearchText },
               { par: "declare_id", va: declare.value.declare_id },
               { par: "user_id", va: store.state.user.user_id },
               { par: "status", va: null },
@@ -1045,12 +1192,13 @@ const loadCountDetails = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
-
+ 
       if (data.length > 0) {
         options.value.totalRecordsP = data[0].totalRecords;
       }
       if (data1.length > 0) {
         options.value.totalRecordsPage = data1[0].totalRecordsPage;
+        sttPaycheck.value= options.value.totalRecordsPage+1;
       }
     })
     .catch(() => {
@@ -1069,6 +1217,7 @@ const loadDataDetails = (rf) => {
         {
           proc: "hrm_paycheck_list",
           par: [
+          { par: "search", va: options.value.SearchText },
             { par: "declare_id", va: declare.value.declare_id },
             { par: "pageno", va: options.value.pagenoP },
             { par: "pagesize", va: options.value.pagesizeP },
@@ -1157,23 +1306,10 @@ onMounted(() => {
                 <template #start>
                   <span class="p-input-icon-left">
                     <i class="pi pi-search" />
-                    <InputText v-model="options.SearchText" @keyup="searchStamp" type="text" spellcheck="false"
-                      placeholder="Tìm kiếm" />
+                    <InputText v-model="options.search" @keyup="searchStamp" type="text" spellcheck="false"
+                      placeholder="Tìm kiếm phiếu lương" />
 
-                    <Button @click="toggle" type="button" class="ml-2 p-button-outlined p-button-secondary"
-                      aria:haspopup="true" aria-controls="overlay_panel" :class="
-                        options.status_filter == null &&
-                          options.form_training == null &&
-                          !checkFilter
-                          ? ''
-                          : 'p-button-secondary p-button-outlined'
-                      ">
-                      <div>
-                        <span class="mr-2"><i class="pi pi-filter"></i></span>
-                        <span class="mr-2">Lọc dữ liệu</span>
-                        <span><i class="pi pi-chevron-down"></i></span>
-                      </div>
-                    </Button>
+                    
 
 
                   </span>
@@ -1207,7 +1343,7 @@ onMounted(() => {
 
 
             </div>
-            <div class=" " style="border-top:2px solid #dee2e6">
+            <div   style="border-top:2px solid #dee2e6">
 
               <div class="w-full d-lang-table  mx-2">
                 <DataView :value="datalists" :loading="options.loading" :paginator="true" currentPageReportTemplate=""
@@ -1225,7 +1361,7 @@ onMounted(() => {
                         <div class="  col-1 ">
                           <Badge :value="slotProps.data.STT" class="text-lg" size="large"></Badge>
                         </div>
-                        <div class="px-2 col-7 ">
+                        <div class="px-2 col-9 ">
                           <div class="  font-bold text-lg">
                             {{ slotProps.data.declare_name }}
                           </div>
@@ -1233,11 +1369,11 @@ onMounted(() => {
                             Loại phiếu: {{ slotProps.data.declare_type == 1 ? 'Người lao động':slotProps.data.declare_type==2?'Người quản lý':'Khác' }}
                           </div>
                           <div class="text-sm ">
-                            Người lập: {{ slotProps.data.created_by }} | Ngày lập {{ moment(new
+                            Người lập: {{ slotProps.data.full_name }} | Ngày lập {{ moment(new
                               Date(slotProps.data.created_date)).format("DD/MM/YYYY") }}
                           </div>
                         </div>
-                        <div class="pr-2 col-3"> </div>
+                        <div class="pr-2 col-1"> </div>
                         <div class="pr-2 col-1">
                           <Button icon="pi pi-ellipsis-h" class="p-button-rounded p-button-text ml-2"
                             @click="toggleMores($event, slotProps.data)" aria-haspopup="true" aria-controls="overlay_More"
@@ -1255,9 +1391,20 @@ onMounted(() => {
             </div>
           </div>
         </SplitterPanel>
-        <SplitterPanel :size="65" class=" w-full">
+        <SplitterPanel :size="65"  >
+          <div class="d-lang-table-r">
           <Toolbar class="w-full  ">
+            <template #start>
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText v-model="options.SearchText" @keyup="searchPaycheck" type="text" spellcheck="false"
+                      placeholder="Tìm kiếm đầu mục" />
 
+                 
+
+                    
+                  </span>
+                </template>
 
             <template #end>
             <Button @click="openBasicP('Thêm mới')" label="Thêm mới" icon="pi pi-plus" class="mx-2" />
@@ -1271,12 +1418,19 @@ onMounted(() => {
               <Menu id="overlay_Export" ref="menuButs" :model="itemButs" :popup="true" />
             </template>
           </Toolbar>
-          <TreeTable :value="datalistsDetails" v-model:selectionKeys="selectedWarehouses" :loading="options.loading"
-            @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" :filters="filters" :showGridlines="true"
-            selectionMode="checkbox" filterMode="strict" class="p-treetable-sm" :paginator="true" :rows="options.PageSize"
-            :rowHover="true" responsiveLayout="scroll" :lazy="true" :scrollable="true" scrollHeight="flex"
-            @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" :totalRecords="options.totalRecords"
-            filterDisplay="menu">
+          <TreeTable :value="datalistsDetails"
+           v-model:selectionKeys="selectedWarehouses" 
+           :loading="options.loadingP"
+       
+             :filters="filters" :showGridlines="true"
+            class="p-treetable-sm"
+            :paginator="true" :rows="options.pagesizeP"
+            :rowHover="true" responsiveLayout="scroll"
+             :lazy="true" :scrollable="true" scrollHeight="flex"
+            @page="onPageP($event)"
+           
+              :totalRecords="options.totalRecordsPage"
+            >
 
             <Column field="is_order" header="STT" class="align-items-center justify-content-center text-center font-bold"
               headerStyle="text-align:center;max-width:70px" bodyStyle="text-align:center;max-width:70px">
@@ -1285,6 +1439,14 @@ onMounted(() => {
                   {{ md.node.data.STT }}
                 </div>
               </template>
+            </Column> <Column field="type_order" header="Loại sắp xếp" class="align-items-center justify-content-center"
+              headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px"
+              filterMatchMode="contains">
+              <template #body="md">
+                <div v-bind:class="md.node.data.parent_id==null ? 'font-bold ' : ' '">
+                  {{ md.node.data.type_order }}
+                </div>
+              </template> 
             </Column>
             <Column field="paycheck_code" header="Mã số" headerStyle="text-align:center;max-width:120px"
               bodyStyle="text-align:center;max-width:120px" class="align-items-center justify-content-center text-center">
@@ -1294,12 +1456,13 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-            <Column field="paycheck_name" bodyStyle="text-align:center; "  headerStyle="text-align:center; " header="Tên đầu mục" :expander="true">
+            <Column field="paycheck_name"  header="Tên đầu mục" :expander="true">
               <template #body="md">
                 <div v-bind:class="md.node.data.parent_id==null ? 'font-bold ' : ' '">
                   {{ md.node.data.paycheck_name }}
                 </div>
               </template> </Column>
+             
             <Column field="paycheck_unit" header="Đơn vị tính" class="align-items-center justify-content-center"
               headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px"
               filterMatchMode="contains">
@@ -1309,15 +1472,7 @@ onMounted(() => {
                 </div>
               </template> 
             </Column>
-            <Column field="type_order" header="Loại sắp xếp" class="align-items-center justify-content-center"
-              headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px"
-              filterMatchMode="contains">
-              <template #body="md">
-                <div v-bind:class="md.node.data.parent_id==null ? 'font-bold ' : ' '">
-                  {{ md.node.data.type_order }}
-                </div>
-              </template> 
-            </Column>
+           
             <Column field="status" header="Trạng thái" class="align-items-center justify-content-center"
               headerStyle="text-align:center;max-width:130px" bodyStyle="text-align:center;max-width:130px"
               filterMatchMode="contains">
@@ -1338,7 +1493,7 @@ onMounted(() => {
               headerStyle="text-align:center;max-width:150px;height:50px" bodyStyle="text-align:center;max-width:150px">
               <template #body="data">
                 <Button type="button" icon="pi pi-plus-circle"
-                  class="p-button-rounded p-button-secondary p-button-outlined" v-tooltip.top="'Thêm nhóm con'"
+                  class="p-button-rounded p-button-secondary p-button-outlined" v-tooltip.top="'Thêm chỉ tiêu'"
                   @click="addWarehouseChild(data.node.data)"></Button>
                 <div v-if="
                   store.state.user.is_super == true ||
@@ -1369,6 +1524,7 @@ onMounted(() => {
               </div>
             </template>
           </TreeTable>
+        </div>
         </SplitterPanel>
       </Splitter>
     </div>
@@ -1564,7 +1720,10 @@ onMounted(() => {
 
 .d-lang-table {
   margin: 0px;
-  height: calc(100vh - 180px);
+  height: calc(100vh - 200px);
+}.d-lang-table-r{
+  margin: 0px;
+  height: calc(100vh - 165px);
 }
 </style>
     
