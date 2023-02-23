@@ -11,12 +11,11 @@ import DocShareFile from "../../components/doc/DocShareFile.vue";
 import DocLinkTask from "../../components/doc/DocLinkTask.vue";
 import TreeSelectCustom from "../../components/doc/TreeSelectCustom.vue";
 import DocConnectSendDialog from "../../components/doc/DocConnectSendDialog.vue";
+import DocSelectReceivePlaceOnline from "../../components/doc/DocSelectIssuePlace.vue";
 import { useVuelidate } from "@vuelidate/core";
 import moment from "moment";
 import treeuser from "../../components/user/treeuser.vue";
 import { encr } from "../../util/function";
-// Tráng update
-import docLinkTask from "../../components/doc/DocLinkTask.vue";
 //end
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios"); // inject axios
@@ -622,7 +621,8 @@ const loadCategorys = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (isFirst.value) isFirst.value = false;
-      category.value.issue_places = data[0];
+      category.value.issue_places = data[0].filter(x=>!x.is_slider);
+      category.value.issue_places_checkbox = data[0].filter(x=>x.is_slider);
 
       category.value.groups = data[1];
       category.value.org_groups = data[1];
@@ -635,6 +635,7 @@ const loadCategorys = () => {
         "phòng ban"
       );
       category.value.departments = obj.arrtreeChils;
+      
       category.value.urgency = data[3];
       category.value.security = data[4];
       category.value.fields = data[5];
@@ -952,6 +953,120 @@ const changeIsByDepartment = () => {
   }
   if(!displayDocDuthao.value) generateDocCode();
 }
+// fill noi nhan
+const changeReceivePlace = () => {
+  doc.value.filter_receive_place = doc.value.receive_place;
+}
+const fillReceivePlace = (ev) => {
+    if(doc.value.filter_receive_place){
+      doc.value.filter_receive_place += ', ';
+    }
+    else{
+      doc.value.filter_receive_place = '';
+    }
+    doc.value.filter_receive_place += ev.value;
+    doc.value.receive_place = doc.value.filter_receive_place;
+}
+// auto fill noi nhan qua mang
+const autoFillReceivePlaceOnline = (ev,model,property_name) => {
+    if(ev.keyCode === 13){
+      let text = model['filter_' + property_name];
+      if(text){
+      if(!model['arr_' + property_name]) model['arr_' + property_name] = [];
+      var search_result_arr = category.value.issue_places.filter(x=>(x.search_code && x.search_code.trim().toLowerCase() == text.trim().toLowerCase()) || x.issue_place_name.trim().toLowerCase() == text.trim().toLowerCase());
+      search_result_arr.forEach(function (search_result) {
+        if (search_result) {
+          if (!search_result.parent_id) {
+            search_result.display_name = search_result.display_code;
+          }
+          else {
+            var cur_issue_place = search_result;
+            search_result.display_name = search_result.display_code;
+            while (cur_issue_place.parent_id) {
+              cur_issue_place = category.value.issue_places.find(x => x.issue_place_id === cur_issue_place.parent_id);
+              search_result.display_name += '/' + cur_issue_place.display_code;
+            }
+          }
+        }
+      })
+      if(search_result_arr.length > 1){
+        same_receive_place_online.value = search_result_arr;
+        showModalReceivePlaceOnline("Chọn nơi nhận qua mạng thích hợp");
+        return false;
+      }
+      else if(search_result_arr.length === 1){
+        if(search_result_arr[0].display_name && !model['arr_' + property_name].find(x=>x.value === search_result_arr[0].display_name)){
+          model['arr_' + property_name].push({value:search_result_arr[0].display_name});
+          fillReceivePlace({value:search_result_arr[0].display_name});
+        }
+        model['filter_' + property_name] = '';
+      }
+    } 
+    }
+   
+}
+const same_receive_place_online = ref([]);
+// Same receive place online selection
+const selectReceivePlaceOnline = (receive_place_online) => {
+  if(receive_place_online.display_name && !doc.value.arr_receive_place_online.find(x=>x.value === receive_place_online.display_name))
+      doc.value.arr_receive_place_online.push({value:receive_place_online.display_name});
+      fillReceivePlace({value:receive_place_online.display_name});
+}
+const headerDialogReceivePlaceOnline = ref();
+const displayDialogReceivePlaceOnline = ref(false);
+const CloseDiaLogReceivePlaceOnline = () => {
+  displayDialogReceivePlaceOnline.value = false;
+}
+const showModalReceivePlaceOnline = (header_text) => {
+  headerDialogReceivePlaceOnline.value = header_text;
+  displayDialogReceivePlaceOnline.value = true;
+}
+// remove receive place online
+const removeReceivePlaceOnline = () => {
+  if(doc.value.receive_place_online_checkbox.length > 0){
+    doc.value.filter_receive_place_online = '';
+    doc.value.arr_receive_place_online = [];
+  }
+}
+// auto fill noi ban hanh
+const autoFillIssuePlace = (text,model,property_name) => {
+    if(text){
+      // model[property_name] = '';
+      var search_result_arr = category.value.issue_places.filter(x=>(x.search_code && x.search_code.trim().toLowerCase() == text.trim().toLowerCase()) || x.issue_place_name.trim().toLowerCase() == text.trim().toLowerCase());
+      search_result_arr.forEach(function (search_result) {
+        if (search_result) {
+          if (!search_result.parent_id) {
+            search_result.display_name = search_result.issue_place_name;
+          }
+          else {
+            var cur_issue_place = search_result;
+            search_result.display_name = search_result.issue_place_name;
+            while (cur_issue_place.parent_id) {
+              cur_issue_place = category.value.issue_places.find(x => x.issue_place_id === cur_issue_place.parent_id);
+              search_result.display_name += '/' + cur_issue_place.display_code;
+            }
+          }
+        }
+      })
+      if(search_result_arr.length > 1){
+        same_issue_place.value = search_result_arr;
+        showModalIssuePlace("Chọn nơi ban hành thích hợp");
+        return false;
+      }
+      else if(search_result_arr.length === 1){
+        model[property_name] = search_result_arr[0].display_name;
+      }
+    }
+}
+const headerDialogIssuePlace = ref();
+const displayDialogIssuePlace = ref(false);
+const CloseDiaLogIssuePlace = () => {
+  displayDialogIssuePlace.value = false;
+}
+const showModalIssuePlace = (header_text) => {
+  headerDialogIssuePlace.value = header_text;
+  displayDialogIssuePlace.value = true;
+}
 // change nguoi ky
 const changeSigner = (us) => {
   if(doc.value.nav_type === 1){
@@ -1266,6 +1381,35 @@ const saveDoc = (isFormValid) => {
   if (doc.value.department_id) {
     doc.value.department_id = Object.keys(doc.value.department_id)[0];
   }
+  if (doc.value.composing_unit_id) {
+    doc.value.composing_unit_id = Object.keys(doc.value.composing_unit_id)[0];
+    doc.value.composing_unit = category.value.org_departments.find(x=>x.department_id === doc.value.composing_unit_id)?.department_name;
+  }
+  if (doc.value.arr_receive_place_online != null && doc.value.arr_receive_place_online.length > 0) {
+    doc.value.receive_place_online = "";
+    doc.value.arr_receive_place_online.map(x=>x.value).forEach((element, i) => {
+      if (doc.value.receive_place_online != "") {
+        doc.value.receive_place_online += ',';
+      }
+      doc.value.receive_place_online += element;
+    });
+  }
+  else {
+    doc.value.receive_place_online = null;
+  }
+  if (doc.value.receive_place_online_checkbox != null && doc.value.receive_place_online_checkbox.length > 0) {
+    doc.value.receive_place_online_check = "";
+    doc.value.receive_place_online_checkbox.forEach((element, i) => {
+      if (doc.value.receive_place_online_check != "") {
+        doc.value.receive_place_online_check += ',';
+      }
+      doc.value.receive_place_online_check += element;
+    });
+  }
+  else {
+    doc.value.receive_place_online_check = null;
+  }
+  
   formData.append("doc", JSON.stringify(doc.value));
   formData.append("doc_relates", JSON.stringify(listDocRelate));
   formData.append("auto_doc_code", JSON.stringify(auto_doc_code.value));
@@ -1339,7 +1483,7 @@ const saveDoc = (isFormValid) => {
           icon: "error",
           confirmButtonText: "OK",
         });
-        convertNormalToTreeObj(doc.value,['organization_id','department_id']);
+        convertNormalToTreeObj(doc.value,['organization_id','department_id','composing_unit_id']);
       }
     })
     .catch((error) => {
@@ -1350,7 +1494,7 @@ const saveDoc = (isFormValid) => {
         icon: "error",
         confirmButtonText: "OK",
       });
-      convertNormalToTreeObj(doc.value,['organization_id','department_id']);
+      convertNormalToTreeObj(doc.value,['organization_id','department_id','composing_unit_id']);
     });
 }
 const saveDocDuthao = (isFormValid) => {
@@ -1575,6 +1719,11 @@ const getDetailDocByID = (docpar) => {
         keyobj[objDoc.department_id] = true;
         objDoc.department_id = keyobj;
       }
+      if (objDoc.composing_unit_id) {
+        let keyobj = {};
+        keyobj[objDoc.composing_unit_id] = true;
+        objDoc.composing_unit_id = keyobj;
+      }
       if (objDoc.tags != null && objDoc.tags.length > 1) {
         if (!Array.isArray(objDoc.tags)) {
           objDoc.key_tags = objDoc.tags.split(",");
@@ -1587,6 +1736,24 @@ const getDetailDocByID = (docpar) => {
           listFields.forEach((element, i) => {
             let field = category.value.fields.find(x => x.field_name.trim().toUpperCase() === element.trim().toUpperCase());
             objDoc.key_fields.push(field);
+          });
+        }
+      }
+      if (objDoc.receive_place_online != null && objDoc.receive_place_online.length > 1) {
+        if (!Array.isArray(objDoc.receive_place_online)) {
+          let listReceivePlaceOnline = objDoc.receive_place_online.split(",");
+          objDoc.arr_receive_place_online = [];
+          listReceivePlaceOnline.forEach((element, i) => {
+            objDoc.arr_receive_place_online.push({value: element});
+          });
+        }
+      }
+      if (objDoc.receive_place_online_check != null && objDoc.receive_place_online_check.length > 1) {
+        if (!Array.isArray(objDoc.receive_place_check)) {
+          let listReceivePlaceOnlineCheck = objDoc.receive_place_online_check.split(",");
+          objDoc.receive_place_online_checkbox = [];
+          listReceivePlaceOnlineCheck.forEach((element, i) => {
+            objDoc.receive_place_online_checkbox.push(element);
           });
         }
       }
@@ -2946,7 +3113,7 @@ const saveStamp = () => {
           icon: "error",
           confirmButtonText: "OK",
         });
-        convertNormalToTreeObj(doc.value,['organization_id','department_id']);
+        convertNormalToTreeObj(doc.value,['organization_id','department_id','composing_unit_id']);
       }
     })
     .catch((error) => {
@@ -3730,7 +3897,14 @@ emitter.on("emitData", (obj) => {
                   </label>
                   <Calendar class="col-8 p-0" id="date_publish" v-model="doc.receive_date" :manualInput="true"
                     :showIcon="true" />
-                </div>
+              </div>
+              <div v-if="doc.nav_type !== 1" class="col-6 md:col-6 m-0 p-0 flex">
+              <label class="col-4 text-left flex" style="align-items:center;">
+                Ngày văn bản
+                <!-- <span class="redsao pl-1"> (*)</span> -->
+              </label>
+              <Calendar @input="autoFillDate(doc, 'doc_date')" id="doc_date" :showOnFocus="false" class="col-8 p-0" v-model="doc.doc_date" :manualInput="true" :showIcon="true" />
+            </div>
             </div>
           </div>
           <div class="col-4 md:col-4 p-0 m-0 flex">
@@ -3757,6 +3931,7 @@ emitter.on("emitData", (obj) => {
               :class="{ 'p-invalid': v$.dispatch_book_code.$invalid && submitted }" :useGrouping="false" />
           </div>
         </div>
+      <receive class="col-12 md:col-12 p-0" v-if="doc.nav_type === 1">
         <div class="field col-12 md:col-12 flex">
           <div class="col-6 md:col-6 p-0 m-0 flex"></div>
           <div class="col-6 md:col-6 p-0 m-0 flex"
@@ -3909,8 +4084,14 @@ emitter.on("emitData", (obj) => {
               Nơi ban hành
               <span class="redsao pl-1"> (*)</span>
             </label>
-            <Dropdown class="col-10 p-0" spellcheck="false" v-model="doc.issue_place" :options="category.issue_places"
-              optionLabel="issue_place_name" optionValue="issue_place_name" :editable="true" :filter="true" />
+            <Dropdown panelClass="d-design-dropdown" @blur="autoFillIssuePlace(doc.issue_place, doc, 'issue_place')" class="col-10 p-0" spellcheck="false" v-model="doc.issue_place" :options="category.issue_places"
+              optionLabel="issue_place_name" optionValue="issue_place_name" :editable="true" :filter="true">
+                <template #option="slotProps">
+                  <div :style="{'padding-left': slotProps.option.level > 1 ? ((slotProps.option.level-1) + 'rem') : '0'}">{{slotProps.option.issue_place_name}}</div>
+              </template>
+            </Dropdown>
+            <!-- <Dropdown class="col-10 p-0" spellcheck="false" v-model="doc.issue_place" :options="category.issue_places"
+              optionLabel="issue_place_name" optionValue="issue_place_name" :editable="true" :filter="true" /> -->
           </div>
         </div>
         <div class="field col-12 md:col-12 flex">
@@ -3963,6 +4144,160 @@ emitter.on("emitData", (obj) => {
               :showIcon="true" />
           </div>
         </div>
+      </receive>
+      <send class="col-12 md:col-12 p-0" v-if="doc.nav_type !== 1">
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Nhóm văn bản
+            </label>
+            <Dropdown :showClear="true" @change="changeDocGroup(); generateDocCode()" class="col-7 p-0" spellcheck="false" v-model="doc.doc_group_id"
+              :options="category.groups" optionLabel="doc_group_name" optionValue="doc_group_id" :editable="false"
+              :filter="true" />
+          
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Nơi soạn thảo
+            </label>
+            <TreeSelectCustom class="col-8 p-0" :removeTree="removeTreeSelect" :model="doc" property-name="composing_unit_id" :options="category.departments"
+                placeholder="Chọn nơi soạn thảo">
+              </TreeSelectCustom>
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Người soạn thảo
+            </label>
+            <InputText v-model="doc.drafter" class="col-7 ip36" />
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Số/Ký hiệu
+              <!-- <span class="redsao pl-1"> (*)</span> -->
+            </label>
+            <div class="p-inputgroup col-8 ip36 p-0">
+                    <InputText autofocus @change="cancelReservationNumber" v-model="doc.doc_code"
+                     />
+                    <Button tabindex="-1" @click="openModalReservationNumber" v-tooltip.right="'Lấy từ danh sách giữ số'" icon="pi pi-list"/>
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-12 md:col-12 p-0 m-0 flex">
+            <label class="col-2 p-0 text-left flex" style="align-items:center;">
+              Trích yếu
+              <span class="redsao pl-1"> (*)</span>
+            </label>
+            <Textarea v-model="doc.compendium" spellcheck="false" class="col-10 ip36" autoResize
+              :class="{ 'p-invalid': v$.compendium.$invalid && submitted }" style="padding:0.5rem;" />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
+                  Độ khẩn
+                </label>
+                <Dropdown :showClear="true" class="col-7 p-0" spellcheck="false" v-model="doc.urgency" :options="category.urgency"
+              optionLabel="urgency_name" optionValue="urgency_name" :editable="false" :filter="true" />
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Người ký
+            </label>
+                  <Dropdown v-if="doc.nav_type === 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
+              :options="category.signers" optionValue="signer_name" optionLabel="signer_name" class="col-8 mt-2 p-0"
+              >
+            </Dropdown>
+              <Dropdown v-if="doc.nav_type !== 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
+              :options="all_users" optionValue="full_name" optionLabel="full_name" class="col-8 mt-2 p-0"
+              >
+              <template #option="slotProps">
+                <div class="country-item flex">
+                  <Avatar :image="
+                    slotProps.option.avatar
+                      ? basedomainURL + slotProps.option.avatar
+                      : basedomainURL + '/Portals/Image/nouser1.png'
+                  " class="mr-2 w-2rem h-2rem" size="large" shape="circle" />
+                  <div style="line-height: 1.5" class="pt-1">
+                    <div><strong>{{ slotProps.option.full_name }}</strong></div>
+                    <div style="color: #aaa; font-weight: 500">{{ slotProps.option.organization_name }}</div>
+                    <div style="color: #aaa; ">{{ slotProps.option.department_name }}</div>
+                  </div>
+                </div>
+              </template>
+            </Dropdown>
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-8 m-0 p-0 text-left flex" style="align-items:center;margin-right: -3px !important;">
+                  Số lượng bản
+                </label>
+                <InputNumber v-model="doc.num_of_copies" class="col-4 pl-1 p-0 ip36" :useGrouping="false" />
+          </div>
+          <div class="col-5 md:col-5 m-0 p-0 flex">
+            <label class="col-7 pl-5 p-0 text-left flex" style="align-items:center;">
+              Số trang
+            </label>
+            <InputNumber v-model="doc.num_of_pages" class="col-5 p-0 ip36" :useGrouping="false" />
+          </div>
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
+                  Độ mật
+                </label>
+                <Dropdown :showClear="true" class="col-8 p-0" spellcheck="false" v-model="doc.security" :options="category.security"
+              optionLabel="security_name" optionValue="security_name" :editable="false" :filter="true" />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-12 md:col-12 p-0 m-0 flex">
+            <label class="col-2 p-0 text-left flex" style="align-items:center;">
+              Nơi nhận qua mạng
+            </label>
+            <div class="col-10 p-0">
+              <Dropdown :disabled="doc.receive_place_online_checkbox && doc.receive_place_online_checkbox.length > 0" placeholder="Nhấn Enter để thêm" panelClass="d-design-dropdown" @keydown="autoFillReceivePlaceOnline($event,doc, 'receive_place_online')" class="col-12 p-0" v-model="doc.filter_receive_place_online" spellcheck="false" :options="category.issue_places"
+              optionLabel="issue_place_name" optionValue="issue_place_name" :editable="true" :filter="true">
+                <template #option="slotProps">
+                  <div :style="{'padding-left': slotProps.option.level > 1 ? ((slotProps.option.level-1) + 'rem') : '0'}">{{slotProps.option.issue_place_name}}</div>
+              </template>
+            </Dropdown>
+            <MultiSelect :disabled="doc.receive_place_online_checkbox && doc.receive_place_online_checkbox.length > 0" :showToggleAll="false" class="col-12 wrap-multi ip36" :options="doc.arr_receive_place_online" optionLabel="value" v-model="doc.arr_receive_place_online" display="chip"/>
+            <!-- <InputText v-model="doc.receive_place_online" class="col-12 ip36"/> -->
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex mt-3" v-if="category.issue_places_checkbox.length > 0">
+            <label class="col-2 p-0 text-left flex" style="align-items:center;"></label>
+            <div class="col-10 p-0 flex">
+              <div v-for="item in category.issue_places_checkbox" :key="item.issue_place_id" class="flex mr-3" style="column-gap: 1rem">
+                <label class="text-left mt-1" style="align-items:center;">
+                      {{ item.issue_place_name }}
+                </label>
+                <Checkbox @change="removeReceivePlaceOnline" name="rpo" :value="item.issue_place_name" v-model="doc.receive_place_online_checkbox" />
+              </div>
+            </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-12 md:col-12 p-0 m-0 flex">
+            <label class="col-2 p-0 text-left flex" style="align-items:center;">
+              Nơi nhận
+            </label>
+            <Dropdown @input="changeReceivePlace" @change="fillReceivePlace" class="col-10 p-0" spellcheck="false" v-model="doc.receive_place" :options="category.receive_places"
+              optionLabel="receive_place_name" optionValue="receive_place_name" :editable="true" :filter="true" />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+            <label class="col-2 text-left flex p-0" style="align-items:center;">
+              Ngày hạn xử lý
+            </label>
+            <Calendar :showOnFocus="false" @input="autoFillDate(doc,'deadline_date')" id="deadline_date" class="col-10 p-0" v-model="doc.deadline_date" :manualInput="true"
+              :showIcon="true" />
+        </div>
+      </send>
         <div class="field col-12 md:col-12 flex" style="justify-content: end">
           <Button class="btn-save-continued" v-if="!isViewDoc" label="Lưu và tiếp tục" icon="pi pi-check" @click="saveDocContinued(!v$.$invalid)" />
         </div>
@@ -3999,15 +4334,6 @@ emitter.on("emitData", (obj) => {
         <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
           <div class="col-12 md:col-12 p-0 m-0 flex">
             <label class="col-2 p-0 text-left flex" style="align-items:center;">
-              Cơ quan nhận
-            </label>
-            <Dropdown class="col-10 p-0" spellcheck="false" v-model="doc.receive_place" :options="category.receive_places"
-              optionLabel="receive_place_name" optionValue="receive_place_name" :editable="true" :filter="true" />
-          </div>
-        </div>
-        <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
-          <div class="col-12 md:col-12 p-0 m-0 flex">
-            <label class="col-2 p-0 text-left flex" style="align-items:center;">
               Đơn vị liên quan
             </label>
             <InputText v-model="doc.related_unit" class="col-10 ip36" />
@@ -4015,35 +4341,17 @@ emitter.on("emitData", (obj) => {
         </div>
         <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
           <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Đơn vị soạn lưu
-            </label>
-            <InputText v-model="doc.composing_unit" class="col-7 ip36" />
-          </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <div class="field col-12 md:col-12 m-0 p-0 flex">
-              <div class="col-6 md:col-6 m-0 p-0 flex">
-                <label class="col-6 m-0 p-0 text-left flex" style="align-items:center;">
+                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
                   Số bản lưu
                 </label>
-                <InputNumber v-model="doc.num_of_saved" class="col-6 p-0 ip36" :useGrouping="false" />
+                <InputNumber v-model="doc.num_of_saved" class="col-7 p-0 ip36" :useGrouping="false" />
               </div>
               <div class="col-6 md:col-6 m-0 p-0 pl-2 flex">
-                <label class="col-6 m-0 p-0 text-left flex" style="align-items:center;">
+                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
                   Số bản PH
                 </label>
-                <InputNumber v-model="doc.num_of_issue" class="col-6 p-0 ip36" :useGrouping="false" />
+                <InputNumber v-model="doc.num_of_issue" class="col-8 p-0 ip36" :useGrouping="false" />
               </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
-          <div class="col-12 md:col-12 p-0 m-0 flex">
-            <label class="col-2 p-0 text-left flex" style="align-items:center;">
-              Người soạn thảo
-            </label>
-            <InputText v-model="doc.drafter" class="col-10 ip36" />
-          </div>
         </div>
         <div class="field col-12 md:col-12 flex">
           <div class="col-6 md:col-6 m-0 p-0 flex">
@@ -6073,6 +6381,10 @@ emitter.on("emitData", (obj) => {
   <DocShareFile v-if="displayAddStore" :displayAddStore ="displayAddStore" :typeShare="typeShare" :DocSelected_ID="DocSelected_ID" :Doc_Compendium="Doc_Compendium"/>
   <DocLinkTask v-if="displayDialogLinkTask === true" :headerDialog="headerDialogLinkTask" :id="selectedDoc.doc_master_id"
     :displayDialog="displayDialogLinkTask" :closeDialog="CloseDiaLogLinkTask" />
+  <DocSelectIssuePlace v-if="displayDialogIssuePlace === true" :headerDialog="headerDialogIssuePlace" :array="same_issue_place"
+    :displayDialog="displayDialogIssuePlace" :closeDialog="CloseDiaLogIssuePlace" :selectModel="selectIssuePlace" />
+    <DocSelectReceivePlaceOnline v-if="displayDialogReceivePlaceOnline === true" :headerDialog="headerDialogReceivePlaceOnline" :array="same_receive_place_online"
+    :displayDialog="displayDialogReceivePlaceOnline" :closeDialog="CloseDiaLogReceivePlaceOnline" :selectModel="selectReceivePlaceOnline" />
   <DocConnectSendDialog :checkedDocs="checked_docs" v-if="displayDocConnectSend" :key="componentKey" :displayDocConnectSend="displayDocConnectSend" :closeDialog="closeDialogDocConnectSend" />
   <treeuser
     v-if="displayDialogUser === true"
@@ -6085,6 +6397,44 @@ emitter.on("emitData", (obj) => {
   />
 </template>
 <style lang='scss' scoped>
+.wrap-multi.p-multiselect{
+  height: auto; 
+  min-height: 36px
+}
+::v-deep(.wrap-multi.p-multiselect) {
+   .p-multiselect-label
+  {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    white-space: normal !important;
+  }
+
+  .p-chip-text {
+    word-break: break-word !important;
+  }
+
+  .p-chip img {
+    margin: 0;
+  }
+}
+::v-deep(.wrap-multi.p-multiselect){
+  .p-multiselect-label{
+    flex-wrap: wrap;
+    row-gap: 0.3rem;
+  }
+  .p-multiselect-token{
+    max-width: 100%;
+  }
+  .p-multiselect-token-label{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+
+}
 .btn-save-continued:focus-visible{
   background: #689F38;
     color: #fff;
