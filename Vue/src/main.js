@@ -187,6 +187,7 @@ import {
     faEnvelopeOpen,
     faEllipsis,
     faBriefcaseMedical,
+    faPrint,
     faUserGear,
     faUserTie,
     faUserLarge,
@@ -254,6 +255,7 @@ library.add(
     faEllipsis,
     faFile,
     faBriefcaseMedical,
+    faPrint,
 );
 import "animate.css";
 Date.prototype.toISOString = function() {

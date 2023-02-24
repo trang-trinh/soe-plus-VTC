@@ -1173,11 +1173,7 @@ onMounted(() => {
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
                                         removeFilter(
                                           index,
@@ -1202,7 +1198,7 @@ onMounted(() => {
                       <div class="form-group">
                         <label>Phòng ban</label>
                         <MultiSelect
-                          :options="departments"
+                          :options="dictionarys[3]"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
@@ -1232,11 +1228,7 @@ onMounted(() => {
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
                                         removeFilter(
                                           index,
@@ -1261,7 +1253,7 @@ onMounted(() => {
                       <div class="form-group">
                         <label>Loại hợp đồng</label>
                         <MultiSelect
-                          :options="type_contracts"
+                          :options="dictionarys[2]"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
@@ -1293,11 +1285,7 @@ onMounted(() => {
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
                                         removeFilter(
                                           index,
@@ -1322,7 +1310,7 @@ onMounted(() => {
                       <div class="form-group">
                         <label>Vị trí</label>
                         <MultiSelect
-                          :options="work_positions"
+                          :options="dictionarys[4]"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
@@ -1354,11 +1342,7 @@ onMounted(() => {
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
                                         removeFilter(
                                           index,
@@ -1420,7 +1404,7 @@ onMounted(() => {
                       <div class="form-group">
                         <label>Người ký</label>
                         <MultiSelect
-                          :options="users"
+                          :options="dictionarys[8]"
                           v-model="options.users"
                           :filter="true"
                           :showClear="true"
@@ -1485,11 +1469,7 @@ onMounted(() => {
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
                                         removeFilter(index, options.users);
                                         $event.stopPropagation();
@@ -2018,13 +1998,7 @@ onMounted(() => {
         </Column>
         <template #empty>
           <div
-            class="
-              align-items-center
-              justify-content-center
-              p-4
-              text-center
-              m-auto
-            "
+            class="align-items-center justify-content-center p-4 text-center m-auto"
             style="
               display: flex;
               width: 100%;

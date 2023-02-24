@@ -62,8 +62,8 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var da = await db.hrm_file_log.FindAsync(file_log.file_id);
                     string Device = helper.getDecideNameAuto(Request.Headers.UserAgent.ToString());
+                    var da = db.hrm_file_log.FirstOrDefault(x => x.file_id == file_log.file_id);
                     if (da != null)
                     {
 

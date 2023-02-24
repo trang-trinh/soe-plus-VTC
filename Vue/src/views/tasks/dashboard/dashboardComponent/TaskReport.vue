@@ -35,6 +35,12 @@ const options = ref({
   PageNo: 0,
   loading: true,
   totalRecords: 0,
+  searchText: null,
+  filterDateType: null,
+  project_id: null,
+  group_id: null,
+  start_date: null,
+  end_date: null,
 });
 const listStatus = ref([
   {
@@ -78,6 +84,11 @@ const loadData = () => {
               { par: "user_id", va: user.user_id },
               { par: "pn", va: options.value.PageNo },
               { par: "ps", va: options.value.PageSize },
+              { par: "project_id", va: options.value.project_id },
+              { par: "group_id", va: options.value.group_id },
+              { par: "fromDate", va: options.value.start_date },
+              { par: "toDate", va: options.value.end_date },
+              { par: "search", va: options.value.searchText },
             ],
           }),
           // eslint-disable-next-line no-undef
@@ -90,7 +101,6 @@ const loadData = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let count = JSON.parse(response.data.data)[1];
-
       data.forEach((x, i) => {
         x.creator = JSON.parse(x.creator);
         x.creator.tooltip =
@@ -148,6 +158,19 @@ const onPage = (event) => {
 const selectedTasks = ref([]);
 const refresh = () => {
   first.value = 0;
+  styleObj.value = "";
+  options.value = {
+    PageSize: 20,
+    PageNo: 0,
+    loading: true,
+    totalRecords: 0,
+    filterDateType: null,
+    project_id: null,
+    group_id: null,
+    start_date: null,
+    end_date: null,
+    searchText: null,
+  };
   options.value.loading = true;
   loadData();
 };
@@ -448,14 +471,6 @@ const sendMail = (x) => {
           confirmButtonText: "OK",
         });
       } else toast.success("Đã gửi email tới người đánh giá");
-      // else if (response.data.err == "-1") {
-      //   swal.fire({
-      //     title: "Thông báo",
-      //     html: response.data.ms,
-      //     icon: "warning",
-      //     confirmButtonText: "OK",
-      //   });
-      // }
     })
     .catch(() => {
       swal.close();
@@ -503,10 +518,38 @@ watch(showDetail, () => {
     loadData();
   }
 });
+const listDropdownProject = ref([]);
+const listDropdownGroup = ref([]);
+const props = defineProps({
+  project: Array,
+  group: Array,
+});
+
+const op = ref();
+const toggle = (event) => {
+  op.value.toggle(event);
+};
+const styleObj = ref();
+const style = ref({
+  "background-color": "#2196F3 !important",
+  color: "#fff !important",
+  " border": "1px solid #5ca7e3 !important",
+});
+const size = ref(75);
 onMounted(() => {
   loadData();
   getConfigMail();
   bodymail.value = "";
+
+  props.project.forEach((element) => {
+    listDropdownProject.value.push({
+      label: element.project_name,
+      value: element.project_id,
+    });
+  });
+  props.group.forEach((x) => {
+    listDropdownGroup.value.push({ label: x.group_name, value: x.group_id });
+  });
 });
 </script>
 <template>
@@ -531,9 +574,18 @@ onMounted(() => {
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
     >
       <template #header>
-        <Toolbar class="w-full custoolbar">
+        <Toolbar class="w-full custoolbar p-0">
           <template #start>
-            <h3>Báo cáo công việc cá nhân thực hiện</h3>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText
+                v-model="options.searchText"
+                type="text"
+                spellcheck="false"
+                placeholder="Tìm kiếm"
+                @keyup.enter="loadData()"
+              />
+            </span>
           </template>
           <template #end>
             <Button
@@ -549,7 +601,117 @@ onMounted(() => {
               label=""
               icon="pi pi-filter"
               v-tooltip="'Lọc'"
+              type="button"
+              @click="toggle"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+              :style="[styleObj]"
             ></Button>
+            <OverlayPanel
+              ref="op"
+              appendTo="body"
+              class="p-0 m-0"
+              :showCloseIcon="false"
+              id="overlay_panel"
+              style="width: 45vw; z-index: 1000"
+            >
+              <div class="col-12 flex">
+                <div class="flex col-4 align-items-center">Dự án</div>
+                <Dropdown
+                  :filter="true"
+                  v-model="options.project_id"
+                  :options="listDropdownProject"
+                  optionLabel="label"
+                  placeholder="Chọn dự án"
+                  panelClass="d-design-dropdown"
+                  class="col-8 p-0"
+                  optionValue="value"
+                  :showClear="true"
+                >
+                </Dropdown>
+              </div>
+              <div class="col-12 flex">
+                <div class="flex col-4 align-items-center">Nhóm công việc</div>
+
+                <Dropdown
+                  :filter="true"
+                  v-model="options.group_id"
+                  :options="listDropdownGroup"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Chọn nhóm công việc"
+                  class="col-8 p-0"
+                  :showClear="true"
+                  panelClass="d-design-dropdown"
+                >
+                </Dropdown>
+              </div>
+              <div class="col-12 flex py-1">
+                <div class="col-6 py-0 flex align-items-center">
+                  Ngày bắt đầu
+                  <div
+                    class="flex align-items-center"
+                    v-if="
+                      options.start_date != null && options.start_date != ''
+                    "
+                  >
+                    <p class="px-2 font-bold text-blue-500">
+                      {{ moment(options.start_date).format("DD/MM/YYYY") }}
+                    </p>
+                    <Button
+                      icon="pi pi-times"
+                      class="p-button-rounded p-button-text p-button-danger"
+                      @click="options.start_date = null"
+                    >
+                    </Button>
+                  </div>
+                </div>
+                <div class="col-6 py-0 flex align-items-center">
+                  Ngày kết thúc
+                  <div
+                    class="flex align-items-center"
+                    v-if="options.end_date != null && options.end_date != ''"
+                  >
+                    <p class="px-2 font-bold text-blue-500">
+                      {{ moment(options.end_date).format("DD/MM/YYYY") }}
+                    </p>
+                    <Button
+                      icon="pi pi-times"
+                      class="p-button-rounded p-button-text p-button-danger"
+                      @click="options.end_date = null"
+                    >
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 flex py-0">
+                <Calendar
+                  v-model="options.start_date"
+                  :inline="true"
+                  class="col-6 py-0"
+                ></Calendar>
+                <Calendar
+                  v-model="options.end_date"
+                  :inline="true"
+                  class="col-6 py-0"
+                ></Calendar>
+              </div>
+
+              <div class="col-12 flex align-items-center justify-content-end">
+                <Button
+                  icon="pi pi-check"
+                  class="mx-2 p-button-raised"
+                  label="Lọc"
+                  @click="loadData(), (styleObj = style), op.hide()"
+                ></Button>
+                <Button
+                  icon="pi pi-times"
+                  class="mx-2 p-button-text p-button-raised"
+                  label="Hủy"
+                  @click="refresh(), op.hide()"
+                ></Button>
+              </div>
+            </OverlayPanel>
             <Button
               class="p-button-outlined p-button-secondary"
               label=""
@@ -710,7 +872,7 @@ onMounted(() => {
                   ? '#2196f3'
                   : '#6dd230'
               "
-              size="75"
+              :size="size"
             />
           </div>
         </template>
@@ -1291,5 +1453,9 @@ onMounted(() => {
 .task-hover:hover {
   background-color: #f5f5f5;
   color: #2196f3;
+}
+.active {
+  background-color: #2196f3 !important;
+  color: #ffffff !important;
 }
 </style>

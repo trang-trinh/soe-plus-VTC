@@ -256,7 +256,6 @@ const handleSubmit = () => {
   var formData = new FormData();
   formData.append("booking", JSON.stringify(booking.value));
   formData.append("listdates", JSON.stringify(booking.value.listdates));
-  axios;
   axios({
     method: isAdd.value == false ? "put" : "post",
     url:
@@ -412,6 +411,7 @@ const openBasic = (str) => {
       dt.getMonth(),
       dt.getDate() + 2
     );
+    onChangeUser(store.getters.user.user_id);
   submitted.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -453,7 +453,6 @@ const editBooking = (data) => {
         booking.value.listdates = [];
       }
       if (data[1].length > 0) {
-        debugger
         data[1].forEach((item) => {
           let dt = new Date(item.booking_date);
           let datedis = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());

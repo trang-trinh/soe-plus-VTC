@@ -3,11 +3,12 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../../util/function.js";
 import moment from "moment";
+import { FilterMatchMode, FilterOperator } from "primevue/api";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
 import TaskChart from "./Chart/TaskChart.vue";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
-import { FilterMatchMode, FilterOperator } from "primevue/api";
+
 const filters1 = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
@@ -385,15 +386,9 @@ const refresh = () => {
   options.value.SearchText = "";
   loadData(true);
 };
-const searchData = (e) => {
-  if (options.value.SearchText != null && options.value.SearchText != "") {
-    datalists.value = datalists.value.filter(
-      (x) =>
-        x.full_name.includes(options.value.SearchText) == true ||
-        x.user_id.includes(options.value.SearchText),
-    );
-  } else loadData();
-};
+
+const size = ref(75);
+
 onMounted(() => {
   loadData(true);
   expandedRows.value = datalists.value.filter((p) => p.user_key);
@@ -430,15 +425,6 @@ onMounted(() => {
           </template>
 
           <template #end>
-            {{ options.SearchText }}
-            <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
-
             <Button
               @click="refresh()"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -532,7 +518,7 @@ onMounted(() => {
                   ? '#2196f3'
                   : '#6dd230'
               "
-              size="75"
+              :size="size"
             />
           </div>
         </template>
@@ -720,7 +706,7 @@ onMounted(() => {
                       ? '#2196f3'
                       : '#6dd230'
                   "
-                  size="90"
+                  :size="size"
                 />
               </template>
             </Column>

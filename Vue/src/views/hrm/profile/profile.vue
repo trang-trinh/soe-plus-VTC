@@ -32,6 +32,14 @@ const options = ref({
   orderBy: "desc",
   tab: -1,
   filterProfile_id: null,
+  organizations: [],
+  departments: [],
+  work_positions: [],
+  professional_works: [],
+  birthplace_id: null,
+  genders: [],
+  birthday_start_date: null,
+  birthday_end_date: null,
 });
 const isFilter = ref(false);
 const isFirst = ref(true);
@@ -45,13 +53,62 @@ const datachilds = ref([]);
 //declare dictionary
 const tabs = ref([
   { status: -1, title: "Tất cả", icon: "", total: 0 },
-  { status: 1, title: "Đang làm việc", icon: "", total: 0 },
-  { status: 2, title: "Nghỉ việc", icon: "", total: 0 },
-  { status: 3, title: "Nghỉ thai sản", icon: "", total: 0 },
-  { status: 4, title: "Nghỉ không lương", icon: "", total: 0 },
-  { status: 5, title: "Nghỉ đi học", icon: "", total: 0 },
-  { status: 6, title: "Nghỉ khác", icon: "", total: 0 },
-  { status: 0, title: "Chưa phân công", icon: "", total: 0 },
+  {
+    status: 1,
+    title: "Đang làm việc",
+    icon: "",
+    total: 0,
+    bg_color: "#2196f3",
+    text_color: "#fff",
+  },
+  {
+    status: 2,
+    title: "Nghỉ việc",
+    icon: "",
+    total: 0,
+    bg_color: "#E74C3C",
+    text_color: "#fff",
+  },
+  {
+    status: 3,
+    title: "Nghỉ thai sản",
+    icon: "",
+    total: 0,
+    bg_color: "#9B59B6",
+    text_color: "#fff",
+  },
+  {
+    status: 4,
+    title: "Nghỉ không lương",
+    icon: "",
+    total: 0,
+    bg_color: "#E67E22",
+    text_color: "#fff",
+  },
+  {
+    status: 5,
+    title: "Nghỉ đi học",
+    icon: "",
+    total: 0,
+    bg_color: "#F1C40F",
+    text_color: "#fff",
+  },
+  {
+    status: 6,
+    title: "Nghỉ khác",
+    icon: "",
+    total: 0,
+    bg_color: "#7F8C8D",
+    text_color: "#fff",
+  },
+  {
+    status: 0,
+    title: "Chưa phân công",
+    icon: "",
+    total: 0,
+    bg_color: "#bbbbbb",
+    text_color: "#fff",
+  },
 ]);
 const bgColor = ref([
   "#F8E69A",
@@ -83,6 +140,35 @@ const search = () => {
   initCount();
   initData(true);
 };
+const opfilter = ref();
+const toggleFilter = (event) => {
+  opfilter.value.toggle(event);
+};
+const resetFilter = () => {
+  options.value.organizations = [];
+  options.value.departments = [];
+  options.value.work_positions = [];
+  options.value.professional_works = [];
+  options.value.birthplaces = {};
+  options.value.genders = [];
+  options.value.birthday_start_date = null;
+  options.value.birthday_end_date = null;
+};
+const removeFilter = (idx, array, isTree) => {
+  if (isTree) {
+    array[idx["key"]]["checked"] = false;
+  } else {
+    array.splice(idx, 1);
+  }
+};
+const filter = (event) => {
+  opfilter.value.toggle(event);
+  isFilter.value = true;
+  initCount();
+  initData(true);
+};
+const changeBirthdayDate = () => {};
+
 //Watch
 watch(selectedNodes, () => {
   goProfile(selectedNodes.value);
@@ -205,7 +291,8 @@ const goFile = (file) => {
 const goProfile = (profile) => {
   router.push({
     name: "profileinfo",
-    params: { id: profile.profile_id },
+    params: { id: profile.key_id },
+    query: { id: profile.profile_id },
   });
 };
 
@@ -748,7 +835,142 @@ const initDictionary = () => {
       }
     });
 };
-const initCountFilter = () => {};
+const initCountFilter = () => {
+  var organizations = null;
+  if (
+    options.value.organizations != null &&
+    options.value.organizations.length > 0
+  ) {
+    organizations = options.value.organizations
+      .map((x) => x["organization_id"])
+      .join(",");
+  }
+  var departments = null;
+  if (
+    options.value.departments != null &&
+    options.value.departments.length > 0
+  ) {
+    departments = options.value.departments
+      .map((x) => x["department_id"])
+      .join(",");
+  }
+  var work_positions = null;
+  if (
+    options.value.work_positions != null &&
+    options.value.work_positions.length > 0
+  ) {
+    work_positions = options.value.work_positions
+      .map((x) => x["work_position_id"])
+      .join(",");
+  }
+  var professional_works = null;
+  if (
+    options.value.professional_works != null &&
+    options.value.professional_works.length > 0
+  ) {
+    professional_works = options.value.professional_works
+      .map((x) => x["professional_work_id"])
+      .join(",");
+  }
+  // var birthplaces = null;
+  // if (
+  //   options.value.birthplaces != null &&
+  //   Object.keys(options.value.birthplaces).length > 0
+  // ) {
+  //   birthplaces = Object.keys(options.value.birthplaces)
+  //     .filter(
+  //       (a) =>
+  //         Object.entries(options.value.birthplaces).findIndex(
+  //           (b) => b[0] == a && b[1]["checked"]
+  //         ) !== -1
+  //     )
+  //     .map((x) => x)
+  //     .join(",");
+  // }
+  if (
+    options.value.birthplaces != null &&
+    Object.keys(options.value.birthplaces).length > 0
+  ) {
+    options.value.birthplace_id = Object.keys(options.value.birthplaces)[0];
+  }
+  var genders = null;
+  if (options.value.genders != null && options.value.genders.length > 0) {
+    genders = options.value.genders.map((x) => x["gender"]).join(",");
+  }
+  tabs.value.forEach((x) => {
+    x["total"] = 0;
+  });
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_count_filter",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "search", va: options.value.search },
+              { par: "organizations", va: organizations },
+              { par: "departments", va: departments },
+              { par: "work_positions", va: work_positions },
+              { par: "professional_works", va: professional_works },
+              { par: "birthplace_id", va: options.value.birthplace_id },
+              { par: "genders", va: genders },
+              {
+                par: "birthday_start_date",
+                va: options.value.birthday_start_date,
+              },
+              { par: "birthday_end_date", va: options.value.birthday_end_date },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            counts.value = tbs[0];
+            tabs.value.forEach((x) => {
+              var idx = counts.value.findIndex(
+                (c) => c["status"] == x["status"]
+              );
+              if (idx !== -1) {
+                x["total"] = counts.value[idx]["total"];
+              }
+            });
+          }
+        }
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 const initCount = () => {
   if (isFilter.value) {
     initCountFilter();
@@ -795,7 +1017,172 @@ const initCount = () => {
       }
     });
 };
-const initDataFilter = () => {};
+const initDataFilter = () => {
+  var organizations = null;
+  if (
+    options.value.organizations != null &&
+    options.value.organizations.length > 0
+  ) {
+    organizations = options.value.organizations
+      .map((x) => x["organization_id"])
+      .join(",");
+  }
+  var departments = null;
+  if (
+    options.value.departments != null &&
+    options.value.departments.length > 0
+  ) {
+    departments = options.value.departments
+      .map((x) => x["department_id"])
+      .join(",");
+  }
+  var work_positions = null;
+  if (
+    options.value.work_positions != null &&
+    options.value.work_positions.length > 0
+  ) {
+    work_positions = options.value.work_positions
+      .map((x) => x["work_position_id"])
+      .join(",");
+  }
+  var professional_works = null;
+  if (
+    options.value.professional_works != null &&
+    options.value.professional_works.length > 0
+  ) {
+    professional_works = options.value.professional_works
+      .map((x) => x["professional_work_id"])
+      .join(",");
+  }
+  // var birthplaces = null;
+  // if (
+  //   options.value.birthplaces != null &&
+  //   Object.keys(options.value.birthplaces).length > 0
+  // ) {
+  //   birthplaces = Object.keys(options.value.birthplaces)
+  //     .filter(
+  //       (a) =>
+  //         Object.entries(options.value.birthplaces).findIndex(
+  //           (b) => b[0] == a && b[1]["checked"]
+  //         ) !== -1
+  //     )
+  //     .map((x) => x)
+  //     .join(",");
+  // }
+  if (
+    options.value.birthplaces != null &&
+    Object.keys(options.value.birthplaces).length > 0
+  ) {
+    options.value.birthplace_id = Object.keys(options.value.birthplaces)[0];
+  }
+  var genders = null;
+  if (options.value.genders != null && options.value.genders.length > 0) {
+    genders = options.value.genders.map((x) => x["gender"]).join(",");
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_list_filter_2",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "search", va: options.value.search },
+              { par: "pageNo", va: options.value.pageNo },
+              { par: "pageSize", va: options.value.pageSize },
+              { par: "tab", va: options.value.tab },
+              { par: "organizations", va: organizations },
+              { par: "departments", va: departments },
+              { par: "work_positions", va: work_positions },
+              { par: "professional_works", va: professional_works },
+              { par: "birthplace_id", va: options.value.birthplace_id },
+              { par: "genders", va: genders },
+              {
+                par: "birthday_start_date",
+                va: options.value.birthday_start_date,
+              },
+              { par: "birthday_end_date", va: options.value.birthday_end_date },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data);
+        if (data != null) {
+          if (data[0] != null && data[0].length > 0) {
+            data[0].forEach((item, i) => {
+              item["STT"] = i + 1;
+              if (item["created_date"] != null) {
+                item["created_date"] = moment(
+                  new Date(item["created_date"])
+                ).format("DD/MM/YYYY");
+              }
+              if (item["birthday"] != null) {
+                item["birthday"] = moment(new Date(item["birthday"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+              if (item["recruitment_date"] != null) {
+                item["recruitment_date"] = moment(
+                  new Date(item["recruitment_date"])
+                ).format("DD/MM/YYYY");
+              }
+              var idx = tabs.value.findIndex(
+                (x) => x["status"] === item["status"]
+              );
+              if (idx != -1) {
+                item["status_name"] = tabs.value[idx]["title"];
+                item["bg_color"] = tabs.value[idx]["bg_color"];
+                item["text_color"] = tabs.value[idx]["text_color"];
+              } else {
+                item["status_name"] = "Nghỉ khác";
+                item["bg_color"] = "#7F8C8D";
+                item["text_color"] = "#fff";
+              }
+            });
+            datas.value = data[0];
+            if (data[1] != null && data[1].length > 0) {
+              options.value.total = data[1][0].total;
+            }
+          } else {
+            datas.value = [];
+            options.value.total = 0;
+          }
+        }
+      }
+      if (isFirst.value) isFirst.value = false;
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 const initData = (ref) => {
   if (ref) {
     swal.fire({
@@ -851,6 +1238,18 @@ const initData = (ref) => {
                 item["recruitment_date"] = moment(
                   new Date(item["recruitment_date"])
                 ).format("DD/MM/YYYY");
+              }
+              var idx = tabs.value.findIndex(
+                (x) => x["status"] === item["status"]
+              );
+              if (idx != -1) {
+                item["status_name"] = tabs.value[idx]["title"];
+                item["bg_color"] = tabs.value[idx]["bg_color"];
+                item["text_color"] = tabs.value[idx]["text_color"];
+              } else {
+                item["status_name"] = "Nghỉ khác";
+                item["bg_color"] = "#7F8C8D";
+                item["text_color"] = "#fff";
               }
             });
             datas.value = data[0];
@@ -954,11 +1353,11 @@ onMounted(() => {
           <div class="grid formgrid m-0">
             <div
               class="col-12 md:col-12 p-0"
-              style="
-                min-height: unset;
-                max-height: calc(100vh - 300px);
-                overflow: auto;
-              "
+              :style="{
+                minHeight: 'unset',
+                maxheight: 'calc(100vh - 300px)',
+                overflow: 'auto',
+              }"
             >
               <div class="row">
                 <div class="col-6 md:col-6">
@@ -967,7 +1366,7 @@ onMounted(() => {
                       <div class="form-group">
                         <label>Đơn vị</label>
                         <MultiSelect
-                          :options="organizations"
+                          :options="dictionarys[20]"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
@@ -997,11 +1396,7 @@ onMounted(() => {
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
                                         removeFilter(
                                           index,
@@ -1026,7 +1421,7 @@ onMounted(() => {
                       <div class="form-group">
                         <label>Phòng ban</label>
                         <MultiSelect
-                          :options="departments"
+                          :options="dictionarys[21]"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
@@ -1056,11 +1451,7 @@ onMounted(() => {
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
                                         removeFilter(
                                           index,
@@ -1083,70 +1474,9 @@ onMounted(() => {
                     </div>
                     <div class="col-12 md:col-12 p-0">
                       <div class="form-group">
-                        <label>Loại hợp đồng</label>
-                        <MultiSelect
-                          :options="type_contracts"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.type_contracts"
-                          optionLabel="type_contract_name"
-                          placeholder="Chọn loại hợp đồng"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{
-                                        value.type_contract_name
-                                      }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
-                                      @click="
-                                        removeFilter(
-                                          index,
-                                          options.type_contracts
-                                        );
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-12 p-0">
-                      <div class="form-group">
                         <label>Vị trí</label>
                         <MultiSelect
-                          :options="work_positions"
+                          :options="dictionarys[22]"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
@@ -1178,15 +1508,68 @@ onMounted(() => {
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
                                         removeFilter(
                                           index,
                                           options.work_positions
+                                        );
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>
+                    <div class="col-12 md:col-12 p-0">
+                      <div class="form-group">
+                        <label>Công việc chuyên môn</label>
+                        <MultiSelect
+                          :options="dictionarys[23]"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.professional_works"
+                          optionLabel="professional_work_name"
+                          placeholder="Chọn công việc"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{
+                                        value.professional_work_name
+                                      }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(
+                                          index,
+                                          options.professional_works
                                         );
                                         $event.stopPropagation();
                                       "
@@ -1208,49 +1591,64 @@ onMounted(() => {
                 <div class="col-6 md:col-6">
                   <div class="row">
                     <div class="col-12 md:col-12">
-                      <div class="form-group m-0">
-                        <label>Ngày ký</label>
-                      </div>
-                    </div>
-                    <div class="col-6 md:col-6">
                       <div class="form-group">
-                        <Calendar
-                          :showIcon="true"
-                          class="ip36"
-                          autocomplete="on"
-                          inputId="time24"
-                          v-model="options.sign_start_date"
-                          @date-select="changeSignDate()"
-                          @input="changeSignDate()"
-                          placeholder="Từ ngày"
-                        />
-                      </div>
-                    </div>
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <Calendar
-                          :showIcon="true"
-                          class="ip36"
-                          autocomplete="on"
-                          inputId="time24"
-                          v-model="options.sign_end_date"
-                          @date-select="changeSignDate()"
-                          @input="changeSignDate()"
-                          placeholder="Đến ngày"
-                        />
+                        <label>Nơi sinh</label>
+                        <TreeSelect
+                          :options="places"
+                          v-model="options.birthplaces"
+                          placeholder="Chọn nơi sinh"
+                          optionLabel="name"
+                          optionValue="place_id"
+                          style="min-height: 36px"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.label }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        options.birthplaces = {};
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </TreeSelect>
                       </div>
                     </div>
                     <div class="col-12 md:col-12">
                       <div class="form-group">
-                        <label>Người ký</label>
+                        <label>Giới tính</label>
                         <MultiSelect
-                          :options="users"
-                          v-model="options.users"
+                          :options="genders"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
-                          optionLabel="full_name"
-                          placeholder="Chọn người ký"
+                          v-model="options.genders"
+                          optionLabel="text"
+                          placeholder="Chọn giới tính"
                           class="w-full limit-width"
                           style="min-height: 36px"
                           panelClass="d-design-dropdown"
@@ -1267,55 +1665,16 @@ onMounted(() => {
                                 v-for="(value, index) in slotProps.value"
                                 :key="index"
                               >
-                                <Chip
-                                  :image="value.avatar"
-                                  :label="value.full_name"
-                                  class="mr-2 mb-2 px-3 py-2"
-                                >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
                                   <div class="flex">
-                                    <div class="format-flex-center">
-                                      <Avatar
-                                        v-bind:label="
-                                          value.avatar
-                                            ? ''
-                                            : (value.last_name ?? '').substring(
-                                                0,
-                                                1
-                                              )
-                                        "
-                                        v-bind:image="
-                                          value.avatar
-                                            ? basedomainURL + value.avatar
-                                            : basedomainURL +
-                                              '/Portals/Image/noimg.jpg'
-                                        "
-                                        style="
-                                          background-color: #2196f3;
-                                          color: #ffffff;
-                                          width: 2rem;
-                                          height: 2rem;
-                                        "
-                                        :style="{
-                                          background:
-                                            bgColor[value.is_order % 7],
-                                        }"
-                                        class="mr-2 text-avatar"
-                                        size="xlarge"
-                                        shape="circle"
-                                      />
-                                    </div>
-                                    <div class="format-flex-center text-left">
-                                      <span>{{ value.full_name }}</span>
+                                    <div>
+                                      <span>{{ value.text }}</span>
                                     </div>
                                     <span
                                       tabindex="0"
-                                      class="
-                                        p-chip-remove-icon
-                                        pi pi-times-circle
-                                        format-flex-center
-                                      "
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
-                                        removeFilter(index, options.users);
+                                        removeFilter(index, options.genders);
                                         $event.stopPropagation();
                                       "
                                       v-tooltip.top="'Xóa'"
@@ -1328,62 +1687,12 @@ onMounted(() => {
                               {{ slotProps.placeholder }}
                             </span>
                           </template>
-                          <template #option="slotProps">
-                            <div v-if="slotProps.option" class="flex">
-                              <div class="format-center">
-                                <Avatar
-                                  v-bind:label="
-                                    slotProps.option.avatar
-                                      ? ''
-                                      : slotProps.option.last_name.substring(
-                                          0,
-                                          1
-                                        )
-                                  "
-                                  v-bind:image="
-                                    slotProps.option.avatar
-                                      ? basedomainURL + slotProps.option.avatar
-                                      : basedomainURL +
-                                        '/Portals/Image/noimg.jpg'
-                                  "
-                                  style="
-                                    background-color: #2196f3;
-                                    color: #ffffff;
-                                    width: 3rem;
-                                    height: 3rem;
-                                    font-size: 1.4rem !important;
-                                  "
-                                  :style="{
-                                    background:
-                                      bgColor[slotProps.option.is_order % 7],
-                                  }"
-                                  class="text-avatar"
-                                  size="xlarge"
-                                  shape="circle"
-                                />
-                              </div>
-                              <div class="ml-3">
-                                <div class="mb-1">
-                                  {{ slotProps.option.full_name }}
-                                </div>
-                                <div class="description-2">
-                                  <div>
-                                    {{ slotProps.option.position_name }}
-                                  </div>
-                                  <div>
-                                    {{ slotProps.option.department_name }}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <span v-else> Chưa có dữ liệu </span>
-                          </template>
                         </MultiSelect>
                       </div>
                     </div>
                     <div class="col-12 md:col-12">
                       <div class="form-group m-0">
-                        <label>Ngày hiệu lực</label>
+                        <label>Ngày sinh</label>
                       </div>
                     </div>
                     <div class="col-6 md:col-6">
@@ -1393,9 +1702,9 @@ onMounted(() => {
                           class="ip36"
                           autocomplete="on"
                           inputId="time24"
-                          v-model="options.start_start_date"
-                          @date-select="changeStartDate()"
-                          @input="changeStartDate()"
+                          v-model="options.birthday_start_date"
+                          @date-select="changeBirthdayDate()"
+                          @input="changeBirthdayDate()"
                           placeholder="Từ ngày"
                         />
                       </div>
@@ -1407,42 +1716,9 @@ onMounted(() => {
                           class="ip36"
                           autocomplete="on"
                           inputId="time24"
-                          v-model="options.end_start_date"
-                          @date-select="changeStartDate()"
-                          @input="changeStartDate()"
-                          placeholder="Đến ngày"
-                        />
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-12">
-                      <div class="form-group m-0">
-                        <label>Ngày hết hạn</label>
-                      </div>
-                    </div>
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <Calendar
-                          :showIcon="true"
-                          class="ip36"
-                          autocomplete="on"
-                          inputId="time24"
-                          v-model="options.start_end_date"
-                          @date-select="changeEndDate()"
-                          @input="changeEndDate()"
-                          placeholder="Từ ngày"
-                        />
-                      </div>
-                    </div>
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <Calendar
-                          :showIcon="true"
-                          class="ip36"
-                          autocomplete="on"
-                          inputId="time24"
-                          v-model="options.end_end_date"
-                          @date-select="changeEndDate()"
-                          @input="changeEndDate()"
+                          v-model="options.birthday_end_date"
+                          @date-select="changeBirthdayDate()"
+                          @input="changeBirthdayDate()"
                           placeholder="Đến ngày"
                         />
                       </div>
@@ -1593,10 +1869,7 @@ onMounted(() => {
               <div class="mb-1">
                 <span>{{ slotProps.data.profile_id }}</span>
               </div>
-              <div
-                class="mb-1"
-                v-if="slotProps.data.recruitment_date"
-              >
+              <div class="mb-1" v-if="slotProps.data.recruitment_date">
                 Ngày vào: {{ slotProps.data.recruitment_date }}
               </div>
             </div>
@@ -1643,6 +1916,24 @@ onMounted(() => {
                 <span>{{ slotProps.data.position_name }}</span>
               </div>
             </div>
+          </template>
+        </Column>
+        <Column
+          field="status"
+          header="Trạng thái"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
+          class="align-items-center justify-content-center text-center"
+        >
+          <template #body="slotProps">
+            <Button
+              :label="slotProps.data.status_name"
+              :style="{
+                border: slotProps.data.bg_color,
+                backgroundColor: slotProps.data.bg_color,
+                color: slotProps.data.text_color,
+              }"
+            />
           </template>
         </Column>
         <Column
@@ -1703,13 +1994,7 @@ onMounted(() => {
         </Column>
         <template #empty>
           <div
-            class="
-              align-items-center
-              justify-content-center
-              p-4
-              text-center
-              m-auto
-            "
+            class="align-items-center justify-content-center p-4 text-center m-auto"
             style="
               display: flex;
               width: 100%;
@@ -1789,13 +2074,28 @@ onMounted(() => {
 }
 </style>
 <style lang="scss" scoped>
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label,
+  .p-treeselect .p-treeselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-chip img {
+    margin: 0;
+  }
+  .p-avatar-text {
+    font-size: 1rem;
+  }
+}
 ::v-deep(.disable-header) {
   table thead {
     display: none;
   }
 }
-::v-deep(.border-radius){
-  img{
+::v-deep(.border-radius) {
+  img {
     border-radius: 5px;
   }
 }

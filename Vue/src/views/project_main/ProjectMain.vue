@@ -8,6 +8,7 @@ import moment from "moment";
 import { concat } from "lodash";
 import { encr } from "../../util/function.js";
 import treeuser from "../../components/user/treeuser.vue";
+import DetailProject from "../../components/project_main/DetailedProject.vue"
 const cryoptojs = inject("cryptojs");
 const basedomainURL = fileURL;
 
@@ -1034,6 +1035,22 @@ const removeFile = (event) => {
   fileAll = fileAll.filter((a) => a != event.file);
 };
 
+const componentKey = ref(0);
+const PositionSideBar = ref("right");
+
+const forceRerender = () => {
+  componentKey.value += 1;
+};
+
+const showDetail = ref(false);
+const selectedProjectMainID = ref();
+const selectedKeys = ref();
+const onNodeSelect = (id) => {
+  forceRerender();
+  showDetail.value = true;
+  selectedProjectMainID.value = id.data.project_id;
+};
+
 onMounted(() => {
   listUser();
   loadData(true);
@@ -1045,12 +1062,15 @@ onMounted(() => {
 </script>
 <template><!-- @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" selectionMode="checkbox" -->
   <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
-    <TreeTable :value="listProjectMains" v-model:selectionKeys="selectedKey" v-model:first="first"
+    <TreeTable :value="listProjectMains" v-model:selectionKeys="selectedKeys" v-model:first="first"
       :loading="opition.loading" @page="onPage($event)" @sort="onSort($event)" :paginator="true" :rows="opition.PageSize"
       :totalRecords="opition.totalRecords"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]" :filters="filters" :showGridlines="true" filterMode="strict"
       class="p-treetable-sm" :rowHover="true" responsiveLayout="scroll" :lazy="true" :scrollable="true"
+      @nodeSelect="onNodeSelect"
+      selectionMode="single"
+      @nodeUnselect="onNodeUnselect"
       scrollHeight="flex">
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
@@ -1147,6 +1167,28 @@ onMounted(() => {
         </div>
       </template>
     </TreeTable>
+
+    <Sidebar
+      v-model:visible="showDetail"
+      :position="PositionSideBar"
+      :style="{
+        width:
+          PositionSideBar == 'right'
+            ? width1 > 1800
+              ? ' 60vw'
+              : '80vw'
+            : '100vw',
+        'height': '100vh !important',
+      }"
+      :showCloseIcon="false"
+    >
+    <DetailProject
+      :isShow="showDetail"
+      :id="selectedProjectMainID"
+      :turn="0"
+    >
+    </DetailProject>
+  </Sidebar>
 
     <Dialog :header="headerAddProjectMain" v-model:visible="displayProjectMain" :style="{ width: '40vw' }"
       :closable="true" :maximizable="true">
@@ -1293,8 +1335,7 @@ onMounted(() => {
                         ? ''
                         : (slotProps.option.name ?? '').substring(0, 1)
                     "
-                    v-bind:image="basedomainURL + slotProps.option.avatar"
-                    style="
+                    v-bind:image="basedomainURL + slotProps.option.avatar" style="
                       background-color: #2196f3;
                       color: #ffffff;
                       width: 32px;
