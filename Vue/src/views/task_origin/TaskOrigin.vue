@@ -7,15 +7,40 @@ import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import moment from "moment";
 import { encr } from "../../util/function.js";
 import treeuser from "../../components/user/treeuser.vue";
+import { useRoute } from "vue-router";
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
+const route = useRoute();
 const basedomainURL = fileURL;
 const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
 const width1 = ref(window.screen.availWidth);
+document.onkeydown = fkey;
+document.onkeypress = fkey;
+document.onkeyup = fkey;
 
+var wasPressed = false;
+
+function fkey(e) {
+  e = e || window.event;
+  if (wasPressed) return;
+
+  if (e.keyCode == 116) {
+    wasPressed = true;
+  } else {
+    wasPressed = false;
+  }
+  if (wasPressed == true) {
+    hideall();
+  }
+}
+const hideall = () => {
+  router.push({ name: "taskmain", params: {} }).then(() => {
+    router.go(0);
+  });
+};
 const expandedRowGroups = ref();
 const checkDelList = ref(false);
 const toast = useToast();
@@ -1417,7 +1442,7 @@ const loadData = (rf, type) => {
         var lastDay = new Date(date2.getFullYear(), date2.getMonth() + 1, 0);
         getDates(firstDay, lastDay);
       }
-      if (idTaskLoaded.value != "taskmain") {
+      if (idTaskLoaded.value != null) {
         showDetail.value = false;
         showDetail.value = true;
         selectedTaskID.value = idTaskLoaded.value;
@@ -1830,9 +1855,7 @@ const onRefresh = () => {
   });
   loadData(true, opition.value.type_view);
 };
-const idTaskLoaded = ref(
-  window.location.href.substring(window.location.href.lastIndexOf("/") + 1),
-);
+const idTaskLoaded = ref(route.params.id);
 const changeNguoiGaoViec = (event) => {
   Task.value.assign_user_id = [];
   Task.value.assign_user_id.push(event.value[1]);
@@ -1984,15 +2007,17 @@ const WeekDay = ref([
   { value: "Saturday", text: "T7", bg: "aliceblue" },
   { value: "Sunday", text: "CN", bg: "antiquewhite" },
 ]);
-
+const typefRouter = ref(route.params.type);
 onMounted(() => {
   loadData(true, 2);
+  if (typefRouter.value != null) {
+    ChangeData(typefRouter.value);
+  }
   listUser();
   listtreeOrganization();
   listProjectMain();
-  vla.value = 8;
   startProgress();
-  return { vla };
+  return {};
 });
 
 const ChangeIsDepartment = (model) => {
@@ -5036,6 +5061,7 @@ const ChangeShowListCVGroup = (model) => {
         'min-height': '100vh !important',
       }"
       :showCloseIcon="false"
+      @hide="hideall()"
     >
       <DetailedWork
         :isShow="showDetail"

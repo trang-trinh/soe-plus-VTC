@@ -260,7 +260,10 @@ const loadTaskMain = () => {
         str: encr(
           JSON.stringify({
             proc: "task_origin_get",
-            par: [{ par: "id", va: props.id }],
+            par: [
+              { par: "id", va: props.id },
+              { par: "user_id", va: user.user_id },
+            ],
           }),
           SecretKey,
           cryoptojs,
@@ -276,7 +279,11 @@ const loadTaskMain = () => {
       if (data2[0].totalExtend > 0 && data[0].status != 3) {
         data[0].status = 9;
       }
-
+      if (data.length == 0) {
+        is_viewSecurityTask.value = false;
+      } else {
+        is_viewSecurityTask.value = true;
+      }
       countExtend.value = data2[0].totalExtend;
       newReport.value = data3[0].newReport;
       listDropdownStatus.value.forEach((x) => {
@@ -777,6 +784,7 @@ const loadChildTaskOrigin = (type) => {
 const loadData = (rf) => {
   if (rf) {
     loadTaskMain();
+
     loadTaskCheckList();
     loadMember();
     loadComments();
@@ -3264,7 +3272,6 @@ onMounted(() => {
   loadData(true);
   startProgress();
   listUser();
-
   return {};
 });
 onBeforeUnmount(() => {
@@ -3369,9 +3376,13 @@ const choiceTreeUser = () => {
   }
   displayDialogUser.value = false;
 };
+const is_viewSecurityTask = ref(false);
 </script>
 <template>
-  <div class="overflow-hidden h-full w-full col-md-12 p-0 m-0 flex">
+  <div
+    class="overflow-hidden h-full w-full col-md-12 p-0 m-0 flex"
+    v-if="is_viewSecurityTask == true"
+  >
     <div class="col-9 p-0 m-0">
       <div
         class="row col-12 flex w-full justify-content-center px-0 mx-0 format-center"
@@ -6535,7 +6546,24 @@ const choiceTreeUser = () => {
       </ScrollPanel>
     </div>
   </div>
-
+  <div
+    class="overflow-hidden w-full"
+    style="
+      display: grid;
+      align-content: center;
+      justify-content: center;
+      align-items: center;
+      justify-items: center;
+      height: 98vh;
+    "
+    v-else
+  >
+    <img
+      src="../../assets/background/nodata.png"
+      height="300"
+    />
+    <h2 class="m-1">Công việc bảo mật, đã bị xóa hoặc không tồn tại.</h2>
+  </div>
   <!-- //OverlayPanel -->
   <OverlayPanel
     class="p-0"

@@ -11,13 +11,14 @@ const axios = inject("axios");
 const store = inject("store");
 const toast = useToast();
 const swal = inject("$swal");
+const router = inject("router");
 
 // eslint-disable-next-line no-undef
 const basedomainURL = baseURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
-const width = window.screen.width;
+
 const width1 = window.screen.width;
 const addLog = (log) => {
   // eslint-disable-next-line no-undef
@@ -35,12 +36,18 @@ const bgColor = ref([
 
 const user = store.state.user;
 const listCountTaskButton = ref([
-  { label: "Tất cả", icon: "", code: "", count: 0, color: "#3192D3" },
-  { label: "Được giao", icon: "", code: "", count: 0, color: "#FF8B4E" },
-  { label: "Quản lý", icon: "", code: "", count: 0, color: "#D87777" },
-  { label: "Theo dõi", icon: "", code: "", count: 0, color: "#F17AC7" },
-  { label: "Tôi tạo", icon: "", code: "", count: 0, color: "#33C9DC" },
-  { label: "Hoàn thành", icon: "", code: "", count: 0, color: "#04D214" },
+  {
+    label: "Tất cả",
+    icon: "",
+    code: "-1",
+    count: 0,
+    color: "#3192D3",
+  },
+  { label: "Được giao", icon: "", code: "0", count: 0, color: "#FF8B4E" },
+  { label: "Quản lý", icon: "", code: "1", count: 0, color: "#D87777" },
+  { label: "Theo dõi", icon: "", code: "2", count: 0, color: "#F17AC7" },
+  { label: "Tôi tạo", icon: "", code: "3", count: 0, color: "#33C9DC" },
+  { label: "Hoàn thành", icon: "", code: "4", count: 0, color: "#04D214" },
 ]);
 const listCountIDoButton = ref([
   {
@@ -109,6 +116,108 @@ const simpleDateName = (date) => {
 };
 const PositionSideBar = ref("right");
 const page = ref();
+const listDropdownStatus = ref([
+  {
+    value: 0,
+    text: "Chưa bắt đầu",
+    bg_color: "#bbbbbb",
+    text_color: "#FFFFFF",
+  },
+  { value: 1, text: "Đang làm", bg_color: "#2196f3", text_color: "#FFFFFF" },
+  { value: 2, text: "Tạm ngừng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 3, text: "Đã đóng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 4, text: "HT đúng hạn", bg_color: "#04D215", text_color: "#FFFFFF" },
+  {
+    value: 5,
+    text: "Chờ đánh giá",
+    bg_color: "#33c9dc",
+    text_color: "#FFFFFF",
+  },
+  { value: 6, text: "Bị trả lại", bg_color: "#ffa500", text_color: "#FFFFFF" },
+  { value: 7, text: "HT sau hạn", bg_color: "#ff8b4e", text_color: "#FFFFFF" },
+  { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
+  { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
+]);
+const LoadActive = () => {
+  axios
+    .post(
+      // eslint-disable-next-line no-undef
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_logs_dashboard",
+            par: [
+              { par: "user_id", va: user.user_id },
+              { par: "page", va: page.value },
+            ],
+          }),
+          // eslint-disable-next-line no-undef
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let listact = JSON.parse(response.data.data)[0];
+      console.log(listact);
+      let listDate = [];
+      listact.forEach((x) => {
+        x.creator = JSON.parse(x.creator);
+        let zss = listDropdownStatus.value.filter((z) => z.value == x.status);
+        x.status_display = {};
+        x.status_display = zss[0];
+        x.creator.tooltip =
+          x.creator.full_name +
+          "<br/>" +
+          x.creator.position_name +
+          "<br/>" +
+          (x.creator.department_name || x.creator.organization_name);
+        let d = moment(new Date(x.created_date)).format("MM/DD/YYYY");
+        if (listDate.includes(d) == false) {
+          listDate.push(d);
+        }
+      });
+      let listDate2 = [];
+      listDate.forEach((x) => {
+        let d = {
+          date: moment(new Date(x)).format("DD/MM/YYYY"),
+          date_display: simpleDateName(x),
+        };
+        listDate2.push(d);
+      });
+      listDate2.forEach((z) => {
+        z.data = [];
+        listact.forEach((x) => {
+          if (moment(new Date(x.created_date)).format("DD/MM/YYYY") == z.date) {
+            z.data.push(x);
+          }
+        });
+      });
+      listDate2.forEach((z) => {
+        listActive.value.push(z);
+      });
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!" + error);
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "MyTaskInfo.vue",
+        logcontent: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
 const LoadCountTask = () => {
   axios
     .post(
@@ -211,39 +320,6 @@ const LoadCountTask = () => {
 
       chartData1.value = chart1;
       chartData2.value = chart2;
-      let listDate = [];
-      listact.forEach((x) => {
-        x.creator = JSON.parse(x.creator);
-        x.creator.tooltip =
-          x.creator.full_name +
-          "<br/>" +
-          x.creator.position_name +
-          "<br/>" +
-          (x.creator.department_name || x.creator.organization_name);
-        let d = moment(new Date(x.created_date)).format("MM/DD/YYYY");
-        if (listDate.includes(d) == false) {
-          listDate.push(d);
-        }
-      });
-      let listDate2 = [];
-      listDate.forEach((x) => {
-        let d = {
-          date: moment(new Date(x)).format("DD/MM/YYYY"),
-          date_display: simpleDateName(x),
-        };
-        listDate2.push(d);
-      });
-      listDate2.forEach((z) => {
-        z.data = [];
-        listact.forEach((x) => {
-          if (moment(new Date(x.created_date)).format("DD/MM/YYYY") == z.date) {
-            z.data.push(x);
-          }
-        });
-      });
-      listDate2.forEach((z) => {
-        listActive.value.push(z);
-      });
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!" + error);
@@ -308,11 +384,15 @@ emitter.on("psb", (obj) => {
 });
 const loadMore = () => {
   page.value += 1;
-  LoadCountTask();
+  LoadActive();
+};
+const gotoTaskMain = (value) => {
+  router.push({ name: "taskmainFilter", params: { type: value } });
 };
 onMounted(() => {
   page.value = 0;
   LoadCountTask(0);
+  LoadActive();
 });
 </script>
 <template>
@@ -337,6 +417,7 @@ onMounted(() => {
                 :icon="item.icon"
                 class="font-bold format-center p-button-text border-1 border-round-xl border-gray-200"
                 style="min-width: 6.2rem"
+                @click="gotoTaskMain(item.code)"
               >
                 <span>
                   <span
@@ -447,8 +528,13 @@ onMounted(() => {
                     "
                   ></span>
                 </div>
+
                 <div class="col-4 format-right">
                   <Button
+                    :style="{
+                      'background-color': item.status_display.bg_color,
+                      color: item.status_display.text_color,
+                    }"
                     class=""
                     :label="
                       item.task_name.length > 18
@@ -487,8 +573,8 @@ onMounted(() => {
         <div class="col-12 bg-white">
           <div class="col-12 font-bold">Công việc gần nhất đang thực hiện</div>
 
-          <ScrollPanel
-            style="height: 33vh"
+          <div
+            style="height: 33vh; overflow: auto"
             v-if="listTask.length > 0"
           >
             <div
@@ -639,7 +725,7 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-          </ScrollPanel>
+          </div>
           <div
             v-else
             class="align-items-center justify-content-center p-4 text-center m-auto"
