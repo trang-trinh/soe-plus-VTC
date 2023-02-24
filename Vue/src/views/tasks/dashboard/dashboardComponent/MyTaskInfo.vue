@@ -84,7 +84,7 @@ const listCountIDoButton = ref([
     bgColor: "#6FBF73",
   },
 ]);
-const listTask = ref();
+const listTask = ref([]);
 const chartData1 = ref();
 const chartData2 = ref();
 const listActive = ref([]);
@@ -135,6 +135,8 @@ const LoadCountTask = () => {
       let listdata = JSON.parse(response.data.data)[1];
       let listact = JSON.parse(response.data.data)[2];
       let countToButton = JSON.parse(response.data.data)[3];
+      let listDropdown = JSON.parse(response.data.data)[4];
+      emitter.emit("listDropdown", { data: listDropdown });
       emitter.emit("count", { data: countToButton });
       let gotData = data[0];
       listCountTaskButton.value[0].count = gotData.TatCa;
@@ -386,11 +388,14 @@ onMounted(() => {
           </div>
         </div>
         <div class="p-1"></div>
-        <div class="col-12 bg-white">
+        <div
+          class="col-12 bg-white"
+          style="height: calc(100vh - 330px)"
+        >
           <div class="col-12 font-bold">Hoạt động gần đây</div>
-          <ScrollPanel
-            :style="{ height: width > 1900 ? '62vh' : '39.5vh' }"
+          <div
             v-if="listActive.length > 0"
+            style="height: calc(100vh - 375px); overflow: auto"
           >
             <div
               class="col-12 border-gray-500 p-0"
@@ -463,7 +468,7 @@ onMounted(() => {
               >
               </Button>
             </div>
-          </ScrollPanel>
+          </div>
           <div
             v-else
             class="align-items-center justify-content-center p-4 text-center m-auto"
@@ -649,7 +654,10 @@ onMounted(() => {
         </div>
 
         <div class="p-1"></div>
-        <div class="col-12 flex bg-white">
+        <div
+          class="col-12 flex bg-white"
+          style="min-height: calc(67vh - 15rem)"
+        >
           <div class="col-6">
             <Chart
               type="pie"

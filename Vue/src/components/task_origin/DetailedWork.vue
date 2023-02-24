@@ -223,13 +223,11 @@ const loadFile = () => {
             (element.creator.department_name != null
               ? element.creator.department_name
               : element.creator.organiztion_name);
-        
       });
       listFile.value = [];
       listFile.value = data;
       countFiles.value = count[0].count;
       countAllFile.value = count2[0].countALLFile;
-      
     })
     .catch((error) => {
       // toast.error("Tải dữ liệu không thành công!");
@@ -1583,7 +1581,6 @@ const listProjectMain = () => {
     .catch((error) => {
       console.log(error);
       toast.error("Tải dữ liệu không thành công!");
-   
 
       if (error && error.status === 401) {
         swal.fire({
@@ -2594,7 +2591,6 @@ const Upload = () => {
     axios
       .post(baseURL + "/api/task_Files/add_Task_File", formData, config)
       .then((response) => {
-    
         if (response.data.err != "1") {
           swal.close();
           toast.success("Tải tệp tài liệu lên thành công!");
@@ -6324,7 +6320,10 @@ const choiceTreeUser = () => {
           </div>
         </div>
 
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+        <div
+          class="row col-12 p-0 m-0 py-2 my-1 pl-1"
+          v-if="datalists.is_deadline == true"
+        >
           <div
             class="col-12 p-0 m-0"
             style="position: relative"

@@ -234,6 +234,7 @@ namespace API.Controllers.HRM.Profile
                     {
                         avatar_old = modelold.avatar;
                     }
+                    int stt = 0;
                     foreach (MultipartFileData fileData in provider.FileData)
                     {
                         string org_name_file = fileData.Headers.ContentDisposition.FileName;
@@ -291,6 +292,7 @@ namespace API.Controllers.HRM.Profile
                             }
                             df.is_type = 0;
                             df.status = true;
+                            df.is_order = stt++;
                             df.created_by = uid;
                             df.created_date = DateTime.Now;
                             df.created_ip = ip;

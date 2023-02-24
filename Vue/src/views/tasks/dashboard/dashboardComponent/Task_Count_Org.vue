@@ -379,6 +379,7 @@ const listButton = ref([
   { label: "Hoàn thành", value: 2, is_active: false },
   { label: "Quá hạn", value: 3, is_active: false },
 ]);
+const size = ref(75);
 onMounted(() => {
   loadData();
 });
@@ -493,7 +494,7 @@ onMounted(() => {
                   ? '#2196f3'
                   : '#6dd230'
               "
-              size="75"
+              :size="size"
             />
           </div>
         </template>

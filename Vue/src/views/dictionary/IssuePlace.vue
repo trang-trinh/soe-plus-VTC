@@ -3,24 +3,17 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr } from "../../util/function.js";
-import moment from "moment";
+
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
-const isDynamicSQL = ref(false);
+
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  issue_place_name: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
-});
+const filters = ref({});
 const rules = {
   issue_place_name: {
     required,
@@ -102,14 +95,11 @@ const loadCount = () => {
     });
 };
 const loadData = (rf) => {
+  options.value.loading = true;
   if (store.state.user.is_super) {
     loadDonvi();
   }
   if (rf) {
-    if (isDynamicSQL.value) {
-      loadDataSQL();
-      return;
-    }
     if (rf) {
       loadCount();
     }
@@ -135,13 +125,8 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        data.forEach((element, i) => {
-          element.is_order =
-            options.value.PageNo * options.value.PageSize + i + 1;
-        });
         let obj = renderTree(data, "issue_place_id", "", "");
         datalists.value = obj.arrChils;
-
         options.value.loading = false;
       })
       .catch((error) => {
@@ -171,13 +156,14 @@ const renderTree = (data, id, name, title) => {
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
-      m.IsOrder = i + 1;
+      m.STT = options.value.PageNo * options.value.PageSize + (i + 1);
       let om = { key: m[id], data: m };
       const rechildren = (mm, pid) => {
         let dts = data.filter((x) => x.parent_id == pid);
         if (dts.length > 0) {
           if (!mm.children) mm.children = [];
-          dts.forEach((em) => {
+          dts.forEach((em, k) => {
+            em.STT = mm.data.STT + "." + (k + 1);
             let om1 = { key: em[id], data: em };
             rechildren(om1, em[id]);
             mm.children.push(om1);
@@ -242,11 +228,8 @@ const openBasic = (str) => {
   } else {
     issuePlace.value.organization_id = store.state.user.organization_id;
   }
-
   issuePlace.value.is_order =
-    datalists.value.length > 0
-      ? datalists.value[datalists.value.length - 1].data.is_order + 1
-      : 1;
+    datalists.value.length > 0 ? datalists.value[0].data.is_order + 1 : 1;
   issaveField.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -254,12 +237,11 @@ const openBasic = (str) => {
 const closeDialog = () => {
   issuePlace.value = {
     issue_place_name: "",
-    is_order: 1,
+
     status: true,
   };
   issuePlace.value.organization_id = null;
   displayBasic.value = false;
-  loadData(true);
 };
 
 //Thêm bản ghi
@@ -500,89 +482,7 @@ const exportData = (method) => {
       }
     });
 };
-//Sort
-const onSort = (event) => {
-  options.value.sort =
-    event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
-  if (event.sortField == "STT") {
-    options.value.sort = "is_order" + (event.sortOrder == 1 ? " ASC" : " DESC");
-  }
-  options.value.PageNo = 0;
-  isDynamicSQL.value = true;
-  loadDataSQL();
-};
-
 const isFirst = ref(true);
-const loadDataSQL = () => {
-  let fpl;
-  if (filterPhanloai.value != undefined && store.state.user.is_super) {
-    fpl = parseInt(Object.keys(filterPhanloai.value)[0]);
-  } else {
-    fpl =
-      filterPhanloai.value != undefined && filterPhanloai.value != null
-        ? store.state.user.is_super
-          ? filterPhanloai.value
-          : filterPhanloai.value == 0
-          ? 0
-          : store.state.user.organization_id
-        : null;
-  }
-  let data = {
-    sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
-    sqlO: options.value.sort,
-    Search: options.value.SearchText,
-    PageNo: options.value.PageNo,
-    PageSize: options.value.PageSize,
-    sqlF: fpl,
-  };
-
-  options.value.loading = true;
-  axios
-    .post(baseURL + "/api/SQL/Filter_IssuePlace", data, config)
-    .then((response) => {
-      let dt = JSON.parse(response.data.data);
-
-      let data = dt[0];
-
-      let obj = renderTree(data, "issue_place_id", "", "");
-
-      datalists.value = [];
-      datalists.value = obj.arrChils;
-
-      if (isFirst.value) isFirst.value = false;
-      options.value.loading = false;
-      //Show Count nếu có
-      if (dt.length == 2) {
-        options.value.totalRecords = dt[1][0].totalRecords;
-      }
-    })
-    .catch((error) => {
-      options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-      addLog({
-        title: "Lỗi Console loadData",
-        controller: "SQLView.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-//Tìm kiếm
-const searchFields = (event) => {
-  options.value.loading = true;
-  isDynamicSQL.value = true;
-  loadData(true);
-};
-
 //Checkbox
 const onCheckBox = (value) => {
   let data = {
@@ -711,8 +611,8 @@ const searchField = () => {
   };
   styleObj.value = "";
   options.value.loading = true;
-  isDynamicSQL.value = false;
   loadData(true);
+  filters.value = {};
 };
 
 //Filter
@@ -724,15 +624,12 @@ const filterTrangthai = ref();
 const reFilterEmail = () => {
   filterPhanloai.value = null;
   filterTrangthai.value = null;
-  filterFileds();
   styleObj.value = "";
   showFilter.value = false;
+  filters.value["organization_id"] = "";
+  filters.value["status"] = "";
 };
-const filterFileds = () => {
-  styleObj.value = style.value;
-  isDynamicSQL.value = true;
-  loadData(true);
-};
+
 watch(selectedFields, () => {
   if (selectedFields.value.length > 0) {
     checkDelList.value = true;
@@ -850,7 +747,7 @@ const Upload = () => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Nhập dữ liệu thành công");
-          isDynamicSQL.value = false;
+
           loadData(true);
         } else {
           swal.close();
@@ -964,6 +861,22 @@ const openChild = (data) => {
 };
 const expandedKeys = ref();
 const selectedKeys = ref();
+const filterFileds = () => {
+  if (filterTrangthai.value != null) {
+    filters.value["status"] = filterTrangthai.value == 1 ? "true" : "false";
+  } else filters.value["status"] = "";
+  if (filterPhanloai.value != null) {
+    filters.value["organization_id"] =
+      filterPhanloai.value == 0
+        ? "0"
+        : store.state.user.organization_id.toString();
+  } else filters.value["organization_id"] = "";
+};
+const SearchBytext = () => {
+  if (options.value.SearchText != null) {
+    filters.value["global"] = options.value.SearchText;
+  } else filters.value["global"] = "";
+};
 onMounted(() => {
   loadData(true);
   return {};
@@ -972,7 +885,6 @@ onMounted(() => {
 <template>
   <div class="main-layout true flex-grow-1 p-2">
     <TreeTable
-      ref="dt"
       :rowHovers="true"
       :showGridlines="true"
       responsiveLayout="scroll"
@@ -989,131 +901,138 @@ onMounted(() => {
       :totalRecords="options.totalRecords"
       dataKey="issue_place_id"
       v-model:selectionKeys="selectedKeys"
+      :loading="options.loading"
+      v-model:filters="filters"
+      filterMode="lenient"
+      :globalFilterFields="[
+        'issue_place_name',
+        'static_code',
+        'dynamic_code',
+        'search_code',
+        'display_code',
+      ]"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
           <i class="pi pi-briefcase"></i>
           Danh sách nơi ban hành ({{ options.totalRecords }})
         </h3>
-
         <Toolbar class="w-full custoolbar">
           <template #start>
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
               <InputText
                 v-model="options.SearchText"
-                @keyup.enter="searchFields"
                 type="text"
+                @keyup.enter="SearchBytext()"
                 spellcheck="false"
                 placeholder="Tìm kiếm"
               />
-              <Button
-                type="button"
-                class="ml-2 p-button-outlined p-button-secondary"
-                icon="pi pi-filter"
-                @click="toggle"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                :style="[styleObj]"
-                v-tooltip="'Bộ lọc'"
-              />
-              <OverlayPanel
-                ref="op"
-                appendTo="body"
-                class="m-0"
-                :showCloseIcon="false"
-                id="overlay_panel"
-                :style="
-                  store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
-                "
-              >
-                <div class="grid formgrid m-0">
-                  <div class="flex field col-12">
-                    <div
-                      :class="
-                        store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 '
-                          : 'col-4 text-left pt-2 '
-                      "
-                      style="text-align: left"
-                    >
-                      Phân loại
-                    </div>
-
-                    <div
-                      :class="
-                        store.state.user.is_super == 1 ? 'col-10' : 'col-8'
-                      "
-                    >
-                      <TreeSelect
-                        v-model="filterPhanloai"
-                        :options="treedonvis"
-                        optionLabel="data.organization_name"
-                        optionValue="data.organization_id"
-                        placeholder="Chọn đơn vị"
-                        class="col-12md:col-12"
-                        v-if="store.state.user.is_super == 1"
-                      />
-                      <Dropdown
-                        class="col-12 m-0"
-                        v-model="filterPhanloai"
-                        :options="phanLoai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Phân loại"
-                        v-else
-                      />
-                    </div>
+            </span>
+            <Button
+              type="button"
+              class="ml-2 p-button-outlined p-button-secondary"
+              icon="pi pi-filter"
+              @click="toggle"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+              :style="[styleObj]"
+              v-tooltip="'Bộ lọc'"
+            />
+            <OverlayPanel
+              ref="op"
+              appendTo="body"
+              class="m-0"
+              :showCloseIcon="false"
+              id="overlay_panel"
+              :style="
+                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
+              "
+            >
+              <div class="grid formgrid m-0">
+                <div class="flex field col-12">
+                  <div
+                    :class="
+                      store.state.user.is_super == 1
+                        ? 'col-2 text-left pt-2 '
+                        : 'col-4 text-left pt-2 '
+                    "
+                    style="text-align: left"
+                  >
+                    Phân loại
                   </div>
 
-                  <div class="flex field col-12">
-                    <div
-                      :class="
-                        store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 '
-                          : 'col-4 text-left pt-2 '
-                      "
-                      style="text-align: center,justify-content:center"
-                    >
-                      Trạng thái
-                    </div>
-                    <div
-                      :class="
-                        store.state.user.is_super == 1 ? 'col-10' : 'col-8'
-                      "
-                    >
-                      <Dropdown
-                        class="col-12 m-0"
-                        v-model="filterTrangthai"
-                        :options="trangThai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Trạng thái"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex col-12">
-                    <Toolbar
-                      class="border-none surface-0 outline-none pb-0 w-full"
-                    >
-                      <template #start>
-                        <Button
-                          @click="reFilterEmail"
-                          class="p-button-outlined"
-                          label="Xóa"
-                        ></Button>
-                      </template>
-                      <template #end>
-                        <Button
-                          @click="filterFileds"
-                          label="Lọc"
-                        ></Button>
-                      </template>
-                    </Toolbar>
+                  <div
+                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
+                  >
+                    <TreeSelect
+                      v-model="filterPhanloai"
+                      :options="treedonvis"
+                      optionLabel="data.organization_name"
+                      optionValue="data.organization_id"
+                      placeholder="Chọn đơn vị"
+                      class="col-12md:col-12"
+                      v-if="store.state.user.is_super == 1"
+                    />
+                    <Dropdown
+                      class="col-12 m-0"
+                      v-model="filterPhanloai"
+                      :options="phanLoai"
+                      optionLabel="name"
+                      optionValue="code"
+                      showClear="true"
+                      placeholder="Phân loại"
+                      v-else
+                    />
                   </div>
                 </div>
-              </OverlayPanel>
-            </span>
+
+                <div class="flex field col-12">
+                  <div
+                    :class="
+                      store.state.user.is_super == 1
+                        ? 'col-2 text-left pt-2 '
+                        : 'col-4 text-left pt-2 '
+                    "
+                    style="text-align: center,justify-content:center"
+                  >
+                    Trạng thái
+                  </div>
+                  <div
+                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
+                  >
+                    <Dropdown
+                      class="col-12 m-0"
+                      v-model="filterTrangthai"
+                      :options="trangThai"
+                      optionLabel="name"
+                      optionValue="code"
+                      placeholder="Trạng thái"
+                      showClear="true"
+                    />
+                  </div>
+                </div>
+                <div class="flex col-12">
+                  <Toolbar
+                    class="border-none surface-0 outline-none pb-0 w-full"
+                  >
+                    <template #start>
+                      <Button
+                        @click="reFilterEmail"
+                        class="p-button-outlined"
+                        label="Xóa"
+                      ></Button>
+                    </template>
+                    <template #end>
+                      <Button
+                        @click="filterFileds"
+                        label="Lọc"
+                      ></Button>
+                    </template>
+                  </Toolbar>
+                </div>
+              </div>
+            </OverlayPanel>
           </template>
 
           <template #end>
@@ -1162,7 +1081,7 @@ onMounted(() => {
         v-if="store.state.user.is_super == true"
       ></Column>
       <Column
-        field="is_order"
+        field="STT"
         header="STT"
         :sortable="true"
         headerClass="align-items-center justify-content-center text-center max-w-4rem"
