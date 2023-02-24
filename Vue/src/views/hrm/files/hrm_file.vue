@@ -13,6 +13,17 @@ const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
 const isDynamicSQL = ref(false);
+const isDetail = ref(false);
+const file_detail = ref();
+const data_log = ref();
+
+const list_types = ref([
+  { img: "/Portals/file/pdf.png", label: "PDF", type: 1 },
+  { img: "/Portals/file/png.png", label: "Ảnh", type: 2 },
+  { img: "/Portals/file/docx.png", label: "Word, Excel", type: 3 },
+  { img: "/Portals/file/044-file-43.png", label: "Khác", type: 4 },
+]);
+const filterType = ref();
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -32,19 +43,8 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
-const rules = {
-  bank_name: {
-    required,
-    $errors: [
-      {
-        $property: "bank_name",
-        $validator: "required",
-        $message: "Tên ngân hàng không được để trống!",
-      },
-    ],
-  },
-};
-
+const total_file = ref(0);
+const total_size = ref(0);
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -72,11 +72,11 @@ const loadCount = () => {
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
-    .catch((error) => {});
+    .catch((error) => { });
 };
-//Lấy dữ liệu bank
+//Lấy dữ liệu
 const loadData = (rf) => {
-  debugger;
+  debugger
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -87,16 +87,18 @@ const loadData = (rf) => {
         loadCount();
       }
     }
+    options.value.type = filterType.value ? filterType.value.type : null;
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_file_list",
+              proc: "hrm_file_list1",
               par: [
                 { par: "user_id", va: store.getters.user.user_id },
-                { par: "search", va: null },
+                { par: "search", va: options.value.search },
+                { par: "type", va: options.value.type },
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
               ],
@@ -158,224 +160,51 @@ const onPage = (event) => {
   loadData(true);
 };
 
-const bank = ref({
-  bank_name: "",
-  emote_file: "",
-  status: true,
-  is_default: false,
-  is_order: 1,
-});
-
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, bank);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
 const basedomainURL = baseURL;
 const checkDelList = ref(false);
-
 const options = ref({
   IsNext: true,
   sort: "created_date",
-  SearchText: "",
+  search: "",
   PageNo: 0,
   PageSize: 20,
   loading: true,
   totalRecords: null,
+  type: null
 });
-
+var dataCol = [];
+const chartDatapie = ref({
+  labels: ["Pdf", "Ảnh", "Word, Excel", "Khác"],
+  datasets: [
+    {
+      data: [],
+      backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
+      hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+    },
+  ],
+});
+const lightOptions = ref({
+  plugins: {
+    legend: {
+      labels: {
+        color: "#495057",
+      },
+    },
+  },
+});
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
-const openBasic = (str) => {
-  submitted.value = false;
-  bank.value = {
-    bank_name: "",
-    emote_file: "",
-    status: true,
-    is_default: false,
-    is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
-  };
-
-  checkIsmain.value = false;
-  isSaveTem.value = false;
-  headerDialog.value = str;
-  displayBasic.value = true;
-};
-
-const closeDialog = () => {
-  bank.value = {
-    bank_name: "",
-    emote_file: "",
-    status: true,
-    is_default: false,
-    is_order: 1,
-  };
-
-  displayBasic.value = false;
-  loadData(true);
-};
 
 //Thêm bản ghi
 
 const sttStamp = ref(1);
-const saveData = (isFormValid) => {
-  submitted.value = true;
-  if (!isFormValid) {
-    return;
-  }
-
-  if (bank.value.bank_name.length > 250) {
-    swal.fire({
-      title: "Error!",
-      text: "Tên ngân hàng không được vượt quá 250 ký tự!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-  let formData = new FormData();
-
-  if (bank.value.countryside_fake)
-    bank.value.countryside = bank.value.countryside_fake;
-  formData.append("hrm_ca_bank", JSON.stringify(bank.value));
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  if (!isSaveTem.value) {
-    axios
-      .post(baseURL + "/api/hrm_ca_bank/add_hrm_ca_bank", formData, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Thêm ngân hàng thành công!");
-          loadData(true);
-
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  } else {
-    axios
-      .put(baseURL + "/api/hrm_ca_bank/update_hrm_ca_bank", formData, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa ngân hàng thành công!");
-
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
-};
 const checkIsmain = ref(true);
-//Sửa bản ghi
-const editTem = (dataTem) => {
-  submitted.value = false;
-  bank.value = dataTem;
-  if (bank.value.countryside)
-    bank.value.countryside_fake = bank.value.countryside;
-  if (bank.value.is_default) {
-    checkIsmain.value = false;
-  } else {
-    checkIsmain.value = true;
-  }
-  headerDialog.value = "Sửa ngân hàng";
-  isSaveTem.value = true;
-  displayBasic.value = true;
-};
-//Xóa bản ghi
-const delTem = (Tem) => {
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá bản ghi này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-
-        axios
-          .delete(baseURL + "/api/hrm_ca_bank/delete_hrm_ca_bank", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.bank_id] : 1,
-          })
-          .then((response) => {
-            swal.close();
-            if (response.data.err != "1") {
-              swal.close();
-              toast.success("Xoá ngân hàng thành công!");
-              loadData(true);
-            } else {
-              swal.fire({
-                title: "Error!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          })
-          .catch((error) => {
-            swal.close();
-            if (error.status === 401) {
-              swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                confirmButtonText: "OK",
-              });
-            }
-          });
-      }
-    });
-};
-//Xuất excel
-
 //Sort
 const onSort = (event) => {
   options.value.PageNo = 0;
@@ -462,15 +291,6 @@ const searchStamp = (event) => {
     }
   }
 };
-const refreshStamp = () => {
-  options.value.SearchText = null;
-  filterTrangthai.value = null;
-  options.value.loading = true;
-  selectedStamps.value = [];
-  isDynamicSQL.value = false;
-  filterSQL.value = [];
-  loadData(true);
-};
 const onFilter = (event) => {
   filterSQL.value = [];
 
@@ -504,181 +324,103 @@ const onFilter = (event) => {
   isDynamicSQL.value = true;
   loadDataSQL();
 };
-//Checkbox
-const onCheckBox = (value, check, checkIsmain) => {
-  if (check) {
-    let data = {
-      IntID: value.bank_id,
-      TextID: value.bank_id + "",
-      IntTrangthai: 1,
-      BitTrangthai: value.status,
-    };
-    axios
-      .put(baseURL + "/api/hrm_ca_bank/update_s_hrm_ca_bank", data, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái ngân hàng thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  } else {
-    let data1 = {
-      IntID: value.bank_id,
-      TextID: value.bank_id + "",
-      BitMain: value.is_default,
-    };
-    axios
-      .put(baseURL + "/api/hrm_ca_bank/Update_DefaultStamp", data1, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái ngân hàng thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
+const goFile = (item) => {
+  updateView(item.file_id);
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_file_get1",
+            par: [{ par: "file_id", va: item.file_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+        file_detail.value = data[0];
+      }
+      let data1 = JSON.parse(response.data.data)[1];
+      if (data1.length > 0) {
+        data_log.value = data1;
+      }
+      isDetail.value = true;
+    })
+    .catch((error) => { });
+}
+const updateView = (id) => {
+  axios({
+    method: "put",
+    url: baseURL + "/api/HrmFile/Update_View",
+    data: { file_id: id },
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
+  })
+
+  // axios
+  // .put(baseURL + "/api/HrmFile/Update_View", id, config)
+  // .then((response) => {
+  // });
+}
+const loadTudien = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_file_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+        dataCol[0] = data.find((x) => x.file_type == "Pdf")
+          ? data.find((x) => x.file_type == "Pdf").count_type
+          : 0;
+        dataCol[1] = data.find((x) => x.file_type == "Image")
+          ? data.find((x) => x.file_type == "Image").count_type
+          : 0;
+        dataCol[2] = data.find((x) => x.file_type == "Word")
+          ? data.find((x) => x.file_type == "Word").count_type
+          : 0;
+        dataCol[3] = data.find((x) => x.file_type == "More")
+          ? data.find((x) => x.file_type == "More").count_type
+          : 0;
+        chartDatapie.value.datasets[0].data = dataCol;
+      }
+      let data2 = JSON.parse(response.data.data)[1];
+      if (data.length > 0) {
+        total_file.value = data2[0].total_file;
+      }
+      let data3 = JSON.parse(response.data.data)[2];
+      if (data.length > 0) {
+        total_size.value = data2[0].total_size;
+      }
+    })
+    .catch((error) => { });
 };
-//Xóa nhiều
-const deleteList = () => {
-  let listId = new Array(selectedStamps.value.length);
-  let checkD = false;
-  selectedStamps.value.forEach((item) => {
-    if (item.is_default) {
-      toast.error("Không được xóa ngân hàng mặc định!");
-      checkD = true;
-      return;
-    }
-  });
-  if (!checkD) {
-    swal
-      .fire({
-        title: "Thông báo",
-        text: "Bạn có muốn xoá ngân hàng này không!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có",
-        cancelButtonText: "Không",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          swal.fire({
-            width: 110,
-            didOpen: () => {
-              swal.showLoading();
-            },
-          });
-
-          selectedStamps.value.forEach((item) => {
-            listId.push(item.bank_id);
-          });
-          axios
-            .delete(baseURL + "/api/hrm_ca_bank/delete_hrm_ca_bank", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
-            .then((response) => {
-              swal.close();
-              if (response.data.err != "1") {
-                swal.close();
-                toast.success("Xoá ngân hàng thành công!");
-                checkDelList.value = false;
-
-                loadData(true);
-              } else {
-                swal.fire({
-                  title: "Error!",
-                  text: response.data.ms,
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            })
-            .catch((error) => {
-              swal.close();
-              if (error.status === 401) {
-                swal.fire({
-                  title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            });
-        }
-      });
-  }
-};
-
-//Filter
-const trangThai = ref([
-  { name: "Hiển thị", code: 1 },
-  { name: "Không hiển thị", code: 0 },
-]);
-
 const filterTrangthai = ref();
-
-const reFilterEmail = () => {
-  filterTrangthai.value = null;
-  isDynamicSQL.value = false;
-  checkFilter.value = false;
-  filterSQL.value = [];
-  options.value.SearchText = null;
-  op.value.hide();
-  loadData(true);
-};
-const filterFileds = () => {
-  filterSQL.value = [];
-  checkFilter.value = true;
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
-  loadDataSQL();
-};
+const clearDetail = ()=>{
+  selectedStamps.value = null;
+  isDetail.value = false;
+}
 watch(selectedStamps, () => {
-  if (selectedStamps.value.length > 0) {
-    checkDelList.value = true;
-  } else {
-    checkDelList.value = false;
+  if(selectedStamps.value){
+    goFile(selectedStamps.value);
   }
 });
 const op = ref();
@@ -697,176 +439,329 @@ const formatBytes = (bytes, decimals = 2) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 };
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
   loadData(true);
+  loadTudien();
   return {};
 });
 </script>
-    <template>
+<template>
   <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
     <div class="header-bar">
-      <span class="p-input-icon-left" style="margin: 20px 0 0 15px">
-        <i class="pi pi-search" />
-        <InputText
-          v-model="options.SearchText"
-          @keyup="searchStamp"
-          type="text"
-          spellcheck="false"
-          placeholder="Tìm kiếm"
-        />
-      </span>
+      <div class="flex w-full p-3">
+        <div class="w-15rem mr-2">
+          <Dropdown v-model="filterType" :options="list_types" optionLabel="label" placeholder="Kho dữ liệu"
+            class="w-full" showClear="true" @change="loadData(true)">
+            <template #value="slotProps">
+              <div class="flex align-items-center" v-if="slotProps.value">
+                <img class="icon-modules" v-bind:src="basedomainURL + slotProps.value.img" />
+                <div class="ml-2">
+                  {{ slotProps.value.label }}
+                </div>
+              </div>
+              <span v-else>
+                {{ slotProps.placeholder }}
+              </span>
+            </template>
+            <template #option="slotProps">
+              <div class="country-item flex">
+                <img class="icon-modules" v-bind:src="basedomainURL + slotProps.option.img" />
+                <div style="margin-left: 5px">
+                  {{ slotProps.option.label }}
+                </div>
+              </div>
+            </template>
+          </Dropdown>
+        </div>
+        <div class="w-15rem mr-2">
+          <div class="w-full flex">
+            <span class="w-full p-input-icon-left ">
+              <i class="pi pi-search" />
+              <InputText type="text" style="height:32px" v-model="options.search" spellcheck="false"
+                @keyup.enter="loadData(true)" placeholder="Tìm kiếm" />
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="flex body-content">
       <div class="flex-1">
-        <DataTable
-          @page="onPage($event)"
-          @sort="onSort($event)"
-          @filter="onFilter($event)"
-          v-model:filters="filters"
-          filterDisplay="menu"
-          filterMode="lenient"
-          :filters="filters"
-          :scrollable="true"
-          scrollHeight="flex"
-          :showGridlines="true"
-          columnResizeMode="fit"
-          :lazy="true"
-          :totalRecords="options.totalRecords"
-          :loading="options.loading"
-          :reorderableColumns="true"
-          :value="datalists"
-          removableSort
+        <DataTable @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" v-model:filters="filters"
+          filterDisplay="menu" filterMode="lenient" :filters="filters" :scrollable="true" scrollHeight="flex"
+          :showGridlines="true" columnResizeMode="fit" :lazy="true" :totalRecords="options.totalRecords"
+          :loading="options.loading" :reorderableColumns="true" :value="datalists" removableSort
           v-model:rows="options.PageSize"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-          :paginator="true"
-          dataKey="file_id"
-          responsiveLayout="scroll"
-          v-model:selection="selectedStamps"
-          :row-hover="true"
-        >
-          <Column
-            field="file_type"
-            class="align-items-center justify-content-center text-center"
+          :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="file_id" responsiveLayout="scroll"
+          v-model:selection="selectedStamps" :row-hover="true" selectionMode="single">
+          <Column field="file_type" class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
-            bodyStyle="text-align:center;max-width:50px;min-width:50px"
-          >
+            bodyStyle="text-align:center;max-width:50px;min-width:50px">
             <template #body="{ data }">
-              <img
-                style="height: 90%; object-fit: contain"
-                v-bind:src="
-                  basedomainURL + '/Portals/file/' + data.file_type + '.png'
-                "
-                @error="
-                  $event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-              />
+              <img style="height: 90%; object-fit: contain" v-bind:src="
+                basedomainURL + '/Portals/file/' + data.file_type + '.png'
+              " @error="
+                $event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'
+              " />
             </template>
           </Column>
 
-          <Column
-            field="file_name"
-            header="Tên file số hóa"
-            headerStyle="text-align:left;height:50px"
-            bodyStyle="text-align:left"
-          >
+          <Column field="file_name" header="Tên file số hóa" headerStyle="text-align:left;height:50px"
+            bodyStyle="text-align:left;word-break:break-word">
           </Column>
-          <Column
-            field="file_size"
-            header="Kích cỡ"
-            headerStyle="text-align:center;max-width:200px;min-width:200px;height:50px"
-            bodyStyle="text-align:center;max-width:200px;min-width:200px"
-            class="align-items-center justify-content-center text-center"
-          >
+          <Column field="file_size" header="Kích cỡ"
+            headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px"
+            bodyStyle="text-align:center;max-width:200px;min-width:150px"
+            class="align-items-center justify-content-center text-center">
             <template #body="{ data }">
               {{ formatBytes(data.file_size) }}
-            </template></Column
-          >
-          <Column
-            field="profile_name"
-            header="Nhân sự"
-            headerStyle="text-align:center;max-width:200px;min-width:200px;height:50px"
-            bodyStyle="text-align:center;max-width:200px;min-width:200px;"
-            class="align-items-center justify-content-center text-center"
-          ></Column>
-          <Column
-            field="created_date"
-            header="Ngày/ Người tạo"
+            </template>
+          </Column>
+          <Column field="profile_name" header="Nhân sự"
+            headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px"
+            bodyStyle="text-align:center;max-width:200px;min-width:150px;"
+            class="align-items-center justify-content-center text-center"></Column>
+          <Column field="created_date" header="Ngày/ Người tạo"
             headerStyle="text-align:center;max-width:200px;min-width:200px;height:50px"
             bodyStyle="text-align:center;max-width:200px;min-width:200px;;max-height:60px"
-            class="align-items-center justify-content-center text-center"
-          >
-                   <template #body="slotProps">
-            <span class="mr-2">{{ moment(new Date(slotProps.data.created_date)).format("DD/MM/YYYY ")}}</span>
-            <div>
-              <Avatar
-                v-bind:label="
+            class="align-items-center justify-content-center text-center">
+            <template #body="slotProps">
+              <span class="mr-2">{{
+                moment(new Date(slotProps.data.created_date)).format(
+                  "DD/MM/YYYY "
+                )
+              }}</span>
+              <div>
+                <Avatar v-bind:label="
                   slotProps.data.avatar
                     ? ''
                     : slotProps.data.last_name.substring(0, 1)
-                "
-                v-bind:image="
+                " v-bind:image="
                   slotProps.data.avatar
                     ? basedomainURL + slotProps.data.avatar
                     : basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-                style="
-                  background-color: #2196f3;
-                  color: #ffffff;
-                  width: 2rem;
-                  height: 2rem;
-                  font-size: 1rem !important;
-                "
-                :style="{
-                  background: bgColor[slotProps.data.is_order % 7],
-                }"
-                class="text-avatar"
-                size="xlarge"
-                shape="circle"
-                v-tooltip.top="slotProps.data.full_name"
-              />
-            </div>
-          </template>
+                " style="
+                          background-color: #2196f3;
+                          color: #ffffff;
+                          width: 2rem;
+                          height: 2rem;
+                          font-size: 1rem !important;
+                        " :style="{
+                          background: bgColor[slotProps.data.is_order % 7],
+                        }" class="text-avatar" size="xlarge" shape="circle" v-tooltip.top="slotProps.data.full_name" />
+              </div>
+            </template>
           </Column>
 
           <template #empty>
-            <div
-              class="
-                align-items-center
-                justify-content-center
-                p-4
-                text-center
-                m-auto
-              "
-              v-if="!isFirst"
-            >
+            <div class="
+                      align-items-center
+                      justify-content-center
+                      p-4
+                      text-center
+                      m-auto
+                    " v-if="!isFirst">
               <img src="../../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </template>
         </DataTable>
       </div>
-      <div style="width: 300px; border: 1px solid rgba(0, 0, 0, 0.1)"></div>
+      <div style="width: 320px !important; border: 1px solid rgba(0, 0, 0, 0.1)">
+        <div v-if="!isDetail">
+          <div class="header-rigth w-full format-center" style="
+                  back-ground: #f8f9fa;
+                  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                ">
+            <h3>Kho số hóa: {{ total_file }} files</h3>
+          </div>
+          <div class="body-right format-center">
+            <Chart type="pie" style="width: 90% !important" :data="chartDatapie" :options="lightOptions" />
+          </div>
+          <div class=" format-center w-full ">
+            <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
+          </div>
+        </div>
+        <div v-else class="p-3">
+          <div class="field col-12 pl-0 flex">
+            <div class="col-8 font-bold text-lg">
+              Thông tin chung
+            </div>
+            <div class="col-4 text-right">
+              <i class="pi pi-times-circle text-3xl cursor-pointer" @click="clearDetail()"></i>
+            </div>
+          </div>
+          <div class="field col-12 flex">
+            <div class="col-3 p-0 flex" style="align-items:center">Người tạo: </div>
+            <div class="col-9 p-0 flex">
+              <Avatar v-bind:label="
+                file_detail.avatar ? '' : file_detail.last_name.substring(0, 1)
+              " v-bind:image="basedomainURL + file_detail.avatar" style="background-color: #2196f3;
+                            color: #ffffff;
+                            width: 2rem;
+                            height: 2rem;
+                          " :style="{
+                            background: bgColor[file_detail.last_name.length % 7],
+                          }" class="mr-2" size="xlarge" shape="circle" />
+              <div class="text-bold">{{ file_detail.full_name }} </div>
+            </div>
+          </div>
+          <div class="field col-12 flex">
+            <div class="col-3 p-0 flex" style="align-items:center">Ngày tạo: </div>
+            <div class="col-9 p-0 text-bold">{{ moment(new Date(file_detail.created_date)).format("DD/MM/YYYY ") }} </div>
+          </div>
+          <div class="field col-12 flex">
+            <div class="col-3 p-0 flex" style="align-items:center">Kích thước: </div>
+            <div class="col-9 p-0 text-bold">{{ formatBytes(file_detail.file_size) }} </div>
+          </div>
+          <div class="field col-12 flex">
+            <div class="col-3 p-0 flex" style="align-items:center">Vị trí hồ sơ: </div>
+            <div class="col-9 p-0 text-bold">
+              {{ file_detail.is_type == 0 ? 'Hồ sơ' : file_detail.is_type == 1 ? 'Hợp đồng' : file_detail.is_type == 2 ? 'Đào tạo':''}}
+            </div>
+          </div>
+          <div class="field col-12 font-bold text-lg pl-0 pb-3">Thông tin truy cập</div>
+          <div class="scroll">
+            <div v-for="(item, index) in data_log" :key="index" class="flex mb-3"
+              :style="(index == data_log.length - 1) ? '' : 'border-bottom:2px solid #eee'">
+              <div class="log-image">
+                <div class="group-sign">
+                  <div style="display: inline-block; position: relative; z-index: 1;">
+                    <Avatar v-bind:label="
+                      item.avatar ? '' : item.last_name.substring(0, 1)
+                    " v-bind:image="basedomainURL + item.avatar" style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 4rem;
+                            height: 4rem;
+                          " :style="{
+                            background: bgColor[index % 7],
+                          }" class="mr-2" size="xlarge" shape="circle" />
+                  </div>
+                  <span class="sign-date description">{{ item.position_name }} </span>
+                </div>
+              </div>
+              <div class="log-detail">
+                <div>
+                  <h4 class="m-0 mb-2">{{ item.full_name }}</h4>
+                  <div class="mt-2">Ngày xem: <span class="description">{{ moment(new
+                    Date(item.created_date)).format("DD/MM/YYYY HH:mm") }}</span></div>
+                  <div class="mt-2">IP: <span class="description">{{ item.created_ip }}</span></div>
+                  <div class="mt-2">Thiết bị: <span class="description">{{ item.from_device }}</span></div>
+                </div>
+              </div>
+              <!-- new -->
+              <!-- <div class="col-12 flex">
+                  <div class="col-3">
+                    <Avatar v-bind:label="
+                        item.avatar ? '' : item.last_name.substring(0, 1)
+                      " v-bind:image="basedomainURL + item.avatar" style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 4rem;
+                            height: 4rem;
+                          " :style="{
+                            background: bgColor[index % 7],
+                          }" class="mr-2" size="xlarge" shape="circle" />
+                  </div>
+                  <div class="col-9">
+                    <h3 class="m-0 mb-2">{{ item.full_name }}</h3>
+                    <div class="description mb-2">
+                      <div>{{ item.position_name }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="px-5">
+                  <div class="mt-2">IP: <span class="description">{{ item.created_ip }}</span></div>
+                    <div class="mt-2">Thiết bị: <span class="description">{{ item.from_device }}</span></div>
+                </div> -->
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
     
-    <style scoped>
+<style scoped>
+.scroll {
+  overflow: auto;
+  max-height: calc(100vh - 408px);
+  min-height: calc(100vh - 408px);
+}
+
+.text-bold {
+  color: #000000;
+}
+
 .header-bar {
   background-color: #fff !important;
-  height: 100px !important;
 }
+
 .body-content {
   background: #fff;
-  min-height: calc(100vh - 160px);
-  max-height: calc(100vh - 160px);
+  min-height: calc(100vh - 130px);
+  max-height: calc(100vh - 130px);
   overflow: auto;
+}
+
+.icon-modules {
+  width: 16px;
+  height: 16px;
+}
+
+.field {
+  margin-bottom: 0.75rem;
+}
+
+.log-image {
+  max-width: 90px;
+  min-width: 90px;
+  position: relative;
+}
+
+.group-sign {
+  text-align: center;
+  position: relative;
+}
+
+.sign-date {
+  display: block;
+  clear: both;
+  padding: 5px;
+  margin: .5em 0;
+  /* background: #eee;
+  border-radius: 40px; */
+  position: absolute;
+  top: 54px;
+  width: 100%;
+  z-index: 1;
+  text-align: center;
+  font-size: 11px;
+}
+
+.log-detail {
+  position: relative;
+  flex-grow: 1;
+  min-height: 80px;
+}
+
+.description {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.signuser-detail>div,
+.log-detail>div {
+  /* border: 1px solid #eee;
+  border-radius: 10px; */
+  /* padding: 10px 15px; */
+  margin: 0 10px 10px;
 }
 </style>
 <style lang="scss" scoped>
 ::v-deep(.p-datatable-wrapper) {
+
   th,
   td {
     height: 50px;
@@ -874,6 +769,7 @@ onMounted(() => {
     border-top: 1px solid #e9ecef !important;
     border-bottom: 1px solid #e9ecef !important;
   }
+
   th {
     background: #fff !important;
   }

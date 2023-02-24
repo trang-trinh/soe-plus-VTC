@@ -184,6 +184,7 @@ namespace API.Models
     public class MailInfo
     {
         public string to { get; set; }
+        public string display_name { get; set; }
         public string subject { get; set; }
 
         public string body { get; set; }

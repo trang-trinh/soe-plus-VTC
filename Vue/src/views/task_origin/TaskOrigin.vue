@@ -495,10 +495,10 @@ const ChangeTimeFilter = (type, value) => {
     }
   });
   if (type == 1) {
-    filterTime1.value = moment(new Date(value)).format("DD/MM/YYYY");
+    filterTime1.value = moment(new Date(value)).format("DD/MM/YYYY HH:mm");
     opition.value.sdate = value;
   } else {
-    filterTime2.value = moment(new Date(value)).format("DD/MM/YYYY");
+    filterTime2.value = moment(new Date(value)).format("DD/MM/YYYY HH:mm");
     opition.value.edate = value;
   }
 };
@@ -554,7 +554,7 @@ const ChangeFilterAdvanced = (type) => {
   loadData(true, opition.value.type_view);
 }
 
-const ChangeFilter = (type) => {
+const ChangeFilter = (type, act) => {
   opition.value.filter_type = type;
   opition.value.filter_duan = null;
   opition.value.filter_taskgroup = null;
@@ -585,7 +585,18 @@ const ChangeFilter = (type) => {
       itemFilterButs.value
         .filter((x) => x.istype == 5)
         .forEach((t) => {
-          opition.value.filter_date = t.filter_date;
+          t.groups.filter(y=>y.is_children == 1).forEach((d) => {
+            d.label = d.label + ' (' + moment(d.filter_date).format("DD/MM/YYYY HH:mm") + ')';
+            opition.value.filter_date = d.filter_date;
+          })
+        });
+
+        itemFilterButs.value
+        .filter((x) => x.istype == 6)
+        .forEach((t) => {
+          t.groups.filter(y=>y.is_children == 3).forEach((d) => {
+            d.label = "Ngày hoàn thành";
+          })
         });
       opition.value.loctitle = "Theo ngày nhận";
       break;
@@ -595,7 +606,17 @@ const ChangeFilter = (type) => {
       itemFilterButs.value
         .filter((x) => x.istype == 6)
         .forEach((t) => {
+          t.groups.filter(y=>y.is_children == 3).forEach((d) => {
+            d.label = 'Ngày hoàn thành (' + moment(t.filter_date).format("DD/MM/YYYY HH:mm") + ')';
+          })
           opition.value.filter_date = t.filter_date;
+        });
+      itemFilterButs.value
+        .filter((x) => x.istype == 5)
+        .forEach((t) => {
+          t.groups.filter(y=>y.is_children == 1).forEach((d) => {
+            d.label = "Theo ngày nhận";
+          })
         });
       opition.value.loctitle = "Theo ngày hoàn thành";
       break;
@@ -639,8 +660,15 @@ const ChangeFilter = (type) => {
   filterTime2.value = opition.value.edate
     ? moment(new Date(opition.value.edate)).format("DD/MM/YYYY")
     : null;
-  menuFilterButs.value.toggle();
-  loadData(true, opition.value.type_view);
+  if(type == 1 || type == 2 || type == 3){
+    menuFilterButs.value.toggle();
+    loadData(true, opition.value.type_view);
+  }else{
+    if(act == true){
+      menuFilterButs.value.toggle();
+    loadData(true, opition.value.type_view);
+    }
+  }
 };
 const Del_ChangeFilter = () => {
   opition.value.filter_duan = null;
@@ -652,12 +680,114 @@ const Del_ChangeFilter = () => {
   opition.value.edate = null;
   opition.value.filter_date = null;
   opition.value.loctitle = "Lọc";
-  itemFilterButs.value.forEach((i) => {
-    if(i.istype == 5 || i.istype == 6){
-      i.filter_date = new Date();
-    }
-    i.active = false;
-  });
+  // itemFilterButs.value.forEach((i) => {
+  //   if(i.istype == 5 || i.istype == 6){
+  //     i.filter_date = new Date();
+  //   }
+  //   i.active = false;
+  // });
+  itemFilterButs.value = ([
+  {
+    label: "",
+    icon: "",
+    active: false,
+    istype: 5,
+    hasChildren: true,
+    groups: [
+        {
+        label: "Theo ngày nhận",
+        icon: "pi pi-calendar",
+        active: false,
+        is_children: 1,
+        filter_date: new Date(),
+      },
+      {
+        label: "Dự án",
+        icon: "pi pi-calendar",
+        active: false,
+        is_children: 2,
+      },
+    ],
+  },
+  {
+    label: "",
+    icon: "",
+    active: false,
+    istype: 6,
+    hasChildren: true,
+    groups: [
+        {
+        label: "Ngày hoàn thành",
+        icon: "pi pi-calendar",
+        active: false,
+        is_children: 3,
+        filter_date: new Date(),
+      },
+      {
+        label: "Nhóm công việc",
+        icon: "pi pi-calendar",
+        active: false,
+        is_children: 4,
+      },
+    ],
+  },
+  // {
+  //   label: "Theo ngày nhận",
+  //   icon: "pi pi-calendar",
+  //   active: false,
+  //   istype: 5,
+  //   filter_date: new Date(),
+  // },
+  // {
+  //   label: "Ngày hoàn thành",
+  //   icon: "pi pi-calendar",
+  //   active: false,
+  //   istype: 6,
+  //   filter_date: new Date(),
+  // },
+  {
+    label: "Trong tuần",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 1,
+    hasChildren: false,
+  },
+  {
+    label: "Trong tháng",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 2,
+    hasChildren: false,
+  },
+  {
+    label: "Trong năm",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 3,
+    hasChildren: false,
+  },
+  {
+    label: "Theo thời gian",
+    icon: "pi pi-calendar-times",
+    active: false,
+    istype: 4,
+    hasChildren: true,
+    groups: [
+      {
+        label: "Ngày bắt đầu",
+        icon: "pi pi-calendar",
+        children_id: true,
+        is_change: 1,
+      },
+      {
+        label: "Ngày kết thúc",
+        icon: "pi pi-calendar",
+        children_id: true,
+        is_change: 2,
+      },
+    ],
+  },
+]);
   menuFilterButs.value.toggle();
   loadData(true, opition.value.type_view);
 };
@@ -1008,6 +1138,16 @@ const groupBy = (list, props) => {
   }, {});
 };
 
+const formatDate = (timeMinute) => {
+  if(timeMinute < 60){
+    return timeMinute;
+  }else if(timeMinute >= 60 && timeMinute < 1440){
+    return timeMinute/60;
+  } else {
+    return timeMinute/1440;
+  }
+}
+
 const loadData = (rf, type) => {
   if (type == 3 || type == 2 || type == 4 || type == 5) {
     opition.value.PageSize = 10000;
@@ -1056,55 +1196,54 @@ const loadData = (rf, type) => {
       if (data1.length > 0) {
         data1.forEach((element, i) => {
           element.progress = element.progress == null ? 0 : element.progress;
-          element.update_date = element.modified_date
-            ? element.modified_date
-            : element.created_date;
-          element.status_name =
-            element.status != null
-              ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
-                )[0].text
-              : "";
-          element.status_name =
-            element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
-          element.status_bg_color =
-            element.status != null
-              ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
-                )[0].bg_color
-              : "";
-          element.status_bg_color =
-            element.count_extend > 0 ? "#F18636" : element.status_bg_color;
-          element.status_text_color =
-            element.status != null
-              ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
-                )[0].text_color
-              : "";
+          element.update_date = element.modified_date ? element.modified_date : element.created_date;
+          element.status_name = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].text: "";
+          element.status_name = element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
+          element.status_bg_color = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].bg_color: "";
+          element.status_bg_color = element.count_extend > 0 ? "#F18636" : element.status_bg_color;
+          element.status_text_color = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].text_color: "";
           //thời gian xử lý
           if (element.end_date != null) {
             if (element.thoigianquahan <= 0) {
-              if (element.thoigianxuly > 0) {
-                element.title_time = element.thoigianxuly + " ngày";
-                element.totalDay = element.thoigianxuly;
-                element.time_bg = element.status_bg_color;
-                element.time_color = "color: #fff;";
+              if (element.thoigianxuly > 0 && element.thoigianxuly < 60) {
+                element.title_time = element.thoigianxuly + " phút";
+              }else if (element.thoigianxuly >= 60 && element.thoigianxuly < 1440){
+                element.title_time = Math.floor(element.thoigianxuly/60) + " giờ";
+              }else{
+                element.title_time = Math.floor(element.thoigianxuly/1440) + " ngày";
               }
+              element.totalDay = element.thoigianxuly;
+              element.time_bg = element.status_bg_color;
+              element.time_color = "color: #fff;";
             } else {
               if (element.thoigianquahan > 0) {
-                element.title_time =
-                  "Quá hạn " + element.thoigianquahan + " ngày";
+                if (element.thoigianquahan > 0 && element.thoigianquahan < 60) {
+                  element.title_time = "Quá hạn " + element.thoigianquahan + " phút";
+                }else if (element.thoigianquahan >= 60 && element.thoigianquahan < 1440){
+                  element.title_time = "Quá hạn " + Math.floor(element.thoigianquahan/60) + " giờ";
+                }else{
+                  element.title_time = "Quá hạn " + Math.floor(element.thoigianquahan/1440) + " ngày";
+                }
+                // element.title_time = "Quá hạn " + element.thoigianquahan + " ngày";
                 element.totalDay = element.thoigianquahan;
                 element.time_bg = "red";
                 element.time_color = "color: #fff;";
               }
             }
           } else if (element.thoigianxuly) {
-            element.title_time = element.thoigianxuly + " ngày";
+            if (element.thoigianxuly > 0 && element.thoigianxuly < 60) {
+                element.title_time = element.thoigianxuly + " phút";
+              }else if (element.thoigianxuly >= 60 && element.thoigianxuly < 1440){
+                element.title_time = Math.floor(element.thoigianxuly/60) + " giờ";
+              }else{
+                element.title_time = Math.floor(element.thoigianxuly/1440) + " ngày";
+              }
+            // element.title_time = element.thoigianxuly + " ngày";
             element.totalDay = element.thoigianxuly;
             element.time_bg = element.status_bg_color;
             element.time_color = "color: #fff;";
           }
+
           element.Thanhviens = element.Thanhviens
             ? JSON.parse(element.Thanhviens)
             : [];
@@ -1584,12 +1723,12 @@ const saveTask = (isFormValid) => {
     }
   }
 
-  Task.value.start_date = Task.value.start_date
-    ? new Date(Task.value.start_date)
-    : null;
-  Task.value.end_date = Task.value.end_date
-    ? new Date(Task.value.end_date)
-    : null;
+  // Task.value.start_date = Task.value.start_date
+  //   ? new Date(Task.value.start_date)
+  //   : null;
+  // Task.value.end_date = Task.value.end_date
+  //   ? new Date(Task.value.end_date)
+  //   : null;
   formData.append("taskmember", JSON.stringify(TaskMembers.value));
   formData.append("taskOrigin", JSON.stringify(Task.value));
   if (!issaveTask.value) {
@@ -2108,43 +2247,12 @@ const ChangeShowListCVGroup = (model) => {
             id="task_filter"
             style="z-index: 10"
           >
-            <ul
+            <div style="min-height: calc(100vh - 250px); max-height: calc(100vh - 250px); width: 100%;overflow-x: scroll;;">
+              <ul
               v-for="(item, index) in itemFilterButs"
               :key="index"
               style="padding: 0px; margin: 0px"
             >
-              <!-- <li
-                :class="{ parent: !item.children_id }"
-                class="p-menuitem"
-                v-if="item.istype == 5 || item.istype == 6"
-              >
-                <a
-                  @click="ChangeFilter(item.istype)"
-                  :class="{ active: item.active }"
-                  ><i
-                    style="padding-right: 5px"
-                    :class="item.icon"
-                  ></i
-                  >{{ item.label }}
-                  <span v-if="item.istype == 5 || item.istype == 6">
-                    (<a style="color: #0d89ec">{{
-                      moment(item.filter_date).format("DD/MM/YYYY")
-                    }}</a
-                    >)
-                  </span>
-                </a>
-                <span
-                  style="margin-left: 10px"
-                  v-if="item.istype == 5 || item.istype == 6"
-                >
-                  <Calendar
-                    @date-select="ChangeFilter(item.istype)"
-                    inputId="icon"
-                    v-model="item.filter_date"
-                    :showIcon="true"
-                  />
-                </span>
-              </li> -->
               <li v-if="item.istype == 5 || item.istype == 6"
                 :class="{ children: item.hasChildren, parent: !item.hasChildren }"
                 class="p-menuitem"
@@ -2163,7 +2271,7 @@ const ChangeShowListCVGroup = (model) => {
                   >
                     <div v-if="item1.is_children == 1 || item1.is_children == 3">
                       <a
-                        @click="ChangeFilter(item.istype)"
+                        @click="ChangeFilter(item.istype, false)"
                         :class="{ active: (item.active) }"
                         >
                         <i
@@ -2176,16 +2284,18 @@ const ChangeShowListCVGroup = (model) => {
                         style="margin-left: 10px"
                       >
                         <Calendar
-                          @date-select="ChangeFilter(item.istype)"
+                          @date-select="ChangeFilter(item.istype, false)"
                           inputId="icon"
+                          :showTime="true"
                           v-model="item.filter_date"
                           :showIcon="true"
+                          :manualInput ="true"
                         />
                       </span>
                     </div>
                     <div v-if="item1.is_children != 1 && item1.is_children != 3" style="display: flex; align-items: center;">
                       <a style="flex: 1;"
-                        @click="ChangeFilter(item.istype)"
+                        @click="ChangeFilter(item.istype, false)"
                         >{{ item1.label }}
                       </a>
                       <span
@@ -2232,7 +2342,7 @@ const ChangeShowListCVGroup = (model) => {
                   </li>
                 </ul>
               </li>
-              <li v-if="item.istype != 5 && item.istype != 6"
+              <li v-if="item.istype == 4"
               :class="{ children: item.hasChildren, parent: !item.hasChildren }"
                 class="p-menuitem"
               >
@@ -2296,8 +2406,10 @@ const ChangeShowListCVGroup = (model) => {
                         ChangeTimeFilter(item1.is_change, opition.sdate)
                       "
                       v-model="opition.sdate"
+                      :showTime="true"
                       id="filterTime1"
                       :inline="true"
+                      :manualInput ="true"
                     />
                     <Calendar
                       v-if="item1.is_change == 2"
@@ -2305,16 +2417,31 @@ const ChangeShowListCVGroup = (model) => {
                         ChangeTimeFilter(item1.is_change, opition.edate)
                       "
                       v-model="opition.edate"
+                      :showTime="true"
                       id="filterTime2"
                       :inline="true"
                     />
                   </li>
                 </ul>
               </li>
+              <li v-if="item.istype == 1 || item.istype == 2 || item.istype == 3"
+              :class="{ children: item.hasChildren, parent: !item.hasChildren }"
+                class="p-menuitem"
+                @click="ChangeFilter(item.istype, false)"
+              >
+                <a :class="{ active: item.active }"
+                  ><i
+                    style="padding-right: 5px"
+                    :class="item.icon"
+                  ></i
+                  >{{ item.label }}</a
+                >
+              </li>
             </ul>
+            </div>
             <div style="float: right; padding: 10px">
               <Button
-                @click="ChangeFilter(opition.filter_type)"
+                @click="ChangeFilter(opition.filter_type, true)"
                 label="Thực hiện"
               />``
               <Button
@@ -3725,7 +3852,7 @@ const ChangeShowListCVGroup = (model) => {
         overflow-y: hidden;
       "
     >
-      <div
+      <div v-if="listTask.length > 0"
         class="md:col-md-3"
         v-for="item in listTask"
         style="width: 320px; height: 100%; margin: 0px 10px"
@@ -4263,6 +4390,22 @@ const ChangeShowListCVGroup = (model) => {
           </div>
         </div>
       </div>
+      <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          style="
+            min-height: calc(100vh - 215px);
+            max-height: calc(100vh - 215px);
+            display: flex;
+            flex-direction: column;
+          "
+          v-if="listTask != null || opition.totalRecords == 0"
+        >
+          <img
+            src="../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
     </div>
     <!-- end -->
     <!-- kiểu GANTT -->
@@ -4505,6 +4648,26 @@ const ChangeShowListCVGroup = (model) => {
                     "
                   >
                     {{ g.Name }}
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="listTask != null || opition.totalRecords == 0">
+                <td :colspan="GrandsDate.length + 4" style="text-align: center;">
+                  <div
+                    class="align-items-center justify-content-center p-4 text-center m-auto"
+                    style="
+                      min-height: calc(100vh - 215px);
+                      max-height: calc(100vh - 215px);
+                      display: flex;
+                      flex-direction: column;
+                    "
+                    v-if="listTask != null || opition.totalRecords == 0"
+                  >
+                    <img
+                      src="../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
                   </div>
                 </td>
               </tr>
@@ -4831,6 +4994,26 @@ const ChangeShowListCVGroup = (model) => {
                     "
                   >
                     {{ g.Name }}
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="listTask != null || opition.totalRecords == 0">
+                <td :colspan="GrandsDate.length + 4" style="text-align: center;">
+                  <div
+                    class="align-items-center justify-content-center p-4 text-center m-auto"
+                    style="
+                      min-height: calc(100vh - 215px);
+                      max-height: calc(100vh - 215px);
+                      display: flex;
+                      flex-direction: column;
+                    "
+                    v-if="listTask != null || opition.totalRecords == 0"
+                  >
+                    <img
+                      src="../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
                   </div>
                 </td>
               </tr>
@@ -5275,21 +5458,32 @@ const ChangeShowListCVGroup = (model) => {
             style="display: flex; padding: 0px; align-items: center"
           >
             <Calendar
+                :showIcon="true"
+                id="time24"
+                :showTime="true"
+                autocomplete="on"
+                class="col-5 ip36 title-lable"
+                style="margin-top: 5px; padding: 0px"
+                v-model="Task.start_date"
+              />
+            <!-- <Calendar
               :manualInput="true"
               :showIcon="true"
               class="col-5 ip36 title-lable"
               style="margin-top: 5px; padding: 0px"
               id="time1"
+              hourFormat="12"
               autocomplete="on"
               v-model="Task.start_date"
-            />
+            /> -->
             <div
               class="col-7"
               style="display: flex; padding: 0px; align-items: center"
             >
               <label class="col-5 text-center">Ngày kết thúc</label>
+              
               <Calendar
-                :manualInput="true"
+                :showTime="true"
                 :showIcon="true"
                 class="col-7 ip36 title-lable"
                 style="margin-top: 5px; padding: 0px"

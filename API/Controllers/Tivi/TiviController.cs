@@ -1328,7 +1328,7 @@ namespace API.Controllers.Tivi
                                 var sttImg = 1;
                                 foreach (var item in list_img)
                                 {
-                                    var existData = db.tivi_screen_image.FirstOrDefault(x => (x.tivi_image_id == item.tivi_image_id && item.is_copy == false) || (x.group_img == item.group_img && item.is_copy == true));
+                                    var existData = db.tivi_screen_image.FirstOrDefault(x => (x.tivi_image_id == item.tivi_image_id && item.is_copy == false) || (x.screen_id == detail_screen.screen_id && x.group_img == item.group_img && item.is_copy == true));
                                     if (existData != null)
                                     {
                                         list_edit_image.Add(existData);
@@ -1338,6 +1338,7 @@ namespace API.Controllers.Tivi
                                     else
                                     {
                                         tivi_screen_image vd = new tivi_screen_image();
+                                        vd.tivi_image_id = helper.GenKey();
                                         vd.organization_id = user_now.organization_id;
                                         vd.screen_id = detail_screen.screen_id;
                                         vd.file_name = item.file_name;
@@ -1555,7 +1556,7 @@ namespace API.Controllers.Tivi
                                     if (fileInfo.Exists)
                                     {
                                         fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                        fileName = fileName + helper.ranNumberFile() + fileInfo.Extension;
+                                        fileName = fileName + helper.GenKey() + fileInfo.Extension;
                                         // Convert to unsign                                
                                         fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
                                     }

@@ -116,6 +116,7 @@ const initModule = () => {
         u.organization_name = dt[1][0].organization_name;
         u.product_name = dt[1][0].product_name;
         u.logo = dt[1][0].logo;
+        u.full_name = dt[1][0].full_name;
         u.user_key = dt[1][0].user_key;
         u.background_image = dt[1][0].background_image;
         u.is_super = dt[1][0].is_super;
@@ -245,8 +246,9 @@ onMounted(() => {
   >
     <template v-slot:footer></template>
     <template v-slot:toggle-icon>
-      <img class="vsm--logo" src="../../assets/logo_nobg.png" />
-      <h5 class="ml-2 hversion">SmartOffice</h5>
+      <img class="vsm--logo" :src="basedomainURL + store.getters.user.logo" />
+      <!-- <img class="vsm--logo" src="../../assets/logo_nobg.png" />
+      <h5 class="ml-2 hversion">SmartOffice</h5> -->
     </template>
   </sidebar-menu>
 </template>

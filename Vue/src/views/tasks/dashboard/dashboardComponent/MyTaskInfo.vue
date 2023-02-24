@@ -84,10 +84,10 @@ const listCountIDoButton = ref([
     bgColor: "#6FBF73",
   },
 ]);
-const listTask = ref();
+const listTask = ref([]);
 const chartData1 = ref();
 const chartData2 = ref();
-const listActive = ref();
+const listActive = ref([]);
 const simpleDateName = (date) => {
   let numOfDate = new Date(date).getDay() + 1;
   if (numOfDate == 1) {
@@ -108,8 +108,8 @@ const simpleDateName = (date) => {
   }
 };
 const PositionSideBar = ref("right");
-
-const LoadCountTask = (page) => {
+const page = ref();
+const LoadCountTask = () => {
   axios
     .post(
       // eslint-disable-next-line no-undef
@@ -120,7 +120,7 @@ const LoadCountTask = (page) => {
             proc: "task_dashboard_count",
             par: [
               { par: "user_id", va: user.user_id },
-              // { par: "page", va: 0 },
+              { par: "page", va: page.value },
             ],
           }),
           // eslint-disable-next-line no-undef
@@ -135,6 +135,8 @@ const LoadCountTask = (page) => {
       let listdata = JSON.parse(response.data.data)[1];
       let listact = JSON.parse(response.data.data)[2];
       let countToButton = JSON.parse(response.data.data)[3];
+      let listDropdown = JSON.parse(response.data.data)[4];
+      emitter.emit("listDropdown", { data: listDropdown });
       emitter.emit("count", { data: countToButton });
       let gotData = data[0];
       listCountTaskButton.value[0].count = gotData.TatCa;
@@ -231,8 +233,6 @@ const LoadCountTask = (page) => {
         };
         listDate2.push(d);
       });
-
-      listActive.value = [];
       listDate2.forEach((z) => {
         z.data = [];
         listact.forEach((x) => {
@@ -241,7 +241,9 @@ const LoadCountTask = (page) => {
           }
         });
       });
-      listActive.value = listDate2;
+      listDate2.forEach((z) => {
+        listActive.value.push(z);
+      });
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!" + error);
@@ -304,7 +306,12 @@ emitter.on("SideBar", (obj) => {
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
 });
+const loadMore = () => {
+  page.value += 1;
+  LoadCountTask();
+};
 onMounted(() => {
+  page.value = 0;
   LoadCountTask(0);
 });
 </script>
@@ -381,9 +388,15 @@ onMounted(() => {
           </div>
         </div>
         <div class="p-1"></div>
-        <div class="col-12 bg-white">
+        <div
+          class="col-12 bg-white"
+          style="height: calc(100vh - 330px)"
+        >
           <div class="col-12 font-bold">Hoạt động gần đây</div>
-          <ScrollPanel :style="{ height: width > 1900 ? '62vh' : '39.5vh' }">
+          <div
+            v-if="listActive.length > 0"
+            style="height: calc(100vh - 375px); overflow: auto"
+          >
             <div
               class="col-12 border-gray-500 p-0"
               v-for="(item, index) in listActive"
@@ -396,7 +409,7 @@ onMounted(() => {
                 {{ item.date_display }}
               </div>
               <div
-                class="col-12 flex format-left border-bottom-1 border-gray-200 task-hover"
+                class="col-12 flex format-left border-bottom-1 border-gray-100 task-hover"
                 v-for="(item, index) in item.data"
                 :key="index"
               >
@@ -447,7 +460,26 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-          </ScrollPanel>
+            <div class="col-12 flex align-items-center justify-content-center">
+              <Button
+                label="Xem thêm..."
+                class="p-button-text"
+                @click="loadMore()"
+              >
+              </Button>
+            </div>
+          </div>
+          <div
+            v-else
+            class="align-items-center justify-content-center p-4 text-center m-auto"
+            style="display: flex; flex-direction: column"
+          >
+            <img
+              src="../../../../assets/background/nodata.png"
+              height="144"
+            />
+            <h3 class="m-1">Không có dữ liệu</h3>
+          </div>
         </div>
       </div>
 
@@ -455,7 +487,10 @@ onMounted(() => {
         <div class="col-12 bg-white">
           <div class="col-12 font-bold">Công việc gần nhất đang thực hiện</div>
 
-          <ScrollPanel style="height: 33vh">
+          <ScrollPanel
+            style="height: 33vh"
+            v-if="listTask.length > 0"
+          >
             <div
               class="col-12 flex task-hover"
               v-for="(item, index) in listTask"
@@ -605,10 +640,24 @@ onMounted(() => {
               </div>
             </div>
           </ScrollPanel>
+          <div
+            v-else
+            class="align-items-center justify-content-center p-4 text-center m-auto"
+            style="display: flex; flex-direction: column"
+          >
+            <img
+              src="../../../../assets/background/nodata.png"
+              height="144"
+            />
+            <h3 class="m-1">Không có dữ liệu</h3>
+          </div>
         </div>
 
         <div class="p-1"></div>
-        <div class="col-12 flex bg-white">
+        <div
+          class="col-12 flex bg-white"
+          style="min-height: calc(67vh - 15rem)"
+        >
           <div class="col-6">
             <Chart
               type="pie"

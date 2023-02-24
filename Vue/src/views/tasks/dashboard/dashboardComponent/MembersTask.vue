@@ -3,10 +3,15 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../../util/function.js";
 import moment from "moment";
+import { FilterMatchMode, FilterOperator } from "primevue/api";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
-import { list } from "postcss";
+import TaskChart from "./Chart/TaskChart.vue";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
+
+const filters1 = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
 //khai báo
 const axios = inject("axios");
 const store = inject("store");
@@ -50,7 +55,11 @@ const listStatus = ref([
   { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
   { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
 ]);
-const loadData = () => {
+const Chartdata = ref();
+const loadData = (rf) => {
+  if (rf) {
+    options.value.loading = true;
+  }
   axios
     .post(
       // eslint-disable-next-line no-undef
@@ -96,6 +105,7 @@ const loadData = () => {
               t.p_id == -1 ? "Công việc không thuộc dự án" : t.project_name;
           });
       });
+      Chartdata.value = data;
       datalists.value = data;
       options.value.loading = false;
     })
@@ -139,19 +149,248 @@ const onNodeSelect = (id) => {
 };
 emitter.on("SideBar", (obj) => {
   showDetail.value = obj;
-  loadData();
+  loadData(true);
 });
 watch(showDetail, () => {
   if (showDetail.value == false) {
-    loadData();
+    loadData(true);
   }
 });
 const PositionSideBar = ref("right");
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
 });
+
+const OpenDialog = ref(false);
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Biểu đồ so sánh",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      openChartVue("ExportExcel");
+    },
+  },
+]);
+const model = ref({
+  total: {
+    data: {
+      labels: [],
+      datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [] }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          position: "bottom",
+          text: "Tất cả",
+        },
+        legend: {
+          position: "bottom",
+        },
+      },
+    },
+  },
+  doing: {
+    data: {
+      labels: [],
+      datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [] }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          position: "bottom",
+          text: "Đang làm",
+        },
+        legend: {
+          position: "bottom",
+        },
+      },
+    },
+  },
+  finished: {
+    data: {
+      labels: [],
+      datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [] }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          position: "bottom",
+          text: "Hoàn thành",
+        },
+        legend: {
+          position: "bottom",
+        },
+      },
+    },
+  },
+  expired: {
+    data: {
+      labels: [],
+      datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [] }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          position: "bottom",
+          text: "Quá hạn",
+        },
+        legend: {
+          position: "bottom",
+        },
+      },
+    },
+  },
+});
+
+function getRandomColor() {
+  var letters = "0123456789ABCDEF";
+  var color = "#";
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
+const openChartVue = () => {
+  OpenDialog.value = true;
+  model.value = {
+    total: {
+      data: {
+        labels: [],
+        datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [] }],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            position: "bottom",
+            text: "Tất cả",
+          },
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    },
+    doing: {
+      data: {
+        labels: [],
+        datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [] }],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            position: "bottom",
+            text: "Đang làm",
+          },
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    },
+    finished: {
+      data: {
+        labels: [],
+        datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [] }],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            position: "bottom",
+            text: "Hoàn thành",
+          },
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    },
+    expired: {
+      data: {
+        labels: [],
+        datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [] }],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            position: "bottom",
+            text: "Quá hạn",
+          },
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    },
+  };
+  let data = JSON.parse(JSON.stringify(Chartdata.value));
+  data.forEach((x) => {
+    //total
+    model.value.total.data.labels.push(x.full_name);
+    model.value.total.data.datasets[0].data.push(x.total);
+    model.value.total.data.datasets[0].backgroundColor.push(getRandomColor());
+    model.value.total.data.datasets[0].hoverBackgroundColor.push(
+      getRandomColor(),
+    );
+    //doing
+    model.value.doing.data.labels.push(x.full_name);
+    model.value.doing.data.datasets[0].data.push(x.doing);
+    model.value.doing.data.datasets[0].backgroundColor.push(getRandomColor());
+    model.value.doing.data.datasets[0].hoverBackgroundColor.push(
+      getRandomColor(),
+    );
+    //finished
+    model.value.finished.data.labels.push(x.full_name);
+    model.value.finished.data.datasets[0].data.push(x.finished);
+    model.value.finished.data.datasets[0].backgroundColor.push(
+      getRandomColor(),
+    );
+    model.value.finished.data.datasets[0].hoverBackgroundColor.push(
+      getRandomColor(),
+    );
+    //exp
+    model.value.expired.data.labels.push(x.full_name);
+    model.value.expired.data.datasets[0].data.push(x.expired);
+    model.value.expired.data.datasets[0].backgroundColor.push(getRandomColor());
+    model.value.expired.data.datasets[0].hoverBackgroundColor.push(
+      getRandomColor(),
+    );
+  });
+};
+const listButton = ref([
+  { label: "Tất cả", value: 0, is_active: true },
+  { label: "Đang làm", value: 1, is_active: false },
+  { label: "Hoàn thành", value: 2, is_active: false },
+  { label: "Quá hạn", value: 3, is_active: false },
+]);
+const refresh = () => {
+  options.value.SearchText = "";
+  loadData(true);
+};
+
+const size = ref(75);
+
 onMounted(() => {
-  loadData();
+  loadData(true);
   expandedRows.value = datalists.value.filter((p) => p.user_key);
 });
 </script>
@@ -167,8 +406,48 @@ onMounted(() => {
       dataKey="user_key"
       :rowHover="true"
       :showGridlines="true"
+      v-model:filters="filters1"
       v-model:expandedRows="expandedRows"
+      :globalFilterFields="['full_name', 'user_id']"
     >
+      <template #header>
+        <Toolbar class="w-full custoolbar">
+          <template #start>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText
+                v-model="filters1['global'].value"
+                type="text"
+                spellcheck="false"
+                placeholder="Tìm kiếm"
+              />
+            </span>
+          </template>
+
+          <template #end>
+            <Button
+              @click="refresh()"
+              class="mr-2 p-button-outlined p-button-secondary"
+              icon="pi pi-refresh"
+              v-tooltip="'Tải lại'"
+            />
+            <Button
+              label="Tiện ích"
+              icon="pi pi-file-excel"
+              class="mr-2 p-button-outlined p-button-secondary"
+              @click="toggleExport"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            />
+            <Menu
+              id="overlay_Export"
+              ref="menuButs"
+              :model="itemButs"
+              :popup="true"
+            />
+          </template>
+        </Toolbar>
+      </template>
       <Column
         :expander="true"
         class="max-w-3rem"
@@ -239,7 +518,7 @@ onMounted(() => {
                   ? '#2196f3'
                   : '#6dd230'
               "
-              size="75"
+              :size="size"
             />
           </div>
         </template>
@@ -333,8 +612,8 @@ onMounted(() => {
                       ><i
                         style="color: orange"
                         class="pi pi-star-fill"
-                      ></i
-                    ></span>
+                      ></i>
+                    </span>
                     <span
                       style="
                         font-weight: bold;
@@ -427,7 +706,7 @@ onMounted(() => {
                       ? '#2196f3'
                       : '#6dd230'
                   "
-                  size="90"
+                  :size="size"
                 />
               </template>
             </Column>
@@ -543,6 +822,18 @@ onMounted(() => {
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
+      <template #empty>
+        <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          style="display: flex; flex-direction: column"
+        >
+          <img
+            src="../../../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
+      </template>
     </DataTable>
   </div>
   <Sidebar
@@ -566,6 +857,29 @@ onMounted(() => {
     >
     </DetailedWork
   ></Sidebar>
+  <Dialog
+    :visible="OpenDialog"
+    :header="'Biểu đồ so sánh xử lý công việc'"
+    :style="{ width: '100vw' }"
+    :closable="false"
+    maximizable="true"
+    contentClass="main-layout true "
+  >
+    <TaskChart
+      :data="model"
+      :buttons="listButton"
+    >
+    </TaskChart>
+    <template #footer>
+      <div class="col-12">
+        <Button
+          label="Đóng"
+          class=" "
+          @click="OpenDialog = false"
+        ></Button>
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <style lang="scss" scoped>

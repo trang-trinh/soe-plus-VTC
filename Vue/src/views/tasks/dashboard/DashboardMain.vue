@@ -12,6 +12,14 @@ emitter.on("count", (obj) => {
   ListButtonLabel.value[5].badgeCount = obj.data[0].report;
   ListButtonLabel.value[6].badgeCount = obj.data[0].extend;
 });
+const listDropdownProject = ref([]);
+const listDropdownGroup = ref([]);
+emitter.on("listDropdown", (obj) => {
+  let temp1 = JSON.parse(obj.data[0].list_project);
+  let temp2 = JSON.parse(obj.data[0].list_group);
+  listDropdownProject.value = temp1;
+  listDropdownGroup.value = temp2;
+});
 const ListButtonLabel = ref([
   { label: "Cá nhân", icon: "pi pi-user", code: "0", count: "", status: false },
   {
@@ -99,10 +107,20 @@ onMounted(() => {
       <OrganizationTasks
         v-if="ListButtonLabel[3].status == true"
       ></OrganizationTasks>
-      <TaskReport v-if="ListButtonLabel[4].status == true"></TaskReport>
-      <TaskReview v-if="ListButtonLabel[5].status == true"></TaskReview>
+      <TaskReport
+        v-if="ListButtonLabel[4].status == true"
+        :project="listDropdownProject"
+        :group="listDropdownGroup"
+      ></TaskReport>
+      <TaskReview
+        v-if="ListButtonLabel[5].status == true"
+        :project="listDropdownProject"
+        :group="listDropdownGroup"
+      ></TaskReview>
       <TaskExtendDashboard
         v-if="ListButtonLabel[6].status == true"
+        :project="listDropdownProject"
+        :group="listDropdownGroup"
       ></TaskExtendDashboard>
     </div>
   </div>
