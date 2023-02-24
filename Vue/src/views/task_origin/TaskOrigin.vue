@@ -660,9 +660,14 @@ const ChangeFilter = (type, act) => {
   filterTime2.value = opition.value.edate
     ? moment(new Date(opition.value.edate)).format("DD/MM/YYYY")
     : null;
-  if(act == true){
+  if(type == 1 || type == 2 || type == 3){
     menuFilterButs.value.toggle();
     loadData(true, opition.value.type_view);
+  }else{
+    if(act == true){
+      menuFilterButs.value.toggle();
+    loadData(true, opition.value.type_view);
+    }
   }
 };
 const Del_ChangeFilter = () => {
@@ -675,12 +680,114 @@ const Del_ChangeFilter = () => {
   opition.value.edate = null;
   opition.value.filter_date = null;
   opition.value.loctitle = "Lọc";
-  itemFilterButs.value.forEach((i) => {
-    if(i.istype == 5 || i.istype == 6){
-      i.filter_date = new Date();
-    }
-    i.active = false;
-  });
+  // itemFilterButs.value.forEach((i) => {
+  //   if(i.istype == 5 || i.istype == 6){
+  //     i.filter_date = new Date();
+  //   }
+  //   i.active = false;
+  // });
+  itemFilterButs.value = ([
+  {
+    label: "",
+    icon: "",
+    active: false,
+    istype: 5,
+    hasChildren: true,
+    groups: [
+        {
+        label: "Theo ngày nhận",
+        icon: "pi pi-calendar",
+        active: false,
+        is_children: 1,
+        filter_date: new Date(),
+      },
+      {
+        label: "Dự án",
+        icon: "pi pi-calendar",
+        active: false,
+        is_children: 2,
+      },
+    ],
+  },
+  {
+    label: "",
+    icon: "",
+    active: false,
+    istype: 6,
+    hasChildren: true,
+    groups: [
+        {
+        label: "Ngày hoàn thành",
+        icon: "pi pi-calendar",
+        active: false,
+        is_children: 3,
+        filter_date: new Date(),
+      },
+      {
+        label: "Nhóm công việc",
+        icon: "pi pi-calendar",
+        active: false,
+        is_children: 4,
+      },
+    ],
+  },
+  // {
+  //   label: "Theo ngày nhận",
+  //   icon: "pi pi-calendar",
+  //   active: false,
+  //   istype: 5,
+  //   filter_date: new Date(),
+  // },
+  // {
+  //   label: "Ngày hoàn thành",
+  //   icon: "pi pi-calendar",
+  //   active: false,
+  //   istype: 6,
+  //   filter_date: new Date(),
+  // },
+  {
+    label: "Trong tuần",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 1,
+    hasChildren: false,
+  },
+  {
+    label: "Trong tháng",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 2,
+    hasChildren: false,
+  },
+  {
+    label: "Trong năm",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 3,
+    hasChildren: false,
+  },
+  {
+    label: "Theo thời gian",
+    icon: "pi pi-calendar-times",
+    active: false,
+    istype: 4,
+    hasChildren: true,
+    groups: [
+      {
+        label: "Ngày bắt đầu",
+        icon: "pi pi-calendar",
+        children_id: true,
+        is_change: 1,
+      },
+      {
+        label: "Ngày kết thúc",
+        icon: "pi pi-calendar",
+        children_id: true,
+        is_change: 2,
+      },
+    ],
+  },
+]);
   menuFilterButs.value.toggle();
   loadData(true, opition.value.type_view);
 };
@@ -1031,6 +1138,16 @@ const groupBy = (list, props) => {
   }, {});
 };
 
+const formatDate = (timeMinute) => {
+  if(timeMinute < 60){
+    return timeMinute;
+  }else if(timeMinute >= 60 && timeMinute < 1440){
+    return timeMinute/60;
+  } else {
+    return timeMinute/1440;
+  }
+}
+
 const loadData = (rf, type) => {
   if (type == 3 || type == 2 || type == 4 || type == 5) {
     opition.value.PageSize = 10000;
@@ -1079,55 +1196,54 @@ const loadData = (rf, type) => {
       if (data1.length > 0) {
         data1.forEach((element, i) => {
           element.progress = element.progress == null ? 0 : element.progress;
-          element.update_date = element.modified_date
-            ? element.modified_date
-            : element.created_date;
-          element.status_name =
-            element.status != null
-              ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
-                )[0].text
-              : "";
-          element.status_name =
-            element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
-          element.status_bg_color =
-            element.status != null
-              ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
-                )[0].bg_color
-              : "";
-          element.status_bg_color =
-            element.count_extend > 0 ? "#F18636" : element.status_bg_color;
-          element.status_text_color =
-            element.status != null
-              ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
-                )[0].text_color
-              : "";
+          element.update_date = element.modified_date ? element.modified_date : element.created_date;
+          element.status_name = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].text: "";
+          element.status_name = element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
+          element.status_bg_color = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].bg_color: "";
+          element.status_bg_color = element.count_extend > 0 ? "#F18636" : element.status_bg_color;
+          element.status_text_color = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].text_color: "";
           //thời gian xử lý
           if (element.end_date != null) {
             if (element.thoigianquahan <= 0) {
-              if (element.thoigianxuly > 0) {
-                element.title_time = element.thoigianxuly + " ngày";
-                element.totalDay = element.thoigianxuly;
-                element.time_bg = element.status_bg_color;
-                element.time_color = "color: #fff;";
+              if (element.thoigianxuly > 0 && element.thoigianxuly < 60) {
+                element.title_time = element.thoigianxuly + " phút";
+              }else if (element.thoigianxuly >= 60 && element.thoigianxuly < 1440){
+                element.title_time = Math.floor(element.thoigianxuly/60) + " giờ";
+              }else{
+                element.title_time = Math.floor(element.thoigianxuly/1440) + " ngày";
               }
+              element.totalDay = element.thoigianxuly;
+              element.time_bg = element.status_bg_color;
+              element.time_color = "color: #fff;";
             } else {
               if (element.thoigianquahan > 0) {
-                element.title_time =
-                  "Quá hạn " + element.thoigianquahan + " ngày";
+                if (element.thoigianquahan > 0 && element.thoigianquahan < 60) {
+                  element.title_time = "Quá hạn " + element.thoigianquahan + " phút";
+                }else if (element.thoigianquahan >= 60 && element.thoigianquahan < 1440){
+                  element.title_time = "Quá hạn " + Math.floor(element.thoigianquahan/60) + " giờ";
+                }else{
+                  element.title_time = "Quá hạn " + Math.floor(element.thoigianquahan/1440) + " ngày";
+                }
+                // element.title_time = "Quá hạn " + element.thoigianquahan + " ngày";
                 element.totalDay = element.thoigianquahan;
                 element.time_bg = "red";
                 element.time_color = "color: #fff;";
               }
             }
           } else if (element.thoigianxuly) {
-            element.title_time = element.thoigianxuly + " ngày";
+            if (element.thoigianxuly > 0 && element.thoigianxuly < 60) {
+                element.title_time = element.thoigianxuly + " phút";
+              }else if (element.thoigianxuly >= 60 && element.thoigianxuly < 1440){
+                element.title_time = Math.floor(element.thoigianxuly/60) + " giờ";
+              }else{
+                element.title_time = Math.floor(element.thoigianxuly/1440) + " ngày";
+              }
+            // element.title_time = element.thoigianxuly + " ngày";
             element.totalDay = element.thoigianxuly;
             element.time_bg = element.status_bg_color;
             element.time_color = "color: #fff;";
           }
+
           element.Thanhviens = element.Thanhviens
             ? JSON.parse(element.Thanhviens)
             : [];
@@ -1592,7 +1708,6 @@ const saveTask = (isFormValid) => {
       TaskMembers.value.push(member3);
     });
   }
-  debugger
   if (isAdd.value == false) {
     if (Task.value.created_date) {
       Task.value.created_date = new Date(Task.value.created_date);
@@ -2174,6 +2289,7 @@ const ChangeShowListCVGroup = (model) => {
                           :showTime="true"
                           v-model="item.filter_date"
                           :showIcon="true"
+                          :manualInput ="true"
                         />
                       </span>
                     </div>
@@ -2226,7 +2342,7 @@ const ChangeShowListCVGroup = (model) => {
                   </li>
                 </ul>
               </li>
-              <li v-if="item.istype != 5 && item.istype != 6"
+              <li v-if="item.istype == 4"
               :class="{ children: item.hasChildren, parent: !item.hasChildren }"
                 class="p-menuitem"
               >
@@ -2293,6 +2409,7 @@ const ChangeShowListCVGroup = (model) => {
                       :showTime="true"
                       id="filterTime1"
                       :inline="true"
+                      :manualInput ="true"
                     />
                     <Calendar
                       v-if="item1.is_change == 2"
@@ -2306,6 +2423,19 @@ const ChangeShowListCVGroup = (model) => {
                     />
                   </li>
                 </ul>
+              </li>
+              <li v-if="item.istype == 1 || item.istype == 2 || item.istype == 3"
+              :class="{ children: item.hasChildren, parent: !item.hasChildren }"
+                class="p-menuitem"
+                @click="ChangeFilter(item.istype, false)"
+              >
+                <a :class="{ active: item.active }"
+                  ><i
+                    style="padding-right: 5px"
+                    :class="item.icon"
+                  ></i
+                  >{{ item.label }}</a
+                >
               </li>
             </ul>
             </div>
