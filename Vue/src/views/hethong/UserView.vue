@@ -2215,7 +2215,7 @@ onMounted(() => {
             optionValue="role_id"
             placeholder="Chọn nhóm"
           />
-          <label class="col-2 text-right">Chức vụ</label>
+          <label class="col-2 text-left pl-7">Chức vụ</label>
           <Dropdown
             class="col-4 ip32"
             v-model="user.position_id"
@@ -2232,7 +2232,7 @@ onMounted(() => {
             v-model="user.ca_number"
             :useGrouping="false"
           />
-          <label class="col-2 text-right">Ngày sinh</label>
+          <label class="col-2 text-left pl-7">Ngày sinh</label>
           <Calendar
             class="col-4 ip32"
             id="icon"
@@ -2247,7 +2247,7 @@ onMounted(() => {
             spellcheck="false"
             v-model="user.phone"
           />
-          <label class="col-2 text-right">Email</label>
+          <label class="col-2 text-left pl-7">Email</label>
           <InputText
             class="col-4 ip32"
             spellcheck="false"
@@ -2264,7 +2264,7 @@ onMounted(() => {
             optionValue="value"
             placeholder="Chọn trạng thái"
           />
-          <label class="col-2 text-right">Giới tính</label>
+          <label class="col-2 text-left pl-7">Giới tính</label>
           <Dropdown
             class="col-4 ip32"
             v-model="user.gender"
@@ -2368,20 +2368,34 @@ onMounted(() => {
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">STT</label>
           <InputNumber class="col-1 ip32 p-0" v-model="user.is_order" />
-
+          <label class="col-1"></label>
           <label class="col-2 text-right">Admin</label>
           <InputSwitch class="col-1" v-model="user.is_admin" />
-          <label class="text-right" style="width: 20%; padding: 0.5rem"
+                                        <label class="col-1" v-if="user.is_super"></label>
+            <label class="col-2 text-right" v-if="user.is_super">Is Super</label>
+            <InputSwitch v-model="user.is_super" v-if="user.is_super"/>
+        </div>
+                  <Accordion class="w-full p-2" >
+            <!-- 1. Thông tin chung -->
+            <AccordionTab>
+              <template #header>
+                <span>Quyền Module</span>
+              </template>
+                      <div class="field col-12 md:col-12">
+          <label class="text-left" style="width: 20%; padding: 0.5rem"
             >Hiển thị sinh nhật</label
           >
           <InputSwitch class="col-1" v-model="user.display_birthday" />
+                     <label class="col-1"></label>
           <label class="col-2 text-right">Ban hành</label>
           <InputSwitch class="col-1" v-model="user.calendar_enact" />
-          <div class="field col-12 md:col-12" v-if="user.is_super">
-            <label class="col-2 left">Is Super</label>
-            <InputSwitch v-model="user.is_super" />
-          </div>
+                     <label class="col-1"></label>
+                    <label class="col-2 text-right">Tổng hợp CV</label>
+          <InputSwitch class="col-1" v-model="user.is_task" />
         </div>
+              </AccordionTab>
+              </Accordion>
+
       </div>
     </form>
     <template #footer>

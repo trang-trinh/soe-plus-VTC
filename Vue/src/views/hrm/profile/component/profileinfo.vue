@@ -7,6 +7,7 @@ import dialogcontract from "../../contract/component/dialogcontract.vue";
 import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
 import moment from "moment";
+import { init } from "events";
 
 const route = useRoute();
 const router = inject("router");
@@ -25,16 +26,16 @@ const basedomainURL = baseURL;
 
 //Declare
 const views = ref([
-  { view: 1, title: "Sơ yếu lý lịch", icon: "fa-regular fa-address-card" },
+  { view: 1, title: "Sơ yếu", icon: "fa-regular fa-address-card" },
   { view: 2, title: "Công việc", icon: "fa-solid fa-list-check" },
   { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
   { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
   { view: 5, title: "Phiếu lương", icon: "a-solid fa-money-check-dollar" },
   { view: 6, title: "Bảo hiểm", icon: "fa-solid fa-file-shield" },
-  { view: 7, title: "Phép năm", icon: "fa-regular fa-calendar-days" },
+  { view: 7, title: "Phép", icon: "fa-regular fa-calendar-days" },
   { view: 8, title: "Đào tạo", icon: "fa-solid fa-person-chalkboard" },
   { view: 9, title: "Quyết định", icon: "fa-solid fa-envelope-open" },
-  { view: 10, title: "Tệp số hóa", icon: "fa-solid fa-paperclip" },
+  { view: 10, title: "File", icon: "fa-solid fa-paperclip" },
 ]);
 const options = ref({
   loading: true,
@@ -47,7 +48,9 @@ const options = ref({
   orderBy: "desc",
   view: 1,
   profile_id: null,
+  key_id: null,
   contract_id: null,
+  training_emps: {},
 });
 const bgColor = ref([
   "#F8E69A",
@@ -59,15 +62,29 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const selectedNodes = ref([]);
-watch(selectedNodes, () => {
-  if (options.value.view === 3) {
-    options.value["contract_id"] = selectedNodes.value["contract_id"];
+watch(selectedNodes, () => {});
+const selectRow = (event) => {
+  if (options.value.view === 1) {
+    goProfile(event.data);
+  } else if (options.value.view === 3) {
+    options.value["contract_id"] = event.data["contract_id"];
     openViewDialogContract("Thông tin hợp đồng");
   } else if (options.value.view === 8) {
-    options.value["training_emps_id"] = selectedNodes.value["training_emps_id"];
+    options.value["training_emps"] = event.data;
     openViewDialogTranning("Thông tin khóa đào tạo");
   }
-});
+};
+const goProfile = (profile) => {
+  router
+    .push({
+      name: "profileinfo",
+      params: { id: profile.key_id },
+      query: { id: profile.profile_id },
+    })
+    .then(() => {
+      router.go();
+    });
+};
 
 //data view 1
 const profile = ref({});
@@ -88,6 +105,10 @@ const forms = ref([
 ]);
 const dictionarys = ref([]);
 const datachilds = ref([]);
+
+//data view 2
+const task = ref({});
+const tasks = ref([]);
 
 //data view 3
 const contracts = ref([]);
@@ -289,7 +310,7 @@ const openViewDialogTranning = (str) => {
 };
 const closeDialogTranning = () => {
   displayDialogTranning.value = false;
-}
+};
 
 //data view 11
 const receipts = ref([]);
@@ -328,7 +349,7 @@ const goFile = (file) => {
   window.open(basedomainURL + file.file_path, "_blank");
 };
 const goBack = () => {
-  router.back();
+  router.push({ name: "profile" });
 };
 
 //Function
@@ -513,6 +534,37 @@ const initDictionary1 = () => {
     })
     .then(() => {
       initView1(true);
+    });
+};
+//init dictionary view 2
+const initDictionary2 = () => {
+  dictionarys.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_contract_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          dictionarys.value = tbs;
+        }
+      }
+    })
+    .then(() => {
+      initView2(true);
     });
 };
 //init dictionary view 3
@@ -963,6 +1015,126 @@ const initView1 = (rf) => {
     .catch((error) => {
       swal.close();
       if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+const initView2 = (rf) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_task_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "profile_id", va: options.value["profile_id"] },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          task.value = tbs[0][0];
+          var idx = typestatus.value.findIndex(
+            (x) => x["value"] === task.value["status"]
+          );
+          if (idx != -1) {
+            task.value["status_name"] = typestatus.value[idx]["title"];
+            task.value["bg_color"] = typestatus.value[idx]["bg_color"];
+            task.value["text_color"] = typestatus.value[idx]["text_color"];
+          } else {
+            task.value["status_name"] = "Chưa xác định";
+            task.value["bg_color"] = "#bbbbbb";
+            task.value["text_color"] = "#fff";
+          }
+          if (task.value["start_date"] != null) {
+            task.value["start_date"] = moment(
+              new Date(task.value["start_date"])
+            ).format("DD/MM/YYYY");
+          }
+          if (task.value["end_date"] != null) {
+            task.value["end_date"] = moment(
+              new Date(task.value["end_date"])
+            ).format("DD/MM/YYYY");
+          }
+          if (task.value["sign_date"] != null) {
+            task.value["sign_date"] = moment(
+              new Date(task.value["sign_date"])
+            ).format("DD/MM/YYYY");
+          }
+
+          tbs[1].forEach((item) => {
+            var idx = typestatus.value.findIndex(
+              (x) => x["value"] === item["status"]
+            );
+            if (idx != -1) {
+              item["status_name"] = typestatus.value[idx]["title"];
+              item["bg_color"] = typestatus.value[idx]["bg_color"];
+              item["text_color"] = typestatus.value[idx]["text_color"];
+            } else {
+              item["status_name"] = "Chưa xác định";
+              item["bg_color"] = "#bbbbbb";
+              item["text_color"] = "#fff";
+            }
+            if (item["start_date"] != null) {
+              item["start_date"] = moment(new Date(item["start_date"])).format(
+                "DD/MM/YYYY"
+              );
+            }
+            if (item["end_date"] != null) {
+              item["end_date"] = moment(new Date(item["end_date"])).format(
+                "DD/MM/YYYY"
+              );
+            }
+            if (item["sign_date"] != null) {
+              item["sign_date"] = moment(new Date(item["sign_date"])).format(
+                "DD/MM/YYYY"
+              );
+            }
+          });
+          tasks.value = tbs[1];
+        } else {
+          task.value = {};
+          tasks.value = [];
+        }
+      }
+      swal.close();
+    })
+    .catch((error) => {
+      swal.close();
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
@@ -1456,10 +1628,66 @@ const initView12 = (rf) => {
       }
     });
 };
+const replates = ref([]);
+const initRelate = (rf) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_relate_get",
+            par: [{ par: "profile_id", va: options.value["profile_id"] }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        replates.value = tbs;
+      }
+      swal.close();
+    })
+    .catch((error) => {
+      swal.close();
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 const initData = () => {
   if (options.value.view === 1) {
     initDictionary1();
   } else if (options.value.view === 2) {
+    initView2(true);
   } else if (options.value.view === 3) {
     initDictionary3();
     initView3(true);
@@ -1475,7 +1703,9 @@ const initData = () => {
 };
 onMounted(() => {
   if (route.params.id != null) {
-    options.value["profile_id"] = route.params.id;
+    options.value["key_id"] = route.params.id;
+    options.value["profile_id"] = route.query.id;
+    initRelate();
     initData();
   } else {
     router.back();
@@ -1494,27 +1724,23 @@ const onPage = (event) => {
 <template>
   <div class="surface-100 p-2">
     <Toolbar class="outline-none surface-0 border-none">
-      <template #start>
-        <ul class="flex p-0 m-0" style="list-style: none">
+      <template #start> </template>
+      <template #end>
+        <ul class="flex p-0 m-0 mr-2" style="list-style: none">
           <li>
             <Button
               @click="goBack()"
               type="button"
               label="Quay lại"
               icon="pi pi-arrow-left"
-              class="p-button"
-              style="
-                background-color: #5bc0de !important;
-                border: 1px solid #5bc0de !important;
-              "
+              class="p-button p-button-outlined p-button-secondary"
             />
           </li>
         </ul>
-      </template>
-      <template #end>
         <Button
           @click="toggleEdit"
           label="Cập nhật thay đổi thông tin"
+          class="p-button-warning"
           icon="pi pi-file-excel"
           aria-haspopup="true"
           aria-controls="overlay_Export"
@@ -1543,6 +1769,7 @@ const onPage = (event) => {
             optionLabel="view"
             dataKey="view"
             aria-labelledby="custom"
+            class="selectbutton-custom"
           >
             <template #option="slotProps">
               <div>
@@ -1556,6 +1783,21 @@ const onPage = (event) => {
               </div>
             </template>
           </SelectButton>
+          <Button
+            @click="
+              toggleMores($event);
+              $event.stopPropagation();
+            "
+            :class="{
+              'p-button-outlined p-button-secondary': options.view < 11,
+            }"
+            style="border: 1px solid #ced4da; height: 30px"
+          >
+            <span class="mr-2"
+              ><font-awesome-icon icon="fa-solid fa-print"
+            /></span>
+            In
+          </Button>
           <Button
             @click="
               toggleMores($event);
@@ -1607,7 +1849,7 @@ const onPage = (event) => {
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
                   <!-- 1. Thông tin chung -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <span>1. Thông tin chung</span>
@@ -1842,7 +2084,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngân hàng:
                                 <span class="description-2">{{
@@ -1852,7 +2094,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số tài khoản:
                                 <span class="description-2">{{
@@ -1862,7 +2104,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tên tài khoản:
                                 <span class="description-2">{{
@@ -1876,7 +2118,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 2. Trình độ học vấn -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-book mr-2"></i> -->
@@ -1925,7 +2167,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Lý luận chính trị:
                                 <span class="description-2">{{
@@ -1935,7 +2177,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngoại ngữ:
                                 <span class="description-2">{{
@@ -1945,7 +2187,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tin học:
                                 <span class="description-2">{{
@@ -1959,7 +2201,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 3. Thông tin liên hệ -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-info-circle mr-2"></i> -->
@@ -2033,7 +2275,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Địa chỉ:
                                 <span class="description-2">{{
@@ -2047,7 +2289,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 4. Thông tin gia đình, người phụ thuộc -->
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2080,12 +2322,12 @@ const onPage = (event) => {
                             <template #body="slotProps">
                               <span
                                 v-if="slotProps.data.is_root"
-                                v-tooltip.right="'Bản gốc'"
+                                v-tooltip.right="'Theo lý lịch'"
                                 ><i class="pi pi-flag-fill"></i
                               ></span>
                               <span
                                 v-if="!slotProps.data.is_root"
-                                v-tooltip.right="'Bản cập nhật'"
+                                v-tooltip.right="'Bổ sung'"
                                 ><i class="pi pi-pencil"></i
                               ></span>
                             </template>
@@ -2246,11 +2488,7 @@ const onPage = (event) => {
                           <template #empty>
                             <div
                               class="align-items-center justify-content-center p-4 text-center m-auto"
-                              style="
-                                display: flex;
-                                width: 100%;
-                                min-height: 200px;
-                              "
+                              style="display: flex; width: 100%"
                             ></div>
                           </template>
                         </DataTable>
@@ -2258,7 +2496,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 5. Quá trình đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ, lý luận chính trị, ngoại ngữ, tin học -->
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2273,7 +2511,7 @@ const onPage = (event) => {
                         </Toolbar>
                       </template>
                       <div class="col-12 md:col-12 p-0">
-                        <div style="min-height: 250px">
+                        <div>
                           <DataTable
                             :value="datachilds[2]"
                             :scrollable="true"
@@ -2399,7 +2637,7 @@ const onPage = (event) => {
                             </Column>
                             <Column
                               field="certificate_version"
-                              header="phiên bản"
+                              header="Phiên bản"
                               headerStyle="text-align:center;width:150px;height:50px"
                               bodyStyle="text-align:center;width:150px;"
                               class="align-items-center justify-content-center text-center"
@@ -2426,11 +2664,7 @@ const onPage = (event) => {
                             <template #empty>
                               <div
                                 class="align-items-center justify-content-center p-4 text-center m-auto"
-                                style="
-                                  display: flex;
-                                  width: 100%;
-                                  min-height: 200px;
-                                "
+                                style="display: flex; width: 100%"
                               ></div>
                             </template>
                           </DataTable>
@@ -2439,7 +2673,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 6. Lịch sử Đảng viên -->
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2450,7 +2684,7 @@ const onPage = (event) => {
                         </Toolbar>
                       </template>
                       <div class="col-12 md:col-12 p-0">
-                        <div style="min-height: 250px">
+                        <div>
                           <DataTable
                             :value="datachilds[3]"
                             :scrollable="true"
@@ -2532,11 +2766,7 @@ const onPage = (event) => {
                             <template #empty>
                               <div
                                 class="align-items-center justify-content-center p-4 text-center m-auto"
-                                style="
-                                  display: flex;
-                                  width: 100%;
-                                  min-height: 200px;
-                                "
+                                style="display: flex; width: 100%"
                               ></div>
                             </template>
                           </DataTable>
@@ -2545,7 +2775,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 7. Lịch sử tham gia quân đội -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-chart-line mr-2"></i> -->
@@ -2633,7 +2863,7 @@ const onPage = (event) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6">
+                          <div class="col-6 md:col-6 m-0">
                             <div class="form-group">
                               <label
                                 >Thương binh hạng:
@@ -2643,7 +2873,7 @@ const onPage = (event) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6">
+                          <div class="col-6 md:col-6 m-0">
                             <div class="form-group">
                               <label
                                 >Con gia đình chính sách:
@@ -2658,7 +2888,7 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 8. Kinh nghiệm làm việc -->
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
@@ -2668,7 +2898,7 @@ const onPage = (event) => {
                         </Toolbar>
                       </template>
                       <div class="col-12 md:col-12 p-0">
-                        <div style="min-height: 250px">
+                        <div>
                           <DataTable
                             :value="datachilds[4]"
                             :scrollable="true"
@@ -2763,11 +2993,7 @@ const onPage = (event) => {
                             <template #empty>
                               <div
                                 class="align-items-center justify-content-center p-4 text-center m-auto"
-                                style="
-                                  display: flex;
-                                  width: 100%;
-                                  min-height: 200px;
-                                "
+                                style="display: flex; width: 100%"
                               ></div>
                             </template>
                           </DataTable>
@@ -2775,8 +3001,8 @@ const onPage = (event) => {
                       </div>
                     </AccordionTab>
                   </Accordion>
-                  <!-- Đặc điểm lịch sử bản thân -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <!-- 9. Đặc điểm lịch sử bản thân -->
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-chart-line mr-2"></i> -->
@@ -2803,7 +3029,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Thông tin 3:
                             <span class="description-2">{{
@@ -2815,14 +3041,14 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                   <!-- 10.	Đính kèm khác (file số hóa liên quan) -->
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-chart-line mr-2"></i> -->
                         <span> 10. Đính kèm khác (file số hóa liên quan)</span>
                       </template>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <div
                             v-if="
                               profile.files != null && profile.files.length > 0
@@ -2884,11 +3110,248 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 2" class="f-full">Công việc</div>
+            <div v-show="options.view === 2" class="f-full">
+              <div class="row p-2">
+                <div class="col-12 md:col-12 p-0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <span>Công việc hiện tại</span>
+                      </template>
+                      <div class="row">
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Trạng thái:
+                              <span class="description-2">{{
+                                task.status_name
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Phòng ban:
+                              <span class="description-2">{{
+                                task.department_name
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Vị trí:
+                              <span class="description-2">{{
+                                task.work_position_name
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Chức vụ:
+                              <span class="description-2">{{
+                                task.position_name
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Ngày hiệu lực:
+                              <span class="description-2">{{
+                                task.start_date
+                              }}</span>
+                              <span v-if="task.start_date && task.end_date">
+                                -
+                              </span>
+                              <span
+                                v-if="task.end_date"
+                                class="description-2"
+                                >{{ task.end_date }}</span
+                              ></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Ngày ký hợp đồng chính thức:
+                              <span class="description-2">{{
+                                task.sign_date
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Công việc chuyên môn:
+                              <span class="description-2">{{
+                                task.professional_work_name
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Loại hợp đồng:
+                              <span class="description-2">{{
+                                task.contract_name
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Hình thức:
+                              <span class="description-2">{{
+                                task.formality_name
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                          <div class="form-group">
+                            <label
+                              >Ngạch lương:
+                              <span class="description-2">{{
+                                task.wage_name
+                              }}</span></label
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                </div>
+                <div class="col-12 md:col-12 p-0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <span>Quá trình làm việc</span>
+                      </template>
+                      <div>
+                        <DataTable
+                          :value="tasks"
+                          :scrollable="true"
+                          :lazy="true"
+                          :rowHover="true"
+                          :showGridlines="true"
+                          scrollDirection="both"
+                          style="display: grid"
+                          class="empty-full"
+                        >
+                          <Column
+                            field="start_date"
+                            header="Ngày hiệu lực"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span v-html="slotProps.data.start_date"></span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="start_date"
+                            header="Ngày hết hạn"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span v-html="slotProps.data.end_date"></span>
+                            </template>
+                          </Column>
+
+                          <Column
+                            field="department_name"
+                            header="Phòng ban"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          />
+                          <Column
+                            field="work_position_name"
+                            header="Vị trí"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          />
+                          <Column
+                            field="position_name"
+                            header="Chức vụ"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          />
+                          <Column
+                            field="type_contract_name"
+                            header="Loại hợp đồng"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              {{ slotProps.data.type_contract_name }}
+                            </template>
+                          </Column>
+                          <Column
+                            field="contract_no"
+                            header="Mã HĐ"
+                            headerStyle="text-align:center;width:80px;height:50px"
+                            bodyStyle="text-align:center;width:80px;"
+                            class="align-items-center justify-content-center text-center"
+                          />
+                          <Column
+                            field="status"
+                            header="Trạng thái"
+                            headerStyle="text-align:center;width:140px;height:50px"
+                            bodyStyle="text-align:center;width:140px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div
+                                class="m-2"
+                                aria:haspopup="true"
+                                aria-controls="overlay_panel_status"
+                              >
+                                <Button
+                                  :label="slotProps.data.status_name"
+                                  :style="{
+                                    border: slotProps.data.bg_color,
+                                    backgroundColor: slotProps.data.bg_color,
+                                    color: slotProps.data.text_color,
+                                  }"
+                                />
+                              </div>
+                            </template>
+                          </Column>
+                          <template #empty>
+                            <div
+                              class="align-items-center justify-content-center p-4 text-center m-auto"
+                              style="display: flex; width: 100%"
+                            ></div>
+                          </template>
+                        </DataTable>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                </div>
+              </div>
+            </div>
             <div v-show="options.view === 3" class="f-full">
               <div class="d-lang-table-1 p-2">
                 <DataTable
                   @page="onPage($event)"
+                  @rowSelect="selectRow"
                   :value="contracts"
                   :paginator="true"
                   :rows="options.pageSize"
@@ -3231,11 +3694,7 @@ const onPage = (event) => {
                           <template #empty>
                             <div
                               class="align-items-center justify-content-center p-4 text-center m-auto"
-                              style="
-                                display: flex;
-                                width: 100%;
-                                min-height: 200px;
-                              "
+                              style="display: flex; width: 100%"
                             ></div>
                           </template>
                         </DataTable>
@@ -3325,11 +3784,7 @@ const onPage = (event) => {
                           <template #empty>
                             <div
                               class="align-items-center justify-content-center p-4 text-center m-auto"
-                              style="
-                                display: flex;
-                                width: 100%;
-                                min-height: 200px;
-                              "
+                              style="display: flex; width: 100%"
                             ></div>
                           </template>
                         </DataTable>
@@ -3344,6 +3799,7 @@ const onPage = (event) => {
               <div class="d-lang-table-1 p-2">
                 <DataTable
                   @page="onPage($event)"
+                  @rowSelect="selectRow"
                   :value="trannings"
                   :paginator="true"
                   :rows="options.pageSize"
@@ -3513,6 +3969,25 @@ const onPage = (event) => {
                       />
                     </template>
                   </Column>
+                  <template #empty>
+                    <div
+                      class="align-items-center justify-content-center p-4 text-center m-auto"
+                      style="
+                        display: flex;
+                        width: 100%;
+                        height: calc(100vh - 303px);
+                        background-color: #fff;
+                      "
+                    >
+                      <div v-if="!options.loading && options.total == 0">
+                        <img
+                          src="../../../../assets/background/nodata.png"
+                          height="144"
+                        />
+                        <h3 class="m-1">Không có dữ liệu</h3>
+                      </div>
+                    </div>
+                  </template>
                 </DataTable>
               </div>
             </div>
@@ -3586,7 +4061,7 @@ const onPage = (event) => {
             <div v-show="options.view === 12" class="f-full">
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
-                  <Accordion class="w-full" :activeIndex="0">
+                  <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <span>1. Thông tin chung</span>
@@ -3655,7 +4130,7 @@ const onPage = (event) => {
                       </div>
                     </AccordionTab>
                   </Accordion>
-                  <Accordion class="w-full padding-0" :activeIndex="0">
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <span>2. Thông tin tiêm Vắc xin</span>
@@ -3755,11 +4230,7 @@ const onPage = (event) => {
                           <template #empty>
                             <div
                               class="align-items-center justify-content-center p-4 text-center m-auto"
-                              style="
-                                display: flex;
-                                width: 100%;
-                                min-height: 200px;
-                              "
+                              style="display: flex; width: 100%"
                             ></div>
                           </template>
                         </DataTable>
@@ -3773,11 +4244,295 @@ const onPage = (event) => {
         </div>
         <div
           style="
-            width: 350px !important;
+            width: 400px !important;
             border-left: solid 1px rgba(0, 0, 0, 0.1);
+            overflow: auto;
+            height: calc(100vh - 165px);
           "
         >
-          <div></div>
+          <div class="row">
+            <div class="col-12 md:col-12 p-0">
+              <Accordion
+                class="w-full border-none padding-0 mb-2"
+                :activeIndex="0"
+              >
+                <AccordionTab>
+                  <template #header>
+                    <span
+                      ><span style="color: #005a9e">Nhân sự cùng </span>
+                      <span style="font-size: 18px">Phòng ban</span></span
+                    >
+                  </template>
+                  <div>
+                    <DataTable
+                      @rowSelect="selectRow"
+                      :value="replates[0]"
+                      :scrollable="false"
+                      v-model:selection="selectedNodes"
+                      selectionMode="single"
+                      dataKey="profile_id"
+                      class="disable-header"
+                    >
+                      <Column
+                        field="Avatar"
+                        header="Ảnh"
+                        headerStyle="text-align:left;"
+                        bodyStyle="text-align:left;"
+                        class="align-items-center justify-content-center text-left"
+                      >
+                        <template #body="slotProps">
+                          <div class="flex">
+                            <div class="mr-2">
+                              <Avatar
+                                v-bind:label="
+                                  slotProps.data.avatar
+                                    ? ''
+                                    : (slotProps.data.profile_user_name ?? '')
+                                        .substring(0, 1)
+                                        .toUpperCase()
+                                "
+                                v-bind:image="
+                                  slotProps.data.avatar
+                                    ? basedomainURL + slotProps.data.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                  width: 5rem;
+                                  height: 5rem;
+                                  font-size: 1.5rem !important;
+                                  border-radius: 5px;
+                                "
+                                :style="{
+                                  background: bgColor[slotProps.index % 7],
+                                }"
+                                size="xlarge"
+                                class="border-radius"
+                              />
+                            </div>
+                            <div>
+                              <div class="mb-2">
+                                <b>{{ slotProps.data.profile_user_name }}</b>
+                              </div>
+                              <div class="description">
+                                Phòng ban:
+                                <span>{{
+                                  slotProps.data.department_name
+                                }}</span>
+                              </div>
+                              <div class="description">
+                                Vị trí:
+                                <span>{{
+                                  slotProps.data.work_position_name
+                                }}</span>
+                              </div>
+                              <div class="description">
+                                Chức vụ:
+                                <span>{{ slotProps.data.position_name }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </template>
+                      </Column>
+                      <template #empty>
+                        <div
+                          class="align-items-center justify-content-center p-4 text-center m-auto"
+                          style="display: flex; width: 100%"
+                        ></div>
+                      </template>
+                    </DataTable>
+                  </div>
+                </AccordionTab>
+              </Accordion>
+              <Accordion
+                class="w-full border-none padding-0 mb-2"
+                :activeIndex="0"
+              >
+                <AccordionTab>
+                  <template #header>
+                    <span>
+                      <span style="color: #005a9e">Nhân sự cùng </span>
+                      <span style="font-size: 18px">Tên</span></span
+                    >
+                  </template>
+                  <div>
+                    <DataTable
+                      @rowSelect="selectRow"
+                      :value="replates[1]"
+                      :scrollable="false"
+                      v-model:selection="selectedNodes"
+                      selectionMode="single"
+                      dataKey="profile_id"
+                      class="disable-header"
+                    >
+                      <Column
+                        field="Avatar"
+                        header="Ảnh"
+                        headerStyle="text-align:left;"
+                        bodyStyle="text-align:left;"
+                        class="align-items-center justify-content-center text-left"
+                      >
+                        <template #body="slotProps">
+                          <div class="flex">
+                            <div class="mr-2">
+                              <Avatar
+                                v-bind:label="
+                                  slotProps.data.avatar
+                                    ? ''
+                                    : (slotProps.data.profile_user_name ?? '')
+                                        .substring(0, 1)
+                                        .toUpperCase()
+                                "
+                                v-bind:image="
+                                  slotProps.data.avatar
+                                    ? basedomainURL + slotProps.data.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                  width: 5rem;
+                                  height: 5rem;
+                                  font-size: 1.5rem !important;
+                                  border-radius: 5px;
+                                "
+                                :style="{
+                                  background: bgColor[slotProps.index % 7],
+                                }"
+                                size="xlarge"
+                                class="border-radius"
+                              />
+                            </div>
+                            <div>
+                              <div class="mb-2">
+                                <b>{{ slotProps.data.profile_user_name }}</b>
+                              </div>
+                              <div class="description">
+                                Phòng ban:
+                                <span>{{
+                                  slotProps.data.department_name
+                                }}</span>
+                              </div>
+                              <div class="description">
+                                Vị trí:
+                                <span>{{
+                                  slotProps.data.work_position_name
+                                }}</span>
+                              </div>
+                              <div class="description">
+                                Chức vụ:
+                                <span>{{ slotProps.data.position_name }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </template>
+                      </Column>
+                      <template #empty>
+                        <div
+                          class="align-items-center justify-content-center p-4 text-center m-auto"
+                          style="display: flex; width: 100%"
+                        ></div>
+                      </template>
+                    </DataTable>
+                  </div>
+                </AccordionTab>
+              </Accordion>
+              <Accordion
+                class="w-full border-none padding-0 mb-2"
+                :activeIndex="0"
+              >
+                <AccordionTab>
+                  <template #header>
+                    <span
+                      ><span style="color: #005a9e">Nhân sự cùng </span>
+                      <span style="font-size: 18px">Họ</span></span
+                    >
+                  </template>
+                  <div>
+                    <DataTable
+                      @rowSelect="selectRow"
+                      :value="replates[2]"
+                      :scrollable="false"
+                      v-model:selection="selectedNodes"
+                      selectionMode="single"
+                      dataKey="profile_id"
+                      class="disable-header"
+                    >
+                      <Column
+                        field="Avatar"
+                        header="Ảnh"
+                        headerStyle="text-align:left;"
+                        bodyStyle="text-align:left;"
+                        class="align-items-center justify-content-center text-left"
+                      >
+                        <template #body="slotProps">
+                          <div class="flex">
+                            <div class="mr-2">
+                              <Avatar
+                                v-bind:label="
+                                  slotProps.data.avatar
+                                    ? ''
+                                    : (slotProps.data.profile_user_name ?? '')
+                                        .substring(0, 1)
+                                        .toUpperCase()
+                                "
+                                v-bind:image="
+                                  slotProps.data.avatar
+                                    ? basedomainURL + slotProps.data.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                  width: 5rem;
+                                  height: 5rem;
+                                  font-size: 1.5rem !important;
+                                  border-radius: 5px;
+                                "
+                                :style="{
+                                  background: bgColor[slotProps.index % 7],
+                                }"
+                                size="xlarge"
+                                class="border-radius"
+                              />
+                            </div>
+                            <div>
+                              <div class="mb-2">
+                                <b>{{ slotProps.data.profile_user_name }}</b>
+                              </div>
+                              <div class="description">
+                                Phòng ban:
+                                <span>{{
+                                  slotProps.data.department_name
+                                }}</span>
+                              </div>
+                              <div class="description">
+                                Vị trí:
+                                <span>{{
+                                  slotProps.data.work_position_name
+                                }}</span>
+                              </div>
+                              <div class="description">
+                                Chức vụ:
+                                <span>{{ slotProps.data.position_name }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </template>
+                      </Column>
+                      <template #empty>
+                        <div
+                          class="align-items-center justify-content-center p-4 text-center m-auto"
+                          style="display: flex; width: 100%"
+                        ></div>
+                      </template>
+                    </DataTable>
+                  </div>
+                </AccordionTab>
+              </Accordion>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -3806,7 +4561,7 @@ const onPage = (event) => {
     :key="componentKey"
     :headerDialog="headerDialogTranning"
     :displayBasic="displayDialogTranning"
-    :training_emps="selectedNodes"
+    :training_emps="options.training_emps"
     :checkadd="false"
     :closeDialog="closeDialogTranning"
     :view="true"
@@ -3847,6 +4602,11 @@ const onPage = (event) => {
 }
 </style>
 <style lang="scss" scoped>
+::v-deep(.disable-header) {
+  table thead {
+    display: none;
+  }
+}
 ::v-deep(.padding-0) {
   .p-accordion-content {
     padding: 0 !important;
@@ -3855,6 +4615,25 @@ const onPage = (event) => {
 ::v-deep(.empty-full) {
   .p-datatable-emptymessage td {
     width: 100% !important;
+  }
+}
+::v-deep(.border-none) {
+  .p-accordion-header a {
+    border: none !important;
+  }
+  .p-accordion-content {
+    border: none !important;
+  }
+  .p-datatable-table tr th,
+  .p-datatable-table tr td {
+    border: none !important;
+  }
+}
+::v-deep(.selectbutton-custom) {
+  .p-button.p-highlight {
+    color: #ffffff;
+    background: #64748b;
+    border: 1px solid #64748b;
   }
 }
 </style>

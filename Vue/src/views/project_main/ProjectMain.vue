@@ -7,6 +7,8 @@ import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import moment from "moment";
 import { concat } from "lodash";
 import { encr } from "../../util/function.js";
+import treeuser from "../../components/user/treeuser.vue";
+import DetailProject from "../../components/project_main/DetailedProject.vue"
 const cryoptojs = inject("cryptojs");
 const basedomainURL = fileURL;
 
@@ -29,6 +31,17 @@ const opition = ref({
   user_id: store.getters.user_id,
 });
 
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
+
+const listDropdownUser = ref([]);
 const arrNhom = ref([]);
 const listProjectMains = ref();
 const treelistProjectMains = ref();
@@ -39,6 +52,8 @@ const selectedNodes = ref([]);
 const listProjectGroups = ref();
 const first = ref(0);
 let files = {};
+let fileAll = [];
+const ProjectMainMember = ref();
 const isDisplayAvt = ref(false);
 const listDropdownStatus = ref([
   {
@@ -134,6 +149,62 @@ const onPage = (event) => {
   loadData(true);
 };
 
+const listUser = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_users_list_task_origin",
+            par: [
+              { par: "search", va: opition.value.SearchTextUser },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "role_id", va: null },
+              { par: "organization_id",va: store.getters.user.organization_id,},
+              { par: "department_id", va: null },
+              { par: "position_id", va: null },
+              { par: "isadmin", va: null },
+              { par: "status", va: null },
+              { par: "start_date", va: null },
+              { par: "end_date", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listDropdownUser.value = data.map((x) => ({
+        name: x.full_name,
+        code: x.user_id,
+        avatar: x.avatar,
+        ten: x.last_name,
+      }));
+      // if (listDropdownUser.value.length > 10) {
+      //   listThanhVien.value = listDropdownUser.value.slice(0, 10);
+      // } else {
+      //   listThanhVien.value = [...listDropdownUser.value];
+      // }
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
 const loadData = (rf) => {
   if (rf) {
     opition.value.loading = true;
@@ -227,8 +298,12 @@ const addProjectMain = (str) => {
     keywords: "",
     parent_id: null,
     group_code: null,
+    start_date: new Date(),
+    end_date: null,
     status: 0,
     is_order: listProjectMains.value.length + 1,
+    managers: [],
+    participants: [],
   };
   if (store.state.user.is_super) {
     ProjectMain.value.organization_id = 0;
@@ -280,6 +355,7 @@ const closeDialogProjectMain = () => {
 };
 const editProjectMain = (dataProjectMain) => {
   selectcapcha.value = [];
+  fileAll = [];
   arrNhom.value = [];
   if (dataProjectMain.parent_id) {
     selectcapcha.value[dataProjectMain.parent_id] = true;
@@ -317,7 +393,24 @@ const editProjectMain = (dataProjectMain) => {
       if (ProjectMain.value.group_code) {
         arrNhom.value.push(ProjectMain.value.group_code);
       }
-
+      ProjectMain.value.start_date = ProjectMain.value.start_date
+        ? new Date(ProjectMain.value.start_date)
+        : null;
+        ProjectMain.value.end_date = ProjectMain.value.end_date
+        ? new Date(ProjectMain.value.end_date)
+        : null;
+      ProjectMain.value.files = data[1];
+      ProjectMain.value.managers = [];
+      ProjectMain.value.participants = [];
+      if (data[2].length > 0) {
+        data[2].forEach((t) => {
+          if (t.is_type == 0) {
+            ProjectMain.value.managers.push(t.user_id);
+          } else if (t.is_type == 1) {
+            ProjectMain.value.participants.push(t.user_id);
+          }
+        });
+      }
       headerAddProjectMain.value = "Sửa dự án";
       issaveProjectMain.value = false;
       displayProjectMain.value = true;
@@ -416,7 +509,9 @@ const DelProjectMain = (dataProjectMain) => {
     });
   }
 };
+
 const saveProjectMain = (isFormValid) => {
+  ProjectMainMember.value = [];
   submitted.value = true;
   if (!isFormValid) {
     return;
@@ -439,14 +534,52 @@ const saveProjectMain = (isFormValid) => {
     ProjectMain.value.group_code = null;
   }
   let formData = new FormData();
-  formData.append("url", files["LogoDonvi"]);
+  if(files["LogoDonvi"]){
+    formData.append("LogoDonvi", JSON.stringify(files["LogoDonvi"].name));
+    fileAll.push(files["LogoDonvi"]);
+  }else{
+    formData.append("LogoDonvi", JSON.stringify());
+  }
+  for (var i = 0; i < fileAll.length; i++) {
+    let file = fileAll[i];
+    formData.append("url", file);
+  }
+  if (ProjectMain.value.managers.length > 0) {
+    ProjectMain.value.managers.forEach((t) => {
+      let member = {
+        project_id: null,
+        task_id: null,
+        user_id: t,
+        is_type: 0, // 0: người quản lý, 1: người tham gia
+        status: true,
+      };
+      member.user_id = t;
+      ProjectMainMember.value.push(member);
+    });
+  }
+  if (ProjectMain.value.participants.length > 0) {
+    ProjectMain.value.participants.forEach((t) => {
+      let member1 = {
+        project_id: null,
+        task_id: null,
+        user_id: t,
+        is_type: 1, // 0: người quản lý, 1: người tham gia
+        status: true,
+      };
+      member1.user_id = t;
+      ProjectMainMember.value.push(member1);
+    });
+  }
+
+  // formData.append("url", files["LogoDonvi"]);
   formData.append("ProjectMain", JSON.stringify(ProjectMain.value));
+  formData.append("projectmainmember", JSON.stringify(ProjectMainMember.value));
   if (!issaveProjectMain.value) {
     axios
       .post(
         baseURL +
-          "/api/ProjectMain/" +
-          (isAdd.value == true ? "Add_ProjectMain" : "Update_ProjectMain"),
+        "/api/ProjectMain/" +
+        (isAdd.value == true ? "Add_ProjectMain" : "Update_ProjectMain"),
         formData,
         config,
       )
@@ -515,7 +648,6 @@ const RenderData = (response) => {
     } else {
       c.data.STT = i + 1;
     }
-    debugger;
     if (d1[i].children) {
       list2 = JSON.parse(d1[i].children);
       if (list2 != null) {
@@ -672,67 +804,67 @@ const listtreeProjectMain = () => {
 
 // };
 const delLogo = (datafile) => {
-  debugger;
-  if (isAdd.value == true) {
-    files["LogoDonvi"] = [];
+  files["LogoDonvi"] = [];
     isDisplayAvt.value = false;
     var output = document.getElementById("LogoDonvi");
     output.src = basedomainURL + "/Portals/Image/noimg.jpg";
     ProjectMain.value.logo = null;
-  } else {
-    swal
-      .fire({
-        title: "Thông báo",
-        text: "Bạn có muốn xoá file này không!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có",
-        cancelButtonText: "Không",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          swal.fire({
-            width: 110,
-            didOpen: () => {
-              swal.showLoading();
-            },
-          });
-          axios
-            .delete(baseURL + "/api/ProjectMain/Delete_file", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: datafile,
-            })
-            .then((response) => {
-              swal.close();
-              if (response.data.err != "1") {
-                swal.close();
-                toast.success("Xoá file thành công!");
-                ProjectMain.value.logo = null;
-              } else {
-                swal.fire({
-                  title: "Thông báo!",
-                  text: response.data.ms,
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            })
-            .catch((error) => {
-              swal.close();
-              if (error.status === 401) {
-                swal.fire({
-                  title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            });
-        }
-      });
-  }
+  // if (isAdd.value == true) {
+    
+  // } else {
+  //   swal
+  //     .fire({
+  //       title: "Thông báo",
+  //       text: "Bạn có muốn xoá file này không!",
+  //       icon: "warning",
+  //       showCancelButton: true,
+  //       confirmButtonColor: "#3085d6",
+  //       cancelButtonColor: "#d33",
+  //       confirmButtonText: "Có",
+  //       cancelButtonText: "Không",
+  //     })
+  //     .then((result) => {
+  //       if (result.isConfirmed) {
+  //         swal.fire({
+  //           width: 110,
+  //           didOpen: () => {
+  //             swal.showLoading();
+  //           },
+  //         });
+  //         axios
+  //           .delete(baseURL + "/api/ProjectMain/Delete_file", {
+  //             headers: { Authorization: `Bearer ${store.getters.token}` },
+  //             data: datafile,
+  //           })
+  //           .then((response) => {
+  //             swal.close();
+  //             if (response.data.err != "1") {
+  //               swal.close();
+  //               toast.success("Xoá file thành công!");
+  //               ProjectMain.value.logo = null;
+  //             } else {
+  //               swal.fire({
+  //                 title: "Thông báo!",
+  //                 text: response.data.ms,
+  //                 icon: "error",
+  //                 confirmButtonText: "OK",
+  //               });
+  //             }
+  //           })
+  //           .catch((error) => {
+  //             swal.close();
+  //             if (error.status === 401) {
+  //               swal.fire({
+  //                 title: "Thông báo!",
+  //                 text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+  //                 icon: "error",
+  //                 confirmButtonText: "OK",
+  //               });
+  //             }
+  //           });
+  //       }
+  //     });
+  // }
 };
 
 const onRefersh = () => {
@@ -839,7 +971,88 @@ const changeMaNhom = (event) => {
   }
 };
 
+const displayDialogUser = ref(false);
+const selectedUser = ref([]);
+const headerDialogUser = ref();
+const is_one = ref(false);
+const is_type = ref();
+
+const OpenDialogTreeUser = (one, type) => {
+  selectedUser.value = [];
+  if (type == 1) {
+    ProjectMain.value.managers.forEach((t) => {
+      let select = { user_id: t };
+      selectedUser.value.push(select);
+    });
+    headerDialogUser.value = "Chọn người quản lý";
+  } else if (type == 2) {
+    ProjectMain.value.participants.forEach((t) => {
+      let select = { user_id: t };
+      selectedUser.value.push(select);
+    });
+    headerDialogUser.value = "Chọn người tham gia";
+  } 
+  displayDialogUser.value = true;
+  is_one.value = one;
+  is_type.value = type;
+};
+
+const closeDialog = () => {
+  displayDialogUser.value = false;
+};
+const choiceTreeUser = () => {
+  switch (is_type.value) {
+    case 1:
+      if (selectedUser.value.length > 0) {
+          ProjectMain.value.managers = [];
+          selectedUser.value.forEach((t) => {
+            ProjectMain.value.managers.push(t.user_id);
+          });
+      }
+      break;
+    case 2:
+      if (selectedUser.value.length > 0) {
+        ProjectMain.value.participants = [];
+        selectedUser.value.forEach((t) => {
+          ProjectMain.value.participants.push(t.user_id);
+        });
+      }
+      break;
+    default:
+      break;
+  }
+  displayDialogUser.value = false;
+};
+
+const onUploadFile = (event) => {
+  fileAll = [];
+  event.files.forEach((element) => {
+    element.is_type = 2;
+    fileAll.push(element);
+  });
+};
+const removeFile = (event) => {
+  fileAll = fileAll.filter((a) => a != event.file);
+};
+
+const componentKey = ref(0);
+const PositionSideBar = ref("right");
+
+const forceRerender = () => {
+  componentKey.value += 1;
+};
+
+const showDetail = ref(false);
+const selectedProjectMainID = ref();
+const selectedKeys = ref();
+const onNodeSelect = (id) => {
+  forceRerender();
+  showDetail.value = true;
+  selectedProjectMainID.value = id.data.project_id;
+};
+
 onMounted(() => {
+  listUser();
   loadData(true);
   loadCountProjectGroup();
   listtreeProjectMain();
@@ -847,34 +1060,18 @@ onMounted(() => {
   return {};
 });
 </script>
-<template>
-  <!-- @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" selectionMode="checkbox" -->
-  <div
-    v-if="store.getters.islogin"
-    class="main-layout true flex-grow-1 p-2"
-  >
-    <TreeTable
-      :value="listProjectMains"
-      v-model:selectionKeys="selectedKey"
-      v-model:first="first"
-      :loading="opition.loading"
-      @page="onPage($event)"
-      @sort="onSort($event)"
-      :paginator="true"
-      :rows="opition.PageSize"
+<template><!-- @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" selectionMode="checkbox" -->
+  <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
+    <TreeTable :value="listProjectMains" v-model:selectionKeys="selectedKeys" v-model:first="first"
+      :loading="opition.loading" @page="onPage($event)" @sort="onSort($event)" :paginator="true" :rows="opition.PageSize"
       :totalRecords="opition.totalRecords"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :filters="filters"
-      :showGridlines="true"
-      filterMode="strict"
-      class="p-treetable-sm"
-      :rowHover="true"
-      responsiveLayout="scroll"
-      :lazy="true"
-      :scrollable="true"
-      scrollHeight="flex"
-    >
+      :rowsPerPageOptions="[20, 30, 50, 100, 200]" :filters="filters" :showGridlines="true" filterMode="strict"
+      class="p-treetable-sm" :rowHover="true" responsiveLayout="scroll" :lazy="true" :scrollable="true"
+      @nodeSelect="onNodeSelect"
+      selectionMode="single"
+      @nodeUnselect="onNodeUnselect"
+      scrollHeight="flex">
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
           <i class="pi pi-microsoft"></i> Danh sách dự án ({{
@@ -885,79 +1082,33 @@ onMounted(() => {
           <template #start>
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
-              <InputText
-                type="text"
-                spellcheck="false"
-                v-model="opition.search"
-                placeholder="Tìm kiếm theo tên dự án"
-                v-on:keyup.enter="loadData(true)"
-              />
+              <InputText type="text" spellcheck="false" v-model="opition.search" placeholder="Tìm kiếm theo tên dự án"
+                v-on:keyup.enter="loadData(true)" />
             </span>
           </template>
 
           <template #end>
-            <Button
-              label="Thêm dự án"
-              icon="pi pi-plus"
-              class="mr-2"
-              @click="addProjectMain('Thêm mới dự án')"
-            />
-            <Button
-              class="mr-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              @click="onRefersh"
-            />
-            <Button
-              label="Xoá"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-              v-if="selectedNodes.length > 0"
-              @click="DelProjectMain()"
-            />
+            <Button label="Thêm dự án" icon="pi pi-plus" class="mr-2" @click="addProjectMain('Thêm mới dự án')" />
+            <Button class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh" @click="onRefersh" />
+            <Button label="Xoá" icon="pi pi-trash" class="mr-2 p-button-danger" v-if="selectedNodes.length > 0"
+              @click="DelProjectMain()" />
             <!-- <Button label="Export" icon="pi pi-file-excel" class="mr-2 p-button-outlined p-button-secondary"
-                            @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export" /> -->
-            <Menu
-              vị
-              id="overlay_Export"
-              ref="menuButs"
-              :model="itemButs"
-              :popup="true"
-            />
+                              @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export" /> -->
+            <Menu vị id="overlay_Export" ref="menuButs" :model="itemButs" :popup="true" />
           </template>
         </Toolbar>
       </template>
-      <Column
-        field="STT"
-        :sortable="true"
-        header="STT"
+      <Column field="STT" header="STT"
         class="align-items-center justify-content-center text-center font-bold"
-        headerStyle="text-align:center;max-width:100px"
-        bodyStyle="text-align:center;max-width:100px"
-      >
+        headerStyle="text-align:center;max-width:4rem" bodyStyle="text-align:center;max-width:4rem">
       </Column>
-      <Column
-        field="Logo"
-        header="Logo"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:80px"
-        bodyStyle="text-align:center;max-width:80px"
-      >
+      <Column field="Logo" header="Logo" class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:80px" bodyStyle="text-align:center;max-width:80px">
         <template #body="md">
-          <Avatar
-            v-if="md.node.data.logo"
-            :image="basedomainURL + md.node.data.logo"
-            class="mr-2"
-            size="large"
-          />
+          <Avatar v-if="md.node.data.logo" :image="basedomainURL + md.node.data.logo" class="mr-2" size="large" />
         </template>
       </Column>
-      <Column
-        field="project_name"
-        header="Tên dự án"
-        :expander="true"
-        :sortable="true"
-        headerStyle="max-width:auto;"
-      >
+      <Column field="project_name" header="Tên dự án" :expander="true" :sortable="true" headerStyle="max-width:auto;">
         <template #body="md">
           <div style="display: flex; align-items: center">
             <span style="margin-left: 5px">{{
@@ -966,136 +1117,95 @@ onMounted(() => {
           </div>
         </template>
       </Column>
-      <Column
-        field="project_code"
-        header="Mã dự án"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="max-width:100px;text-align:center;"
-        bodyStyle="max-width:100px;text-align:center;"
-      >
+      <Column field="project_code" header="Mã dự án" class="align-items-center justify-content-center text-center"
+        headerStyle="max-width:100px;text-align:center;" bodyStyle="max-width:100px;text-align:center;">
       </Column>
-      <Column
-        field="group_name"
-        header="Nhóm dự án"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="max-width:300px;text-align:center;"
-        bodyStyle="max-width:300px;text-align:center;"
-      >
+      <Column field="group_name" header="Nhóm dự án" class="align-items-center justify-content-center text-center"
+        headerStyle="max-width:300px;text-align:center;" bodyStyle="max-width:300px;text-align:center;">
       </Column>
-      <Column
-        field="status"
-        header="Trạng thái"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:120px"
-        bodyStyle="text-align:center;max-width:120px"
-      >
+      <Column field="status" header="Trạng thái" class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px">
         <template #body="md">
-          <Chip
-            :style="{
-              background: md.node.data.status_bg_color,
-              color: md.node.data.status_text_color,
-            }"
-            v-bind:label="md.node.data.status_name"
-          />
+          <Chip :style="{
+            background: md.node.data.status_bg_color,
+            color: md.node.data.status_text_color,
+          }" v-bind:label="md.node.data.status_name" />
         </template>
       </Column>
-      <Column
-        header="Chức năng"
-        headerClass="text-center"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px"
-        bodyStyle="text-align:center;max-width:150px"
-      >
+      <Column header="Chức năng" headerClass="text-center" class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:150px" bodyStyle="text-align:center;max-width:150px">
         <template #header> </template>
         <template #body="md">
-          <div
-            v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == md.node.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id ==
-                  md.node.data.organization_id)
-            "
-          >
-            <Button
-              type="button"
-              icon="pi pi-plus-circle"
+          <div v-if="
+            store.state.user.is_super == true ||
+            store.state.user.user_id == md.node.data.created_by ||
+            (store.state.user.role_id == 'admin' &&
+              store.state.user.organization_id ==
+              md.node.data.organization_id)
+          ">
+            <Button type="button" icon="pi pi-plus-circle" class="p-button-rounded p-button-secondary p-button-outlined"
+              style="margin-right: 0.5rem" v-tooltip.top="'Thêm dự án'"
+              @click="addTreeProjectMain(md.node.data)"></Button>
+            <Button type="button" icon="pi pi-pencil" v-tooltip.top="'Chỉnh sửa'"
+              class="p-button-rounded p-button-secondary p-button-outlined" style="margin-right: 0.5rem"
+              @click="editProjectMain(md.node.data)"></Button>
+            <Button type="button" icon="pi pi-trash" v-tooltip.top="'Xóa'"
               class="p-button-rounded p-button-secondary p-button-outlined"
-              style="margin-right: 0.5rem"
-              v-tooltip.top="'Thêm dự án'"
-              @click="addTreeProjectMain(md.node.data)"
-            ></Button>
-            <Button
-              type="button"
-              icon="pi pi-pencil"
-              v-tooltip.top="'Chỉnh sửa'"
-              class="p-button-rounded p-button-secondary p-button-outlined"
-              style="margin-right: 0.5rem"
-              @click="editProjectMain(md.node.data)"
-            ></Button>
-            <Button
-              type="button"
-              icon="pi pi-trash"
-              v-tooltip.top="'Xóa'"
-              class="p-button-rounded p-button-secondary p-button-outlined"
-              @click="DelProjectMain(md.node.data)"
-            ></Button>
+              @click="DelProjectMain(md.node.data)"></Button>
           </div>
         </template>
       </Column>
       <template #empty>
-        <div
-          class="align-items-center justify-content-center p-4 text-center m-auto"
-          style="
-            min-height: calc(100vh - 220px);
-            max-height: calc(100vh - 220px);
-            display: flex;
-            flex-direction: column;
-          "
-          v-if="!isFirst"
-        >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
+        <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
+              min-height: calc(100vh - 220px);
+              max-height: calc(100vh - 220px);
+              display: flex;
+              flex-direction: column;
+            " v-if="!isFirst">
+          <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
     </TreeTable>
 
-    <Dialog
-      :header="headerAddProjectMain"
-      v-model:visible="displayProjectMain"
-      :style="{ width: '40vw' }"
-      :closable="true"
-      :maximizable="true"
+    <Sidebar
+      v-model:visible="showDetail"
+      :position="PositionSideBar"
+      :style="{
+        width:
+          PositionSideBar == 'right'
+            ? width1 > 1800
+              ? ' 60vw'
+              : '80vw'
+            : '100vw',
+        'height': '100vh !important',
+      }"
+      :showCloseIcon="false"
     >
+    <DetailProject
+      :isShow="showDetail"
+      :id="selectedProjectMainID"
+      :turn="0"
+    >
+    </DetailProject>
+  </Sidebar>
+
+    <Dialog :header="headerAddProjectMain" v-model:visible="displayProjectMain" :style="{ width: '40vw' }"
+      :closable="true" :maximizable="true">
       <form>
         <div class="grid formgrid m-2">
           <div class="field col-12 md:col-12">
-            <label class="col-3 text-left p-0"
-              >Mã dự án<span class="redsao"> (*) </span></label
-            >
-            <InputText
-              v-model="ProjectMain.project_code"
-              @change="removeVietnameseTones(ProjectMain.project_code)"
-              spellcheck="false"
-              class="col-9 ip36 px-2"
-              :class="{ 'p-invalid': v$.project_code.$invalid && submitted }"
-            />
+            <label class="col-3 text-left p-0">Mã dự án<span class="redsao"> (*) </span></label>
+            <InputText v-model="ProjectMain.project_code" @change="removeVietnameseTones(ProjectMain.project_code)"
+              spellcheck="false" class="col-9 ip36 px-2"
+              :class="{ 'p-invalid': v$.project_code.$invalid && submitted }" />
           </div>
-          <div
-            style="display: flex"
-            class="field col-12 md:col-12"
-          >
+          <div style="display: flex" class="field col-12 md:col-12">
             <div class="col-3 text-left"></div>
-            <small
-              v-if="
-                (v$.project_code.$invalid && submitted) ||
-                v$.project_code.$pending.$response
-              "
-              class="col-9 p-error p-0"
-            >
+            <small v-if="
+              (v$.project_code.$invalid && submitted) ||
+              v$.project_code.$pending.$response
+            " class="col-9 p-error p-0">
               <span class="col-12 p-0">{{
                 v$.project_code.required.$message
                   .replace("Value", "Mã dự án")
@@ -1103,29 +1213,16 @@ onMounted(() => {
               }}</span>
             </small>
           </div>
-
           <div class="field col-12 md:col-12">
-            <label class="col-3 text-left p-0"
-              >Tên dự án<span class="redsao"> (*) </span></label
-            >
-            <InputText
-              v-model="ProjectMain.project_name"
-              spellcheck="false"
-              class="col-9 ip36 px-2"
-            />
+            <label class="col-3 text-left p-0">Tên dự án<span class="redsao"> (*) </span></label>
+            <InputText v-model="ProjectMain.project_name" spellcheck="false" class="col-9 ip36 px-2" />
           </div>
-          <div
-            style="display: flex"
-            class="field col-12 md:col-12"
-          >
+          <div style="display: flex" class="field col-12 md:col-12">
             <div class="col-3 text-left"></div>
-            <small
-              v-if="
-                (v$.project_name.$invalid && submitted) ||
-                v$.project_name.$pending.$response
-              "
-              class="col-9 p-error p-0"
-            >
+            <small v-if="
+              (v$.project_name.$invalid && submitted) ||
+              v$.project_name.$pending.$response
+            " class="col-9 p-error p-0">
               <span class="col-12 p-0">{{
                 v$.project_name.required.$message
                   .replace("Value", "Tên dự án")
@@ -1135,15 +1232,96 @@ onMounted(() => {
           </div>
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0">Nhóm dự án</label>
+            <MultiSelect :filter="true" v-model="arrNhom" :options="listProjectGroups" optionValue="code"
+              optionLabel="name" class="col-9 ip36 p-0" placeholder="----Chọn nhóm dự án----"
+              @change="changeMaNhom($event)" display="chip">
+              <template #option="slotProps">
+                <div class="country-item flex" style="align-items: center; margin-left: 10px">
+                  <div class="pt-1" style="padding-left: 10px">
+                    {{ slotProps.option.name }}
+                  </div>
+                </div>
+              </template>
+            </MultiSelect>
+          </div>
+          <div class="field col-12 md:col-12">
+            <label class="col-3 text-left p-0">Cấp cha</label>
+            <TreeSelect class="col-9" v-model="selectcapcha" :options="listDropdownParent" :showClear="true"
+              :max-height="200" placeholder="" optionLabel="project_name" optionValue="project_id" />
+          </div>
+          <div class="field col-12 md:col-12 flex">
+            <label class="col-3 text-left p-0">Logo</label>
+            <div class="col-9 p-0">
+              <div class="inputanh relative">
+                <img @click="chonanh('AnhDonvi')" id="LogoDonvi" style="height: 80px; width: 100px" v-bind:src="
+                  ProjectMain.logo
+                    ? basedomainURL + ProjectMain.logo
+                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                " />
+                <Button v-if="isDisplayAvt || ProjectMain.logo" style="width: 1.5rem; height: 1.5rem" icon="pi pi-times"
+                  @click="delLogo(ProjectMain)" class="p-button-rounded absolute top-0 right-0 cursor-pointer" />
+              </div>
+              <input class="ipnone" style="display: none" id="AnhDonvi" type="file" accept="image/*"
+                @change="handleFileUpload($event, 'LogoDonvi')" />
+            </div>
+          </div>
+          <div class="field col-12 md:col-12" style="display: flex">
+            <label class="col-3 text-left p-0">Mô tả</label>
+            <Textarea style="margin-top: 5px; padding: 5px" v-model="ProjectMain.description" class="col-9 ip36"
+              :autoResize="true" rows="5" cols="30" />
+          </div>
+          <div class="field col-12 md:col-12" style="display: flex; align-items: center">
+            <label class="col-3 text-left p-0">Ngày bắt đầu</label>
+            <div class="col-9" style="display: flex; padding: 0px; align-items: center">
+              <Calendar :manualInput="true" :showIcon="true" class="col-5 ip36 title-lable"
+                style="margin-top: 5px; padding: 0px" id="time1" autocomplete="on" v-model="ProjectMain.start_date" />
+              <div class="col-7" style="display: flex; padding: 0px; align-items: center">
+                <label class="col-5 text-center">Ngày kết thúc</label>
+                <Calendar :manualInput="true" :showIcon="true" class="col-7 ip36 title-lable"
+                  style="margin-top: 5px; padding: 0px" id="time2" placeholder="dd/MM/yy" autocomplete="on"
+                  v-model="ProjectMain.end_date" @date-select="CheckDate($event)" />
+              </div>
+            </div>
+          </div>
+          <div class="field col-12 md:col-12" style="display: flex">
+            <label style="display: flex; align-items: center" class="col-3 text-left p-0">Từ khóa</label>
+            <Chips v-model="ProjectMain.keywords" spellcheck="false" class="col-9 ip36" style="padding: 0px"
+              placeholder="Ấn Enter sau mỗi từ khóa!" />
+          </div>
+          <div class="field col-12 md:col-12">
+            <label class="col-3 text-left p-0">Trạng thái dự án</label>
+            <Dropdown :filter="true" style="margin-top: 5px" v-model="ProjectMain.status" :options="listDropdownStatus"
+              optionLabel="text" optionValue="value" placeholder="Trạng thái dự án" spellcheck="false"
+              class="col-9 ip36 p-0">
+              <template #option="slotProps">
+                <div class="country-item flex">
+                  <div class="pt-1">{{ slotProps.option.text }}</div>
+                </div>
+              </template>
+            </Dropdown>
+          </div>
+          <div class="field col-12 md:col-12">
+            <label class="col-3 text-left p-0">STT</label>
+            <InputNumber v-model="ProjectMain.is_order" style="padding: 0px !important" class="col-9 ip36 px-2" />
+          </div>
+
+          <div class="field col-12 md:col-12">
+            <label class="col-3 text-left p-0"
+              >Người quản lý
+              <span
+                @click="OpenDialogTreeUser(false, 1)"
+                class="choose-user"
+                ><i class="pi pi-user-plus"></i></span
+              ></label
+            >
             <MultiSelect
               :filter="true"
-              v-model="arrNhom"
-              :options="listProjectGroups"
+              v-model="ProjectMain.managers"
+              :options="listDropdownUser"
               optionValue="code"
               optionLabel="name"
               class="col-9 ip36 p-0"
-              placeholder="----Chọn nhóm dự án----"
-              @change="changeMaNhom($event)"
+              placeholder="Người quản lý"
               display="chip"
             >
               <template #option="slotProps">
@@ -1151,6 +1329,27 @@ onMounted(() => {
                   class="country-item flex"
                   style="align-items: center; margin-left: 10px"
                 >
+                  <Avatar
+                    v-bind:label="
+                      slotProps.option.avatar
+                        ? ''
+                        : (slotProps.option.name ?? '').substring(0, 1)
+                    "
+                    v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 32px;
+                      height: 32px;
+                      font-size: 15px !important;
+                      margin-left: -10px;
+                    "
+                    :style="{
+                      background: bgColor[slotProps.index % 7] + '!important',
+                    }"
+                    class="cursor-pointer"
+                    size="xlarge"
+                    shape="circle"
+                  />
                   <div
                     class="pt-1"
                     style="padding-left: 10px"
@@ -1162,135 +1361,137 @@ onMounted(() => {
             </MultiSelect>
           </div>
           <div class="field col-12 md:col-12">
-            <label class="col-3 text-left p-0">Cấp cha</label>
-            <TreeSelect
-              class="col-9"
-              v-model="selectcapcha"
-              :options="listDropdownParent"
-              :showClear="true"
-              :max-height="200"
-              placeholder=""
-              optionLabel="project_name"
-              optionValue="project_id"
-            />
-          </div>
-          <div class="field col-12 md:col-12 flex">
-            <label class="col-3 text-left p-0">Logo</label>
-            <div class="col-9 p-0">
-              <div class="inputanh relative">
-                <img
-                  @click="chonanh('AnhDonvi')"
-                  id="LogoDonvi"
-                  style="height: 80px; width: 100px"
-                  v-bind:src="
-                    ProjectMain.logo
-                      ? basedomainURL + ProjectMain.logo
-                      : basedomainURL + '/Portals/Image/noimg.jpg'
-                  "
-                />
-                <Button
-                  v-if="isDisplayAvt || ProjectMain.logo"
-                  style="width: 1.5rem; height: 1.5rem"
-                  icon="pi pi-times"
-                  @click="delLogo(ProjectMain)"
-                  class="p-button-rounded absolute top-0 right-0 cursor-pointer"
-                />
-              </div>
-              <input
-                class="ipnone"
-                style="display: none"
-                id="AnhDonvi"
-                type="file"
-                accept="image/*"
-                @change="handleFileUpload($event, 'LogoDonvi')"
-              />
-            </div>
-          </div>
-          <div
-            class="field col-12 md:col-12"
-            style="display: flex"
-          >
-            <label class="col-3 text-left p-0">Mô tả</label>
-            <Textarea
-              style="margin-top: 5px; padding: 5px"
-              v-model="ProjectMain.description"
-              class="col-9 ip36"
-              :autoResize="true"
-              rows="5"
-              cols="30"
-            />
-          </div>
-          <div
-            class="field col-12 md:col-12"
-            style="display: flex"
-          >
-            <label
-              style="display: flex; align-items: center"
-              class="col-3 text-left p-0"
-              >Từ khóa</label
+            <label class="col-3 text-left p-0"
+              >Người tham gia
+              <span
+                @click="OpenDialogTreeUser(false, 2)"
+                class="choose-user"
+                ><i class="pi pi-user-plus"></i></span
+              ></label
             >
-            <Chips
-              v-model="ProjectMain.keywords"
-              spellcheck="false"
-              class="col-9 ip36"
-              style="padding: 0px"
-              placeholder="Ấn Enter sau mỗi từ khóa!"
-            />
-          </div>
-          <div class="field col-12 md:col-12">
-            <label class="col-3 text-left p-0">Trạng thái dự án</label>
-            <Dropdown
+            <MultiSelect
               :filter="true"
-              style="margin-top: 5px"
-              v-model="ProjectMain.status"
-              :options="listDropdownStatus"
-              optionLabel="text"
-              optionValue="value"
-              placeholder="Trạng thái dự án"
-              spellcheck="false"
+              v-model="ProjectMain.participants"
+              :options="listDropdownUser"
+              optionValue="code"
+              optionLabel="name"
               class="col-9 ip36 p-0"
+              placeholder="Người tham gia"
+              display="chip"
             >
               <template #option="slotProps">
-                <div class="country-item flex">
-                  <div class="pt-1">{{ slotProps.option.text }}</div>
+                <div
+                  class="country-item flex"
+                  style="align-items: center; margin-left: 10px"
+                >
+                  <Avatar
+                    v-bind:label="
+                      slotProps.option.avatar
+                        ? ''
+                        : (slotProps.option.name ?? '').substring(0, 1)
+                    "
+                    v-bind:image="basedomainURL + slotProps.option.avatar"
+                    style="
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 32px;
+                      height: 32px;
+                      font-size: 15px !important;
+                      margin-left: -10px;
+                    "
+                    :style="{
+                      background: bgColor[slotProps.index % 7] + '!important',
+                    }"
+                    class="cursor-pointer"
+                    size="xlarge"
+                    shape="circle"
+                  />
+                  <div
+                    class="pt-1"
+                    style="padding-left: 10px"
+                  >
+                    {{ slotProps.option.name }}
+                  </div>
                 </div>
               </template>
-            </Dropdown>
+            </MultiSelect>
           </div>
           <div class="field col-12 md:col-12">
-            <label class="col-3 text-left p-0">STT</label>
-            <InputNumber
-              v-model="ProjectMain.is_order"
-              style="padding: 0px !important"
-              class="col-9 ip36 px-2"
-            />
+            <Accordion :multiple="true">
+              <AccordionTab header="TÀI LIỆU THAM KHẢO">
+                <div class="field col-12 md:col-12" id="task_file" style="display: flex">
+                  <label class="col-3 text-left p-0">File</label>
+                  <div class="col-9 p-0">
+                    <FileUpload chooseLabel="Chọn File" style="margin-top: 5px !important" :showUploadButton="false"
+                      :showCancelButton="false" :multiple="true" accept="" :maxFileSize="10000000" @select="onUploadFile"
+                      @remove="removeFile" />
+                    <div class="col-12 p-0" style="border: 1px solid #e1e1e1; margin-top: -1px">
+                      <DataView :lazy="true" :value="ProjectMain.files" :rowHover="true" :scrollable="true"
+                        class="w-full h-full ptable p-datatable-sm flex flex-column col-10 ip36 p-0" layout="list"
+                        responsiveLayout="scroll">
+                        <template #list="slotProps">
+                          <Toolbar class="w-full" style="display: flex">
+                            <template #start>
+                              <div class="flex align-items-center task-file-list">
+                                <img class="mr-2" :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  slotProps.data.file_type +
+                                  '.png'
+                                " style="object-fit: contain" width="40" height="40" />
+                                <span style="line-height: 1.5; word-break: break-all">
+                                  {{ slotProps.data.file_name }}</span>
+                              </div>
+                            </template>
+                            <template #end>
+                              <Button icon="pi pi-times" class="p-button-rounded p-button-danger"
+                                @click="deleteFile(slotProps.data)" />
+                            </template>
+                          </Toolbar>
+                        </template>
+                      </DataView>
+                    </div>
+                  </div>
+                </div>
+              </AccordionTab>
+            </Accordion>
           </div>
         </div>
       </form>
       <template #footer>
-        <Button
-          label="Hủy"
-          icon="pi pi-times"
-          @click="closeDialogProjectMain"
-          class="p-button-text"
-        />
-        <Button
-          label="Lưu"
-          icon="pi pi-check"
-          @click="saveProjectMain(!v$.$invalid)"
-        />
+        <Button label="Hủy" icon="pi pi-times" @click="closeDialogProjectMain" class="p-button-text" />
+        <Button label="Lưu" icon="pi pi-check" @click="saveProjectMain(!v$.$invalid)" />
       </template>
     </Dialog>
   </div>
+  <treeuser
+    v-if="displayDialogUser === true"
+    :headerDialog="headerDialogUser"
+    :displayDialog="displayDialogUser"
+    :one="is_one"
+    :selected="selectedUser"
+    :closeDialog="closeDialog"
+    :choiceUser="choiceTreeUser"
+  />
 </template>
 <style>
 .p-treeselect-panel {
   max-width: 398px;
 }
+
 .p-treeselect-panel ul li .p-treenode-label {
   white-space: pre-line;
 }
+
 .p-chip {
   border-radius: 5px !important;
+}
+
+.choose-user {
+  color: #2196f3;
+}
+
+.choose-user:hover {
+  cursor: pointer;
 }
 </style>

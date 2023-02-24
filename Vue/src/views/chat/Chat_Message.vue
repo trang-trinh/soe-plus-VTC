@@ -1033,7 +1033,8 @@ onMounted(() => {
 			<div class="grid formgrid m-2">
 				<div class="col-12 md:col-12 flex mb-2" v-if="typeGroupChat == 1">
 					<div class="flex w-7rem">
-						<div class="inputanh relative flex" style="margin: 0 auto;width:100%; height:auto;">
+						<!-- <div class="inputanh relative flex" style="margin: 0 auto;width:100%; height:auto;"> -->
+						<div class="inputanh relative flex" style="margin: 0 auto;">
 							<img
 								@click="chooseImage('imageUser')"
 								id="groupChatAvt"

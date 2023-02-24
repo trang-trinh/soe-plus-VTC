@@ -616,6 +616,7 @@ onMounted(() => {
 														? basedomainURL + slotProps.data.avatar
 														: basedomainURL + '/Portals/Image/noimg.jpg'
 													"
+											@error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'"
 											v-if="slotProps.data.avatar"
 											style="border:1px solid #ccc;"
 										/>
