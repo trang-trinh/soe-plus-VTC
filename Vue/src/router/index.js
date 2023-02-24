@@ -493,7 +493,11 @@ const caHRMWage = () =>
     import ("../views/hrm/category/caWage.vue");
 const caLeavingReason = () =>
     import ("../views/hrm/category/caLeavingReason.vue");
-
+    const caExperience = () =>
+    import ("../views/hrm/category/caExperience.vue");
+    const caCandidate = () =>
+    import ("../views/hrm/category/caCandidate.vue");
+    
 const caClassroom = () =>
     import ("../views/hrm/category/caClassroom.vue");
 const caReceipt = () =>
@@ -1793,7 +1797,16 @@ const router = createRouter({
             name: "caHRMLeavingReason",
             component: caLeavingReason,
         },
-
+        {
+            path: "/hrm/category/ca_experience",
+            name: "caHRMExperience",
+            component: caExperience,
+        },
+        {
+            path: "/hrm/category/ca_candidate",
+            name: "caHRMCandidate",
+            component: caCandidate,
+        },
         {
             path: "/hrm/category/ca_classroom",
             name: "caHRMClassroom",
