@@ -58,7 +58,7 @@ const tabs = ref([
     title: "Đang làm việc",
     icon: "",
     total: 0,
-    bg_color: "#2196f3",
+    bg_color: "#52BE80",
     text_color: "#fff",
   },
   {
