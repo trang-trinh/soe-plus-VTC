@@ -938,7 +938,6 @@ const savePublishDoc = () => {
 };
 // ------------ Thu hồi ----------------
 const checkCanRecall = () => {
-  debugger
   axios
     .post(
       baseURL

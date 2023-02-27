@@ -1512,9 +1512,11 @@ const liItemsDetails = ref([
 const onShowConfigGroup = (type) => {
   if (type == 1) {
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
           proc: "device_approved_group_get",
           par: [
             { par: "approved_group_id", va: null },
@@ -1522,8 +1524,11 @@ const onShowConfigGroup = (type) => {
             { par: "default", va: true },
             { par: "user_id", va: store.getters.user.user_id },
           ],
-        },
-        config
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];

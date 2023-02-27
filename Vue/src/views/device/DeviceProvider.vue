@@ -229,9 +229,11 @@ const loadData = (rf) => {
       loadCount();
     }
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
           proc: "device_provider_list",
           par: [
             { par: "pageno", va: options.value.PageNo },
@@ -239,8 +241,11 @@ const loadData = (rf) => {
             { par: "user_id", va: store.state.user.user_id },
             { par: "status", va: null },
           ],
-        },
-        config
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];

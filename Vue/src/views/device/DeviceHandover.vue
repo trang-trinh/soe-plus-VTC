@@ -1239,6 +1239,7 @@ const openDetailsHandover = (data) => {
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
       let data2 = JSON.parse(response.data.data)[2];
+      debugger
       device_handover.value = data[0];
       displayDetailsHandover.value = true;
       listAssetsH.value = data1;
@@ -1650,38 +1651,57 @@ function renderhtml(id, htmltable) {
   var sum = 0;
   listAssetsH.value.forEach(function (ts) {
     stt += 1;
-    sum += ts.price;
+    sum += ts.current_price;
+ 
+    var device_number="";
+    var barcode_id="";
+    var device_name="";
+    var device_unit="";
+    var current_price=0;
+    var assets_condition="";
+    if(ts.device_number)
+    device_number=ts.device_number;
+    if(ts.barcode_id)
+    barcode_id=ts.barcode_id;
+    if(ts.device_name)
+    device_name=ts.device_name;
+    if(ts.device_unit)
+    device_unit=ts.device_unit;
+    if(ts.current_price)
+    current_price=ts.current_price;
+    if(ts.assets_condition)
+    assets_condition=ts.assets_condition;
     htmltable +=
-      "<tr><td width='30' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-top:none !important;'>" +
+      "<tr><td width='30' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-top:none !important;word-break: break-all'>" +
       stt +
       "</td>";
     htmltable +=
-      "<td width='100' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
-      ts.device_number +
+      "<td width='100' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;word-break: break-all'>" +
+      device_number +
       "</td>";
     htmltable +=
-      "<td width='100' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
-      (ts.barcode_id != null ? ts.barcode_id : "") +
+      "<td width='100' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;word-break: break-all'>" +
+        barcode_id +
       "</td>";
     htmltable +=
       "<td align='left' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
-      ts.device_name +
+      device_name +
       "</td>";
     //htmltable += "<td width='100' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" + moment(ts.ngaymua).format('DD/MM/YYYY') + "</td>";
 
-    var dv = ts.device_unit ? ts.device_unit : "";
+ 
     htmltable +=
       "<td width='90' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
-      dv +
+        device_unit +
       "</td>";
     htmltable +=
       "<td width='90' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;padding:10px 5px;'>" +
-      (ts.price != null ? ts.price.toLocaleString() : " 0 ") +
+        current_price.toLocaleString()   +
       " VND " +
       "</td>";
     htmltable +=
       "<td width='150' align='left' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
-      ts.assets_condition +
+       assets_condition +
       "</td></tr>";
   });
   htmltable += "</tbody></table>";

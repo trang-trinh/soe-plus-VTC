@@ -148,9 +148,10 @@ const loadData = (rf) => {
       loadCount();
     }
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+        baseURL + "/api/device_card/getData",
+        { str: encr(
+          JSON.stringify({
           proc: "device_config_number_list",
           par: [
             { par: "pageno", va: options.value.PageNo },
@@ -158,8 +159,11 @@ const loadData = (rf) => {
             { par: "user_id", va: store.state.user.user_id },
             { par: "status", va: null },
           ],
-        },
-        config
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
@@ -848,7 +852,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             >
               <div class="grid formgrid m-0">
                 <div class="flex field col-12 p-0 align-items-center">
-                  <div class="col-4">Mặc định</div>
+                  <div class="col-4">Trạng thái</div>
                   <div class="col-8">
                     <Dropdown
                       class="col-12 p-0 m-0"
@@ -856,7 +860,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                       :options="trangThai"
                       optionLabel="name"
                       optionValue="code"
-                      placeholder="Mặc định"
+                      placeholder="Trạng thái"
                     />
                   </div>
                 </div>
@@ -1013,7 +1017,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       </Column>
       <Column
         field="status"
-        header="Mặc định"
+        header="Trạng thái"
         headerStyle="text-align:center;jusst;max-width:120px;height:50px"
         bodyStyle="text-align:center;max-width:120px;"
         class="align-items-center justify-content-center text-center"
@@ -1223,7 +1227,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         </div>
         <div class="field col-12 md:col-12 flex">
           <label style="vertical-align: text-bottom" class="col-4 text-left p-0"
-            >Mặc định
+            >Trạng thái
           </label>
           <InputSwitch
             class="w-4rem lck-checked"
