@@ -266,6 +266,9 @@ const saveLaw = (isFormValid) => {
 			});
 		}
 	}
+	if (law.value.summary == null) {
+		law.value.summary = "";
+	}
 	formData.append("law_docs", JSON.stringify(law.value));
 	formData.append("law_relates", JSON.stringify(listLawRelate));
 	formData.append("law_replaces", JSON.stringify(listLawReplace));

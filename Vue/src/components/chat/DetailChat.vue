@@ -2346,8 +2346,8 @@ onMounted(() => {
 						</ul>
 						<div style="max-height: calc(100vh - 120px);overflow-y:auto;" v-if="openResultSearchMsg">
 							<div class="" style="padding-bottom: 0.75rem;border-bottom: 1px solid #e9e9e9;">
-								<h3 class="m-2">Kết quản tìm kiếm</h3>
-								<span class="p-2">Danh sách kết quản phù hợp trong cuộc hội thoại</span>
+								<h3 class="m-2">Kết quả tìm kiếm</h3>
+								<span class="p-2">Danh sách kết quả phù hợp trong cuộc hội thoại</span>
 							</div>
 							<div class="" v-if="listMsg_Search.length > 0">
 								<div class="p-2 pt-3 font-bold" style="background-color:#e9ecef;">Tin nhắn</div>
