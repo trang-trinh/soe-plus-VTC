@@ -19,11 +19,11 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  training_emps_name: {
+  campaign_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
-  training_emps_code: {
+  campaign_code: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -58,7 +58,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_training_emps_count",
+            proc: "hrm_campaign_count",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
@@ -117,11 +117,12 @@ const campaign = ref({
   can_height_to: null,
   can_weight_to: null,
   can_weight_from: null,
-  job_description: null
+  job_description: null,
+  
 
 
 });
-//Lấy dữ liệu training_emps
+//Lấy dữ liệu campaign
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -139,7 +140,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_training_emps_list",
+              proc: "hrm_campaign_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -157,10 +158,9 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
-          } else element.li_user_verify = [];
+        
         });
+         
 
         datalists.value = data;
 
@@ -189,24 +189,18 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].training_emps_id;
+      datalists.value[datalists.value.length - 1].campaign_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].training_emps_id;
+    options.value.id = datalists.value[0].campaign_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const training_emps = ref({
-  training_emps_name: "",
-  emote_file: "",
-  status: true,
-  is_default: false,
-  is_order: 1,
-});
+ 
 
 const selectedStamps = ref();
 
@@ -218,7 +212,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "training_emps_id desc ",
+  sort: "campaign_id desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -236,9 +230,9 @@ const options = ref({
 const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
-  training_emps.value = {
-    training_emps_code: null,
-    training_emps_name: null,
+  campaign.value = {
+ 
+    campaign_name: null,
     form_training: 1,
     status: 1,
     training_place: null,
@@ -246,14 +240,10 @@ const openBasic = (str) => {
     organization_id: store.getters.user.organization_id,
     user_follows_fake: [],
     user_verify_fake: [],
-    organization_training_fake: {},
+ 
   };
 
-  if (store.getters.user.organization_id)
-    training_emps.value.organization_training_fake[
-      store.getters.user.organization_id
-    ] = true;
-
+ 
   isSaveTem.value = true;
   headerDialog.value = str;
 
@@ -261,8 +251,8 @@ const openBasic = (str) => {
 };
 
 const closeDialog = () => {
-  training_emps.value = {
-    training_emps_name: "",
+  campaign.value = {
+    campaign_name: "",
     emote_file: "",
     status: true,
     is_default: false,
@@ -276,7 +266,7 @@ const sttStamp = ref(1);
 
 //Sửa bản ghi
 const editTem = (dataTem) => {
-  training_emps.value = dataTem;
+  campaign.value = dataTem;
   headerDialog.value = "Sửa chiến dịch";
   isSaveTem.value = false;
   displayBasic.value = true;
@@ -304,9 +294,9 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_training_emps/delete_hrm_training_emps", {
+          .delete(baseURL + "/api/hrm_campaign/delete_hrm_campaign", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.training_emps_id] : 1,
+            data: Tem != null ? [Tem.campaign_id] : 1,
           })
           .then((response) => {
             swal.close();
@@ -363,7 +353,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "training_emps_id",
+    id: "campaign_id",
     sqlS: null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -375,7 +365,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/HRM_SQL/Filter_hrm_training_emps", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_campaign", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -422,14 +412,14 @@ const loadDataSQL = () => {
 const setStatus = (value) => {
   opstatus.value.hide();
   let data = {
-    IntID: value.training_emps_id,
-    TextID: value.training_emps_id + "",
+    IntID: value.campaign_id,
+    TextID: value.campaign_id + "",
     IntTrangthai: value.status,
     BitTrangthai: false,
   };
   axios
     .put(
-      baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
+      baseURL + "/api/hrm_campaign/update_s_hrm_campaign",
       data,
       config
     )
@@ -460,7 +450,7 @@ const setStatus = (value) => {
 
 const opstatus = ref();
 const toggleStatus = (item, event) => {
-  training_emps.value = item;
+  campaign.value = item;
   opstatus.value.toggle(event);
 };
 //Tìm kiếm
@@ -531,14 +521,14 @@ const tabs = ref([
 const onCheckBox = (value, check) => {
   if (check) {
     let data = {
-      IntID: value.training_emps_id,
-      TextID: value.training_emps_id + "",
+      IntID: value.campaign_id,
+      TextID: value.campaign_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
+        baseURL + "/api/hrm_campaign/update_s_hrm_campaign",
         data,
         config
       )
@@ -568,13 +558,13 @@ const onCheckBox = (value, check) => {
       });
   } else {
     let data1 = {
-      IntID: value.training_emps_id,
-      TextID: value.training_emps_id + "",
+      IntID: value.campaign_id,
+      TextID: value.campaign_id + "",
       BitMain: value.is_default,
     };
     axios
       .put(
-        baseURL + "/api/hrm_training_emps/Update_DefaultStamp",
+        baseURL + "/api/hrm_campaign/Update_DefaultStamp",
         data1,
         config
       )
@@ -632,7 +622,7 @@ const exportData = (method) => {
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
         excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
-        proc: "hrm_training_emps_export",
+        proc: "hrm_campaign_export",
         par: [
 
           { par: "user_id", va: store.state.user.user_id },
@@ -714,19 +704,19 @@ const itemButMores = ref([
     label: "Hiệu chỉnh nội dung",
     icon: "pi pi-pencil",
     command: (event) => {
-      editTem(training_emps.value, "Chỉnh sửa hợp đồng");
+      editTem(campaign.value, "Chỉnh sửa hợp đồng");
     },
   },
   {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
-      delTem(training_emps.value);
+      delTem(campaign.value);
     },
   },
 ]);
 const toggleMores = (event, item) => {
-  training_emps.value = item;
+  campaign.value = item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -757,11 +747,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.training_emps_id);
+            listId.push(item.campaign_id);
           });
           axios
             .delete(
-              baseURL + "/api/hrm_training_emps/delete_hrm_training_emps",
+              baseURL + "/api/hrm_campaign/delete_hrm_campaign",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -1183,23 +1173,24 @@ onMounted(() => {
                       <div class="col-6 md:col-6">
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <label>Nhóm chiến dịch</label>
+                            <div class="form-group   ">
+                              <div  class="py-2">Vị trí tuyển dụng</div>
                               <MultiSelect :options="listTrainingGroups" :filter="true" :showClear="true"
                                 :editable="false" v-model="options.training_groups_id" optionLabel="name"
-                                optionValue="code" placeholder="Chọn nhóm chiến dịch" class="w-full limit-width"
+                                optionValue="code" placeholder="Chọn vị trí tuyển dụng" class="w-full limit-width"
                                 style="min-height: 36px" panelClass="d-design-dropdown">
                               </MultiSelect>
                             </div>
                           </div>
                           <div class="col-12 md:col-12 p-0">
                             <div class="col-12 p-0 ">
-                              <label>Người phụ trách</label>
+                              <div  class="py-2">Người phụ trách</div>
+                             
                             </div>
                             <MultiSelect :options="listDropdownUser" :filter="true" :showClear="true" :editable="false"
                               display="chip" v-model="options.user_verify" optionLabel="name"
                               placeholder="Chọn người phụ trách" panelClass="d-design-dropdown  d-tree-input"
-                              class="col-12 my-2   " style="min-height: 36px">
+                              class="col-12     " style="min-height: 36px">
                               <template #option="slotProps">
                                 <div class="country-item flex align-items-center">
                                   <div class="grid w-full p-0">
@@ -1281,10 +1272,11 @@ onMounted(() => {
                           </div>
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <label>Hình thức chiến dịch</label>
+                              <div  class="py-2">Trình độ</div>
+                             
                               <MultiSelect :options="listFormTraining" :filter="false" :showClear="true" :editable="false"
                                 v-model="options.type_formtraining" optionLabel="name" optionValue="code" display="chip"
-                                placeholder="Chọn hình thức chiến dịch" class="w-full limit-width"
+                                placeholder="Chọn trình độ" class="w-full limit-width"
                                 style="min-height: 36px" panelClass="d-design-dropdown">
                               </MultiSelect>
                             </div>
@@ -1294,8 +1286,8 @@ onMounted(() => {
                       <div class="col-6 md:col-6">
                         <div class="row">
                           <div class="col-12 md:col-12">
-                            <div class="form-group m-0">
-                              <label>Thời gian chiến dịch</label>
+                            <div class="form-group m-0 py-2">
+                              <div>Thời gian chiến dịch</div>
                             </div>
                           </div>
                           <div class="col-12 p-0 flex">
@@ -1314,7 +1306,7 @@ onMounted(() => {
                           </div>
                           <div class="col-12 md:col-12">
 
-                            <div class="col-12 p-0 ">
+                            <div class="col-12 p-0 pt-2">
                               <label>Người theo dõi</label>
                             </div>
                             <MultiSelect :options="listDropdownUser" :filter="true" :showClear="true" :editable="false"
@@ -1402,11 +1394,11 @@ onMounted(() => {
                           </div>
 
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
-                              <label>Trạng thái</label>
+                            <div class="form-group ">
+                              <div class="pb-2">Chuyên ngành</div>
                               <MultiSelect :options="listStatus" v-model="options.status_filter" :filter="true"
                                 :showClear="true" :editable="false" display="chip" optionLabel="name" optionValue="code"
-                                placeholder="Chọn trạng thái" class="w-full limit-width" style="min-height: 36px"
+                                placeholder="Chọn chuyên ngành" class="w-full limit-width" style="min-height: 36px"
                                 panelClass="d-design-dropdown">
                               </MultiSelect>
                             </div>
@@ -1425,10 +1417,10 @@ onMounted(() => {
                                     w-full
                                   ">
                       <template #start>
-                        <Button @click="reFilterEmail()" class="p-button-outlined" label="Bỏ chọn"></Button>
+                        <Button @click="reFilterEmail()" class="p-button-outlined mx-2" label="Bỏ chọn"></Button>
                       </template>
                       <template #end>
-                        <Button @click="filterFileds()" label="Lọc"></Button>
+                        <Button @click="filterFileds()" class="mx-3" label="Lọc"></Button>
                       </template>
                     </Toolbar>
                   </div>
@@ -1482,7 +1474,7 @@ onMounted(() => {
             :loading="options.loading" :reorderableColumns="true" :value="datalists" removableSort
             v-model:rows="options.PageSize"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="training_emps_id"
+            :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="campaign_id"
             responsiveLayout="scroll" v-model:selection="selectedStamps" :row-hover="true">
             <Column class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px" bodyStyle="text-align:center;max-width:70px"
@@ -1492,34 +1484,26 @@ onMounted(() => {
             <Column field="STT" header="STT" class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px" bodyStyle="text-align:center;max-width:70px">
             </Column>
-            <Column field="training_emps_code" header="Mã số" headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center"
-              :sortable="true">
-              <template #filter="{ filterModel }">
-                <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
-              </template>
-            </Column>
-            <Column field="training_emps_name" header="Tên khoá chiến dịch" :sortable="true"
+           
+            <Column field="campaign_name" header="Tên chiến dịch" :sortable="true"
               headerStyle="text-align:left;height:50px" bodyStyle="text-align:left">
               <template #filter="{ filterModel }">
                 <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
               </template>
             </Column>
-            <Column field="form_training" header="Hình thức" headerStyle="text-align:center;max-width:100px;height:50px"
+            <Column field="num_vacancies" header="Số lượng tuyển" headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
-              <template #body="data">
-                <div>
-                  {{
-                    data.data.form_training == 1
-                    ? "Bắt buộc"
-                    : data.data.form_training == 2
-                      ? "Đăng ký"
-                      : "Cả hai"
-                  }}
-                </div>
-              </template>
+             
             </Column>
-            <Column field="start_date" header="Từ ngày" headerStyle="text-align:center;max-width:100px;height:50px"
+            <Column field="expected_cost" header="Chi phí dự kiến" headerStyle="text-align:center;max-width:150px;height:50px"
+              bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center">
+              <template #body="data">
+                  <div>
+                    {{ data.data.expected_cost?data.data.expected_cost.toLocaleString():'' }} VND
+                  </div>
+                </template>
+            </Column>
+            <Column field="start_date" header="Ngày bắt đầu" headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <div v-if="data.data.start_date">
@@ -1530,7 +1514,7 @@ onMounted(() => {
               </template>
             </Column>
 
-            <Column field="end_date" header="Đến ngày" headerStyle="text-align:center;max-width:100px;height:50px"
+            <Column field="end_date" header="Ngày kết thúc" headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <div v-if="data.data.end_date">
@@ -1540,36 +1524,9 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-            <Column field="li_user_verify" header="Giảng viên" headerStyle="text-align:center;max-width:150px;height:50px"
+            <!-- <Column field="li_user_verify" header="Giảng viên" headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center">
-              <template #body="data">
-                <div>
-                  <AvatarGroup>
-                    <Avatar v-for="(item, index) in data.data.li_user_verify.slice(
-                      0,
-                      4
-                    )" v-bind:label="
-  item.avatar
-    ? ''
-    : item.full_name.substring(
-      item.full_name.lastIndexOf(' ') + 1,
-      item.full_name.lastIndexOf(' ') + 2
-    )
-" :key="index" :style="
-  item.avatar
-    ? 'background-color: #2196f3'
-    : 'background:' + bgColor[item.full_name.length % 7]
-" :image="basedomainURL + item.avatar" class="w-3rem h-3rem" shape="circle" v-tooltip.top="item.full_name" />
-                    <Avatar v-if="data.data.li_user_verify.length > 4"
-                      :label="(data.data.li_user_verify.length - 4).toString()" shape="circle" class="w-3rem h-3rem"
-                      style="
-                                    background-color: #9c27b0;
-                                    color: #ffffff;
-                                    font-size: 12pt !important;
-                                  " />
-                  </AvatarGroup>
-                </div>
-              </template>
+             
             </Column>
             <Column field="count_emps" header="Học viên" headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
@@ -1578,7 +1535,7 @@ onMounted(() => {
                   {{ data.data.count_emps ? data.data.count_emps : "0" }}
                 </div>
               </template>
-            </Column>
+            </Column> -->
             <Column field="created_date" header="Ngày tạo" headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center">
               <template #body="data">
@@ -1591,7 +1548,7 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-            <Column field="status" header="Trạng thái" headerStyle="text-align:center;max-width:11rem;height:50px"
+            <!-- <Column field="status" header="Trạng thái" headerStyle="text-align:center;max-width:11rem;height:50px"
               bodyStyle="text-align:center;max-width:11rem" class="align-items-center justify-content-center text-center">
               <template #body="slotProps">
                 <div class="m-2" @click="
@@ -1627,14 +1584,14 @@ onMounted(() => {
                     <div class="col-12 p-0 field">Chọn trạng thái</div>
                     <div class="col-12 p-0">
                       <Dropdown :options="listStatus" :filter="false" :showClear="false" :editable="false"
-                        v-model="training_emps.status" optionLabel="name" optionValue="code" placeholder="Chọn trạng thái"
-                        class="w-full" @change="setStatus(training_emps)">
+                        v-model="campaign.status" optionLabel="name" optionValue="code" placeholder="Chọn trạng thái"
+                        class="w-full" @change="setStatus(campaign)">
                       </Dropdown>
                     </div>
                   </div>
                 </OverlayPanel>
               </template>
-            </Column>
+            </Column> -->
             <Column header="" headerStyle="text-align:center;max-width:50px" bodyStyle="text-align:center;max-width:50px"
               class="align-items-center justify-content-center text-center">
               <template #body="slotProps">

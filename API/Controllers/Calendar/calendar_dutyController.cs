@@ -2160,22 +2160,87 @@ namespace API.Controllers.Calendar
                             #endregion
 
                             #region Add user co quyền ban hành vào quy trình
-                            calendar_signuser signuser = new calendar_signuser();
-                            signuser.signuser_id = helper.GenKey();
-                            signuser.calendar_duty_id = calendar_duty_id;
-                            signuser.user_id = uid;
-                            signuser.is_step = db.calendar_signuser.Count(x => x.calendar_duty_id == calendar_duty_id) + 1;
-                            signuser.is_type = 0;
-                            signuser.is_sign = 2;
-                            signuser.sign_date = DateTime.Now;
-                            signuser.sign_content = content;
-                            signuser.read_date = read_date;
-                            signuser.status = true;
-                            signuser.created_by = uid;
-                            signuser.created_date = DateTime.Now;
-                            signuser.created_ip = ip;
-                            signuser.created_token_id = tid;
-                            db.calendar_signuser.Add(signuser);
+                            if (calendar.is_type_send == null || calendar.is_type_send == -1)
+                            {
+                                calendar.is_type_send = 2;
+                                calendar_signuser signuser = new calendar_signuser();
+                                signuser.signuser_id = helper.GenKey();
+                                signuser.calendar_duty_id = calendar_duty_id;
+                                signuser.user_id = uid;
+                                signuser.is_step = db.calendar_signuser.Count(x => x.calendar_duty_id == calendar_duty_id) + 1;
+                                signuser.is_type = 0;
+                                signuser.is_sign = 2;
+                                signuser.sign_date = DateTime.Now;
+                                signuser.sign_content = content;
+                                signuser.read_date = read_date;
+                                signuser.status = true;
+                                signuser.created_by = uid;
+                                signuser.created_date = DateTime.Now;
+                                signuser.created_ip = ip;
+                                signuser.created_token_id = tid;
+                                db.calendar_signuser.Add(signuser);
+                            }
+                            #endregion
+
+                            #region file
+                            string root = HttpContext.Current.Server.MapPath("~/Portals");
+                            string path = root + "/" + calendar.organization_id + "/Calendar/" + calendar_duty_id;
+                            bool exists = Directory.Exists(path);
+                            if (!exists)
+                                Directory.CreateDirectory(path);
+                            List<calendar_file> dfs = new List<calendar_file>();
+                            foreach (MultipartFileData fileData in provider.FileData)
+                            {
+                                string org_name_file = fileData.Headers.ContentDisposition.FileName;
+                                if (org_name_file.StartsWith("\"") && org_name_file.EndsWith("\""))
+                                {
+                                    org_name_file = org_name_file.Trim('"');
+                                }
+                                if (org_name_file.Contains(@"/") || org_name_file.Contains(@"\"))
+                                {
+                                    org_name_file = System.IO.Path.GetFileName(org_name_file);
+                                }
+                                string name_file = org_name_file; //helper.UniqueFileName(org_name_file);
+                                string rootPath = path + "/" + name_file;
+                                string Duongdan = "/Portals/" + calendar.organization_id + "/Calendar/" + calendar_duty_id + "/" + name_file;
+                                string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
+                                if (rootPath.Length > 260)
+                                {
+                                    name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
+                                    int le = 260 - (path.Length + 1) - Dinhdang.Length;
+                                    name_file = name_file.Substring(0, le) + Dinhdang;
+                                }
+                                if (File.Exists(rootPath))
+                                {
+                                    File.Delete(rootPath);
+                                }
+                                File.Move(fileData.LocalFileName, rootPath);
+                                //File.Copy(fileData.LocalFileName, rootPathFile, true);
+                                var df = new calendar_file();
+                                df.file_id = helper.GenKey();
+                                df.calendar_duty_id = calendar.calendar_duty_id;
+                                df.file_name = name_file;
+                                df.file_path = Duongdan;
+                                df.file_type = Dinhdang;
+                                var file_info = new FileInfo(rootPath);
+                                df.file_size = file_info.Length;
+                                df.is_image = helper.IsImageFileName(name_file);
+                                if (df.is_image == true)
+                                {
+                                    //helper.ResizeImage(rootPathFile, 1024, 768, 90);
+                                }
+                                df.is_type = 3;
+                                df.status = true;
+                                df.created_by = uid;
+                                df.created_date = DateTime.Now;
+                                df.created_ip = ip;
+                                df.created_token_id = tid;
+                                dfs.Add(df);
+                            }
+                            if (dfs.Count > 0)
+                            {
+                                db.calendar_file.AddRange(dfs);
+                            }
                             #endregion
 
                             #region log

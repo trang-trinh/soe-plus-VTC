@@ -37,23 +37,24 @@ const bgColor = ref([
 ]);
 
 const rules = {
-  campaign_code: {
-    required,
-    $errors: [
-      {
-        $property: "campaign_code",
-        $validator: "required",
-        $message: "Tên đào tạo không được để trống!",
-      },
-    ],
-  },
+ 
   campaign_name: {
     required,
     $errors: [
       {
-        $property: "campaign_code",
+        $property: "campaign_name",
         $validator: "required",
-        $message: "Tên đào tạo không được để trống!",
+        $message: "Tên chiến dịch không được để trống!",
+      },
+    ],
+  },
+  num_vacancies: {
+    required,
+    $errors: [
+      {
+        $property: "num_vacancies",
+        $validator: "required",
+        $message: "Số lượng tuyển không được để trống!",
       },
     ],
   },
@@ -124,8 +125,6 @@ const loadData = () => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         let data1 = JSON.parse(response.data.data)[1];
-        let data2 = JSON.parse(response.data.data)[2];
-        let data3 = JSON.parse(response.data.data)[3];
         if (data) {
           campaign.value = data[0];
 
@@ -137,56 +136,20 @@ const loadData = () => {
             campaign.value.end_date = new Date(
               campaign.value.end_date
             );
-          if (campaign.value.registration_deadline)
-            campaign.value.registration_deadline = new Date(
-              campaign.value.registration_deadline
+          if (campaign.value.rec_recruitment_deadline)
+            campaign.value.rec_recruitment_deadline = new Date(
+              campaign.value.rec_recruitment_deadline
             );
           campaign.value.user_verify_fake =
             campaign.value.user_verify.split(",");
           campaign.value.user_follows_fake =
             campaign.value.user_follows.split(",");
         }
-        campaign.value.organization_training_fake = {};
-        campaign.value.organization_training_fake[
-          campaign.value.organization_training
-        ] = true;
-
-        data1.forEach((element) => {
-          element.data = {
-            profile_id: element.profile_id,
-            avatar: element.avatar,
-            profile_user_name: element.profile_user_name,
-            department_name: element.department_name,
-            department_id: element.department_id,
-            work_position_name: element.work_position_name,
-            position_name: element.position_name,
-            position_id: element.position_id,
-            work_position_id: element.work_position_id,
-          };
-          list_users_training.value.push(element);
-        });
-        if (list_users_training.value.length > 0) {
-          var arr = [...listDataUsersSave.value];
-          list_users_training.value.forEach((element) => {
-            arr = arr.filter((x) => x.code.profile_id != element.profile_id);
-          });
-          listDataUsers.value = arr;
+        debugger
+        if (data1) {
+          listFilesS.value = data1;
         }
-        data2.forEach((element) => {
-          if (element.date_study)
-            element.date_study = new Date(element.date_study);
-          if (element.start_time)
-            element.start_time = new Date(element.start_time);
-          if (element.end_time) element.end_time = new Date(element.end_time);
-        });
-        list_schedule.value = data2;
-        if (data3) {
-          listFilesS.value = data3;
-        }
-
-        checkShow.value = true;
-        checkShow2.value = true;
-        checkShow3.value = true;
+      
       })
       .catch((error) => { });
   }
@@ -197,85 +160,32 @@ const saveData = (isFormValid) => {
     return;
   }
   if (
-    campaign.value.start_date == null ||
+    campaign.value.rec_vacancies == null ||
     campaign.value.user_verify_fake == null ||
-    campaign.value.form_training == null ||
-    campaign.value.obj_training == null
+   
+    campaign.value.rec_recruitment_deadline == null
   ) {
     return;
   }
-  if (
-    list_users_training.value.filter(
-      (x) => x.profile_id == null || x.profile_id == ""
-    ).length > 0
-  ) {
-    return;
-  }
+   
 
   if (campaign.value.campaign_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên đào tạo không được vượt quá 250 ký tự!",
+      text: "Tên chiến dịch không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
     return;
   }
-  if (campaign.value.campaign_code.length > 50) {
-    swal.fire({
-      title: "Error!",
-      text: "Mã đào tạo không được vượt quá 50 ký tự!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-  list_schedule.value.forEach((element) => {
-    if (element.class_schedule_name)
-      if (element.class_schedule_name.length >= 250) {
-        swal.fire({
-          title: "Error!",
-          text: "Tồn tại tên nội dung đào tạo vượt quá 250 ký tự!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-      else
-        return
-    if (element.phone_number)
-      if (element.phone_number.length >= 11) {
-        swal.fire({
-          title: "Error!",
-          text: "Số điện thoại giảng viên không được vượt quá 11 ký tự!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      } if (element.lecturers_name)
-      if (element.lecturers_name.length >= 250) {
-        swal.fire({
-          title: "Error!",
-          text: "Tên giảng viên không được vượt quá 250 ký tự!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-  });
+  
   if (campaign.value.user_verify_fake.length > 0)
     campaign.value.user_verify =
       campaign.value.user_verify_fake.toString();
   if (campaign.value.user_follows_fake.length > 0)
     campaign.value.user_follows =
       campaign.value.user_follows_fake.toString();
-  if (campaign.value.organization_training_fake)
-    Object.keys(campaign.value.organization_training_fake).forEach(
-      (key) => {
-        campaign.value.organization_training = Number(key);
-      }
-    );
-
+ 
   let formData = new FormData();
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
@@ -283,8 +193,6 @@ const saveData = (isFormValid) => {
   }
 
   formData.append("hrm_campaign", JSON.stringify(campaign.value));
-  formData.append("hrm_students", JSON.stringify(list_users_training.value));
-  formData.append("hrm_schedule", JSON.stringify(list_schedule.value));
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
   swal.fire({
     width: 110,
@@ -302,7 +210,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm thông tin đào tạo thành công!");
+          toast.success("Thêm thông tin chiến dịch thành công!");
 
           props.closeDialog();
         } else {
@@ -333,7 +241,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa thông tin đào tạo thành công!");
+          toast.success("Sửa thông tin chiến dịch thành công!");
 
           props.closeDialog();
         } else {
@@ -487,6 +395,7 @@ const showHidePanel = (type) => {
     }
   }
 };
+ 
 const addRow_Item = (type) => {
   //relative
   if (type == 1) {
@@ -1087,7 +996,7 @@ onMounted(() => {
               <small style="width: calc(100% - 10rem)">
                 <span style="color: red" class="w-full">{{
                   v$.campaign_name.required.$message
-                    .replace("Value", "Tên khóa đào tạo")
+                    .replace("Value", "Tên chiến dịch")
                     .replace("is required", "không được để trống!")
                 }}</span>
               </small>
@@ -1225,7 +1134,12 @@ onMounted(() => {
               Số lượng tuyển<span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
-              <InputNumber class="w-full" suffix=" Người" v-model="campaign.num_vacancies" />
+              <InputNumber class="w-full" suffix=" Người" v-model="campaign.num_vacancies"
+              :class="{
+                  'p-invalid':
+                    campaign.num_vacancies == null && submitted,
+                }" 
+              />
 
             </div>
           </div>
@@ -1270,17 +1184,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 field flex" v-if="campaign.start_date == null && submitted">
-          <div class="p-0 col-6">
-            <div class="col-12 p-0 flex">
-              <div class="w-10rem"></div>
-              <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full">Ngày bắt đầu không được để trống!
-                </span>
-              </small>
-            </div>
-          </div>
-        </div>
+       
         <div class="col-12 field p-0 text-lg font-bold">Thông tin vị trí tuyển</div>
 
         <div class="col-12 field p-0 flex text-left align-items-center">
@@ -1288,7 +1192,12 @@ onMounted(() => {
             <div class="w-10rem ">Vị trí<span class="redsao pl-1"> (*)</span></div>
             <div style="width: calc(100% - 10rem)">
               <Dropdown :filter="true" v-model="campaign.rec_vacancies" :options="listVacancies" optionLabel="name" optionValue="code"
-                class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn vị trí" />
+                class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn vị trí"
+                :class="{
+                  'p-invalid':
+                    campaign.rec_vacancies == null && submitted,
+                }" 
+                />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
@@ -1299,7 +1208,17 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
+        <div class="col-12 p-0 field flex" v-if="campaign.rec_vacancies == null && submitted">
+          <div class="p-0 col-6">
+            <div class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full">Vị trí không được để trống!
+                </span>
+              </small>
+            </div>
+          </div>
+        </div>
 
         <div class="col-12 flex p-0">
           <div class="col-6 p-0">
@@ -1331,8 +1250,8 @@ onMounted(() => {
               <div class="w-10rem">
                 Mức lương (từ)
               </div>
-              <div style="width: calc(100% - 10rem)">
-                <InputNumber v-model="campaign.rec_salary_from" class="w-full d-input-design-number" suffix=" VND"
+              <div style="width: calc(100% - 10rem)"> 
+                <InputNumber v-model="campaign.rec_salary_from" :min="0" class="w-full d-input-design-number" suffix=" VND"
                   placeholder="Từ" />
               </div>
             </div>
@@ -1343,7 +1262,11 @@ onMounted(() => {
                 Mức lương (đến)
               </div>
               <div style="width: calc(100% - 10rem)">
-                <InputNumber v-model="campaign.rec_salary_to" class="w-full d-input-design-number" suffix=" VND"
+                <InputNumber v-model="campaign.rec_salary_to" :min="
+                  campaign.rec_salary_from
+                    ? campaign.rec_salary_from+1
+                    : null
+                "  class="w-full d-input-design-number" suffix=" VND"
                   placeholder="Đến" />
               </div>
             </div>
@@ -1357,7 +1280,16 @@ onMounted(() => {
               </div>
               <div style="width: calc(100% - 10rem)">
                 <Calendar class="w-full" placeholder="dd/mm/yyyy" v-model="campaign.rec_recruitment_deadline" autocomplete="on"
-                  :showIcon="true" />
+                  :showIcon="true" :class="{
+                  'p-invalid':
+                    campaign.rec_recruitment_deadline == null && submitted,
+                }" 
+                :minDate="
+                  campaign.start_date
+                    ? new Date(campaign.start_date)
+                    : null
+                "
+                />
               </div>
             </div>
           </div>
@@ -1367,9 +1299,20 @@ onMounted(() => {
                 Số lượng
               </div>
               <div style="width: calc(100% - 10rem)">
-                <InputNumber v-model="campaign.rec_number_vacancies" class="w-full d-input-design-number" suffix=" Người"
+                <InputNumber v-model="campaign.rec_number_vacancies" :min="0" class="w-full d-input-design-number" suffix=" Người"
                   placeholder="Số lượng" />
               </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 p-0 field flex" v-if="campaign.rec_recruitment_deadline == null && submitted">
+          <div class="p-0 col-6">
+            <div class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full">Ngày bắt đầu không được để trống!
+                </span>
+              </small>
             </div>
           </div>
         </div>
@@ -1448,10 +1391,10 @@ onMounted(() => {
               </div>
               <div style="width: calc(100% - 10rem)" class="flex">
                 <div class="w-full mr-2">
-                  <InputNumber v-model="campaign.can_age_from" class="w-full  " suffix=" Tuổi" placeholder="Từ" />
+                  <InputNumber v-model="campaign.can_age_from" class="w-full  " :min="0" suffix=" Tuổi" placeholder="Từ" />
                 </div>
                 <div class="w-full">
-                  <InputNumber v-model="campaign.can_age_to" class="w-full " suffix=" Tuổi" placeholder="Đến" />
+                  <InputNumber v-model="campaign.can_age_to" class="w-full " :min="campaign.can_age_from?campaign.can_age_from+1: null" suffix=" Tuổi" placeholder="Đến" />
                 </div>
               </div>
             </div>
@@ -1476,10 +1419,14 @@ onMounted(() => {
               </div>
               <div style="width: calc(100% - 10rem)" class="flex">
                 <div class="w-full mr-2">
-                  <InputNumber v-model="campaign.can_height_from" class="w-full  " suffix=" Cm" placeholder="Từ" />
+                  <InputNumber v-model="campaign.can_height_from"
+                :min="0"
+                  class="w-full  " suffix=" Cm" placeholder="Từ" />
                 </div>
                 <div class="w-full">
-                  <InputNumber v-model="campaign.can_height_to" class="w-full " suffix=" Cm" placeholder="Đến" />
+                  <InputNumber v-model="campaign.can_height_to"
+                  :min="campaign.can_height_from?campaign.can_height_from+1: null"
+                  class="w-full " suffix=" Cm" placeholder="Đến" />
                 </div>
               </div>
             </div>
@@ -1491,10 +1438,14 @@ onMounted(() => {
               </div>
               <div style="width: calc(100% - 10rem)" class="flex">
                 <div class="w-full mr-2">
-                  <InputNumber v-model="campaign.can_weight_from" class="w-full  " suffix=" Kg" placeholder="Từ" />
+                  <InputNumber v-model="campaign.can_weight_from"
+                  :min="0"
+                  class="w-full  " suffix=" Kg" placeholder="Từ" />
                 </div>
                 <div class="w-full">
-                  <InputNumber v-model="campaign.can_weight_to" class="w-full " suffix=" Kg" placeholder="Đến" />
+                  <InputNumber v-model="campaign.can_weight_to"
+                  :min="campaign.can_weight_from?campaign.can_weight_from+1: null"
+                  class="w-full " suffix=" Kg" placeholder="Đến" />
                 </div>
               </div>
             </div>

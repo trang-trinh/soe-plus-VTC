@@ -41,5 +41,6 @@ namespace CMS
             cors.SupportsCredentials = true;
             config.EnableCors(cors);
         }
+
     }
 }

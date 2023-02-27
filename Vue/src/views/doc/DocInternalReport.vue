@@ -97,6 +97,17 @@ const loadData = () => {
     loadDataSQL();
     return false;
   }
+  var strG = "";
+  var strk = "";
+
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if(strG!=null)
+  options.value.department_id_process_fake= strG;
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -112,6 +123,7 @@ const loadData = () => {
               { par: "dispatch_book_id", va: options.value.dispatch_book_id },
               { par: "doc_group_id", va: options.value.doc_group_id },
               { par: "field_id", va: options.value.field_id },
+              { par: "department_id_process", va: options.value.department_id_process },
               { par: "department_id", va: options.value.department_id },
               { par: "start_dateI", va: options.value.start_dateI },
               { par: "end_dateI", va: options.value.end_dateI },
@@ -189,7 +201,8 @@ const RemoveMul = (index, value) => {
 const refreshData = () => {
   options.value.department_id = null;
   options.value.fields_id = null;
-
+  options.value.department_id_process = null;
+  
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
@@ -238,6 +251,7 @@ const hideFilter = () => {
     options.value.start_dateI == null &&
     options.value.ca_groups_list == null &&
     options.value.department_id == null &&
+    options.value.department_id_process == null&&
     options.value.ca_fields_list == null &&
     options.value.ca_dispatch_book_list == null &&
     options.value.end_dateI == null &&
@@ -627,6 +641,7 @@ const checkFilter = ref(false);
 const onRefilterDM = () => {
   options.value.doc_group_id = null;
   options.value.department_id = null;
+  options.value.department_id_process = null;
   options.value.fields_id = null;
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
@@ -722,6 +737,27 @@ const onFilterDM = () => {
   }  else{
     options.value.department_id =null;
   }
+  strG = "";
+  strk = "";
+
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if (strG != "") {
+    
+    filterS = {
+      filterconstraints: [],
+      filteroperator:strG,
+      key: "department_id_process",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else{
+    options.value.department_id_process =null;
+  }
 
   strG = "";
   strk = "";
@@ -738,6 +774,84 @@ const onFilterDM = () => {
       key: "user_recever",
     };
     filterSQL.value.push(filterS);
+  }
+
+
+  
+  if (options.value.start_dateI && options.value.end_dateI) {
+    filterS = {
+      filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateAfter" }, { value: options.value.start_dateI, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "receive_date",
+    };
+    filterSQL.value.push(filterS);
+
+    filterS = {
+      filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "receive_date",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else {
+    if (options.value.start_dateI) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "receive_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (options.value.end_dateI) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "receive_date",
+      };
+      filterSQL.value.push(filterS);
+
+    }
+  }
+
+  if (options.value.start_dateD && options.value.end_dateD) {
+    filterS = {
+      filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateAfter" }, { value: options.value.start_dateD, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "doc_date",
+    };
+    filterSQL.value.push(filterS);
+
+    filterS = {
+      filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateBefore" }, { value: options.value.end_dateD, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "doc_date",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else {
+    if (options.value.start_dateD) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "doc_date",
+      };
+      filterSQL.value.push(filterS);
+
+
+    }
+    if (options.value.end_dateD) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "doc_date",
+      };
+      filterSQL.value.push(filterS);
+
+    }
   }
 
   if (filterSQL.value.length > 0) loadDataSQL();
@@ -849,6 +963,7 @@ function renderhtml(id, htmltable) {
           <th style="width: 100px">Số ký hiệu</th>
           <th style="width: 130px">Ngày văn bản</th>
           <th style="min-width: 150px">Trích yếu</th>
+          <th style="min-width: 130px">Nơi ban hành</th>
           <th style="min-width: 150px">Nơi nhận</th>
           <th style="width: 110px">LĐT</th>
           <th style="width: 110px">Người ký</th>
@@ -858,6 +973,12 @@ function renderhtml(id, htmltable) {
       <tbody class="boder">`;
   for (let index = 0; index < datalistsExport.value.length; index++) {
     const value = datalistsExport.value[index];
+    var doc_date="";
+    var receive_date="";
+    if(value.doc_date)
+    doc_date=moment(new Date(value.doc_date)).format("DD/MM/YYYY");
+    if(value.receive_date)
+    receive_date= moment(new Date(value.receive_date)).format("DD/MM/YYYY");
     htmltable +=
       `
         <tr >
@@ -869,14 +990,14 @@ function renderhtml(id, htmltable) {
           <td  style="width: 100px">
             <div >
               ` +
-      value.dispatch_book_num +
+      value.dispatch_book_code +
       `
             </div>
           </td>
           <td  style="width: 130px">
             <div >
               ` +
-      moment(new Date(value.receive_date)).format("DD/MM/YYYY") +
+              receive_date +
       `
             
             </div>
@@ -890,7 +1011,7 @@ function renderhtml(id, htmltable) {
           </td>
           <td align="center"  style="width: 130px">
             <div>     ` +
-      moment(new Date(value.doc_date)).format("DD/MM/YYYY") +
+              doc_date +
       `</div>
           </td>
           <td style=" word-break: break-word">
@@ -899,6 +1020,12 @@ function renderhtml(id, htmltable) {
       value.compendium +
       `
              
+            </div>
+          </td>
+          <td  style=" word-break: break-word">
+            <div>
+              ` +value.issue_place + `
+       
             </div>
           </td>
           <td>
@@ -963,12 +1090,13 @@ const exportExcelR = () => {
               proc: "doc_report_list_internal",
               par: [
                 { par: "pageno", va: options.value.pagenoExport - 1 },
-                { par: "pagesize", va: options.value.pagesize },
+                { par: "pagesize", va: options.value.totalRecordsExport },
                 { par: "user_id", va: store.state.user.user_id },
                 { par: "user_recever", va: options.value.user_recever },
                 { par: "dispatch_book_id", va: options.value.dispatch_book_id },
                 { par: "doc_group_id", va: options.value.doc_group_id },
                 { par: "field_id", va: options.value.field_id },
+                { par: "department_id_process", va: options.value.department_id_process_fake },
                 { par: "department_id", va: options.value.department_id },
                 { par: "start_dateI", va: options.value.start_dateI },
                 { par: "end_dateI", va: options.value.end_dateI },
@@ -1038,6 +1166,18 @@ const itemButs = ref([
   },
 ]);
 const toggleExport = (event) => {
+  var strG = "";
+  var strk = "";
+
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if(strG!=null)
+  options.value.department_id_process_fake= strG;
+
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
@@ -1057,9 +1197,11 @@ const exportData = (method) => {
           { par: "pageno", va: options.value.pagenoExport - 1 },
           { par: "pagesize", va: options.value.totalRecordsExport },
           { par: "user_id", va: store.state.user.user_id },
+          { par: "user_recever", va: options.value.user_recever },
           { par: "dispatch_book_id", va: options.value.dispatch_book_id },
           { par: "doc_group_id", va: options.value.doc_group_id },
           { par: "field_id", va: options.value.field_id },
+          { par: "department_id_process", va: options.value.department_id_process_fake },
           { par: "department_id", va: options.value.department_id },
           { par: "start_dateI", va: options.value.start_dateI },
           { par: "end_dateI", va: options.value.end_dateI },
@@ -1251,6 +1393,8 @@ onMounted(() => {
                   :class="
                     (options.doc_group_id != null ||
                       options.department_id != null ||
+                      options.department_id_process != null ||
+                  
                       options.fields_id != null ||
                       options.dispatch_book_id != null ||
                       options.start_dateI != null ||
@@ -1324,7 +1468,7 @@ onMounted(() => {
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
                           class="w-full"
-                          v-model="options.end_dateI"
+                          v-model="options.end_dateI"  :minDate="options.start_dateI? new Date(options.start_dateI) :null"
                           placeholder="dd/MM/yy"
                         />
                       </div>
@@ -1350,6 +1494,7 @@ onMounted(() => {
                           class="w-full"
                           v-model="options.end_dateD"
                           placeholder="dd/MM/yy"
+                          :minDate="options.start_dateD? new Date(options.start_dateD) :null"
                         />
                       </div>
                     </div>
@@ -1398,7 +1543,7 @@ onMounted(() => {
                     </div>
                     <div class="field col-12 md:col-12 flex">
                       <div class="col-3 p-0 align-items-center flex">
-                        Phòng ban:
+                        Phòng ban soạn thảo:
                       </div>
                       <div class="col-9 p-0 align-items-center flex">
                         <TreeSelect
@@ -1411,7 +1556,22 @@ onMounted(() => {
                         ></TreeSelect>
                       </div>
                     </div>
-
+                    <div class="field col-12 md:col-12 flex">
+                      <div class="col-3 p-0 align-items-center flex">
+                        Phòng ban xử lý:
+                      </div>
+                      <div class="col-9 p-0 align-items-center flex">
+                        <TreeSelect
+                          class="w-full"
+                          v-model="options.department_id_process"
+                          :options="listFilterDM.department_list"
+                          display="chip"
+                          selectionMode="checkbox"
+                          placeholder="Chọn phòng ban xử lý"
+                          :clear="true"
+                        ></TreeSelect>
+                      </div>
+                    </div>
                     <!-- <div class="field col-12 md:col-12 flex">
                       <div class="col-3 p-0 align-items-center flex">
                         Nơi ban hành:
@@ -1771,7 +1931,7 @@ onMounted(() => {
           <template #body="data">
             <div>
               {{
-                moment(new Date(data.data.receive_date)).format("DD/MM/YYYY")
+                data.data.receive_date?moment(new Date(data.data.receive_date)).format("DD/MM/YYYY"):''
               }}
             </div>
           </template>

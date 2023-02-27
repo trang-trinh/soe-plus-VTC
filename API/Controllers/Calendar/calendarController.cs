@@ -71,6 +71,23 @@ namespace API.Controllers.Calendar
                 var tables = await task;
                 DateTime edate = DateTime.Now;
                 string JSONresult = JsonConvert.SerializeObject(tables);
+                #region log tivi
+                using (DBEntities db = new DBEntities())
+                {
+                    tivi_log logtivi = new tivi_log();
+                    logtivi.tivi_id = null;
+                    logtivi.method = "HttpPost";
+                    logtivi.organization_id = null;
+                    logtivi.action = "Tivi/Tivi_GetCalendar";
+                    logtivi.created_by = "";
+                    logtivi.created_date = DateTime.Now;
+                    logtivi.created_ip = ip;
+                    logtivi.created_token_id = tid;
+                    logtivi.content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(tables) });
+                    db.tivi_log.Add(logtivi);
+                    db.SaveChanges();
+                }
+                #endregion
                 return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
             }
             catch (DbEntityValidationException e)

@@ -175,6 +175,8 @@ namespace API.Controllers.Device
                                 if (fdcard != null)
                                 {
                                     fdcard.check_recall = "L";
+                                    fdcard.old_status = fdcard.status;
+                                    fdcard.status = "TPTH";
                                 }
                                 item.barcode_id = fdcard.barcode_id;
                                 item.device_id = fdcard.device_id;
@@ -366,6 +368,11 @@ namespace API.Controllers.Device
                                 if (fdcard != null)
                                 {
                                     fdcard.check_recall = null;
+                                
+                                  
+                                        fdcard.status = fdcard.old_status;
+                                        fdcard.old_status = "TPTH";
+                                   
                                 }
                                 liDell.Add(item);
 
@@ -384,6 +391,8 @@ namespace API.Controllers.Device
                                 if (fdcard != null)
                                 {
                                     fdcard.check_recall ="L";
+                                    fdcard.old_status = fdcard.status;
+                                    fdcard.status = "TPTH";
                                 }
                                 item.barcode_id = fdcard.barcode_id;
                                 item.device_id = fdcard.device_id;
@@ -615,6 +624,8 @@ namespace API.Controllers.Device
                                 if (fdcard != null)
                                 {
                                     fdcard.check_recall = null;
+                                    fdcard.status = "DSD";
+                                    fdcard.old_status = "TPBG";
                                 }
                                 del1.Add(da);
                             }

@@ -24,6 +24,9 @@ using System.Xml;
 using System.Security.Cryptography.Xml;
 using SocketIOClient;
 using System.Net.Sockets;
+using System.Net.Http;
+using System.Security.Claims;
+
 
 namespace Helper
 {
@@ -1349,6 +1352,8 @@ namespace Helper
 
         public static void saveLog(string uid, string uname, string content, string control, string ip, string tokenid, string title, int loai, string module)
         {
+          
+           
             try
             {
                 sys_logs os = new sys_logs();
@@ -1363,7 +1368,21 @@ namespace Helper
                 os.is_type = loai;
                 os.module = module;
                 os.status = 0;
-                saveLogs(os);
+                if (wlog)
+                {
+
+                    using (DBEntities db = new DBEntities())
+                    {
+                        try
+                        {
+                            db.Configuration.LazyLoadingEnabled = false;
+                            db.sys_logs.Add(os);
+                            db.SaveChanges();
+                        }
+                        catch { }
+                    }
+
+                }
             }
             catch { }
         }
@@ -1403,13 +1422,12 @@ namespace Helper
             }
             catch { }
         }
-
+      
         public static void saveLogs(sys_logs ol)
         {
             if (wlog)
             {
-                //Task.Factory.StartNew(() =>
-                //{
+   
                 using (DBEntities db = new DBEntities())
                 {
                     try
@@ -1420,7 +1438,7 @@ namespace Helper
                     }
                     catch { }
                 }
-                //});
+     
             }
         }
 

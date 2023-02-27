@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -23,8 +23,8 @@
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
     <IISExpressSSLPort>44393</IISExpressSSLPort>
-    <IISExpressAnonymousAuthentication />
-    <IISExpressWindowsAuthentication />
+    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
@@ -38,7 +38,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -53,9 +52,16 @@
     <Reference Include="AngleSharp, Version=0.16.1.0, Culture=neutral, PublicKeyToken=e83494dcdc6d31ea, processorArchitecture=MSIL">
       <HintPath>..\packages\AngleSharp.0.16.1\lib\net472\AngleSharp.dll</HintPath>
     </Reference>
+    <Reference Include="AntiVirusScanner, Version=1.0.2.0, Culture=neutral, PublicKeyToken=4eca7785562da9b9, processorArchitecture=MSIL">
+      <HintPath>..\packages\AntiVirusScanner.1.0.2\lib\net35\AntiVirusScanner.dll</HintPath>
+    </Reference>
     <Reference Include="Antlr3.Runtime">
       <Private>True</Private>
       <HintPath>..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="DigitalOfficePro.Html5PointSdk, Version=1.7.0.4, Culture=neutral, PublicKeyToken=5e90c5baa3624fc1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\DigitalOfficePro.Html5PointSdk.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
@@ -78,6 +84,17 @@
     <Reference Include="HtmlAgilityPack, Version=1.11.43.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <HintPath>..\packages\HtmlAgilityPack.1.11.43\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
+    <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp, Version=5.5.3.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="Magick.NET-Q16-AnyCPU, Version=10.1.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
       <HintPath>..\packages\Magick.NET-Q16-AnyCPU.10.1.0\lib\netstandard20\Magick.NET-Q16-AnyCPU.dll</HintPath>
       <Private>True</Private>
@@ -97,10 +114,13 @@
     <Reference Include="Microsoft.AspNet.Identity.Owin">
       <HintPath>..\packages\Microsoft.AspNet.Identity.Owin.2.2.3\lib\net45\Microsoft.AspNet.Identity.Owin.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.7.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=2.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.2.1.1\lib\netstandard2.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.5.3.0\lib\net461\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
     </Reference>
@@ -132,15 +152,17 @@
     <Reference Include="Owin">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
+    <Reference Include="Quartz, Version=3.5.0.0, Culture=neutral, PublicKeyToken=f6b8c98a402cc8a4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Quartz.3.5.0\lib\net472\Quartz.dll</HintPath>
+    </Reference>
+    <Reference Include="SocketIOClient, Version=3.0.7.0, Culture=neutral, PublicKeyToken=c9a3629195a82104, processorArchitecture=MSIL">
+      <HintPath>..\packages\SocketIOClient.3.0.7\lib\net461\SocketIOClient.dll</HintPath>
+    </Reference>
     <Reference Include="Spire.Doc">
       <HintPath>E:\LibOffice\Spire.Doc.dll</HintPath>
     </Reference>
     <Reference Include="Spire.License">
       <HintPath>E:\LibOffice\Spire.License.dll</HintPath>
-    </Reference>
-    <Reference Include="Spire.Pdf, Version=7.1.10.0, Culture=neutral, PublicKeyToken=663f351905198cb3, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Spire.Pdf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -148,19 +170,25 @@
     </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.7.1\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.IdentityModel.Tokens.Jwt, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.5.3.0\lib\net461\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
-    <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.IO.Compression.ZipFile, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
       <Private>True</Private>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -168,19 +196,35 @@
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.7\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Text.Encoding.CodePages, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Encoding.CodePages.5.0.0\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
     </Reference>
+    <Reference Include="System.Text.Encodings.Web, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.7.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.7.0.0\lib\net462\System.Text.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Transactions" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Cors, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.7\lib\net45\System.Web.Cors.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Http.Cors, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Cors.5.2.7\lib\net45\System.Web.Http.Cors.dll</HintPath>
     </Reference>
@@ -188,11 +232,13 @@
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Owin.5.2.3\lib\net45\System.Web.Http.Owin.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Abstractions" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.Helpers.dll</HintPath>
@@ -231,10 +277,19 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
+    <Reference Include="ViettelFileSigner, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\ViettelFileSigner.dll</HintPath>
+    </Reference>
     <Reference Include="WebGrease">
       <Private>True</Private>
       <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
+    </Reference>
+    <Reference Include="zxing, Version=0.16.8.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.0.16.8\lib\net48\zxing.dll</HintPath>
+    </Reference>
+    <Reference Include="zxing.presentation, Version=0.16.8.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.0.16.8\lib\net48\zxing.presentation.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -259,9 +314,20 @@
     <Reference Include="Microsoft.Owin.Security.OAuth">
       <HintPath>..\packages\Microsoft.Owin.Security.OAuth.4.0.1\lib\net45\Microsoft.Owin.Security.OAuth.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
+      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App_Start\**" />
+    <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="App_Start\Startup.Auth.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="ConfigCA\FileUploadHandler.aspx.cs">
+      <DependentUpon>FileUploadHandler.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Controllers\API\api_bugController.cs" />
     <Compile Include="Controllers\API\api_categoryController.cs" />
     <Compile Include="Controllers\API\api_commentbugController.cs" />
@@ -269,32 +335,31 @@
     <Compile Include="Controllers\API\api_pluginController.cs" />
     <Compile Include="Controllers\API\api_projectController.cs" />
     <Compile Include="Controllers\API\api_tableController.cs" />
-    <Compile Include="Controllers\Auto.cs" />
     <Compile Include="Controllers\Booking\BookingMealController.cs" />
     <Compile Include="Controllers\CacheController.cs" />
+    <Compile Include="Controllers\Calendar\calendarController.cs" />
+    <Compile Include="Controllers\Calendar\CalendarReminder.cs" />
     <Compile Include="Controllers\Calendar\calendar_boardroomController.cs" />
+    <Compile Include="Controllers\Calendar\calendar_carController.cs" />
+    <Compile Include="Controllers\Calendar\calendar_configController.cs" />
+    <Compile Include="Controllers\Calendar\calendar_dutyconfigController.cs" />
+    <Compile Include="Controllers\Calendar\calendar_dutyController.cs" />
     <Compile Include="Controllers\Calendar\calendar_positionController.cs" />
+    <Compile Include="Controllers\Calendar\calendar_weekController.cs" />
+    <Compile Include="Controllers\Calendar\JobScheduler.cs" />
     <Compile Include="Controllers\Chat\chatController.cs" />
-    <Compile Include="Controllers\CMS\LangController.cs" />
-    <Compile Include="Controllers\CMS\NewsController.cs" />
-    <Compile Include="Controllers\CMS\SlideShowController.cs" />
-    <Compile Include="Controllers\CMS\TopicController.cs" />
-    <Compile Include="Controllers\CMS\TopicFlagController.cs" />
-    <Compile Include="Controllers\Danhmuc\DM_DiaDanhController.cs" />
-    <Compile Include="Controllers\Device\device_approved_department_groupController.cs" />
-    <Compile Include="Controllers\Device\device_approved_department_userController.cs" />
     <Compile Include="Controllers\Device\device_approved_groupController.cs" />
     <Compile Include="Controllers\Device\device_cardController.cs" />
     <Compile Include="Controllers\Device\device_config_numberController.cs" />
     <Compile Include="Controllers\Device\device_groupsController.cs" />
     <Compile Include="Controllers\Device\device_handoverController.cs" />
-    <Compile Include="Controllers\Device\device_handover_attachController.cs" />
-    <Compile Include="Controllers\Device\device_handover_filesController.cs" />
+    <Compile Include="Controllers\Device\device_inventory_slipController.cs" />
     <Compile Include="Controllers\Device\device_mainController.cs" />
     <Compile Include="Controllers\Device\device_manufacturerController.cs" />
     <Compile Include="Controllers\Device\device_processController.cs" />
-    <Compile Include="Controllers\Device\device_process_filesController.cs" />
     <Compile Include="Controllers\Device\device_providerController.cs" />
+    <Compile Include="Controllers\Device\device_recallController.cs" />
+    <Compile Include="Controllers\Device\device_repairController.cs" />
     <Compile Include="Controllers\Device\device_statusController.cs" />
     <Compile Include="Controllers\Device\device_typeController.cs" />
     <Compile Include="Controllers\Device\device_unitController.cs" />
@@ -303,7 +368,6 @@
     <Compile Include="Controllers\Dictionary\ca_dispatch_booksController.cs" />
     <Compile Include="Controllers\Dictionary\ca_emailsController.cs" />
     <Compile Include="Controllers\Dictionary\ca_email_groupsController.cs" />
-    <Compile Include="Controllers\Dictionary\ca_emotesController.cs" />
     <Compile Include="Controllers\Dictionary\ca_fieldsController.cs" />
     <Compile Include="Controllers\Dictionary\ca_groupsController.cs" />
     <Compile Include="Controllers\Dictionary\ca_issue_placesController.cs" />
@@ -318,16 +382,72 @@
     <Compile Include="Controllers\Dictionary\ca_tagsController.cs" />
     <Compile Include="Controllers\Dictionary\ca_typesController.cs" />
     <Compile Include="Controllers\Dictionary\ca_urgencyController.cs" />
-    <Compile Include="Controllers\Dictionary\doc_followsController.cs" />
-    <Compile Include="Controllers\Dictionary\doc_masterController.cs" />
-    <Compile Include="Controllers\DocMainController.cs" />
+    <Compile Include="Controllers\Dictionary\ca_emotesController.cs" />
+    <Compile Include="Controllers\Dictionary\DictionaryProcController.cs" />
+    <Compile Include="Controllers\Dictionary\doc_ca_positionController.cs" />
+    <Compile Include="Controllers\Dictionary\role_groupsController.cs" />
+    <Compile Include="Controllers\Dictionary\role_group_browse_groupController.cs" />
+    <Compile Include="Controllers\Dictionary\role_group_usersController.cs" />
+    <Compile Include="Controllers\Doc\Config\AxisConfigController.cs" />
+    <Compile Include="Controllers\Doc\Config\Doc_Role_DepartmentController.cs" />
+    <Compile Include="Controllers\Doc\DocAppController.cs" />
+    <Compile Include="Controllers\Doc\DocConnectController.cs" />
     <Compile Include="Controllers\Doc\DocMainController.cs" />
+    <Compile Include="Controllers\Doc\DocProcController.cs" />
+    <Compile Include="Controllers\Doc\doc_codesController.cs" />
     <Compile Include="Controllers\Doc\PDFWriterController.cs" />
     <Compile Include="Controllers\ExcelController.cs" />
- <Compile Include="Controllers\FileController.cs" />
+    <Compile Include="Controllers\FileController.cs" />
     <Compile Include="Controllers\Filles\FileFolderController.cs" />
     <Compile Include="Controllers\Filles\FileMainController.cs" />
+    <Compile Include="Controllers\Filles\MediaController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\HRM\Campaign\hrm_campaignController.cs" />
+    <Compile Include="Controllers\HRM\Campaign\hrm_candidateController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_academic_levelController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_bankController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_certificateController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_classificationController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_classroomController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_cultural_levelController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_degreeController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_enecting_groupController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_ethnicController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_evaluation_criteriaController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_experienceController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_facultyController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_formalityController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_form_traningController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_identity_papersController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_identity_placeController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_informatic_levelController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_interview_roundController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_language_levelController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_learning_placeController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_management_majorController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_management_stateController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_nationalityController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_personnel_levelController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_political_theoryController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_professional_workController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_receiptController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_relationshipController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_religionController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_specializationController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_SQLController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_titleController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_type_contractController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_vacancyController.cs" />
+    <Compile Include="Controllers\HRM\Category\hrm_ca_wageController.cs" />
+    <Compile Include="Controllers\HRM\Contract\hrm_contractController.cs" />
+    <Compile Include="Controllers\HRM\Declare\hrm_declareController.cs" />
+    <Compile Include="Controllers\HRM\Declare\hrm_paycheckController.cs" />
+    <Compile Include="Controllers\HRM\File\HrmFileController.cs" />
+    <Compile Include="Controllers\HRM\hrmController.cs" />
+    <Compile Include="Controllers\HRM\HRM_SQLController.cs" />
+    <Compile Include="Controllers\HRM\hrm_training_empsController.cs" />
+    <Compile Include="Controllers\HRM\insurance\insuranceController.cs" />
+    <Compile Include="Controllers\HRM\Profile\hrm_profileController.cs" />
     <Compile Include="Controllers\HtmlPointController.cs" />
     <Compile Include="Controllers\ImportExcelController.cs" />
     <Compile Include="Controllers\Law\law_commentController.cs" />
@@ -344,13 +464,30 @@
     <Compile Include="Controllers\News\news_commentController.cs" />
     <Compile Include="Controllers\News\news_mainController.cs" />
     <Compile Include="Controllers\NotifyController.cs" />
+    <Compile Include="Controllers\OptionAccount\AccountController.cs" />
     <Compile Include="Controllers\PhongbanController.cs" />
     <Compile Include="Controllers\ProcController.cs" />
     <Compile Include="Controllers\project_main\ProjectMainController.cs" />
+    <Compile Include="Controllers\ReportModuleController.cs" />
+    <Compile Include="Controllers\Request\Category\request_ca_formController.cs" />
+    <Compile Include="Controllers\Request\Category\request_ca_groupController.cs" />
+    <Compile Include="Controllers\Request\Category\request_ca_groupteamController.cs" />
+    <Compile Include="Controllers\Request\Category\request_ca_teamController.cs" />
+    <Compile Include="Controllers\Request\requestController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
+    <Compile Include="Controllers\SendEmailController.cs" />
     <Compile Include="Controllers\SQLController.cs" />
+    <Compile Include="Controllers\Statistical\statisticalController.cs" />
     <Compile Include="Controllers\Sys\GroupController.cs" />
     <Compile Include="Controllers\Sys\GroupTypeController.cs" />
+    <Compile Include="Controllers\Tasks\Config\taskWeightsController.cs" />
+    <Compile Include="Controllers\Tasks\Config\task_browser_groupController.cs" />
+    <Compile Include="Controllers\Tasks\Config\Task_MarkConfigController.cs" />
+    <Compile Include="Controllers\Tasks\Config\Task_Person_ConfigController.cs" />
+    <Compile Include="Controllers\Tasks\Person_Report\create_Person_ReportController.cs" />
+    <Compile Include="Controllers\Tasks\Person_Report\review_Person_ReportController.cs" />
+    <Compile Include="Controllers\Tasks\Person_Report\send_Process_ReportController.cs" />
+    <Compile Include="Controllers\Tasks\Television\Task_TiviController.cs" />
     <Compile Include="Controllers\Task\task_bugcommentController.cs" />
     <Compile Include="Controllers\Task\task_categoryController.cs" />
     <Compile Include="Controllers\Task\task_commentController.cs" />
@@ -359,20 +496,40 @@
     <Compile Include="Controllers\task_ca\task_ca_projectgroupController.cs" />
     <Compile Include="Controllers\task_origin\checkListController.cs" />
     <Compile Include="Controllers\task_origin\ChecklistDetailController.cs" />
+    <Compile Include="Controllers\task_origin\ReportProgressController.cs" />
+    <Compile Include="Controllers\task_origin\ReviewController.cs" />
+    <Compile Include="Controllers\task_origin\TaskExtendController.cs" />
+    <Compile Include="Controllers\task_origin\TaskProcController.cs" />
+    <Compile Include="Controllers\task_origin\task_commentsController.cs" />
+    <Compile Include="Controllers\task_origin\task_FilesController.cs" />
+    <Compile Include="Controllers\task_origin\task_MemberController.cs" />
     <Compile Include="Controllers\task_origin\task_originController.cs" />
-    <Compile Include="Controllers\TestCaseController.cs" />
+    <Compile Include="Controllers\Tivi\TiviController.cs" />
     <Compile Include="Controllers\UploadController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
+    <Compile Include="Controllers\Videos\shows_commentController.cs" />
     <Compile Include="Controllers\Videos\shows_mainController.cs" />
     <Compile Include="Controllers\Videos\video_commentController.cs" />
     <Compile Include="Controllers\Videos\video_mainController.cs" />
     <Compile Include="Controllers\DocViewerController.cs" />
     <Compile Include="Controllers\ViewerController.cs" />
+    <Compile Include="Controllers\ZipController.cs" />
     <Compile Include="Filter\**" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Helper\**" />
+    <Compile Include="Helper\Codec.cs" />
+    <Compile Include="Helper\DocCodeTemp.cs" />
+    <Compile Include="Helper\Esim\ImpMobileCA.cs" />
+    <Compile Include="Helper\Esim\MobileCA.cs" />
+    <Compile Include="Helper\Esim\PdfSignerSynchronous.cs" />
+    <Compile Include="Helper\Esim\UtilSigner.cs" />
+    <Compile Include="Helper\Esim\X509ExtensionUtil.cs" />
+    <Compile Include="Helper\Helper.cs" />
+    <Compile Include="Helper\Log.cs" />
+    <Compile Include="Helper\Upload.cs" />
+    <Compile Include="Helper\UploadLargeFile.cs" />
+    <Compile Include="Helper\Utils.cs" />
     <Compile Include="Models\api_bug.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -421,6 +578,9 @@
     <Compile Include="Models\calendar_ca_boardroom.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\calendar_ca_car.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\calendar_ca_mission.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -431,6 +591,33 @@
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\calendar_comment.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty_coincide.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty_person.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty_procedure.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty_procedureform.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty_sign.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty_signform.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty_signuser.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\calendar_duty_signuserform.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\calendar_file.cs">
@@ -544,6 +731,18 @@
     <Compile Include="Models\device_handover_files.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\device_inventory_details.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_inventory_files.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_inventory_personnel.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_inventory_slip.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\device_log.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -559,7 +758,28 @@
     <Compile Include="Models\device_process_files.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\device_process_log.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\device_provider.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_recall.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_recall_details.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_recall_files.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_repair.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_repair_details.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_repair_files.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\device_status.cs">
@@ -571,7 +791,13 @@
     <Compile Include="Models\device_unit.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\device_user_follows.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\device_warehouse.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\device_warehouse_stocker.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\doc_ca_dispatch_books.cs">
@@ -590,6 +816,9 @@
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\doc_ca_groups.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\doc_ca_group_departments.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\doc_ca_issue_places.cs">
@@ -637,7 +866,16 @@
     <Compile Include="Models\doc_codes.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\doc_codes_master.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\doc_codes_use.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\doc_completed_confirms.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\doc_connect.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\doc_decision_forms.cs">
@@ -664,7 +902,13 @@
     <Compile Include="Models\doc_master.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\doc_organization_connect.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\doc_related.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\doc_reservation_number.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\doc_sign_approval.cs">
@@ -691,10 +935,14 @@
     <Compile Include="Models\doc_workflow_groups.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\EsimSign.cs" />
     <Compile Include="Models\file_folder.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\file_folder_share.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\file_folder_share_user.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\file_info.cs">
@@ -706,7 +954,238 @@
     <Compile Include="Models\file_log.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\file_modules.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\file_module_organization.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\file_module_share.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\file_module_user.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\file_share.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_allowance.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_allowance_detail.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_campaign.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_candidate.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_candidate_academic.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_candidate_experience.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_candidate_family.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_academic_level.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_allowance_formality.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_allowance_wage.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_bank.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_certificate.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_classification.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_classroom.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_cultural_level.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_degree.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_enecting_group.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_ethnic.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_evaluation_criteria.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_experience.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_faculty.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_formality.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_form_traning.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_hospital.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_identity_papers.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_identity_place.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_informatic_level.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_insurance_province.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_insurance_type_mode.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_interview_round.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_language_level.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_learning_place.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_leaving_reason.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_management_major.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_management_state.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_nationality.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_personnel_level.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_political_theory.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_professional_work.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_receipt.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_relationship.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_religion.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_single_form.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_specialization.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_title.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_training_groups.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_type_contract.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_vacancy.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_wage.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_ca_work_position.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_class_schedule.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_contract.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_declare.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_file.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_file_log.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_health_vaccine.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_insurance.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_insurance_pay.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_insurance_resolve.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_log.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_management_state.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_paycheck.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile_clan_history.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile_experience.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile_header.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile_health.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile_receipt.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile_relative.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile_skill.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_training_class.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_training_emps.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_users_training.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\InfoColumn.cs" />
@@ -773,12 +1252,46 @@
     <Compile Include="Models\news_main.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\news_main_files.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\news_users_visitor.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\project_main.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\report_modules.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\report_module_organization.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\report_module_user.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\request_ca_form.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\request_ca_form_sign.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\request_ca_group.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\request_ca_group_team.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\request_ca_team.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\request_log.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\request_team_user.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Return.cs" />
     <Compile Include="Models\shows_comment.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -792,7 +1305,19 @@
     <Compile Include="Models\sql_log.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\statistical_parameter.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\statistical_procedure.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\sysdiagram.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\sys_app_menus.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\sys_config_file_public.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\sys_fire_base.cs">
@@ -852,6 +1377,9 @@
     <Compile Include="Models\sys_web_acess.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\task_browse_group.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\task_bugcomment.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -873,10 +1401,16 @@
     <Compile Include="Models\task_comments.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\task_department_configuration.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\task_extend.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\task_file.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\task_linkdoc.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\task_log.cs">
@@ -888,6 +1422,9 @@
     <Compile Include="Models\task_main.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Task_Marks.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\task_member.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -897,6 +1434,15 @@
     <Compile Include="Models\task_origin.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Task_Person_Config.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\task_person_report.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\task_person_report_processing.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\task_reportprogress.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -904,6 +1450,9 @@
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\task_test.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\task_weights.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\temp.cs">
@@ -916,6 +1465,27 @@
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\test_times.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\tivi_log.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\tivi_screen.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\tivi_screen_config.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\tivi_screen_detail.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\tivi_screen_image.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\tivi_screen_propaganda.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\tivi_user_access.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\trace.cs">
@@ -933,14 +1503,29 @@
     <Compile Include="Models\WaterImage.cs" />
     <Compile Include="Models\WaterTxt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
+    <Compile Include="Socket\SocketClient.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="Web References\MobileCAWS\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.map</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ConfigCA\FileUploadHandler.aspx" />
+    <Content Include="Config\BookingConfig.json" />
+    <Content Include="Config\BlockIP.json" />
     <None Include="Config\Config.json" />
     <Content Include="Content\**" />
     <Content Include="Error\401.html" />
+    <Content Include="Error\401_Unauthorized.html" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\**" />
     <Content Include="Global.asax" />
@@ -951,6 +1536,10 @@
     <Content Include="Models\Model.edmx.diagram">
       <DependentUpon>Model.edmx</DependentUpon>
     </Content>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Models\Model.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -980,11 +1569,21 @@
     <Content Include="Views\news_main\Index.cshtml" />
     <Content Include="Views\Viewer\Index.cshtml" />
     <Content Include="Views\DocViewer\Index.cshtml" />
-    <Content Include="Views\PDFWriter\Viewer.cshtml" />
+    <Content Include="Views\HtmlPoint\Index.cshtml" />
+    <None Include="Web References\MobileCAWS\apws.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Web References\MobileCAWS\APWsImplService.wsdl" />
+    <Content Include="Web References\MobileCAWS\Reference.map">
+      <Generator>MSDiscoCodeGenerator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </Content>
+    <Content Include="Web References\MobileCAWS\transactionInfo1.datasource">
+      <DependentUpon>Reference.map</DependentUpon>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\ProjectMain\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
@@ -1018,6 +1617,25 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferences Include="Web References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferenceUrl Include="http://mobilepki.viettel-ca.vn:8080/apws.asmx%3fwsdl">
+      <UrlBehavior>Dynamic</UrlBehavior>
+      <RelPath>Web References\MobileCAWS\</RelPath>
+      <UpdateFromURL>http://mobilepki.viettel-ca.vn:8080/apws.asmx%3fwsdl</UpdateFromURL>
+      <ServiceLocationURL>
+      </ServiceLocationURL>
+      <CachedDynamicPropName>
+      </CachedDynamicPropName>
+      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
+      <CachedSettingsPropName>API_MobileCWS_APWsImplService</CachedSettingsPropName>
+    </WebReferenceUrl>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -1050,13 +1668,12 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
     <Error Condition="!Exists('..\packages\Magick.NET-Q16-AnyCPU.10.1.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Magick.NET-Q16-AnyCPU.10.1.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets'))" />
     <Error Condition="!Exists('..\packages\Magick.NET-Q16-AnyCPU.10.1.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Magick.NET-Q16-AnyCPU.10.1.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
   </Target>
   <Import Project="..\packages\Magick.NET-Q16-AnyCPU.10.1.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets" Condition="Exists('..\packages\Magick.NET-Q16-AnyCPU.10.1.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" />
   <Import Project="..\packages\Magick.NET-Q16-AnyCPU.10.1.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets" Condition="Exists('..\packages\Magick.NET-Q16-AnyCPU.10.1.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" />
-  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

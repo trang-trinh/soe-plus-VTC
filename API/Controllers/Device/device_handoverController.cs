@@ -864,6 +864,9 @@ db.SaveChanges();
                             das.modified_ip = ip;
                             das.modified_token_id = tid;
                             #region sendhub
+
+                            if (trangthai.IntTrangthai == 1)
+                                        {
                             var userSenHub = db.sys_users.Where(s =>   s.user_id == das.user_receiver_id
                             || s.user_id == das.user_verifier_id ).ToList();
                             foreach (var fiu in userSenHub)
@@ -875,7 +878,7 @@ db.SaveChanges();
                                 sh.receiver = fiu.user_id;
                                 sh.icon = fiu.avatar;
                                 sh.title = "Thiết bị";
-                                sh.contents = "Xác nhận phiếu cấp phát: " + das.handover_number;
+                                sh.contents = "Gửi cấp phát thiết bị: " + das.handover_number;
                                 sh.type = 6;
                                 sh.is_type = 1;
                                 sh.date_send = DateTime.Now;
@@ -889,6 +892,32 @@ db.SaveChanges();
                                 db.sys_sendhub.Add(sh);
                                 db.SaveChanges();
                             }
+                                        }
+                                        else  if (trangthai.IntTrangthai == 2){
+                                            var sh = new sys_sendhub();
+                                sh.senhub_id = helper.GenKey();
+                                sh.user_send = uid;
+                                sh.module_key = const_module_key;
+                                var userG = db.sys_users.Where(s =>   s.user_id == das.user_deliver_id
+                              ).FirstOrDefault();
+                                sh.receiver = das.user_deliver_id;
+                                sh.icon = userG.avatar;
+                                sh.title = "Thiết bị";
+                                sh.contents = "Đã xác nhận phiếu cấp phát: " + das.handover_number;
+                                sh.type = 6;
+                                sh.is_type = 1;
+                                sh.date_send = DateTime.Now;
+                                sh.id_key = das.handover_id.ToString();
+                                sh.group_id = null;
+                                sh.token_id = tid;
+                                sh.created_date = DateTime.Now;
+                                sh.created_by = uid;
+                                sh.created_token_id = tid;
+                                sh.created_ip = ip;
+                                db.sys_sendhub.Add(sh);
+                                db.SaveChanges();
+                                        }
+
                             #endregion
 
                             #region add device_log
@@ -1026,7 +1055,7 @@ db.SaveChanges();
                                 sh.receiver = fiu.user_id;
                                 sh.icon = fiu.avatar;
                                 sh.title = "Thiết bị";
-                                sh.contents = "Trả lại phiếu cấp  phát: " + das.handover_number;
+                                sh.contents = "Trả lại thiết bị: " + das.handover_number;
                                 sh.type = 6;
                                 sh.is_type = 1;
                                 sh.date_send = DateTime.Now;
@@ -1184,6 +1213,7 @@ db.SaveChanges();
                 string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
                 string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
                 bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
                 string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
                 try
                 {
@@ -1191,18 +1221,20 @@ db.SaveChanges();
                     {
                         var user_now = db.sys_users.AsNoTracking().FirstOrDefault(x => x.user_id == uid);
                         string rootPath = HttpContext.Current.Server.MapPath("~/Portals/" + user_now.organization_id + "/Word/");
-                        bool existPath = System.IO.Directory.Exists(rootPath);
+                        bool existPath = System.IO.Directory.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Word/");
                         if (!existPath)
                         {
-                            System.IO.Directory.CreateDirectory(rootPath);
+                            System.IO.Directory.CreateDirectory(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Word/");
                         }
-                        string path = "/Portals/" + user_now.organization_id + "/Word/" + model.name + "_" + DateTime.Now.ToString("ddMMyyyy")+".docx";
-                        string strPath = Path.Combine(rootPath + model.name + "_" + DateTime.Now.ToString("ddMMyyyy") + ".docx");
+                        string path = "/Portals/" + user_now.organization_id + "/Word/" + model.name + "_" + DateTime.Now.ToString("ddMMyyyy")+".doc";
+                        string strPath = Path.Combine(rootPath + model.name + "_" + DateTime.Now.ToString("ddMMyyyy") + ".doc");
                         using (var htmlStream = new MemoryStream(Encoding.UTF8.GetBytes(model.html)))
                         {
                             ComponentInfo.SetLicense("DTZX-HTZ5-B7Q6-2GA6");
                             var htmlLoadOptions = new HtmlLoadOptions();
                             var document = DocumentModel.Load(htmlStream, htmlLoadOptions);
+
+                            document.DefaultCharacterFormat.FontName = "Times New Roman";
                             var opt = model.opition;
                             if (opt == null || (opt.left == 0 && opt.top == 0 && opt.right == 0 && opt.bottom == 0))
                             {
@@ -1225,9 +1257,9 @@ db.SaveChanges();
                             pageMargins.Left = opt.left;
                             SaveOptions opit = SaveOptions.DocxDefault;
 
-                            if (File.Exists(strPath))
+                            if (File.Exists(HttpContext.Current.Server.MapPath("~/Portals")+"/" + dvid + "/Word/"+ Path.GetFileName(strPath)))
                             {
-                                File.Delete(strPath);
+                                File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Word/" + Path.GetFileName(strPath));
                             }
                             document.Save(strPath, opit);
                         }

@@ -235,7 +235,7 @@ namespace API.Controllers.Device
                             {
                                 if (da.status == true)
                                 {
-                                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Không được xóa số phiếu mặc định." });
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Không được xóa số hiệu mặc định." });
                                 }
                                 del.Add(da);
                                 #region add device_log
