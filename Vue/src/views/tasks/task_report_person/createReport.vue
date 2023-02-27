@@ -797,7 +797,10 @@ const loadDefaultUser = () => {
         str: encr(
           JSON.stringify({
             proc: "Task_Person_Config_get",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_Bbhqp", va: 1 },
+            ],
           }),
           SecretKey,
           cryoptojs,

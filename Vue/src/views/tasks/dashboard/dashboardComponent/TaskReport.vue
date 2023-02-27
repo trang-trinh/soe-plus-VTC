@@ -1,7 +1,8 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
-import { encr } from "../../../../util/function.js";
+import { encr, decr } from "../../../../util/function.js";
+import FilterTask from "./filterTask.vue";
 import moment from "moment";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
 const cryoptojs = inject("cryptojs");
@@ -89,6 +90,7 @@ const loadData = () => {
               { par: "fromDate", va: options.value.start_date },
               { par: "toDate", va: options.value.end_date },
               { par: "search", va: options.value.searchText },
+              { par: "search", va: options.value.filterDateType },
             ],
           }),
           // eslint-disable-next-line no-undef
@@ -420,7 +422,7 @@ const getConfigMail = () => {
     })
     .then((response) => {
       if (response.data.err != "1") {
-        configMail.value = response.data.data;
+        configMail.value = JSON.parse(response.data.data);
       }
     })
     .catch((error) => {
@@ -452,7 +454,12 @@ const sendMail = (x) => {
   mailInfo.value.body = bodymail.value.toString();
 
   let formData = new FormData();
-  formData.append("pwMail", configMail.value.kpmail);
+  formData.append(
+    "pwMail",
+    configMail.value.kpmail != null
+      ? decr(configMail.value.kpmail, SecretKey, cryoptojs).toString()
+      : null,
+  );
   formData.append("mailinfo", JSON.stringify(mailInfo.value));
   axios({
     method: "post",
@@ -528,6 +535,7 @@ const props = defineProps({
 const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
+  styleObj.value = style.value;
 };
 const styleObj = ref();
 const style = ref({
@@ -613,9 +621,9 @@ onMounted(() => {
               class="p-0 m-0"
               :showCloseIcon="false"
               id="overlay_panel"
-              style="width: 45vw; z-index: 1000"
+              style="z-index: 1000"
             >
-              <div class="col-12 flex">
+              <!-- <div class="col-12 flex">
                 <div class="flex col-4 align-items-center">Dự án</div>
                 <Dropdown
                   :filter="true"
@@ -710,7 +718,14 @@ onMounted(() => {
                   label="Hủy"
                   @click="refresh(), op.hide()"
                 ></Button>
-              </div>
+              </div> -->
+
+              <FilterTask
+                class="w-full"
+                :func="loadData"
+                :data="options"
+              >
+              </FilterTask>
             </OverlayPanel>
             <Button
               class="p-button-outlined p-button-secondary"
@@ -892,7 +907,7 @@ onMounted(() => {
             "
             class="w-full font-bold text-blue-500"
           >
-            {{ moment(data.data.end_date).format("DD/MM/YYYY") }}
+            {{ moment(data.data.end_date).format("DD/MM/YYYY HH:mm") }}
           </div>
         </template>
       </Column>

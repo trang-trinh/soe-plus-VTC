@@ -1038,69 +1038,114 @@ li.p-chips-token {
 .modal-tivi-config .p-dialog-header-icons {
     display: none !important;
 }
+
 .modal-tivi-config .item-image-screen {
     height: fit-content;
 }
-.modal-report-config .p-dialog-content, .modal-choice-user .p-dialog-content {
+
+.modal-report-config .p-dialog-content,
+.modal-choice-user .p-dialog-content {
     overflow-y: hidden !important;
 }
-.modal-report-config .p-datatable-wrapper{
-    max-height:calc(100vh - 322px) !important;
-}
-.modal-report-config .p-datatable-header, .modal-choice-user .p-datatable-header{
-    width: 98%;
-}
-.modal-report-config .not-vaild, .modal-report-config .not-vaild .p-inputtext,.modal-report-config .not-vaild .p-button{
-    color: red !important;
-}
-.file-report-config .not-vaild, .file-report-config .not-vaild .p-inputtext, .file-report-config .not-vaild .p-button{
-    color: red !important;
-}
-.modal-choice-user .p-datatable-wrapper{
-    max-height:calc(100vh - 292px) !important;
+
+.modal-report-config .p-datatable-wrapper {
+    max-height: calc(100vh - 348px) !important;
 }
 
-.dispatch-input.p-inputtext{
-    color: red; font-size: 2rem; font-weight: bold;
+.modal-report-config .p-datatable-header,
+.modal-choice-user .p-datatable-header {
+    width: 98%;
+}
+
+.modal-report-config .not-vaild,
+.modal-report-config .not-vaild .p-inputtext,
+.modal-report-config .not-vaild .p-button {
+    color: red !important;
+}
+
+.file-report-config .not-vaild,
+.file-report-config .not-vaild .p-inputtext,
+.file-report-config .not-vaild .p-button {
+    color: red !important;
+}
+
+.modal-choice-user .p-datatable-wrapper {
+    max-height: calc(100vh - 292px) !important;
+}
+
+.black-text .p-inputtext{
+    font-size: 1.2rem;
+    color: #000;
+    font-weight: bold;
+}
+
+.black-text .p-treeselect .p-placeholder{
+    font-size: 1.2rem;
+    color: #000 !important;
+    font-weight: bold !important;
+}
+
+/* .black-text .p-treeselect .p-treeselect-label.p-placeholder {
+    font-size: 1.2rem;
+    color: #000;
+    font-weight: bold;
+}; */
+
+.dispatch-input.p-inputtext {
+    color: red !important;
+    font-size: 2rem !important;
+    font-weight: bold;
     padding-left: 0.5rem !important;
 }
 
-.p-toolbar.custoolbar .p-toolbar-group-left{
+.p-toolbar.custoolbar .p-toolbar-group-left {
     flex-wrap: wrap !important;
     row-gap: 0.3rem;
 }
 
-.black-text.p-dialog .p-dialog-content{
+.black-text.p-dialog .p-dialog-content {
     color: #000 !important;
     font-weight: bold;
     font-size: 1.2rem;
 }
-.wrap-multi.p-multiselect{
-    height: auto; 
-    min-height: 36px
-  }
-  .wrap-multi.p-multiselect .p-chip-text {
-    word-break: break-word !important;
-  }
 
-  .wrap-multi.p-multiselect .p-chip img {
+.wrap-multi.p-multiselect {
+    height: auto;
+    min-height: 36px
+}
+
+.wrap-multi.p-multiselect .p-chip-text {
+    word-break: break-word !important;
+}
+
+.wrap-multi.p-multiselect .p-chip img {
     margin: 0;
-  }
-  .wrap-multi.p-multiselect .p-multiselect-label{
+}
+
+.wrap-multi.p-multiselect .p-multiselect-label {
     height: 100%;
     display: flex;
     align-items: center;
     white-space: normal !important;
     flex-wrap: wrap;
     row-gap: 0.3rem;
-  }
-  .wrap-multi.p-multiselect .p-multiselect-token{
+}
+
+.wrap-multi.p-multiselect .p-multiselect-token {
     max-width: 100%;
-  }
-  .wrap-multi.p-multiselect .p-multiselect-token-label{
+}
+
+.wrap-multi.p-multiselect .p-multiselect-token-label {
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
-  }
+}
+
+.format-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}

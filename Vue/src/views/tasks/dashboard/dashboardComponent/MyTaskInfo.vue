@@ -242,7 +242,6 @@ const LoadCountTask = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let listdata = JSON.parse(response.data.data)[1];
-      let listact = JSON.parse(response.data.data)[2];
       let countToButton = JSON.parse(response.data.data)[3];
       let listDropdown = JSON.parse(response.data.data)[4];
       emitter.emit("listDropdown", { data: listDropdown });
@@ -519,14 +518,26 @@ onMounted(() => {
                     shape="circle"
                   />
                 </div>
-                <div class="col-7">
+                <div
+                  class="col-7"
+                  style="
+                    display: flex;
+                    align-items: center;
+                    align-content: center;
+                    flex-wrap: wrap;
+                  "
+                >
                   <span
+                    class="col-12 py-0"
                     v-html="
                       item.description.length > 100
                         ? item.description.substring(0, 100)
                         : item.description
                     "
                   ></span>
+                  <div class="col-12 text-gray-500 text-sm py-1">
+                    {{ moment(item.created_date).format("HH:mm DD/MM/YYYY") }}
+                  </div>
                 </div>
 
                 <div class="col-4 format-right">
