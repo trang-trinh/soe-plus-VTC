@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.Data.Entity.Validation;
 using System.Data.SqlClient;
@@ -18,6 +19,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -301,7 +303,7 @@ namespace API.Controllers.Filles
                             }
                             else
                             {
-                                model.is_filepath = "/Portals" + dvid + "/FileShare/" + uid + "/" + fileName;
+                                model.is_filepath = "/Portals/" + dvid + "/FileShare/" + uid + "/" + fileName;
                                 ffileData = fileData;
                                 //Add file zip
                                 if (fileInfo != null)
@@ -736,6 +738,7 @@ namespace API.Controllers.Filles
                     }
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string rootXML = HttpContext.Current.Server.MapPath("~/");
                     //string strPath = root + "/FileFolder";
                     //bool exists = Directory.Exists(strPath);
                     //if (!exists)
@@ -802,6 +805,8 @@ namespace API.Controllers.Filles
                                 count++;
                                 db.file_info_share.Add(folder);
                                 // send hub
+
+                                #region senhub
                                 sys_users user_send = db.sys_users.Find(uid);
                                 sys_users user_receiver = db.sys_users.Find(item.user_id);
                                 file_info file_info = db.file_info.Find(file_id);
@@ -823,8 +828,64 @@ namespace API.Controllers.Filles
                                 sh.created_token_id = tid;
                                 sh.created_ip = ip;
                                 db.sys_sendhub.Add(sh);
+                                string xml_result = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>";
+                                xml_result += "<document>";
+                                xml_result += "<element>";
+                                xml_result += "<user_send>" + (sh.user_send ?? "") + "</user_send>";
+                                xml_result += "<title>" + (sh.title ?? "") + "</title>";
+                                xml_result += "<contents>" + (sh.contents ?? "") + "</contents>";
+                                xml_result += "<date_send>" + (sh.date_send) + "</date_send>";
+                                xml_result += "<file_name>" + (file_info.file_name) + "</file_name>";
+                                xml_result += "<file_path>" + (file_info.is_filepath) + "</file_path>";
+                                xml_result += "</element>";
+                                xml_result += "</document>";
+
+                                var user_now = db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                                System.Net.WebClient webc = new System.Net.WebClient();
+                                string path = rootXML + helper.path_xml + "/FileMain/";
+                                bool exists = Directory.Exists(path);
+                                if (!exists)
+                                    Directory.CreateDirectory(path);
+
+                                string name_file = file_id.ToString() + ".xml";
+                                string root_path = path + "/" + name_file;
+                                string duong_dan = helper.path_xml + "/FileMain/" + name_file;
+                                string url = ConfigurationManager.AppSettings["ValidAudience"] + duong_dan;
+
+                                File.WriteAllText(root_path, xml_result);
+                                var res_encr = helper.encryptXML(root_path, "document", helper.psKey);
+                                if (res_encr != "OK")
+                                {
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Không thể mã hoã file XML!", err = "1" });
+                                };
+
+                                #endregion
                             }
+                            #region sendSocket
+                            sys_users user_send_noti = db.sys_users.Find(uid);
+                            var contentNoti = user_send_noti.full_name + " đã chia sẻ tài liệu cho bạn";
+                            var users = listshare.Where(x => x.user_id != uid).Select(x => x.user_id).Distinct().ToList();
+                            var message = new Dictionary<string, dynamic>
+                                    {
+                                        { "event", "sendNotify" },
+                                        { "user_id", uid },
+                                        { "title", "Công việc" },
+                                        { "contents", contentNoti },
+                                        { "date", DateTime.Now },
+                                        { "uids", users },
+                                    };
+                            if (helper.socketClient != null && helper.socketClient.Connected == true)
+                            {
+                                try
+                                {
+                                    helper.socketClient.EmitAsync("sendData", message);
+                                }
+                                catch { };
+                            }
+                            #endregion
+
                         }
+
 
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -883,6 +944,8 @@ namespace API.Controllers.Filles
                     }
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string rootXML = HttpContext.Current.Server.MapPath("~/");
+
                     //string strPath = root + "/FileFolder";
                     //bool exists = Directory.Exists(strPath);
                     //if (!exists)
@@ -949,6 +1012,100 @@ namespace API.Controllers.Filles
                                 sh.created_token_id = tid;
                                 sh.created_ip = ip;
                                 db.sys_sendhub.Add(sh);
+                                #region XML
+                                string xml_result = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>";
+                                xml_result += "<document>";
+                                xml_result += "<element>";
+                                xml_result += "<user_send>" + (sh.user_send ?? "") + "</user_send>";
+                                xml_result += "<title>" + (sh.title ?? "") + "</title>";
+                                xml_result += "<contents>" + (sh.contents ?? "") + "</contents>";
+                                xml_result += "<date_send>" + (sh.date_send) + "</date_send>";
+                                xml_result += "<file_name>" + (file_info.file_name) + "</file_name>";
+                                xml_result += "<file_path>" + (file_info.is_filepath) + "</file_path>";
+                                xml_result += "</element>";
+                                xml_result += "</document>";
+
+                                var user_now = db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                                System.Net.WebClient webc = new System.Net.WebClient();
+                                string path = rootXML + helper.path_xml + "/FileMain/";
+                                // Format path
+                                var listPathEdit_path = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_path = "";
+                                var sttPathEdit_path = 1;
+                                foreach (var itemEdit in listPathEdit_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_path == 1)
+                                        {
+                                            pathEdit_path += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_path += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_path++;
+                                }
+                                path = pathEdit_path;
+                                bool exists = Directory.Exists(path);
+                                if (!exists)
+                                    Directory.CreateDirectory(path);
+
+
+                                string name_file = file_info.file_name + ".xml";
+                                string root_path = path + "/" + name_file;
+                                string duong_dan = helper.path_xml + "/FileMain/" + name_file;
+                                string url = ConfigurationManager.AppSettings["ValidAudience"] + duong_dan;
+                                // Format root_path
+                                var listPathEdit_root_path = Regex.Replace(root_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_root_path = "";
+                                var sttPathEdit_root_path = 1;
+                                foreach (var itemEdit in listPathEdit_root_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_root_path == 1)
+                                        {
+                                            pathEdit_root_path += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_root_path += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_root_path++;
+                                }
+                                root_path = pathEdit_root_path;
+                                File.WriteAllText(root_path, xml_result);
+                                var res_encr = helper.encryptXML(root_path, "document", helper.psKey);
+                                if (res_encr != "OK")
+                                {
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Không thể mã hoã file XML!", err = "1" });
+                                };
+                                #endregion
+                                #region sendSocket
+                                sys_users user_send_noti = db.sys_users.Find(uid);
+                                var contentNoti = user_send_noti.full_name + " đã chia sẻ tài liệu cho bạn";
+                                var users = listshare.Where(x => x.user_id != uid).Select(x => x.user_id).Distinct().ToList();
+                                var message = new Dictionary<string, dynamic>
+                                    {
+                                        { "event", "sendNotify" },
+                                        { "user_id", uid },
+                                        { "title", "Công việc" },
+                                        { "contents", contentNoti },
+                                        { "date", DateTime.Now },
+                                        { "uids", users },
+                                    };
+                                if (helper.socketClient != null && helper.socketClient.Connected == true)
+                                {
+                                    try
+                                    {
+                                        helper.socketClient.EmitAsync("sendData", message);
+                                    }
+                                    catch { };
+                                }
+                                #endregion
                             }
                         }
 
@@ -1012,6 +1169,7 @@ namespace API.Controllers.Filles
                     }
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string rootXML = HttpContext.Current.Server.MapPath("~/");
                     //string strPath = root + "/FileFolder";
                     //bool exists = Directory.Exists(strPath);
                     //if (!exists)
@@ -1085,6 +1243,80 @@ namespace API.Controllers.Filles
                                     sh.created_token_id = tid;
                                     sh.created_ip = ip;
                                     db.sys_sendhub.Add(sh);
+                                    #region XMl
+                                    string xml_result = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>";
+                                    xml_result += "<document>";
+                                    xml_result += "<element>";
+                                    xml_result += "<user_send>" + (sh.user_send ?? "") + "</user_send>";
+                                    xml_result += "<title>" + (sh.title ?? "") + "</title>";
+                                    xml_result += "<contents>" + (sh.contents ?? "") + "</contents>";
+                                    xml_result += "<date_send>" + (sh.date_send) + "</date_send>";
+                                    xml_result += "<folder_name>" + (file_folder.folder_name) + "</folder_name>";
+                                    xml_result += "</element>";
+                                    xml_result += "</document>";
+
+                                    var user_now = db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                                    System.Net.WebClient webc = new System.Net.WebClient();
+                                    string path = rootXML + helper.path_xml + "/FileMain/";
+                                    bool exists = Directory.Exists(path);
+                                    if (!exists)
+                                        Directory.CreateDirectory(path);
+
+                                    string name_file = file_folder.folder_name.ToString() + ".xml";
+                                    string root_path = path + "/" + name_file;
+                                    string duong_dan = helper.path_xml + "/FileMain/" + name_file;
+                                    string url = ConfigurationManager.AppSettings["ValidAudience"] + duong_dan;
+
+                                    // Format root_path
+                                    var listPathEdit_root_path = Regex.Replace(root_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                    var pathEdit_root_path = "";
+                                    var sttPathEdit_root_path = 1;
+                                    foreach (var itemEdit in listPathEdit_root_path)
+                                    {
+                                        if (itemEdit.Trim() != "")
+                                        {
+                                            if (sttPathEdit_root_path == 1)
+                                            {
+                                                pathEdit_root_path += itemEdit;
+                                            }
+                                            else
+                                            {
+                                                pathEdit_root_path += "/" + Path.GetFileName(itemEdit);
+                                            }
+                                        }
+                                        sttPathEdit_root_path++;
+                                    }
+                                    root_path = pathEdit_root_path;
+
+                                    File.WriteAllText(root_path, xml_result);
+                                    var res_encr = helper.encryptXML(root_path, "document", helper.psKey);
+                                    if (res_encr != "OK")
+                                    {
+                                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Không thể mã hoã file XML!", err = "1" });
+                                    };
+                                    #endregion
+                                    #region sendSocket
+                                    sys_users user_send_noti = db.sys_users.Find(uid);
+                                    var contentNoti = user_send_noti.full_name + " đã chia sẻ kho dữ liệu cho bạn";
+                                    var users = listshare.Where(x => x.user_id != uid).Select(x => x.user_id).Distinct().ToList();
+                                    var message = new Dictionary<string, dynamic>
+                                    {
+                                        { "event", "sendNotify" },
+                                        { "user_id", uid },
+                                        { "title", "Công việc" },
+                                        { "contents", contentNoti },
+                                        { "date", DateTime.Now },
+                                        { "uids", users },
+                                    };
+                                    if (helper.socketClient != null && helper.socketClient.Connected == true)
+                                    {
+                                        try
+                                        {
+                                            helper.socketClient.EmitAsync("sendData", message);
+                                        }
+                                        catch { };
+                                    }
+                                    #endregion
                                 }
                                 else
                                 {
@@ -1399,7 +1631,7 @@ namespace API.Controllers.Filles
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "chat/GetDataProc", ip, tid, "Lỗi khi gọi proc '" + proc + "'", 0, "chat");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "chat/GetDataProc", ip, tid, "Lỗi khi gọi proc", 0, "chat");
                     if (!helper.debug)
                     {
                         contents = helper.logCongtent;
@@ -1410,7 +1642,7 @@ namespace API.Controllers.Filles
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "chat/GetDataProc", ip, tid, "Lỗi khi gọi proc '" + proc + "'", 0, "chat");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "chat/GetDataProc", ip, tid, "Lỗi khi gọi proc", 0, "chat");
                     if (!helper.debug)
                     {
                         contents = helper.logCongtent;

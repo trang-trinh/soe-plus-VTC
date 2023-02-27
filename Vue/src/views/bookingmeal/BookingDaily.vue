@@ -33,7 +33,7 @@ const options = ref({
   loading: true,
   search: "",
   PageNo: 1,
-  PageSize: 40,
+  PageSize: 20,
   user_id: store.getters.user.user_id,
   status: null,
   loading: true,
@@ -451,16 +451,13 @@ onMounted(() => {
   <div class="main-layout true flex-grow-1 p-2">
     <DataView
       class="w-full h-full e-sm"
-      :lazy="true"
       :value="datalists"
       layout="grid"
       :loading="options.loading"
       :paginator="true"
       :rows="options.PageSize"
-      :totalRecords="totalrecords"
-      @page="onPage($event)"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[40, 80, 200, 400]"
+      :rowsPerPageOptions="[20,40, 80, 200, 400]"
       currentPageReportTemplate=""
       responsiveLayout="scroll"
       :scrollable="true"
@@ -876,8 +873,9 @@ onMounted(() => {
 }
 ::v-deep(.p-dataview) {
   .p-dataview-content {
-    max-height: calc(100vh - 200px);
-    // min-height: calc(100vh - 170px);
+    min-height: calc(100vh - 256px);
+    max-height: calc(100vh - 256px);
+    overflow: auto;
   }
 }
 ::v-deep(.p-dataview-content) {

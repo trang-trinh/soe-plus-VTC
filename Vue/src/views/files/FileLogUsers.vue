@@ -22,17 +22,20 @@ const opition = ref({
   IsNext: true,
   sort: "file_log_id DESC",
   PageNo: 0,
-  PageSize: 20,
+  PageSize: 30,
   Filteruser_id: null,
   user_id: store.getters.user_id,
   department_id: store.getters.user.organization_id,
   is_folder: null,
+  sort: '',
+  ob:''
 });
 const basedomainURL = fileURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 //Khai báo biến
+const active_sort = ref(false);
 const selectCapcha = ref();
 selectCapcha.value = {};
 selectCapcha.value[store.getters.user.organization_id] = true;
@@ -101,21 +104,24 @@ const closedisplayDetail = () => {
   displayAddData.value = false;
 };
 const onRefersh = () => {
-  debugger;
   selectCapcha.value = {};
   selectCapcha.value[store.getters.user.user_id || -1] = true;
   opition.value.search = "";
   taskDateFilter.value = [];
+  active_sort.value = false;
   opition.value = {
     IsNext: true,
     sort: "file_log_id DESC",
     PageNo: 0,
     IsLess: true,
-    PageSize: 20,
+    PageSize: 30,
     Filteruser_id: null,
     user_id: store.getters.user.user_id,
     start_date: null,
     end_date: null,
+      department_id: store.getters.user.organization_id,
+      sort:'',
+      ob:'',
   };
   first.value = 0;
   //isDynamicSQL.value = false;
@@ -393,7 +399,7 @@ const loadData = (rf) => {
       loadCount();
     }
   }
-  let proc = "file_log_user_list";
+  let proc = "file_log_user_list_new";
   let datas = [
     { par: "search", va: opition.value.search },
     { par: "user_id", va: store.getters.user.user_id },
@@ -404,6 +410,8 @@ const loadData = (rf) => {
     { par: "ip", va: opition.value.IP },
     { par: "start_date", va: opition.value.start_date },
     { par: "end_date", va: opition.value.end_date },
+    { par: "sort", va: opition.value.sort },
+    { par: "ob", va: opition.value.ob },
   ];
   axios
     .post(
@@ -504,6 +512,65 @@ const exportData = (method) => {
         store.commit("gologout");
       }
     });
+};
+const itemSortButs = ref([
+  {
+    label: "Dung lượng tăng dần",
+    type_sort: "capacity_asc",
+    sort: "capacity",
+        ob: "asc",
+    active: false,
+    command: (event) => {
+      ChangeSortFile(sort, ob);
+    },
+  },
+  {
+    label: "Kích thước giảm dần",
+    sort: "capacity",
+        ob: "desc",
+    active: false,
+    command: (event) => {
+      ChangeSortFile(sort, ob);
+    },
+  },
+  {
+    label: "Tên từ A-Z",
+    active: false,
+    sort: "full_name",
+        ob: "asc",
+    command: (event) => {
+      ChangeSortFile(sort, ob);
+    },
+  },
+  {
+    label: "Tên từ Z-A",
+    type_sort: "full_name_desc",
+    active: false,
+    sort: "full_name",
+        ob: "desc",
+    command: (event) => {
+      ChangeSortFile(sort, ob);
+    },
+  },
+]);
+
+const menuSortButs = ref();
+const toggleSort = (event) => {
+  menuSortButs.value.toggle(event);
+};
+const ChangeSortFile = (sort, ob) => {
+  active_sort.value = true;
+  itemSortButs.value.forEach((i) => {
+    if (i.sort == sort && i.ob == ob) {
+      i.active = true;
+    } else {
+      i.active = false;
+    }
+  });
+  menuSortButs.value.toggle();
+   opition.value.sort = sort;
+   opition.value.ob = ob;
+   loadData()
 };
 const formatBytes = (bytes, decimals = 2) => {
   if (bytes === 0) return "0 Bytes";
@@ -630,11 +697,37 @@ onMounted(() => {
             </template>
 
             <template #end>
+              <div
+                  @click="toggleSort"
+                  aria-haspopup="true"
+                  aria-controls="overlay_Export"
+                  class="btn_sort ml-3 px-1 cursor-pointer"
+                  :class="active_sort?'active-sort':''"
+                >
+                  <a
+                    ><i class="pi pi-sort"></i> Sắp xếp
+                    <i class="pi pi-angle-down"></i
+                  ></a>:
+                </div>
               <Button
                 class="mr-2 p-button-outlined p-button-secondary"
                 icon="pi pi-refresh"
                 @click="onRefersh"
               />
+              <Menu
+                  class="menu_sort"
+                  :model="itemSortButs"
+                  ref="menuSortButs"
+                  :popup="true"
+                >
+                  <template #item="{ item }">
+                    <a
+                      @click="ChangeSortFile(item.sort, item.ob)"
+                      :class="{ active: item.active }"
+                      >{{ item.label }}</a
+                    >
+                  </template>
+                </Menu>
               <!-- <Button
                 label="Export"
                 icon="pi pi-file-excel"
@@ -661,7 +754,7 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:80px"
       ></Column>
       <Column
-        :sortable="true"
+        :sortable="false"
         field="full_name"
         filterField="full_name"
         header="Tài khoản"
@@ -673,7 +766,7 @@ onMounted(() => {
         <template #body="{ data }">
           <span class="image-text">{{ data.full_name }}</span>
         </template>
-        <template #filter="{ filterModel }">
+        <!-- <template #filter="{ filterModel }">
           <MultiSelect
             v-model="filterModel.value"
             :options="tdUsers"
@@ -703,7 +796,7 @@ onMounted(() => {
               </div>
             </template>
           </MultiSelect>
-        </template>
+        </template> -->
       </Column>
       <Column field="organization_name" header="Phòng ban"></Column>
       <Column
@@ -783,6 +876,36 @@ onMounted(() => {
 .blue {
   background-color: #17a2b8 !important;
   color: #000 !important;
+}
+.btn_sort{
+  list-style: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+    border: 1px solid;
+    border-radius: 4px;
+    margin: 0px 5px 0px 0px;
+}
+.menu_sort {
+  min-width: fit-content !important;
+}
+.menu_sort .p-menuitem {
+  padding: 5px 10px !important;
+}
+
+.menu_sort .p-menuitem:hover {
+  cursor: pointer;
+  background-color: #e9ecef;
+}
+.menu_sort .p-menuitem .active {
+  color: #2196f3 !important;
+}
+.menu_sort .p-menuitem a {
+  text-decoration: none;
+}
+.active-sort{
+background-color: #2196f3!important;
 }
 </style>
 <style lang="scss" scoped>
