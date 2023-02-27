@@ -36,6 +36,3 @@ coverage
 ../API/obj/
 ../API/Portals/
 ../API/Models/
-*.csproj
-*.user
-../API/Scripts/
