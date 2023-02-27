@@ -7,6 +7,7 @@ import TaskReport from "./dashboardComponent/TaskReport.vue";
 import TaskReview from "./dashboardComponent/TaskReview.vue";
 import TaskExtendDashboard from "./dashboardComponent/TaskExtendDashboard.vue";
 import DepartmentTask from "./dashboardComponent/DepartmentTask.vue";
+import FilterTask from "./dashboardComponent/filterTask.vue";
 const emitter = inject("emitter");
 emitter.on("count", (obj) => {
   ListButtonLabel.value[5].badgeCount = obj.data[0].report;
@@ -66,6 +67,14 @@ const ListButtonLabel = ref([
     status: false,
     badgeCount: null,
   },
+  {
+    label: "Filter",
+    icon: "pi pi-clock",
+    code: "7",
+    count: "",
+    status: false,
+    badgeCount: null,
+  },
 ]);
 const ChangeView = (value) => {
   ListButtonLabel.value.forEach((x) => {
@@ -77,7 +86,7 @@ const ChangeView = (value) => {
   });
 };
 onMounted(() => {
-  ChangeView(0);
+  ChangeView(4);
   return;
 });
 </script>
@@ -122,6 +131,7 @@ onMounted(() => {
         :project="listDropdownProject"
         :group="listDropdownGroup"
       ></TaskExtendDashboard>
+      <FilterTask v-if="ListButtonLabel[7].status == true"></FilterTask>
     </div>
   </div>
 </template>

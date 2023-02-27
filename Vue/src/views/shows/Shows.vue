@@ -260,11 +260,17 @@ const lengthFor=ref(0);
 const loadKeyWords = () => {
   listKeyWords.value = [];
   axios
-    .post(
-      baseURL + "/api/Proc/CallProc",
-      {
+  .post(
+          baseURL + "/api/device_card/getData",
+        {
+          str: encr(
+            JSON.stringify({
         proc: "shows_keywords_list",
            
+      }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
         },config
     )
     .then((response) => {

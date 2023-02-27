@@ -440,7 +440,7 @@ const loadData = (rf) => {
     { par: "end_date", va: opition.value.end_date },
     { par: "is_reportmodule", va: is_reportmodule },
     { par: "report_module_id", va: report_module_id },
-    { par: "is_permission", va: is_permission },
+    { par: "type_report", va: is_permission },
   ];
   axios
     .post(

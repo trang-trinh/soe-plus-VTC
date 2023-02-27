@@ -290,8 +290,8 @@ namespace API.Controllers.Device
                         {
                             foreach (string fpath in delfiles)
                             {
-                                if (File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Manufacturer/" + Path.GetFileName(fpath)))
-                                    File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Manufacturer/" + Path.GetFileName(fpath));
+                                if (File.Exists(root+ "/" + dvid + "/Manufacturer/" + Path.GetFileName(fpath)))
+                                    File.Delete(root+ "/" + dvid + "/Manufacturer/" + Path.GetFileName(fpath));
                             }
                             if (!Directory.Exists(fileInfo.Directory.FullName))
                             {

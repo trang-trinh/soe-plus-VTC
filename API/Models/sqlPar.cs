@@ -119,7 +119,10 @@ namespace API.Models
         public string fileNameSettingApp { get; set; }
         public string filePathSettingApp { get; set; }
         public string email { get; set; }
-        public string pwEmail { get; set; }
+        public string psemail { get; set; }
+
+        public string userftp { get; set; }
+        public string psftp { get; set; }
 
     }
     public class connectString

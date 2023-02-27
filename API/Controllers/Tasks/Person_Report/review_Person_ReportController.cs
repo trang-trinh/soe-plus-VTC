@@ -90,9 +90,14 @@ namespace API.Controllers.Tasks.Person_Report
                         }
                         string[] list_process_id = listprocess_id.Split(',');
                         foreach (string process in list_process_id)
-                        {
+                        {  
+                        
                             int process_id = Convert.ToInt32(process);
-                            var Report = db.task_person_report_processing.Where(x => x.process_id == process_id).FirstOrDefault();
+                
+                            var Report = db.task_person_report_processing.Where(x => x.process_id == process_id).FirstOrDefault();           
+                            string recei = Report.created_by;
+                            helper.saveNotify(uid, recei, null, "Công việc", "Đã xử lý báo cáo đánh giá công việc trong Đánh giá công việc",
+                                    null, 12, -1, false, "M4", "", null, null, tid, ip);//12 chạy ra duyệt đánh giá
                             Report.user_messages = messages;
                             Report.user_point = point;
                             Report.is_type = type;
@@ -266,6 +271,7 @@ namespace API.Controllers.Tasks.Person_Report
                         }
                         db.SaveChanges();
                         #region add notify
+                   
                         #endregion
                         #region add tasklog
                         helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = uid }), domainurl + "review_Person_Report/Processing", ip, tid, "Xử lý báo cáo Đánh giá công việc", 1, "Công việc");

@@ -465,12 +465,12 @@ onMounted(() => {
                 class="p-button-outlined mt-3 mr-2"
                 @click="prePage"
               />
-                 <Button
+                 <!-- <Button
                 label="Trình chiếu"
                 icon="pi pi-directions"
                 class="p-button-outlined mt-3 mr-2"
               
-              />
+              /> -->
               <!-- @click="showHtmlPoint" -->
               <div v-if="shows.file_folder==null">
               <a :href="basedomainURL+shows.path" download class="no-underline">

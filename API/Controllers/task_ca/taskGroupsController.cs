@@ -22,17 +22,9 @@ namespace API.Controllers.Task_Ca
     [Authorize(Roles = "login")]
     public class taskGroupsController : ApiController
     {
+
         public string getipaddress()
         {
-            // var host = Dns.GetHostEntry(Dns.GetHostName());
-            // foreach (var ip in host.AddressList)
-            // {
-            //     if (ip.AddressFamily == AddressFamily.InterNetwork)
-            //     {
-            //         return ip.ToString();
-            //     }
-            // }
-            // return "localhost";
             return HttpContext.Current.Request.UserHostAddress;
         }
 
@@ -180,7 +172,36 @@ namespace API.Controllers.Task_Ca
             }
         }
 
+        public List<int> findChild(List<int> id)
+        {
+            List<int> del = new List<int>();
+            using (DBEntities db = new DBEntities())
+            {
+                var das = db.task_ca_taskgroup.Where(a => id.Contains(a.group_id)).ToArray();
+                if (das != null)
+                {
+                    foreach (var da in das)
+                    {
+                        var arrC = db.task_ca_taskgroup.Where(a => a.parent_id != null).ToArray();
+                        del.Add(da.group_id);
+                        var arrId = new List<int>();
+                        for (int i = 0; i < id.Count; i++)
+                        {
+                            for (int j = 0; j < arrC.Length; j++)
+                            {
+                                if (id[i] == arrC[j].parent_id)
+                                {
 
+                                    arrId.Add(arrC[j].group_id);
+                                    del.AddRange(findChild(arrId));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return del;
+        }
 
         [HttpDelete]
         public async Task<HttpResponseMessage> Delete_taskgroup([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
@@ -201,16 +222,16 @@ namespace API.Controllers.Task_Ca
 
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = await db.task_ca_taskgroup.Where(a => id.Contains(a.group_id)).ToListAsync();
+                    var arr = findChild(id);
+                    var das = await db.task_ca_taskgroup.Where(a => arr.Contains(a.group_id)).ToListAsync();
                     List<string> paths = new List<string>();
                     if (das != null)
                     {
                         List<task_ca_taskgroup> del = new List<task_ca_taskgroup>();
                         foreach (var da in das)
                         {
+
                             del.Add(da);
-
-
                             #region add cms_logs
                             if (helper.wlog)
                             {
@@ -229,10 +250,22 @@ namespace API.Controllers.Task_Ca
                             }
                             #endregion
                         }
+
                         if (del.Count == 0)
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
                         }
+                        int count = 0;
+                        foreach (var da in del)
+                        {
+                            var used = db.task_origin.Where(x => x.group_id == da.group_id).ToList();
+                            if (used != null)
+                            {
+                                count++;
+                            }
+                        }
+                        if (count > 0)
+                        { return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Nhóm công việc đang được sử dụng.<br/>Bạn không thể xóa." }); }
                         db.task_ca_taskgroup.RemoveRange(del);
                     }
                     await db.SaveChangesAsync();
@@ -286,7 +319,7 @@ namespace API.Controllers.Task_Ca
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.task_ca_taskgroup.Where(a => (a.group_id == trangthai.IntID)).FirstOrDefault<task_ca_taskgroup>();
+                    var das = db.task_ca_taskgroup.FirstOrDefault(a => (a.group_id == trangthai.IntID));
                     if (das != null)
                     {
                         das.modified_by = uid;

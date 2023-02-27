@@ -617,9 +617,9 @@ namespace API.Controllers.Device
 
                         foreach (string strP in paths)
                         {
-                            bool exists = File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Inventory/" + Path.GetFileName(strP));
+                            bool exists = File.Exists(root+ "/" + dvid + "/Inventory/" + Path.GetFileName(strP));
                             if (exists)
-                                System.IO.File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Inventory/" + Path.GetFileName(strP));
+                                System.IO.File.Delete(root+ "/" + dvid + "/Inventory/" + Path.GetFileName(strP));
                         }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -732,7 +732,7 @@ namespace API.Controllers.Device
                                 sh.receiver = userSenHub.user_id;
                                 sh.icon = userSenHub.avatar;
                                 sh.title = "Thiết bị";
-                                sh.contents = "Hoàn thành đánh giá phiếu kiểm kê: " + device_Inventory_Slip.inventory_number;
+                                sh.contents = "Hoàn thành kiểm kê: " + device_Inventory_Slip.inventory_number;
                                 sh.type = 6;
                                 sh.is_type = 3;
                                 sh.date_send = DateTime.Now;
@@ -1013,7 +1013,7 @@ namespace API.Controllers.Device
                                     sh.receiver = userSenHub.user_id;
                                     sh.icon = userSenHub.avatar;
                                     sh.title = "Thiết bị";
-                                    sh.contents = "Xác nhận phiếu kiểm kê: " + das.inventory_number;
+                                    sh.contents = "Gửi đánh giá kiểm kê: " + das.inventory_number;
                                     sh.type = 6;
                                     sh.is_type = 3;
                                     sh.date_send = DateTime.Now;

@@ -13,6 +13,10 @@ const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
 const isDynamicSQL = ref(false);
+const toast = useToast();
+const basedomainURL = baseURL;
+const baseUrlCheck = "http://localhost:8080/";
+
 const config = {
 	headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -163,9 +167,6 @@ const submitted = ref(false);
 const v$ = useVuelidate(rules, request_group);
 const isSaveTem = ref(false);
 const datalists = ref();
-const toast = useToast();
-const basedomainURL = baseURL;
-const baseUrlCheck = baseURL;
 const checkDelList = ref(false);
 
 const options = ref({
@@ -853,8 +854,11 @@ onMounted(() => {
 				bodyStyle="justify-content:center;max-width:150px;"
 			>
 				<template #body="slotProps">
-					<div class="w-3rem pt-2 flex" style="justify-content:center;line-height:1.5;position: relative;height: 58px;">
-						<img class="ava" width="48" height="48" 
+					<div class="w-3rem p-0 flex" 
+						style="justify-content:center;align-items:center;line-height:1.5;position: relative;"
+						v-tooltip.top="{ value: slotProps.data.full_name+'<br/>'+slotProps.data.position_name+'<br/>'+slotProps.data.department_name, escape: true }"
+					>
+						<img class="ava" width="32" height="32" 
 							v-bind:src="slotProps.data.avatar
 										? basedomainURL + slotProps.data.avatar
 										: basedomainURL + '/Portals/Image/noimg.jpg'
@@ -868,7 +872,7 @@ onMounted(() => {
 							size="large"
 							shape="circle"
 							v-bind:label="(slotProps.data.last_name ?? '').substring(0, 1)"
-							style="cursor: pointer;width: 48px; height: 48px;border:1px solid #ccc;"
+							style="cursor: pointer;width:32px; height:32px;border:1px solid #ccc;"
 							:style="{ background: bgColor[slotProps.data.STT % 7] + '!important'}"
 						/>
 					</div>

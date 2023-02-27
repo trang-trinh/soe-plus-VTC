@@ -540,7 +540,7 @@ const DeleteItem = (vl) => {
             } else {
               swal.fire({
                 title: "Thông báo",
-                text: response.data.ms,
+                html: response.data.ms,
                 icon: "error",
                 confirmButtonText: "OK",
               });
@@ -603,7 +603,7 @@ const DeleteItems = () => {
             } else {
               swal.fire({
                 title: "Thông báo",
-                text: response.data.ms,
+                html: response.data.ms,
                 icon: "error",
                 confirmButtonText: "OK",
               });

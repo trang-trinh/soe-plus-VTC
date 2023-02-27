@@ -4,6 +4,7 @@ import { useToast } from "vue-toastification";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import moment from "moment";
 import { encr } from "../../util/function";
+import router from "@/router";
 //Khai báo
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -97,6 +98,17 @@ const loadData = () => {
     loadDataSQL();
     return false;
   }
+  var strG = "";
+  var strk = "";
+
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if(strG!=null)
+  options.value.department_id_process_fake= strG;
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -112,13 +124,14 @@ const loadData = () => {
               { par: "dispatch_book_id", va: options.value.dispatch_book_id },
               { par: "doc_group_id", va: options.value.doc_group_id },
               { par: "field_id", va: options.value.field_id },
+              { par: "department_id_process", va: options.value.department_id_process },
               { par: "department_id", va: options.value.department_id },
               { par: "start_dateI", va: options.value.start_dateI },
               { par: "end_dateI", va: options.value.end_dateI },
               { par: "start_dateD", va: options.value.start_dateD },
               { par: "end_dateD", va: options.value.end_dateD },
               { par: "search", va: options.value.search },
-              { par: "sort", va: options.value.sort },
+              { par: "sort", va: options.value.sort }
             ],
           }),
           SecretKey,
@@ -189,7 +202,8 @@ const RemoveMul = (index, value) => {
 const refreshData = () => {
   options.value.department_id = null;
   options.value.fields_id = null;
-
+  options.value.department_id_process = null;
+  
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
@@ -238,6 +252,7 @@ const hideFilter = () => {
     options.value.start_dateI == null &&
     options.value.ca_groups_list == null &&
     options.value.department_id == null &&
+    options.value.department_id_process == null&&
     options.value.ca_fields_list == null &&
     options.value.ca_dispatch_book_list == null &&
     options.value.end_dateI == null &&
@@ -627,6 +642,7 @@ const checkFilter = ref(false);
 const onRefilterDM = () => {
   options.value.doc_group_id = null;
   options.value.department_id = null;
+  options.value.department_id_process = null;
   options.value.fields_id = null;
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
@@ -722,6 +738,27 @@ const onFilterDM = () => {
   }  else{
     options.value.department_id =null;
   }
+  strG = "";
+  strk = "";
+
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if (strG != "") {
+    
+    filterS = {
+      filterconstraints: [],
+      filteroperator:strG,
+      key: "department_id_process",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else{
+    options.value.department_id_process =null;
+  }
 
   strG = "";
   strk = "";
@@ -738,6 +775,84 @@ const onFilterDM = () => {
       key: "user_recever",
     };
     filterSQL.value.push(filterS);
+  }
+
+
+  
+  if (options.value.start_dateI && options.value.end_dateI) {
+    filterS = {
+      filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateAfter" }, { value: options.value.start_dateI, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "receive_date",
+    };
+    filterSQL.value.push(filterS);
+
+    filterS = {
+      filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "receive_date",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else {
+    if (options.value.start_dateI) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "receive_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (options.value.end_dateI) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "receive_date",
+      };
+      filterSQL.value.push(filterS);
+
+    }
+  }
+
+  if (options.value.start_dateD && options.value.end_dateD) {
+    filterS = {
+      filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateAfter" }, { value: options.value.start_dateD, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "doc_date",
+    };
+    filterSQL.value.push(filterS);
+
+    filterS = {
+      filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateBefore" }, { value: options.value.end_dateD, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "doc_date",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else {
+    if (options.value.start_dateD) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "doc_date",
+      };
+      filterSQL.value.push(filterS);
+
+
+    }
+    if (options.value.end_dateD) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "doc_date",
+      };
+      filterSQL.value.push(filterS);
+
+    }
   }
 
   if (filterSQL.value.length > 0) loadDataSQL();
@@ -827,109 +942,171 @@ function renderhtml(id, htmltable) {
 
 
 `;
-  htmltable += `<div id="formprint">
-    <table>
-      <thead>
-        <tr>
-          <td class="text-center" colspan="6">
-            <div style="padding: 1rem 0">
-              <div class="uppercase title2"><b>BÁO CÁO SỔ CÔNG VĂN NỘI BỘ</b></div>
-           
-            </div>
-          </td>
-        </tr>
-      </thead>
-    </table>
-    <table>
-      <thead class="boder">
-        <tr>
-          <th style="width: 30px">TT</th>
-          <th style="width: 100px">Số vào sổ</th>
-          <th style="width: 130px">Ngày vào sổ</th>
-          <th style="width: 100px">Số ký hiệu</th>
-          <th style="width: 130px">Ngày văn bản</th>
-          <th style="min-width: 150px">Trích yếu</th>
-          <th style="min-width: 150px">Nơi nhận</th>
-          <th style="width: 110px">LĐT</th>
-          <th style="width: 110px">Người ký</th>
-      
-        </tr>
-      </thead>
-      <tbody class="boder">`;
+htmltable += `<div id="formprint">
+      <table>
+        <thead>
+          <tr>
+            <td class="text-center" colspan="6">
+              <div style="padding: 1rem 0">
+                <div class="uppercase title2"><b>BÁO CÁO KHỐI NỘI BỘ</b></div>
+             
+              </div>
+            </td>
+          </tr>
+        </thead>
+      </table>
+      <div style="display:flex; font-weight:600">
+          <div style="width:100%; align-item:center"> Tổng số: `+  datalistsExport.value.length+` </div>
+          <div  style="width:100%; text-align:right; align-item:center"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
+        </div>
+      <table>
+        <thead class="boder">
+          <tr>
+            
+            <th style="width: 100px ;  padding: 0px 3px">Số vào sổ</th>
+            <th style="width: 100px ;  padding: 0px 3px">Số ký hiệu</th>
+            <th style="width: 100px ;  padding: 0px 3px"><div  style="padding: 0px">Ngày thu</div>
+              <div style="padding: 0 ">------</div>
+              <div style="padding: 0 ">Ban hành</div>
+              </th>
+              <th style=" min-width: 120px ;  padding: 0px 3px">Nơi ban hành</th>
+       
+            <th style="min-width: 150px ;  padding: 0px 3px">Trích yếu</th>
+         
+         
+            <th style="width: 40px ;  padding: 0px 3px">Số bản</th>
+            <th style="width: 40px ;  padding: 0px 3px">Số tờ</th>
+            <th style="width: 55px ;  padding: 0px 3px">Độ mật</th>
+            <th style="width: 40px ;  padding: 0px 3px">Bản Đ/tử</th>
+            <th style=" min-width: 120px ;  padding: 0px 3px">Nơi nhận</th>
+            <th style="width: 40px ;  padding: 0px 3px">Ký nhận</th>
+            <th style="width: 40px ;  padding: 0px 3px">Ký trả</th>
+          </tr>
+        </thead>
+        <tbody class="boder">`;
   for (let index = 0; index < datalistsExport.value.length; index++) {
     const value = datalistsExport.value[index];
+
+    var doc_date = "";
+    var receive_date = "";
+    var num_of_pages="";
+    var num_of_copies="";
+    var is_not_send_papper="";
+    var security="";
+    var dispatch_book_code="";
+    var doc_code="";
+    if(value.dispatch_book_code)
+    dispatch_book_code=value.dispatch_book_code;
+    if(value.doc_code)
+    doc_code=value.doc_code;
+    if(value.num_of_pages)
+    num_of_pages=value.num_of_pages;
+    if(value.num_of_copies)
+    num_of_copies=value.num_of_copies;
+    if(value.security)
+    security=value.security;
+  
+    if(value.is_not_send_papper==true)
+    is_not_send_papper="1";
+    if (value.doc_date)
+      doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
+    if (value.receive_date)
+    receive_date=  moment(new Date(value.receive_date)).format("DD/MM/YYYY")
     htmltable +=
       `
-        <tr >
-          <td align="center">
-            <div>` +
-      (index + 1) +
-      `</div>
-          </td>
-          <td  style="width: 100px">
-            <div >
-              ` +
-      value.dispatch_book_num +
-      `
-            </div>
-          </td>
-          <td  style="width: 130px">
-            <div >
-              ` +
-      moment(new Date(value.receive_date)).format("DD/MM/YYYY") +
-      `
+          <tr >
             
-            </div>
-          </td>
-          <td align="center"  style="width: 100px">
-            <div>
+            <td  >
+              <div style="text-align: center">
+                ` +
+    dispatch_book_code +
+      `
+              </div>
+            </td>
+            <td align="center"   >
+              <div style="text-align: center">
+                
+                ` +
+       doc_code +
+      `</div>
+            </td>
+            <td   >
+              <div >
+               <div style="text-align:center;padding:0px"> ` + receive_date +'</div> <div style="text-align:center;padding:0px">-----</div>  <div style="text-align:center;padding:0px">'+doc_date
+      +
+      ` </div>
               
-              ` +
-      value.doc_code +
-      `</div>
-          </td>
-          <td align="center"  style="width: 130px">
-            <div>     ` +
-      moment(new Date(value.doc_date)).format("DD/MM/YYYY") +
-      `</div>
-          </td>
-          <td style=" word-break: break-word">
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
             <div >
-              ` +
-      value.compendium +
-      `
-             
-            </div>
-          </td>
-          <td>
-            <div  style=" word-break: break-word">
-              ` +
-      value.user_receive +
-      `
+              ` +value.issue_place + `
        
             </div>
           </td>
-          <td  style="width: 130px;word-break: break-word"">
-            <div>
-              ` +
-      value.ldt +
+            
+            <td  style=" word-break: break-word">
+              <div >
+                ` +
+      value.compendium +
       `
-            </div>
-          </td>
-          <td  style="width: 130px;word-break: break-word"">
-            <div>
-              ` +
-      value.signer +
+               
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+       num_of_pages +
       `
-            </div>
-          </td>
-        </tr>`;
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+      num_of_copies +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` + 
+       security +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+      is_not_send_papper +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div>
+                ` +
+      value.user_receive +
+      `
+         
+              </div>
+            </td>
+          
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
+          </tr>`;
   }
   htmltable += `
-      </tbody>
-    
-    </table>
-  </div>`;
+        </tbody>
+      
+      </table>
+    </div>`;
   // var html = document.getElementById(id);
   // if (html) {
   //   htmltable += html.innerHTML;
@@ -963,12 +1140,13 @@ const exportExcelR = () => {
               proc: "doc_report_list_internal",
               par: [
                 { par: "pageno", va: options.value.pagenoExport - 1 },
-                { par: "pagesize", va: options.value.pagesize },
+                { par: "pagesize", va: options.value.totalRecordsExport },
                 { par: "user_id", va: store.state.user.user_id },
                 { par: "user_recever", va: options.value.user_recever },
                 { par: "dispatch_book_id", va: options.value.dispatch_book_id },
                 { par: "doc_group_id", va: options.value.doc_group_id },
                 { par: "field_id", va: options.value.field_id },
+                { par: "department_id_process", va: options.value.department_id_process_fake },
                 { par: "department_id", va: options.value.department_id },
                 { par: "start_dateI", va: options.value.start_dateI },
                 { par: "end_dateI", va: options.value.end_dateI },
@@ -1038,6 +1216,18 @@ const itemButs = ref([
   },
 ]);
 const toggleExport = (event) => {
+  var strG = "";
+  var strk = "";
+
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if(strG!=null)
+  options.value.department_id_process_fake= strG;
+
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
@@ -1057,9 +1247,11 @@ const exportData = (method) => {
           { par: "pageno", va: options.value.pagenoExport - 1 },
           { par: "pagesize", va: options.value.totalRecordsExport },
           { par: "user_id", va: store.state.user.user_id },
+          { par: "user_recever", va: options.value.user_recever },
           { par: "dispatch_book_id", va: options.value.dispatch_book_id },
           { par: "doc_group_id", va: options.value.doc_group_id },
           { par: "field_id", va: options.value.field_id },
+          { par: "department_id_process", va: options.value.department_id_process_fake },
           { par: "department_id", va: options.value.department_id },
           { par: "start_dateI", va: options.value.start_dateI },
           { par: "end_dateI", va: options.value.end_dateI },
@@ -1231,8 +1423,7 @@ onMounted(() => {
         <template #header>
           <div>
             <h3 class="module-title my-2 ml-1">
-              <font-awesome-icon icon="fa-solid fa-file-code" /> Báo cáo sổ công
-              văn nội bộ ({{ options.totalRecords ? options.totalRecords : 0 }})
+              <font-awesome-icon icon="fa-solid fa-file-code" /> Báo cáo khối nội bộ ({{ options.totalRecords ? options.totalRecords : 0 }})
             </h3>
           </div>
           <Toolbar class="custoolbar p-0 py-3 surface-50">
@@ -1251,6 +1442,8 @@ onMounted(() => {
                   :class="
                     (options.doc_group_id != null ||
                       options.department_id != null ||
+                      options.department_id_process != null ||
+                  
                       options.fields_id != null ||
                       options.dispatch_book_id != null ||
                       options.start_dateI != null ||
@@ -1324,7 +1517,7 @@ onMounted(() => {
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
                           class="w-full"
-                          v-model="options.end_dateI"
+                          v-model="options.end_dateI"  :minDate="options.start_dateI? new Date(options.start_dateI) :null"
                           placeholder="dd/MM/yy"
                         />
                       </div>
@@ -1350,6 +1543,7 @@ onMounted(() => {
                           class="w-full"
                           v-model="options.end_dateD"
                           placeholder="dd/MM/yy"
+                          :minDate="options.start_dateD? new Date(options.start_dateD) :null"
                         />
                       </div>
                     </div>
@@ -1398,7 +1592,7 @@ onMounted(() => {
                     </div>
                     <div class="field col-12 md:col-12 flex">
                       <div class="col-3 p-0 align-items-center flex">
-                        Phòng ban:
+                        Phòng ban soạn thảo:
                       </div>
                       <div class="col-9 p-0 align-items-center flex">
                         <TreeSelect
@@ -1411,7 +1605,22 @@ onMounted(() => {
                         ></TreeSelect>
                       </div>
                     </div>
-
+                    <div class="field col-12 md:col-12 flex">
+                      <div class="col-3 p-0 align-items-center flex">
+                        Phòng ban xử lý:
+                      </div>
+                      <div class="col-9 p-0 align-items-center flex">
+                        <TreeSelect
+                          class="w-full"
+                          v-model="options.department_id_process"
+                          :options="listFilterDM.department_list"
+                          display="chip"
+                          selectionMode="checkbox"
+                          placeholder="Chọn phòng ban xử lý"
+                          :clear="true"
+                        ></TreeSelect>
+                      </div>
+                    </div>
                     <!-- <div class="field col-12 md:col-12 flex">
                       <div class="col-3 p-0 align-items-center flex">
                         Nơi ban hành:
@@ -1771,7 +1980,7 @@ onMounted(() => {
           <template #body="data">
             <div>
               {{
-                moment(new Date(data.data.receive_date)).format("DD/MM/YYYY")
+                data.data.receive_date?moment(new Date(data.data.receive_date)).format("DD/MM/YYYY"):''
               }}
             </div>
           </template>

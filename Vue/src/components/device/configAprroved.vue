@@ -1,10 +1,10 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
-import moment from "moment";
+import moment from "moment";import { encr } from "../../util/function.js";
 const basedomainURL = baseURL;
 const emitter = inject("emitter");
-const axios = inject("axios");
+const axios = inject("axios");const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const swal = inject("$swal");
 const config = {
@@ -94,16 +94,21 @@ const filterApproved = ref();
 const filterCard = () => {
   datalists.value = [];
   axios
-    .post(
-      baseURL + "/api/Proc/CallProc",
+  .post(
+      baseURL + "/api/device_card/getData",
       {
+        str: encr(
+          JSON.stringify({
         proc: "device_aprroved_dropdown",
         par: [
           { par: "user_id", va: store.getters.user.user_id },
           { par: "type", va: props.type },
         ],
-      },
-      config
+      }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
     )
     .then((response) => {
       let dt = JSON.parse(response.data.data);
@@ -214,16 +219,21 @@ const loadData = () => {
   datalists.value = [];
   options.value.loading = true;
   axios
-    .post(
-      baseURL + "/api/Proc/CallProc",
+  .post(
+      baseURL + "/api/device_card/getData",
       {
+        str: encr(
+          JSON.stringify({
         proc: "device_aprroved_dropdown",
         par: [
           { par: "user_id", va: store.getters.user.user_id },
           { par: "type", va: props.type },
         ],
-      },
-      config
+      }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
     )
     .then((response) => {
       let dt = JSON.parse(response.data.data);
@@ -324,9 +334,11 @@ const listDropdownUser = ref();
 const loadUser = () => {
   listDropdownUser.value = [];
   axios
-    .post(
-      baseURL + "/api/Proc/CallProc",
+  .post(
+      baseURL + "/api/device_card/getData",
       {
+        str: encr(
+          JSON.stringify({
         proc: "sys_users_list_dd",
         par: [
           { par: "search", va: null },
@@ -342,8 +354,11 @@ const loadUser = () => {
           { par: "start_date", va: null },
           { par: "end_date", va: null },
         ],
-      },
-      config
+      }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];

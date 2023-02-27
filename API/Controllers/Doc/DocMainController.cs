@@ -48,7 +48,7 @@ namespace API.Controllers
             return "localhost";
         }
         [HttpPut]
-        public async Task<HttpResponseMessage> Update_ViewDoc(doc_follows model)
+        public async Task<HttpResponseMessage> Update_ViewDoc([System.Web.Mvc.Bind(Include = "follow_id,doc_master_id")][FromBody] doc_follows model)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -131,7 +131,7 @@ namespace API.Controllers
             }
 
         }
-        public string Update_detailDoc(MultipartFormDataStreamProvider provider, string created_by, string tid, string ip, string root, double count = 0)
+        public string Update_detailDoc([System.Web.Mvc.Bind(Include = "")][FromBody] MultipartFormDataStreamProvider provider, string created_by, string tid, string ip, string root, double count = 0)
         {
             string fddoc = "";
             using (DBEntities db = new DBEntities())
@@ -149,6 +149,27 @@ namespace API.Controllers
                     {
                         organization_id_user = user_now.organization_id.ToString();
                     }
+
+                    // Format root
+                    var listPathRoot = Regex.Replace(root.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                    var pathRootEdit = "";
+                    var sttPathRoot = 1;
+                    foreach (var itemEdit in listPathRoot)
+                    {
+                        if (itemEdit.Trim() != "")
+                        {
+                            if (sttPathRoot == 1)
+                            {
+                                pathRootEdit += itemEdit;
+                            }
+                            else
+                            {
+                                pathRootEdit += "/" + Path.GetFileName(itemEdit);
+                            }
+                        }
+                        sttPathRoot++;
+                    }
+                    root = pathRootEdit;
 
                     fddoc = provider.FormData.GetValues("doc").SingleOrDefault();
                     doc_master vb = JsonConvert.DeserializeObject<doc_master>(fddoc);
@@ -267,9 +288,31 @@ namespace API.Controllers
                         }
 
                         string strPath = root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
-                        bool exists = Directory.Exists(strPath);
-                        if (!exists)
-                            Directory.CreateDirectory(strPath);
+                        //bool exists = Directory.Exists(strPath);
+                        //if (!exists)
+                        //    Directory.CreateDirectory(strPath);
+
+                        // Format strPath
+                        var listEdit_strPath = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                        var pathEdit_strPath = "";
+                        var sttEdit_strPath = 1;
+                        foreach (var itemEdit in listEdit_strPath)
+                        {
+                            if (itemEdit.Trim() != "")
+                            {
+                                if (sttEdit_strPath == 1)
+                                {
+                                    pathEdit_strPath += itemEdit;
+                                }
+                                else
+                                {
+                                    pathEdit_strPath += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            sttEdit_strPath++;
+                        }
+                        if (!Directory.Exists(pathEdit_strPath))
+                            Directory.CreateDirectory(pathEdit_strPath);
 
                         db.doc_master.Add(vb);
 
@@ -319,9 +362,26 @@ namespace API.Controllers
                             string pathDel = provider.FormData.GetValues("docUploadOld").SingleOrDefault();
                             if (pathDel.Contains("/Portals/") && pathDel.Contains("/Doc/"))
                             {
-                                bool existFiles = System.IO.File.Exists(root + pathDel);
-                                if (existFiles)
-                                    System.IO.File.Delete(root + pathDel);
+                                //bool existFiles = System.IO.File.Exists(root + pathDel);
+                                //if (existFiles)
+                                //    System.IO.File.Delete(root + pathDel);
+
+                                // Format pathDel
+                                var strPathFormat = Regex.Replace(pathDel.Replace("\\", "/"), @"\.*/+", "/");
+                                var listStrPath = strPathFormat.Split('/');
+                                var strPathConfig = "";
+                                foreach (var item in listStrPath)
+                                {
+                                    if (item.Trim() != "")
+                                    {
+                                        strPathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                bool ex = System.IO.File.Exists(root + strPathConfig);
+                                if (ex)
+                                {
+                                    System.IO.File.Delete(root + strPathConfig);
+                                }
                             }
                         };
 
@@ -389,6 +449,27 @@ namespace API.Controllers
                             fileName = System.IO.Path.GetFileName(fileName);
                         }
                         newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                        var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                        var pathEdit_1 = "";
+                        var sttPathEdit_1 = 1;
+                        foreach (var itemEdit in listPathEdit_1)
+                        {
+                            if (itemEdit.Trim() != "")
+                            {
+                                if (sttPathEdit_1 == 1)
+                                {
+                                    pathEdit_1 += itemEdit;
+                                }
+                                else
+                                {
+                                    pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            sttPathEdit_1++;
+                        }
+                        newFileName = pathEdit_1;
+
                         fileInfo = new FileInfo(newFileName);
                         if (fileInfo.Exists)
                         {
@@ -430,11 +511,64 @@ namespace API.Controllers
                         //Add file
                         if (fileInfo != null)
                         {
-                            if (!Directory.Exists(fileInfo.Directory.FullName))
+                            var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                            var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit = "";
+                            foreach (var itemEdit in listPathEdit)
                             {
-                                Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit += "/" + Path.GetFileName(itemEdit);
+                                }
                             }
-                            File.Move(ffileData.LocalFileName, newFileName);
+                            if (!Directory.Exists(root + pathEdit))
+                            {
+                                Directory.CreateDirectory(root + pathEdit);
+                            }
+                            //if (!Directory.Exists(fileInfo.Directory.FullName))
+                            //{
+                            //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                            //}
+
+                            var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_2 = "";
+                            var sttPathEdit_2 = 1;
+                            foreach (var itemEdit in listPathEdit_2)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_2 == 1)
+                                    {
+                                        pathEdit_2 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_2++;
+                            }
+
+                            var listPathEdit_Local = Regex.Replace(ffileData.LocalFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_Local = "";
+                            var sttPathEdit_Local = 1;
+                            foreach (var itemEdit in listPathEdit_Local)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_Local == 1)
+                                    {
+                                        pathEdit_Local += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_Local += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_Local++;
+                            }
+                            File.Move(pathEdit_Local, pathEdit_2);
+                            //File.Move(ffileData.LocalFileName, newFileName);
                             listPathFileUp.Add(ffileData.LocalFileName);
                         }
                     }
@@ -467,22 +601,176 @@ namespace API.Controllers
                         {
                             if (pathDel.Contains("/Portals/") && pathDel.Contains("/Doc/"))
                             {
-                                bool existFiles = System.IO.File.Exists(root + pathDel);
-                                if (existFiles)
-                                    System.IO.File.Delete(root + pathDel);
+                                //bool existFiles = System.IO.File.Exists(root + pathDel);
+                                //if (existFiles)
+                                //    System.IO.File.Delete(root + pathDel);
+
+                                // Format strPath
+                                var listEdit_StrPath = Regex.Replace(pathDel.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_StrPath = "";
+                                foreach (var itemEdit in listEdit_StrPath)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_StrPath += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                if (System.IO.File.Exists(root + pathEdit_StrPath))
+                                {
+                                    System.IO.File.Delete(root + pathEdit_StrPath);
+                                }
                             }
                         }
                     }
 
                     db.SaveChanges();
 
+                    if(provider.FormData.GetValues("main_department_id") != null)
+                    {
+                        var fd_dep = provider.FormData.GetValues("main_department_id").SingleOrDefault();
+                        var main_departments_id = int.Parse(fd_dep);
+                        var model = db.doc_master.FirstOrDefault(x => x.doc_master_guid == vb.doc_master_guid);
+                        var user_sendhub_main = new List<string>();
+                        var us_department = db.doc_ca_role_group_department.FirstOrDefault(x => (x.department_id ?? 0) == main_departments_id && x.role_group_id == null);
+                        if (us_department != null)
+                        {
+                            var us = db.sys_users.Find(us_department.user_id);
+                            var department = db.sys_organization.Find(main_departments_id);
+
+                            user_sendhub_main.Add(us_department.user_id);
+
+                            var new_fl = new doc_follows();
+                            new_fl.follow_id = helper.GenKey();
+                            new_fl.organization_id = model.organization_id;
+                            new_fl.doc_master_id = model.doc_master_id;
+                            new_fl.deadline_date = model.deadline_date;
+                            new_fl.send_by = user_now.user_key;
+                            new_fl.send_by_name = user_now.full_name;
+                            new_fl.send_date = DateTime.Now;
+                            new_fl.receive_by = main_departments_id;
+                            new_fl.receive_last_group_user = us.user_key;
+
+                            new_fl.receive_by_name = department?.organization_name;
+                            new_fl.receive_type = 3;
+                            new_fl.follow_parent_id = model.follow_id;
+                            new_fl.level = 1;
+
+                            if (new_fl.follow_parent_id != null)
+                            {
+                                var par = db.doc_follows.Find(new_fl.follow_parent_id);
+                                if (par != null)
+                                {
+                                    new_fl.level = par.level + 1;
+                                }
+                                new_fl.parent_doc_status_id = par.doc_status_id;
+                            }
+                            new_fl.doc_status_id = "xulychinh";
+                            new_fl.message = model.message;
+                            new_fl.created_by = created_by;
+                            new_fl.created_date = DateTime.Now;
+                            new_fl.created_ip = ip;
+                            new_fl.created_token_id = tid;
+                            db.doc_follows.Add(new_fl);
+
+                            model.sent_by = user_now.user_key;
+                            model.handle_date = DateTime.Now;
+                            model.doc_status_id = "xulychinh";
+
+                            //---------------------
+                            #region add doc_logs
+                            if (helper.wlog)
+                            {
+                                doc_logs log = new doc_logs();
+                                log.log_type = 2;
+                                //log.message = JsonConvert.SerializeObject(new { data = law_main });
+                                log.message = "Chuyển xử lý phòng ban văn bản: " + vb.compendium;
+                                log.doc_name = vb.compendium;
+                                log.doc_master_id = vb.doc_master_id;
+                                log.organization_id = user_now.organization_id;
+                                log.created_date = DateTime.Now;
+                                log.created_by = created_by;
+                                log.created_token_id = tid;
+                                log.created_ip = ip;
+                                log.is_view = false;
+                                db.doc_logs.Add(log);
+                            }
+                            #endregion
+
+                            //-----------------------
+                            var ns_sh = (from nss in db.sys_users
+                                         where user_sendhub_main.Contains(nss.user_id) && nss.status == 1
+                                         select new { nss.user_id, nss.full_name, nss.avatar }).ToList();
+
+                            #region send socket
+                            var lst_socket = new Dictionary<string, string>();
+                            #endregion
+
+                            //----------------------------
+                            #region sendhub
+
+                            foreach (var ns in ns_sh)
+                            {
+                                string name_task = "";
+                                if (user_sendhub_main.Contains(ns.user_id)) name_task = "Chuyển xử lý: ";
+
+                                var sh = new sys_sendhub();
+                                sh.senhub_id = helper.GenKey();
+                                sh.user_send = created_by;
+                                sh.module_key = const_module_key;
+                                sh.receiver = ns.user_id;
+                                sh.icon = ns.avatar;
+                                sh.title = "Văn bản";
+                                sh.contents = name_task + vb.compendium;
+                                lst_socket.Add(ns.user_id, sh.contents);
+                                sh.type = 3;
+                                sh.is_type = 0;
+                                sh.date_send = DateTime.Now;
+                                sh.id_key = model.doc_master_id.ToString();
+                                sh.group_id = model.follow_id;
+                                sh.token_id = tid;
+                                sh.created_date = DateTime.Now;
+                                sh.created_by = created_by;
+                                sh.created_token_id = tid;
+                                sh.created_ip = ip;
+                                db.sys_sendhub.Add(sh);
+                            }
+
+                            #endregion
+
+                            string res_socket = SendSocketSingle(lst_socket, "Văn bản");
+                        }
+                    }
+
                     if (listPathFileUp.Count > 0)
                     {
                         foreach (var path in listPathFileUp)
                         {
-                            if (System.IO.File.Exists(path))
+                            //if (System.IO.File.Exists(path))
+                            //{
+                            //    System.IO.File.Delete(path);
+                            //}
+
+                            var listPathEdit_Temp = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_Temp = "";
+                            var sttPathEdit_Temp = 1;
+                            foreach (var itemEdit in listPathEdit_Temp)
                             {
-                                System.IO.File.Delete(path);
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_Temp == 1)
+                                    {
+                                        pathEdit_Temp += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_Temp += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_Temp++;
+                            }
+                            if (System.IO.File.Exists(pathEdit_Temp))
+                            {
+                                System.IO.File.Delete(pathEdit_Temp);
                             }
                         }
                     }
@@ -614,7 +902,7 @@ namespace API.Controllers
                                 while (str.Contains("duplicatedocnum") || str != "OK");
                             }
                         }
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", notunique_case });
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", countNum, notunique_case });
                     });
                     return await task;
                 }
@@ -641,7 +929,7 @@ namespace API.Controllers
             }
         }
         [HttpDelete]
-        public async Task<HttpResponseMessage> Delete_Doc([FromBody] List<int> id)
+        public async Task<HttpResponseMessage> Delete_Doc([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -669,6 +957,18 @@ namespace API.Controllers
                     using (DBEntities db = new DBEntities())
                     {
                         var us = await db.sys_users.FindAsync(uid);
+                        // check role theo user
+                        var module_functions = (from rm in db.sys_role_modules
+                                                   join mo in db.sys_modules on rm.module_id equals mo.module_id
+                                                   where mo.module_key == "M3" && rm.user_id == us.user_id
+                                                   select rm.module_functions).FirstOrDefault();
+                        if (module_functions == null)
+                        {
+                            module_functions = (from rm in db.sys_role_modules
+                                               join mo in db.sys_modules on rm.module_id equals mo.module_id
+                                               where mo.module_key == "M3" && rm.role_id == us.role_id && String.IsNullOrEmpty(rm.user_id)
+                                               select rm.module_functions).FirstOrDefault();
+                        };
                         var das = await db.doc_master.Where(a => id.Contains(a.doc_master_id)).ToListAsync();
                         var folder_paths = new List<string>();
                         List<string> paths = new List<string>();
@@ -677,7 +977,7 @@ namespace API.Controllers
                             List<doc_master> del = new List<doc_master>();
                             foreach (var da in das)
                             {
-                                if (ad || da.created_by == us.user_key)
+                                if (ad || da.created_by == us.user_key || (module_functions != null && module_functions.Contains("xoakhovanban")))
                                 {
                                     if (!String.IsNullOrEmpty(da.file_path)) paths.Add(da.file_path);
                                     var organization_id_doc = da.organization_id != null ? da.organization_id.ToString() : "other";
@@ -723,19 +1023,50 @@ namespace API.Controllers
                             db.doc_master.RemoveRange(del);
                         }
                         await db.SaveChangesAsync();
+                        var root = HttpContext.Current.Server.MapPath("~/");
                         foreach (string strPath in paths)
                         {
-                            var pathDelFile = HttpContext.Current.Server.MapPath("~/" + strPath);
-                            bool existFiles = System.IO.File.Exists(pathDelFile);
-                            if (existFiles)
-                                System.IO.File.Delete(pathDelFile);
+                            //var pathDelFile = HttpContext.Current.Server.MapPath("~/" + strPath);
+                            //bool existFiles = System.IO.File.Exists(pathDelFile);
+                            //if (existFiles)
+                            //    System.IO.File.Delete(pathDelFile);
+
+                            // Format strPath
+                            var listEdit_StrPath = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_StrPath = "";
+                            foreach (var itemEdit in listEdit_StrPath)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit_StrPath += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            if (System.IO.File.Exists(root + pathEdit_StrPath))
+                            {
+                                System.IO.File.Delete(root + pathEdit_StrPath);
+                            }
                         }
                         foreach (string strPath in folder_paths)
                         {
-                            var pathDelFolder = HttpContext.Current.Server.MapPath("~/" + strPath);
-                            bool existFolder = Directory.Exists(pathDelFolder);
-                            if (existFolder)
-                                Directory.Delete(pathDelFolder, true);
+                            //var pathDelFolder = HttpContext.Current.Server.MapPath("~/" + strPath);
+                            //bool existFolder = Directory.Exists(pathDelFolder);
+                            //if (existFolder)
+                            //    Directory.Delete(pathDelFolder, true);
+
+                            // Format strPath
+                            var listEdit_StrPath = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_StrPath = "";
+                            foreach (var itemEdit in listEdit_StrPath)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit_StrPath += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            if (System.IO.Directory.Exists(root + pathEdit_StrPath))
+                            {
+                                System.IO.Directory.Delete(root + pathEdit_StrPath, true);
+                            }
                         }
 
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -943,6 +1274,27 @@ namespace API.Controllers
                                 fileName = System.IO.Path.GetFileName(fileName);
                             }
                             newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                            //Format newFileName
+                            var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_1 = "";
+                            var sttPathEdit_1 = 1;
+                            foreach (var itemEdit in listPathEdit_1)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_1 == 1)
+                                    {
+                                        pathEdit_1 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_1++;
+                            }
+                            newFileName = pathEdit_1;
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
                             {
@@ -1155,6 +1507,15 @@ namespace API.Controllers
                                 new_fl.doc_master_id = model.doc_master_id;
                                 new_fl.send_by = user_now.user_key;
                                 new_fl.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if(par_fl != null)
+                                {
+                                    if(par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_fl.send_date = send_date_now;
                                 new_fl.receive_by = org_id;
 
@@ -1198,6 +1559,15 @@ namespace API.Controllers
                                 new_fl.doc_master_id = model.doc_master_id;
                                 new_fl.send_by = user_now.user_key;
                                 new_fl.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_fl.send_date = send_date_now;
                                 new_fl.receive_by = group_id;
 
@@ -1268,6 +1638,15 @@ namespace API.Controllers
                                     new_fl.deadline_date = model.deadline_date;
                                     new_fl.send_by = user_now.user_key;
                                     new_fl.send_by_name = user_now.full_name;
+                                    // Check department name
+                                    var par_fl = db.doc_follows.Find(model.follow_id);
+                                    if (par_fl != null)
+                                    {
+                                        if (par_fl.receive_type == 3)
+                                        {
+                                            new_fl.send_by_name = par_fl.receive_by_name;
+                                        }
+                                    }
                                     new_fl.send_date = send_date_now;
                                     new_fl.receive_by = departments_id;
                                     new_fl.receive_last_group_user = us.user_key;
@@ -1326,6 +1705,15 @@ namespace API.Controllers
                                 new_fl.doc_master_id = model.doc_master_id;
                                 new_fl.send_by = user_now.user_key;
                                 new_fl.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_fl.send_date = send_date_now;
                                 new_fl.receive_by = us.user_key;
 
@@ -1400,6 +1788,15 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -1549,6 +1946,15 @@ namespace API.Controllers
                             new_fl.deadline_date = model.deadline_date;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
+                            // Check department name
+                            var par_fl = db.doc_follows.Find(model.follow_id);
+                            if (par_fl != null)
+                            {
+                                if (par_fl.receive_type == 3)
+                                {
+                                    new_fl.send_by_name = par_fl.receive_by_name;
+                                }
+                            }
                             new_fl.send_date = send_date_now;
                             new_fl.receive_by = us.user_key;
 
@@ -1593,6 +1999,15 @@ namespace API.Controllers
                             new_fl.doc_master_id = model.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
+                            // Check department name
+                            var par_fl = db.doc_follows.Find(model.follow_id);
+                            if (par_fl != null)
+                            {
+                                if (par_fl.receive_type == 3)
+                                {
+                                    new_fl.send_by_name = par_fl.receive_by_name;
+                                }
+                            }
                             new_fl.send_date = send_date_now;
                             new_fl.receive_by = us.user_key;
 
@@ -1635,7 +2050,16 @@ namespace API.Controllers
                             new_fl.doc_master_id = model.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
-                            new_fl.send_date = send_date_now;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
+                                new_fl.send_date = send_date_now;
                             new_fl.receive_by = group_id;
 
                             var gr = db.doc_ca_role_groups.Find(group_id);
@@ -1695,7 +2119,16 @@ namespace API.Controllers
                             new_fl.doc_master_id = model.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
-                            new_fl.send_date = send_date_now;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
+                                new_fl.send_date = send_date_now;
                             new_fl.receive_by = us.user_key;
 
                             new_fl.receive_by_name = us.full_name;
@@ -1737,7 +2170,16 @@ namespace API.Controllers
                             new_fl.doc_master_id = model.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
-                            new_fl.send_date = send_date_now;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
+                                new_fl.send_date = send_date_now;
                             new_fl.receive_by = group_id;
 
                             var gr = db.doc_ca_role_groups.Find(group_id);
@@ -1806,7 +2248,16 @@ namespace API.Controllers
                                 new_fl.deadline_date = model.deadline_date;
                                 new_fl.send_by = user_now.user_key;
                                 new_fl.send_by_name = user_now.full_name;
-                                new_fl.send_date = send_date_now;
+                                    // Check department name
+                                    var par_fl = db.doc_follows.Find(model.follow_id);
+                                    if (par_fl != null)
+                                    {
+                                        if (par_fl.receive_type == 3)
+                                        {
+                                            new_fl.send_by_name = par_fl.receive_by_name;
+                                        }
+                                    }
+                                    new_fl.send_date = send_date_now;
                                 new_fl.receive_by = track_departments_id;
                                 new_fl.receive_last_group_user = us.user_key;
 
@@ -1880,6 +2331,27 @@ namespace API.Controllers
                             fileName = System.IO.Path.GetFileName(fileName);
                         }
                         newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                        //Format newFileName
+                        var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                        var pathEdit_1 = "";
+                        var sttPathEdit_1 = 1;
+                        foreach (var itemEdit in listPathEdit_1)
+                        {
+                            if (itemEdit.Trim() != "")
+                            {
+                                if (sttPathEdit_1 == 1)
+                                {
+                                    pathEdit_1 += itemEdit;
+                                }
+                                else
+                                {
+                                    pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            sttPathEdit_1++;
+                        }
+                        newFileName = pathEdit_1;
                         fileInfo = new FileInfo(newFileName);
                         if (fileInfo.Exists)
                         {
@@ -1913,12 +2385,46 @@ namespace API.Controllers
                         //Add file
                         if (fileInfo != null)
                         {
-                            if (!Directory.Exists(fileInfo.Directory.FullName))
-                            {
-                                Directory.CreateDirectory(fileInfo.Directory.FullName);
-                            }
-                            File.Move(ffileData.LocalFileName, newFileName);
-                            listPathFileUp.Add(ffileData.LocalFileName);
+                                var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                var sttPathEdit_2 = 1;
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_2 == 1)
+                                        {
+                                            pathEdit_2 += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_2++;
+                                }
+                                File.Move(ffileData.LocalFileName, pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
+                                listPathFileUp.Add(ffileData.LocalFileName);
                         }
                         numfileDoc++;
                     }
@@ -1974,7 +2480,16 @@ namespace API.Controllers
                             var content_xml = new doc_follows();
                             content_xml.doc_master_id = vb.doc_master_id;
                             content_xml.send_by_name = user_now.full_name;
-                            content_xml.receive_by_name = "";
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
+                                content_xml.receive_by_name = "";
                             foreach (var ns in ns_sh)
                             {
                                 if (content_xml.receive_by_name != "") content_xml.receive_by_name += ", ";
@@ -2125,6 +2640,15 @@ namespace API.Controllers
                         new_fl.deadline_date = model.deadline_date;
                         new_fl.send_by = user_now.user_key;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.receive_by = model.receive_by;
 
@@ -2221,6 +2745,14 @@ namespace API.Controllers
                                 new_tr.doc_master_id = model.doc_master_id;
                                 new_tr.send_by = user_now.user_key;
                                 new_tr.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_tr.send_date = send_date_now;
                                 new_tr.receive_by = us.user_key;
 
@@ -2294,6 +2826,27 @@ namespace API.Controllers
                                 fileName = System.IO.Path.GetFileName(fileName);
                             }
                             newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                            //Format newFileName
+                            var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_1 = "";
+                            var sttPathEdit_1 = 1;
+                            foreach (var itemEdit in listPathEdit_1)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_1 == 1)
+                                    {
+                                        pathEdit_1 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_1++;
+                            }
+                            newFileName = pathEdit_1;
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
                             {
@@ -2327,11 +2880,45 @@ namespace API.Controllers
                             //Add file
                             if (fileInfo != null)
                             {
-                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
                                 {
-                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                File.Move(ffileData.LocalFileName, newFileName);
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                var sttPathEdit_2 = 1;
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_2 == 1)
+                                        {
+                                            pathEdit_2 += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_2++;
+                                }
+                                File.Move(ffileData.LocalFileName, pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
                                 listPathFileUp.Add(ffileData.LocalFileName);
                             }
                             numfileDoc++;
@@ -2389,6 +2976,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -2551,6 +3146,15 @@ namespace API.Controllers
                                     new_fl.deadline_date = model.deadline_date;
                                     new_fl.send_by = user_now.user_key;
                                     new_fl.send_by_name = user_now.full_name;
+                                    // Check department name
+                                    var par_fl = db.doc_follows.Find(model.follow_id);
+                                    if (par_fl != null)
+                                    {
+                                        if (par_fl.receive_type == 3)
+                                        {
+                                            new_fl.send_by_name = par_fl.receive_by_name;
+                                        }
+                                    }
                                     new_fl.send_date = send_date_now;
                                     new_fl.receive_by = main_departments_id;
                                     new_fl.receive_last_group_user = us.user_key;
@@ -2604,6 +3208,15 @@ namespace API.Controllers
                                     new_fl.deadline_date = model.deadline_date;
                                     new_fl.send_by = user_now.user_key;
                                     new_fl.send_by_name = user_now.full_name;
+                                    // Check department name
+                                    var par_fl = db.doc_follows.Find(model.follow_id);
+                                    if (par_fl != null)
+                                    {
+                                        if (par_fl.receive_type == 3)
+                                        {
+                                            new_fl.send_by_name = par_fl.receive_by_name;
+                                        }
+                                    }
                                     new_fl.send_date = send_date_now;
                                     new_fl.receive_by = track_departments_id;
                                     new_fl.receive_last_group_user = us.user_key;
@@ -2650,6 +3263,15 @@ namespace API.Controllers
                                 new_tr.doc_master_id = model.doc_master_id;
                                 new_tr.send_by = user_now.user_key;
                                 new_tr.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_tr.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_tr.send_date = send_date_now;
                                 new_tr.receive_by = us.user_key;
 
@@ -2722,6 +3344,27 @@ namespace API.Controllers
                                 fileName = System.IO.Path.GetFileName(fileName);
                             }
                             newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                            //Format newFileName
+                            var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_1 = "";
+                            var sttPathEdit_1 = 1;
+                            foreach (var itemEdit in listPathEdit_1)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_1 == 1)
+                                    {
+                                        pathEdit_1 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_1++;
+                            }
+                            newFileName = pathEdit_1;
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
                             {
@@ -2755,11 +3398,45 @@ namespace API.Controllers
                             //Add file
                             if (fileInfo != null)
                             {
-                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
                                 {
-                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                File.Move(ffileData.LocalFileName, newFileName);
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                var sttPathEdit_2 = 1;
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_2 == 1)
+                                        {
+                                            pathEdit_2 += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_2++;
+                                }
+                                File.Move(ffileData.LocalFileName, pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
                                 listPathFileUp.Add(ffileData.LocalFileName);
                             }
                             numfileDoc++;
@@ -2816,6 +3493,15 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -2966,6 +3652,15 @@ namespace API.Controllers
                         new_fl.deadline_date = model.deadline_date;
                         new_fl.send_by = user_now.user_key;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.receive_by = us.user_key;
 
@@ -3037,6 +3732,27 @@ namespace API.Controllers
                                 fileName = System.IO.Path.GetFileName(fileName);
                             }
                             newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                            //Format newFileName
+                            var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_1 = "";
+                            var sttPathEdit_1 = 1;
+                            foreach (var itemEdit in listPathEdit_1)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_1 == 1)
+                                    {
+                                        pathEdit_1 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_1++;
+                            }
+                            newFileName = pathEdit_1;
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
                             {
@@ -3070,11 +3786,45 @@ namespace API.Controllers
                             //Add file
                             if (fileInfo != null)
                             {
-                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
                                 {
-                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                File.Move(ffileData.LocalFileName, newFileName);
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                var sttPathEdit_2 = 1;
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_2 == 1)
+                                        {
+                                            pathEdit_2 += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_2++;
+                                }
+                                File.Move(ffileData.LocalFileName, pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
                                 listPathFileUp.Add(ffileData.LocalFileName);
                             }
                         }
@@ -3130,6 +3880,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -3290,7 +4048,8 @@ namespace API.Controllers
                                     {
                                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = str });
                                     }
-                                    str = Update_Stamp_detailDoc(provider, uid, tid, ip, root, countNum++);
+                                    //str = Update_Stamp_detailDoc(provider, uid, tid, ip, root, countNum++);
+                                    str = Update_Stamp_detailDoc(provider, root, countNum++);
                                 }
                                 while (str.Contains("duplicatedocnum") || str != "OK");
                             }
@@ -3321,9 +4080,15 @@ namespace API.Controllers
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
-        public string Update_Stamp_detailDoc(MultipartFormDataStreamProvider provider, string created_by, string tid, string ip, string root, double count = 0)
+        //public string Update_Stamp_detailDoc([System.Web.Mvc.Bind(Include = "FormData,FileData")][FromBody] MultipartFormDataStreamProvider provider, string created_by, string tid, string ip, string root, double count = 0)
+        public string Update_Stamp_detailDoc([System.Web.Mvc.Bind(Include = "FormData,FileData")][FromBody] MultipartFormDataStreamProvider provider, string root, double count = 0)
         {
             string fddoc = "";
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string created_by = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
             using (DBEntities db = new DBEntities())
             {
                 try
@@ -3339,6 +4104,27 @@ namespace API.Controllers
                     {
                         organization_id_user = user_now.organization_id.ToString();
                     }
+
+                    // Format root
+                    var listPathRoot = Regex.Replace(root.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                    var pathRootEdit = "";
+                    var sttPathRoot = 1;
+                    foreach (var itemEdit in listPathRoot)
+                    {
+                        if (itemEdit.Trim() != "")
+                        {
+                            if (sttPathRoot == 1)
+                            {
+                                pathRootEdit += itemEdit;
+                            }
+                            else
+                            {
+                                pathRootEdit += "/" + Path.GetFileName(itemEdit);
+                            }
+                        }
+                        sttPathRoot++;
+                    }
+                    root = pathRootEdit;
 
                     string fdis_stamp = provider.FormData.GetValues("is_stamp").SingleOrDefault();
                     bool is_stamp = bool.Parse(fdis_stamp);
@@ -3433,6 +4219,15 @@ namespace API.Controllers
                             new_fl.doc_master_id = follow.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
+                            // Check department name
+                            var par_fl = db.doc_follows.Find(follow.follow_id);
+                            if (par_fl != null)
+                            {
+                                if (par_fl.receive_type == 3)
+                                {
+                                    new_fl.send_by_name = par_fl.receive_by_name;
+                                }
+                            }
                             new_fl.send_date = DateTime.Now;
                             new_fl.receive_by = user_now.user_key;
 
@@ -3479,9 +4274,24 @@ namespace API.Controllers
                             string pathDel = provider.FormData.GetValues("docUploadOld").SingleOrDefault();
                             if (pathDel.Contains("/Portals/") && pathDel.Contains("/Doc/"))
                             {
-                                bool existFiles = System.IO.File.Exists(root + pathDel);
-                                if (existFiles)
-                                    System.IO.File.Delete(root + pathDel);
+                                //bool existFiles = System.IO.File.Exists(root + pathDel);
+                                //if (existFiles)
+                                //    System.IO.File.Delete(root + pathDel);
+
+                                // Format vb.file_path
+                                var listEdit_VB = Regex.Replace(vb.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_VB = "";
+                                foreach (var itemEdit in listEdit_VB)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_VB += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                if (System.IO.File.Exists(root + pathEdit_VB))
+                                {
+                                    System.IO.File.Delete(root + pathEdit_VB);
+                                }
                             }
                         };
 
@@ -3560,6 +4370,27 @@ namespace API.Controllers
                                             string fromFile = root + vb.file_path;
                                             string added = " (không dấu)";
 
+                                            // Format fromFile
+                                            var listPathEdit_fromFile = Regex.Replace(fromFile.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                            var pathEdit_fromFile = "";
+                                            var sttPathEdit_fromFile = 1;
+                                            foreach (var itemEdit in listPathEdit_fromFile)
+                                            {
+                                                if (itemEdit.Trim() != "")
+                                                {
+                                                    if (sttPathEdit_fromFile == 1)
+                                                    {
+                                                        pathEdit_fromFile += itemEdit;
+                                                    }
+                                                    else
+                                                    {
+                                                        pathEdit_fromFile += "/" + Path.GetFileName(itemEdit);
+                                                    }
+                                                }
+                                                sttPathEdit_fromFile++;
+                                            }
+                                            fromFile = pathEdit_fromFile;
+
                                             bool exists = System.IO.File.Exists(fromFile);
                                             bool exists_filekhongdau = db.doc_files.AsNoTracking().Any(x => x.doc_master_id == vb.doc_master_id && x.is_drafted == false && x.doc_file_type == 5);
                                             if (exists && !exists_filekhongdau)
@@ -3577,6 +4408,27 @@ namespace API.Controllers
 
                                                 var file_doc = new doc_files();
                                                 string Duongdan = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+
+                                                // Format destFile
+                                                var listPathEdit_destFile = Regex.Replace(destFile.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                                var pathEdit_destFile = "";
+                                                var sttPathEdit_destFile = 1;
+                                                foreach (var itemEdit in listPathEdit_destFile)
+                                                {
+                                                    if (itemEdit.Trim() != "")
+                                                    {
+                                                        if (sttPathEdit_destFile == 1)
+                                                        {
+                                                            pathEdit_destFile += itemEdit;
+                                                        }
+                                                        else
+                                                        {
+                                                            pathEdit_destFile += "/" + Path.GetFileName(itemEdit);
+                                                        }
+                                                    }
+                                                    sttPathEdit_destFile++;
+                                                }
+                                                destFile = pathEdit_destFile;
 
                                                 System.IO.File.Copy(fromFile, destFile);
 
@@ -3632,12 +4484,59 @@ namespace API.Controllers
                         var dir_path = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid + "/";
                         if (file_ca.doc_master_id != null)
                         {
-                            if (File.Exists(root + vb.file_path))
+                            // Format vb.file_path
+                            var listEdit_fileVB_path = Regex.Replace(vb.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_fileVB_path = "";
+                            foreach (var itemEdit in listEdit_fileVB_path)
                             {
-                                File.Delete(root + vb.file_path);
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit_fileVB_path += "/" + Path.GetFileName(itemEdit);
+                                }
                             }
+                            //vb.file_path = pathEdit_fileVB_path;
+
+                            if (File.Exists(root + pathEdit_fileVB_path))
+                            {
+                                File.Delete(root + pathEdit_fileVB_path);
+                            }
+
                             var new_FileName = System.IO.Path.GetFileName(file_ca.file_path);
                             var new_path = root + dir_path + new_FileName;
+
+                            // Format file_ca.file_path
+                            var listEdit_file_path = Regex.Replace(file_ca.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_file_path = "";
+                            foreach (var itemEdit in listEdit_file_path)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit_file_path += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            file_ca.file_path = pathEdit_file_path;
+
+                            // Format new_path
+                            var listPathEdit_new_path = Regex.Replace(new_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_new_path = "";
+                            var sttPathEdit_new_path = 1;
+                            foreach (var itemEdit in listPathEdit_new_path)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_new_path == 1)
+                                    {
+                                        pathEdit_new_path += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_new_path += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_new_path++;
+                            }
+                            new_path = pathEdit_new_path;
+
                             File.Move(root + file_ca.file_path, new_path);
                             vb.file_name = new_FileName;
                             vb.file_path = dir_path + new_FileName;
@@ -3646,12 +4545,60 @@ namespace API.Controllers
                         else if (file_ca.file_id != null)
                         {
                             var file_vb = db.doc_files.Find(file_ca.file_id);
+
+                            // Format file_vb.file_path
+                            var listEdit_fileVB_path = Regex.Replace(file_vb.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_fileVB_path = "";
+                            foreach (var itemEdit in listEdit_fileVB_path)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit_fileVB_path += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            file_vb.file_path = pathEdit_fileVB_path;
+
                             if (File.Exists(root + file_vb.file_path))
                             {
                                 File.Delete(root + file_vb.file_path);
                             }
+
                             var new_FileName = System.IO.Path.GetFileName(file_ca.file_path);
                             var new_path = root + dir_path + new_FileName;
+
+                            // Format file_ca.file_path
+                            var listEdit_file_path = Regex.Replace(file_ca.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_file_path = "";
+                            foreach (var itemEdit in listEdit_file_path)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit_file_path += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            file_ca.file_path = pathEdit_file_path;
+
+                            // Format new_path
+                            var listPathEdit_new_path = Regex.Replace(new_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_new_path = "";
+                            var sttPathEdit_new_path = 1;
+                            foreach (var itemEdit in listPathEdit_new_path)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_new_path == 1)
+                                    {
+                                        pathEdit_new_path += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_new_path += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_new_path++;
+                            }
+                            new_path = pathEdit_new_path;
+
                             File.Move(root + file_ca.file_path, new_path);
                             file_vb.file_name = new_FileName;
                             file_vb.file_path = dir_path + new_FileName;
@@ -3681,6 +4628,18 @@ namespace API.Controllers
                         if (vb.is_approved ?? false)
                         {
                             string FilePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(vb.file_path), System.IO.Path.GetFileNameWithoutExtension(vb.file_path)) + ".doc";
+                            // Format FilePath
+                            var listEdit_FilePath = Regex.Replace(FilePath.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_FilePath = "";
+                            foreach (var itemEdit in listEdit_FilePath)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit_FilePath += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            FilePath = pathEdit_FilePath;
+
                             if (!System.IO.File.Exists(root + FilePath))
                             {
                                 FilePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(vb.file_path), System.IO.Path.GetFileNameWithoutExtension(vb.file_path)) + ".docx";
@@ -3730,6 +4689,27 @@ namespace API.Controllers
                             fileName = System.IO.Path.GetFileName(fileName);
                         }
                         newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                        var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                        var pathEdit_1 = "";
+                        var sttPathEdit_1 = 1;
+                        foreach (var itemEdit in listPathEdit_1)
+                        {
+                            if (itemEdit.Trim() != "")
+                            {
+                                if (sttPathEdit_1 == 1)
+                                {
+                                    pathEdit_1 += itemEdit;
+                                }
+                                else
+                                {
+                                    pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                }
+                            }
+                            sttPathEdit_1++;
+                        }
+                        newFileName = pathEdit_1;
+
                         fileInfo = new FileInfo(newFileName);
                         if (fileInfo.Exists)
                         {
@@ -3803,11 +4783,65 @@ namespace API.Controllers
                         //Add file
                         if (fileInfo != null)
                         {
-                            if (!Directory.Exists(fileInfo.Directory.FullName))
+                            var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                            var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit = "";
+                            foreach (var itemEdit in listPathEdit)
                             {
-                                Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                if (itemEdit.Trim() != "")
+                                {
+                                    pathEdit += "/" + Path.GetFileName(itemEdit);
+                                }
                             }
-                            File.Move(ffileData.LocalFileName, newFileName);
+                            if (!Directory.Exists(root + pathEdit))
+                            {
+                                Directory.CreateDirectory(root + pathEdit);
+                            }
+                            //if (!Directory.Exists(fileInfo.Directory.FullName))
+                            //{
+                            //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                            //}
+
+                            var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_2 = "";
+                            var sttPathEdit_2 = 1;
+                            foreach (var itemEdit in listPathEdit_2)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_2 == 1)
+                                    {
+                                        pathEdit_2 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_2++;
+                            }
+
+                            var listPathEdit_Local = Regex.Replace(ffileData.LocalFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_Local = "";
+                            var sttPathEdit_Local = 1;
+                            foreach (var itemEdit in listPathEdit_Local)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_Local == 1)
+                                    {
+                                        pathEdit_Local += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_Local += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_Local++;
+                            }
+                            File.Move(pathEdit_Local, pathEdit_2);
+                            //File.Move(ffileData.LocalFileName, newFileName);
+
                             listPathFileUp.Add(ffileData.LocalFileName);
                         }
                     }
@@ -3833,7 +4867,8 @@ namespace API.Controllers
                         if (listFileOld != null && listFileOld.Count > 0)
                         {
                             List<doc_files> listFileDel = new List<doc_files>();
-                            var listFileDelTemp = db.doc_files.Where(x => x.doc_master_id == vb.doc_master_id).ToList();
+                            //var listFileDelTemp = db.doc_files.Where(x => x.doc_master_id == vb.doc_master_id).ToList();
+                            var listFileDelTemp = db.doc_files.AsNoTracking().Where(x => x.doc_master_id == vb.doc_master_id).ToList();
                             var delItems = listFileDelTemp.Where(x => listFileOld.Count(y => y.file_id == x.file_id) > 0).ToList();
                             foreach (var item in delItems)
                             {
@@ -3849,9 +4884,26 @@ namespace API.Controllers
                         {
                             if (pathDel.Contains("/Portals/") && pathDel.Contains("/Doc/"))
                             {
-                                bool existFiles = System.IO.File.Exists(root + pathDel);
-                                if (existFiles)
-                                    System.IO.File.Delete(root + pathDel);
+                                //bool existFiles = System.IO.File.Exists(root + pathDel);
+                                //if (existFiles)
+                                //    System.IO.File.Delete(root + pathDel);
+
+                                // Format pathDel
+                                var strPathFormat = Regex.Replace(pathDel.Replace("\\", "/"), @"\.*/+", "/");
+                                var listStrPath = strPathFormat.Split('/');
+                                var strPathConfig = "";
+                                foreach (var item in listStrPath)
+                                {
+                                    if (item.Trim() != "")
+                                    {
+                                        strPathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+
+                                if (System.IO.File.Exists(root + strPathConfig))
+                                {
+                                    System.IO.File.Delete(root + strPathConfig);
+                                }
                             }
                         }
                     }
@@ -3862,9 +4914,29 @@ namespace API.Controllers
                     {
                         foreach (var path in listPathFileUp)
                         {
-                            if (System.IO.File.Exists(path))
+                            // Format path
+                            var pathFormatFileTemp = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPathFileTemp = pathFormatFileTemp.Split('/');
+                            var pathConfigFileTemp = "";
+                            var sttPartPathFileTemp = 1;
+                            foreach (var item in listPathFileTemp)
                             {
-                                System.IO.File.Delete(path);
+                                if (item.Trim() != "")
+                                {
+                                    if (sttPartPathFileTemp == 1)
+                                    {
+                                        pathConfigFileTemp += (item);
+                                    }
+                                    else
+                                    {
+                                        pathConfigFileTemp += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                sttPartPathFileTemp++;
+                            }
+                            if (System.IO.File.Exists(pathConfigFileTemp))
+                            {
+                                System.IO.File.Delete(pathConfigFileTemp);
                             }
                         }
                     }
@@ -3890,6 +4962,11 @@ namespace API.Controllers
                     #endregion
                     return "OK";
                 }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    return contents;
+                }
                 catch (Exception e)
                 {
                     if (e.InnerException.InnerException.Message.Contains("with unique index 'idx_dispatch_book_code_notnull"))
@@ -3909,7 +4986,7 @@ namespace API.Controllers
             }
         }
         bool main_completed = true;
-        public string Recursive_CompletedConfirm(string uid, string ip, string tid, doc_follows model)
+        public string Recursive_CompletedConfirm(string uid, string ip, string tid, [System.Web.Mvc.Bind(Include = "follow_id, message")][FromBody] doc_follows model)
         {
             try
             {
@@ -4091,6 +5168,27 @@ namespace API.Controllers
                                 fileName = System.IO.Path.GetFileName(fileName);
                             }
                             newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                            //Format newFileName
+                            var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_1 = "";
+                            var sttPathEdit_1 = 1;
+                            foreach (var itemEdit in listPathEdit_1)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_1 == 1)
+                                    {
+                                        pathEdit_1 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_1++;
+                            }
+                            newFileName = pathEdit_1;
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
                             {
@@ -4124,11 +5222,45 @@ namespace API.Controllers
                             //Add file
                             if (fileInfo != null)
                             {
-                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
                                 {
-                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                File.Move(ffileData.LocalFileName, newFileName);
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                var sttPathEdit_2 = 1;
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_2 == 1)
+                                        {
+                                            pathEdit_2 += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_2++;
+                                }
+                                File.Move(ffileData.LocalFileName, pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
                                 listPathFileUp.Add(ffileData.LocalFileName);
                             }
                         }
@@ -4419,6 +5551,15 @@ namespace API.Controllers
                         new_fl.doc_master_id = model.doc_master_id;
                         new_fl.send_by = user_now.user_key;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.follow_parent_id = model.follow_id;
                         new_fl.is_inworkflow = model.is_inworkflow;
@@ -4545,6 +5686,28 @@ namespace API.Controllers
                                 fileName = System.IO.Path.GetFileName(fileName);
                             }
                             newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                            //Format newFileName
+                            var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_1 = "";
+                            var sttPathEdit_1 = 1;
+                            foreach (var itemEdit in listPathEdit_1)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_1 == 1)
+                                    {
+                                        pathEdit_1 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_1++;
+                            }
+                            newFileName = pathEdit_1;
+
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
                             {
@@ -4578,11 +5741,45 @@ namespace API.Controllers
                             //Add file
                             if (fileInfo != null)
                             {
-                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
                                 {
-                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                File.Move(ffileData.LocalFileName, newFileName);
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                var sttPathEdit_2 = 1;
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_2 == 1)
+                                        {
+                                            pathEdit_2 += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_2++;
+                                }
+                                File.Move(ffileData.LocalFileName, pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
                                 listPathFileUp.Add(ffileData.LocalFileName);
                             }
                         }
@@ -4665,6 +5862,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -4908,6 +6113,15 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -5076,6 +6290,15 @@ namespace API.Controllers
                         new_fl.send_by = user_now.user_key;
                         new_fl.is_prioritized = model.is_prioritized;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.receive_by = us.user_key;
 
@@ -5288,12 +6511,58 @@ namespace API.Controllers
                             var dir_path = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid + "/";
                             if (file_ca.doc_master_id != null)
                             {
-                                if (File.Exists(root + vb.file_path))
+                                // Format vb.file_path
+                                var listEdit_fileVB = Regex.Replace(vb.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_fileVB = "";
+                                foreach (var itemEdit in listEdit_fileVB)
                                 {
-                                    File.Delete(root + vb.file_path);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_fileVB += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                //vb.file_path = pathEdit_fileVB;
+
+                                if (System.IO.File.Exists(root + pathEdit_fileVB))
+                                {
+                                    System.IO.File.Delete(root + pathEdit_fileVB);
                                 }
                                 var new_FileName = System.IO.Path.GetFileName(file_ca.file_path);
                                 var new_path = root + dir_path + new_FileName;
+
+                                // Format file_ca.file_path
+                                var listEdit_file_path = Regex.Replace(file_ca.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_file_path = "";
+                                foreach (var itemEdit in listEdit_file_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_file_path += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                file_ca.file_path = pathEdit_file_path;
+
+                                // Format new_path
+                                var listPathEdit_new_path = Regex.Replace(new_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_new_path = "";
+                                var sttPathEdit_new_path = 1;
+                                foreach (var itemEdit in listPathEdit_new_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_new_path == 1)
+                                        {
+                                            pathEdit_new_path += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_new_path += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_new_path++;
+                                }
+                                new_path = pathEdit_new_path;
+
                                 File.Move(root + file_ca.file_path, new_path);
                                 vb.file_name = new_FileName;
                                 vb.file_path = dir_path + new_FileName;
@@ -5302,12 +6571,58 @@ namespace API.Controllers
                             else if(file_ca.file_id != null)
                             {
                                 var file_vb = db.doc_files.Find(file_ca.file_id);
-                                if (File.Exists(root + file_vb.file_path))
+                                // Format file_vb.file_path
+                                var listEdit_fileVB = Regex.Replace(file_vb.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_fileVB = "";
+                                foreach (var itemEdit in listEdit_fileVB)
                                 {
-                                    File.Delete(root + file_vb.file_path);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_fileVB += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                file_vb.file_path = pathEdit_fileVB;
+
+                                if (System.IO.File.Exists(root + file_vb.file_path))
+                                {
+                                    System.IO.File.Delete(root + file_vb.file_path);
                                 }
                                 var new_FileName = System.IO.Path.GetFileName(file_ca.file_path);
                                 var new_path = root + dir_path + new_FileName;
+
+                                // Format file_ca.file_path
+                                var listEdit_file_path = Regex.Replace(file_ca.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_file_path = "";
+                                foreach (var itemEdit in listEdit_file_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_file_path += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                file_ca.file_path = pathEdit_file_path;
+
+                                // Format new_path
+                                var listPathEdit_new_path = Regex.Replace(new_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_new_path = "";
+                                var sttPathEdit_new_path = 1;
+                                foreach (var itemEdit in listPathEdit_new_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_new_path == 1)
+                                        {
+                                            pathEdit_new_path += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_new_path += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_new_path++;
+                                }
+                                new_path = pathEdit_new_path;
+
                                 File.Move(root + file_ca.file_path, new_path);
                                 file_vb.file_name = new_FileName;
                                 file_vb.file_path = dir_path + new_FileName;
@@ -5360,6 +6675,28 @@ namespace API.Controllers
                                 fileName = System.IO.Path.GetFileName(fileName);
                             }
                             newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                            //Format newFileName
+                            var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_1 = "";
+                            var sttPathEdit_1 = 1;
+                            foreach (var itemEdit in listPathEdit_1)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_1 == 1)
+                                    {
+                                        pathEdit_1 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_1++;
+                            }
+                            newFileName = pathEdit_1;
+
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
                             {
@@ -5393,11 +6730,46 @@ namespace API.Controllers
                             //Add file
                             if (fileInfo != null)
                             {
-                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
                                 {
-                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                File.Move(ffileData.LocalFileName, newFileName);
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                var sttPathEdit_2 = 1;
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_2 == 1)
+                                        {
+                                            pathEdit_2 += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_2++;
+                                }
+                                File.Move(ffileData.LocalFileName, pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
+
                                 listPathFileUp.Add(ffileData.LocalFileName);
                             }
                         }
@@ -5454,6 +6826,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -5612,6 +6992,15 @@ namespace API.Controllers
                         new_fl.is_prioritized = model.is_prioritized;
                         new_fl.esim_sign = model.esim_sign;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.receive_by = us.user_key;
 
@@ -5724,12 +7113,58 @@ namespace API.Controllers
                             var dir_path = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid + "/";
                             if (file_ca.doc_master_id != null)
                             {
+                                // Format vb.file_path
+                                var listEdit_fileVB_path = Regex.Replace(vb.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_fileVB_path = "";
+                                foreach (var itemEdit in listEdit_fileVB_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_fileVB_path += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                vb.file_path = pathEdit_fileVB_path;
+
                                 if (File.Exists(root + vb.file_path))
                                 {
                                     File.Delete(root + vb.file_path);
                                 }
                                 var new_FileName = System.IO.Path.GetFileName(file_ca.file_path);
                                 var new_path = root + dir_path + new_FileName;
+
+                                // Format file_ca.file_path
+                                var listEdit_file_path = Regex.Replace(file_ca.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_file_path = "";
+                                foreach (var itemEdit in listEdit_file_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_file_path += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                file_ca.file_path = pathEdit_file_path;
+
+                                // Format new_path
+                                var listPathEdit_new_path = Regex.Replace(new_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_new_path = "";
+                                var sttPathEdit_new_path = 1;
+                                foreach (var itemEdit in listPathEdit_new_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_new_path == 1)
+                                        {
+                                            pathEdit_new_path += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_new_path += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_new_path++;
+                                }
+                                new_path = pathEdit_new_path;
+
                                 File.Move(root + file_ca.file_path, new_path);
                                 vb.file_name = new_FileName;
                                 vb.file_path = dir_path + new_FileName;
@@ -5738,12 +7173,59 @@ namespace API.Controllers
                             else if (file_ca.file_id != null)
                             {
                                 var file_vb = db.doc_files.Find(file_ca.file_id);
+
+                                // Format file_vb.file_path
+                                var listEdit_fileVB_path = Regex.Replace(file_vb.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_fileVB_path = "";
+                                foreach (var itemEdit in listEdit_fileVB_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_fileVB_path += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                file_vb.file_path = pathEdit_fileVB_path;
+
                                 if (File.Exists(root + file_vb.file_path))
                                 {
                                     File.Delete(root + file_vb.file_path);
                                 }
                                 var new_FileName = System.IO.Path.GetFileName(file_ca.file_path);
                                 var new_path = root + dir_path + new_FileName;
+
+                                // Format file_ca.file_path
+                                var listEdit_file_path = Regex.Replace(file_ca.file_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_file_path = "";
+                                foreach (var itemEdit in listEdit_file_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_file_path += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                file_ca.file_path = pathEdit_file_path;
+
+                                // Format new_path
+                                var listPathEdit_new_path = Regex.Replace(new_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_new_path = "";
+                                var sttPathEdit_new_path = 1;
+                                foreach (var itemEdit in listPathEdit_new_path)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_new_path == 1)
+                                        {
+                                            pathEdit_new_path += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_new_path += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_new_path++;
+                                }
+                                new_path = pathEdit_new_path;
+
                                 File.Move(root + file_ca.file_path, new_path);
                                 file_vb.file_name = new_FileName;
                                 file_vb.file_path = dir_path + new_FileName;
@@ -5794,6 +7276,28 @@ namespace API.Controllers
                                 fileName = System.IO.Path.GetFileName(fileName);
                             }
                             newFileName = System.IO.Path.Combine(root + "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid, fileName);
+
+                            //Format newFileName
+                            var listPathEdit_1 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_1 = "";
+                            var sttPathEdit_1 = 1;
+                            foreach (var itemEdit in listPathEdit_1)
+                            {
+                                if (itemEdit.Trim() != "")
+                                {
+                                    if (sttPathEdit_1 == 1)
+                                    {
+                                        pathEdit_1 += itemEdit;
+                                    }
+                                    else
+                                    {
+                                        pathEdit_1 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                sttPathEdit_1++;
+                            }
+                            newFileName = pathEdit_1;
+
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
                             {
@@ -5827,11 +7331,46 @@ namespace API.Controllers
                             //Add file
                             if (fileInfo != null)
                             {
-                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                var strDirectory = "/Portals/" + organization_id_user + "/Doc/" + vb.doc_master_guid;
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
                                 {
-                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                File.Move(ffileData.LocalFileName, newFileName);
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                var sttPathEdit_2 = 1;
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_2 == 1)
+                                        {
+                                            pathEdit_2 += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_2++;
+                                }
+                                File.Move(ffileData.LocalFileName, pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
+
                                 listPathFileUp.Add(ffileData.LocalFileName);
                             }
                         }
@@ -5887,6 +7426,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -5968,7 +7515,7 @@ namespace API.Controllers
         }
         [HttpPost]
         #region Convert to PDF
-        public async Task<HttpResponseMessage> ConvertToPDF(doc_sign_approval file)
+        public async Task<HttpResponseMessage> ConvertToPDF([System.Web.Mvc.Bind(Include = "doc_master_id, file_path, file_id")][FromBody] doc_sign_approval file)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -6158,7 +7705,7 @@ namespace API.Controllers
             }
         }
         [HttpPost]
-        public async Task<HttpResponseMessage> Save_Reservation_Code(doc_reservation_number reservation_number)
+        public async Task<HttpResponseMessage> Save_Reservation_Code([System.Web.Mvc.Bind(Include = "reservation_code, nav_type, organization_id, created_date, created_by, created_token_id, created_ip")][FromBody] doc_reservation_number reservation_number)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -6243,7 +7790,7 @@ namespace API.Controllers
             }
         }
         [HttpDelete]
-        public async Task<HttpResponseMessage> Delete_Reservation_Code([FromBody] List<int> id)
+        public async Task<HttpResponseMessage> Delete_Reservation_Code([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -6352,6 +7899,27 @@ namespace API.Controllers
 
                     xml_result += "</document>";
                     var xml_path = save_dir_path + '/' + vb.doc_master_guid + '_' + DateTime.Now.ToString("ddMMyyyyHHmm", CultureInfo.InvariantCulture) + ".xml";
+
+                    // Format xml_path
+                    var listPath_xml_path = Regex.Replace(xml_path.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                    var pathEdit_xml_path = "";
+                    var sttPathEdit_xml_path = 1;
+                    foreach (var itemEdit in listPath_xml_path)
+                    {
+                        if (itemEdit.Trim() != "")
+                        {
+                            if (sttPathEdit_xml_path == 1)
+                            {
+                                pathEdit_xml_path += itemEdit;
+                            }
+                            else
+                            {
+                                pathEdit_xml_path += "/" + Path.GetFileName(itemEdit);
+                            }
+                        }
+                        sttPathEdit_xml_path++;
+                    }
+                    xml_path = pathEdit_xml_path;
                     File.WriteAllText(xml_path, xml_result);
                     var res_encr = helper.encryptXML(xml_path, "document", vb.compendium);
                     if (res_encr != "OK") return "Không thể mã hoã file XML!";
@@ -6685,7 +8253,7 @@ namespace API.Controllers
 		                                    from doc_master
 		                                    where created_by = " + user_key + @" and doc_status_id in ('duthao','sohoa')
 	                                    )
-	                                    select handle_date, do.doc_master_id, fl.[message],compendium, doc_code, nav_type, doc_date, fl.send_by,fl.send_by_name,fl.send_date,fl.follow_id,us.avatar,is_signed,fl.is_prioritized,do.urgency,do.is_not_send_paper,
+	                                    select handle_date, do.doc_master_id, fl.[message],compendium,dispatch_book_code,issue_place, doc_code, nav_type, doc_date, fl.send_by,fl.send_by_name,fl.send_date,fl.follow_id,us.avatar,is_signed,fl.is_prioritized,do.urgency,do.is_not_send_paper,
 	                                    stt.status_id, stt.status_name, stt.background_color, stt.text_color,do.first_doc_status_id,do.file_path,do.file_name,fl.is_completed,do.is_drafted,
 	                                    (select top 1 view_id from doc_views where doc_master_id = do.doc_master_id and [user_id] = " + user_key + @") as view_id, view_date, date_deadline, abs(date_deadline) as abs_date_deadline, fl.deadline_date, do.deadline_date as deadline_date_master,
                                         (select count(*) from task_linkdoc ld where ld.doc_master_id = do.doc_master_id) as countTask
@@ -7087,7 +8655,7 @@ namespace API.Controllers
 			                from same_date sd join doc_follows fl on sd.doc_master_id = fl.doc_master_id and (sd.follow_parent_id is null and fl.follow_parent_id is null or (sd.follow_parent_id is not null and sd.follow_parent_id = fl.follow_parent_id)) and sd.send_date = fl.send_date and sd.is_order = fl.is_order
 			                where fl.send_by = " + user_key + @" and is_recall = 0
 	                )
-	                select handle_date, do.doc_master_id, fl.[message],compendium, doc_code, nav_type, doc_date,fl.send_date,fl.follow_id,fl.follow_parent_id,fl.avatar,do.urgency,do.is_not_send_paper,
+	                select handle_date, do.doc_master_id, fl.[message],compendium, doc_code,dispatch_book_code,issue_place, nav_type, doc_date,fl.send_date,fl.follow_id,fl.follow_parent_id,fl.avatar,do.urgency,do.is_not_send_paper,
 	                stt.status_id, stt.status_name, stt.background_color, stt.text_color,do.first_doc_status_id,do.file_path,fl.is_completed,
 	                (select top 1 view_id from doc_views where doc_master_id = do.doc_master_id and [user_id] = " + user_key + @") as view_id, view_date,
 	                (select receive_by_name from view_doc_name_receiver_follows vi where ((fl.follow_parent_id is null and vi.follow_parent_id is null) or (fl.follow_parent_id is not null and fl.follow_parent_id = vi.follow_parent_id)) and fl.doc_master_id = vi.doc_master_id and fl.send_date = vi.send_date) as receive_by_name
@@ -7459,7 +9027,7 @@ namespace API.Controllers
                             }
                             //Select
                             sql = @" 
-	select handle_date, do.doc_master_id, fl.[message],compendium, doc_code, nav_type, doc_date, ISNULL(fl.send_by, do.created_by) as send_by, ISNULL(fl.send_by_name, (select full_name from sys_users where user_key = do.created_by)) as send_by_name,ISNULL(fl.send_date,do.created_date) as send_date,fl.follow_id,us.avatar,is_signed,fl.is_prioritized,do.urgency,do.is_not_send_paper,
+	select handle_date, do.doc_master_id, fl.[message],compendium, dispatch_book_code,issue_place, doc_code, nav_type, doc_date, ISNULL(fl.send_by, do.created_by) as send_by, ISNULL(fl.send_by_name, (select full_name from sys_users where user_key = do.created_by)) as send_by_name,ISNULL(fl.send_date,do.created_date) as send_date,fl.follow_id,us.avatar,is_signed,fl.is_prioritized,do.urgency,do.is_not_send_paper,
 	stt.status_id, stt.status_name, stt.background_color, stt.text_color,do.first_doc_status_id,do.file_path,do.file_name,fl.is_completed,
 	(select top 1 view_id from doc_views where doc_master_id = do.doc_master_id and [user_id] = " + user_key + @") as view_id, view_date, case when fl.deadline_date is not null then DATEDIFF(DAY,getDate(),fl.deadline_date) else null end as date_deadline
 	from doc_master do left join doc_follows fl on do.follow_id = fl.follow_id

@@ -175,6 +175,8 @@ namespace API.Controllers.Device
                                 if (fdcard != null)
                                 {
                                     fdcard.check_recall = "L";
+                                    fdcard.old_status = fdcard.status;
+                                    fdcard.status = "TPTH";
                                 }
                                 item.barcode_id = fdcard.barcode_id;
                                 item.device_id = fdcard.device_id;
@@ -366,6 +368,11 @@ namespace API.Controllers.Device
                                 if (fdcard != null)
                                 {
                                     fdcard.check_recall = null;
+                                
+                                  
+                                        fdcard.status = fdcard.old_status;
+                                        fdcard.old_status = "TPTH";
+                                   
                                 }
                                 liDell.Add(item);
 
@@ -384,6 +391,8 @@ namespace API.Controllers.Device
                                 if (fdcard != null)
                                 {
                                     fdcard.check_recall ="L";
+                                    fdcard.old_status = fdcard.status;
+                                    fdcard.status = "TPTH";
                                 }
                                 item.barcode_id = fdcard.barcode_id;
                                 item.device_id = fdcard.device_id;
@@ -501,9 +510,9 @@ namespace API.Controllers.Device
 
                         foreach (string strP in paths)
                         {
-                            bool exists = File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Recall/" + Path.GetFileName(strP));
+                            bool exists = File.Exists(root+ "/" + dvid + "/Recall/" + Path.GetFileName(strP));
                             if (exists)
-                                System.IO.File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Recall/" + Path.GetFileName(strP));
+                                System.IO.File.Delete(root+ "/" + dvid + "/Recall/" + Path.GetFileName(strP));
                         }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -615,6 +624,8 @@ namespace API.Controllers.Device
                                 if (fdcard != null)
                                 {
                                     fdcard.check_recall = null;
+                                    fdcard.status = "DSD";
+                                    fdcard.old_status = "TPBG";
                                 }
                                 del1.Add(da);
                             }

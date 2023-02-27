@@ -586,7 +586,6 @@ const pageUp = () => {
   html.scrollTop = 0;
 };
 onMounted(() => {
-   
   onloadNews();
   onloadNewsDiff();
   return {};

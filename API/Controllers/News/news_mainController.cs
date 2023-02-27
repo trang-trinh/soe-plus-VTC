@@ -33,7 +33,7 @@ namespace API.Controllers.News
             return HttpContext.Current.Request.UserHostAddress;
         }
 
-    
+
         [HttpPost]
         public async Task<HttpResponseMessage> add_news()
         {
@@ -448,7 +448,7 @@ namespace API.Controllers.News
 
                             }
                         }
-                      
+
                         var detached1 = "";
                         if (newsOld.url_file != null && newsOld.url_file != "" && newsOld.url_file != news.url_file)
                         {
@@ -469,8 +469,8 @@ namespace API.Controllers.News
                                 {
 
                                     var news_Main_Files_Del = db.news_main_files.AsNoTracking().Where(s => s.file_path == item).FirstOrDefault<news_main_files>();
-                                    if(news_Main_Files_Del !=null)
-                                    db.news_main_files.Remove(news_Main_Files_Del);
+                                    if (news_Main_Files_Del != null)
+                                        db.news_main_files.Remove(news_Main_Files_Del);
                                     if (item.Length > 0)
                                         delfiles.Add(root + item.Substring(8));
                                 }
@@ -678,8 +678,8 @@ namespace API.Controllers.News
                                     foreach (var item in arrF)
                                     {
                                         var news_Main_Files_Del = db.news_main_files.AsNoTracking().Where(s => s.file_path == item).FirstOrDefault<news_main_files>();
-                                        if (news_Main_Files_Del  != null)
-                                        db.news_main_files.Remove(news_Main_Files_Del);
+                                        if (news_Main_Files_Del != null)
+                                            db.news_main_files.Remove(news_Main_Files_Del);
                                         if (item.Length > 0)
                                             paths.Add(item);
 

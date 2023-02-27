@@ -79,7 +79,7 @@ const toggleFilter = (event) => {
   filterButs.value.toggle(event);
 };
 const filterNoti = (check) => {
-   opition.value.module_key = filterModule.value
+  opition.value.module_key = filterModule.value
     ? filterModule.value.module_key
     : "";
   opition.value.PageNo = 1;
@@ -92,15 +92,15 @@ const filterNoti = (check) => {
 };
 const reFilterNoti = () => {
   checkFilter.value = false;
-   opition.value = {
-  search: "",
-  PageNo: 1,
-  PageSize: 15,
-  totalRecords: 0,
-  status: null,
-  module_key: null
-};
-   filterModule.value = "";
+  opition.value = {
+    search: "",
+    PageNo: 1,
+    PageSize: 15,
+    totalRecords: 0,
+    status: null,
+    module_key: null,
+  };
+  filterModule.value = "";
   filterButs.value.hide();
   notis.value = [];
   loadNoti(true);
@@ -233,15 +233,21 @@ const goToNotify = (item) => {
       } else {
         router.push({ name: mds[0].is_link });
       }
-    }
-    // if (mds[0].module_key == "M4") { //Cong viec
-    //   router
-    //     .push({ name: mds[0].is_link, params: { id: item.id_key } || {} })
-    //     .then(() => {
-    //       router.go(0);
-    //     });
-    // } else
-    if (mds[0].module_key == "M7") {
+    } else if (mds[0].module_key == "M4") {
+      //Cong viec
+      if (item.type == 11) {
+        router.push({ name: "TaskReviewReport", params: {} }).then(() => {
+          router.go(0);
+        });
+      } else if (item.type == 12) {
+        router.push({ name: "TaskPersonCreateReport", params: {} }).then(() => {
+          router.go(0);
+        });
+      } else
+        router.push({ name: "taskmain", params: {} }).then(() => {
+          router.go(0);
+        });
+    } else if (mds[0].module_key == "M7") {
       // Thiet bi
       router.push(mds[0].is_link);
     } else if (mds[0].module_key == "M11") {
