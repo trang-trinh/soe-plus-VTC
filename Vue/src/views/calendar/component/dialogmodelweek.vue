@@ -262,7 +262,7 @@ const saveTemp = () => {
   submitted.value = true;
   if (
     !props.model.contents ||
-    !props.model.boardroom_id ||
+    (props.group === 0 && !props.model.boardroom_id) ||
     !props.model.start_date ||
     !props.model.end_date
   ) {
@@ -726,11 +726,7 @@ const removeMember = (user, arr) => {
                         </div>
                         <span
                           tabindex="0"
-                          class="
-                            p-chip-remove-icon
-                            pi pi-times-circle
-                            format-flex-center
-                          "
+                          class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                           @click="removeMember(value, props.model.chutris)"
                         ></span>
                       </div>
@@ -851,11 +847,7 @@ const removeMember = (user, arr) => {
                         </div>
                         <span
                           tabindex="0"
-                          class="
-                            p-chip-remove-icon
-                            pi pi-times-circle
-                            format-flex-center
-                          "
+                          class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                           @click="removeMember(value, props.model.thamgias)"
                         ></span>
                       </div>

@@ -58,7 +58,7 @@ const tabs = ref([
     title: "Đang làm việc",
     icon: "",
     total: 0,
-    bg_color: "#52BE80",
+    bg_color: "#AFE362",
     text_color: "#fff",
   },
   {
@@ -1921,18 +1921,19 @@ onMounted(() => {
         <Column
           field="status"
           header="Trạng thái"
-          headerStyle="text-align:center;max-width:150px;height:50px"
-          bodyStyle="text-align:center;max-width:150px;"
+          headerStyle="text-align:center;max-width:50px;height:50px"
+          bodyStyle="text-align:center;max-width:50px;"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
             <Button
-              :label="slotProps.data.status_name"
               :style="{
+                borderRadius: '50%',
                 border: slotProps.data.bg_color,
                 backgroundColor: slotProps.data.bg_color,
                 color: slotProps.data.text_color,
               }"
+              v-tooltip.top="slotProps.data.status_name"
             />
           </template>
         </Column>

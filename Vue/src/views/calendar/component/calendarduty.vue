@@ -1108,6 +1108,7 @@ const modelenact = ref({});
 const headerDialogEnact = ref(false);
 const displayDialogEnact = ref(false);
 const openAddDialogEnact = (str, type) => {
+  files.value = [];
   submitted.value = false;
   modelenact.value = {
     content: "",
@@ -2824,6 +2825,9 @@ onMounted(() => {
     :displayDialog="displayDialogEnact"
     :closeDialog="closeDialogEnact"
     :modelenact="modelenact"
+    :files="files"
+    :selectFile="selectFile"
+    :removeFile="removeFile"
     :selectedNodes="selectedNodes"
     :initData="initData"
   />

@@ -8715,10 +8715,21 @@ namespace Controllers
                         }
                         else if (field.key == "department_id")
                         {
+                         
+
+
+
+                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+
+
                             sql += " SELECT organization_id, organization_name into #Phongban FROM  sys_organization WHERE organization_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+                            sql +=
+                               " SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                               " OR df.receive_type=2  );";
+
 
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "  dm.department_id in (select organization_id from #Phongban)";
+                            WhereSQL += " " + "(  dm.department_id in (select organization_id from #Phongban) or  dm.doc_master_id in (select doc_master_id from #Follows) ) ";
                         }
                         else if (field.key == "user_recever")
                         {
@@ -8731,10 +8742,14 @@ namespace Controllers
                         }
                         else if (field.key == "department_id_process")
                         {
+                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+                            sql +=
+                           " SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                           " OR df.receive_type=2  );";
                             sql += " SELECT DISTINCT so.organization_id INTO #DepartmentProcess  FROM sys_organization so   WHERE so.organization_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ',')) " +
                          " SELECT df.doc_master_id into #NguoiXuLy from doc_follows df WHERE df.is_recall=0 AND ((df.receive_by IN (SELECT organization_id FROM #DepartmentProcess) AND df.receive_type =3 )) ";
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "    dm.doc_master_id in (select doc_master_id from #NguoiXuLy)";
+                            WhereSQL += " " + "  (  dm.doc_master_id in (select doc_master_id from #NguoiXuLy)  or  dm.doc_master_id in (select doc_master_id from #Follows) ) ";
                         }
                         else
                         if (field.filteroperator == "in")
@@ -8991,10 +9006,17 @@ namespace Controllers
                         }
                         else if (field.key == "department_id")
                         {
+                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+
+
                             sql += " SELECT organization_id, organization_name into #Phongban FROM  sys_organization WHERE organization_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+                            sql +=
+                               " SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                               " OR df.receive_type=2  );";
+
 
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "  dm.department_id in (select organization_id from #Phongban)";
+                            WhereSQL += " " + "(  dm.department_id in (select organization_id from #Phongban) or  dm.doc_master_id in (select doc_master_id from #Follows) ) ";
                         }
                         else if (field.key == "user_recever")
                         {
@@ -9007,10 +9029,14 @@ namespace Controllers
                         }
                         else if (field.key == "department_id_process")
                         {
+                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+                            sql +=
+                           " SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                           " OR df.receive_type=2  );";
                             sql += " SELECT DISTINCT so.organization_id INTO #DepartmentProcess  FROM sys_organization so   WHERE so.organization_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ',')) " +
                          " SELECT df.doc_master_id into #NguoiXuLy from doc_follows df WHERE df.is_recall=0 AND ((df.receive_by IN (SELECT organization_id FROM #DepartmentProcess) AND df.receive_type =3 )) ";
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "    dm.doc_master_id in (select doc_master_id from #NguoiXuLy)";
+                            WhereSQL += " " + "   ( dm.doc_master_id in (select doc_master_id from #NguoiXuLy)  or  dm.doc_master_id in (select doc_master_id from #Follows) ) ";
                         }
                         else
                         if (field.filteroperator == "in")
