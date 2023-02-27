@@ -27,6 +27,9 @@ const props = defineProps({
   displayDialog: Boolean,
   closeDialog: Function,
   modelenact: Object,
+  files: Array,
+  selectFile: Function,
+  removeFile: Function,
   selectedNodes: Array,
   initData: Function,
 });
@@ -47,6 +50,10 @@ const enact = () => {
   formData.append("content", obj["content"]);
   formData.append("read_date", obj["read_date"]);
   formData.append("calendars", JSON.stringify(calendars));
+  for (var i = 0; i < props.files.length; i++) {
+    let file = props.files[i];
+    formData.append("files", file);
+  }
   axios
     .put(baseURL + "/api/calendar_duty/enact_calendar", formData, config)
     .then((response) => {
@@ -119,6 +126,28 @@ const enact = () => {
               rows="5"
               cols="30"
             />
+          </div>
+        </div>
+        <div class="col-12 md-col-12">
+          <div class="form-group">
+            <label>Tệp đính kèm</label>
+            <FileUpload
+              :multiple="false"
+              :fileLimit="1"
+              :show-upload-button="false"
+              :show-cancel-button="true"
+              @remove="props.removeFile"
+              @select="props.selectFile"
+              name="demo[]"
+              url="./upload.php"
+              accept=""
+              choose-label="Chọn tệp"
+              cancel-label="Hủy"
+            >
+              <template #empty>
+                <p>Kéo thả tệp đính kèm vào đây.</p>
+              </template>
+            </FileUpload>
           </div>
         </div>
       </div>

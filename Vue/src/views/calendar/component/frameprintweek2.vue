@@ -18,16 +18,24 @@ const config = {
 };
 const toast = useToast();
 const props = defineProps({
-  datas: Array,
+  datadays: Array,
+  datachutris: Array,
+  holiday: Object,
   group: Number,
   week_start_date: Date,
   week_end_date: Date,
 });
+const newDate = new Date();
 </script>
 <template>
-  <Dialog :visible="true" :closable="false" style="display: none">
-    <div id="formprint">
-      <table>
+  <Dialog
+    :visible="true"
+    :closable="false"
+    :style="{ width: '50vw' }"
+    style="display: none"
+  >
+    <div id="formprint_2">
+      <table style="width: 100%">
         <thead>
           <tr>
             <td
@@ -65,7 +73,10 @@ const props = defineProps({
             </td>
             <td class="text-center" colspan="4">
               <div style="padding: 1rem 0">
-                <i>Hà Nội, ngày_____, tháng_____, năm_____</i>
+                <i
+                  >Hà Nội, ngày {{ newDate.getDate() }}, tháng
+                  {{ newDate.getMonth() + 1 }}, năm {{ newDate.getFullYear() }}</i
+                >
               </div>
             </td>
           </tr>
@@ -73,122 +84,84 @@ const props = defineProps({
             <td class="text-center" colspan="6">
               <div style="padding: 1rem 0">
                 <div class="title2">
-                  <b>{{
-                    props.group === 0 ? "LỊCH HỌP TUẦN" : "LỊCH CÔNG TÁC"
-                  }}</b>
+                  <b
+                    >CHƯƠNG TRÌNH LÀM VIỆC CỦA BAN GIÁM ĐỐC BẢO HIỂM XÃ HỘI BỘ
+                    QUỐC PHÒNG</b
+                  >
                 </div>
                 <div class="">
                   <i>
                     (Từ ngày
-                    {{ moment(props.week_start_date).format("DD/MM") }} đến ngày
-                    {{ moment(props.week_end_date).format("DD/MM") }})
+                    {{ moment(props.week_start_date).format("DD/MM/YYYY") }} đến
+                    ngày {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
                   </i>
+                </div>
+                <div style="padding-top: 1rem">
+                  Trực Chỉ huy: Đồng chí ______________________________ - Phó
+                  Giám đốc
                 </div>
               </div>
             </td>
           </tr>
         </thead>
       </table>
-      <table>
+      <br />
+      <table style="width: 100%">
         <thead class="boder">
           <tr>
-            <th style="width: 30px">TT</th>
-            <th style="width: 100px">Thứ</th>
-            <th style="min-width: 100px">Nội dung</th>
-            <th style="width: 100px">Chủ trì</th>
-            <th style="width: 100px">Tham gia</th>
-            <th style="width: 100px">Địa điểm</th>
+            <th style="width: 100px">Thứ / Ngày</th>
+            <th
+              v-for="(value, index) in props.datachutris"
+              :key="index"
+            >
+              Đ/c {{ value.full_name }}
+            </th>
           </tr>
         </thead>
         <tbody class="boder">
-          <tr v-for="(value, index) in props.datas" :key="index">
+          <tr v-for="(day, dayindex) in props.datadays" :key="dayindex">
             <td align="center">
-              <div>{{ index + 1 }}</div>
+              <div>{{ day.day_name }} <br />{{ day.day_string }}</div>
             </td>
-            <td align="center">
-              <div>{{ value.day_name }} <br />{{ value.day_string }}</div>
-            </td>
-            <td>
-                <div v-html="value.contents"></div>
-                <div v-if="props.group === 0">
-                <div v-if="value.day_space < 1">
-                  (<span>{{
-                    moment(value.start_date).format("HH:mm")
-                  }}</span>
-                  <span
-                    v-if="
-                      value.start_date != null &&
-                      value.end_date != null
-                    "
-                  >
-                    -
-                  </span>
-                  <span>{{
-                    moment(value.end_date).format("HH:mm")
-                  }}</span
-                  >)
-                </div>
-                <div v-if="value.day_space > 0">
-                  <span>{{
-                    moment(value.start_date).format("DD/MM/YYYY")
-                  }}</span>
-                  <span
-                    v-if="
-                      value.start_date != null &&
-                      value.end_date != null
-                    "
-                  >
-                    - </span
-                  ><span>{{
-                    moment(value.end_date).format("DD/MM/YYYY")
-                  }}</span>
-                </div>
-              </div>
-            </td>
-            <td>
-              <div v-if="value.chutris && value.chutris.length > 0">
-                {{ value.chutris[0].full_name }}
-              </div>
-            </td>
-            <td>
-              <div>
-                <span v-for="(item, index) in value.thamgias" :key="index">
-                  <span v-if="index > 0 && index < value.thamgias.length"
-                    >,</span
-                  >
-                  {{ item.full_name }}
-                </span>
-              </div>
-              <div class="mt-2" v-if="value.invitee">
-                Người được mời: <span v-html="value.invitee"></span>
-              </div>
-              <div class="mt-2" v-if="value.departments">
-                <div>
-                  Phòng ban được mời:
-                  <span v-for="(item, index) in value.departments" :key="index">
-                    <span v-if="index > 0 && index < value.departments.length"
-                      >,</span
-                    >
-                    {{ item.department_name }}
-                  </span>
-                </div>
-              </div>
-            </td>
-            <td>
-                {{value.boardroom_name}}
+            <td
+              v-for="(chutri, chutriindex) in props.datachutris"
+              :key="chutriindex"
+            >
+              <template
+                v-for="(content, contentindex) in day.list_contents"
+                :key="contentindex"
+              >
+                <div
+                  v-if="content.user_id === chutri.user_id"
+                  v-html="content.contents"
+                ></div>
+              </template>
             </td>
           </tr>
         </tbody>
       </table>
-      <table>
+      <br />
+      <table style="width: 100%">
         <tbody>
           <tr>
-            <td colspan="4" style="vertical-align: top; width: 40%"></td>
-            <td align="center" colspan="2" style="vertical-align: top">
-              <div style="padding-top: 3rem; min-height: 150px">
-                <div><b>KT.GIÁM ĐỐC</b></div>
-                <div><b>PHÓ GIÁM ĐỐC</b></div>
-                <div style="height: 170px; position: relative"></div>
+            <td colspan="6">
+              <div style="padding: 0.5rem 0">
+                * Trực Chủ nhật ({{ props.holiday.day_string }}): Đồng chí
+                {{ props.holiday.full_name }} - Trưởng phòng Thu-Sổ,thẻ./.
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="6" style="vertical-align: top">
+              <div style="padding: 0.5rem 0; text-decoration: underline">
+                <b><i>Nơi nhận:</i></b>
+              </div>
+              <div>
+                <div>- Ban Giám đốc;</div>
+                <div>
+                  - Các Phòng, Ban, TLCT, TLCP, TLTC nội bộ, Lái xe/C79;
+                </div>
+                <div>- Lưu: KH-TH. T15.</div>
               </div>
             </td>
           </tr>
@@ -240,6 +213,10 @@ tr {
 }
 tfoot {
   display: table-footer-group !important;
+}
+.uppercase,
+.uppercase * {
+  text-transform: uppercase !important;
 }
 .text-center {
   text-align: center !important;
