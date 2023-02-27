@@ -495,8 +495,8 @@ const caLeavingReason = () =>
     import ("../views/hrm/category/caLeavingReason.vue");
     const caExperience = () =>
     import ("../views/hrm/category/caExperience.vue");
-    const caCandidate = () =>
-    import ("../views/hrm/category/caCandidate.vue");
+    const Candidate = () =>
+    import ("../views/hrm/recruitment/hrm_candidate.vue");
     
 const caClassroom = () =>
     import ("../views/hrm/category/caClassroom.vue");
@@ -505,9 +505,7 @@ const caReceipt = () =>
 const caEnectingGroup = () =>
     import ("../views/hrm/category/caEnectingGroup.vue");
 
-// const FileMain_Detail = () =>
-//     import ("../views/files/FileMain.vue");
-
+ 
 ///HRM
 const HRM_Training = () =>
     import ("../views/hrm/training/hrm_training.vue");
@@ -1803,9 +1801,9 @@ const router = createRouter({
             component: caExperience,
         },
         {
-            path: "/hrm/category/ca_candidate",
+            path: "/hrm/recruitment/candidate",
             name: "caHRMCandidate",
-            component: caCandidate,
+            component: Candidate,
         },
         {
             path: "/hrm/category/ca_classroom",

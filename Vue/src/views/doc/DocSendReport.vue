@@ -997,7 +997,7 @@ for (let index = 0; index < datalistsExport.value.length; index++) {
           </td>
           <td  style="width: 100px">
             <div >
-              ` +value.dispatch_book_num + `
+              ` +value.dispatch_book_code + `
             </div>
           </td>
           <td  style="width: 130px">

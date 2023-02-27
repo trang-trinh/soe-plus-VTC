@@ -990,7 +990,7 @@ function renderhtml(id, htmltable) {
           <td  style="width: 100px">
             <div >
               ` +
-      value.dispatch_book_num +
+      value.dispatch_book_code +
       `
             </div>
           </td>

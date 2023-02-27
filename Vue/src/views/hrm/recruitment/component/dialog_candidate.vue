@@ -3,30 +3,31 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { FilterMatchMode, FilterOperator } from "primevue/api";
-import { encr, checkURL } from "../../../util/function.js";
+import { encr, checkURL } from "../../../../util/function.js";
 import moment from "moment";
-import dialogTraining from "./component/dialog_training.vue";
-//Khai báo
-
 const cryoptojs = inject("cryptojs");
-const axios = inject("axios");
+
 const store = inject("store");
 const swal = inject("$swal");
+const axios = inject("axios");
+const emitter = inject("emitter");
 const isDynamicSQL = ref(false);
+const basedomainURL = baseURL;
 const config = {
-  headers: { Authorization: `Bearer ${store.getters.token}` },
+  headers: {
+    Authorization: `Bearer ${store.getters.token}`,
+  },
 };
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  training_emps_name: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
-  training_emps_code: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
+const toast = useToast();
+const props = defineProps({
+
+  headerDialog: String,
+  displayBasic: Boolean,
+  candidate: Object,
+
+  checkadd: Boolean,
+  closeDialog: Function,
+  view: Boolean,
 });
 const bgColor = ref([
   "#F8E69A",
@@ -38,79 +39,51 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 
-const listStatus = ref([
-  { name: "Lên kế hoạch", code: 1 },
-  { name: "Đang thực hiện", code: 2 },
-  { name: "Đã hoàn thành", code: 3 },
-  { name: "Tạm dừng", code: 4 },
-  { name: "Đã hủy", code: 5 },
-]);
-const listFormTraining = ref([
-  { name: "Bắt buộc", code: 1 },
-  { name: "Đăng ký", code: 2 },
-  { name: "Cả hai", code: 3 },
-]);
-//Lấy số bản ghi
-const loadCount = () => {
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
+const rules = {
+  candidate_code: {
+    required,
+    $errors: [
       {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_training_emps_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
+        $property: "candidate_code",
+        $validator: "required",
+        $message: "Tên ứng viên không được để trống!",
       },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-      let data2 = JSON.parse(response.data.data)[2];
-      let data3 = JSON.parse(response.data.data)[3];
-      let data4 = JSON.parse(response.data.data)[4];
-      let data5 = JSON.parse(response.data.data)[5];
-      if (data.length > 0) {
-        options.value.totalRecords = data[0].totalRecords;
-        options.value.totalRecords1 = data1[0].totalRecords1;
-        options.value.totalRecords2 = data2[0].totalRecords2;
-        options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
-        options.value.totalRecords5 = data5[0].totalRecords5;
-
-        sttStamp.value = data[0].totalRecords + 1;
-      }
-    })
-    .catch((error) => {});
+    ],
+  },
+  candidate_name: {
+    required,
+    $errors: [
+      {
+        $property: "candidate_code",
+        $validator: "required",
+        $message: "Tên ứng viên không được để trống!",
+      },
+    ],
+  },
 };
-
-//Lấy dữ liệu training_emps
-const loadData = (rf) => {
-  if (rf) {
-    if (isDynamicSQL.value) {
-      loadDataSQL();
-      return false;
-    }
-    if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
-    }
+const listFilesS = ref([]);
+const candidate = ref({});
+const submitted = ref(false);
+const list_users_training = ref([]);
+const list_schedule = ref([]);
+const loadData = () => {
+  if (props.checkadd == true) {
+    list_users_training.value = [];
+    list_schedule.value = [];
+    candidate.value = props.candidate;
+  } else {
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_training_emps_list",
+              proc: "hrm_candidate_get",
               par: [
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
-                { par: "user_id", va: store.getters.user.user_id },
+                {
+                  par: "candidate_id",
+                  va: props.candidate.candidate_id,
+                },
               ],
             }),
             SecretKey,
@@ -121,842 +94,249 @@ const loadData = (rf) => {
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
-        if (isFirst.value) isFirst.value = false;
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
-          } else element.li_user_verify = [];
-        });
+        let data1 = JSON.parse(response.data.data)[1];
+        let data2 = JSON.parse(response.data.data)[2];
+        let data3 = JSON.parse(response.data.data)[3];
+        if (data) {
+          candidate.value = data[0];
 
-        datalists.value = data;
-
-        options.value.loading = false;
-      })
-      .catch((error) => {
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
-      });
-  }
-};
-//Phân trang dữ liệu
-const onPage = (event) => {
-  if (event.rows != options.value.PageSize) {
-    options.value.PageSize = event.rows;
-  }
-  if (event.page == 0) {
-    //Trang đầu
-    options.value.id = null;
-    options.value.IsNext = true;
-  } else if (event.page > options.value.PageNo + 1) {
-    //Trang cuối
-    options.value.id = -1;
-    options.value.IsNext = false;
-  } else if (event.page > options.value.PageNo) {
-    //Trang sau
-
-    options.value.id =
-      datalists.value[datalists.value.length - 1].training_emps_id;
-    options.value.IsNext = true;
-  } else if (event.page < options.value.PageNo) {
-    //Trang trước
-    options.value.id = datalists.value[0].training_emps_id;
-    options.value.IsNext = false;
-  }
-  options.value.PageNo = event.page;
-  loadData(true);
-};
-
-const training_emps = ref({
-  training_emps_name: "",
-  emote_file: "",
-  status: true,
-  is_default: false,
-  is_order: 1,
-});
-
-const selectedStamps = ref();
-
-const isSaveTem = ref(true);
-const datalists = ref();
-const toast = useToast();
-const basedomainURL = baseURL;
-const checkDelList = ref(false);
-
-const options = ref({
-  IsNext: true,
-  sort: "training_emps_id desc ",
-  SearchText: "",
-  PageNo: 0,
-  PageSize: 20,
-  loading: true,
-  totalRecords: 0,
-  tab: -1,
-  totalRecords1: 0,
-  totalRecords2: 0,
-  totalRecords3: 0,
-  totalRecords4: 0,
-  totalRecords5: 0,
-});
-
-//Hiển thị dialog
-const headerDialog = ref();
-const displayBasic = ref(false);
-const openBasic = (str) => {
-  training_emps.value = {
-    training_emps_code: null,
-    training_emps_name: null,
-    form_training: 1,
-    status: 1,
-    training_place: null,
-    is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
-    user_follows_fake: [],
-    user_verify_fake: [],
-    organization_training_fake: {},
-  };
-
-  if (store.getters.user.organization_id)
-    training_emps.value.organization_training_fake[
-      store.getters.user.organization_id
-    ] = true;
-
-  isSaveTem.value = true;
-  headerDialog.value = str;
-numOfKey.value+=1;
-  displayBasic.value = true;
-};
-
-const closeDialog = () => {
-  training_emps.value = {
-    training_emps_name: "",
-    emote_file: "",
-    status: true,
-    is_default: false,
-    is_order: 1,
-  };
-
-  displayBasic.value = false;
-  loadData(true);
-};
-const sttStamp = ref(1);
-
-//Sửa bản ghi
-const editTem = (dataTem) => {
-  training_emps.value = dataTem;
-  headerDialog.value = "Sửa đào tạo";
-  isSaveTem.value = false;
-  displayBasic.value = true;
-};
-//Xóa bản ghi
-const delTem = (Tem) => {
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá bản ghi này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-
-        axios
-          .delete(baseURL + "/api/hrm_training_emps/delete_hrm_training_emps", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.training_emps_id] : 1,
-          })
-          .then((response) => {
-            swal.close();
-            if (response.data.err != "1") {
-              swal.close();
-              toast.success("Xoá thông tin đào tạo thành công!");
-              loadData(true);
-            } else {
-              swal.fire({
-                title: "Error!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          })
-          .catch((error) => {
-            swal.close();
-            if (error.status === 401) {
-              swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                confirmButtonText: "OK",
-              });
-            }
-          });
-      }
-    });
-};
-//Xuất excel
-
-//Sort
-const onSort = (event) => {
-  options.value.PageNo = 0;
-
-  if (event.sortField == null) {
-    isDynamicSQL.value = false;
-    loadData(true);
-  } else {
-    options.value.sort =
-      event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
-    if (event.sortField == "STT") {
-      options.value.sort =
-        "is_order" + (event.sortOrder == 1 ? " ASC" : " DESC");
-    }
-    isDynamicSQL.value = true;
-    loadDataSQL();
-  }
-};
-const checkFilter = ref(false);
-const filterSQL = ref([]);
-const isFirst = ref(true);
-const checkLoadCount = ref(true);
-const loadDataSQL = () => {
-  datalists.value = [];
-
-  let data = {
-    id: "training_emps_id",
-    sqlS: null,
-    sqlO: options.value.sort,
-    Search: options.value.SearchText,
-    PageNo: options.value.PageNo,
-    PageSize: options.value.PageSize,
-    next: true,
-    sqlF: null,
-    fieldSQLS: filterSQL.value,
-  };
-  options.value.loading = true;
-  axios
-    .post(baseURL + "/api/HRM_SQL/Filter_hrm_training_emps", data, config)
-    .then((response) => {
-      let dt = JSON.parse(response.data.data);
-      let data = dt[0];
-      if (data.length > 0) {
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
-          }
-        });
-
-        datalists.value = data;
-      } else {
-        datalists.value = [];
-      }
-      if (isFirst.value) isFirst.value = false;
-      options.value.loading = false;
-      //Show Count nếu có
-      if (dt.length >= 2 && checkLoadCount.value == true) {
-        options.value.totalRecords = dt[1][0].totalRecords;
-        options.value.totalRecords1 = dt[2][0].totalRecords1;
-        options.value.totalRecords2 = dt[3][0].totalRecords2;
-        options.value.totalRecords3 = dt[4][0].totalRecords3;
-        options.value.totalRecords4 = dt[5][0].totalRecords4;
-        options.value.totalRecords5 = dt[6][0].totalRecords5;
-      }
-    })
-    .catch((error) => {
-      options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-
-const setStatus = (value) => {
-  opstatus.value.hide();
-  let data = {
-    IntID: value.training_emps_id,
-    TextID: value.training_emps_id + "",
-    IntTrangthai: value.status,
-    BitTrangthai: false,
-  };
-  axios
-    .put(
-      baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
-      data,
-      config
-    )
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-        toast.success("Cập nhật trạng thái thành công!");
-        loadData(true);
-      } else {
-        swal.fire({
-          title: "Error!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
-};
-
-const opstatus = ref();
-const toggleStatus = (item, event) => {
-  training_emps.value = item;
-  opstatus.value.toggle(event);
-};
-//Tìm kiếm
-const searchStamp = (event) => {
-  if (event.code == "Enter") {
-    if (options.value.SearchText == "") {
-      isDynamicSQL.value = false;
-      options.value.loading = true;
-      loadData(true);
-    } else {
-      isDynamicSQL.value = true;
-      options.value.loading = true;
-      loadData(true);
-    }
-  }
-};
-const refreshStamp = () => {
-  options.value.SearchText = null;
-  options.value.status_filter = null;
-  options.value.loading = true;
-  selectedStamps.value = [];
-  isDynamicSQL.value = false;
-  filterSQL.value = [];
-  loadData(true);
-};
-const onFilter = (event) => {
-  filterSQL.value = [];
-
-  for (const [key, value] of Object.entries(event.filters)) {
-    if (key != "global") {
-      let obj = {
-        key: key,
-        filteroperator: value.operator,
-        filterconstraints: value.constraints,
-      };
-
-      if (value.value && value.value.length > 0) {
-        obj.filteroperator = value.matchMode;
-        obj.filterconstraints = [];
-        value.value.forEach(function (vl) {
-          obj.filterconstraints.push({ value: vl[obj.key] });
-        });
-      } else if (value.matchMode) {
-        obj.filteroperator = "and";
-        obj.filterconstraints = [value];
-      }
-      if (
-        obj.filterconstraints &&
-        obj.filterconstraints.filter((x) => x.value != null).length > 0
-      )
-        filterSQL.value.push(obj);
-    }
-  }
-  options.value.PageNo = 0;
-  options.value.id = null;
-  isDynamicSQL.value = true;
-  loadDataSQL();
-};
-const tabs = ref([
-  { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
-  { id: 1, title: "Lên kế hoạch", icon: "", total: 0 },
-  { id: 2, title: "Đang thực hiện", icon: "", total: 0 },
-  { id: 3, title: "Đã hoàn thành", icon: "", total: 0 },
-  { id: 4, title: "Tạm dừng", icon: "", total: 0 },
-  { id: 5, title: "Đã hủy", icon: "", total: 0 },
-]);
-const numOfKey=ref(0);
-//Checkbox
-const onCheckBox = (value, check) => {
-  if (check) {
-    let data = {
-      IntID: value.training_emps_id,
-      TextID: value.training_emps_id + "",
-      IntTrangthai: 1,
-      BitTrangthai: value.status,
-    };
-    axios
-      .put(
-        baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
-        data,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái đào tạo thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
+          if (candidate.value.start_date)
+            candidate.value.start_date = new Date(
+              candidate.value.start_date
+            );
+          if (candidate.value.end_date)
+            candidate.value.end_date = new Date(
+              candidate.value.end_date
+            );
+          if (candidate.value.registration_deadline)
+            candidate.value.registration_deadline = new Date(
+              candidate.value.registration_deadline
+            );
+          candidate.value.user_verify_fake =
+            candidate.value.user_verify.split(",");
+          candidate.value.user_follows_fake =
+            candidate.value.user_follows.split(",");
         }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
+        candidate.value.organization_training_fake = {};
+        candidate.value.organization_training_fake[
+          candidate.value.organization_training
+        ] = true;
+
+        data1.forEach((element) => {
+          element.data = {
+            profile_id: element.profile_id,
+            avatar: element.avatar,
+            profile_user_name: element.profile_user_name,
+            department_name: element.department_name,
+            department_id: element.department_id,
+            work_position_name: element.work_position_name,
+            position_name: element.position_name,
+            position_id: element.position_id,
+            work_position_id: element.work_position_id,
+          };
+          list_users_training.value.push(element);
         });
-      });
-  } else {
-    let data1 = {
-      IntID: value.training_emps_id,
-      TextID: value.training_emps_id + "",
-      BitMain: value.is_default,
-    };
-    axios
-      .put(
-        baseURL + "/api/hrm_training_emps/Update_DefaultStamp",
-        data1,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái đào tạo thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
+        if (list_users_training.value.length > 0) {
+          var arr = [...listDataUsersSave.value];
+          list_users_training.value.forEach((element) => {
+            arr = arr.filter((x) => x.code.profile_id != element.profile_id);
           });
+          listDataUsers.value = arr;
         }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
+        data2.forEach((element) => {
+          if (element.date_study)
+            element.date_study = new Date(element.date_study);
+          if (element.start_time)
+            element.start_time = new Date(element.start_time);
+          if (element.end_time) element.end_time = new Date(element.end_time);
         });
-      });
+        list_schedule.value = data2;
+        if (data3) {
+          listFilesS.value = data3;
+        }
+
+        checkShow.value = true;
+        checkShow2.value = true;
+        checkShow3.value = true;
+      })
+      .catch((error) => { });
   }
 };
+const saveData = (isFormValid) => {
+  submitted.value = true;
+  if (!isFormValid) {
+    return;
+  }
+  if (
+    candidate.value.start_date == null ||
+    candidate.value.user_verify_fake == null ||
+    candidate.value.form_training == null ||
+    candidate.value.obj_training == null
+  ) {
+    return;
+  }
+  if (
+    list_users_training.value.filter(
+      (x) => x.profile_id == null || x.profile_id == ""
+    ).length > 0
+  ) {
+    return;
+  }
 
-//Xuất excel
-const menuButs = ref();
-const itemButs = ref([
-  {
-    label: "Xuất Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportData("ExportExcel");
-    },
-  },
- 
-]);
-const toggleExport = (event) => {
-  menuButs.value.toggle(event);
-};
-const exportData = (method) => {
+  if (candidate.value.candidate_name.length > 250) {
+    swal.fire({
+      title: "Error!",
+      text: "Tên ứng viên không được vượt quá 250 ký tự!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  if (candidate.value.candidate_code.length > 50) {
+    swal.fire({
+      title: "Error!",
+      text: "Mã ứng viên không được vượt quá 50 ký tự!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  list_schedule.value.forEach((element) => {
+    if (element.class_schedule_name)
+      if (element.class_schedule_name.length >= 250) {
+        swal.fire({
+          title: "Error!",
+          text: "Tồn tại tên nội dung ứng viên vượt quá 250 ký tự!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+      else
+        return
+    if (element.phone_number)
+      if (element.phone_number.length >= 11) {
+        swal.fire({
+          title: "Error!",
+          text: "Số điện thoại giảng viên không được vượt quá 11 ký tự!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      } if (element.lecturers_name)
+      if (element.lecturers_name.length >= 250) {
+        swal.fire({
+          title: "Error!",
+          text: "Tên giảng viên không được vượt quá 250 ký tự!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+  });
+  if (candidate.value.user_verify_fake.length > 0)
+    candidate.value.user_verify =
+      candidate.value.user_verify_fake.toString();
+  if (candidate.value.user_follows_fake.length > 0)
+    candidate.value.user_follows =
+      candidate.value.user_follows_fake.toString();
+  if (candidate.value.organization_training_fake)
+    Object.keys(candidate.value.organization_training_fake).forEach(
+      (key) => {
+        candidate.value.organization_training = Number(key);
+      }
+    );
+
+  let formData = new FormData();
+  for (var i = 0; i < filesList.value.length; i++) {
+    let file = filesList.value[i];
+    formData.append("image", file);
+  }
+
+  formData.append("hrm_candidate", JSON.stringify(candidate.value));
+  formData.append("hrm_students", JSON.stringify(list_users_training.value));
+  formData.append("hrm_schedule", JSON.stringify(list_schedule.value));
+  formData.append("hrm_files", JSON.stringify(listFilesS.value));
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
   });
-  axios
-    .post(
-      baseURL + "/api/Excel/ExportExcelWithLogo",
-      {
-        excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
-        proc: "hrm_training_emps_export",
-        par: [
- 
-          { par: "user_id", va: store.state.user.user_id },
-          { par: "search", va: options.value.SearchText },
-          { par: "training_groups", va:  options.value.training_groups_id  },
-          { par: "user_verify", va:  options.value.user_verify  },
-          { par: "user_follows", va: options.value.user_follows},
-           { par: "form_training", va: options.value.type_formtraining},
-          { par: "status ", va: options.value.status_filter},
-          { par: "start_date", va: options.value.start_date },
-          { par: "end_date", va: options.value.end_date },
-             { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.PageNo },
-          { par: "pagesize", va: options.value.PageSize },
-        ],
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      if (response.data.err != "1") {
-        swal.close();
+  if (props.checkadd) {
+    axios
+      .post(
+        baseURL + "/api/hrm_candidate/add_hrm_candidate",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Thêm thông tin ứng viên thành công!");
 
-        toast.success("Kết xuất Data thành công!");
-        debugger
-        if (response.data.path != null) {
-          let pathReplace = response.data.path
-            .replace(/\\+/g, "/")
-            .replace(/\/+/g, "/")
-            .replace(/^\//g, "");
-          var listPath = pathReplace.split("/");
-          var pathFile = "";
-          listPath.forEach((item) => {
-            if (item.trim() != "") {
-              pathFile += "/" + item;
-            }
+          props.closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
           });
-          window.open(baseURL + pathFile);
         }
-      } else {
+      })
+      .catch((error) => {
+        swal.close();
         swal.fire({
           title: "Error!",
-          text: response.data.ms,
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
-      }
-    })
-    .catch((error) => {
-      if (error.status === 401) {
+      });
+  } else {
+    axios
+      .put(
+        baseURL + "/api/hrm_candidate/update_hrm_candidate",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa thông tin ứng viên thành công!");
+
+          props.closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
           confirmButtonText: "OK",
         });
-        store.commit("gologout");
-      }
-    });
-};
-
-const activeTab = (tab) => {
-  options.value.tab = tab.id;
-  reFilter();
-  if (tab.id) {
-    checkLoadCount.value = false;
-    let filterS1 = {
-      filterconstraints: [{ value: tab.id, matchMode: "equals" }],
-      filteroperator: "and",
-      key: "status",
-    };
-
-    filterSQL.value.push(filterS1);
-  }
-
-  loadDataSQL();
-};
-const menuButMores = ref();
-const itemButMores = ref([
-  {
-    label: "Hiệu chỉnh nội dung",
-    icon: "pi pi-pencil",
-    command: (event) => {
-      editTem(training_emps.value, "Chỉnh sửa hợp đồng");
-    },
-  },
-  {
-    label: "Xoá",
-    icon: "pi pi-trash",
-    command: (event) => {
-      delTem(training_emps.value);
-    },
-  },
-]);
-const toggleMores = (event, item) => {
-  training_emps.value = item;
-  menuButMores.value.toggle(event);
-  //selectedNodes.value = item;
-};
-//Xóa nhiều
-const deleteList = () => {
-  let listId = new Array(selectedStamps.value.length);
-  let checkD = false;
-
-  if (!checkD) {
-    swal
-      .fire({
-        title: "Thông báo",
-        text: "Bạn có muốn xoá thông tin đào tạo này không!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có",
-        cancelButtonText: "Không",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          swal.fire({
-            width: 110,
-            didOpen: () => {
-              swal.showLoading();
-            },
-          });
-
-          selectedStamps.value.forEach((item) => {
-            listId.push(item.training_emps_id);
-          });
-          axios
-            .delete(
-              baseURL + "/api/hrm_training_emps/delete_hrm_training_emps",
-              {
-                headers: { Authorization: `Bearer ${store.getters.token}` },
-                data: listId != null ? listId : 1,
-              }
-            )
-            .then((response) => {
-              swal.close();
-              if (response.data.err != "1") {
-                swal.close();
-                toast.success("Xoá thông tin đào tạo thành công!");
-                checkDelList.value = false;
-
-                loadData(true);
-              } else {
-                swal.fire({
-                  title: "Error!",
-                  text: response.data.ms,
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            })
-            .catch((error) => {
-              swal.close();
-              if (error.status === 401) {
-                swal.fire({
-                  title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            });
-        }
       });
   }
 };
-
-//Filter
-const reFilter = () => {
-  options.value.user_follows = null;
-  options.value.training_groups_id = null;
-  options.value.user_verify = null;
-options.value.start_date=null;
-options.value.end_date=null
-  options.value.type_formtraining = null;
-
-  options.value.status_filter = null;
-  checkLoadCount.value = true;
-  isDynamicSQL.value = false;
-  checkFilter.value = false;
-  filterSQL.value = [];
-  options.value.SearchText = null;
-};
-const reFilterEmail = () => {
-  reFilter();
-  op.value.hide();
-  loadData(true);
-};
-const filterFileds = () => {
-  filterSQL.value = [];
-  checkFilter.value = true;
-  if (options.value.status_filter) {
-    let filterS1 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "status",
-    };
-    if (options.value.status_filter.length > 0) {
-      options.value.status_filter.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS1.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS1);
-    }
-  }
-  if (options.value.type_formtraining) {
-    let filterS2 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "form_training",
-    };
-    if (options.value.type_formtraining.length > 0) {
-      options.value.type_formtraining.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS2.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS2);
-    }
-  }
-  if (options.value.user_follows) {
-    let filterS3 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "user_follows",
-    };
-    if (options.value.user_follows.length > 0) {
-      options.value.user_follows.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS3.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS3);
-    }
-  }
-  if (options.value.training_groups_id) {
-    let filterS4 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "training_groups_id",
-    };
-    if (options.value.training_groups_id.length > 0) {
-      options.value.training_groups_id.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS4.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS4);
-    }
-  }
-  if (options.value.user_verify) {
-    let filterS5 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "user_verify",
-    };
-    if (options.value.user_verify.length > 0) {
-      options.value.user_verify.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS5.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS5);
-    }
-  }
-
-  onDayClick();
-  loadDataSQL();
-  op.value.hide();
-};
-
-
-const onDayClick = () => {
-  if (options.value.start_date != null)  
-  {
- 
-    if (!options.value.end_date)
-      options.value.end_date = options.value.start_date;
-    
-    if (
-      options.value.start_date &&
-      options.value.start_date != options.value.end_date
-    ) {
-      let sDate = new Date(options.value.start_date);
-      sDate.setDate(sDate.getDate() - 1);
-      options.value.start_date = sDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.start_date, matchMode: "dateAfter" },
-        ],
-        filteroperator: "and",
-        key: "start_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.end_date &&
-      options.value.start_date != options.value.end_date
-    ) {
-      let eDate = new Date(options.value.end_date);
-      eDate.setDate(eDate.getDate() + 1);
-      options.value.end_date = eDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.end_date, matchMode: "dateBefore" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.start_date &&
-      options.value.start_date == options.value.end_date
-    ) {
-      let filterS1 = {
-        filterconstraints: [
-          { value: options.value.start_date, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "start_date",
-      };
-      filterSQL.value.push(filterS1);
-        let filterS2 = {
-        filterconstraints: [
-          { value: options.value.end_date, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS2);
-    }
-  }
-   
-};
-watch(selectedStamps, () => {
-  if (selectedStamps.value.length > 0) {
-    checkDelList.value = true;
-  } else {
-    checkDelList.value = false;
-  }
-});
-const op = ref();
-const toggle = (event) => {
-  op.value.toggle(event);
-};
-
+const listDropdownUserGive = ref();
 const listDropdownUserCheck = ref();
 const listDropdownUser = ref();
-
+const listUsers = ref([]);
 const loadUser = () => {
+  listUsers.value = [];
   listDropdownUser.value = [];
   axios
     .post(
-      baseURL + "/api/device_card/getData",
+      baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
@@ -987,21 +367,30 @@ const loadUser = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
+
       data.forEach((element, i) => {
         listDropdownUser.value.push({
           name: element.full_name,
           code: element.user_id,
+
           avatar: element.avatar,
           department_name: element.department_name,
+          department_id: element.department_id,
           role_name: element.role_name,
           position_name: element.position_name,
+          phone_number: element.phone,
+          organization_id: element.organization_id,
         });
+        listUsers.value.push({ data: element, active: false });
       });
-
-      listDropdownUserCheck.value = [...listDropdownUser.value];
+      listUsers.value = data;
+      listDropdownUserGive.value = listDropdownUser.value;
+      listDropdownUserCheck.value = listDropdownUser.value.filter(
+        (x) => x.code != store.getters.user.user_id
+      );
     })
     .catch((error) => {
-      options.value.loading = false;
+      console.log(error);
 
       if (error && error.status === 401) {
         swal.fire({
@@ -1012,11 +401,132 @@ const loadUser = () => {
       }
     });
 };
+const v$ = useVuelidate(rules, candidate);
+const listFormTraining = ref([
+  { name: "Bắt buộc", code: 1 },
+  { name: "Đăng ký", code: 2 },
+  { name: "Cả hai", code: 3 },
+]);
+const listStatus = ref([
+  { name: "Lên kế hoạch", code: 1 },
+  { name: "Đang thực hiện", code: 2 },
+  { name: "Đã hoàn thành", code: 3 },
+  { name: "Tạm dừng", code: 4 },
+  { name: "Đã hủy", code: 5 },
+]);
+const listObjTraining = ref([
+  { name: "Cấp lãnh đạo", code: 1 },
+  { name: "Quản lý", code: 2 },
+  { name: "Nhân viên", code: 3 },
+]);
 
-const listTrainingGroups = ref([]);
-const listClasroom = ref([]);
+const checkShow = ref(false);
+const checkShow2 = ref(false);
+const checkShow3 = ref(false);
 
+const showHidePanel = (type) => {
+  if (type == 1) {
+    if (checkShow.value == true) {
+      checkShow.value = false;
+    } else {
+      checkShow.value = true;
+    }
+  }
+  if (type == 2) {
+    if (checkShow2.value == true) {
+      checkShow2.value = false;
+    } else {
+      checkShow2.value = true;
+    }
+  }
+  if (type == 3) {
+    if (checkShow3.value == true) {
+      checkShow3.value = false;
+    } else {
+      checkShow3.value = true;
+    }
+  }
+};
+const addRow_Item = (type) => {
+  //relative
+  if (type == 1) {
+    checkShow.value = true;
+
+    let obj = {
+      is_order: list_users_training.value.length + 1,
+      data: null,
+      profile_user_name: null,
+      work_position_id: null,
+      position_name: null,
+      position_id: null,
+      work_position_name: null,
+      note: null,
+      department_name: null,
+      profile_id: null,
+    };
+    list_users_training.value.push(obj);
+    if (list_users_training.value.length > 0) {
+      var arr = [...listDataUsersSave.value];
+      list_users_training.value.forEach((element) => {
+        arr = arr.filter((x) => x.code.profile_id != element.profile_id);
+      });
+      listDataUsers.value = arr;
+    }
+  }
+  if (type == 2) {
+    checkShow2.value = true;
+    let obj = {
+      is_order: list_schedule.value.length + 1,
+      class_schedule_name: null,
+      limit: 1,
+      lecturers_name: null,
+      phone_number: null,
+      date_study: null,
+      start_time: null,
+      end_time: null,
+      training_class_id: null,
+    };
+    list_schedule.value.push(obj);
+  }
+  if (type == 3) {
+    checkShow3.value = true;
+  }
+};
+const deleteFileH = (value) => {
+  listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
+};
+const treedonvis = ref();
 const initTudien = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_device_department",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if (data[1].length > 0) {
+        let obj = renderTreeDV(
+          data[1],
+          "organization_id",
+          "organization_name",
+          "đơn vị"
+        );
+
+        treedonvis.value = obj.arrtreeChils;
+      }
+    })
+    .catch((error) => { });
+
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -1040,7 +550,7 @@ const initTudien = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       listTrainingGroups.value = [];
-      data.forEach((element) => {
+      data.forEach((element, i) => {
         listTrainingGroups.value.push({
           name: element.enecting_group_name,
           code: element.enecting_group_id,
@@ -1073,7 +583,7 @@ const initTudien = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       listClasroom.value = [];
-      data.forEach((element) => {
+      data.forEach((element, i) => {
         listClasroom.value.push({
           name: element.classroom_name,
           code: element.classroom_id,
@@ -1083,985 +593,1187 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  loadUser();
+};
+const renderTreeDV = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      m.IsOrder = i + 1;
+      let om = { key: m[id], data: m };
+      const rechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em };
+            rechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m[id]);
+      arrChils.push(om);
+      //
+      om = { key: m[id], data: m[id], label: m[name] };
+      const retreechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em[id], label: em[name] };
+            retreechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      retreechildren(om, m[id]);
+      arrtreeChils.push(om);
+    });
+  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+};
+const filesList = ref([]);
+let fileSize = [];
+const onUploadFile = (event) => {
+  fileSize = [];
+  filesList.value = [];
+
+  var ms = false;
+
+  event.files.forEach((fi) => {
+    let formData = new FormData();
+    formData.append("fileupload", fi);
+    axios({
+      method: "post",
+      url: baseURL + `/api/chat/ScanFileUpload`,
+      data: formData,
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+      },
+    })
+      .then((response) => {
+        if (response.data.err != "1") {
+          if (fi.size > 100 * 1024 * 1024) {
+            ms = true;
+          } else {
+            filesList.value.push(fi);
+            fileSize.push(fi.size);
+          }
+        } else {
+          filesList.value = filesList.value.filter((x) => x.name != fi.name);
+          swal.fire({
+            title: "Cảnh báo",
+            text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
+            icon: "warning",
+            confirmButtonText: "OK",
+          });
+        }
+        if (ms) {
+          swal.fire({
+            icon: "warning",
+            type: "warning",
+            title: "Thông báo",
+            text: "Bạn chỉ được upload file có dung lượng tối đa 100MB!",
+          });
+        }
+      })
+      .catch(() => {
+        swal.fire({
+          title: "Thông báo",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  });
+};
+const removeFile = (event) => {
+  filesList.value = filesList.value.filter((a) => a != event.file);
 };
 
-onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
+const listLimit = ref([
+  {
+    name: "Nội bộ",
+    code: 1,
+  },
+  {
+    name: "Bên ngoài",
+    code: 2,
+  },
+]);
+const checkImg = (src) => {
+  let allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
+  return allowedExtensions.exec(src);
+};
+const listDataUsers = ref([]);
+const listDataUsersSave = ref([]);
+const loadUserProfiles = () => {
+  listDataUsers.value = [];
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_list_filter",
+            par: [
+              { par: "search", va: null },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "work_position_id", va: null },
+              { par: "position_id", va: null },
+              { par: "department_id", va: null },
+              { par: "status", va: 1 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      data.forEach((element, i) => {
+        listDataUsers.value.push({
+          profile_user_name: element.profile_user_name,
+          code: {
+            profile_id: element.profile_id,
+            avatar: element.avatar,
+            profile_user_name: element.profile_user_name,
+            department_name: element.department_name,
+            department_id: element.department_id,
+            work_position_name: element.work_position_name,
+            position_name: element.position_name,
+            position_id: element.position_id,
+            work_position_id: element.work_position_id,
+          },
+          avatar: element.avatar,
+          department_name: element.department_name,
+          department_id: element.department_id,
+          work_position_name: element.work_position_name,
+          position_name: element.position_name,
+
+          organization_id: element.organization_id,
+        });
+      });
+      listDataUsersSave.value = [...listDataUsers.value];
+    })
+    .catch((error) => {
+      console.log(error);
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const changeLecturers = (value, index) => {
+  if (value) {
+    var arf = listDropdownUserGive.value.find((x) => x.code == value);
+    list_schedule.value[index - 1].phone_number = arf.phone_number;
+    list_schedule.value[index - 1].avatar = arf.avatar;
+    list_schedule.value[index - 1].lecturers_name = arf.name;
+  } else {
+    list_schedule.value[index - 1].phone_number = null;
+    list_schedule.value[index - 1].avatar = null;
+    list_schedule.value[index - 1].lecturers_name = null;
   }
+};
+const changeUserTrainding = (data, index) => {
+  if (data && list_users_training.value[index]) {
+    list_users_training.value[index].is_order = index + 1;
+    list_users_training.value[index].profile_id = data.profile_id;
+    list_users_training.value[index].profile_user_name = data.profile_user_name;
+    list_users_training.value[index].work_position_id = data.work_position_id;
+    list_users_training.value[index].work_position_name =
+      data.work_position_name;
+    list_users_training.value[index].position_name = data.position_name;
+    list_users_training.value[index].position_id = data.position_id;
+    list_users_training.value[index].department_id = data.department_id;
+    list_users_training.value[index].department_name = data.department_name;
+  } else {
+    list_users_training.value[index].profile_id = null;
+    list_users_training.value[index].profile_user_name = null;
+    list_users_training.value[index].work_position_id = null;
+    list_users_training.value[index].work_position_name = null;
+    list_users_training.value[index].position_name = null;
+    list_users_training.value[index].position_id = null;
+    list_users_training.value[index].department_id = null;
+    list_users_training.value[index].department_name = null;
+  }
+  if (list_users_training.value.length > 0) {
+    var arr = [...listDataUsersSave.value];
+    list_users_training.value.forEach((element) => {
+      arr = arr.filter((x) => x.code.profile_id != element.profile_id);
+    });
+    listDataUsers.value = arr;
+  }
+};
+const listClasroom = ref([]);
+
+const delRow_Item = (item, type) => {
+  if (type == 1) {
+    list_users_training.value.splice(
+      list_users_training.value.lastIndexOf(item),
+      1
+    );
+    if (list_users_training.value.length > 0) {
+      var arr = [...listDataUsersSave.value];
+      list_users_training.value.forEach((element) => {
+        arr = arr.filter((x) => x.code.profile_id != element.profile_id);
+      });
+      listDataUsers.value = arr;
+    }
+  }
+  if (type == 2) {
+    list_schedule.value.splice(list_schedule.value.lastIndexOf(item), 1);
+  }
+};
+//Thêm bản ghi
+const listTrainingGroups = ref([]);
+onMounted(() => {
+
+  loadData();
   initTudien();
-  loadData(true);
+  loadUser();
+  loadUserProfiles();
 
-  return {
-    datalists,
-    options,
-    onPage,
-    loadData,
-    loadCount,
-    openBasic,
-    closeDialog,
-    basedomainURL,
-
-    isFirst,
-    searchStamp,
-    onCheckBox,
-    selectedStamps,
-    deleteList,
-  };
+  return {};
 });
 </script>
-    <template>
-  <div class="p-3 surface-100">
-    <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
-      <div class="p-3 pb-0">
-        <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách đào tạo
-        </h3>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="options.SearchText"
-                @keyup="searchStamp"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />
-
-              <Button
-                @click="toggle"
-                type="button"
-                class="ml-2 p-button-outlined p-button-secondary"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                :class="
-                  options.status_filter == null &&
-                  options.form_training == null &&
-                  !checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
-                "
-              >
-                <div>
-                  <span class="mr-2"><i class="pi pi-filter"></i></span>
-                  <span class="mr-2">Lọc dữ liệu</span>
-                  <span><i class="pi pi-chevron-down"></i></span>
-                </div>
-              </Button>
-
-              <OverlayPanel
-                ref="op"
-                appendTo="body"
-                class="p-0 m-0"
-                :showCloseIcon="false"
-                id="overlay_panel"
-                style="width: 700px"
-              >
-                <div class="grid formgrid m-0">
-                  <div
-                    class="col-12 md:col-12 p-0"
-                    style="
-                      min-height: unset;
-                      max-height: calc(100vh - 300px);
-                      overflow: auto;
-                    "
-                  >
-                    <div class="flex">
-                      <div class="col-6 md:col-6">
-                        <div class="row">
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <label>Nhóm đào tạo</label>
-                              <MultiSelect
-                                :options="listTrainingGroups"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.training_groups_id"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn nhóm đào tạo"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                                <div class="col-12 p-0 ">
-                              <label>Người phụ trách</label>
-                                </div>
-                              <MultiSelect
-                                :options="listDropdownUser"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                v-model="options.user_verify"
-                                optionLabel="name"
-                                placeholder="Chọn người phụ trách"
-                                                   panelClass="d-design-dropdown  d-tree-input"
-         class="col-12 my-2   "
-                                
-                                style="min-height: 36px"
-                              
-                              >
-                                <template #option="slotProps">
-                                  <div
-                                    class="country-item flex align-items-center"
-                                  >
-                                    <div class="grid w-full p-0">
-                                      <div
-                                        class="
-                                          field
-                                          p-0
-                                          py-1
-                                          col-12
-                                          flex
-                                          m-0
-                                          cursor-pointer
-                                          align-items-center
-                                        "
-                                      >
-                                        <div
-                                          class="
-                                            col-1
-                                            mx-2
-                                            p-0
-                                            align-items-center
-                                          "
-                                        >
-                                          <Avatar
-                                            v-bind:label="
-                                              slotProps.option.avatar
-                                                ? ''
-                                                : slotProps.option.name.substring(
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 1,
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 2
-                                                  )
-                                            "
-                                            :image="
-                                              basedomainURL +
-                                              slotProps.option.avatar
-                                            "
-                                            size="small"
-                                            :style="
-                                              slotProps.option.avatar
-                                                ? 'background-color: #2196f3'
-                                                : 'background:' +
-                                                  bgColor[
-                                                    slotProps.option.name
-                                                      .length % 7
-                                                  ]
-                                            "
-                                            shape="circle"
-                                            @error="
-                                              $event.target.src =
-                                                basedomainURL +
-                                                '/Portals/Image/nouser1.png'
-                                            "
-                                          />
-                                        </div>
-                                        <div
-                                          class="
-                                            col-11
-                                            p-0
-                                            ml-3
-                                            align-items-center
-                                          "
-                                        >
-                                          <div class="pt-2">
-                                            <div class="font-bold">
-                                              {{ slotProps.option.name }}
-                                            </div>
-                                            <div
-                                              class="
-                                                flex
-                                                w-full
-                                                text-sm
-                                                font-italic
-                                                text-500
-                                              "
-                                            >
-                                              <div>
-                                                {{
-                                                  slotProps.option.position_name
-                                                }}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </template>
-                              </MultiSelect>
-                          
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <label>Hình thức đào tạo</label>
-                              <MultiSelect
-                                :options="listFormTraining"
-                                :filter="false"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.type_formtraining"
-                                optionLabel="name"
-                                optionValue="code"
-                                display="chip"
-                                placeholder="Chọn hình thức đào tạo"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="row">
-                          <div class="col-12 md:col-12">
-                            <div class="form-group m-0">
-                              <label>Thời gian đào tạo</label>
-                            </div>
-                          </div>
-                          <div class="col-12 p-0 flex">
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <Calendar
-                                  :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
-                                  inputId="time24"
-                                  v-model="options.start_date"
-                                  placeholder="Từ ngày"
-                                />
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6">
-                              <div class="form-group">
-                                <Calendar
-                                  :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
-                                  inputId="time24"
-                                  v-model="options.end_date"
-                                  placeholder="Đến ngày"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div class="col-12 md:col-12">
-                           
-                             <div class="col-12 p-0 ">
-                               <label>Người theo dõi</label>
-                             </div>
-                             <MultiSelect
-                                :options="listDropdownUser"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                v-model="options.user_follows"
-                                optionLabel="name"
-                                placeholder="Chọn người theo dõi"
-                               
-                                style="min-height: 36px"
-                                    panelClass="d-design-dropdown  d-tree-input"
-         class="col-12 my-2   "
-                                
-                              >
-                                <template #option="slotProps">
-                                  <div
-                                    class="country-item flex align-items-center"
-                                  >
-                                    <div class="grid w-full p-0">
-                                      <div
-                                        class="
-                                          field
-                                          p-0
-                                          py-1
-                                          col-12
-                                          flex
-                                          m-0
-                                          cursor-pointer
-                                          align-items-center
-                                        "
-                                      >
-                                        <div
-                                          class="
-                                            col-1
-                                            mx-2
-                                            p-0
-                                            align-items-center
-                                          "
-                                        >
-                                          <Avatar
-                                            v-bind:label="
-                                              slotProps.option.avatar
-                                                ? ''
-                                                : slotProps.option.name.substring(
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 1,
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 2
-                                                  )
-                                            "
-                                            :image="
-                                              basedomainURL +
-                                              slotProps.option.avatar
-                                            "
-                                            size="small"
-                                            :style="
-                                              slotProps.option.avatar
-                                                ? 'background-color: #2196f3'
-                                                : 'background:' +
-                                                  bgColor[
-                                                    slotProps.option.name
-                                                      .length % 7
-                                                  ]
-                                            "
-                                            shape="circle"
-                                            @error="
-                                              $event.target.src =
-                                                basedomainURL +
-                                                '/Portals/Image/nouser1.png'
-                                            "
-                                          />
-                                        </div>
-                                        <div
-                                          class="
-                                            col-11
-                                            p-0
-                                            ml-3
-                                            align-items-center
-                                          "
-                                        >
-                                          <div class="pt-2">
-                                            <div class="font-bold">
-                                              {{ slotProps.option.name }}
-                                            </div>
-                                            <div
-                                              class="
-                                                flex
-                                                w-full
-                                                text-sm
-                                                font-italic
-                                                text-500
-                                              "
-                                            >
-                                              <div>
-                                                {{
-                                                  slotProps.option.position_name
-                                                }}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </template>
-                              </MultiSelect>
-                          
-                          </div>
-
-                          <div class="col-12 md:col-12">
-                            <div class="form-group">
-                              <label>Trạng thái</label>
-                              <MultiSelect
-                                :options="listStatus"
-                                v-model="options.status_filter"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn trạng thái"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-12 md:col-12 p-0">
-                    <Toolbar
-                      class="
-                        border-none
-                        surface-0
-                        outline-none
-                        px-0
-                        pb-0
-                        w-full
-                      "
-                    >
-                      <template #start>
-                        <Button
-                          @click="reFilterEmail()"
-                          class="p-button-outlined"
-                          label="Bỏ chọn"
-                        ></Button>
-                      </template>
-                      <template #end>
-                        <Button @click="filterFileds()" label="Lọc"></Button>
-                      </template>
-                    </Toolbar>
-                  </div>
-                </div>
-              </OverlayPanel>
-            </span>
-          </template>
-
-          <template #end>
-            <Button
-              @click="openBasic('Thêm mới đào tạo')"
-              label="Thêm mới"
-              icon="pi pi-plus"
-              class="mr-2"
-            />
-            <Button
-              @click="refreshStamp"
-              class="mr-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              v-tooltip="'Tải lại'"
-            />
-            <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
-            <Button
-                label="Tiện ích"
-                icon="pi pi-file-excel"
-                class="mr-2 p-button-outlined p-button-secondary"
-                @click="toggleExport"
-                aria-haspopup="true"
-                aria-controls="overlay_Export"
-              />
-              <Menu
-                id="overlay_Export"
-                ref="menuButs"
-                :model="itemButs"
-                :popup="true"
-              />
-          </template>
-        </Toolbar>
-      </div>
-      <div class="tabview">
-        <div class="tableview-nav-content">
-          <ul class="tableview-nav">
-            <li
-              v-for="(tab, key) in tabs"
-              :key="key"
-              @click="activeTab(tab)"
-              class="tableview-header"
-              :class="{ highlight: options.tab === tab.id }"
-            >
-              <a>
-                <i :class="tab.icon"></i>
-                <span
-                  >{{ tab.title }} ({{
-                    tab.id == 1
-                      ? options.totalRecords1
-                      : tab.id == 2
-                      ? options.totalRecords2
-                      : tab.id == 3
-                      ? options.totalRecords3
-                      : tab.id == 4
-                      ? options.totalRecords4
-                      : tab.id == 5
-                      ? options.totalRecords5
-                      : options.totalRecords
-                  }})</span
-                >
-              </a>
-            </li>
-          </ul>
+<template>
+  <Dialog :header="props.headerDialog" v-model:visible="props.displayBasic" :style="{ width: '60vw' }" :maximizable="true"
+    :modal="true" :closable="false">
+    <form>
+      <div class="grid formgrid m-2">
+        <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
+        <div class="col-12 flex p-0 text-center align-items-center">
+          <div class="col-12 field flex p-0 text-left align-items-center">
+            <div class="w-10rem ">
+              Chiến dịch
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown v-model="candidate.training_groups_id" :options="listTrainingGroups" optionLabel="name"
+                optionValue="code" placeholder="Chọn chiến dịch ứng viên Apply" class="w-full" :class="{
+                  'p-invalid':
+                    candidate.training_groups_id == null && submitted,
+                }" />
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="d-container">
-        <div class="d-lang-table">
-          <DataTable
-            @page="onPage($event)"
-            @sort="onSort($event)"
-            @filter="onFilter($event)"
-            v-model:filters="filters"
-            filterDisplay="menu"
-            filterMode="lenient"
-            :filters="filters"
-            :scrollable="true"
-            scrollHeight="flex"
-            :showGridlines="true"
-            columnResizeMode="fit"
-            :lazy="true"
-            :totalRecords="options.totalRecords"
-            :loading="options.loading"
-            :reorderableColumns="true"
-            :value="datalists"
-            removableSort
-            v-model:rows="options.PageSize"
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-            :paginator="true"
-            dataKey="training_emps_id"
-            responsiveLayout="scroll"
-            v-model:selection="selectedStamps"
-            :row-hover="true"
-          >
-            <Column
-              class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px"
-              bodyStyle="text-align:center;max-width:70px"
-              selectionMode="multiple"
-            >
-            </Column>
 
-            <Column
-              field="STT"
-              header="STT"
-              class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px"
-              bodyStyle="text-align:center;max-width:70px"
-            ></Column>
-            <Column
-              field="training_emps_code"
-              header="Mã số"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
-              :sortable="true"
-            >
-              <template #filter="{ filterModel }">
-                <InputText
-                  type="text"
-                  v-model="filterModel.value"
-                  class="p-column-filter"
-                  placeholder="Từ khoá"
-                />
-              </template>
-            </Column>
-            <Column
-              field="training_emps_name"
-              header="Tên khoá đào tạo"
-              :sortable="true"
-              headerStyle="text-align:left;height:50px"
-              bodyStyle="text-align:left"
-            >
-              <template #filter="{ filterModel }">
-                <InputText
-                  type="text"
-                  v-model="filterModel.value"
-                  class="p-column-filter"
-                  placeholder="Từ khoá"
-                />
-              </template>
-            </Column>
-            <Column
-              field="form_training"
-              header="Hình thức"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{
-                    data.data.form_training == 1
-                      ? "Bắt buộc"
-                      : data.data.form_training == 2
-                      ? "Đăng ký"
-                      : "Cả hai"
-                  }}
+        <div class="col-12 p-0 field flex" v-if="
+          (v$.candidate_code.$invalid && submitted) ||
+          (candidate.training_groups_id == null && submitted)
+        ">
+          <div class="p-0 col-6">
+            <div v-if="
+              (v$.candidate_code.$invalid && submitted) ||
+              v$.candidate_code.$pending.$response
+            " class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full">{{
+                  v$.candidate_code.required.$message
+                    .replace("Value", "Mã số")
+                    .replace("is required", "không được để trống!")
+                }}</span>
+              </small>
+            </div>
+          </div>
+          <div class="p-0 col-6">
+            <div v-if="candidate.training_groups_id == null && submitted" class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full">Nhóm ứng viên không được để trống!
+                </span>
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field flex p-0 align-items-center">
+          <div class="col-6   flex p-0 align-items-center">
+            <div class="w-10rem">
+              Mã ứng viên<span class="redsao pl-1"> (*)</span>
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <div class="col-12 p-0">
+                <div class="p-inputgroup">
+                  <InputText v-model="candidate.candidate_name" class="w-full" :style="
+                    candidate.candidate_name
+                      ? 'background-color:white !important'
+                      : ''
+                  " :class="{
+  'p-invalid': v$.candidate_name.$invalid && submitted,
+}" />
                 </div>
-              </template>
-            </Column>
-            <Column
-              field="start_date"
-              header="Từ ngày"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="data.data.start_date">
-                  {{
-                    moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
-                  }}
-                </div>
-              </template>
-            </Column>
-
-            <Column
-              field="end_date"
-              header="Đến ngày"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="data.data.end_date">
-                  {{
-                    moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
-                  }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="li_user_verify"
-              header="Giảng viên"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  <AvatarGroup>
-                    <Avatar
-                      v-for="(item, index) in data.data.li_user_verify.slice(
-                        0,
-                        4
-                      )"
-                      v-bind:label="
-                        item.avatar
-                          ? ''
-                          : item.full_name.substring(
-                              item.full_name.lastIndexOf(' ') + 1,
-                              item.full_name.lastIndexOf(' ') + 2
-                            )
-                      "
-                      :key="index"
-                      :style="
-                        item.avatar
-                          ? 'background-color: #2196f3'
-                          : 'background:' + bgColor[item.full_name.length % 7]
-                      "
-                      :image="basedomainURL + item.avatar"
-                      class="w-3rem h-3rem"
-                      shape="circle"
-
-                      v-tooltip.top="item.full_name"
-                    />
-                    <Avatar
-                      v-if="data.data.li_user_verify.length > 4"
-                      :label="(data.data.li_user_verify.length - 4).toString()"
-                      shape="circle"
-                      class="w-3rem h-3rem"
-                      style="
-                        background-color: #9c27b0;
-                        color: #ffffff;
-                        font-size: 12pt !important;
-                      "
-                    />
-                  </AvatarGroup>
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="count_emps"
-              header="Học viên"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{ data.data.count_emps ? data.data.count_emps : "0" }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="created_date"
-              header="Ngày tạo"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{
-                    moment(new Date(data.data.created_date)).format(
-                      "DD/MM/YYYY"
-                    )
-                  }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="status"
-              header="Trạng thái"
-              headerStyle="text-align:center;max-width:11rem;height:50px"
-              bodyStyle="text-align:center;max-width:11rem"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div
-                  class="m-2"
-                  @click="
-                    toggleStatus(slotProps.data, $event);
-                    $event.stopPropagation();
-                  "
-                  aria:haspopup="true"
-                  aria-controls="overlay_panel_status"
-                >
-                  <Button
-                    :label="
-                      slotProps.data.status == 1
-                        ? 'Lên kế hoạch'
-                        : slotProps.data.status == 2
-                        ? 'Đang thực hiện'
-                        : slotProps.data.status == 3
-                        ? 'Đã hoàn thành'
-                        : slotProps.data.status == 4
-                        ? 'Tạm dừng'
-                        : 'Đã hủy'
-                    "
-                    :class="
-                      slotProps.data.status == 1
-                        ? 'bg-blue-500'
-                        : slotProps.data.status == 2
-                        ? 'bg-yellow-500'
-                        : slotProps.data.status == 3
-                        ? 'bg-green-500'
-                        : slotProps.data.status == 4
-                        ? 'bg-orange-500'
-                        : 'bg-pink-500'
-                    "
-                    icon="pi pi-chevron-down"
-                    iconPos="right"
-                    class="px-2 w-10rem"
-                  />
-                </div>
-                <OverlayPanel
-                  :showCloseIcon="false"
-                  ref="opstatus"
-                  appendTo="body"
-                  class="p-0 m-0"
-                  id="overlay_panel_status"
-                  style="width: 200px"
-                >
-                  <div class="form-group">
-                    <div class="col-12 p-0 field">Chọn trạng thái</div>
-                    <div class="col-12 p-0">
-                      <Dropdown
-                        :options="listStatus"
-                        :filter="false"
-                        :showClear="false"
-                        :editable="false"
-                        v-model="training_emps.status"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Chọn trạng thái"
-                        class="w-full"
-                        @change="setStatus(training_emps)"
-                      >
-                      </Dropdown>
-                    </div>
-                  </div>
-                </OverlayPanel>
-              </template>
-            </Column>
-            <Column
-              header=""
-              headerStyle="text-align:center;max-width:50px"
-              bodyStyle="text-align:center;max-width:50px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Button
-                  icon="pi pi-ellipsis-h"
-                  class="p-button-rounded p-button-text ml-2"
-                  @click="toggleMores($event, slotProps.data)"
-                  aria-haspopup="true"
-                  aria-controls="overlay_More"
-                  v-tooltip.top="'Tác vụ'"
-                />
-              </template>
-            </Column>
-            <!-- <Column
-              header="Chức năng"
-              class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-            >
-              <template #body="Tem">
-                <div
-                  v-if="
-                    store.state.user.is_super == true ||
-                    store.state.user.user_id == Tem.data.created_by ||
-                    (store.state.user.role_id == 'admin' &&
-                      store.state.user.organization_id ==
-                        Tem.data.organization_id)
-                  "
-                >
-                  <Button
-                    @click="editTem(Tem.data)"
-                    class="
-                      p-button-rounded p-button-secondary p-button-outlined
-                      mx-1
-                    "
-                    type="button"
-                    icon="pi pi-pencil"
-                    v-tooltip.top="'Sửa'"
-                  ></Button>
-                  <Button
-                    class="
-                      p-button-rounded p-button-secondary p-button-outlined
-                      mx-1
-                    "
-                    type="button"
-                    icon="pi pi-trash"
-                    @click="delTem(Tem.data)"
-                    v-tooltip.top="'Xóa'"
-                  ></Button>
-                </div>
-              </template>
-            </Column> -->
-            <template #empty>
-              <div
-                class="
-                  align-items-center
-                  justify-content-center
-                  p-4
-                  text-center
-                  m-auto
-                "
-                v-if="!isFirst"
-              >
-                <img src="../../../assets/background/nodata.png" height="144" />
-                <h3 class="m-1">Không có dữ liệu</h3>
               </div>
-            </template>
-          </DataTable>
+            </div>
+          </div>
+          <div class="col-6   flex p-0 align-items-center">
+            <div class="w-10rem pl-3">
+              Nguồn <span class="redsao pl-1"> (*)</span>
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <div class="col-12 p-0">
+                <div class="p-inputgroup">
+                  <Dropdown v-model="candidate.training_groups_id" :options="listTrainingGroups" optionLabel="name"
+                    optionValue="code" placeholder="Chọn nguồn" class="w-full" :class="{
+                      'p-invalid':
+                        candidate.training_groups_id == null && submitted,
+                    }" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 p-0 field flex" v-if="
+          (v$.candidate_name.$invalid && submitted) ||
+          v$.candidate_name.$pending.$response
+        ">
+          <div class="p-0 col-12">
+            <div class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full">{{
+                  v$.candidate_name.required.$message
+                    .replace("Value", "Tên khóa ứng viên")
+                    .replace("is required", "không được để trống!")
+                }}</span>
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field flex p-0 align-items-center">
+          <div class="col-6   flex p-0 align-items-center">
+
+            <div class="w-10rem">
+              Họ và tên<span class="redsao pl-1"> (*)</span>
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <div class="col-12 p-0">
+                <div class="p-inputgroup">
+                  <InputText v-model="candidate.candidate_name" class="w-full" :style="
+                    candidate.candidate_name
+                      ? 'background-color:white !important'
+                      : ''
+                  " :class="{
+  'p-invalid': v$.candidate_name.$invalid && submitted,
+}" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6   flex p-0 align-items-center">
+            <div class="col-7   flex p-0 align-items-center">
+
+
+              <div class="w-10rem pl-3">
+                Năm sinh
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <Calendar class="w-full" id="basic_purchase_date" v-model="candidate.end_date" autocomplete="on"
+                  :minDate="
+                    candidate.start_date
+                      ? new Date(candidate.start_date)
+                      : null
+                  " placeholder="dd/mm/yyyy" :showIcon="true" />
+
+              </div>
+            </div>
+
+
+            <div class="col-5   flex p-0 align-items-center">
+
+
+              <div class="w-6rem pl-3">
+                Giới tính
+              </div>
+              <div style="width: calc(100% - 6rem)">
+                <div class="col-12 p-0">
+                  <div class="p-inputgroup">
+                    <Dropdown v-model="candidate.training_groups_id" :options="listTrainingGroups" optionLabel="name"
+                      optionValue="code" class="w-full" :class="{
+                        'p-invalid':
+                          candidate.training_groups_id == null && submitted,
+                      }" />
+                  </div>
+
+                </div>
+              </div>
+
+
+            </div>
+
+
+          </div>
+
+
+
+        </div>
+        <div class="col-12 field p-0 flex text-left align-items-center">
+
+          <div class="w-10rem">
+            Nơi sinh
+          </div>
+          <div style="width: calc(100% - 10rem)">
+            <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+              optionValue="code" placeholder="Xã phường, Quận huyện, Tỉnh thành" class="  w-full"
+              panelClass="d-design-dropdown" :class="{
+                'p-invalid': candidate.obj_training == null && submitted,
+              }" />
+          </div>
+
+
+        </div>
+        <div class="col-12 field p-0 flex text-left align-items-center">
+
+          <div class="w-10rem">
+            Nguyên quán
+          </div>
+          <div style="width: calc(100% - 10rem)">
+            <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+              optionValue="code" placeholder="Xã phường, Quận huyện, Tỉnh thành" class="  w-full"
+              panelClass="d-design-dropdown" :class="{
+                'p-invalid': candidate.obj_training == null && submitted,
+              }" />
+          </div>
+
+
+        </div>
+        <div class="col-12 p-0 field flex" v-if="candidate.obj_training == null && submitted">
+          <div class="p-0 col-6">
+            <div class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full">Đối tượng ứng viên không được để trống!
+                </span>
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem">
+              CMT/Căn cước 
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <InputText v-model="candidate.candidate_name" class="w-full" placeholder="168xxxxxx" />
+            </div>
+          </div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">Ngày cấp</div>
+            <div style="width: calc(100% - 10rem)">
+              <Calendar class="w-full" id="basic_purchase_date" v-model="candidate.end_date" autocomplete="on"
+                placeholder="dd/mm/yyyy" :showIcon="true" />
+            </div>
+          </div>
+        </div>
+        <div class="col-12 p-0 field flex" v-if="candidate.start_date == null && submitted">
+          <div class="p-0 col-6">
+            <div class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full">Ngày bắt đầu không được để trống!
+                </span>
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 field p-0 flex text-left align-items-center">
+
+          <div class="w-10rem">
+            Nơi cấp
+          </div>
+          <div style="width: calc(100% - 10rem)">
+            <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+              optionValue="code" class="  w-full" panelClass="d-design-dropdown" :class="{
+                'p-invalid': candidate.obj_training == null && submitted,
+              }" />
+          </div>
+
+
+        </div>
+        <div class="col-12 field p-0 flex text-left align-items-center">
+          <div class="col-6   p-0 flex text-left align-items-center">
+            <div class="w-10rem">
+              Tình trạng hôn nhân
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+                optionValue="code" class="  w-full" panelClass="d-design-dropdown" :class="{
+                  'p-invalid': candidate.obj_training == null && submitted,
+                }" />
+            </div>
+          </div>
+          <div class="col-6   p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">
+              Quốc tịch
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+                optionValue="code" class="  w-full" panelClass="d-design-dropdown" :class="{
+                  'p-invalid': candidate.obj_training == null && submitted,
+                }" />
+            </div>
+          </div>
+
+        </div>
+        <div class="col-12 field p-0 flex text-left align-items-center">
+          <div class="col-6   p-0 flex text-left align-items-center">
+            <div class="col-6   p-0 flex text-left align-items-center">
+              <div class="w-10rem">
+                Chiều cao
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+                  optionValue="code" class="  w-full" panelClass="d-design-dropdown" :class="{
+                    'p-invalid': candidate.obj_training == null && submitted,
+                  }" />
+              </div>
+            </div>
+            <div class="col-6   p-0 flex text-left align-items-center">
+              <div class="w-10rem   format-center">
+                Cân nặng
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+                  optionValue="code" class="  w-full" panelClass="d-design-dropdown" :class="{
+                    'p-invalid': candidate.obj_training == null && submitted,
+                  }" />
+              </div>
+            </div>
+          </div>
+          <div class="col-6   p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">
+              Nghĩa vụ quân sự
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+                optionValue="code" class="  w-full" panelClass="d-design-dropdown" :class="{
+                  'p-invalid': candidate.obj_training == null && submitted,
+                }" />
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field  p-0 flex text-left align-items-center">
+          <div class="w-10rem">
+            Giới thiệu bản thân
+          </div>
+          <div style="width: calc(100% - 10rem)">
+            <Textarea :autoResize="true" rows="1" cols="30" v-model="candidate.obj_training"
+              placeholder="Sở thích, điểm mạnh, điểm yếu" class="  w-full" panelClass="d-design-dropdown" />
+          </div>
+        </div>
+
+        <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(1)">
+              <i class="pi pi-angle-right" v-if="checkShow == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow == true" style="font-size: 1.25rem"></i>
+              <div class="pl-2">
+                Thông tin liên hệ
+              
+              </div>
+            </div>
+            <div class="w-1 text-right" v-if="!view">
+
+            </div>
+          </div>
+
+          <div class="w-full p-3" v-if="checkShow == true">
+            <div class="col-12 field p-0 flex text-left align-items-center">
+
+              <div class="w-10rem">
+                Điện thoại
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <Chips v-model="candidate.obj_training" class="  w-full" />
+              </div>
+              <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
+
+            </div>
+            <div class="col-12 field p-0 flex text-left align-items-center">
+
+              <div class="w-10rem">
+                Email
+              </div>
+              <div style="width: calc(100% - 10rem)">
+                <Chips v-model="candidate.obj_training" class="  w-full" />
+              </div>
+              <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
+
+            </div>
+            <div class="col-12 field p-0 flex text-left align-items-center">
+              <div class="col-6   p-0 flex text-left align-items-center">
+                <div class="w-10rem">
+                  Thường trú
+                </div>
+                <div style="width: calc(100% - 10rem)">
+                  <InputText v-model="candidate.candidate_name" class="w-full" />
+                </div>
+              </div>
+              <div class="col-6   p-0 flex text-left align-items-center">
+                <div class="w-10rem pl-3">
+                  Địa chỉ
+                </div>
+                <div style="width: calc(100% - 10rem)">
+                  <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+                    optionValue="code" class="  w-full" panelClass="d-design-dropdown" :class="{
+                      'p-invalid': candidate.obj_training == null && submitted,
+                    }" />
+                </div>
+              </div>
+              <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
+
+            </div>
+            <div class="col-12 field p-0 flex text-left align-items-center">
+              <div class="col-6   p-0 flex text-left align-items-center">
+                <div class="w-10rem">
+                  Chỗ ở hiện tại
+                </div>
+                <div style="width: calc(100% - 10rem)">
+                  <InputText v-model="candidate.candidate_name" class="w-full" />
+                </div>
+              </div>
+              <div class="col-6   p-0 flex text-left align-items-center">
+                <div class="w-10rem pl-3">
+                  Địa chỉ
+                </div>
+                <div style="width: calc(100% - 10rem)">
+                  <Dropdown v-model="candidate.obj_training" :options="listObjTraining" optionLabel="name"
+                    optionValue="code" class="  w-full" panelClass="d-design-dropdown" :class="{
+                      'p-invalid': candidate.obj_training == null && submitted,
+                    }" />
+                </div>
+              </div>
+              <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
+
+            </div>
+
+          </div>
+        </div>
+
+
+
+
+
+        <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(1)">
+              <i class="pi pi-angle-right" v-if="checkShow == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow == true" style="font-size: 1.25rem"></i>
+              <div class="pl-2">
+                Thông tin gia đình
+                <span v-if="list_users_training.length > 0">
+                  ( {{ list_users_training.length }} )</span>
+              </div>
+            </div>
+            <div class="w-1 text-right" v-if="!view">
+              <a @click="addRow_Item(1)" class="hover" v-tooltip.top="'Thêm học viên'">
+                <i class="pi pi-plus-circle" style="font-size: 18px"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="w-full p-0" v-if="checkShow == true">
+            <div v-if="list_users_training.length > 0">
+              <DataTable :value="list_users_training" :scrollable="true" :lazy="true" :rowHover="true"
+                :showGridlines="true" scrollDirection="both">
+                <Column field="card_number" header="STT" headerStyle="text-align:center;width:70px;height:50px"
+                  bodyStyle="text-align:center;width:70px;" class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    {{ slotProps.data.is_order }}
+                    <!-- <InputText
+                                              v-model="slotProps.data.card_number"
+                                              spellcheck="false"
+                                              type="text"
+                                              class="ip36"
+                                              maxLength="50"
+                                            /> -->
+                  </template>
+                </Column>
+                <Column field="form" header="Mối quan hệ" headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="text-align:center;width:250px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <div class="w-full">
+
+                    </div>
+                  </template>
+                </Column>
+                <Column field="form" header="Họ và tên" headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="text-align:center;width:250px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <div class="w-full">
+
+                    </div>
+                  </template>
+                </Column>
+                <Column field="start_date" header="Ngày sinh" headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full h-full d-design-it" style="width: 170px"
+                      v-model="slotProps.data.department_name" disabled />
+                  </template>
+                </Column>
+                <Column field="end_date" header="Nghề nghiệp" headerStyle="text-align:center;width:180px;height:50px"
+                  bodyStyle="text-align:center;width:180px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full h-full d-design-it" style="width: 170px"
+                      v-model="slotProps.data.work_position_name" disabled />
+                  </template>
+                </Column>
+                <Column field="admission_place" header="Điện thoại"
+                  headerStyle="text-align:center;width:180px;height:50px" bodyStyle="text-align:center;width:180px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full h-full d-design-it" style="width: 170px"
+                      v-model="slotProps.data.position_name" disabled />
+                  </template>
+                </Column>
+                <Column field="transfer_place" header="Địa chỉ" headerStyle="text-align:center;width:300px ;height:50px"
+                  bodyStyle="text-align:center ;width:300px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText v-model="slotProps.data.note" spellcheck="false" type="text" class="w-full h-full"
+                      maxLength="250" />
+                  </template>
+                </Column>
+                <Column header="" headerStyle="text-align:center;width:50px" bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <a @click="delRow_Item(slotProps.data, 1)" class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa học viên'">
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
+                <template #empty>
+                  <div class="
+                                          align-items-center
+                                          justify-content-center
+                                          p-4
+                                          text-center
+                                          m-auto
+                                        " style="display: flex; width: 100%; min-height: 200px"></div>
+                </template>
+              </DataTable>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(2)">
+              <i class="pi pi-angle-right" v-if="checkShow2 == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow2 == true" style="font-size: 1.25rem"></i>
+              <div class="pl-2">
+                Trình độ học vấn
+                <span v-if="list_schedule.length > 0">
+                  ( {{ list_schedule.length }} )</span>
+              </div>
+            </div>
+            <div class="w-1 text-right" v-if="!view">
+              <a @click="addRow_Item(2)" class="hover" v-tooltip.top="'Thêm lịch học'">
+                <i class="pi pi-plus-circle" style="font-size: 18px"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="w-full px-0 pt-0" v-if="checkShow2 == true">
+            <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
+              <DataTable :value="list_schedule" :scrollable="true" :lazy="true" :rowHover="true" :showGridlines="true"
+                scrollDirection="both">
+                <Column field="card_number" header="STT" headerStyle="text-align:center;width:70px;height:50px"
+                  bodyStyle="text-align:center;width:70px;" class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    {{ slotProps.data.is_order }}
+                  </template>
+                </Column>
+                <Column field="form" header="Từ tháng" headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="text-align:center;width:250px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <div class="w-full">
+                      <Calendar class="w-full" id="basic_purchase_date" v-model="slotProps.data.date_study"
+                        autocomplete="on" :showIcon="true" placeholder="dd/mm/yyyy" :maxDate="
+                          candidate.end_date
+                            ? new Date(candidate.end_date)
+                            : null
+                        " :minDate="
+  candidate.start_date
+    ? new Date(candidate.start_date)
+    : null
+" />
+                    </div>
+                  </template>
+                </Column>
+                <Column field="start_date" header="Đến tháng" headerStyle="text-align:center;width:150px;height:50px"
+                  bodyStyle=" width:150px;" class="align-items-center justify-content-center">
+                  <template #body="slotProps">
+                    <Calendar class="w-full" id="basic_purchase_date" v-model="slotProps.data.date_study"
+                      autocomplete="on" :showIcon="true" placeholder="dd/mm/yyyy" :maxDate="
+                        candidate.end_date
+                          ? new Date(candidate.end_date)
+                          : null
+                      " :minDate="
+  candidate.start_date
+    ? new Date(candidate.start_date)
+    : null
+" />
+                  </template>
+                </Column>
+
+                <Column field="admission_place" header="Bằng cấp, trình độ"
+                  headerStyle="text-align:center;width:150px;height:50px" bodyStyle="text-align:center;width:150px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full" v-model="slotProps.data.phone_number" />
+                  </template>
+                </Column>
+                <Column field="transfer_place" header="Nơi đào tạo"
+                  headerStyle="text-align:center;width:180px ;height:50px" bodyStyle="text-align:center ;width:180px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full" v-model="slotProps.data.phone_number" />
+                  </template>
+                </Column>
+                <Column field="transfer_place" header="Chuyên ngành"
+                  headerStyle="text-align:center;width:7rem ;height:50px" bodyStyle="text-align:center ;width:7rem;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full" v-model="slotProps.data.phone_number" />
+                  </template>
+                </Column>
+
+                <Column field="transfer_place" header="Hình thức đào tạo"
+                  headerStyle="text-align:center;width:16rem ;height:50px" bodyStyle="  width:16rem;"
+                  class="align-items-center justify-content-center">
+                  <template #body="slotProps">
+                    <InputText v-model="slotProps.data.note" spellcheck="false" type="text" class="w-full h-full"
+                      maxLength="250" />
+                  </template>
+                </Column>
+                <Column header="" headerStyle="text-align:center;width:50px" bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <a @click="delRow_Item(slotProps.data, 2)" class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa lịch học'">
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
+                <template #empty>
+                  <div class="
+                                          align-items-center
+                                          justify-content-center
+                                          p-4
+                                          text-center
+                                          m-auto
+                                        " style="display: flex; width: 100%; min-height: 200px"></div>
+                </template>
+              </DataTable>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(2)">
+              <i class="pi pi-angle-right" v-if="checkShow2 == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow2 == true" style="font-size: 1.25rem"></i>
+              <div class="pl-2">
+                Kinh nghiệm làm việc
+                <span v-if="list_schedule.length > 0">
+                  ( {{ list_schedule.length }} )</span>
+              </div>
+            </div>
+            <div class="w-1 text-right" v-if="!view">
+              <a @click="addRow_Item(2)" class="hover" v-tooltip.top="'Thêm lịch học'">
+                <i class="pi pi-plus-circle" style="font-size: 18px"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="w-full px-0 pt-0" v-if="checkShow2 == true">
+            <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
+              <DataTable :value="list_schedule" :scrollable="true" :lazy="true" :rowHover="true" :showGridlines="true"
+                scrollDirection="both">
+                <Column field="card_number" header="STT" headerStyle="text-align:center;width:70px;height:50px"
+                  bodyStyle="text-align:center;width:70px;" class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    {{ slotProps.data.is_order }}
+                  </template>
+                </Column>
+                <Column field="form" header="Từ tháng" headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="text-align:center;width:250px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <div class="w-full">
+                      <Calendar class="w-full" id="basic_purchase_date" v-model="slotProps.data.date_study"
+                        autocomplete="on" :showIcon="true" placeholder="dd/mm/yyyy" :maxDate="
+                          candidate.end_date
+                            ? new Date(candidate.end_date)
+                            : null
+                        " :minDate="
+  candidate.start_date
+    ? new Date(candidate.start_date)
+    : null
+" />
+                    </div>
+                  </template>
+                </Column>
+                <Column field="start_date" header="Đến tháng" headerStyle="text-align:center;width:150px;height:50px"
+                  bodyStyle=" width:150px;" class="align-items-center justify-content-center">
+                  <template #body="slotProps">
+                    <Calendar class="w-full" id="basic_purchase_date" v-model="slotProps.data.date_study"
+                      autocomplete="on" :showIcon="true" placeholder="dd/mm/yyyy" :maxDate="
+                        candidate.end_date
+                          ? new Date(candidate.end_date)
+                          : null
+                      " :minDate="
+  candidate.start_date
+    ? new Date(candidate.start_date)
+    : null
+" />
+                  </template>
+                </Column>
+                <Column field="end_date" header="Công ty" headerStyle="text-align:center;width:16rem;height:50px"
+                  bodyStyle="width:16rem;" class="align-items-center justify-content-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full" v-model="slotProps.data.lecturers_name" />
+
+                  </template>
+                </Column>
+                <Column field="admission_place" header="Vị trí" headerStyle="text-align:center;width:150px;height:50px"
+                  bodyStyle="text-align:center;width:150px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full" v-model="slotProps.data.phone_number" />
+                  </template>
+                </Column>
+                <Column field="transfer_place" header="Người tham chiếu"
+                  headerStyle="text-align:center;width:180px ;height:50px" bodyStyle="text-align:center ;width:180px;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full" v-model="slotProps.data.phone_number" />
+                  </template>
+                </Column>
+                <Column field="transfer_place" header="Điện thoại" headerStyle="text-align:center;width:7rem ;height:50px"
+                  bodyStyle="text-align:center ;width:7rem;"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <InputText spellcheck="false" class="w-full" v-model="slotProps.data.phone_number" />
+                  </template>
+                </Column>
+
+                <Column field="transfer_place" header="Mô tả công việc"
+                  headerStyle="text-align:center;width:16rem ;height:50px" bodyStyle="  width:16rem;"
+                  class="align-items-center justify-content-center">
+                  <template #body="slotProps">
+                    <InputText v-model="slotProps.data.note" spellcheck="false" type="text" class="w-full h-full"
+                      maxLength="250" />
+                  </template>
+                </Column>
+                <Column header="" headerStyle="text-align:center;width:50px" bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center">
+                  <template #body="slotProps">
+                    <a @click="delRow_Item(slotProps.data, 2)" class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa lịch học'">
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
+                <template #empty>
+                  <div class="
+                                          align-items-center
+                                          justify-content-center
+                                          p-4
+                                          text-center
+                                          m-auto
+                                        " style="display: flex; width: 100%; min-height: 200px"></div>
+                </template>
+              </DataTable>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(3)">
+              <i class="pi pi-angle-right" v-if="checkShow3 == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow3 == true" style="font-size: 1.25rem"></i>
+              <div class="pl-2">File đính kèm</div>
+            </div>
+          </div>
+          <div class="w-full" v-if="checkShow3 == true">
+            <FileUpload chooseLabel="Chọn File" :showUploadButton="false" :showCancelButton="false" :multiple="false"
+              :maxFileSize="524288000" @select="onUploadFile" @remove="removeFile"
+              :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'">
+              <template #empty>
+                <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
+              </template>
+            </FileUpload>
+
+            <div class="col-12 p-0">
+              <div class="p-0 w-full flex" v-for="(item, index) in listFilesS" :key="index">
+                <div class="p-0 surface-50" style="width: 100%; border-radius: 10px">
+                  <Toolbar class="w-full py-3">
+                    <template #start>
+                      <div class="flex">
+                        <div v-if="item.is_image" class="align-items-center flex">
+                          <Image :src="basedomainURL + item.file_path" :alt="item.file_name" width="70" height="50" style="
+                                                  object-fit: contain;
+                                                  border: 1px solid #ccc;
+                                                  width: 70px;
+                                                  height: 50px;
+                                                " preview class="pr-2" />
+                          <div class="ml-2">
+                            {{ item.file_name }}
+
+                          </div>
+                        </div>
+                        <div v-else>
+                          <a :href="basedomainURL + item.file_path" download class="w-full no-underline cursor-pointer">
+                            <div class="align-items-center flex">
+                              <div>
+                                <img :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  item.file_path.substring(
+                                    item.file_path.lastIndexOf('.') + 1
+                                  ) +
+                                  '.png'
+                                " style="
+                                                        width: 70px;
+                                                        height: 50px;
+                                                        object-fit: contain;
+                                                      " :alt="item.file_name" />
+                              </div>
+                              <div class="ml-2">
+                                {{ item.file_name }}
+                              </div>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </template>
+                    <template #end>
+                      <Button icon="pi pi-times" class="p-button-rounded p-button-danger" @click="deleteFileH(item)" />
+                    </template>
+                  </Toolbar>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-    <div v-if="displayBasic">
-      <dialogTraining
-      :key="numOfKey"
-        :headerDialog="headerDialog"
-        :displayBasic="displayBasic"
-        :training_emps="training_emps"
-        :checkadd="isSaveTem"
-        :view="false"
-        :closeDialog="closeDialog"
-      />
-    </div>
-  </div>
+    </form>
+    <template #footer>
+      <div class="pt-3">
+        <Button label="Hủy" icon="pi pi-times" @click="props.closeDialog" class="p-button-outlined" />
 
-  <Menu
-    id="overlay_More"
-    ref="menuButMores"
-    :model="itemButMores"
-    :popup="true"
-  />
+        <Button v-if="!view" label="Lưu" icon="pi pi-check" @click="saveData(!v$.$invalid)" autofocus />
+      </div>
+    </template>
+  </Dialog>
 </template>
-  
-    <style scoped>
-.d-container {
-  background-color: #f5f5f5;
+<style scoped>
+#formprint {
+  background: #fff !important;
 }
 
-.d-lang-header {
-  background-color: #ffff;
-  padding: 12px 8px 0px 8px;
-  margin: 8px 8px 0px 8px;
-  height: 33px;
-}
-.d-lang-header h3,
-i {
-  font-weight: 600;
-}
-.d-module-title {
-  margin: 0;
-}
-.d-lang-table {
-  margin: 0px;
-  height: calc(100vh - 200px);
+#formprint * {
+  font-family: "Times New Roman", Times, serif !important;
+  font-size: 13pt;
 }
 
-.tableview-nav {
-  background: #ffffff;
-  border: 1px solid #dee2e6;
-  border-width: 0 0 2px 0;
-  display: flex;
-  flex: 1 1 auto;
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-.tableview-header {
-  display: inline-block;
-}
-.tableview-nav li {
-  border: solid #dee2e6;
-  border-width: 0 0 2px 0;
-  padding: 1.25rem;
-  font-weight: 700;
-  margin: 0 0 -2px 0;
-  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
-}
-.tableview-nav li:hover {
-  cursor: pointer;
-}
-.tableview-nav li.highlight {
-  background: #ffffff;
-  border-color: #3b82f6;
-  color: #3b82f6;
-}
-.tableview-nav li:not(.highlight):hover {
-  background: #ffffff;
-  border-color: #adb5bd;
-  color: #6c757d;
-}
-.tableview-nav li a:focus {
-  outline: 0 none;
-  outline-offset: 0;
-  box-shadow: inset 0 0 0 0.2rem #bfdbfe;
-}
-.btn-hidden {
-  filter: opacity(40%) !important;
-  cursor: auto !important;
-}
 .hover:hover {
   cursor: pointer;
   color: #2196f3 !important;
 }
-.inputanh {
-  border: 1px solid #ccc;
-  width: 8rem;
-  height: 8rem;
-  cursor: pointer;
-  padding: 0.063rem;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+
+.title1,
+.title1 * {
+  font-size: 17pt !important;
 }
-.ipnone {
-  display: none;
+
+.title2,
+.title2 * {
+  font-size: 16pt !important;
 }
-.inputanh img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
+
+.title3,
+.title3 * {
+  font-size: 15pt !important;
+}
+
+.boder tr th,
+.boder tr td {
+  border: 1px solid #999999 !important;
+  padding: 0.5rem;
+}
+
+table {
+  min-width: 100% !important;
+  page-break-inside: auto !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+}
+
+thead {
+  display: table-header-group !important;
+}
+
+tbody {
+  display: table-header-group !important;
+}
+
+tr {
+  -webkit-column-break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+tfoot {
+  display: table-footer-group !important;
+}
+
+.uppercase,
+.uppercase * {
+  text-transform: uppercase !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.html p {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 </style>
-    
+<style lang="scss" scoped>
+::v-deep(.html) {
+  p {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+</style>
