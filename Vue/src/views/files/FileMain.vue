@@ -75,6 +75,7 @@ const list_modules = [
     is_link: "chat_message",
   },
 ];
+var datalists_temp = [];
 const max_length_file = ref(50);
 const checkFilter = ref(false);
 const headerDialogUser = ref("Chọn người dùng");
@@ -264,6 +265,7 @@ const itemSortButs = ref([
     },
   },
 ]);
+
 const optionsClick_List = ref([
   {
     label: "Sửa",
@@ -301,7 +303,7 @@ const optionsClick_List = ref([
 const optionsShare_List = ref([
   {
     label: "Thông tin",
-    icon: "pi pi-pencil",
+    icon: "pi pi-info-circle",
     command: (event) => {
       showInfo(file_edit.value);
     },
@@ -318,7 +320,7 @@ const optionsShare_List = ref([
 const optionsModule_List = ref([
   {
     label: "Thông tin",
-    icon: "pi pi-pencil",
+    icon: "pi pi-info-circle",
     command: (event) => {
       showInfo_ModuleFiles(file_edit.value);
     },
@@ -365,7 +367,9 @@ const checkOverlay = (type) => {
           label: "Sửa",
           icon: "pi pi-pencil",
           command: (event) => {
-            openFile(file_edit.value);
+            file_edit.value.is_folder
+        ? editFolder(file_edit.value)
+        : editFile(file_edit.value);
           },
         });
     }
@@ -489,6 +493,7 @@ const toggleFilter = (event) => {
   filterButs.value.toggle(event);
 };
 const loadThumuc = (id, share, module_key) => {
+  refilterFile();
   is_search.value = false;
   folder.value = data_tree.filter((x) => x.folder_id == id)[0];
   //load breadCumb
@@ -572,13 +577,14 @@ const loadThumuc = (id, share, module_key) => {
           moment(new Date(item.modified_date || item.created_date)).format(
             "DD/MM/YYYY hh:mm"
           ) +
-          (item.is_folder && !item.file_type
+          (item.is_folder || isEmpty(item.file_type)
             ? ""
             : "\nType: " + item.file_type.toUpperCase() + " File") +
           (item.is_folder && item.capacityMB
             ? ""
             : "\nSize: " + item.capacityMB);
       });
+      datalists_temp = JSON.parse(JSON.stringify(datalists.value));
       if (data[2].length > 0) {
         options.value.MaxSTT = data[2][0].MaxSTT;
       }
@@ -708,7 +714,6 @@ const getInfoFileNoti = (id) => {
         dataInfoNoti.value = data[0][0];
         displayShowFileNoti.value = true;
       }
-
     })
     .catch((error) => {
       if (error.status === 401) {
@@ -724,6 +729,7 @@ const onNodeSelect = (node) => {
   loadThumuc(node.data.folder_id, node.data.is_share, node.data.module_key);
   // lưu log
   if (!["me", "share", "1"].includes(node.data.folder_id))
+  debugger
     addLog({
       contents:
         store.getters.user.full_name +
@@ -1736,7 +1742,7 @@ const saveShareFile = (data, type) => {
       if (response.data.err != "1") {
         let id = response.data.data;
         swal.close();
-        toast.success("Cập nhật thành công!");
+        toast.success("Chia sẻ thành công!");
       } else {
         swal.fire({
           title: "Thông báo!",
@@ -1805,18 +1811,21 @@ const saveShareFolder = (data) => {
 //   options.value.search = null;
 // };
 const onSearch = () => {
+  //let temp = JSON.parse(JSON.stringify(datalists.value))
+  datalists.value = datalists_temp;
   if (options.value.search) {
+    is_search.value = true;
     FilterAndSearch();
   } else {
     is_search.value = false;
-    data_search.value = [];
+    // data_search.value = [];
   }
 };
 const goToModule = (data) => {
-  // let mds = list_modules.filter((x) => x.module_key == data.module_key);
-  // if (mds.length > 0) {
-  //   router.push({ name: mds[0].is_link, params: {} });
-  // }
+  let mds = list_modules.filter((x) => data.module_key.includes(x.module_key));
+  if (mds.length > 0) {
+    router.push({ name: mds[0].is_link, params: {} });
+  }
 };
 const initModulesMenu = () => {
   axios
@@ -1861,75 +1870,155 @@ const initModulesMenu = () => {
     });
 };
 //lọc
+
 function FilterAndSearch() {
-  axios
-    .post(
-      baseUrlCheck + "/api/FileMain/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "file_main_search",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-              {
-                par: "folder_id",
-                va: folder.value ? folder.value.folder_id : null,
-              },
-              {
-                par: "path_id",
-                va: folder.value ? folder.value.path_id : null,
-              },
-              {
-                par: "module_key",
-                va: folder.value ? folder.value.module_key : null,
-              },
-              { par: "search", va: options.value.search },
-              { par: "typeFolder", va: options.value.typeFolder },
-              { par: "capacity_filter", va: options.value.capacity_filter },
-              { par: "condition", va: options.value.condition },
-              { par: "typeUnit", va: options.value.typeUnit },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      is_search.value = true;
-      swal.close();
-      let data = JSON.parse(response.data.data);
-      if (data[0].length > 0) {
-        data[0] = data[0].map((obj) => ({ ...obj, Active: obj.file_id }));
-        data_search.value = data[0];
-      } else {
-        data_search.value = [];
-      }
-      //list file
-      if (data[1].length) {
-        data_search.value = data_search.value.concat(data[1]);
-      }
-      if (data_search.value.length > 0) {
-        data_search.value.forEach((item) => {
-          if (item.is_folder)
-            item.ratioMB =
-              Math.floor(
-                (item.capacity_used / (item.capacity * 1024 * 1024)) * 100
-              ) || 0;
-          item.capacityMB = formatBytes(
-            item.is_folder ? item.capacity_used || 0 : item.capacity || 0
+  if (options.value.search)
+    datalists.value = datalists.value.filter((x) =>
+      removeVietnameseTones(x.file_name.toLowerCase()).includes(removeVietnameseTones(options.value.search.toLowerCase()))
+    );
+  if (options.value.typeFolder)
+    datalists.value = datalists.value.filter(
+      (x) => x.is_folder == (options.value.typeFolder == "folder")
+    );
+  if (options.value.capacity_filter) {
+    switch (options.value.typeUnit) {
+      case "Bytes":
+        if (options.value.condition == "<")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) <
+              options.value.capacity_filter
           );
-          item.chon = false;
-        });
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+        else if (options.value.condition == "<=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) <=
+              options.value.capacity_filter
+          );
+        else if (options.value.condition == "=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) ==
+              options.value.capacity_filter
+          );
+        else if (options.value.condition == ">")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) >
+              options.value.capacity_filter
+          );
+        else if (options.value.condition == ">=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) >=
+              options.value.capacity_filter
+          );
+        break;
+      case "KB":
+        if (options.value.condition == "<")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) <
+              options.value.capacity_filter * 1024
+          );
+        else if (options.value.condition == "<=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) <=
+              options.value.capacity_filter * 1024
+          );
+        else if (options.value.condition == "=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) ==
+              options.value.capacity_filter * 1024
+          );
+        else if (options.value.condition == ">")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) >
+              options.value.capacity_filter * 1024
+          );
+        else if (options.value.condition == ">=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) >=
+              options.value.capacity_filter * 1024
+          );
+        break;
+      case "MB":
+        if (options.value.condition == "<")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) <
+              options.value.capacity_filter * 1024 * 1024
+          );
+        else if (options.value.condition == "<=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) <=
+              options.value.capacity_filter * 1024 * 1024
+          );
+        else if (options.value.condition == "=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) ==
+              options.value.capacity_filter * 1024 * 1024
+          );
+        else if (options.value.condition == ">")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) >
+              options.value.capacity_filter * 1024 * 1024
+          );
+        else if (options.value.condition == ">=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) >=
+              options.value.capacity_filter * 1024 * 1024
+          );
+        break;
+      case "GB":
+        if (options.value.condition == "<")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) <
+              options.value.capacity_filter * 1024 * 1024 * 1024
+          );
+        else if (options.value.condition == "<=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) <=
+              options.value.capacity_filter * 1024 * 1024 * 1024
+          );
+        else if (options.value.condition == "=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) ==
+              options.value.capacity_filter * 1024 * 1024 * 1024
+          );
+        else if (options.value.condition == ">")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) >
+              options.value.capacity_filter * 1024 * 1024 * 1024
+          );
+        else if (options.value.condition == ">=")
+          datalists.value = datalists.value.filter(
+            (x) =>
+              formatCapacity(x.capacity, x.is_folder) >=
+              options.value.capacity_filter * 1024 * 1024 * 1024
+          );
+        break;
+    }
+  }
+}
+function formatCapacity(value, type) {
+  return type ? value * 1024 * 1024 : value; // format ve byte
 }
 const filterFile = () => {
   checkFilter.value = true;
+    datalists.value = datalists_temp;
   FilterAndSearch();
   filterButs.value.toggle();
 };
@@ -1941,7 +2030,8 @@ const refilterFile = () => {
   options.value.typeUnit = "MB";
   checkFilter.value = false;
   is_search.value = false;
-  filterButs.value.toggle();
+  datalists.value = datalists_temp;
+  //filterButs.value.toggle();
 };
 const ChangeSortFile = (type_sort) => {
   itemSortButs.value.forEach((i) => {
@@ -2006,6 +2096,38 @@ const ChangeSortFile = (type_sort) => {
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
 }
+function removeVietnameseTones(str) {
+  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+  str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+  str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+  str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+  str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+  str = str.replace(/đ/g, "d");
+  str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+  str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+  str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+  str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+  str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+  str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+  str = str.replace(/Đ/g, "D");
+  // Some system encode vietnamese combining accent as individual utf-8 characters
+  // Một vài bộ encode coi các dấu mũ, dấu chữ như một kí tự riêng biệt nên thêm hai dòng này
+  str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, ""); // ̀ ́ ̃ ̉ ̣  huyền, sắc, ngã, hỏi, nặng
+  str = str.replace(/\u02C6|\u0306|\u031B/g, ""); // ˆ ̆ ̛  Â, Ê, Ă, Ơ, Ư
+  // Remove extra spaces
+  // Bỏ các khoảng trắng liền nhau
+  str = str.replace(/ + /g, " ");
+  str = str.trim();
+  // Remove punctuations
+  // Bỏ dấu câu, kí tự đặc biệt
+  str = str.replace(
+    /!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'|\"|\&|\#|\[|\]|~|\$|_|`|-|{|}|\||\\/g,
+    " "
+  );
+  return str;
+}
+
 //var pressedKeys = {};
 const pressedKeys = ref({
   Control: false,
@@ -2124,8 +2246,7 @@ export default {
                       v-if="
                         folder.folder_id !== 'me' &&
                         folder.folder_id !== 'share' &&
-                        folder.module_key !== 'M0' &&
-                        !is_search
+                        folder.module_key !== 'M0'
                       "
                       label="Quay lại"
                       icon="pi pi-arrow-left"
@@ -2335,7 +2456,6 @@ export default {
             style="height: calc(100vh - 115px)"
           >
             <DataView
-              v-if="!is_search"
               class="w-full h-full e-sm flex flex-column p-dataview-unset"
               :value="datalists"
               :layout="layout"
@@ -2384,6 +2504,46 @@ export default {
                     </Button>
                   </template>
                 </Breadcrumb>
+                              <div class="col-12 flex" v-if="is_search">
+                <div class="col-6 text-lg">
+                  <span class="">Kết quả cho </span>
+                  <span class="font-bold font-italic" v-if="options.search">{{
+                    options.search
+                  }}</span>
+                  <span
+                    v-if="
+                      (options.search && options.typeFolder) ||
+                      (options.search && options.capacity_filter)
+                    "
+                    >,
+                  </span>
+                  <span
+                    class="font-bold font-italic"
+                    v-if="options.typeFolder"
+                    >{{
+                      loais.filter((x) => x.value == options.typeFolder)[0].name
+                    }}</span
+                  >
+                  <span v-if="options.typeFolder && options.capacity_filter"
+                    >,
+                  </span>
+                  <span
+                    class="font-bold font-italic"
+                    v-if="options.capacity_filter"
+                    >{{ options.condition }}{{ options.capacity_filter
+                    }}{{ options.typeUnit }}</span
+                  >
+                </div>
+                <div class="col-6">
+                  <Button
+                    icon="pi pi-times"
+                    class="p-button-rounded p-button-danger p-button-outlined"
+                    style="float: right"
+                    v-tooltip.top="'Xóa'"
+                    @click="refilterFile()"
+                  />
+                </div>
+              </div>
               </template>
               <template #grid="slotProps">
                 <div
@@ -2429,7 +2589,7 @@ export default {
                           v-bind:src="
                             basedomainURL +
                             '/Portals/file/' +
-                            slotProps.data.file_type +
+                            slotProps.data.file_type.replace('.','') +
                             '.png'
                           "
                           @error="
@@ -2555,7 +2715,7 @@ export default {
                       v-bind:src="
                         basedomainURL +
                         '/Portals/file/' +
-                        slotProps.data.file_type +
+                        slotProps.data.file_type.replace('.','') +
                         '.png'
                       "
                       @error="
@@ -2642,184 +2802,7 @@ export default {
                   <h3 class="m-1">Không có dữ liệu</h3>
                 </div>
               </template>
-            </DataView>
-            <div v-if="is_search">
-              <div>
-                <div class="col-12 flex">
-                  <div class="col-6 text-lg">
-                    <span class="">Kết quả cho </span>
-                    <span class="font-bold font-italic" v-if="options.search">{{
-                      options.search
-                    }}</span>
-                    <span
-                      v-if="
-                        (options.search && options.typeFolder) ||
-                        (options.search && options.capacity_filter)
-                      "
-                      >,
-                    </span>
-                    <span
-                      class="font-bold font-italic"
-                      v-if="options.typeFolder"
-                      >{{
-                        loais.filter((x) => x.value == options.typeFolder)[0]
-                          .name
-                      }}</span
-                    >
-                    <span v-if="options.typeFolder && options.capacity_filter"
-                      >,
-                    </span>
-                    <span
-                      class="font-bold font-italic"
-                      v-if="options.capacity_filter"
-                      >{{ options.condition }}{{ options.capacity_filter
-                      }}{{ options.typeUnit }}</span
-                    >
-                  </div>
-                  <div class="col-6">
-                    <Button
-                      icon="pi pi-times"
-                      class="p-button-rounded p-button-danger p-button-outlined"
-                      style="float: right"
-                      v-tooltip.top="'Xóa'"
-                      @click="refilterFile()"
-                    />
-                  </div>
-                </div>
-                <div v-if="data_search.length > 0">
-                  <div v-for="(item, index) in data_search" :key="index">
-                    <div class="p-2 w-full" style="background-color: #fff">
-                      <div
-                        class="flex align-items-center justify-content-center"
-                      >
-                        <div class="mx-2">
-                          <Checkbox
-                            v-if="!item.is_module && !item.is_share"
-                            id="IsIdentity"
-                            v-model="item.chon"
-                            :binary="true"
-                            @change="clickDelFile"
-                          />
-                        </div>
-                        <Image
-                          @click="
-                            item.is_folder
-                              ? onNodeSelect(item)
-                              : item.is_image
-                              ? dbImageClick(item)
-                              : dbFileClick(item)
-                          "
-                          v-if="item.is_image || item.is_folder"
-                          height="40"
-                          class="cursor-pointer"
-                          v-bind:src="
-                            item.is_filepath
-                              ? basedomainURL + item.is_filepath
-                              : basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                        />
-                        <img
-                          v-else
-                          @click="
-                            item.is_folder
-                              ? onNodeSelect(item)
-                              : item.is_image
-                              ? dbImageClick(item)
-                              : dbFileClick(item)
-                          "
-                          class="cursor-pointer"
-                          style="height: 40px; object-fit: contain"
-                          v-bind:src="
-                            basedomainURL +
-                            '/Portals/file/' +
-                            item.file_type +
-                            '.png'
-                          "
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                        />
-                        <div
-                          class="flex flex-column flex-grow-1 ml-4"
-                          @click="
-                            item.is_folder
-                              ? onNodeSelect(item)
-                              : item.is_image
-                              ? dbImageClick(item)
-                              : dbFileClick(item)
-                          "
-                        >
-                          <div style="color: inherit; padding: 0 !important">
-                            <h3 class="mb-1 mt-0">
-                              {{ item.file_name }}
-                            </h3>
-                            <span style="font-size: 10pt; color: #999">{{
-                              item.created_name
-                            }}</span>
-                          </div>
-                        </div>
-                        <Chip
-                          v-if="item.capacity && !item.is_folder"
-                          class="ml-2 mr-2"
-                          :label="item.capacityMB"
-                        />
-                        <Chip
-                          v-if="item.capacity && item.is_folder"
-                          class="ml-2 mr-2"
-                          :class="
-                            item.ratioMB < 70
-                              ? ''
-                              : item.ratioMB < 90
-                              ? 'bg-info-folder'
-                              : 'bg-warning-folder'
-                          "
-                          :label="
-                            (item.capacityMB || 0) + '/' + item.capacity + ' MB'
-                          "
-                        />
-                        <div style="background-color: #eee; font-size: 10pt">
-                          {{
-                            moment(new Date(item.created_date)).format(
-                              "DD/MM/YYYY"
-                            )
-                          }}
-                        </div>
-                        <Button
-                          v-if="item.file_type"
-                          v-bind:label="item.file_type.toUpperCase()"
-                          v-bind:class="'ml-2 mr-2 p-button p-button-warning p-button-rounded'"
-                        />
-                        <Button
-                          icon="pi pi-ellipsis-h"
-                          class="p-button-outlined p-button-secondary ml-2"
-                          @click="toggleMores($event, item)"
-                          aria-haspopup="true"
-                          aria-controls="overlay_More"
-                          style="min-width: 30px"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div v-else>
-                  <div
-                    class="
-                      align-items-center
-                      justify-content-center
-                      p-4
-                      text-center
-                    "
-                  >
-                    <img
-                      src="../../assets/background/nodata.png"
-                      height="144"
-                    />
-                    <h3 class="m-1">Không có dữ liệu</h3>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </DataView>          
           </div>
         </SplitterPanel>
       </Splitter>
@@ -2986,11 +2969,9 @@ export default {
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left">STT</label>
             <InputNumber class="col-2 ip36 p-0" v-model="filemain.is_order" />
-
+            <label class="col-2"></label>
             <label class="col-2 text-right">Trạng thái</label>
             <InputSwitch v-model="filemain.status" />
-            <label class="col-3 text-right">Công khai</label>
-            <InputSwitch v-model="filemain.is_public" />
           </div>
         </div>
         <template #footer>
@@ -3126,12 +3107,24 @@ export default {
         :autoZIndex="true"
       >
         <div class="grid formgrid m-2 h-full">
-          <div v-if="DataDetail" class="w-full">
+          <div v-if="DataDetail" class="w-full format-center">
+                        <img
+              v-if="
+                'gif,jpeg,png,jpg,.gif,.jpeg,.png,.jpg'.includes(DataDetail.file_type.toLowerCase())
+              "
+              style="width: 100%; min-height: 66vh; height: 100%"
+              class="w-full cursor-pointer"
+              :src="
+                DataDetail.is_filepath
+                  ? basedomainURL + DataDetail.is_filepath
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              "
+            />
             <video
               v-if="
-                'mp4,flv,mov,wmv'.includes(DataDetail.file_type.toLowerCase())
+                'mp4,flv,mov,wmv,.mp4,.flv,.mov,.wmv'.includes(DataDetail.file_type.toLowerCase())
               "
-              style="width: 100%; height: 60vh; height: 100%"
+              style="width: 100%; min-height: 66vh; height: 100%"
               controls
               :src="basedomainURL + DataDetail.is_filepath"
             ></video>
@@ -3139,7 +3132,7 @@ export default {
               style="width: 100%; margin: 0px auto"
               controls
               v-if="
-                'mp3,wma,aac,flac,alac,wav'.includes(
+                'mp3,wma,aac,flac,alac,wav,.mp3,.wma,.aac,.flac,.alac,.wav'.includes(
                   DataDetail.file_type.toLowerCase()
                 )
               "
@@ -3148,7 +3141,7 @@ export default {
             </audio>
             <iframe
               v-if="
-                'pptx,ppt,doc,docx,xls,xlsx, pdf, txt'.includes(
+                'pptx,ppt,doc,docx,xls,xlsx, pdf, txt, .pptx,.ppt,.doc,.docx,.xls,.xlsx,.pdf,.txt'.includes(
                   DataDetail.file_type.toLowerCase()
                 )
               "
@@ -3329,7 +3322,7 @@ export default {
                 <div class="col-12 p-1" v-if="!file_info.is_folder">
                   <i class="pi pi-file mr-1" style="font-size: 14px"></i>
                   Loại :
-                  <span class="font-medium">
+                  <span class="font-medium" v-if="file_info.file_type">
                     {{ file_info.file_type.toUpperCase() }}</span
                   >
                 </div>
@@ -3469,7 +3462,7 @@ export default {
                 <div class="col-12 p-1" v-if="!file_info.is_folder">
                   <i class="pi pi-file mr-1" style="font-size: 14px"></i>
                   Loại :
-                  <span> {{ file_info.file_type.toUpperCase() }}</span>
+                  <span v-if="file_info.file_type"> {{ file_info.file_type.toUpperCase() }}</span>
                 </div>
                 <div
                   class="col-12 p-1"
@@ -3574,8 +3567,7 @@ export default {
                         item.avatar ? '' : item.last_name.substring(0, 1)
                       "
                       v-bind:image="basedomainURL + item.avatar"
-                      style="
-                        background-color: #2196f3;
+                      style="background-color: #2196f3;
                         color: #ffffff;
                         width: 3rem;
                         height: 3rem;
@@ -3680,9 +3672,11 @@ export default {
                         <div class="text-sm" style="margin: 2px">
                           Ngày chia sẻ:
                           {{
-                            moment(new Date(item.created_date)).format(
-                              "DD/MM/YYYY HH:mm"
-                            )
+                            item.created_date
+                              ? moment(new Date(item.created_date)).format(
+                                  "DD/MM/YYYY HH:mm"
+                                )
+                              : ""
                           }}
                         </div>
                       </div>

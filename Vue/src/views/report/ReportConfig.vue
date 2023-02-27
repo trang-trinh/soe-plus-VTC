@@ -238,6 +238,7 @@ const loadUser = (data) => {
     .catch((error) => {});
 };
 const initUser = (data) => {
+  filters.value["global"].value = null;
   if (data_coppy.value && data.module_id !== data_coppy.value.module_id) {
     different_module_move.value = true;
   } else different_module_move.value = false;
@@ -519,6 +520,9 @@ const saveModule = () => {
     },
   });
   let formData = new FormData();
+  debugger
+  formData.append("is_link", JSON.stringify(users_main.value.length>0 ?users_main.value[0].is_link:''));
+  formData.append("module_id", JSON.stringify(users_main.value.length>0 ?users_main.value[0].module_id:''));
   formData.append("user_module", JSON.stringify(users_main.value));
   axios
     .put(baseURL + "/api/ReportModule/update_module", formData, config)
@@ -526,6 +530,7 @@ const saveModule = () => {
       if (response.data.err === "0") {
         swal.close();
         toast.success("Cập nhật thành công!");
+        displayAddModule.value = false;
       }
     });
 };
