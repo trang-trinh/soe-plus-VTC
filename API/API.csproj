@@ -385,8 +385,6 @@
     <Compile Include="Controllers\Dictionary\ca_emotesController.cs" />
     <Compile Include="Controllers\Dictionary\DictionaryProcController.cs" />
     <Compile Include="Controllers\Dictionary\doc_ca_positionController.cs" />
-    <Compile Include="Controllers\Dictionary\doc_followsController.cs" />
-    <Compile Include="Controllers\Dictionary\doc_masterController.cs" />
     <Compile Include="Controllers\Dictionary\role_groupsController.cs" />
     <Compile Include="Controllers\Dictionary\role_group_browse_groupController.cs" />
     <Compile Include="Controllers\Dictionary\role_group_usersController.cs" />

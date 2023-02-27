@@ -36,3 +36,10 @@ coverage
 ../API/obj/
 ../API/Portals/
 ../API/Models/
+../API/App_Data/
+../API/Content/
+../API/fonts/
+../API/Properties/
+../API/Scripts/
+*.csproj
+../API/Web References/
