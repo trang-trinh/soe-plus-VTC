@@ -205,7 +205,7 @@ const searchReceive = () => {
 };
 
 const refreshData = () => {
-  
+  first.value=0;
   options.value.fields_id = null;
   options.value.department_id = null;
   options.value.department_id_process = null;
@@ -639,7 +639,7 @@ const renderTreeDV1 = (data, id, name, title, org_id) => {
 const checkFilter = ref(false);
 const onRefilterDM = () => {
   options.value.doc_group_id = null;
- 
+  options.value.pageno=0;
   options.value.fields_id = null;
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
@@ -653,7 +653,7 @@ const onRefilterDM = () => {
   options.value.end_dateD = null;
   options.value.start_dateD = null;
   filterButs.value.hide();
-  filterSQL.value=[];
+  filterSQL.value=[];first.value=0;
   options.value.loading = true;
   loadData();
 };
@@ -854,7 +854,7 @@ if (options.value.start_dateI && options.value.end_dateI) {
 
     }
   }
-
+  first.value=0;
 if( filterSQL.value.length>0)
   loadDataSQL();
   else
@@ -1318,7 +1318,7 @@ const exportData = (method) => {
       }
     });
 };
-
+const first=ref(0);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   dispatch_book_num: {

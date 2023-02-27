@@ -873,7 +873,7 @@ const options = ref({
   sortDM: "device_id DESC",
   search: "",
   pageno: 0,
-  pagesize: 20,
+  pagesize:2 ,
   pagenoDM: 0,
   pagesizeDM: 20,
   loading: true,

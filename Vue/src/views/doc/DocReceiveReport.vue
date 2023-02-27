@@ -188,7 +188,7 @@ const refreshData = () => {
   options.value.end_dateD = null;
   options.value.search = null;
   options.value.loading = true;
-  checkFilter.value = false;
+  checkFilter.value = false; first.value=0;
   filters.value = {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     dispatch_book_num: {
@@ -585,7 +585,7 @@ const onRefilterDM = () => {
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
   options.value.ca_groups_list = null;
-
+  first.value=0;
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
@@ -594,7 +594,7 @@ const onRefilterDM = () => {
   options.value.start_dateD = null;
   filterButs.value.hide();
   filterSQL.value = [];
-
+  options.value.pageno=0;
   isDynamicSQL.value = false;
   checkFilter.value = false;
   options.value.loading = true;
@@ -606,7 +606,7 @@ const onFilterDM = () => {
   options.value.loading = true;
   checkFilter.value = true;
   filterSQL.value = [];
-
+  options.value.pageno=0;
   let filterS = null;
 
   var strG = "";
@@ -809,6 +809,7 @@ const onFilterDM = () => {
 
     }
   }
+  first.value=0;
   if (filterSQL.value.length > 0) loadDataSQL();
   else loadData(true);
 };
@@ -1094,7 +1095,7 @@ htmltable += `<div id="formprint">
 }
 const datalistsExport = ref();
 var checkTypeExpport = false;
-
+const first=ref(0);
 //Xuất excel
 const menuButs = ref();
 const exportExcelR = () => {
@@ -1382,8 +1383,8 @@ onMounted(() => {
       <DataTable class="w-full p-datatable-sm e-sm p-table-custom-d" :lazy="true" @page="onPage($event)"
         @filter="onFilter($event)" @sort="onSort($event)" :value="datalists" :loading="options.loading"
         :paginator="options.totalRecords > options.pagesize" :rows="options.pagesize" :totalRecords="options.totalRecords"
-        dataKey="doc_master_id" :rowHover="true" :filters="filters" :showGridlines="true" filterDisplay="menu"
-        filterMode="lenient" responsiveLayout="scroll" :scrollable="true" scrollHeight="flex"
+        dataKey="doc_master_id" :rowHover="true" :filters="filters" :showGridlines="true" filterDisplay="menu" 
+        filterMode="lenient" responsiveLayout="scroll" :scrollable="true" scrollHeight="flex"  v-model:first="first"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks  NextPageLink LastPageLink    RowsPerPageDropdown"
         :rowsPerPageOptions="[20, 30, 50, 100, 200]">
         <template #header>
@@ -1836,7 +1837,7 @@ onMounted(() => {
                 p-4
                 text-center
                 m-auto
-              " v-if="!isFirst">
+              " v-if="!isFirstCard">
             <img src="../../assets/background/nodata.png" height="144" />
             <h3 class="m-1">Không có dữ liệu</h3>
           </div>
