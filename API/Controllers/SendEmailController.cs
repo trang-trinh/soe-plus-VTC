@@ -47,7 +47,7 @@ namespace API.Controllers
             string json = System.IO.File.ReadAllText(HttpContext.Current.Server.MapPath("~/Config/Config.json"));
             settings deJson = JsonConvert.DeserializeObject<settings>(json);
 
-            //string pwEm = Codec.DecryptString(deJson.pwEmail, helper.psKey);
+            //string pwEm = Codec.DecryptString(deJson.psemail, helper.psKey);
             //if (deJson.email == null || pwEm == null)
             //{
             //    return Request.CreateResponse(HttpStatusCode.OK, new { err = "-1", ms = "Hệ thống chưa có Email.<br> Vui lòng liên hệ hỗ trợ để cài đặt." });
@@ -160,8 +160,9 @@ namespace API.Controllers
                 var dataSetting = JsonConvert.DeserializeObject<settings>(json);
                 InfoEmail infoMail = new InfoEmail();
                 infoMail.email = dataSetting.email != null ? Codec.EncryptString(dataSetting.email, helper.psKey) : null;
-                infoMail.kpmail = dataSetting.pwEmail;
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = infoMail });
+                infoMail.kpmail = dataSetting.psemail != null ? Codec.EncryptString(dataSetting.psemail, helper.psKey) : null;
+                //return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.SerializeObject(infoMail) });
+                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.SerializeObject(infoMail) });
             }
             catch (Exception e)
             {

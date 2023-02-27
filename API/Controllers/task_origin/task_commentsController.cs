@@ -495,11 +495,28 @@ namespace API.Controllers.Task_Ca
                         }
                         foreach (var file in file_paths)
                         {
-                            var pathsss = rootDel + file;
-                            bool ehxists = File.Exists(rootDel + file);
+                            //var pathsss = rootDel + file;
+                            //bool ehxists = File.Exists(rootDel + file);
+                            //if (ehxists == true)
+                            //{
+                            //    File.Delete(rootDel + file);
+                            //}
+
+                            // Format file
+                            var strPathFormat = Regex.Replace(file.Replace("\\", "/"), @"\.*/+", "/");
+                            var listStrPath = strPathFormat.Split('/');
+                            var strPathConfig = "";
+                            foreach (var item in listStrPath)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    strPathConfig += "/" + Path.GetFileName(item);
+                                }
+                            }
+                            bool ehxists = File.Exists(rootDel + strPathConfig);
                             if (ehxists == true)
                             {
-                                File.Delete(rootDel + file);
+                                File.Delete(rootDel + strPathConfig);
                             }
                         }
                         #endregion
@@ -581,6 +598,7 @@ namespace API.Controllers.Task_Ca
                 using (DBEntities db = new DBEntities())
                 {
 
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
                     var das = await db.task_comments.Where(a => id.Contains(a.comment_id)).ToListAsync();
 
                     if (das.Count == 0)
@@ -600,7 +618,10 @@ namespace API.Controllers.Task_Ca
                                 var file = db.task_file.Where(x => x.comment_id == da.comment_id).FirstOrDefault();
 
                                 if (file != null)
-                                { paths.Add(file.file_path); delFile.Add(file); }
+                                { 
+                                    paths.Add(file.file_path); 
+                                    delFile.Add(file); 
+                                }
 
                             }
                             #region add cms_logs
@@ -647,9 +668,26 @@ namespace API.Controllers.Task_Ca
                     await db.SaveChangesAsync();
                     foreach (string strPath in paths)
                     {
-                        bool exists = File.Exists(strPath);
-                        if (exists)
-                        { File.Delete(strPath); }
+                        //bool exists = File.Exists(strPath);
+                        //if (exists)
+                        //{ 
+                        //    File.Delete(strPath); 
+                        //}
+                        var strPathFormat = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/");
+                        var listStrPath = strPathFormat.Split('/');
+                        var strPathConfig = "";
+                        foreach (var item in listStrPath)
+                        {
+                            if (item.Trim() != "")
+                            {
+                                strPathConfig += "/" + Path.GetFileName(item);
+                            }
+                        }
+                        bool ex = System.IO.File.Exists(root + strPathConfig);
+                        if (ex)
+                        {
+                            System.IO.File.Delete(root + strPathConfig);
+                        }
                     }
 
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });

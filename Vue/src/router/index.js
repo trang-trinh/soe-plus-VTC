@@ -238,8 +238,8 @@ const ProjectMain = () => import("../views/project_main/ProjectMain.vue");
 const ProjectGroup = () => import("../views/task_ca/ProjectGroup.vue");
 const TaskGroups = () => import("../views/task_ca/taskgroups.vue");
 const TaskOrigin = () => import("../views/task_origin/TaskOrigin.vue");
+const TaskOriginFilter = () => import("../views/task_origin/TaskOrigin.vue");
 const TaskOriginDetail = () => import("../views/task_origin/TaskOrigin.vue");
-const taskmainFilter = () => import("../views/task_origin/TaskOrigin.vue");
 const taskWeights = () => import("../views/tasks/config/taskWeights.vue");
 const BrowseGroup = () => import("../views/tasks/config/BrowseGroup.vue");
 const TaskDepartmentConfiguration = () =>
@@ -1194,7 +1194,12 @@ const router = createRouter({
       name: "chat_message/detail",
       component: Chat_Detail,
     },
-
+    // Tài liệu
+    {
+      path: "/files/file_main/:id/:type",
+      name: "files/file_main_detail",
+      component: FileMain_Detail,
+    },
     {
       path: "/files/file_folder",
       name: "file_folder",
@@ -1252,9 +1257,9 @@ const router = createRouter({
       component: TaskOriginDetail,
     },
     {
-      path: "/tasks/taskmain/:type",
+      path: "/tasks/taskmaintype/:type",
       name: "taskmainFilter",
-      component: taskmainFilter,
+      component: TaskOriginFilter,
     },
     {
       path: "/tasks/config/weight",
