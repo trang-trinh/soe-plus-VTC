@@ -246,7 +246,7 @@ namespace API.Controllers.Tasks.Config
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = db.task_weights.Where(a => (a.weight_id == trangthai.IntID)).FirstOrDefault<task_weights>();
+                    var das = db.task_weights.FirstOrDefault(a => (a.weight_id == trangthai.IntID));
                     if (das != null)
                     {
 

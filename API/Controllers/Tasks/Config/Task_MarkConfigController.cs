@@ -52,7 +52,7 @@ namespace API.Controllers.Tasks.Config
                 {
                     using (DBEntities db = new DBEntities())
                     {
-                        var das = db.Task_Marks.Where(a => (a.mark_id == trangthai.IntID)).FirstOrDefault<Task_Marks>();
+                        var das = db.Task_Marks.FirstOrDefault(a => (a.mark_id == trangthai.IntID));
                         if (das != null)
                         {
 

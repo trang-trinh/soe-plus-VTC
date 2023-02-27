@@ -158,10 +158,13 @@ namespace API.Controllers.Tasks.Person_Report
                                 db.task_person_report_processing.Add(rp_Process);
 
                             }
-                            var rp = db.task_person_report.Where(x => x.report_id == rpID).FirstOrDefault();
+                            var rp = db.task_person_report.Where(x => x.report_id == rpID).FirstOrDefault();      
+                        helper.saveNotify(uid, user_id, null, "Công việc", "Đã gửi yêu cầu đánh giá công việc trong Đánh giá công việc",
+                                null, 11, -1, false, "M4", "", null, null, tid, ip);
                             rp.status = 1;
                             db.Entry(rp).State = EntityState.Modified;
                         }
+                  
                         db.SaveChanges();
                         #region add notify
                         #endregion

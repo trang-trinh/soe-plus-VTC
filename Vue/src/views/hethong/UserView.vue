@@ -46,6 +46,7 @@ const data_coppy = ref();
 const different_module_move = ref(false);
 const user_id_check = ref();
 const id_temp = ref();
+const role_temp = ref();
 const checkFilter = ref(false);
 const filterButs = ref();
 const isDisplayAvt = ref(false);
@@ -1235,6 +1236,7 @@ const configRole = (md) => {
     different_module_move.value = true;
   } else different_module_move.value = false;
   id_temp.value = md.user_id;
+  role_temp.value = md.role_id;
   user_data.value = { role_id: md.role_id, user_id: md.user_id };
   modules.value.forEach((el) => {
     el.data.is_permission = null;
@@ -1350,8 +1352,8 @@ const addConfigRole = () => {
   modules.value.forEach((element) => {
     mdmodules.push({
       role_module_id: element.data.role_module_id || -1,
-      role_id: element.data.role_id,
-      user_id: element.data.user_id,
+      role_id: is_coppy_module.value? role_temp.value: element.data.role_id,
+      user_id: is_coppy_module.value? id_temp.value: element.data.user_id,
       module_id: element.data.module_id,
       IsCap: element.data.IsCap,
       is_permission: element.data.is_permission
@@ -1365,8 +1367,8 @@ const addConfigRole = () => {
       element.children.forEach((ec) => {
         mdmodules.push({
           role_module_id: ec.data.role_module_id || -1,
-          role_id: ec.data.role_id,
-          user_id: element.data.user_id,
+          role_id: is_coppy_module.value? role_temp.value: ec.data.role_id,
+          user_id: is_coppy_module.value? id_temp.value: element.data.user_id,
           module_id: ec.data.module_id,
           IsCap: ec.data.IsCap,
           is_permission: ec.data.is_permission
@@ -1381,8 +1383,8 @@ const addConfigRole = () => {
           ec.children.forEach((ec2) => {
             mdmodules.push({
               role_module_id: ec2.data.role_module_id || -1,
-              role_id: ec2.data.role_id,
-              user_id: ec2.data.user_id,
+              role_id: is_coppy_module.value? role_temp.value: ec2.data.role_id,
+              user_id: is_coppy_module.value? id_temp.value: ec2.data.user_id,
               module_id: ec2.data.module_id,
               is_grade: ec2.data.is_grade,
               is_permission: ec2.data.is_permission
@@ -2123,7 +2125,6 @@ onMounted(() => {
             style="cursor: pointer; width: 33.33%"
             v-model="user.is_psword"
             autocomplete="new-password"
-            toggleMask
             class="ip32"
           >
             <template #header>

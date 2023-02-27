@@ -2040,6 +2040,20 @@ span.online {
 .product-grid-item-content:hover .mybutton {
   display: block;
 }
+@media only screen and (max-width: 2560px) {
+  .mybutton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.5);
+    color: red;
+    padding: 2.5rem;
+    border-color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    display: none;
+  }
+}
 
 @media only screen and (max-width: 1920px) {
   .mybutton {

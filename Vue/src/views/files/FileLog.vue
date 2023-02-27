@@ -22,7 +22,7 @@ const opition = ref({
   IsNext: true,
   sort: "file_log_id DESC",
   PageNo: 0,
-  PageSize: 20,
+  PageSize: 30,
   Filteruser_id: null,
   user_id: store.getters.user_id,
   department_id: store.getters.user.organization_id,
@@ -109,12 +109,14 @@ const onRefersh = () => {
     sort: "file_log_id DESC",
     PageNo: 0,
     IsLess: true,
-    PageSize: 20,
+    PageSize: 30,
     Filteruser_id: null,
     user_id: store.getters.user.user_id,
     start_date: null,
     end_date: null,
-    is_folder: null
+    is_folder: null,
+  department_id: store.getters.user.organization_id,
+    
   };
   first.value = 0;
   //isDynamicSQL.value = false;
@@ -707,7 +709,7 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:80px"
       ></Column>
             <Column
-        :sortable="true"
+        :sortable="false"
         field="full_name"
         filterField="full_name"
         header="Tên người dùng"
@@ -719,7 +721,7 @@ onMounted(() => {
         <template #body="{ data }">
           <span class="image-text">{{ data.full_name }}</span>
         </template>
-        <template #filter="{ filterModel }">
+        <!-- <template #filter="{ filterModel }">
           <MultiSelect
             v-model="filterModel.value"
             :options="tdUsers"
@@ -749,7 +751,7 @@ onMounted(() => {
               </div>
             </template>
           </MultiSelect>
-        </template>
+        </template> -->
       </Column>
       <Column field="contents" header="Nội dung"></Column>
       <Column
@@ -774,7 +776,7 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        :sortable="true"
+        :sortable="false"
         field="is_time"
         dataType="date"
         header="Ngày thực hiện"

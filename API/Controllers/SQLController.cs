@@ -8423,10 +8423,9 @@ namespace Controllers
                 string checkOrgz = super == "True" ? " dm.organization_id is not null " : (" ( dm.organization_id = 0 or dm.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
-                    var check = false;
                     foreach (var field in filterSQL.fieldSQLS)
                     {
-                        string WhereSQLR = "";
+
                         if (field.key == "dispatch_book_id")
                         {
                             sql += "  SELECT dispatch_book_id, dispatch_book_name into #SCVBC FROM doc_ca_dispatch_books  WHERE dispatch_book_id in(SELECT * FROM dbo.udf_PivotParameters('" + field.filteroperator + "', ',') upp );";
@@ -8472,92 +8471,63 @@ namespace Controllers
                         else
                         if (field.filteroperator == "in")
                         {
-                            WhereSQLR += (WhereSQLR != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
+                            WhereSQL += (WhereSQL != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
                         }
                         else
                         {
-                            WhereSQLR += field.filterconstraints.Count > 1 ? "(" : "";
+                            WhereSQL += field.filterconstraints.Count > 1 ? "(" : "";
                             foreach (var m in field.filterconstraints.Where(a => a.value != null))
                             {
                                 switch (m.matchMode)
                                 {
-                                    case "isNull":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " is null  )";
-                                        break;
                                     case "lt":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
                                         break;
                                     case "gt":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
                                         break;
                                     case "lte":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
                                         break;
                                     case "gte":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
                                         break;
                                     case "startsWith":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
                                         break;
                                     case "endsWith":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
                                         break;
                                     case "contains":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
                                         break;
                                     case "notContains":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
                                         break;
                                     case "equals":
-                                        WhereSQLR += " " + field.filteroperator + " ( dm." + field.key + " = N'" + m.value + "')";
+                                        WhereSQL += " " + field.filteroperator + " ( dm." + field.key + " = N'" + m.value + "')";
                                         break;
                                     case "notEquals":
-                                        WhereSQLR += " " + field.filteroperator + " ( dm." + field.key + "  <> N'" + m.value + "')";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + "  <> N'" + m.value + "')";
                                         break;
                                     case "dateIs":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateIsNot":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateBefore":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateAfter":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
                                         break;
 
                                 }
                             }
-                            WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
+                            WhereSQL += field.filterconstraints.Count > 1 ? ")" : "";
                         }
-                        if (WhereSQLR.StartsWith("( and"))
-                        {
-
-                            WhereSQLR = "( " + WhereSQLR.Substring(5);
-                        }
-                        else if (WhereSQLR.StartsWith("( or"))
-                        {
-                            WhereSQLR = "( " + WhereSQLR.Substring(4);
-                        }
-                        if (WhereSQLR.StartsWith(" and"))
-                        {
-
-                            WhereSQLR = WhereSQLR.Substring(4);
-                        }
-                        else if (WhereSQLR.StartsWith(" or"))
-                        {
-                            WhereSQLR = WhereSQLR.Substring(3);
-                        }
-
-                        if (check == true)
-                        {
-                            WhereSQLR = "  and  " + WhereSQLR;
-                        }
-                        WhereSQL += WhereSQLR;
-                        check = true;
                     }
-
                 }
                 sql += " SELECT dm.doc_master_id, dm.dispatch_book_num,dm.dispatch_book_code," +
 " dm.receive_date, dm.issue_place, dm.doc_code, doc_date," +
@@ -8709,10 +8679,8 @@ namespace Controllers
                 string checkOrgz = super == "True" ? " dm.organization_id is not null " : (" ( dm.organization_id = 0 or dm.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
-                    var check = false;
                     foreach (var field in filterSQL.fieldSQLS)
                     {
-                        string WhereSQLR = "";
 
                         if (field.key == "dispatch_book_id")
                         {
@@ -8758,90 +8726,62 @@ namespace Controllers
                         else
                         if (field.filteroperator == "in")
                         {
-                            WhereSQLR += (WhereSQLR != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
+                            WhereSQL += (WhereSQL != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
                         }
                         else
                         {
-                            WhereSQLR += field.filterconstraints.Count > 1 ? "(" : "";
+                            WhereSQL += field.filterconstraints.Count > 1 ? "(" : "";
                             foreach (var m in field.filterconstraints.Where(a => a.value != null))
                             {
                                 switch (m.matchMode)
                                 {
-                                    case "isNull":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " is null  )";
-                                        break;
                                     case "lt":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
                                         break;
                                     case "gt":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
                                         break;
                                     case "lte":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
                                         break;
                                     case "gte":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
                                         break;
                                     case "startsWith":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
                                         break;
                                     case "endsWith":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
                                         break;
                                     case "contains":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
                                         break;
                                     case "notContains":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
                                         break;
                                     case "equals":
-                                        WhereSQLR += " " + field.filteroperator + " ( dm." + field.key + " = N'" + m.value + "')";
+                                        WhereSQL += " " + field.filteroperator + " ( dm." + field.key + " = N'" + m.value + "')";
                                         break;
                                     case "notEquals":
-                                        WhereSQLR += " " + field.filteroperator + " ( dm." + field.key + "  <> N'" + m.value + "')";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + "  <> N'" + m.value + "')";
                                         break;
                                     case "dateIs":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateIsNot":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateBefore":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateAfter":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
                                         break;
 
                                 }
                             }
-                            WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
+                            WhereSQL += field.filterconstraints.Count > 1 ? ")" : "";
                         }
-                        if (WhereSQLR.StartsWith("( and"))
-                        {
-
-                            WhereSQLR = "( " + WhereSQLR.Substring(5);
-                        }
-                        else if (WhereSQLR.StartsWith("( or"))
-                        {
-                            WhereSQLR = "( " + WhereSQLR.Substring(4);
-                        }
-                        if (WhereSQLR.StartsWith(" and"))
-                        {
-
-                            WhereSQLR = WhereSQLR.Substring(4);
-                        }
-                        else if (WhereSQLR.StartsWith(" or"))
-                        {
-                            WhereSQLR = WhereSQLR.Substring(3);
-                        }
-
-                        if (check == true)
-                        {
-                            WhereSQLR = "  and  " + WhereSQLR;
-                        }
-                        WhereSQL += WhereSQLR;
-                        check = true;
                     }
                 }
 
@@ -9015,10 +8955,8 @@ namespace Controllers
                 string checkOrgz = super == "True" ? " dm.organization_id is not null " : (" ( dm.organization_id = 0 or dm.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
-                    var check = false;
                     foreach (var field in filterSQL.fieldSQLS)
                     {
-                        string WhereSQLR = "";
 
                         if (field.key == "dispatch_book_id")
                         {
@@ -9064,90 +9002,62 @@ namespace Controllers
                         else
                         if (field.filteroperator == "in")
                         {
-                            WhereSQLR += (WhereSQLR != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
+                            WhereSQL += (WhereSQL != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
                         }
                         else
                         {
-                            WhereSQLR += field.filterconstraints.Count > 1 ? "(" : "";
+                            WhereSQL += field.filterconstraints.Count > 1 ? "(" : "";
                             foreach (var m in field.filterconstraints.Where(a => a.value != null))
                             {
                                 switch (m.matchMode)
                                 {
-                                    case "isNull":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " is null  )";
-                                        break;
                                     case "lt":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
                                         break;
                                     case "gt":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
                                         break;
                                     case "lte":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
                                         break;
                                     case "gte":
-                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
                                         break;
                                     case "startsWith":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
                                         break;
                                     case "endsWith":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
                                         break;
                                     case "contains":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
                                         break;
                                     case "notContains":
-                                        WhereSQLR += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
+                                        WhereSQL += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
                                         break;
                                     case "equals":
-                                        WhereSQLR += " " + field.filteroperator + " ( dm." + field.key + " = N'" + m.value + "')";
+                                        WhereSQL += " " + field.filteroperator + " ( dm." + field.key + " = N'" + m.value + "')";
                                         break;
                                     case "notEquals":
-                                        WhereSQLR += " " + field.filteroperator + " ( dm." + field.key + "  <> N'" + m.value + "')";
+                                        WhereSQL += " " + field.filteroperator + " (" + field.key + "  <> N'" + m.value + "')";
                                         break;
                                     case "dateIs":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateIsNot":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateBefore":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateAfter":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
+                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
                                         break;
 
                                 }
                             }
-                            WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
+                            WhereSQL += field.filterconstraints.Count > 1 ? ")" : "";
                         }
-                        if (WhereSQLR.StartsWith("( and"))
-                        {
-
-                            WhereSQLR = "( " + WhereSQLR.Substring(5);
-                        }
-                        else if (WhereSQLR.StartsWith("( or"))
-                        {
-                            WhereSQLR = "( " + WhereSQLR.Substring(4);
-                        }
-                        if (WhereSQLR.StartsWith(" and"))
-                        {
-
-                            WhereSQLR = WhereSQLR.Substring(4);
-                        }
-                        else if (WhereSQLR.StartsWith(" or"))
-                        {
-                            WhereSQLR = WhereSQLR.Substring(3);
-                        }
-
-                        if (check == true)
-                        {
-                            WhereSQLR = "  and  " + WhereSQLR;
-                        }
-                        WhereSQL += WhereSQLR;
-                        check = true;
                     }
                 }
 
