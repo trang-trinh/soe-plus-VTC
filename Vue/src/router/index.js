@@ -352,7 +352,7 @@ const caEnectingGroup = () =>
  
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
-
+const HRM_ConfigUser = () => import("../views/hrm/config/ConfigUserCode.vue");
 // Request
 const Request_Dashboard = () =>
   import("../views/request/request_dashboard.vue");
@@ -1684,7 +1684,15 @@ const router = createRouter({
             path: "/hrm/hrm_training",
             name: "HRM_Training",
             component: HRM_Training,
-        }, // Tài liệu
+        }, 
+        
+        {
+          path: "/hrm/config/configuser",
+          name: "HRM_ConfigUser",
+          component: HRM_ConfigUser,
+      }, 
+        
+        // Tài liệu
         {
             path: "/files/file_main/:id/:type",
             name: "files/file_main_detail",

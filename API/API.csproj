@@ -403,6 +403,7 @@
     <Compile Include="Controllers\Filles\MediaController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\HRM\Campaign\hrm_campaignController.cs" />
+    <Compile Include="Controllers\HRM\Campaign\hrm_candidateController.cs" />
     <Compile Include="Controllers\HRM\Category\hrm_ca_academic_levelController.cs" />
     <Compile Include="Controllers\HRM\Category\hrm_ca_bankController.cs" />
     <Compile Include="Controllers\HRM\Category\hrm_ca_certificateController.cs" />
