@@ -50,9 +50,9 @@ const initConfig = () => {
           confirmButtonText: "OK",
         });
       }
-      if (config.value.pwEmail) {
-        config.value.pwEmail = decr(
-          config.value.pwEmail,
+      if (config.value.psemail) {
+        config.value.psemail = decr(
+          config.value.psemail,
           SecretKey,
           cryoptojs,
         ).toString();
@@ -75,8 +75,8 @@ const saveConfig = () => {
     cryoptojs,
   ).toString();
   if (config.value.email != null) {
-    config.value.pwEmail = encr(
-      config.value.pwEmail,
+    config.value.psemail = encr(
+      config.value.psemail,
       SecretKey,
       cryoptojs,
     ).toString();
@@ -307,8 +307,10 @@ const isTrueEmail = ref(true);
 const ValidateEmail = () => {
   const textbox = document.getElementById("email");
   if (textbox.value != "" && textbox.value != null) {
-    var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    if (textbox.value.match(mailformat)) {
+    //var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    //if (textbox.value.match(mailformat)) {
+    const regexExp = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/gi;    
+    if (regexExp.test(textbox.value)) {
       isTrueEmail.value = true;
       return;
     } else {
@@ -579,7 +581,7 @@ onMounted(() => {
               <InputText
                 autocomplete="off"
                 class="col-8 ip36 p-0"
-                v-model="config.pwEmail"
+                v-model="config.psemail"
                 :feedback="false"
                 toggleMask
               />

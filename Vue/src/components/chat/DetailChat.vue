@@ -321,7 +321,7 @@ const sendMS = (loai, mesChat) => {
 			});
 			return false;
 		}
-		
+		loadding.value = false;
 		var UpFile = false;
 		if (FileAttach.value != null && FileAttach.value.length > 0) {
 			UpFile = true;
@@ -386,6 +386,7 @@ const sendMS = (loai, mesChat) => {
 	.catch((error) => {
 		//toast.error("Tải dữ liệu không thành công!");
 		//console.log("Xảy ra lỗi khi lưu tin nhắn");
+		loadding.value = false;
 		if (error && error.status === 401) {
 			swal.fire({
 				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
