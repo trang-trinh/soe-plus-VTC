@@ -1053,6 +1053,10 @@ namespace API.Controllers.Filles
                                 folder = item;
                                 folder.folder_id = model.folder_id;
                                 folder.is_order = count;
+                                folder.created_date = DateTime.Now;
+                                folder.created_by = uid;
+                                folder.created_token_id = tid;
+                                folder.created_ip = ip;
                                 count++;
                                 db.file_folder_share.Add(folder);
                                 // send log
@@ -1072,7 +1076,7 @@ namespace API.Controllers.Filles
                                     sh.icon = user_send.avatar;
                                     sh.title = "Chia sẻ dữ liệu";
                                     sh.contents = "<b>" + user_send.full_name + "</b> đã chia sẻ kho dữ liệu <b>" + file_folder.folder_name + "</b> cho bạn ";
-                                    sh.is_type = 2;
+                                    sh.is_type = 1;
                                     sh.date_send = DateTime.Now;
                                     sh.id_key = model.folder_id;
                                     sh.token_id = tid;
@@ -1395,7 +1399,7 @@ namespace API.Controllers.Filles
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "FileMain/GetDataProc", ip, tid, "Lỗi khi gọi proc", 0, "FileMain");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "chat/GetDataProc", ip, tid, "Lỗi khi gọi proc '" + proc + "'", 0, "chat");
                     if (!helper.debug)
                     {
                         contents = helper.logCongtent;
@@ -1406,7 +1410,7 @@ namespace API.Controllers.Filles
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "FileMain/GetDataProc", ip, tid, "Lỗi khi gọi proc", 0, "FileMain");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "chat/GetDataProc", ip, tid, "Lỗi khi gọi proc '" + proc + "'", 0, "chat");
                     if (!helper.debug)
                     {
                         contents = helper.logCongtent;
