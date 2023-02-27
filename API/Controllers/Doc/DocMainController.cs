@@ -669,6 +669,18 @@ namespace API.Controllers
                     using (DBEntities db = new DBEntities())
                     {
                         var us = await db.sys_users.FindAsync(uid);
+                        // check role theo user
+                        var module_functions = (from rm in db.sys_role_modules
+                                                   join mo in db.sys_modules on rm.module_id equals mo.module_id
+                                                   where mo.module_key == "M3" && rm.user_id == us.user_id
+                                                   select rm.module_functions).FirstOrDefault();
+                        if (module_functions == null)
+                        {
+                            module_functions = (from rm in db.sys_role_modules
+                                               join mo in db.sys_modules on rm.module_id equals mo.module_id
+                                               where mo.module_key == "M3" && rm.role_id == us.role_id && String.IsNullOrEmpty(rm.user_id)
+                                               select rm.module_functions).FirstOrDefault();
+                        };
                         var das = await db.doc_master.Where(a => id.Contains(a.doc_master_id)).ToListAsync();
                         var folder_paths = new List<string>();
                         List<string> paths = new List<string>();
@@ -677,7 +689,7 @@ namespace API.Controllers
                             List<doc_master> del = new List<doc_master>();
                             foreach (var da in das)
                             {
-                                if (ad || da.created_by == us.user_key)
+                                if (ad || da.created_by == us.user_key || (module_functions != null && module_functions.Contains("xoakhovanban")))
                                 {
                                     if (!String.IsNullOrEmpty(da.file_path)) paths.Add(da.file_path);
                                     var organization_id_doc = da.organization_id != null ? da.organization_id.ToString() : "other";
@@ -1155,6 +1167,15 @@ namespace API.Controllers
                                 new_fl.doc_master_id = model.doc_master_id;
                                 new_fl.send_by = user_now.user_key;
                                 new_fl.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if(par_fl != null)
+                                {
+                                    if(par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_fl.send_date = send_date_now;
                                 new_fl.receive_by = org_id;
 
@@ -1198,6 +1219,15 @@ namespace API.Controllers
                                 new_fl.doc_master_id = model.doc_master_id;
                                 new_fl.send_by = user_now.user_key;
                                 new_fl.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_fl.send_date = send_date_now;
                                 new_fl.receive_by = group_id;
 
@@ -1268,6 +1298,15 @@ namespace API.Controllers
                                     new_fl.deadline_date = model.deadline_date;
                                     new_fl.send_by = user_now.user_key;
                                     new_fl.send_by_name = user_now.full_name;
+                                    // Check department name
+                                    var par_fl = db.doc_follows.Find(model.follow_id);
+                                    if (par_fl != null)
+                                    {
+                                        if (par_fl.receive_type == 3)
+                                        {
+                                            new_fl.send_by_name = par_fl.receive_by_name;
+                                        }
+                                    }
                                     new_fl.send_date = send_date_now;
                                     new_fl.receive_by = departments_id;
                                     new_fl.receive_last_group_user = us.user_key;
@@ -1326,6 +1365,15 @@ namespace API.Controllers
                                 new_fl.doc_master_id = model.doc_master_id;
                                 new_fl.send_by = user_now.user_key;
                                 new_fl.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_fl.send_date = send_date_now;
                                 new_fl.receive_by = us.user_key;
 
@@ -1400,6 +1448,15 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -1549,6 +1606,15 @@ namespace API.Controllers
                             new_fl.deadline_date = model.deadline_date;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
+                            // Check department name
+                            var par_fl = db.doc_follows.Find(model.follow_id);
+                            if (par_fl != null)
+                            {
+                                if (par_fl.receive_type == 3)
+                                {
+                                    new_fl.send_by_name = par_fl.receive_by_name;
+                                }
+                            }
                             new_fl.send_date = send_date_now;
                             new_fl.receive_by = us.user_key;
 
@@ -1593,6 +1659,15 @@ namespace API.Controllers
                             new_fl.doc_master_id = model.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
+                            // Check department name
+                            var par_fl = db.doc_follows.Find(model.follow_id);
+                            if (par_fl != null)
+                            {
+                                if (par_fl.receive_type == 3)
+                                {
+                                    new_fl.send_by_name = par_fl.receive_by_name;
+                                }
+                            }
                             new_fl.send_date = send_date_now;
                             new_fl.receive_by = us.user_key;
 
@@ -1635,7 +1710,16 @@ namespace API.Controllers
                             new_fl.doc_master_id = model.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
-                            new_fl.send_date = send_date_now;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
+                                new_fl.send_date = send_date_now;
                             new_fl.receive_by = group_id;
 
                             var gr = db.doc_ca_role_groups.Find(group_id);
@@ -1695,7 +1779,16 @@ namespace API.Controllers
                             new_fl.doc_master_id = model.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
-                            new_fl.send_date = send_date_now;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
+                                new_fl.send_date = send_date_now;
                             new_fl.receive_by = us.user_key;
 
                             new_fl.receive_by_name = us.full_name;
@@ -1737,7 +1830,16 @@ namespace API.Controllers
                             new_fl.doc_master_id = model.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
-                            new_fl.send_date = send_date_now;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
+                                new_fl.send_date = send_date_now;
                             new_fl.receive_by = group_id;
 
                             var gr = db.doc_ca_role_groups.Find(group_id);
@@ -1806,7 +1908,16 @@ namespace API.Controllers
                                 new_fl.deadline_date = model.deadline_date;
                                 new_fl.send_by = user_now.user_key;
                                 new_fl.send_by_name = user_now.full_name;
-                                new_fl.send_date = send_date_now;
+                                    // Check department name
+                                    var par_fl = db.doc_follows.Find(model.follow_id);
+                                    if (par_fl != null)
+                                    {
+                                        if (par_fl.receive_type == 3)
+                                        {
+                                            new_fl.send_by_name = par_fl.receive_by_name;
+                                        }
+                                    }
+                                    new_fl.send_date = send_date_now;
                                 new_fl.receive_by = track_departments_id;
                                 new_fl.receive_last_group_user = us.user_key;
 
@@ -1974,7 +2085,16 @@ namespace API.Controllers
                             var content_xml = new doc_follows();
                             content_xml.doc_master_id = vb.doc_master_id;
                             content_xml.send_by_name = user_now.full_name;
-                            content_xml.receive_by_name = "";
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
+                                content_xml.receive_by_name = "";
                             foreach (var ns in ns_sh)
                             {
                                 if (content_xml.receive_by_name != "") content_xml.receive_by_name += ", ";
@@ -2125,6 +2245,15 @@ namespace API.Controllers
                         new_fl.deadline_date = model.deadline_date;
                         new_fl.send_by = user_now.user_key;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.receive_by = model.receive_by;
 
@@ -2221,6 +2350,14 @@ namespace API.Controllers
                                 new_tr.doc_master_id = model.doc_master_id;
                                 new_tr.send_by = user_now.user_key;
                                 new_tr.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_fl.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_tr.send_date = send_date_now;
                                 new_tr.receive_by = us.user_key;
 
@@ -2389,6 +2526,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -2551,6 +2696,15 @@ namespace API.Controllers
                                     new_fl.deadline_date = model.deadline_date;
                                     new_fl.send_by = user_now.user_key;
                                     new_fl.send_by_name = user_now.full_name;
+                                    // Check department name
+                                    var par_fl = db.doc_follows.Find(model.follow_id);
+                                    if (par_fl != null)
+                                    {
+                                        if (par_fl.receive_type == 3)
+                                        {
+                                            new_fl.send_by_name = par_fl.receive_by_name;
+                                        }
+                                    }
                                     new_fl.send_date = send_date_now;
                                     new_fl.receive_by = main_departments_id;
                                     new_fl.receive_last_group_user = us.user_key;
@@ -2604,6 +2758,15 @@ namespace API.Controllers
                                     new_fl.deadline_date = model.deadline_date;
                                     new_fl.send_by = user_now.user_key;
                                     new_fl.send_by_name = user_now.full_name;
+                                    // Check department name
+                                    var par_fl = db.doc_follows.Find(model.follow_id);
+                                    if (par_fl != null)
+                                    {
+                                        if (par_fl.receive_type == 3)
+                                        {
+                                            new_fl.send_by_name = par_fl.receive_by_name;
+                                        }
+                                    }
                                     new_fl.send_date = send_date_now;
                                     new_fl.receive_by = track_departments_id;
                                     new_fl.receive_last_group_user = us.user_key;
@@ -2650,6 +2813,15 @@ namespace API.Controllers
                                 new_tr.doc_master_id = model.doc_master_id;
                                 new_tr.send_by = user_now.user_key;
                                 new_tr.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        new_tr.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 new_tr.send_date = send_date_now;
                                 new_tr.receive_by = us.user_key;
 
@@ -2816,6 +2988,15 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -2966,6 +3147,15 @@ namespace API.Controllers
                         new_fl.deadline_date = model.deadline_date;
                         new_fl.send_by = user_now.user_key;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.receive_by = us.user_key;
 
@@ -3130,6 +3320,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -3433,6 +3631,15 @@ namespace API.Controllers
                             new_fl.doc_master_id = follow.doc_master_id;
                             new_fl.send_by = user_now.user_key;
                             new_fl.send_by_name = user_now.full_name;
+                            // Check department name
+                            var par_fl = db.doc_follows.Find(follow.follow_id);
+                            if (par_fl != null)
+                            {
+                                if (par_fl.receive_type == 3)
+                                {
+                                    new_fl.send_by_name = par_fl.receive_by_name;
+                                }
+                            }
                             new_fl.send_date = DateTime.Now;
                             new_fl.receive_by = user_now.user_key;
 
@@ -4419,6 +4626,15 @@ namespace API.Controllers
                         new_fl.doc_master_id = model.doc_master_id;
                         new_fl.send_by = user_now.user_key;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.follow_parent_id = model.follow_id;
                         new_fl.is_inworkflow = model.is_inworkflow;
@@ -4665,6 +4881,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -4908,6 +5132,15 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                var par_fl = db.doc_follows.Find(model.follow_id);
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -5076,6 +5309,15 @@ namespace API.Controllers
                         new_fl.send_by = user_now.user_key;
                         new_fl.is_prioritized = model.is_prioritized;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.receive_by = us.user_key;
 
@@ -5454,6 +5696,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {
@@ -5612,6 +5862,15 @@ namespace API.Controllers
                         new_fl.is_prioritized = model.is_prioritized;
                         new_fl.esim_sign = model.esim_sign;
                         new_fl.send_by_name = user_now.full_name;
+                        // Check department name
+                        var par_fl = db.doc_follows.Find(model.follow_id);
+                        if (par_fl != null)
+                        {
+                            if (par_fl.receive_type == 3)
+                            {
+                                new_fl.send_by_name = par_fl.receive_by_name;
+                            }
+                        }
                         new_fl.send_date = send_date_now;
                         new_fl.receive_by = us.user_key;
 
@@ -5887,6 +6146,14 @@ namespace API.Controllers
                                 var content_xml = new doc_follows();
                                 content_xml.doc_master_id = vb.doc_master_id;
                                 content_xml.send_by_name = user_now.full_name;
+                                // Check department name
+                                if (par_fl != null)
+                                {
+                                    if (par_fl.receive_type == 3)
+                                    {
+                                        content_xml.send_by_name = par_fl.receive_by_name;
+                                    }
+                                }
                                 content_xml.receive_by_name = "";
                                 foreach (var ns in ns_sh)
                                 {

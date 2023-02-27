@@ -5,6 +5,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Jwt;
 using Microsoft.Owin.Security.OAuth;
+using Microsoft.Owin.Security.Cookies;
 using Owin;
 using System;
 using System.Configuration;
@@ -46,11 +47,14 @@ namespace CMS
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = ConfigurationManager.AppSettings["ValidIssuer"], //some string, normally web url,  
+                        ValidIssuer = ConfigurationManager.AppSettings["ValidIssuer"], //some string, normally web url,
                         ValidAudience = ConfigurationManager.AppSettings["ValidAudience"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ConfigurationManager.AppSettings["IssuerSigningKey"]))
                     }
                 });
+            app.UseCookieAuthentication(new CookieAuthenticationOptions());
+
+
         }
     }
 }

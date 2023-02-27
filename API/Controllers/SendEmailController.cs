@@ -160,8 +160,9 @@ namespace API.Controllers
                 var dataSetting = JsonConvert.DeserializeObject<settings>(json);
                 InfoEmail infoMail = new InfoEmail();
                 infoMail.email = dataSetting.email != null ? Codec.EncryptString(dataSetting.email, helper.psKey) : null;
-                infoMail.kpmail = dataSetting.psemail;
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = infoMail });
+                infoMail.kpmail = dataSetting.psemail != null ? Codec.EncryptString(dataSetting.psemail, helper.psKey) : null;
+                //return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.SerializeObject(infoMail) });
+                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.SerializeObject(infoMail) });
             }
             catch (Exception e)
             {

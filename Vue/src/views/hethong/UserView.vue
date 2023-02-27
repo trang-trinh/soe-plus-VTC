@@ -46,6 +46,7 @@ const data_coppy = ref();
 const different_module_move = ref(false);
 const user_id_check = ref();
 const id_temp = ref();
+const role_temp = ref();
 const checkFilter = ref(false);
 const filterButs = ref();
 const isDisplayAvt = ref(false);
@@ -1235,6 +1236,7 @@ const configRole = (md) => {
     different_module_move.value = true;
   } else different_module_move.value = false;
   id_temp.value = md.user_id;
+  role_temp.value = md.role_id;
   user_data.value = { role_id: md.role_id, user_id: md.user_id };
   modules.value.forEach((el) => {
     el.data.is_permission = null;
@@ -1350,8 +1352,8 @@ const addConfigRole = () => {
   modules.value.forEach((element) => {
     mdmodules.push({
       role_module_id: element.data.role_module_id || -1,
-      role_id: element.data.role_id,
-      user_id: element.data.user_id,
+      role_id: is_coppy_module.value? role_temp.value: element.data.role_id,
+      user_id: is_coppy_module.value? id_temp.value: element.data.user_id,
       module_id: element.data.module_id,
       IsCap: element.data.IsCap,
       is_permission: element.data.is_permission
@@ -1365,8 +1367,8 @@ const addConfigRole = () => {
       element.children.forEach((ec) => {
         mdmodules.push({
           role_module_id: ec.data.role_module_id || -1,
-          role_id: ec.data.role_id,
-          user_id: element.data.user_id,
+          role_id: is_coppy_module.value? role_temp.value: ec.data.role_id,
+          user_id: is_coppy_module.value? id_temp.value: element.data.user_id,
           module_id: ec.data.module_id,
           IsCap: ec.data.IsCap,
           is_permission: ec.data.is_permission
@@ -1381,8 +1383,8 @@ const addConfigRole = () => {
           ec.children.forEach((ec2) => {
             mdmodules.push({
               role_module_id: ec2.data.role_module_id || -1,
-              role_id: ec2.data.role_id,
-              user_id: ec2.data.user_id,
+              role_id: is_coppy_module.value? role_temp.value: ec2.data.role_id,
+              user_id: is_coppy_module.value? id_temp.value: ec2.data.user_id,
               module_id: ec2.data.module_id,
               is_grade: ec2.data.is_grade,
               is_permission: ec2.data.is_permission
@@ -2123,7 +2125,6 @@ onMounted(() => {
             style="cursor: pointer; width: 33.33%"
             v-model="user.is_psword"
             autocomplete="new-password"
-            toggleMask
             class="ip32"
           >
             <template #header>
@@ -2215,7 +2216,7 @@ onMounted(() => {
             optionValue="role_id"
             placeholder="Chọn nhóm"
           />
-          <label class="col-2 text-right">Chức vụ</label>
+          <label class="col-2 text-left pl-7">Chức vụ</label>
           <Dropdown
             class="col-4 ip32"
             v-model="user.position_id"
@@ -2232,7 +2233,7 @@ onMounted(() => {
             v-model="user.ca_number"
             :useGrouping="false"
           />
-          <label class="col-2 text-right">Ngày sinh</label>
+          <label class="col-2 text-left pl-7">Ngày sinh</label>
           <Calendar
             class="col-4 ip32"
             id="icon"
@@ -2247,7 +2248,7 @@ onMounted(() => {
             spellcheck="false"
             v-model="user.phone"
           />
-          <label class="col-2 text-right">Email</label>
+          <label class="col-2 text-left pl-7">Email</label>
           <InputText
             class="col-4 ip32"
             spellcheck="false"
@@ -2264,7 +2265,7 @@ onMounted(() => {
             optionValue="value"
             placeholder="Chọn trạng thái"
           />
-          <label class="col-2 text-right">Giới tính</label>
+          <label class="col-2 text-left pl-7">Giới tính</label>
           <Dropdown
             class="col-4 ip32"
             v-model="user.gender"
@@ -2368,20 +2369,34 @@ onMounted(() => {
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">STT</label>
           <InputNumber class="col-1 ip32 p-0" v-model="user.is_order" />
-
+          <label class="col-1"></label>
           <label class="col-2 text-right">Admin</label>
           <InputSwitch class="col-1" v-model="user.is_admin" />
-          <label class="text-right" style="width: 20%; padding: 0.5rem"
+                                        <label class="col-1" v-if="user.is_super"></label>
+            <label class="col-2 text-right" v-if="user.is_super">Is Super</label>
+            <InputSwitch v-model="user.is_super" v-if="user.is_super"/>
+        </div>
+                  <Accordion class="w-full p-2" >
+            <!-- 1. Thông tin chung -->
+            <AccordionTab>
+              <template #header>
+                <span>Quyền Module</span>
+              </template>
+                      <div class="field col-12 md:col-12">
+          <label class="text-left" style="width: 20%; padding: 0.5rem"
             >Hiển thị sinh nhật</label
           >
           <InputSwitch class="col-1" v-model="user.display_birthday" />
+                     <label class="col-1"></label>
           <label class="col-2 text-right">Ban hành</label>
           <InputSwitch class="col-1" v-model="user.calendar_enact" />
-          <div class="field col-12 md:col-12" v-if="user.is_super">
-            <label class="col-2 left">Is Super</label>
-            <InputSwitch v-model="user.is_super" />
-          </div>
+                     <label class="col-1"></label>
+                    <label class="col-2 text-right">Tổng hợp CV</label>
+          <InputSwitch class="col-1" v-model="user.is_task" />
         </div>
+              </AccordionTab>
+              </Accordion>
+
       </div>
     </form>
     <template #footer>

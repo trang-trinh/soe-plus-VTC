@@ -48,18 +48,17 @@ const initModule = () => {
         store.getters.user.user_id,
       {
         headers: { Authorization: `Bearer ${store.getters.token}` },
-      }
+      },
     )
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       data_menus = dt[0];
-    
-           
-    //  if(store.getters.listModule.length==0){
-         
-    //    store.commit("setlistModule",data_menus);
-  
-    //  }
+
+      //  if(store.getters.listModule.length==0){
+
+      //    store.commit("setlistModule",data_menus);
+
+      //  }
 
       menu.value = [
         {
@@ -71,7 +70,7 @@ const initModule = () => {
       if (data_menus.length > 0) {
         data_menus
           .filter(
-            (x) => x.parent_id == null //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
+            (x) => x.parent_id == null, //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
           )
           .forEach((md) => {
             let obj = {
@@ -80,7 +79,7 @@ const initModule = () => {
               href: md.is_link,
             };
             let childs = data_menus.filter(
-              (x) => x.parent_id == md.module_id //&&(x.IsVitri == null || x.IsVitri.includes("Menu"))
+              (x) => x.parent_id == md.module_id, //&&(x.IsVitri == null || x.IsVitri.includes("Menu"))
             );
             if (childs.length > 0) {
               obj.child = [];
@@ -116,6 +115,7 @@ const initModule = () => {
         u.organization_name = dt[1][0].organization_name;
         u.product_name = dt[1][0].product_name;
         u.logo = dt[1][0].logo;
+        u.full_name = dt[1][0].full_name;
         u.user_key = dt[1][0].user_key;
         u.background_image = dt[1][0].background_image;
         u.is_super = dt[1][0].is_super;
@@ -124,7 +124,7 @@ const initModule = () => {
           document.getElementsByTagName("title")[0].innerText =
             u.organization_name;
       }
-         
+
       // let lang = dt[3].find((x) => x.is_main);
       // store.commit("setlangs", dt[3]);
       // store.commit("setlang", lang);
@@ -152,10 +152,10 @@ const loadModulesMenu = (module) => {
             par: [{ par: "module_id", va: module.module_id }],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let dt = JSON.parse(response.data.data);
@@ -174,7 +174,7 @@ const loadModulesMenu = (module) => {
           .filter(
             (x) =>
               x.lv == 2 &&
-              data_menus.map((x) => x.module_id).includes(x.module_id) //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
+              data_menus.map((x) => x.module_id).includes(x.module_id), //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
           )
           .forEach((md) => {
             let obj = {
@@ -186,7 +186,7 @@ const loadModulesMenu = (module) => {
             let childs = data.filter(
               (x) =>
                 x.parent_id == md.module_id &&
-                data_menus.map((x) => x.module_id).includes(x.module_id) //&&(x.IsVitri == null || x.IsVitri.includes("Menu"))
+                data_menus.map((x) => x.module_id).includes(x.module_id), //&&(x.IsVitri == null || x.IsVitri.includes("Menu"))
             );
             if (childs.length > 0) {
               obj.child = [];
@@ -245,8 +245,12 @@ onMounted(() => {
   >
     <template v-slot:footer></template>
     <template v-slot:toggle-icon>
-      <img class="vsm--logo" src="../../assets/logo_nobg.png" />
-      <h5 class="ml-2 hversion">SmartOffice</h5>
+      <img
+        class="vsm--logo"
+        :src="basedomainURL + store.getters.user.logo"
+      />
+      <!-- <img class="vsm--logo" src="../../assets/logo_nobg.png" />
+      <h5 class="ml-2 hversion">SmartOffice</h5> -->
     </template>
   </sidebar-menu>
 </template>

@@ -450,6 +450,7 @@ namespace API.Controllers.Device
                             handover.user_receiver_id = card.device_user_id;
                             handover.user_receiver_name = userR.full_name;
                             handover.user_receiver_department_id = userR.department_id;
+                            if(posiR!=null)
                             handover.user_receiver_position = posiR.position_name !=null? posiR.position_name : null;
                             handover.organization_id = int.Parse(dvid);
                             handover.created_date = DateTime.Now;
@@ -458,9 +459,33 @@ namespace API.Controllers.Device
                             handover.modified_date = DateTime.Now;
                             handover.modified_by = uid;
                             handover.modified_ip = ip;
-                            handover.device_department_id = userR.organization_id;
+                          
                             db.device_handover.Add(handover);
                             db.SaveChanges();
+                            var userSenHub = db.sys_users.Where(s => s.user_id == handover.user_receiver_id
+                         ).FirstOrDefault();
+                            if (userSenHub!=null) { 
+                                var sh = new sys_sendhub();
+                                sh.senhub_id = helper.GenKey();
+                                sh.user_send = uid;
+                                sh.module_key = "M7";
+                                sh.receiver = userSenHub.user_id;
+                                sh.icon = userSenHub.avatar;
+                                sh.title = "Thiết bị";
+                                sh.contents = "Gửi cấp phát thiết bị: " + handover.handover_number;
+                                sh.type = 6;
+                                sh.is_type = 1;
+                                sh.date_send = DateTime.Now;
+                                sh.id_key = handover.handover_id.ToString();
+                                sh.group_id = null;
+                                sh.token_id = tid;
+                                sh.created_date = DateTime.Now;
+                                sh.created_by = uid;
+                                sh.created_token_id = tid;
+                                sh.created_ip = ip;
+                                db.sys_sendhub.Add(sh);
+                                db.SaveChanges();
+                            }
                             device_handover_attach handover_Attach = new device_handover_attach();
                             handover_Attach.card_id = card.card_id;
                             handover_Attach.device_name = card.device_name;
@@ -705,6 +730,8 @@ namespace API.Controllers.Device
                             }
                           
                         }
+                        if(showsOld!=null)
+                        { 
                         if (showsOld.image != null && showsOld.image != "" && showsOld.image != card.image)
                         {
                             string fileOld = showsOld.image.Substring(8);
@@ -753,13 +780,14 @@ namespace API.Controllers.Device
                                 return Request.CreateResponse(HttpStatusCode.OK, new { data = "Có lỗi xảy ra! Vui lòng kiểm tra lại." + e, err = "1" });
                             }
                         }
+                        }
                         card.organization_id = int.Parse(dvid);
                         card.modified_date = DateTime.Now;
                         card.modified_by = uid;
                         card.modified_ip = ip;
                         db.Entry(card).State = EntityState.Modified;
                         db.SaveChanges();
-                        //Add ảnh
+                        
                         if (delfiles.Count > 0)
                         {
                             foreach (string fpath in delfiles)

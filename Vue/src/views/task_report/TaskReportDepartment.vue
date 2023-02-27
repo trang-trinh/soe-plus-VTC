@@ -7,6 +7,7 @@ import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import moment from "moment";
 import { concat } from "lodash";
 import { encr } from "../../util/function.js";
+import router from "@/router";
 import ModalListUserDepartmentVue from "../department_configuration/ModalListUserDepartment.vue";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
@@ -259,8 +260,43 @@ const listDropdownStatus = ref([
     { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
     { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
 ]);
+var is_permission = null, report_module_id;
+var is_reportmodule = 0;
+const getReportModuleId = (rf)=>{
+  axios
+    .post(
+      baseURL + "/api/Modules/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "report_modules_get_id1",
+            par: [
+              { par: "@is_link", va: router.currentRoute.value.fullPath },
+              { par: "@user_id", va: store.getters.user.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+        is_permission = data[0].is_permission;
+        report_module_id = data[0].report_module_id;
+      }
+      loadDataContinue(rf);
 
-const loadData = (rf) => {
+    })
+    .catch((error) => {
+      if (error && error.status === 401) {
+        errorMessage();
+      }
+    });
+}
+const loadDataContinue = (rf)=>{
     if (rf) {
         opition.value.loading = true;
         swal.fire({
@@ -276,7 +312,7 @@ const loadData = (rf) => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "task_report_department_list",
+                        proc: "task_report_department_list_new",
                         par: [
                             { par: "user_id", va: store.getters.user.user_id },
                             { par: "pageno", va: opition.value.PageNo },
@@ -293,6 +329,9 @@ const loadData = (rf) => {
                             { par: "filtergroup_id", va: opition.value.filtergroup_id },
                             { par: "filterPB", va: opition.value.filterPB },
                             { par: "filterDV", va: opition.value.filterDonvi },
+                            { par: "is_reportmodule", va: is_reportmodule },
+                            { par: "report_module_id", va: report_module_id },
+                            { par: "type_report", va: is_permission },
                         ],
                     }),
                     SecretKey,
@@ -307,7 +346,7 @@ const loadData = (rf) => {
                 data[0].forEach((d, i) => {
                     d.status_name = d.status != null ? listDropdownStatus.value.filter((x) => x.value == d.status)[0].text : "";
                     d.STT = i + 1;
-                    d.organization_name = (d.organization_name) ? d.organization_name : 'Công việc không thuộc phòng ban';
+                    d.organization_name = (d.organization_name) ? d.organization_name : '';
                 })
                 listTaskReportDepartment.value = data[0];
             } else {
@@ -336,7 +375,16 @@ const loadData = (rf) => {
                 store.commit("gologout");
             }
         });
-};
+
+}
+const loadData = (rf) => {
+    if(router.currentRoute.value.fullPath.indexOf('/reportmodule') !== -1){
+   is_reportmodule = 1;
+   getReportModuleId(rf)
+  }
+  else
+  loadDataContinue(rf);
+    };
 const bgColor = ref([
     "#F8E69A",
     "#AFDFCF",
@@ -1013,7 +1061,7 @@ const onPage = (event) => {
             <Column header="Ngày bắt đầu" class="align-items-center justify-content-center text-center"
                 headerStyle="min-height:3.125rem;min-width: 10rem;" bodyStyle="min-width: 10rem;">
                 <template #body="data">
-                    <span>{{
+                    <span v-if="data.data.start_date">{{
                         moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
                     }}</span>
                 </template>
@@ -1021,7 +1069,7 @@ const onPage = (event) => {
             <Column header="Ngày kết thúc" class="align-items-center justify-content-center text-center"
                 headerStyle="min-height:3.125rem;min-width: 10rem;" bodyStyle="min-width: 10rem;">
                 <template #body="data">
-                    <span>{{
+                    <span v-if="data.data.end_date">{{
                         moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
                     }}</span>
                 </template>

@@ -223,7 +223,7 @@ const openBasic = (str) => {
 
   isSaveTem.value = true;
   headerDialog.value = str;
-
+numOfKey.value+=1;
   displayBasic.value = true;
 };
 
@@ -494,6 +494,7 @@ const tabs = ref([
   { id: 4, title: "Tạm dừng", icon: "", total: 0 },
   { id: 5, title: "Đã hủy", icon: "", total: 0 },
 ]);
+const numOfKey=ref(0);
 //Checkbox
 const onCheckBox = (value, check) => {
   if (check) {
@@ -1955,6 +1956,7 @@ onMounted(() => {
     </div>
     <div v-if="displayBasic">
       <dialogTraining
+      :key="numOfKey"
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
         :training_emps="training_emps"

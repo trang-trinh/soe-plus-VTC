@@ -7,6 +7,8 @@ import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import moment from "moment";
 import { concat } from "lodash";
 import { encr } from "../../util/function.js";
+import treeuser from "../../components/user/treeuser.vue";
+import DetailProject from "../../components/project_main/DetailedProject.vue"
 const cryoptojs = inject("cryptojs");
 const basedomainURL = fileURL;
 
@@ -50,6 +52,8 @@ const selectedNodes = ref([]);
 const listProjectGroups = ref();
 const first = ref(0);
 let files = {};
+let fileAll = [];
+const ProjectMainMember = ref();
 const isDisplayAvt = ref(false);
 const listDropdownStatus = ref([
   {
@@ -298,6 +302,8 @@ const addProjectMain = (str) => {
     end_date: null,
     status: 0,
     is_order: listProjectMains.value.length + 1,
+    managers: [],
+    participants: [],
   };
   if (store.state.user.is_super) {
     ProjectMain.value.organization_id = 0;
@@ -349,6 +355,7 @@ const closeDialogProjectMain = () => {
 };
 const editProjectMain = (dataProjectMain) => {
   selectcapcha.value = [];
+  fileAll = [];
   arrNhom.value = [];
   if (dataProjectMain.parent_id) {
     selectcapcha.value[dataProjectMain.parent_id] = true;
@@ -386,7 +393,24 @@ const editProjectMain = (dataProjectMain) => {
       if (ProjectMain.value.group_code) {
         arrNhom.value.push(ProjectMain.value.group_code);
       }
-
+      ProjectMain.value.start_date = ProjectMain.value.start_date
+        ? new Date(ProjectMain.value.start_date)
+        : null;
+        ProjectMain.value.end_date = ProjectMain.value.end_date
+        ? new Date(ProjectMain.value.end_date)
+        : null;
+      ProjectMain.value.files = data[1];
+      ProjectMain.value.managers = [];
+      ProjectMain.value.participants = [];
+      if (data[2].length > 0) {
+        data[2].forEach((t) => {
+          if (t.is_type == 0) {
+            ProjectMain.value.managers.push(t.user_id);
+          } else if (t.is_type == 1) {
+            ProjectMain.value.participants.push(t.user_id);
+          }
+        });
+      }
       headerAddProjectMain.value = "Sửa dự án";
       issaveProjectMain.value = false;
       displayProjectMain.value = true;
@@ -485,7 +509,9 @@ const DelProjectMain = (dataProjectMain) => {
     });
   }
 };
+
 const saveProjectMain = (isFormValid) => {
+  ProjectMainMember.value = [];
   submitted.value = true;
   if (!isFormValid) {
     return;
@@ -508,8 +534,46 @@ const saveProjectMain = (isFormValid) => {
     ProjectMain.value.group_code = null;
   }
   let formData = new FormData();
-  formData.append("url", files["LogoDonvi"]);
+  if(files["LogoDonvi"]){
+    formData.append("LogoDonvi", JSON.stringify(files["LogoDonvi"].name));
+    fileAll.push(files["LogoDonvi"]);
+  }else{
+    formData.append("LogoDonvi", JSON.stringify());
+  }
+  for (var i = 0; i < fileAll.length; i++) {
+    let file = fileAll[i];
+    formData.append("url", file);
+  }
+  if (ProjectMain.value.managers.length > 0) {
+    ProjectMain.value.managers.forEach((t) => {
+      let member = {
+        project_id: null,
+        task_id: null,
+        user_id: t,
+        is_type: 0, // 0: người quản lý, 1: người tham gia
+        status: true,
+      };
+      member.user_id = t;
+      ProjectMainMember.value.push(member);
+    });
+  }
+  if (ProjectMain.value.participants.length > 0) {
+    ProjectMain.value.participants.forEach((t) => {
+      let member1 = {
+        project_id: null,
+        task_id: null,
+        user_id: t,
+        is_type: 1, // 0: người quản lý, 1: người tham gia
+        status: true,
+      };
+      member1.user_id = t;
+      ProjectMainMember.value.push(member1);
+    });
+  }
+
+  // formData.append("url", files["LogoDonvi"]);
   formData.append("ProjectMain", JSON.stringify(ProjectMain.value));
+  formData.append("projectmainmember", JSON.stringify(ProjectMainMember.value));
   if (!issaveProjectMain.value) {
     axios
       .post(
@@ -584,7 +648,6 @@ const RenderData = (response) => {
     } else {
       c.data.STT = i + 1;
     }
-    debugger;
     if (d1[i].children) {
       list2 = JSON.parse(d1[i].children);
       if (list2 != null) {
@@ -741,67 +804,67 @@ const listtreeProjectMain = () => {
 
 // };
 const delLogo = (datafile) => {
-  debugger;
-  if (isAdd.value == true) {
-    files["LogoDonvi"] = [];
+  files["LogoDonvi"] = [];
     isDisplayAvt.value = false;
     var output = document.getElementById("LogoDonvi");
     output.src = basedomainURL + "/Portals/Image/noimg.jpg";
     ProjectMain.value.logo = null;
-  } else {
-    swal
-      .fire({
-        title: "Thông báo",
-        text: "Bạn có muốn xoá file này không!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có",
-        cancelButtonText: "Không",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          swal.fire({
-            width: 110,
-            didOpen: () => {
-              swal.showLoading();
-            },
-          });
-          axios
-            .delete(baseURL + "/api/ProjectMain/Delete_file", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: datafile,
-            })
-            .then((response) => {
-              swal.close();
-              if (response.data.err != "1") {
-                swal.close();
-                toast.success("Xoá file thành công!");
-                ProjectMain.value.logo = null;
-              } else {
-                swal.fire({
-                  title: "Thông báo!",
-                  text: response.data.ms,
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            })
-            .catch((error) => {
-              swal.close();
-              if (error.status === 401) {
-                swal.fire({
-                  title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            });
-        }
-      });
-  }
+  // if (isAdd.value == true) {
+    
+  // } else {
+  //   swal
+  //     .fire({
+  //       title: "Thông báo",
+  //       text: "Bạn có muốn xoá file này không!",
+  //       icon: "warning",
+  //       showCancelButton: true,
+  //       confirmButtonColor: "#3085d6",
+  //       cancelButtonColor: "#d33",
+  //       confirmButtonText: "Có",
+  //       cancelButtonText: "Không",
+  //     })
+  //     .then((result) => {
+  //       if (result.isConfirmed) {
+  //         swal.fire({
+  //           width: 110,
+  //           didOpen: () => {
+  //             swal.showLoading();
+  //           },
+  //         });
+  //         axios
+  //           .delete(baseURL + "/api/ProjectMain/Delete_file", {
+  //             headers: { Authorization: `Bearer ${store.getters.token}` },
+  //             data: datafile,
+  //           })
+  //           .then((response) => {
+  //             swal.close();
+  //             if (response.data.err != "1") {
+  //               swal.close();
+  //               toast.success("Xoá file thành công!");
+  //               ProjectMain.value.logo = null;
+  //             } else {
+  //               swal.fire({
+  //                 title: "Thông báo!",
+  //                 text: response.data.ms,
+  //                 icon: "error",
+  //                 confirmButtonText: "OK",
+  //               });
+  //             }
+  //           })
+  //           .catch((error) => {
+  //             swal.close();
+  //             if (error.status === 401) {
+  //               swal.fire({
+  //                 title: "Thông báo!",
+  //                 text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+  //                 icon: "error",
+  //                 confirmButtonText: "OK",
+  //               });
+  //             }
+  //           });
+  //       }
+  //     });
+  // }
 };
 
 const onRefersh = () => {
@@ -908,6 +971,86 @@ const changeMaNhom = (event) => {
   }
 };
 
+const displayDialogUser = ref(false);
+const selectedUser = ref([]);
+const headerDialogUser = ref();
+const is_one = ref(false);
+const is_type = ref();
+
+const OpenDialogTreeUser = (one, type) => {
+  selectedUser.value = [];
+  if (type == 1) {
+    ProjectMain.value.managers.forEach((t) => {
+      let select = { user_id: t };
+      selectedUser.value.push(select);
+    });
+    headerDialogUser.value = "Chọn người quản lý";
+  } else if (type == 2) {
+    ProjectMain.value.participants.forEach((t) => {
+      let select = { user_id: t };
+      selectedUser.value.push(select);
+    });
+    headerDialogUser.value = "Chọn người tham gia";
+  } 
+  displayDialogUser.value = true;
+  is_one.value = one;
+  is_type.value = type;
+};
+
+const closeDialog = () => {
+  displayDialogUser.value = false;
+};
+const choiceTreeUser = () => {
+  switch (is_type.value) {
+    case 1:
+      if (selectedUser.value.length > 0) {
+          ProjectMain.value.managers = [];
+          selectedUser.value.forEach((t) => {
+            ProjectMain.value.managers.push(t.user_id);
+          });
+      }
+      break;
+    case 2:
+      if (selectedUser.value.length > 0) {
+        ProjectMain.value.participants = [];
+        selectedUser.value.forEach((t) => {
+          ProjectMain.value.participants.push(t.user_id);
+        });
+      }
+      break;
+    default:
+      break;
+  }
+  displayDialogUser.value = false;
+};
+
+const onUploadFile = (event) => {
+  fileAll = [];
+  event.files.forEach((element) => {
+    element.is_type = 2;
+    fileAll.push(element);
+  });
+};
+const removeFile = (event) => {
+  fileAll = fileAll.filter((a) => a != event.file);
+};
+
+const componentKey = ref(0);
+const PositionSideBar = ref("right");
+
+const forceRerender = () => {
+  componentKey.value += 1;
+};
+
+const showDetail = ref(false);
+const selectedProjectMainID = ref();
+const selectedKeys = ref();
+const onNodeSelect = (id) => {
+  forceRerender();
+  showDetail.value = true;
+  selectedProjectMainID.value = id.data.project_id;
+};
+
 onMounted(() => {
   listUser();
   loadData(true);
@@ -919,12 +1062,15 @@ onMounted(() => {
 </script>
 <template><!-- @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" selectionMode="checkbox" -->
   <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
-    <TreeTable :value="listProjectMains" v-model:selectionKeys="selectedKey" v-model:first="first"
+    <TreeTable :value="listProjectMains" v-model:selectionKeys="selectedKeys" v-model:first="first"
       :loading="opition.loading" @page="onPage($event)" @sort="onSort($event)" :paginator="true" :rows="opition.PageSize"
       :totalRecords="opition.totalRecords"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]" :filters="filters" :showGridlines="true" filterMode="strict"
       class="p-treetable-sm" :rowHover="true" responsiveLayout="scroll" :lazy="true" :scrollable="true"
+      @nodeSelect="onNodeSelect"
+      selectionMode="single"
+      @nodeUnselect="onNodeUnselect"
       scrollHeight="flex">
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
@@ -952,9 +1098,9 @@ onMounted(() => {
           </template>
         </Toolbar>
       </template>
-      <Column field="STT" :sortable="true" header="STT"
+      <Column field="STT" header="STT"
         class="align-items-center justify-content-center text-center font-bold"
-        headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
+        headerStyle="text-align:center;max-width:4rem" bodyStyle="text-align:center;max-width:4rem">
       </Column>
       <Column field="Logo" header="Logo" class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:80px" bodyStyle="text-align:center;max-width:80px">
@@ -1021,6 +1167,28 @@ onMounted(() => {
         </div>
       </template>
     </TreeTable>
+
+    <Sidebar
+      v-model:visible="showDetail"
+      :position="PositionSideBar"
+      :style="{
+        width:
+          PositionSideBar == 'right'
+            ? width1 > 1800
+              ? ' 60vw'
+              : '80vw'
+            : '100vw',
+        'height': '100vh !important',
+      }"
+      :showCloseIcon="false"
+    >
+    <DetailProject
+      :isShow="showDetail"
+      :id="selectedProjectMainID"
+      :turn="0"
+    >
+    </DetailProject>
+  </Sidebar>
 
     <Dialog :header="headerAddProjectMain" v-model:visible="displayProjectMain" :style="{ width: '40vw' }"
       :closable="true" :maximizable="true">
@@ -1139,21 +1307,76 @@ onMounted(() => {
 
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
-              >Người thực hiện
+              >Người quản lý
               <span
-                @click="OpenDialogTreeUser(false, 2)"
+                @click="OpenDialogTreeUser(false, 1)"
                 class="choose-user"
                 ><i class="pi pi-user-plus"></i></span
-              ><span class="redsao"> (*) </span></label
+              ></label
             >
             <MultiSelect
               :filter="true"
-              v-model="ProjectMain.work_user_ids"
+              v-model="ProjectMain.managers"
               :options="listDropdownUser"
               optionValue="code"
               optionLabel="name"
               class="col-9 ip36 p-0"
-              placeholder="Người thực hiện"
+              placeholder="Người quản lý"
+              display="chip"
+            >
+              <template #option="slotProps">
+                <div
+                  class="country-item flex"
+                  style="align-items: center; margin-left: 10px"
+                >
+                  <Avatar
+                    v-bind:label="
+                      slotProps.option.avatar
+                        ? ''
+                        : (slotProps.option.name ?? '').substring(0, 1)
+                    "
+                    v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 32px;
+                      height: 32px;
+                      font-size: 15px !important;
+                      margin-left: -10px;
+                    "
+                    :style="{
+                      background: bgColor[slotProps.index % 7] + '!important',
+                    }"
+                    class="cursor-pointer"
+                    size="xlarge"
+                    shape="circle"
+                  />
+                  <div
+                    class="pt-1"
+                    style="padding-left: 10px"
+                  >
+                    {{ slotProps.option.name }}
+                  </div>
+                </div>
+              </template>
+            </MultiSelect>
+          </div>
+          <div class="field col-12 md:col-12">
+            <label class="col-3 text-left p-0"
+              >Người tham gia
+              <span
+                @click="OpenDialogTreeUser(false, 2)"
+                class="choose-user"
+                ><i class="pi pi-user-plus"></i></span
+              ></label
+            >
+            <MultiSelect
+              :filter="true"
+              v-model="ProjectMain.participants"
+              :options="listDropdownUser"
+              optionValue="code"
+              optionLabel="name"
+              class="col-9 ip36 p-0"
+              placeholder="Người tham gia"
               display="chip"
             >
               <template #option="slotProps">
@@ -1193,7 +1416,6 @@ onMounted(() => {
               </template>
             </MultiSelect>
           </div>
-
           <div class="field col-12 md:col-12">
             <Accordion :multiple="true">
               <AccordionTab header="TÀI LIỆU THAM KHẢO">
@@ -1242,6 +1464,15 @@ onMounted(() => {
       </template>
     </Dialog>
   </div>
+  <treeuser
+    v-if="displayDialogUser === true"
+    :headerDialog="headerDialogUser"
+    :displayDialog="displayDialogUser"
+    :one="is_one"
+    :selected="selectedUser"
+    :closeDialog="closeDialog"
+    :choiceUser="choiceTreeUser"
+  />
 </template>
 <style>
 .p-treeselect-panel {
@@ -1254,5 +1485,13 @@ onMounted(() => {
 
 .p-chip {
   border-radius: 5px !important;
+}
+
+.choose-user {
+  color: #2196f3;
+}
+
+.choose-user:hover {
+  cursor: pointer;
 }
 </style>

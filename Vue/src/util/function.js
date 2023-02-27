@@ -165,3 +165,8 @@ export const checkURL = (url, listModule) => {
     } else
         return false;
 }
+export const removeAccents = (str) => {
+    return str.normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  }
