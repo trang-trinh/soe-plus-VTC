@@ -26,6 +26,7 @@ namespace API.Controllers
     [Authorize(Roles = "login")]
     public class chatController : ApiController
     {
+        Upload upload = new Upload();
         public string getipaddress()
         {
             //var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -466,6 +467,8 @@ namespace API.Controllers
                     {
                         organization_id_user = user_now.organization_id.ToString();
                     }
+
+                    //HttpContext context = HttpContext.Current;
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
                     var provider = new MultipartFormDataStreamProvider(root);
                     // Read the form data and return an async task.
@@ -667,6 +670,10 @@ namespace API.Controllers
                                         File.Move(ffileData.LocalFileName, root + pathEdit_1);
                                         //File.Move(ffileData.LocalFileName, newFileName);
                                         listPathFileUp.Add(ffileData.LocalFileName);
+
+                                        //string jwtcookie = context.Request.Cookies["jwt"].Value;
+                                        //upload.UpdateFile(jwtcookie, root, ffileData, newFileName, null, null);
+                                        //Task.Run(() => upload.UpdateFile(jwtcookie, root, fileData, ("/Folder/" + model.folder_id + "/" + fileName), 160));
                                     }
                                 }
                                 if (listMessage.Count > 0)
