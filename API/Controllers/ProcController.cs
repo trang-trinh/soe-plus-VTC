@@ -210,6 +210,7 @@ namespace Controllers
         #region CallPublicProc
  
         [HttpPost]
+        [AllowAnonymous]
         public async Task<HttpResponseMessage> CallPublicProc([System.Web.Mvc.Bind(Include = "")][FromBody] sqlPublicProc proc)
         {
             var identity = User.Identity as ClaimsIdentity;
