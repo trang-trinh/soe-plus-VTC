@@ -602,6 +602,7 @@ const onRefilterDM = () => {
 
   loadData();
 };
+const FilterStr=ref("");
 const onFilterDM = () => {
   filterButs.value.hide();
   options.value.loading = true;
@@ -691,10 +692,13 @@ const onFilterDM = () => {
 
   strG = "";
   strk = "";
-
+  FilterStr.value="";
   if (options.value.department_id_process) {
     for (const key in options.value.department_id_process) {
       strG += strk + key;
+      debugger
+       var tsc=listFilterDM.value.department_list.find(x=>x.key==key).label;
+      FilterStr.value+= strk +tsc;
       strk = ",";
     }
   }
@@ -861,7 +865,7 @@ function renderhtml(id, htmltable) {
     }
     #formprint * {
       font-family: "Times New Roman", Times, serif !important;
-      font-size: 13pt;
+      font-size: 14pt;
     }
     .title1,
     .title1 * {
@@ -929,15 +933,16 @@ htmltable += `<div id="formprint">
           <tr>
             <td style="width:33.33%">
           
-          <div style="width:100%; align-item:center; font-weight:600"> Tổng số: `+  datalistsExport.value.length+` </div>
+              <div style="width:100%; align-item:center; font-weight:600;word-break: break-word;">`+  FilterStr.value+` </div>
+          <div style="width:100%; align-item:center; font-weight:600">Tổng số: `+  datalistsExport.value.length+` </div>
           
      
               </td>
-            <td    style="width:33.33%;padding: 1rem 0 0.5rem 0 ;text-align:center; " >
+            <td    style="width:33.33%;padding: 0 0 0.5rem 0 ;text-align:center; " >
             
-               <div style="width:100%;font-weight:600; font-size:24px">VĂN BẢN ĐẾN</div> 
+               <div style="width:100%;font-weight:600;height:100%; font-size:32px; padding-top:0">VĂN BẢN ĐẾN</div> 
              
-          
+          <div></div>
             </td>
             <td style="width:33.33%">
               <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
@@ -957,7 +962,7 @@ htmltable += `<div id="formprint">
        
              <b> Ban hành </b>
               </th>
-              <th style=" min-width: 100px ;  padding: 0px 3px">CQ ban hành</th>
+              <th style=" min-width: 70px ;  padding: 0px 3px">CQ ban hành</th>
        
             <th style="min-width: 150px ;  padding: 0px 3px">Trích yếu</th>
          
@@ -966,7 +971,7 @@ htmltable += `<div id="formprint">
             <th style="width: 30px ;  padding: 0px 3px">Số tờ</th>
             <th style="width: 55px ;  padding: 0px 3px">Độ mật</th>
             <th style="width: 40px ;  padding: 0px 3px">Bản đ/tử</th>
-            <th style=" min-width: 100px ;  padding: 0px 3px">Ng/nhận</th>
+            <th style=" min-width: 70px ;  padding: 0px 3px">Ng/nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký trả</th>
             <th style="width: 50px ;  padding: 0px 3px">Ghi chú</th>
@@ -1013,7 +1018,7 @@ htmltable += `<div id="formprint">
               </div>
             </td>
             <td align="center"   >
-              <div style="text-align: center">
+              <div style="text-align: center ">
                 
                 ` +
        doc_code +
@@ -1021,7 +1026,7 @@ htmltable += `<div id="formprint">
             </td>
             <td   >
               <div >
-               <div style="text-align:center;padding:0px"> ` + receive_date +'</div> <div style="text-align:center;padding:0px">-----</div>  <div style="text-align:center;padding:0px">'+doc_date
+               <div style="text-align:center;padding:0px"> <span style="font-weight:600">` + receive_date +'</span>   <hr style="margin:0px 25px; font-weight:600"/>'+doc_date
       +
       ` </div>
               
