@@ -121,14 +121,8 @@ const groupBy = (list, props) => {
 const ChangeTypeChart = (type) => {
     opition.value.type_chart = type;
     let chart2 = {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: [],
-            hoverBackgroundColor: [],
-          },
-        ],
+        labels: [""],
+        datasets: [],
       };
     if(opition.value.type_chart == 1){
             var list = listChartDate.value.filter(x=>x.is_type == 1 || x.is_type == 2 || x.is_type == 3);
@@ -152,10 +146,12 @@ const ChangeTypeChart = (type) => {
                     });
             }
             arrNewChart.forEach(function(t,i){
-                chart2.labels.push(t.user_name);
-                chart2.datasets[0].data.push(t.CVGroup.length);
-                chart2.datasets[0].backgroundColor.push(bgColor.value[i % 7]);
-                chart2.datasets[0].hoverBackgroundColor.push(bgColor.value[i % 7]);
+                chart2.datasets.push({
+                label: t.user_name,
+                backgroundColor: bgColor.value[i % 7],
+                hoverBackgroundColor: bgColor.value[i % 7],
+                data: [t.CVGroup.length],
+                });
             })
             chartData.value = chart2;
 }
@@ -190,7 +186,6 @@ const loadData = (rf) => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      debugger
       ProjectMainDetail.value = data[0][0];
       ProjectMainDetail.value.status_name = listStatusProjectMain.value.filter(x=>x.value == data[0][0].status)[0].text;
       Thanhviens.value = data[1];
@@ -219,17 +214,8 @@ const loadData = (rf) => {
       };
 
       let chart2 = {
-        labels: [],
-        datasets: [
-          {
-            label: '',
-            data: [],
-            backgroundColor: [],
-            hoverBackgroundColor: [],
-          },
-        ],
-        // labels: [],
-        //         datasets: []
+        labels: [""],
+        datasets: [],
       };
       
       if(data[3].length > 0) {
@@ -278,20 +264,15 @@ const loadData = (rf) => {
                     });
             }
             arrNewChart.forEach(function(t,i){
-                // let dataset ={
-                //     type: 'bar',
-                //     label: t.user_name,
-                //     backgroundColor: bgColor.value[i % 7],
-                //     data: [t.CVGroup.length],
-                // };
-                chart2.labels.push(t.user_name);
-                chart2.datasets[0].data.push(t.CVGroup.length);
-                chart2.datasets[0].backgroundColor.push(bgColor.value[i % 7]);
-                chart2.datasets[0].hoverBackgroundColor.push(bgColor.value[i % 7]);
+                chart2.datasets.push({
+                label: t.user_name,
+                backgroundColor: bgColor.value[i % 7],
+                hoverBackgroundColor: bgColor.value[i % 7],
+                data: [t.CVGroup.length],
+                });
             })
             chartData.value = chart2;
             listProjectMainChild.value = data[5];
-            debugger
       if (rf) {
         opition.value.loading = false;
         swal.close();
