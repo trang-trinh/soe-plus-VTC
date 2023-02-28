@@ -7,15 +7,48 @@ import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import moment from "moment";
 import { encr } from "../../util/function.js";
 import treeuser from "../../components/user/treeuser.vue";
+import { useRoute } from "vue-router";
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
+const route = useRoute();
 const basedomainURL = fileURL;
 const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
 const width1 = ref(window.screen.availWidth);
+document.onkeydown = fkey;
+document.onkeypress = fkey;
+document.onkeyup = fkey;
 
+var wasPressed = false;
+
+function fkey(e) {
+  if (idTaskLoaded.value != null) {
+    e = e || window.event;
+    if (wasPressed) return;
+    console.log(e);
+    if (e.keyCode == 116 || (e.keyCode == 65 && e.ctrlKey)) {
+      wasPressed = true;
+    } else {
+      wasPressed = false;
+    }
+    if (wasPressed == true) {
+      router.push({ name: "taskmain", params: {} }).then(() => {
+        router.go(0);
+      });
+    }
+  }
+}
+const hideall = () => {
+  if (idTaskLoaded.value != null) {
+    router.push({ name: "taskmain", params: {} }).then(() => {
+      router.go(0);
+    });
+  } else {
+    loadData(true, opition.value.type_view);
+  }
+};
 const expandedRowGroups = ref();
 const checkDelList = ref(false);
 const toast = useToast();
@@ -170,7 +203,7 @@ const Task = ref({
   status: 0,
   target: null,
   request: null,
-
+  is_XML: false,
   works_user_ids: [],
   follow_user_ids: [],
 });
@@ -249,8 +282,44 @@ const itemSortButs = ref([
     },
   },
   {
-    label: "Số ngày quá hạn",
+    label: "Theo ngày nhận cũ đến mới",
+    sort: "start_date",
+    ob: "ASC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("start_date", "ASC");
+    },
   },
+  {
+    label: "Theo ngày nhận mới đến cũ",
+    sort: "start_date",
+    ob: "DESC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("start_date", "DESC");
+    },
+  },
+  {
+    label: "Theo ngày hoàn thành cũ đến mới",
+    sort: "finish_date",
+    ob: "ASC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("finish_date", "ASC");
+    },
+  },
+  {
+    label: "Theo ngày hoàn thành mới đến cũ",
+    sort: "finish_date",
+    ob: "DESC",
+    active: false,
+    command: (event) => {
+      ChangeSortTask("finish_date", "DESC");
+    },
+  },
+  // {
+  //   label: "Số ngày quá hạn",
+  // },
 ]);
 const itemGroupListTypeButs = ref([
   {
@@ -331,8 +400,7 @@ const ChangeGroupView = (data) => {
       t.active = true;
     }
   });
-  
-}
+};
 
 const ChangeView = (data) => {
   if (data.type == 3) {
@@ -358,7 +426,7 @@ const itemFilterButs = ref([
     istype: 5,
     hasChildren: true,
     groups: [
-        {
+      {
         label: "Theo ngày nhận",
         icon: "pi pi-calendar",
         active: false,
@@ -380,7 +448,7 @@ const itemFilterButs = ref([
     istype: 6,
     hasChildren: true,
     groups: [
-        {
+      {
         label: "Ngày hoàn thành",
         icon: "pi pi-calendar",
         active: false,
@@ -539,10 +607,10 @@ const removeTime = (type) => {
 };
 
 const ChangeFilterAdvanced = (type) => {
-  if(type == 2){
+  if (type == 2) {
     opition.value.filter_taskgroup = null;
     opition.value.loctitle = "Theo dự án";
-  }else{
+  } else {
     opition.value.filter_duan = null;
     opition.value.loctitle = "Theo nhóm công việc";
   }
@@ -552,7 +620,7 @@ const ChangeFilterAdvanced = (type) => {
   filterTime2.value = null;
   menuFilterButs.value.toggle();
   loadData(true, opition.value.type_view);
-}
+};
 
 const ChangeFilter = (type, act) => {
   opition.value.filter_type = type;
@@ -582,21 +650,30 @@ const ChangeFilter = (type, act) => {
     case 5: //theo ngày nhận
       opition.value.sdate = null;
       opition.value.edate = null;
+      debugger
       itemFilterButs.value
         .filter((x) => x.istype == 5)
         .forEach((t) => {
-          t.groups.filter(y=>y.is_children == 1).forEach((d) => {
-            d.label = d.label + ' (' + moment(d.filter_date).format("DD/MM/YYYY HH:mm") + ')';
-            opition.value.filter_date = d.filter_date;
-          })
+          t.groups
+            .filter((y) => y.is_children == 1)
+            .forEach((d) => {
+              d.label =
+                "Theo ngày nhận" +
+                " (" +
+                moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
+                ")";
+              opition.value.filter_date = t.filter_date;
+            });
         });
 
-        itemFilterButs.value
+      itemFilterButs.value
         .filter((x) => x.istype == 6)
         .forEach((t) => {
-          t.groups.filter(y=>y.is_children == 3).forEach((d) => {
-            d.label = "Ngày hoàn thành";
-          })
+          t.groups
+            .filter((y) => y.is_children == 3)
+            .forEach((d) => {
+              d.label = "Ngày hoàn thành";
+            });
         });
       opition.value.loctitle = "Theo ngày nhận";
       break;
@@ -606,17 +683,24 @@ const ChangeFilter = (type, act) => {
       itemFilterButs.value
         .filter((x) => x.istype == 6)
         .forEach((t) => {
-          t.groups.filter(y=>y.is_children == 3).forEach((d) => {
-            d.label = 'Ngày hoàn thành (' + moment(t.filter_date).format("DD/MM/YYYY HH:mm") + ')';
-          })
+          t.groups
+            .filter((y) => y.is_children == 3)
+            .forEach((d) => {
+              d.label =
+                "Ngày hoàn thành (" +
+                moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
+                ")";
+            });
           opition.value.filter_date = t.filter_date;
         });
       itemFilterButs.value
         .filter((x) => x.istype == 5)
         .forEach((t) => {
-          t.groups.filter(y=>y.is_children == 1).forEach((d) => {
-            d.label = "Theo ngày nhận";
-          })
+          t.groups
+            .filter((y) => y.is_children == 1)
+            .forEach((d) => {
+              d.label = "Theo ngày nhận";
+            });
         });
       opition.value.loctitle = "Theo ngày hoàn thành";
       break;
@@ -660,13 +744,13 @@ const ChangeFilter = (type, act) => {
   filterTime2.value = opition.value.edate
     ? moment(new Date(opition.value.edate)).format("DD/MM/YYYY")
     : null;
-  if(type == 1 || type == 2 || type == 3){
+  if (type == 1 || type == 2 || type == 3) {
     menuFilterButs.value.toggle();
     loadData(true, opition.value.type_view);
-  }else{
-    if(act == true){
+  } else {
+    if (act == true) {
       menuFilterButs.value.toggle();
-    loadData(true, opition.value.type_view);
+      loadData(true, opition.value.type_view);
     }
   }
 };
@@ -686,108 +770,108 @@ const Del_ChangeFilter = () => {
   //   }
   //   i.active = false;
   // });
-  itemFilterButs.value = ([
-  {
-    label: "",
-    icon: "",
-    active: false,
-    istype: 5,
-    hasChildren: true,
-    groups: [
+  itemFilterButs.value = [
+    {
+      label: "",
+      icon: "",
+      active: false,
+      istype: 5,
+      hasChildren: true,
+      groups: [
         {
-        label: "Theo ngày nhận",
-        icon: "pi pi-calendar",
-        active: false,
-        is_children: 1,
-        filter_date: new Date(),
-      },
-      {
-        label: "Dự án",
-        icon: "pi pi-calendar",
-        active: false,
-        is_children: 2,
-      },
-    ],
-  },
-  {
-    label: "",
-    icon: "",
-    active: false,
-    istype: 6,
-    hasChildren: true,
-    groups: [
+          label: "Theo ngày nhận",
+          icon: "pi pi-calendar",
+          active: false,
+          is_children: 1,
+          filter_date: new Date(),
+        },
         {
-        label: "Ngày hoàn thành",
-        icon: "pi pi-calendar",
-        active: false,
-        is_children: 3,
-        filter_date: new Date(),
-      },
-      {
-        label: "Nhóm công việc",
-        icon: "pi pi-calendar",
-        active: false,
-        is_children: 4,
-      },
-    ],
-  },
-  // {
-  //   label: "Theo ngày nhận",
-  //   icon: "pi pi-calendar",
-  //   active: false,
-  //   istype: 5,
-  //   filter_date: new Date(),
-  // },
-  // {
-  //   label: "Ngày hoàn thành",
-  //   icon: "pi pi-calendar",
-  //   active: false,
-  //   istype: 6,
-  //   filter_date: new Date(),
-  // },
-  {
-    label: "Trong tuần",
-    icon: "pi pi-calendar",
-    active: false,
-    istype: 1,
-    hasChildren: false,
-  },
-  {
-    label: "Trong tháng",
-    icon: "pi pi-calendar",
-    active: false,
-    istype: 2,
-    hasChildren: false,
-  },
-  {
-    label: "Trong năm",
-    icon: "pi pi-calendar",
-    active: false,
-    istype: 3,
-    hasChildren: false,
-  },
-  {
-    label: "Theo thời gian",
-    icon: "pi pi-calendar-times",
-    active: false,
-    istype: 4,
-    hasChildren: true,
-    groups: [
-      {
-        label: "Ngày bắt đầu",
-        icon: "pi pi-calendar",
-        children_id: true,
-        is_change: 1,
-      },
-      {
-        label: "Ngày kết thúc",
-        icon: "pi pi-calendar",
-        children_id: true,
-        is_change: 2,
-      },
-    ],
-  },
-]);
+          label: "Dự án",
+          icon: "pi pi-calendar",
+          active: false,
+          is_children: 2,
+        },
+      ],
+    },
+    {
+      label: "",
+      icon: "",
+      active: false,
+      istype: 6,
+      hasChildren: true,
+      groups: [
+        {
+          label: "Ngày hoàn thành",
+          icon: "pi pi-calendar",
+          active: false,
+          is_children: 3,
+          filter_date: new Date(),
+        },
+        {
+          label: "Nhóm công việc",
+          icon: "pi pi-calendar",
+          active: false,
+          is_children: 4,
+        },
+      ],
+    },
+    // {
+    //   label: "Theo ngày nhận",
+    //   icon: "pi pi-calendar",
+    //   active: false,
+    //   istype: 5,
+    //   filter_date: new Date(),
+    // },
+    // {
+    //   label: "Ngày hoàn thành",
+    //   icon: "pi pi-calendar",
+    //   active: false,
+    //   istype: 6,
+    //   filter_date: new Date(),
+    // },
+    {
+      label: "Trong tuần",
+      icon: "pi pi-calendar",
+      active: false,
+      istype: 1,
+      hasChildren: false,
+    },
+    {
+      label: "Trong tháng",
+      icon: "pi pi-calendar",
+      active: false,
+      istype: 2,
+      hasChildren: false,
+    },
+    {
+      label: "Trong năm",
+      icon: "pi pi-calendar",
+      active: false,
+      istype: 3,
+      hasChildren: false,
+    },
+    {
+      label: "Theo thời gian",
+      icon: "pi pi-calendar-times",
+      active: false,
+      istype: 4,
+      hasChildren: true,
+      groups: [
+        {
+          label: "Ngày bắt đầu",
+          icon: "pi pi-calendar",
+          children_id: true,
+          is_change: 1,
+        },
+        {
+          label: "Ngày kết thúc",
+          icon: "pi pi-calendar",
+          children_id: true,
+          is_change: 2,
+        },
+      ],
+    },
+  ];
   menuFilterButs.value.toggle();
   loadData(true, opition.value.type_view);
 };
@@ -843,6 +927,7 @@ const addTask = (str) => {
     follow_user_ids: [],
     is_order: sttTask.value,
     files: [],
+    is_XML: false,
   };
   selectcapcha.value = [];
   selectcapcha.value[-1] = true;
@@ -889,6 +974,7 @@ const editTask = (task_data) => {
         });
       }
       Task.value = data[0][0];
+      Task.value.is_XML = false;
       selectcapcha.value[Task.value.department_id || -1] = true;
       Task.value.start_date = Task.value.start_date
         ? new Date(Task.value.start_date)
@@ -1108,7 +1194,14 @@ const RenderData = (data) => {
   // listTask.value = [];
   // opition.value.totalRecords = null;
   let arrChils = [];
-  data.filter((x) =>x.parent_id == null ||(x.parent_id != null && data.filter((y) => y.task_id == x.parent_id).length == 0),).forEach((m, i) => {
+  data
+    .filter(
+      (x) =>
+        x.parent_id == null ||
+        (x.parent_id != null &&
+          data.filter((y) => y.task_id == x.parent_id).length == 0),
+    )
+    .forEach((m, i) => {
       m.STT2 = opition.value.PageNo * opition.value.PageSize + i + 1;
       let om = { key: m.task_id, data: m };
       const rechildren = (mm, task_id) => {
@@ -1128,7 +1221,7 @@ const RenderData = (data) => {
 
       arrChils.push(om);
     });
-    return arrChils;
+  return arrChils;
 };
 
 const groupBy = (list, props) => {
@@ -1139,14 +1232,14 @@ const groupBy = (list, props) => {
 };
 
 const formatDate = (timeMinute) => {
-  if(timeMinute < 60){
+  if (timeMinute < 60) {
     return timeMinute;
-  }else if(timeMinute >= 60 && timeMinute < 1440){
-    return timeMinute/60;
+  } else if (timeMinute >= 60 && timeMinute < 1440) {
+    return timeMinute / 60;
   } else {
-    return timeMinute/1440;
+    return timeMinute / 1440;
   }
-}
+};
 
 const loadData = (rf, type) => {
   if (type == 3 || type == 2 || type == 4 || type == 5) {
@@ -1196,21 +1289,45 @@ const loadData = (rf, type) => {
       if (data1.length > 0) {
         data1.forEach((element, i) => {
           element.progress = element.progress == null ? 0 : element.progress;
-          element.update_date = element.modified_date ? element.modified_date : element.created_date;
-          element.status_name = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].text: "";
-          element.status_name = element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
-          element.status_bg_color = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].bg_color: "";
-          element.status_bg_color = element.count_extend > 0 ? "#F18636" : element.status_bg_color;
-          element.status_text_color = element.status != null ? listDropdownStatus.value.filter((x) => x.value == element.status,)[0].text_color: "";
+          element.update_date = element.modified_date
+            ? element.modified_date
+            : element.created_date;
+          element.status_name =
+            element.status != null
+              ? listDropdownStatus.value.filter(
+                  (x) => x.value == element.status,
+                )[0].text
+              : "";
+          element.status_name =
+            element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
+          element.status_bg_color =
+            element.status != null
+              ? listDropdownStatus.value.filter(
+                  (x) => x.value == element.status,
+                )[0].bg_color
+              : "";
+          element.status_bg_color =
+            element.count_extend > 0 ? "#F18636" : element.status_bg_color;
+          element.status_text_color =
+            element.status != null
+              ? listDropdownStatus.value.filter(
+                  (x) => x.value == element.status,
+                )[0].text_color
+              : "";
           //thời gian xử lý
           if (element.end_date != null) {
             if (element.thoigianquahan <= 0) {
               if (element.thoigianxuly > 0 && element.thoigianxuly < 60) {
                 element.title_time = element.thoigianxuly + " phút";
-              }else if (element.thoigianxuly >= 60 && element.thoigianxuly < 1440){
-                element.title_time = Math.floor(element.thoigianxuly/60) + " giờ";
-              }else{
-                element.title_time = Math.floor(element.thoigianxuly/1440) + " ngày";
+              } else if (
+                element.thoigianxuly >= 60 &&
+                element.thoigianxuly < 1440
+              ) {
+                element.title_time =
+                  Math.floor(element.thoigianxuly / 60) + " giờ";
+              } else {
+                element.title_time =
+                  Math.floor(element.thoigianxuly / 1440) + " ngày";
               }
               element.totalDay = element.thoigianxuly;
               element.time_bg = element.status_bg_color;
@@ -1218,11 +1335,21 @@ const loadData = (rf, type) => {
             } else {
               if (element.thoigianquahan > 0) {
                 if (element.thoigianquahan > 0 && element.thoigianquahan < 60) {
-                  element.title_time = "Quá hạn " + element.thoigianquahan + " phút";
-                }else if (element.thoigianquahan >= 60 && element.thoigianquahan < 1440){
-                  element.title_time = "Quá hạn " + Math.floor(element.thoigianquahan/60) + " giờ";
-                }else{
-                  element.title_time = "Quá hạn " + Math.floor(element.thoigianquahan/1440) + " ngày";
+                  element.title_time =
+                    "Quá hạn " + element.thoigianquahan + " phút";
+                } else if (
+                  element.thoigianquahan >= 60 &&
+                  element.thoigianquahan < 1440
+                ) {
+                  element.title_time =
+                    "Quá hạn " +
+                    Math.floor(element.thoigianquahan / 60) +
+                    " giờ";
+                } else {
+                  element.title_time =
+                    "Quá hạn " +
+                    Math.floor(element.thoigianquahan / 1440) +
+                    " ngày";
                 }
                 // element.title_time = "Quá hạn " + element.thoigianquahan + " ngày";
                 element.totalDay = element.thoigianquahan;
@@ -1232,12 +1359,17 @@ const loadData = (rf, type) => {
             }
           } else if (element.thoigianxuly) {
             if (element.thoigianxuly > 0 && element.thoigianxuly < 60) {
-                element.title_time = element.thoigianxuly + " phút";
-              }else if (element.thoigianxuly >= 60 && element.thoigianxuly < 1440){
-                element.title_time = Math.floor(element.thoigianxuly/60) + " giờ";
-              }else{
-                element.title_time = Math.floor(element.thoigianxuly/1440) + " ngày";
-              }
+              element.title_time = element.thoigianxuly + " phút";
+            } else if (
+              element.thoigianxuly >= 60 &&
+              element.thoigianxuly < 1440
+            ) {
+              element.title_time =
+                Math.floor(element.thoigianxuly / 60) + " giờ";
+            } else {
+              element.title_time =
+                Math.floor(element.thoigianxuly / 1440) + " ngày";
+            }
             // element.title_time = element.thoigianxuly + " ngày";
             element.totalDay = element.thoigianxuly;
             element.time_bg = element.status_bg_color;
@@ -1273,9 +1405,9 @@ const loadData = (rf, type) => {
         sttTask.value = data[1][0].total + 1;
       }
       if (type == 2) {
-        if(opition.value.type_group_view){
+        if (opition.value.type_group_view) {
           var arrNew = [];
-          if(opition.value.type_group_view == 1){
+          if (opition.value.type_group_view == 1) {
             var listCV = groupBy(data1, "project_id");
             for (let k in listCV) {
               var CVGroup = [];
@@ -1285,35 +1417,45 @@ const loadData = (rf, type) => {
               arrNew.push({
                 isShow: true,
                 status: k,
-                group_view_name: (k == 'null' ? '' : listDropdownProject.value.filter((x) => x.project_id == k)[0].project_name),
-                group_view_bg_color: '#0d89ec',
+                group_view_name:
+                  k == "null"
+                    ? ""
+                    : listDropdownProject.value.filter(
+                        (x) => x.project_id == k,
+                      )[0].project_name,
+                group_view_bg_color: "#0d89ec",
                 CVGroup: RenderData(CVGroup),
               });
             }
-          }else{
+          } else {
             var listCV = groupBy(data1, "group_id");
             for (let k in listCV) {
               var CVGroup = [];
               listCV[k].forEach(function (r) {
                 CVGroup.push(r);
-              }); 
+              });
               arrNew.push({
                 isShow: true,
                 status: k,
-                group_view_name: (k == 'null' ? '' : listDropdownTaskGroup.value.filter((x) => x.group_id == k)[0].group_name),
-                group_view_bg_color: '#2196f3 ',
+                group_view_name:
+                  k == "null"
+                    ? ""
+                    : listDropdownTaskGroup.value.filter(
+                        (x) => x.group_id == k,
+                      )[0].group_name,
+                group_view_bg_color: "#2196f3 ",
                 CVGroup: RenderData(CVGroup),
               });
             }
           }
           listTask.value = arrNew;
-        }else{
+        } else {
           listTask.value = RenderData(data1);
         }
       }
       if (type == 3) {
-        if(opition.value.type_group_view){
-          if(opition.value.type_group_view == 1){
+        if (opition.value.type_group_view) {
+          if (opition.value.type_group_view == 1) {
             var listCV = groupBy(data1, "project_id");
             var arrNew = [];
             for (let k in listCV) {
@@ -1323,14 +1465,19 @@ const loadData = (rf, type) => {
               });
               arrNew.push({
                 status: k,
-                group_view_name: (k == 'null' ? '' : listDropdownProject.value.filter((x) => x.project_id == k)[0].project_name),
-                group_view_bg_color: '#0d89ec',
+                group_view_name:
+                  k == "null"
+                    ? ""
+                    : listDropdownProject.value.filter(
+                        (x) => x.project_id == k,
+                      )[0].project_name,
+                group_view_bg_color: "#0d89ec",
                 CVGroup: CVGroup,
               });
             }
             listTask.value = arrNew;
-            listTask.value.forEach(function(t){
-              if(t.CVGroup.length > 0){
+            listTask.value.forEach(function (t) {
+              if (t.CVGroup.length > 0) {
                 let listCV = groupBy(t.CVGroup, "status");
                 t.ListCVGroup = [];
                 for (let k in listCV) {
@@ -1341,32 +1488,41 @@ const loadData = (rf, type) => {
                   t.ListCVGroup.push({
                     isShow: false,
                     status: k,
-                    group_view_name: listDropdownStatus.value.filter((x) => x.value == k)[0].text,
-                    group_view_bg_color: listDropdownStatus.value.filter((x) => x.value == k)[0].bg_color,
+                    group_view_name: listDropdownStatus.value.filter(
+                      (x) => x.value == k,
+                    )[0].text,
+                    group_view_bg_color: listDropdownStatus.value.filter(
+                      (x) => x.value == k,
+                    )[0].bg_color,
                     CVGroup2: CVGroup2,
                   });
                 }
               }
             });
             sttTask.value = data[1][0].total + 1;
-          }else{
+          } else {
             var listCV = groupBy(data1, "group_id");
             var arrNew = [];
             for (let k in listCV) {
               var CVGroup = [];
               listCV[k].forEach(function (r) {
                 CVGroup.push(r);
-              }); 
+              });
               arrNew.push({
                 status: k,
-                group_view_name: (k == 'null' ? '' : listDropdownTaskGroup.value.filter((x) => x.group_id == k)[0].group_name),
-                group_view_bg_color: '#2196f3 ',
+                group_view_name:
+                  k == "null"
+                    ? ""
+                    : listDropdownTaskGroup.value.filter(
+                        (x) => x.group_id == k,
+                      )[0].group_name,
+                group_view_bg_color: "#2196f3 ",
                 CVGroup: CVGroup,
               });
             }
             listTask.value = arrNew;
-            listTask.value.forEach(function(t){
-              if(t.CVGroup.length > 0){
+            listTask.value.forEach(function (t) {
+              if (t.CVGroup.length > 0) {
                 let listCV = groupBy(t.CVGroup, "status");
                 t.ListCVGroup = [];
                 for (let k in listCV) {
@@ -1376,15 +1532,19 @@ const loadData = (rf, type) => {
                   });
                   t.ListCVGroup.push({
                     isShow: false,
-                    group_view_name: listDropdownStatus.value.filter((x) => x.value == k)[0].text,
-                    group_view_bg_color: listDropdownStatus.value.filter((x) => x.value == k)[0].bg_color,
+                    group_view_name: listDropdownStatus.value.filter(
+                      (x) => x.value == k,
+                    )[0].text,
+                    group_view_bg_color: listDropdownStatus.value.filter(
+                      (x) => x.value == k,
+                    )[0].bg_color,
                     CVGroup2: CVGroup2,
                   });
                 }
               }
-            })
+            });
           }
-        }else{
+        } else {
           var listCV = groupBy(data1, "status");
           var arrNew = [];
           for (let k in listCV) {
@@ -1394,8 +1554,12 @@ const loadData = (rf, type) => {
             });
             arrNew.push({
               status: k,
-              group_view_name: listDropdownStatus.value.filter((x) => x.value == k)[0].text,
-              group_view_bg_color: listDropdownStatus.value.filter((x) => x.value == k)[0].bg_color,
+              group_view_name: listDropdownStatus.value.filter(
+                (x) => x.value == k,
+              )[0].text,
+              group_view_bg_color: listDropdownStatus.value.filter(
+                (x) => x.value == k,
+              )[0].bg_color,
               CVGroup: CVGroup,
             });
           }
@@ -1417,7 +1581,7 @@ const loadData = (rf, type) => {
         var lastDay = new Date(date2.getFullYear(), date2.getMonth() + 1, 0);
         getDates(firstDay, lastDay);
       }
-      if (idTaskLoaded.value != "taskmain") {
+      if (idTaskLoaded.value != null) {
         showDetail.value = false;
         showDetail.value = true;
         selectedTaskID.value = idTaskLoaded.value;
@@ -1729,6 +1893,7 @@ const saveTask = (isFormValid) => {
   // Task.value.end_date = Task.value.end_date
   //   ? new Date(Task.value.end_date)
   //   : null;
+  formData.append("isXML", JSON.stringify(Task.value.is_XML));
   formData.append("taskmember", JSON.stringify(TaskMembers.value));
   formData.append("taskOrigin", JSON.stringify(Task.value));
   if (!issaveTask.value) {
@@ -1830,9 +1995,7 @@ const onRefresh = () => {
   });
   loadData(true, opition.value.type_view);
 };
-const idTaskLoaded = ref(
-  window.location.href.substring(window.location.href.lastIndexOf("/") + 1),
-);
+const idTaskLoaded = ref(route.params.id);
 const changeNguoiGaoViec = (event) => {
   Task.value.assign_user_id = [];
   Task.value.assign_user_id.push(event.value[1]);
@@ -1984,15 +2147,17 @@ const WeekDay = ref([
   { value: "Saturday", text: "T7", bg: "aliceblue" },
   { value: "Sunday", text: "CN", bg: "antiquewhite" },
 ]);
-
+const typefRouter = ref(route.params.type);
 onMounted(() => {
   loadData(true, 2);
+  if (typefRouter.value != null) {
+    ChangeData(typefRouter.value);
+  }
   listUser();
   listtreeOrganization();
   listProjectMain();
-  vla.value = 8;
   startProgress();
-  return { vla };
+  return {};
 });
 
 const ChangeIsDepartment = (model) => {
@@ -2141,7 +2306,7 @@ const choiceTreeUser = () => {
 };
 const ChangeShowListCVGroup = (model) => {
   model.isShow = !model.isShow;
-}
+};
 </script>
 <template>
   <div
@@ -2212,7 +2377,12 @@ const ChangeShowListCVGroup = (model) => {
             <li
               @click="toggleFilter"
               aria-haspopup="true"
-              :class="{ active: (opition.filter_type != 0 || opition.filter_duan || opition.filter_taskgroup) }"
+              :class="{
+                active:
+                  opition.filter_type != 0 ||
+                  opition.filter_duan ||
+                  opition.filter_taskgroup,
+              }"
               aria-controls="overlay_Export"
             >
               <a
@@ -2247,197 +2417,228 @@ const ChangeShowListCVGroup = (model) => {
             id="task_filter"
             style="z-index: 10"
           >
-            <div style="min-height: calc(100vh - 250px); max-height: calc(100vh - 250px); width: 100%;overflow-x: scroll;;">
-              <ul
-              v-for="(item, index) in itemFilterButs"
-              :key="index"
-              style="padding: 0px; margin: 0px"
+            <div
+              style="
+                min-height: calc(100vh - 250px);
+                max-height: calc(100vh - 250px);
+                width: 100%;
+                overflow-x: scroll; ;
+              "
             >
-              <li v-if="item.istype == 5 || item.istype == 6"
-                :class="{ children: item.hasChildren, parent: !item.hasChildren }"
-                class="p-menuitem"
+              <ul
+                v-for="(item, index) in itemFilterButs"
+                :key="index"
+                style="padding: 0px; margin: 0px"
               >
-                <ul style="padding: 0px; display: flex; flex-direction: row;">
-                  <li
-                    style="
-                      list-style: none;
-                      /* padding: 10px; */
-                      /* display: flex; */
-                      flex: 1;
-                      align-items: center;
-                    "
-                    v-for="(item1, index) in item.groups"
-                    :key="index"
-                  >
-                    <div v-if="item1.is_children == 1 || item1.is_children == 3">
-                      <a
-                        @click="ChangeFilter(item.istype, false)"
-                        :class="{ active: (item.active) }"
-                        >
-                        <i
-                          style="padding-right: 5px"
-                          :class="item1.icon"
-                        ></i>
-                        {{ item1.label }}
-                      </a>
-                      <span
-                        style="margin-left: 10px"
-                      >
-                        <Calendar
-                          @date-select="ChangeFilter(item.istype, false)"
-                          inputId="icon"
-                          :showTime="true"
-                          v-model="item.filter_date"
-                          :showIcon="true"
-                          :manualInput ="true"
-                        />
-                      </span>
-                    </div>
-                    <div v-if="item1.is_children != 1 && item1.is_children != 3" style="display: flex; align-items: center;">
-                      <a style="flex: 1;"
-                        @click="ChangeFilter(item.istype, false)"
-                        >{{ item1.label }}
-                      </a>
-                      <span
-                        style="margin-left: 10px; flex: auto;"
-                      >
-                        <Dropdown @change="ChangeFilterAdvanced(item1.is_children)" v-if="item1.is_children == 2"
-                          :filter="true"
-                          v-model="opition.filter_duan"
-                          panelClass="d-design-dropdown"
-                          selectionLimit="1"
-                          :options="listDropdownProject"
-                          optionLabel="project_name"
-                          optionValue="project_id"
-                          spellcheck="false"
-                          class="col-9 ip36 p-0"
-                          placeholder="Chọn"
-                        >
-                          <template #option="slotProps">
-                            <div class="country-item flex">
-                              <div class="pt-1">{{ slotProps.option.project_name }}</div>
-                            </div>
-                          </template>
-                        </Dropdown>
-                        <Dropdown v-if="item1.is_children == 4" @change="ChangeFilterAdvanced(item1.is_children)"
-                          :filter="true"
-                          v-model="opition.filter_taskgroup"
-                          panelClass="d-design-dropdown"
-                          selectionLimit="1"
-                          :options="listDropdownTaskGroup"
-                          optionLabel="group_name"
-                          optionValue="group_id"
-                          spellcheck="false"
-                          class="col-9 ip36 p-0"
-                          placeholder="Chọn"
-                        >
-                          <template #option="slotProps">
-                            <div class="country-item flex">
-                              <div class="pt-1">{{ slotProps.option.group_name }}</div>
-                            </div>
-                          </template>
-                        </Dropdown>
-                      </span>
-                    </div>
-                  </li>
-                </ul>
-              </li>
-              <li v-if="item.istype == 4"
-              :class="{ children: item.hasChildren, parent: !item.hasChildren }"
-                class="p-menuitem"
-              >
-                <a :class="{ active: item.active }"
-                  ><i
-                    style="padding-right: 5px"
-                    :class="item.icon"
-                  ></i
-                  >{{ item.label }}</a
+                <li
+                  v-if="item.istype == 5 || item.istype == 6"
+                  :class="{
+                    children: item.hasChildren,
+                    parent: !item.hasChildren,
+                  }"
+                  class="p-menuitem"
                 >
-                <ul style="padding: 0px; display: flex">
-                  <li
-                    style="
-                      list-style: none;
-                      padding: 10px;
-                      font-weight: bold;
-                      display: flex;
-                      flex-direction: column;
-                    "
-                    v-for="(item1, index) in item.groups"
-                    :key="index"
+                  <ul style="padding: 0px; display: flex; flex-direction: row">
+                    <li
+                      style="
+                        list-style: none;
+                        /* padding: 10px; */
+                        /* display: flex; */
+                        flex: 1;
+                        align-items: center;
+                      "
+                      v-for="(item1, index) in item.groups"
+                      :key="index"
+                    >
+                      <div
+                        v-if="item1.is_children == 1 || item1.is_children == 3"
+                      >
+                        <a
+                          @click="ChangeFilter(item.istype, false)"
+                          :class="{ active: item.active }"
+                        >
+                          <i
+                            style="padding-right: 5px"
+                            :class="item1.icon"
+                          ></i>
+                          {{ item1.label }}
+                        </a>
+                        <span style="margin-left: 10px">
+                          <Calendar
+                            @date-select="ChangeFilter(item.istype, false)"
+                            inputId="icon"
+                            :showTime="true"
+                            v-model="item.filter_date"
+                            :showIcon="true"
+                            :manualInput="true"
+                          />
+                        </span>
+                      </div>
+                      <div
+                        v-if="item1.is_children != 1 && item1.is_children != 3"
+                        style="display: flex; align-items: center"
+                      >
+                        <a
+                          style="flex: 1"
+                          @click="ChangeFilter(item.istype, false)"
+                          >{{ item1.label }}
+                        </a>
+                        <span style="margin-left: 10px; flex: auto">
+                          <Dropdown
+                            @change="ChangeFilterAdvanced(item1.is_children)"
+                            v-if="item1.is_children == 2"
+                            :filter="true"
+                            v-model="opition.filter_duan"
+                            panelClass="d-design-dropdown"
+                            selectionLimit="1"
+                            :options="listDropdownProject"
+                            optionLabel="project_name"
+                            optionValue="project_id"
+                            spellcheck="false"
+                            class="col-9 ip36 p-0"
+                            placeholder="Chọn"
+                          >
+                            <template #option="slotProps">
+                              <div class="country-item flex">
+                                <div class="pt-1">
+                                  {{ slotProps.option.project_name }}
+                                </div>
+                              </div>
+                            </template>
+                          </Dropdown>
+                          <Dropdown
+                            v-if="item1.is_children == 4"
+                            @change="ChangeFilterAdvanced(item1.is_children)"
+                            :filter="true"
+                            v-model="opition.filter_taskgroup"
+                            panelClass="d-design-dropdown"
+                            selectionLimit="1"
+                            :options="listDropdownTaskGroup"
+                            optionLabel="group_name"
+                            optionValue="group_id"
+                            spellcheck="false"
+                            class="col-9 ip36 p-0"
+                            placeholder="Chọn"
+                          >
+                            <template #option="slotProps">
+                              <div class="country-item flex">
+                                <div class="pt-1">
+                                  {{ slotProps.option.group_name }}
+                                </div>
+                              </div>
+                            </template>
+                          </Dropdown>
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
+                </li>
+                <li
+                  v-if="item.istype == 4"
+                  :class="{
+                    children: item.hasChildren,
+                    parent: !item.hasChildren,
+                  }"
+                  class="p-menuitem"
+                >
+                  <a :class="{ active: item.active }"
+                    ><i
+                      style="padding-right: 5px"
+                      :class="item.icon"
+                    ></i
+                    >{{ item.label }}</a
                   >
-                    <div style="padding-bottom: 10px">
-                      <span>{{ item1.label }}</span>
-                      <span
-                        style="
-                          color: #2196f3;
-                          font-weight: bold;
-                          margin-left: 5px;
-                          font-size: 14px;
-                        "
+                  <ul style="padding: 0px; display: flex">
+                    <li
+                      style="
+                        list-style: none;
+                        padding: 10px;
+                        font-weight: bold;
+                        display: flex;
+                        flex-direction: column;
+                      "
+                      v-for="(item1, index) in item.groups"
+                      :key="index"
+                    >
+                      <div style="padding-bottom: 10px">
+                        <span>{{ item1.label }}</span>
+                        <span
+                          style="
+                            color: #2196f3;
+                            font-weight: bold;
+                            margin-left: 5px;
+                            font-size: 14px;
+                          "
+                          v-if="item1.is_change == 1"
+                          >{{ filterTime1 }}
+                          <i
+                            @click="removeTime(item1.is_change)"
+                            v-if="filterTime1"
+                            style="color: black"
+                            class="pi pi-times-circle"
+                          ></i
+                        ></span>
+                        <span
+                          style="
+                            color: #2196f3;
+                            font-weight: bold;
+                            margin-left: 5px;
+                            font-size: 14px;
+                          "
+                          v-if="item1.is_change == 2"
+                          >{{ filterTime2 }}
+                          <i
+                            @click="removeTime(item1.is_change)"
+                            v-if="filterTime2"
+                            style="color: black"
+                            class="pi pi-times-circle"
+                          ></i
+                        ></span>
+                      </div>
+                      <Calendar
                         v-if="item1.is_change == 1"
-                        >{{ filterTime1 }}
-                        <i
-                          @click="removeTime(item1.is_change)"
-                          v-if="filterTime1"
-                          style="color: black"
-                          class="pi pi-times-circle"
-                        ></i
-                      ></span>
-                      <span
-                        style="
-                          color: #2196f3;
-                          font-weight: bold;
-                          margin-left: 5px;
-                          font-size: 14px;
+                        @date-select="
+                          ChangeTimeFilter(item1.is_change, opition.sdate)
                         "
+                        v-model="opition.sdate"
+                        :showTime="true"
+                        id="filterTime1"
+                        :inline="true"
+                        :manualInput="true"
+                      />
+                      <Calendar
                         v-if="item1.is_change == 2"
-                        >{{ filterTime2 }}
-                        <i
-                          @click="removeTime(item1.is_change)"
-                          v-if="filterTime2"
-                          style="color: black"
-                          class="pi pi-times-circle"
-                        ></i
-                      ></span>
-                    </div>
-                    <Calendar
-                      v-if="item1.is_change == 1"
-                      @date-select="
-                        ChangeTimeFilter(item1.is_change, opition.sdate)
-                      "
-                      v-model="opition.sdate"
-                      :showTime="true"
-                      id="filterTime1"
-                      :inline="true"
-                      :manualInput ="true"
-                    />
-                    <Calendar
-                      v-if="item1.is_change == 2"
-                      @date-select="
-                        ChangeTimeFilter(item1.is_change, opition.edate)
-                      "
-                      v-model="opition.edate"
-                      :showTime="true"
-                      id="filterTime2"
-                      :inline="true"
-                    />
-                  </li>
-                </ul>
-              </li>
-              <li v-if="item.istype == 1 || item.istype == 2 || item.istype == 3"
-              :class="{ children: item.hasChildren, parent: !item.hasChildren }"
-                class="p-menuitem"
-                @click="ChangeFilter(item.istype, false)"
-              >
-                <a :class="{ active: item.active }"
-                  ><i
-                    style="padding-right: 5px"
-                    :class="item.icon"
-                  ></i
-                  >{{ item.label }}</a
+                        @date-select="
+                          ChangeTimeFilter(item1.is_change, opition.edate)
+                        "
+                        v-model="opition.edate"
+                        :showTime="true"
+                        id="filterTime2"
+                        :inline="true"
+                      />
+                    </li>
+                  </ul>
+                </li>
+                <li
+                  v-if="
+                    item.istype == 1 || item.istype == 2 || item.istype == 3
+                  "
+                  :class="{
+                    children: item.hasChildren,
+                    parent: !item.hasChildren,
+                  }"
+                  class="p-menuitem"
+                  @click="ChangeFilter(item.istype, false)"
                 >
-              </li>
-            </ul>
+                  <a :class="{ active: item.active }"
+                    ><i
+                      style="padding-right: 5px"
+                      :class="item.icon"
+                    ></i
+                    >{{ item.label }}</a
+                  >
+                </li>
+              </ul>
             </div>
             <div style="float: right; padding: 10px">
               <Button
@@ -2588,16 +2789,31 @@ const ChangeShowListCVGroup = (model) => {
       @sort="onSort($event)"
       @filter="onFilter($event)"
       :lazy="true"
-      rowGroupMode="subheader" :groupRowsBy="(opition.type_group_view == 1 && opition.type_group_view) ? 'project_name' : (opition.type_group_view == 2 && opition.type_group_view) ? 'group_name' : ''" 
+      rowGroupMode="subheader"
+      :groupRowsBy="
+        opition.type_group_view == 1 && opition.type_group_view
+          ? 'project_name'
+          : opition.type_group_view == 2 && opition.type_group_view
+          ? 'group_name'
+          : ''
+      "
       :expandableRowGroups="opition.type_group_view ? true : false"
       v-model:expandedRowGroups="expandedRowGroups"
-      @rowgroupExpand="onRowGroupExpand($event)" @rowgroupCollapse="onRowGroupCollapse($event)"
+      @rowgroupExpand="onRowGroupExpand($event)"
+      @rowgroupCollapse="onRowGroupCollapse($event)"
       selectionMode="single"
       @rowSelect="onRowSelect($event.data)"
       @rowUnselect="onRowUnselect($event.data)"
     >
-      <template v-if="opition.type_group_view != null" #groupheader="slotProps">
-          <span>{{ (opition.type_group_view == 1) ? slotProps.data.project_name : slotProps.data.group_name}}</span>
+      <template
+        v-if="opition.type_group_view != null"
+        #groupheader="slotProps"
+      >
+        <span>{{
+          opition.type_group_view == 1
+            ? slotProps.data.project_name
+            : slotProps.data.group_name
+        }}</span>
       </template>
       <Column
         field="STT"
@@ -2910,7 +3126,7 @@ const ChangeShowListCVGroup = (model) => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
-              >{{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY") }}
+              >{{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY HH:mm") }}
             </span>
           </div>
         </template>
@@ -2990,433 +3206,463 @@ const ChangeShowListCVGroup = (model) => {
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
      -->
     <!-- kiểu TREE -->
-    <div id="task-tree" style="overflow-x: auto;" v-if="opition.type_view == 2 && (opition.type_group_view == 1 || opition.type_group_view == 2)">
+    <div
+      id="task-tree"
+      style="overflow-x: auto"
+      v-if="
+        opition.type_view == 2 &&
+        (opition.type_group_view == 1 || opition.type_group_view == 2)
+      "
+    >
       <div v-for="l in listTask">
-        <div class="task-tree-lable" @click="ChangeShowListCVGroup(l)" style="height: 40px; display: flex;align-items: center;background-color: rgb(220 220 220); font-weight: bold;padding: 10px;border-bottom: 1px solid #aaa;">
-          <i style="margin-right: 5px;font-weight: bold" :class="(l.isShow == false) ? 'pi pi-angle-right' : 'pi pi-angle-down'"></i>
+        <div
+          class="task-tree-lable"
+          @click="ChangeShowListCVGroup(l)"
+          style="
+            height: 40px;
+            display: flex;
+            align-items: center;
+            background-color: rgb(220 220 220);
+            font-weight: bold;
+            padding: 10px;
+            border-bottom: 1px solid #aaa;
+          "
+        >
+          <i
+            style="margin-right: 5px; font-weight: bold"
+            :class="
+              l.isShow == false ? 'pi pi-angle-right' : 'pi pi-angle-down'
+            "
+          ></i>
           {{ l.group_view_name }} ({{ l.CVGroup.length }})
         </div>
-        <TreeTable style="height: auto;"
-      v-if="l.CVGroup.length > 0 && l.isShow == true"
-      sortMode="single"
-      ref="dt"
-      @nodeSelect="onNodeSelect"
-      @nodeUnselect="onNodeUnselect"
-      :value="l.CVGroup"
-      :paginator="false"
-      :rows="opition.PageSize"
-      :scrollable="true"
-      scrollHeight="flex"
-      v-model:selectionKeys="selectedKeys"
-      v-model:first="first"
-      :loading="opition.loading"
-      :expandedKeys="expandedKeys"
-      :rowHover="true"
-      responsiveLayout="scroll"
-      :totalRecords="opition.totalRecords"
-      selectionMode="single"
-      filterMode="lenient"
-      @page="onPage($event)"
-    >
-      <Column
-        field="STT"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:50px;;max-height:600px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="menu">
-          <div 
-            v-if="menu.node.data.parent_id == null"
-            style="font-weight: 1000"
+        <TreeTable
+          style="height: auto"
+          v-if="l.CVGroup.length > 0 && l.isShow == true"
+          sortMode="single"
+          ref="dt"
+          @nodeSelect="onNodeSelect"
+          @nodeUnselect="onNodeUnselect"
+          :value="l.CVGroup"
+          :paginator="false"
+          :rows="opition.PageSize"
+          :scrollable="true"
+          scrollHeight="flex"
+          v-model:selectionKeys="selectedKeys"
+          v-model:first="first"
+          :loading="opition.loading"
+          :expandedKeys="expandedKeys"
+          :rowHover="true"
+          responsiveLayout="scroll"
+          :totalRecords="opition.totalRecords"
+          selectionMode="single"
+          filterMode="lenient"
+          @page="onPage($event)"
+        >
+          <Column
+            field="STT"
+            headerStyle="text-align:center;max-width:75px;height:50px"
+            bodyStyle="text-align:center;max-width:50px;;max-height:600px"
+            class="align-items-center justify-content-center text-center"
           >
-            {{ menu.node.data.STT2 }}
-          </div>
-          <div
-            v-else
-            style="font-weight: 500"
+            <template #body="menu">
+              <div
+                v-if="menu.node.data.parent_id == null"
+                style="font-weight: 1000"
+              >
+                {{ menu.node.data.STT2 }}
+              </div>
+              <div
+                v-else
+                style="font-weight: 500"
+              >
+                {{ menu.node.data.STT2 }}
+              </div>
+            </template>
+          </Column>
+          <Column
+            headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
+            bodyStyle="text-align:center;max-width:100px; "
+            :expander="true"
+            class="align-items-center justify-content-left text-center"
           >
-            {{ menu.node.data.STT2 }}
-          </div>
-        </template>
-      </Column>
-      <Column
-        headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:100px; "
-        :expander="true"
-        class="align-items-center justify-content-left text-center"
-      >
-        <template #body="value">
-          <Avatar
-            v-tooltip.bottom="{
-              value:
-                value.node.data.full_name +
-                '<br/>' +
-                (value.node.data.tenChucVu || '') +
-                '<br/>' +
-                (value.node.data.tenToChuc || ''),
-              escape: true,
-            }"
-            v-bind:label="
-              value.node.data.avatar
-                ? ''
-                : (value.node.data.last_name ?? '').substring(0, 1)
-            "
-            v-bind:image="basedomainURL + value.node.data.avatar"
-            style="
-              background-color: #2196f3;
-              color: #ffffff;
-              width: 2.5rem;
-              height: 2.5rem;
-              font-size: 15px !important;
-            "
-            :style="{
-              background: bgColor[0] + '!important',
-            }"
-            class="cursor-pointer"
-            size="xlarge"
-            shape="circle"
-          />
-        </template>
-      </Column>
-      <Column
-        header="Tên công việc"
-        headerStyle="min-height:3.125rem"
-        bodyStyle=" "
-      >
-        <template #body="data">
-          <div style="display: flex; flex-direction: column; padding: 5px">
-            <div style="line-height: 20px; display: flex">
-              <span
-                v-tooltip="'Ưu tiên'"
-                v-if="data.node.data.is_prioritize"
-                style="margin-right: 5px"
-                ><i
-                  style="color: orange"
-                  class="pi pi-star-fill"
-                ></i
-              ></span>
-              <span
-                style="
-                  font-weight: bold;
-                  font-size: 14px;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                  width: 100%;
-                  display: -webkit-box;
-                  -webkit-line-clamp: 2;
-                  -webkit-box-orient: vertical;
+            <template #body="value">
+              <Avatar
+                v-tooltip.bottom="{
+                  value:
+                    value.node.data.full_name +
+                    '<br/>' +
+                    (value.node.data.tenChucVu || '') +
+                    '<br/>' +
+                    (value.node.data.tenToChuc || ''),
+                  escape: true,
+                }"
+                v-bind:label="
+                  value.node.data.avatar
+                    ? ''
+                    : (value.node.data.last_name ?? '').substring(0, 1)
                 "
-                >{{ data.node.data.task_name }}</span
-              >
-            </div>
-            <div style="font-size: 12px; margin-top: 5px">
-              <span
-                v-if="data.node.data.start_date || data.node.data.end_date"
-                style="color: #98a9bc"
-                >{{
-                  data.node.data.start_date
-                    ? moment(new Date(data.node.data.start_date)).format(
-                        "DD/MM/YYYY",
-                      )
-                    : null
-                }}
-                -
-                {{
-                  data.node.data.end_date
-                    ? moment(new Date(data.node.data.end_date)).format(
-                        "DD/MM/YYYY",
-                      )
-                    : null
-                }}</span
-              >
-              <span
-                v-if="data.node.data.isQL"
+                v-bind:image="basedomainURL + value.node.data.avatar"
                 style="
-                  background-color: #337ab7;
+                  background-color: #2196f3;
                   color: #ffffff;
-                  display: inline;
-                  padding: 0.4em 0.6em;
-                  font-size: 75%;
-                  font-weight: 700;
-                  line-height: 1;
-                  color: #fff;
-                  text-align: center;
-                  white-space: nowrap;
-                  vertical-align: baseline;
-                  border-radius: 0.25em;
-                  margin-left: 10px;
+                  width: 2.5rem;
+                  height: 2.5rem;
+                  font-size: 15px !important;
                 "
-                >Quản lý</span
-              >
-              <span
-                v-if="data.node.data.isTT"
-                style="
-                  background-color: #5cb85c;
-                  color: #ffffff;
-                  display: inline;
-                  padding: 0.4em 0.6em;
-                  font-size: 75%;
-                  font-weight: 700;
-                  line-height: 1;
-                  color: #fff;
-                  text-align: center;
-                  white-space: nowrap;
-                  vertical-align: baseline;
-                  border-radius: 0.25em;
-                  margin-left: 5px;
-                "
-                >Thực hiện</span
-              >
-              <span
-                v-if="data.node.data.isTD"
-                style="
-                  background-color: #5bc0de;
-                  color: #ffffff;
-                  display: inline;
-                  padding: 0.4em 0.6em;
-                  font-size: 75%;
-                  font-weight: 700;
-                  line-height: 1;
-                  color: #fff;
-                  text-align: center;
-                  white-space: nowrap;
-                  vertical-align: baseline;
-                  border-radius: 0.25em;
-                  margin-left: 5px;
-                "
-                >Theo dõi</span
-              >
-            </div>
-            <div
-              v-if="data.node.data.project_name"
-              style="
-                min-height: 25px;
-                display: flex;
-                align-items: center;
-                margin-top: 10px;
-              "
-            >
-              <i class="pi pi-tag"></i>
-              <span
-                class="duan"
-                style="
-                  font-size: 13px;
-                  font-weight: 400;
-                  margin-left: 5px;
-                  color: #0078d4;
-                "
-                >{{ data.node.data.project_name }}</span
-              >
-            </div>
-          </div>
-        </template>
-      </Column>
-      <Column
-        field=""
-        header="Thành viên"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;"
-      >
-        <template #body="data">
-          <AvatarGroup>
-            <div
-              v-for="(value, index) in data.node.data.ThanhvienShows"
-              :key="index"
-            >
-              <div>
-                <Avatar
-                  v-tooltip.bottom="{
-                    value:
-                      value.type_name +
-                      ': ' +
-                      value.fullName +
-                      '<br/>' +
-                      (value.tenChucVu || '') +
-                      '<br/>' +
-                      (value.tenToChuc || ''),
-                    escape: true,
-                  }"
-                  v-bind:label="
-                    value.avatar ? '' : (value.ten ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + value.avatar"
+                :style="{
+                  background: bgColor[0] + '!important',
+                }"
+                class="cursor-pointer"
+                size="xlarge"
+                shape="circle"
+              />
+            </template>
+          </Column>
+          <Column
+            header="Tên công việc"
+            headerStyle="min-height:3.125rem"
+            bodyStyle=" "
+          >
+            <template #body="data">
+              <div style="display: flex; flex-direction: column; padding: 5px">
+                <div style="line-height: 20px; display: flex">
+                  <span
+                    v-tooltip="'Ưu tiên'"
+                    v-if="data.node.data.is_prioritize"
+                    style="margin-right: 5px"
+                    ><i
+                      style="color: orange"
+                      class="pi pi-star-fill"
+                    ></i
+                  ></span>
+                  <span
+                    style="
+                      font-weight: bold;
+                      font-size: 14px;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      width: 100%;
+                      display: -webkit-box;
+                      -webkit-line-clamp: 2;
+                      -webkit-box-orient: vertical;
+                    "
+                    >{{ data.node.data.task_name }}</span
+                  >
+                </div>
+                <div style="font-size: 12px; margin-top: 5px">
+                  <span
+                    v-if="data.node.data.start_date || data.node.data.end_date"
+                    style="color: #98a9bc"
+                    >{{
+                      data.node.data.start_date
+                        ? moment(new Date(data.node.data.start_date)).format(
+                            "DD/MM/YYYY",
+                          )
+                        : null
+                    }}
+                    -
+                    {{
+                      data.node.data.end_date
+                        ? moment(new Date(data.node.data.end_date)).format(
+                            "DD/MM/YYYY",
+                          )
+                        : null
+                    }}</span
+                  >
+                  <span
+                    v-if="data.node.data.isQL"
+                    style="
+                      background-color: #337ab7;
+                      color: #ffffff;
+                      display: inline;
+                      padding: 0.4em 0.6em;
+                      font-size: 75%;
+                      font-weight: 700;
+                      line-height: 1;
+                      color: #fff;
+                      text-align: center;
+                      white-space: nowrap;
+                      vertical-align: baseline;
+                      border-radius: 0.25em;
+                      margin-left: 10px;
+                    "
+                    >Quản lý</span
+                  >
+                  <span
+                    v-if="data.node.data.isTT"
+                    style="
+                      background-color: #5cb85c;
+                      color: #ffffff;
+                      display: inline;
+                      padding: 0.4em 0.6em;
+                      font-size: 75%;
+                      font-weight: 700;
+                      line-height: 1;
+                      color: #fff;
+                      text-align: center;
+                      white-space: nowrap;
+                      vertical-align: baseline;
+                      border-radius: 0.25em;
+                      margin-left: 5px;
+                    "
+                    >Thực hiện</span
+                  >
+                  <span
+                    v-if="data.node.data.isTD"
+                    style="
+                      background-color: #5bc0de;
+                      color: #ffffff;
+                      display: inline;
+                      padding: 0.4em 0.6em;
+                      font-size: 75%;
+                      font-weight: 700;
+                      line-height: 1;
+                      color: #fff;
+                      text-align: center;
+                      white-space: nowrap;
+                      vertical-align: baseline;
+                      border-radius: 0.25em;
+                      margin-left: 5px;
+                    "
+                    >Theo dõi</span
+                  >
+                </div>
+                <div
+                  v-if="data.node.data.project_name"
                   style="
-                    background-color: #2196f3;
-                    color: #ffffff;
+                    min-height: 25px;
+                    display: flex;
+                    align-items: center;
+                    margin-top: 10px;
+                  "
+                >
+                  <i class="pi pi-tag"></i>
+                  <span
+                    class="duan"
+                    style="
+                      font-size: 13px;
+                      font-weight: 400;
+                      margin-left: 5px;
+                      color: #0078d4;
+                    "
+                    >{{ data.node.data.project_name }}</span
+                  >
+                </div>
+              </div>
+            </template>
+          </Column>
+          <Column
+            field=""
+            header="Thành viên"
+            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+            bodyStyle="text-align:center;max-width:150px;"
+          >
+            <template #body="data">
+              <AvatarGroup>
+                <div
+                  v-for="(value, index) in data.node.data.ThanhvienShows"
+                  :key="index"
+                >
+                  <div>
+                    <Avatar
+                      v-tooltip.bottom="{
+                        value:
+                          value.type_name +
+                          ': ' +
+                          value.fullName +
+                          '<br/>' +
+                          (value.tenChucVu || '') +
+                          '<br/>' +
+                          (value.tenToChuc || ''),
+                        escape: true,
+                      }"
+                      v-bind:label="
+                        value.avatar ? '' : (value.ten ?? '').substring(0, 1)
+                      "
+                      v-bind:image="basedomainURL + value.avatar"
+                      style="
+                        background-color: #2196f3;
+                        color: #ffffff;
+                        width: 32px;
+                        height: 32px;
+                        font-size: 15px !important;
+                        margin-left: -10px;
+                      "
+                      :style="{
+                        background: bgColor[index % 7] + '!important',
+                      }"
+                      class="cursor-pointer"
+                      size="xlarge"
+                      shape="circle"
+                    />
+                  </div>
+                </div>
+                <Avatar
+                  v-if="
+                    data.node.data.Thanhviens.length -
+                      data.node.data.ThanhvienShows.length >
+                    0
+                  "
+                  :label="
+                    '+' +
+                    (data.node.data.Thanhviens.length -
+                      data.node.data.ThanhvienShows.length) +
+                    ''
+                  "
+                  class="cursor-pointer"
+                  shape="circle"
+                  style="
+                    background-color: #e9e9e9 !important;
+                    color: #98a9bc;
+                    font-size: 14px !important;
                     width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
                     margin-left: -10px;
+                    height: 32px;
+                  "
+                />
+              </AvatarGroup>
+            </template>
+          </Column>
+          <Column
+            class="align-items-center justify-content-center text-center"
+            header="Tiến độ"
+            headerStyle="text-align:center;max-width:100px;min-height:3.125rem"
+            bodyStyle="text-align:center;max-width:100px;"
+          >
+            <template #body="data">
+              <span v-if="data.node.data.progress == 0"
+                >{{ data.node.data.progress }} %</span
+              >
+              <div
+                v-if="data.node.data.progress != 0"
+                style="width: 100%"
+              >
+                <ProgressBar :value="data.node.data.progress" />
+              </div>
+            </template>
+          </Column>
+          <Column
+            class="align-items-center justify-content-center text-center"
+            header="Thời gian xử lý"
+            headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+            bodyStyle="text-align:center;max-width:150px;"
+          >
+            <template #body="data">
+              <div v-if="data.node.data.title_time">
+                <span
+                  style="
+                    font-size: 10px;
+                    font-weight: bold;
+                    padding: 5px;
+                    border-radius: 5px;
                   "
                   :style="{
-                    background: bgColor[index % 7] + '!important',
+                    background: data.node.data.time_bg,
+                    color: data.node.data.status_text_color,
                   }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
+                  >{{ data.node.data.title_time }}</span
+                >
               </div>
-            </div>
-            <Avatar
-              v-if="
-                data.node.data.Thanhviens.length -
-                  data.node.data.ThanhvienShows.length >
-                0
-              "
-              :label="
-                '+' +
-                (data.node.data.Thanhviens.length -
-                  data.node.data.ThanhvienShows.length) +
-                ''
-              "
-              class="cursor-pointer"
-              shape="circle"
-              style="
-                background-color: #e9e9e9 !important;
-                color: #98a9bc;
-                font-size: 14px !important;
-                width: 32px;
-                margin-left: -10px;
-                height: 32px;
-              "
-            />
-          </AvatarGroup>
-        </template>
-      </Column>
-      <Column
-        class="align-items-center justify-content-center text-center"
-        header="Tiến độ"
-        headerStyle="text-align:center;max-width:100px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:100px;"
-      >
-        <template #body="data">
-          <span v-if="data.node.data.progress == 0"
-            >{{ data.node.data.progress }} %</span
+            </template>
+          </Column>
+          <Column
+            class="align-items-center justify-content-center text-center"
+            header="Ngày kết thúc"
+            headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+            bodyStyle="text-align:center;max-width:150px;"
           >
-          <div
-            v-if="data.node.data.progress != 0"
-            style="width: 100%"
+            <template #body="data">
+              <div
+                v-if="data.node.data.is_deadline == true"
+                style="
+                  background-color: #fff8ee;
+                  padding: 10px 20px;
+                  border-radius: 5px;
+                "
+              >
+                <span
+                  style="color: #ffab2b; font-size: 13px; font-weight: bold"
+                  >{{
+                    moment(new Date(data.node.data.end_date)).format(
+                      "DD/MM/YYYY HH:mm",
+                    )
+                  }}</span
+                >
+              </div>
+            </template>
+          </Column>
+          <Column
+            class="align-items-center justify-content-center text-center"
+            header="Trạng thái"
+            headerStyle="text-align:center;max-width:120px;min-height:3.125rem"
+            bodyStyle="text-align:center;max-width:120px;"
           >
-            <ProgressBar :value="data.node.data.progress" />
-          </div>
-        </template>
-      </Column>
-      <Column
-        class="align-items-center justify-content-center text-center"
-        header="Thời gian xử lý"
-        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;"
-      >
-        <template #body="data">
-          <div v-if="data.node.data.title_time">
-            <span
-              style="
-                font-size: 10px;
-                font-weight: bold;
-                padding: 5px;
-                border-radius: 5px;
-              "
-              :style="{
-                background: data.node.data.time_bg,
-                color: data.node.data.status_text_color,
-              }"
-              >{{ data.node.data.title_time }}</span
-            >
-          </div>
-        </template>
-      </Column>
-      <Column
-        class="align-items-center justify-content-center text-center"
-        header="Ngày kết thúc"
-        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px;"
-      >
-        <template #body="data">
-          <div
-            v-if="data.node.data.is_deadline == true"
-            style="
-              background-color: #fff8ee;
-              padding: 10px 20px;
-              border-radius: 5px;
-            "
+            <template #body="data">
+              <Chip
+                :style="{
+                  background: data.node.data.status_bg_color,
+                  color: data.node.data.status_text_color,
+                }"
+                v-bind:label="data.node.data.status_name"
+              />
+            </template>
+          </Column>
+          <Column
+            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;min-height:3.125rem;max-width:100px;"
+            bodyStyle="text-align:center;max-width:100px;"
           >
-            <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
-              moment(new Date(data.node.data.end_date)).format("DD/MM/YYYY")
-            }}</span>
-          </div>
-        </template>
-      </Column>
-      <Column
-        class="align-items-center justify-content-center text-center"
-        header="Trạng thái"
-        headerStyle="text-align:center;max-width:120px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:120px;"
-      >
-        <template #body="data">
-          <Chip
-            :style="{
-              background: data.node.data.status_bg_color,
-              color: data.node.data.status_text_color,
-            }"
-            v-bind:label="data.node.data.status_name"
-          />
-        </template>
-      </Column>
-      <Column
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;min-height:3.125rem;max-width:100px;"
-        bodyStyle="text-align:center;max-width:100px;"
-      >
-        <template #body="data">
-          <div
-            v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == data.node.data.created_by ||
-              data.node.data.isEdit == true ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id ==
-                  data.node.data.organization_id)
-            "
-          >
-            <Button
-              @click="editTask(data.node.data)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-pencil"
-              v-tooltip="'Sửa'"
-            ></Button>
-            <Button
-              @click="DelTask(data.node.data)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-trash"
-              v-tooltip="'Xóa'"
-            ></Button>
-          </div>
-        </template>
-      </Column>
+            <template #body="data">
+              <div
+                v-if="
+                  store.state.user.is_super == true ||
+                  store.state.user.user_id == data.node.data.created_by ||
+                  data.node.data.isEdit == true ||
+                  (store.state.user.role_id == 'admin' &&
+                    store.state.user.organization_id ==
+                      data.node.data.organization_id)
+                "
+              >
+                <Button
+                  @click="editTask(data.node.data)"
+                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                  type="button"
+                  icon="pi pi-pencil"
+                  v-tooltip="'Sửa'"
+                ></Button>
+                <Button
+                  @click="DelTask(data.node.data)"
+                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                  type="button"
+                  icon="pi pi-trash"
+                  v-tooltip="'Xóa'"
+                ></Button>
+              </div>
+            </template>
+          </Column>
 
-      <template #empty>
-        <div
-          class="align-items-center justify-content-center p-4 text-center m-auto"
-          style="
-            min-height: calc(100vh - 215px);
-            max-height: calc(100vh - 215px);
-            display: flex;
-            flex-direction: column;
-          "
-          v-if="listTask != null || opition.totalRecords == 0"
-        >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
-          <h3 class="m-1">Không có dữ liệu</h3>
-        </div>
-      </template>
-    </TreeTable>
-  </div>
+          <template #empty>
+            <div
+              class="align-items-center justify-content-center p-4 text-center m-auto"
+              style="
+                min-height: calc(100vh - 215px);
+                max-height: calc(100vh - 215px);
+                display: flex;
+                flex-direction: column;
+              "
+              v-if="listTask != null || opition.totalRecords == 0"
+            >
+              <img
+                src="../../assets/background/nodata.png"
+                height="144"
+              />
+              <h3 class="m-1">Không có dữ liệu</h3>
+            </div>
+          </template>
+        </TreeTable>
+      </div>
     </div>
     <TreeTable
       id="task-tree"
@@ -3448,7 +3694,7 @@ const ChangeShowListCVGroup = (model) => {
         class="align-items-center justify-content-center text-center"
       >
         <template #body="menu">
-          <div 
+          <div
             v-if="menu.node.data.parent_id == null"
             style="font-weight: 1000"
           >
@@ -3765,7 +4011,7 @@ const ChangeShowListCVGroup = (model) => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
-              moment(new Date(data.node.data.end_date)).format("DD/MM/YYYY")
+              moment(new Date(data.node.data.end_date)).format("DD/MM/YYYY HH:mm")
             }}</span>
           </div>
         </template>
@@ -3852,7 +4098,8 @@ const ChangeShowListCVGroup = (model) => {
         overflow-y: hidden;
       "
     >
-      <div v-if="listTask.length > 0"
+      <div
+        v-if="listTask.length > 0"
         class="md:col-md-3"
         v-for="item in listTask"
         style="width: 320px; height: 100%; margin: 0px 10px"
@@ -3880,9 +4127,13 @@ const ChangeShowListCVGroup = (model) => {
             class="scroll-inner"
             style="width: fit-content"
           >
-            <div id="type_group_view" v-if="opition.type_group_view != null">
+            <div
+              id="type_group_view"
+              v-if="opition.type_group_view != null"
+            >
               <div v-for="l in item.ListCVGroup">
-                <span @click="ChangeShowListCVGroup(l)"
+                <span
+                  @click="ChangeShowListCVGroup(l)"
                   style="
                     padding: 10px;
                     display: flex;
@@ -3894,256 +4145,274 @@ const ChangeShowListCVGroup = (model) => {
                   :style="{
                     background: l.group_view_bg_color + '!important',
                   }"
-                  ><i style="margin-right: 5px;" :class="(l.isShow == false) ? 'pi pi-angle-right' : 'pi pi-angle-down'"></i>{{ l.group_view_name }} ({{ l.CVGroup2.length }})</span>
-                  <div v-if="l.isShow">
-                    <Card v-if="l.CVGroup2.length > 0"
-                      v-for="cv in l.CVGroup2"
-                      style="width: 320px;border-bottom: 1px solid #ccc;"
-                    >
-                      <template #title>
+                  ><i
+                    style="margin-right: 5px"
+                    :class="
+                      l.isShow == false
+                        ? 'pi pi-angle-right'
+                        : 'pi pi-angle-down'
+                    "
+                  ></i
+                  >{{ l.group_view_name }} ({{ l.CVGroup2.length }})</span
+                >
+                <div v-if="l.isShow">
+                  <Card
+                    v-if="l.CVGroup2.length > 0"
+                    v-for="cv in l.CVGroup2"
+                    style="width: 320px; border-bottom: 1px solid #ccc"
+                  >
+                    <template #title>
+                      <span
+                        @click="onRowSelect(cv)"
+                        v-tooltip="'Xem chi tiết'"
+                        style="
+                          overflow: hidden;
+                          font-size: 14px;
+                          font-weight: bold;
+                          text-overflow: ellipsis;
+                          width: 100%;
+                          display: -webkit-box;
+                          -webkit-line-clamp: 2;
+                          -webkit-box-orient: vertical;
+                        "
+                      >
+                        {{ cv.task_name }}
+                      </span>
+                    </template>
+                    <template #content>
+                      <span
+                        v-if="cv.project_name"
+                        style="
+                          margin: 0px auto;
+                          text-align: center;
+                          padding: 5px 15px;
+                          background-color: #f2f4f6;
+                          max-width: max-content;
+                          border-radius: 5px;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          white-space: nowrap;
+                          max-width: 100%;
+                          font-weight: 500;
+                        "
+                        >{{ cv.project_name }}</span
+                      >
+                      <span
+                        v-if="cv.start_date || cv.end_date"
+                        style="color: #98a9bc"
+                        ><i
+                          style="margin-right: 5px"
+                          class="pi pi-calendar"
+                        ></i
+                        >{{
+                          cv.start_date
+                            ? moment(new Date(cv.start_date)).format(
+                                "DD/MM/YYYY",
+                              )
+                            : null
+                        }}
+                        -
+                        {{
+                          cv.end_date
+                            ? moment(new Date(cv.end_date)).format("DD/MM/YYYY")
+                            : null
+                        }}</span
+                      >
+                      <span>
                         <span
-                          @click="onRowSelect(cv)"
-                          v-tooltip="'Xem chi tiết'"
+                          v-if="cv.isQL"
                           style="
-                            overflow: hidden;
-                            font-size: 14px;
-                            font-weight: bold;
-                            text-overflow: ellipsis;
-                            width: 100%;
-                            display: -webkit-box;
-                            -webkit-line-clamp: 2;
-                            -webkit-box-orient: vertical;
-                          "
-                        >
-                          {{ cv.task_name }}
-                        </span>
-                      </template>
-                      <template #content>
-                        <span
-                          v-if="cv.project_name"
-                          style="
-                            margin: 0px auto;
+                            background-color: #337ab7;
+                            color: #ffffff;
+                            display: inline;
+                            padding: 0.4em 0.6em;
+                            font-size: 75%;
+                            font-weight: 700;
+                            line-height: 1;
+                            color: #fff;
                             text-align: center;
-                            padding: 5px 15px;
-                            background-color: #f2f4f6;
-                            max-width: max-content;
-                            border-radius: 5px;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
                             white-space: nowrap;
-                            max-width: 100%;
-                            font-weight: 500;
+                            vertical-align: baseline;
+                            border-radius: 0.25em;
+                            margin-left: 10px;
                           "
-                          >{{ cv.project_name }}</span
+                          >Quản lý</span
                         >
                         <span
-                          v-if="cv.start_date || cv.end_date"
-                          style="color: #98a9bc"
-                          ><i
-                            style="margin-right: 5px"
-                            class="pi pi-calendar"
-                          ></i
-                          >{{
-                            cv.start_date
-                              ? moment(new Date(cv.start_date)).format("DD/MM/YYYY")
-                              : null
-                          }}
-                          -
-                          {{
-                            cv.end_date
-                              ? moment(new Date(cv.end_date)).format("DD/MM/YYYY")
-                              : null
-                          }}</span
-                        >
-                        <span>
-                          <span
-                            v-if="cv.isQL"
-                            style="
-                              background-color: #337ab7;
-                              color: #ffffff;
-                              display: inline;
-                              padding: 0.4em 0.6em;
-                              font-size: 75%;
-                              font-weight: 700;
-                              line-height: 1;
-                              color: #fff;
-                              text-align: center;
-                              white-space: nowrap;
-                              vertical-align: baseline;
-                              border-radius: 0.25em;
-                              margin-left: 10px;
-                            "
-                            >Quản lý</span
-                          >
-                          <span
-                            v-if="cv.isTT"
-                            style="
-                              background-color: #5cb85c;
-                              color: #ffffff;
-                              display: inline;
-                              padding: 0.4em 0.6em;
-                              font-size: 75%;
-                              font-weight: 700;
-                              line-height: 1;
-                              color: #fff;
-                              text-align: center;
-                              white-space: nowrap;
-                              vertical-align: baseline;
-                              border-radius: 0.25em;
-                              margin-left: 5px;
-                            "
-                            >Thực hiện</span
-                          >
-                          <span
-                            v-if="cv.isTD"
-                            style="
-                              background-color: #5bc0de;
-                              color: #ffffff;
-                              display: inline;
-                              padding: 0.4em 0.6em;
-                              font-size: 75%;
-                              font-weight: 700;
-                              line-height: 1;
-                              color: #fff;
-                              text-align: center;
-                              white-space: nowrap;
-                              vertical-align: baseline;
-                              border-radius: 0.25em;
-                              margin-left: 5px;
-                            "
-                            >Theo dõi</span
-                          >
-                        </span>
-                        <span
+                          v-if="cv.isTT"
                           style="
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
+                            background-color: #5cb85c;
+                            color: #ffffff;
+                            display: inline;
+                            padding: 0.4em 0.6em;
+                            font-size: 75%;
+                            font-weight: 700;
+                            line-height: 1;
+                            color: #fff;
+                            text-align: center;
+                            white-space: nowrap;
+                            vertical-align: baseline;
+                            border-radius: 0.25em;
+                            margin-left: 5px;
                           "
+                          >Thực hiện</span
                         >
-                          <AvatarGroup>
-                            <div
-                              v-for="(value, index) in cv.ThanhvienShows"
-                              :key="index"
-                            >
-                              <div>
-                                <Avatar
-                                  v-tooltip.bottom="{
-                                    value:
-                                      value.type_name +
-                                      ': ' +
-                                      value.fullName +
-                                      '<br/>' +
-                                      (value.tenChucVu || '') +
-                                      '<br/>' +
-                                      (value.tenToChuc || ''),
-                                    escape: true,
-                                  }"
-                                  v-bind:label="
-                                    value.avatar
-                                      ? ''
-                                      : (value.ten ?? '').substring(0, 1)
-                                  "
-                                  v-bind:image="basedomainURL + value.avatar"
-                                  style="
-                                    background-color: #2196f3;
-                                    color: #ffffff;
-                                    width: 32px;
-                                    height: 32px;
-                                    font-size: 15px !important;
-                                    margin-left: -10px;
-                                  "
-                                  :style="{
-                                    background: bgColor[index % 7] + '!important',
-                                  }"
-                                  class="cursor-pointer"
-                                  size="xlarge"
-                                  shape="circle"
-                                />
-                              </div>
+                        <span
+                          v-if="cv.isTD"
+                          style="
+                            background-color: #5bc0de;
+                            color: #ffffff;
+                            display: inline;
+                            padding: 0.4em 0.6em;
+                            font-size: 75%;
+                            font-weight: 700;
+                            line-height: 1;
+                            color: #fff;
+                            text-align: center;
+                            white-space: nowrap;
+                            vertical-align: baseline;
+                            border-radius: 0.25em;
+                            margin-left: 5px;
+                          "
+                          >Theo dõi</span
+                        >
+                      </span>
+                      <span
+                        style="
+                          display: flex;
+                          justify-content: center;
+                          align-items: center;
+                        "
+                      >
+                        <AvatarGroup>
+                          <div
+                            v-for="(value, index) in cv.ThanhvienShows"
+                            :key="index"
+                          >
+                            <div>
+                              <Avatar
+                                v-tooltip.bottom="{
+                                  value:
+                                    value.type_name +
+                                    ': ' +
+                                    value.fullName +
+                                    '<br/>' +
+                                    (value.tenChucVu || '') +
+                                    '<br/>' +
+                                    (value.tenToChuc || ''),
+                                  escape: true,
+                                }"
+                                v-bind:label="
+                                  value.avatar
+                                    ? ''
+                                    : (value.ten ?? '').substring(0, 1)
+                                "
+                                v-bind:image="basedomainURL + value.avatar"
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                  width: 32px;
+                                  height: 32px;
+                                  font-size: 15px !important;
+                                  margin-left: -10px;
+                                "
+                                :style="{
+                                  background: bgColor[index % 7] + '!important',
+                                }"
+                                class="cursor-pointer"
+                                size="xlarge"
+                                shape="circle"
+                              />
                             </div>
-                            <Avatar
-                              v-if="cv.Thanhviens.length - cv.ThanhvienShows.length > 0"
-                              :label="
-                                '+' +
-                                (cv.Thanhviens.length - cv.ThanhvienShows.length) +
-                                ''
-                              "
-                              class="cursor-pointer"
-                              shape="circle"
-                              style="
-                                background-color: #e9e9e9 !important;
-                                color: #98a9bc;
-                                font-size: 14px !important;
-                                width: 32px;
-                                margin-left: -10px;
-                                height: 32px;
-                              "
-                            />
-                          </AvatarGroup>
-                        </span>
-                        <span
-                          v-if="cv.title_time"
-                          style="
-                            width: max-content;
-                            font-size: 10px;
-                            font-weight: bold;
-                            padding: 5px;
-                            border-radius: 5px;
-                          "
-                          :style="{
-                            background: cv.time_bg,
-                            color: cv.status_text_color,
-                          }"
-                          >{{ cv.title_time }}</span
-                        >
-                        <div
-                          class="card-chucnang"
-                          style="
-                            display: none;
-                            flex-direction: column;
-                            position: absolute;
-                            right: 10px;
-                          "
-                          v-if="
-                            store.state.user.is_super == true ||
-                            store.state.user.user_id == cv.created_by ||
-                            cv.isEdit == true ||
-                            (store.state.user.role_id == 'admin' &&
-                              store.state.user.organization_id == cv.organization_id)
-                          "
-                        >
-                          <Button
-                            @click="editTask(cv)"
-                            style="margin-bottom: 5px"
-                            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                            type="button"
-                            icon="pi pi-pencil"
-                            v-tooltip="'Sửa'"
-                          ></Button>
-                          <Button
-                            @click="DelTask(cv)"
-                            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                            type="button"
-                            icon="pi pi-trash"
-                            v-tooltip="'Xóa'"
-                          ></Button>
-                        </div>
-                      </template>
-                      <template #footer>
-                        <!-- <span v-if="cv.progress == 0">{{ cv.progress }} %</span> -->
-                        <div
-                          v-if="cv.progress != 0"
-                          style="width: 100%"
-                        >
-                          <ProgressBar :value="cv.progress" />
-                        </div>
-                      </template>
-                    </Card>
-                  </div>
+                          </div>
+                          <Avatar
+                            v-if="
+                              cv.Thanhviens.length - cv.ThanhvienShows.length >
+                              0
+                            "
+                            :label="
+                              '+' +
+                              (cv.Thanhviens.length -
+                                cv.ThanhvienShows.length) +
+                              ''
+                            "
+                            class="cursor-pointer"
+                            shape="circle"
+                            style="
+                              background-color: #e9e9e9 !important;
+                              color: #98a9bc;
+                              font-size: 14px !important;
+                              width: 32px;
+                              margin-left: -10px;
+                              height: 32px;
+                            "
+                          />
+                        </AvatarGroup>
+                      </span>
+                      <span
+                        v-if="cv.title_time"
+                        style="
+                          width: max-content;
+                          font-size: 10px;
+                          font-weight: bold;
+                          padding: 5px;
+                          border-radius: 5px;
+                        "
+                        :style="{
+                          background: cv.time_bg,
+                          color: cv.status_text_color,
+                        }"
+                        >{{ cv.title_time }}</span
+                      >
+                      <div
+                        class="card-chucnang"
+                        style="
+                          display: none;
+                          flex-direction: column;
+                          position: absolute;
+                          right: 10px;
+                        "
+                        v-if="
+                          store.state.user.is_super == true ||
+                          store.state.user.user_id == cv.created_by ||
+                          cv.isEdit == true ||
+                          (store.state.user.role_id == 'admin' &&
+                            store.state.user.organization_id ==
+                              cv.organization_id)
+                        "
+                      >
+                        <Button
+                          @click="editTask(cv)"
+                          style="margin-bottom: 5px"
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                          type="button"
+                          icon="pi pi-pencil"
+                          v-tooltip="'Sửa'"
+                        ></Button>
+                        <Button
+                          @click="DelTask(cv)"
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                          type="button"
+                          icon="pi pi-trash"
+                          v-tooltip="'Xóa'"
+                        ></Button>
+                      </div>
+                    </template>
+                    <template #footer>
+                      <!-- <span v-if="cv.progress == 0">{{ cv.progress }} %</span> -->
+                      <div
+                        v-if="cv.progress != 0"
+                        style="width: 100%"
+                      >
+                        <ProgressBar :value="cv.progress" />
+                      </div>
+                    </template>
+                  </Card>
+                </div>
               </div>
             </div>
-            <Card v-if="opition.type_group_view == null"
+            <Card
+              v-if="opition.type_group_view == null"
               v-for="cv in item.CVGroup"
               style="width: 320px; margin-bottom: 2em"
             >
@@ -4391,21 +4660,21 @@ const ChangeShowListCVGroup = (model) => {
         </div>
       </div>
       <div
-          class="align-items-center justify-content-center p-4 text-center m-auto"
-          style="
-            min-height: calc(100vh - 215px);
-            max-height: calc(100vh - 215px);
-            display: flex;
-            flex-direction: column;
-          "
-          v-if="listTask != null || opition.totalRecords == 0"
-        >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
-          <h3 class="m-1">Không có dữ liệu</h3>
-        </div>
+        class="align-items-center justify-content-center p-4 text-center m-auto"
+        style="
+          min-height: calc(100vh - 215px);
+          max-height: calc(100vh - 215px);
+          display: flex;
+          flex-direction: column;
+        "
+        v-if="listTask.length == 0 || opition.totalRecords == 0"
+      >
+        <img
+          src="../../assets/background/nodata.png"
+          height="144"
+        />
+        <h3 class="m-1">Không có dữ liệu</h3>
+      </div>
     </div>
     <!-- end -->
     <!-- kiểu GANTT -->
@@ -4501,8 +4770,8 @@ const ChangeShowListCVGroup = (model) => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';'),
-                    'color:' + g.color
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
                   "
                   v-for="g in GrandsDate"
                 >
@@ -4517,8 +4786,8 @@ const ChangeShowListCVGroup = (model) => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';'),
-                    'color:' + g.color
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
                   "
                   v-for="g in GrandsDate"
                 >
@@ -4606,21 +4875,21 @@ const ChangeShowListCVGroup = (model) => {
                 </td>
                 <td
                   class="fixcol left-350 p-3"
-                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
+                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa; text-align: center;"
                 >
                   {{
                     l.start_date
-                      ? moment(new Date(l.start_date)).format("DD/MM/YYYY")
+                      ? moment(new Date(l.start_date)).format("DD/MM/YYYY HH:mm")
                       : ""
                   }}
                 </td>
                 <td
                   class="fixcol left-450 p-3"
-                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
+                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa; text-align: center;"
                 >
                   {{
                     l.end_date
-                      ? moment(new Date(l.end_date)).format("DD/MM/YYYY")
+                      ? moment(new Date(l.end_date)).format("DD/MM/YYYY HH:mm")
                       : ""
                   }}
                 </td>
@@ -4632,8 +4901,8 @@ const ChangeShowListCVGroup = (model) => {
                   :style="
                     (g.Name
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';'),
-                    'color:' + g.color
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
                   "
                   v-for="g in l.dateArray"
                 >
@@ -4651,8 +4920,11 @@ const ChangeShowListCVGroup = (model) => {
                   </div>
                 </td>
               </tr>
-              <tr v-if="listTask != null || opition.totalRecords == 0">
-                <td :colspan="GrandsDate.length + 4" style="text-align: center;">
+              <tr v-if="listTask.length == 0 || opition.totalRecords == 0">
+                <td
+                  :colspan="GrandsDate.length + 4"
+                  style="text-align: center"
+                >
                   <div
                     class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
@@ -4813,8 +5085,8 @@ const ChangeShowListCVGroup = (model) => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';'),
-                    'color:' + g.color
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
                   "
                   v-for="g in GrandsDate"
                 >
@@ -4829,8 +5101,8 @@ const ChangeShowListCVGroup = (model) => {
                   :style="
                     (g.bg == ''
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';'),
-                    'color:' + g.color
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
                   "
                   v-for="g in GrandsDate"
                 >
@@ -4892,7 +5164,8 @@ const ChangeShowListCVGroup = (model) => {
                         "
                       >
                         <b style="font-size: 13px">{{ l.user_name }}</b>
-                        <div style="
+                        <div
+                          style="
                             font-weight: 600;
                             color: #72777a;
                             font-size: 12px;
@@ -4944,7 +5217,8 @@ const ChangeShowListCVGroup = (model) => {
                           >
                           <span
                             v-if="l.count_istype_3 > 0"
-                            style="background-color: #5bc0de;
+                            style="
+                              background-color: #5bc0de;
                               color: #ffffff;
                               display: inline;
                               padding: 0.4em 0.6em;
@@ -4968,7 +5242,8 @@ const ChangeShowListCVGroup = (model) => {
                 <td
                   @click="onRowSelect(l)"
                   rowspan="1"
-                  class="no-fixcol-hover" style="
+                  class="no-fixcol-hover"
+                  style="
                     background-color: #fff;
                     border: 1px solid #e9e9e9;
                     height: 40px;
@@ -4978,8 +5253,8 @@ const ChangeShowListCVGroup = (model) => {
                   :style="
                     (g.Name
                       ? 'background-color: #fff;'
-                      : 'background-color:' + g.bg + ';'),
-                    'color:' + g.color
+                      : 'background-color:' + g.bg + ';',
+                    'color:' + g.color)
                   "
                   v-for="g in l.dateArray"
                 >
@@ -4997,8 +5272,11 @@ const ChangeShowListCVGroup = (model) => {
                   </div>
                 </td>
               </tr>
-              <tr v-if="listTask != null || opition.totalRecords == 0">
-                <td :colspan="GrandsDate.length + 4" style="text-align: center;">
+              <tr v-if="listTask.length == 0 || opition.totalRecords == 0">
+                <td
+                  :colspan="GrandsDate.length + 4"
+                  style="text-align: center"
+                >
                   <div
                     class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
@@ -5036,6 +5314,7 @@ const ChangeShowListCVGroup = (model) => {
         'min-height': '100vh !important',
       }"
       :showCloseIcon="false"
+      @hide="hideall()"
     >
       <DetailedWork
         :isShow="showDetail"
@@ -5173,7 +5452,8 @@ const ChangeShowListCVGroup = (model) => {
                       ? ''
                       : (slotProps.option.name ?? '').substring(0, 1)
                   "
-                  v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
@@ -5311,7 +5591,8 @@ const ChangeShowListCVGroup = (model) => {
                       ? ''
                       : (slotProps.option.name ?? '').substring(0, 1)
                   "
-                  v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
                     background-color: #2196f3;
                     color: #ffffff;
                     width: 32px;
@@ -5458,14 +5739,14 @@ const ChangeShowListCVGroup = (model) => {
             style="display: flex; padding: 0px; align-items: center"
           >
             <Calendar
-                :showIcon="true"
-                id="time24"
-                :showTime="true"
-                autocomplete="on"
-                class="col-5 ip36 title-lable"
-                style="margin-top: 5px; padding: 0px"
-                v-model="Task.start_date"
-              />
+              :showIcon="true"
+              id="time24"
+              :showTime="true"
+              autocomplete="on"
+              class="col-5 ip36 title-lable"
+              style="margin-top: 5px; padding: 0px"
+              v-model="Task.start_date"
+            />
             <!-- <Calendar
               :manualInput="true"
               :showIcon="true"
@@ -5481,7 +5762,7 @@ const ChangeShowListCVGroup = (model) => {
               style="display: flex; padding: 0px; align-items: center"
             >
               <label class="col-5 text-center">Ngày kết thúc</label>
-              
+
               <Calendar
                 :showTime="true"
                 :showIcon="true"
@@ -5572,6 +5853,22 @@ const ChangeShowListCVGroup = (model) => {
               </div>
             </template>
           </Dropdown>
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          style="
+            display: flex;
+            /* padding: 0px; */
+            align-items: center;
+            position: relative;
+          "
+        >
+          <label class="col-3 text-left p-0">Xuất XML</label>
+          <InputSwitch
+            class="col-9"
+            style="position: absolute; top: 0px; left: 160px"
+            v-model="Task.is_XML"
+          />
         </div>
         <div class="field col-12 md:col-12">
           <Accordion :multiple="true">
@@ -6302,15 +6599,15 @@ const ChangeShowListCVGroup = (model) => {
   margin: 5px;
   position: inherit;
 }
-#type_group_view div span:hover{
+#type_group_view div span:hover {
   cursor: pointer;
 }
-#task-tree .task-tree-lable:hover{
+#task-tree .task-tree-lable:hover {
   cursor: pointer;
 }
-#task-tree .task-tree-lable{
+#task-tree .task-tree-lable {
   position: sticky;
   z-index: 2;
-  top:0px;
+  top: 0px;
 }
 </style>

@@ -307,7 +307,7 @@ const loadData = (rf) => {
                 data[0].forEach((d, i) => {
                     d.status_name = d.status != null ? listDropdownStatus.value.filter((x) => x.value == d.status)[0].text : "";
                     d.STT = i + 1;
-                    d.organization_name = (d.organization_name) ? d.organization_name : 'Công việc không thuộc phòng ban';
+                    // d.organization_name = (d.organization_name) ? d.organization_name : 'Công việc không thuộc phòng ban';
                 })
                 listTaskReportDepartment.value = data[0];
             } else {
@@ -1013,7 +1013,7 @@ const onPage = (event) => {
             <Column header="Ngày bắt đầu" class="align-items-center justify-content-center text-center"
                 headerStyle="min-height:3.125rem;min-width: 10rem;" bodyStyle="min-width: 10rem;">
                 <template #body="data">
-                    <span>{{
+                    <span v-if="data.data.start_date">{{
                         moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
                     }}</span>
                 </template>
@@ -1021,7 +1021,7 @@ const onPage = (event) => {
             <Column header="Ngày kết thúc" class="align-items-center justify-content-center text-center"
                 headerStyle="min-height:3.125rem;min-width: 10rem;" bodyStyle="min-width: 10rem;">
                 <template #body="data">
-                    <span>{{
+                    <span v-if="data.data.end_date">{{
                         moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
                     }}</span>
                 </template>

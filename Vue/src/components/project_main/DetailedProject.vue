@@ -5,7 +5,9 @@ import { encr } from "../../util/function.js";
 import moment from "moment";
 
 const cryoptojs = inject("cryptojs");
-const opition = ref({});
+const opition = ref({
+    type_chart : 1
+});
 const axios = inject("axios"); // inject axios
 const store = inject("store");
 const swal = inject("$swal");
@@ -49,7 +51,11 @@ const ProjectMainMembers = ref();
 const ProjectMainParticipants = ref();
 const Thanhviens = ref([]);
 const ThanhvienShows = ref([]);
+const PhongBanThamGia = ref();
+const chartDataPie = ref();
 const chartData = ref();
+const listChartDate = ref();
+const listProjectMainChild = ref([]);
 
 const listDropdownStatus = ref([
   {
@@ -74,7 +80,7 @@ const listDropdownStatus = ref([
   { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
 ]);
 
-const optionsChart = {
+const optionsChartPie = {
   responsive: true,
   plugins: {
     title: {
@@ -88,9 +94,71 @@ const optionsChart = {
   },
 };
 
+const optionsChart = {
+    responsive: true,
+  plugins: {
+    title: {
+      display: true,
+      position: "bottom",
+      text: "",
+    },
+    legend: {
+      position: "bottom",
+    },
+  },
+};
 const addLog = (log) => {
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
 };
+
+const groupBy = (list, props) => {
+  return list.reduce((a, b) => {
+    (a[b[props]] = a[b[props]] || []).push(b);
+    return a;
+  }, {});
+};
+
+const ChangeTypeChart = (type) => {
+    opition.value.type_chart = type;
+    let chart2 = {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: [],
+            hoverBackgroundColor: [],
+          },
+        ],
+      };
+    if(opition.value.type_chart == 1){
+            var list = listChartDate.value.filter(x=>x.is_type == 1 || x.is_type == 2 || x.is_type == 3);
+        }else if(opition.value.type_chart == 2){
+            var list = listChartDate.value.filter(x=>x.is_type == 1 || x.is_type == 2);
+        }else if(opition.value.type_chart == 3){
+            var list = listChartDate.value.filter(x=>x.is_type == 0);
+        }
+        var listCV = groupBy(list, "user_id");
+            var arrNewChart = [];
+            for (let k in listCV) {
+                var CVGroup = [];
+                listCV[k].forEach(function (r) {
+                    CVGroup.push(r);
+                });
+                arrNewChart.push({
+                    user_id: k,
+                    user_name: listCV[k].filter((x) => x.user_id == k)[0].last_name,
+                    // status_bg_color: listDropdownStatus.value.filter((x) => x.value == k)[0].bg_color,
+                    CVGroup: CVGroup,
+                    });
+            }
+            arrNewChart.forEach(function(t,i){
+                chart2.labels.push(t.user_name);
+                chart2.datasets[0].data.push(t.CVGroup.length);
+                chart2.datasets[0].backgroundColor.push(bgColor.value[i % 7]);
+                chart2.datasets[0].hoverBackgroundColor.push(bgColor.value[i % 7]);
+            })
+            chartData.value = chart2;
+}
 
 const loadData = (rf) => {
     if (rf) {
@@ -122,6 +190,7 @@ const loadData = (rf) => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
+      debugger
       ProjectMainDetail.value = data[0][0];
       ProjectMainDetail.value.status_name = listStatusProjectMain.value.filter(x=>x.value == data[0][0].status)[0].text;
       Thanhviens.value = data[1];
@@ -132,6 +201,97 @@ const loadData = (rf) => {
       }
       ProjectMainMembers.value = data[1].filter(x=>x.is_type == 0);
       ProjectMainParticipants.value = data[1].filter(x=>x.is_type == 1);
+      PhongBanThamGia.value = data[2];
+      PhongBanThamGia.value.forEach((pb) => {
+        pb.tenToChuc = data[1].filter(x=>x.department_id == pb.department_id)[0].tenToChuc ? data[1].filter(x=>x.department_id == pb.department_id)[0].tenToChuc : '';
+      })
+
+        //biểu đồ tròn trạng thái công việc
+        let chart1 = {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: [],
+            hoverBackgroundColor: [],
+          },
+        ],
+      };
+
+      let chart2 = {
+        labels: [],
+        datasets: [
+          {
+            label: '',
+            data: [],
+            backgroundColor: [],
+            hoverBackgroundColor: [],
+          },
+        ],
+        // labels: [],
+        //         datasets: []
+      };
+      
+      if(data[3].length > 0) {
+        let listCV = groupBy(data[3], "status");
+        var arrNew = [];
+        for (let k in listCV) {
+            var CVGroup = [];
+            listCV[k].forEach(function (r) {
+                CVGroup.push(r);
+            });
+            arrNew.push({
+                status: k,
+                status_name: listDropdownStatus.value.filter((x) => x.value == k)[0].text,
+                status_bg_color: listDropdownStatus.value.filter((x) => x.value == k)[0].bg_color,
+                CVGroup: CVGroup,
+                });
+        }
+        arrNew.forEach(function(t){
+            chart1.labels.push(t.status_name);
+            chart1.datasets[0].data.push(t.CVGroup.length);
+            chart1.datasets[0].backgroundColor.push(t.status_bg_color);
+            chart1.datasets[0].hoverBackgroundColor.push(t.status_bg_color);
+        })
+        chartDataPie.value = chart1;
+      }
+      listChartDate.value = data[4];
+        if(opition.value.type_chart == 1){
+            var list = data[4].filter(x=>x.is_type == 1 || x.is_type == 2 || x.is_type == 3);
+        }else if(opition.value.type_chart == 2){
+            var list = data[4].filter(x=>x.is_type == 1 || x.is_type == 2);
+        }else if(opition.value.type_chart == 3){
+            var list = data[4].filter(x=>x.is_type == 0);
+        }
+        var listCV = groupBy(list, "user_id");
+            var arrNewChart = [];
+            for (let k in listCV) {
+                var CVGroup = [];
+                listCV[k].forEach(function (r) {
+                    CVGroup.push(r);
+                });
+                arrNewChart.push({
+                    user_id: k,
+                    user_name: listCV[k].filter((x) => x.user_id == k)[0].last_name,
+                    // status_bg_color: listDropdownStatus.value.filter((x) => x.value == k)[0].bg_color,
+                    CVGroup: CVGroup,
+                    });
+            }
+            arrNewChart.forEach(function(t,i){
+                // let dataset ={
+                //     type: 'bar',
+                //     label: t.user_name,
+                //     backgroundColor: bgColor.value[i % 7],
+                //     data: [t.CVGroup.length],
+                // };
+                chart2.labels.push(t.user_name);
+                chart2.datasets[0].data.push(t.CVGroup.length);
+                chart2.datasets[0].backgroundColor.push(bgColor.value[i % 7]);
+                chart2.datasets[0].hoverBackgroundColor.push(bgColor.value[i % 7]);
+            })
+            chartData.value = chart2;
+            listProjectMainChild.value = data[5];
+            debugger
       if (rf) {
         opition.value.loading = false;
         swal.close();
@@ -165,26 +325,6 @@ onMounted(() => {
     <div class="overflow-hidden h-full w-full col-md-12 p-0 m-0 flex" style="height: 100%;">
         <div class="col-12 p-0 m-0" style="height: 100%;">
             <div class="row w-full px-0 mx-0" style="height: 100%;">
-                <!-- <div class="col-1 p-0 m-0 flex">
-                    <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded p-button-text"
-                        v-tooltip="{ value: 'Đóng' }"
-                        @click="closeSildeBar()"
-                    />
-                    <Button
-                        icon="pi pi-window-maximize"
-                        class="p-button-rounded p-button-text"
-                        v-tooltip="{ value: 'Phóng to' }"
-                        @click="MaxMin('full')"
-                    />
-                    <Button
-                        icon="pi pi-window-minimize"
-                        class="p-button-rounded p-button-text"
-                        v-tooltip="{ value: 'Thu nhỏ' }"
-                        @click="MaxMin('right')"
-                    />
-                </div> -->
                 <div class="col-12 p-0 m-0" style="height: 100%;">
                     <div style="position: absolute;top: 2px; right: 20px; z-index: 2;">
                         <AvatarGroup>
@@ -206,8 +346,7 @@ onMounted(() => {
                                 v-bind:label="
                                     value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
                                 "
-                                v-bind:image="basedomainURL + value.avatar"
-                                style="
+                                v-bind:image="basedomainURL + value.avatar" style="
                                     background-color: #2196f3;
                                     color: #ffffff;
                                     width: 32px;
@@ -333,17 +472,41 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-12">
-                                            <Chart
-                                            type="pie"
-                                            :data="chartData"
-                                            :options="optionsChart"
-                                            />
+                                        <div class="col-12 scroll-outer" style="overflow: hidden auto;max-height: calc(100vh - 155px); min-height: calc(100vh - 155px);">
+                                            <div class="row scroll-inner">
+                                                <div class="col-12">
+                                                    <div class="row flex">
+                                                        <div class="col-3"></div>
+                                                        <div class="col-6">
+                                                            <Chart
+                                                            type="doughnut"
+                                                            :height="300"
+                                                            :width="300"
+                                                            :data="chartDataPie"
+                                                            :options="optionsChartPie"
+                                                            />
+                                                        </div>
+                                                        <div class="col-3"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <div class="row flex">
+                                                        <ul class="style-li" style="display: flex; list-style: none;padding: 0px;">
+                                                            <li @click="ChangeTypeChart(1)" style="border-radius: 5px 0px 0px 5px;" :class="{ active: opition.type_chart == 1 }">Công việc tham gia</li>
+                                                            <li @click="ChangeTypeChart(2)" :class="{ active: opition.type_chart == 2 }">Công việc thực hiện</li>
+                                                            <li @click="ChangeTypeChart(3)" style="border-radius: 0px 5px 5px 0px;" :class="{ active: opition.type_chart == 3 }">Công việc quản lý</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <Chart type="bar" :data="chartData" :options="optionsChart"/>
+                                                </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
                                 <div class="col-6 p-0 m-0 tab-project-content-right">
-                                    <div class="row" style="padding: 15px; font-size: 14px;">
+                                    <div class="row" style="padding: 15px; font-size: 13px;">
                                         <div class="col-12">Tên dự án: <span style="font-weight: 600;">{{ ProjectMainDetail.project_name }}</span></div>
                                         <div class="col-12">Tạo bởi: <span style="font-weight: 600;color:#2196F3;">{{ ProjectMainDetail.full_name }} - </span><span>{{ moment(new Date(ProjectMainDetail.created_date)).format("HH:mm DD/MM") }}</span></div>
                                         <div class="col-12" style="display: flex; flex-direction: column;">
@@ -453,12 +616,22 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="col-12">
+                                            <div class="row flex">
+                                                <div class="col-12 flex" style="flex-direction: column;padding: 0px;line-height: 25px;">
+                                                    <span>Phòng ban tham gia</span>
+                                                    <span v-for="pb in PhongBanThamGia" style="font-weight: 600;">- {{ pb.organization_name }}  <span v-if="pb.tenToChuc" style="font-weight: 500;">({{ pb.tenToChuc }})</span></span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </TabPanel>
                         <TabPanel header="Dự án con">
-                            <p>Dự án con</p>
+                            <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
+                                Danh sách dự án con
+                            </div>
                         </TabPanel>
                         <TabPanel header="Giai đoạn">
                             <p>Giai đoạn</p>
@@ -504,6 +677,32 @@ onMounted(() => {
 }
 .pl-2{
     padding-left: 0.5rem !important;
+}
+.style-li li{
+    padding: 5px 10px;
+    background-color: #e5e5e5;
+    color: black;
+}
+.style-li li:hover{
+    cursor: pointer;
+    background-color: #33c9dc;
+    color: #fff;
+}
+.style-li .active{
+    background-color: #33c9dc !important;
+    color: #fff !important;
+}
+.scroll-outer{
+    visibility: hidden;
+}
+.scroll-inner{
+    visibility: visible;
+}
+.scroll-inner, .scroll-outer:hover, .scroll-outer:focus{
+    visibility: visible;
+}
+::-webkit-scrollbar{
+    width: 17px !important;
 }
 </style>
 <style>
