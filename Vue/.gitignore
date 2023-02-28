@@ -44,3 +44,6 @@ coverage
 ../API/Web References/
 *.pdb
 *.user
+*.csproj
+*.asax
+../API.sln

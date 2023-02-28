@@ -29,7 +29,7 @@ const basedomainURL = baseURL;
 //Declare
 const views = ref([
   { view: 1, title: "Sơ yếu", icon: "fa-regular fa-address-card" },
-  { view: 2, title: "Công việc", icon: "fa-solid fa-list-check" },
+  { view: 2, title: "Phân công", icon: "fa-solid fa-list-check" },
   { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
   { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
   { view: 5, title: "Phiếu lương", icon: "a-solid fa-money-check-dollar" },
@@ -48,7 +48,7 @@ const options = ref({
   total: 0,
   sort: "created_date desc",
   orderBy: "desc",
-  view: 13,
+  view: 1,
   profile_id: null,
   key_id: null,
   contract_id: null,
@@ -3693,15 +3693,15 @@ const onPage = (event) => {
                           <Column
                             field="department_name"
                             header="Phòng ban"
-                            headerStyle="text-align:center;width:150px;height:50px"
-                            bodyStyle="text-align:center;width:150px;"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
                             class="align-items-center justify-content-center text-center"
                           />
                           <Column
                             field="work_position_name"
                             header="Vị trí"
-                            headerStyle="text-align:center;width:150px;height:50px"
-                            bodyStyle="text-align:center;width:150px;"
+                            headerStyle="text-align:center;width:200px;height:50px"
+                            bodyStyle="text-align:center;width:200px;"
                             class="align-items-center justify-content-center text-center"
                           />
                           <Column
