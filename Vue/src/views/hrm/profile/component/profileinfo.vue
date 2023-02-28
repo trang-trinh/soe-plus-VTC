@@ -2483,7 +2483,7 @@ const onPage = (event) => {
                                   height: '2rem',
                                   fontSize: '1rem',
                                   borderRadius: '50%',
-                                  fontSize: '1.5rem !important',
+                                  fontSize: '1rem !important',
                                 }"
                                 size="xlarge"
                                 class="border-radius"
@@ -2531,6 +2531,7 @@ const onPage = (event) => {
                                         height: '5rem',
                                         fontSize: '1.5rem',
                                         borderRadius: '5px',
+                                        fontSize: '1.5rem !important',
                                       }"
                                       size="xlarge"
                                       class="border-radius"
@@ -5119,7 +5120,7 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
@@ -5209,7 +5210,7 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
@@ -5299,7 +5300,7 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">

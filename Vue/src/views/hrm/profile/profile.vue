@@ -1870,7 +1870,7 @@ onMounted(() => {
                 size="xlarge"
                 class="border-radius"
               />
-              <span v-if="slotProps.data.isEdit" class="is-sign">
+              <span v-if="slotProps.data.isEdit" class="is-sign" v-tooltip="'Đã hiệu chỉnh hồ sơ'">
                 <font-awesome-icon
                   icon="fa-solid fa-circle-check"
                   style="font-size: 16px; display: block; color: #f4b400"
@@ -1983,8 +1983,8 @@ onMounted(() => {
         <Column
           field="status"
           header="Trạng thái"
-          headerStyle="text-align:center;max-width:50px;height:50px"
-          bodyStyle="text-align:center;max-width:50px;"
+          headerStyle="text-align:center;max-width:30px;height:50px"
+          bodyStyle="text-align:center;max-width:30px;"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
@@ -1994,7 +1994,7 @@ onMounted(() => {
                 border: slotProps.data.bg_color,
                 backgroundColor: slotProps.data.bg_color,
                 color: slotProps.data.text_color,
-                padding: '0.05rem 0.5rem',
+                padding: '0.001rem 0.4rem',
               }"
               v-tooltip.top="slotProps.data.status_name"
             />
