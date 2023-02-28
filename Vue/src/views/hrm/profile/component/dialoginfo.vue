@@ -50,7 +50,7 @@ const status = ref([
 ]);
 
 //Function
-const save1 = () => {
+const save1 = (isEdit) => {
   submitted.value = true;
   swal.fire({
     width: 110,
@@ -76,6 +76,7 @@ const save1 = () => {
     ).format("YYYY-MM-DDTHH:mm:ssZZ");
   }
   let formData = new FormData();
+  formData.append("isEdit", isEdit);
   formData.append("model", JSON.stringify(obj));
   axios
     .put(baseURL + "/api/hrm_profile/update_profile_edit", formData, config)
@@ -185,9 +186,9 @@ const save2 = () => {
     });
   if (submitted.value) submitted.value = true;
 };
-const saveModel = () => {
+const saveModel = (isEdit) => {
   if (props.isType === 1) {
-    save1();
+    save1(isEdit);
   } else if (props.isType === 2) {
     save2();
   }
@@ -1263,8 +1264,8 @@ onMounted(() => {
         @click="props.closeDialog()"
         class="p-button-text"
       />
-
-      <Button label="Lưu" icon="pi pi-check" @click="saveModel()" />
+      <Button label="Cập nhật" icon="pi pi-save" @click="saveModel(true)" />
+      <Button label="Lưu thay đổi" icon="pi pi-check" @click="saveModel(false)" />
     </template>
   </Dialog>
 </template>
