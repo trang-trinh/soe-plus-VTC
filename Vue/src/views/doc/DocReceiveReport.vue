@@ -592,6 +592,7 @@ const onRefilterDM = () => {
   options.value.ca_user_recever_list = null;
   options.value.end_dateD = null;
   options.value.start_dateD = null;
+ 
   filterButs.value.hide();
   filterSQL.value = [];
   options.value.pageno=0;
@@ -864,7 +865,7 @@ function renderhtml(id, htmltable) {
     }
     .title1,
     .title1 * {
-      font-size: 17pt !important;
+      font-size: 24pt !important;
     }
     .title2,
     .title2 * {
@@ -926,41 +927,49 @@ htmltable += `<div id="formprint">
       <table>
         <thead>
           <tr>
-            <td class="text-center" colspan="6">
-              <div style="padding: 1rem 0">
-                <div class="uppercase title2"><b>BÁO CÁO KHỐI NỘI BỘ</b></div>
+            <td style="width:33.33%">
+          
+          <div style="width:100%; align-item:center; font-weight:600"> Tổng số: `+  datalistsExport.value.length+` </div>
+          
+     
+              </td>
+            <td    style="width:33.33%;padding: 1rem 0 0.5rem 0 ;text-align:center; " >
+            
+               <div style="width:100%;font-weight:600; font-size:24px">VĂN BẢN ĐẾN</div> 
              
-              </div>
+          
+            </td>
+            <td style="width:33.33%">
+              <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
             </td>
           </tr>
         </thead>
       </table>
-      <div style="display:flex; font-weight:600">
-          <div style="width:100%; align-item:center"> Tổng số: `+  datalistsExport.value.length+` </div>
-          <div  style="width:100%; text-align:right; align-item:center"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
-        </div>
+    
       <table>
         <thead class="boder">
           <tr>
        
-            <th style="width: 100px ;  padding: 0px 3px">Số vào sổ</th>
-            <th style="width: 100px ;  padding: 0px 3px">Số ký hiệu</th>
-            <th style="width: 100px ;  padding: 0px 3px"><div  style="padding: 0px">Ngày thu</div>
-              <div style="padding: 0 ">------</div>
-              <div style="padding: 0 ">Ban hành</div>
+            <th style="width: 70px ;  padding: 0px 3px">Số đến phòng</th>
+            <th style="width: 100px ;  padding: 0px 3px">Số,ký hiệu</th>
+            <th style="width: 100px ;  padding: 0px 2px"> <b>Ngày thu </b>
+              <hr style="margin:0px 25px; font-weight:600"/>
+       
+             <b> Ban hành </b>
               </th>
-              <th style=" min-width: 120px ;  padding: 0px 3px">Nơi ban hành</th>
+              <th style=" min-width: 100px ;  padding: 0px 3px">CQ ban hành</th>
        
             <th style="min-width: 150px ;  padding: 0px 3px">Trích yếu</th>
          
          
-            <th style="width: 40px ;  padding: 0px 3px">Số bản</th>
-            <th style="width: 40px ;  padding: 0px 3px">Số tờ</th>
+            <th style="width: 30px ;  padding: 0px 3px">Số bản</th>
+            <th style="width: 30px ;  padding: 0px 3px">Số tờ</th>
             <th style="width: 55px ;  padding: 0px 3px">Độ mật</th>
-            <th style="width: 40px ;  padding: 0px 3px">Bản Đ/tử</th>
-            <th style=" min-width: 120px ;  padding: 0px 3px">Nơi nhận</th>
+            <th style="width: 40px ;  padding: 0px 3px">Bản đ/tử</th>
+            <th style=" min-width: 100px ;  padding: 0px 3px">Ng/nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký trả</th>
+            <th style="width: 50px ;  padding: 0px 3px">Ghi chú</th>
           </tr>
         </thead>
         <tbody class="boder">`;
@@ -1070,6 +1079,11 @@ htmltable += `<div id="formprint">
               </div>
             </td>
           
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
             <td  style=" word-break: break-word">
               <div>
                 
