@@ -640,7 +640,7 @@ const renderTreeDV1 = (data, id, name, title, org_id) => {
       });
   }
   return { arrtreeChils: arrtreeChils };
-};
+}; const FilterStr=ref("");
 const checkFilter = ref(false);
 const onRefilterDM = () => {
   options.value.doc_group_id = null;
@@ -744,10 +744,12 @@ const onFilterDM = () => {
   }
   strG = "";
   strk = "";
-
+  FilterStr.value="";
   if (options.value.department_id_process) {
     for (const key in options.value.department_id_process) {
       strG += strk + key;
+      var tsc=listFilterDM.value.department_list.find(x=>x.key==key).label;
+      FilterStr.value+= strk +tsc;
       strk = ",";
     }
   }
@@ -880,112 +882,124 @@ function renderhtml(id, htmltable) {
   htmltable = "";
   //Style
   htmltable += `<style>
-  #formprint {
-    background: #fff !important;
-  }
-  #formprint * {
-    font-family: "Times New Roman", Times, serif !important;
-    font-size: 13pt;
-  }
-  .title1,
-  .title1 * {
-    font-size: 17pt !important;
-  }
-  .title2,
-  .title2 * {
-    font-size: 16pt !important;
-  }
-  .title3,
-  .title3 * {
-    font-size: 15pt !important;
-  }
-  .boder tr th,
-  .boder tr td {
-    border: 1px solid #999999 !important;
-    padding: 0.5rem;
-  }
-  table {
-    min-width: 100% !important;
-    page-break-inside: auto !important;
-    border-collapse: collapse !important;
-    table-layout: fixed !important;
-  }
-  thead {
-    display: table-header-group !important;
-  }
-  tbody {
-    display: table-header-group !important;
-  }
-  tr {
-    -webkit-column-break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-  td{
-    word-break: break-all;
-  }
-  tfoot {
-    display: table-footer-group !important;
-  }
-  .uppercase,
-  .uppercase * {
-    text-transform: uppercase !important;
-  }
-  .text-center {
-    text-align: center !important;
-  }
-  .text-left {
-    text-align: left !important;
-  }
-  .text-right {
-    text-align: right !important;
-  }
-  .html p{
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-</style>
+    #formprint {
+      background: #fff !important;
+    }
+    #formprint * {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+    }
+    .title1,
+    .title1 * {
+      font-size: 16pt !important;
+    }
+    .title2,
+    .title2 * {
+      font-size: 14pt !important;
+    }
+    .title3,
+    .title3 * {
+      font-size: 12pt !important;
+    }
+    .boder tr th,
+    .boder tr td {
+    
+      border: 1px solid #999999 !important;
+      padding: 0.25rem;
+    }
+    .boder tr td {  font-size: 12pt !important;}
 
-
-`;
-htmltable += `<div id="formprint">
+    table {
+      min-width: 100% !important;
+      page-break-inside: auto !important;
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
+    }
+    thead {
+      display: table-header-group !important;
+    }
+    tbody {
+      display: table-header-group !important;
+    }
+    tr {
+      -webkit-column-break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+    td{
+      word-break: break-all;
+    }
+    tfoot {
+      display: table-footer-group !important;
+    }
+    .uppercase,
+    .uppercase * {
+      text-transform: uppercase !important;
+    }
+    .text-center {
+      text-align: center !important;
+    }
+    .text-left {
+      text-align: left !important;
+    }
+    .text-right {
+      text-align: right !important;
+    }
+    .html p{
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  </style>
+  
+  
+  `;
+htmltable += `<div id="formprint" style="width:100%">
       <table>
         <thead>
           <tr>
-            <td class="text-center" colspan="6">
-              <div style="padding: 1rem 0">
-                <div class="uppercase title2"><b>BÁO CÁO KHỐI NỘI BỘ</b></div>
+            <td style="width:33.33%">
+          
+              <div style="width:100%; align-item:center; font-weight:600;word-break: break-word;">`+  FilterStr.value+` </div>
+          <div style="width:100%; align-item:center; font-weight:600">Tổng số: `+  datalistsExport.value.length+` </div>
+          
+     
+              </td>
+            <td    style="width:33.33%;padding: 0 0 0.5rem 0 ;text-align:center; " >
+            
+               <div class="title1" style="width:100%;font-weight:600;height:100%;    padding-top:0">VĂN BẢN ĐẾN</div> 
              
-              </div>
+          <div></div>
+            </td>
+            <td style="width:33.33%">
+              <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
             </td>
           </tr>
         </thead>
       </table>
-      <div style="display:flex; font-weight:600">
-          <div style="width:100%; align-item:center"> Tổng số: `+  datalistsExport.value.length+` </div>
-          <div  style="width:100%; text-align:right; align-item:center"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
-        </div>
+    
       <table>
         <thead class="boder">
           <tr>
-            
-            <th style="width: 100px ;  padding: 0px 3px">Số vào sổ</th>
-            <th style="width: 100px ;  padding: 0px 3px">Số ký hiệu</th>
-            <th style="width: 100px ;  padding: 0px 3px"><div  style="padding: 0px">Ngày thu</div>
-              <div style="padding: 0 ">------</div>
-              <div style="padding: 0 ">Ban hành</div>
-              </th>
-              <th style=" min-width: 120px ;  padding: 0px 3px">Nơi ban hành</th>
        
-            <th style="min-width: 150px ;  padding: 0px 3px">Trích yếu</th>
+            <th style="width: 60px ;  padding: 0px 3px">Số đến phòng</th>
+            <th style="width: 80px ;  padding: 0px 3px">Số,ký hiệu</th>
+            <th style="width: 80px ;word-break: break-word;  padding: 0px 2px"> <b>Ngày thu </b>
+              <hr style="margin:3px 25px 0px 25px ; font-weight:600"/>
+       
+             <b> Ban hành </b>
+              </th>
+              <th style=" min-width: 80px ; word-break: break-word;  padding: 0px 3px">CQ ban hành</th>
+       
+            <th style="min-width: 150px ;word-break: break-word;  padding: 0px 3px">Trích yếu</th>
          
          
-            <th style="width: 40px ;  padding: 0px 3px">Số bản</th>
-            <th style="width: 40px ;  padding: 0px 3px">Số tờ</th>
-            <th style="width: 55px ;  padding: 0px 3px">Độ mật</th>
-            <th style="width: 40px ;  padding: 0px 3px">Bản Đ/tử</th>
-            <th style=" min-width: 120px ;  padding: 0px 3px">Nơi nhận</th>
+            <th style="width: 20px ;  padding: 0px 3px">Số bản</th>
+            <th style="width: 20px ;  padding: 0px 3px">Số tờ</th>
+            <th style="width: 40px ;  padding: 0px 3px">Độ mật</th>
+            <th style="width: 20px ;  ; padding: 0px 3px"  >Bản đ/tử</th>
+            <th style=" min-width: 70px ;word-break: break-word;  padding: 0px 3px">Ng/nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký trả</th>
+            <th style="width: 50px ;  padding: 0px 3px">Ghi chú</th>
           </tr>
         </thead>
         <tbody class="boder">`;
@@ -996,7 +1010,7 @@ htmltable += `<div id="formprint">
     var receive_date = "";
     var num_of_pages="";
     var num_of_copies="";
-    var is_not_send_papper="";
+    var is_not_send_paper="";
     var security="";
     var dispatch_book_code="";
     var doc_code="";
@@ -1009,10 +1023,11 @@ htmltable += `<div id="formprint">
     if(value.num_of_copies)
     num_of_copies=value.num_of_copies;
     if(value.security)
-    security=value.security;
-  
-    if(value.is_not_send_papper==true)
-    is_not_send_papper="1";
+    security=value.security; 
+ 
+    if(value.is_not_send_paper==1)
+    is_not_send_paper="1";
+      
     if (value.doc_date)
       doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
     if (value.receive_date)
@@ -1020,7 +1035,7 @@ htmltable += `<div id="formprint">
     htmltable +=
       `
           <tr >
-            
+          
             <td  >
               <div style="text-align: center">
                 ` +
@@ -1029,21 +1044,24 @@ htmltable += `<div id="formprint">
               </div>
             </td>
             <td align="center"   >
-              <div style="text-align: center">
-                
-                ` +
-       doc_code +
-      `</div>
+
+              <div >
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + doc_code +'</div>    '+dispatch_book_code
+      +
+      ` </div>
+              
+              </div>
+              
             </td>
             <td   >
               <div >
-               <div style="text-align:center;padding:0px"> ` + receive_date +'</div> <div style="text-align:center;padding:0px">-----</div>  <div style="text-align:center;padding:0px">'+doc_date
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + receive_date +'</div>  '+doc_date
       +
       ` </div>
               
               </div>
             </td>
-            <td  style=" word-break: break-word">
+            <td  style=" word-break: break-word; text-align:center">
             <div >
               ` +value.issue_place + `
        
@@ -1082,7 +1100,7 @@ htmltable += `<div id="formprint">
             <td  style=" word-break: break-word">
               <div style="text-align: center">
                 ` +
-      is_not_send_papper +
+                is_not_send_paper +
       `
               </div>
             </td>
@@ -1095,6 +1113,11 @@ htmltable += `<div id="formprint">
               </div>
             </td>
           
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
             <td  style=" word-break: break-word">
               <div>
                 
