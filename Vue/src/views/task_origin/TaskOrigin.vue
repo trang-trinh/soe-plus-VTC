@@ -4667,7 +4667,7 @@ const ChangeShowListCVGroup = (model) => {
           display: flex;
           flex-direction: column;
         "
-        v-if="listTask != null || opition.totalRecords == 0"
+        v-if="listTask.length == 0 || opition.totalRecords == 0"
       >
         <img
           src="../../assets/background/nodata.png"

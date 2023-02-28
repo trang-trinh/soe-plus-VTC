@@ -182,6 +182,7 @@ onMounted(() => {});
                         style="margin: 0 auto"
                       >
                         <img
+                          v-tooltip.top="'Chọn ảnh hồ sơ'"
                           @click="props.chooseImage('imgAvatar')"
                           id="avatar"
                           v-bind:src="
@@ -211,7 +212,6 @@ onMounted(() => {});
                           style="display: none"
                         />
                       </div>
-                      <label class="text-center">Ảnh đại diện</label>
                     </div>
                   </div>
                   <div class="col-9 md:col-9 p-0">
