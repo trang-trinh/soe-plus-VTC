@@ -957,21 +957,21 @@ htmltable += `<div id="formprint">
        
             <th style="width: 70px ;  padding: 0px 3px">Số đến phòng</th>
             <th style="width: 100px ;  padding: 0px 3px">Số,ký hiệu</th>
-            <th style="width: 100px ;  padding: 0px 2px"> <b>Ngày thu </b>
-              <hr style="margin:0px 25px; font-weight:600"/>
+            <th style="width: 100px ;word-break: break-word;  padding: 0px 2px"> <b>Ngày thu </b>
+              <hr style="margin:3px 25px 0px 25px ; font-weight:600"/>
        
              <b> Ban hành </b>
               </th>
-              <th style=" min-width: 70px ;  padding: 0px 3px">CQ ban hành</th>
+              <th style=" min-width: 80px ; word-break: break-word;  padding: 0px 3px">CQ ban hành</th>
        
-            <th style="min-width: 150px ;  padding: 0px 3px">Trích yếu</th>
+            <th style="min-width: 150px ;word-break: break-word;  padding: 0px 3px">Trích yếu</th>
          
          
             <th style="width: 30px ;  padding: 0px 3px">Số bản</th>
             <th style="width: 30px ;  padding: 0px 3px">Số tờ</th>
             <th style="width: 55px ;  padding: 0px 3px">Độ mật</th>
-            <th style="width: 40px ;  padding: 0px 3px">Bản đ/tử</th>
-            <th style=" min-width: 70px ;  padding: 0px 3px">Ng/nhận</th>
+            <th style="width: 30px ; font-size:15px !important ; padding: 0px 3px">Bản đ/tử</th>
+            <th style=" min-width: 80px ;word-break: break-word;  padding: 0px 3px">Ng/nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký trả</th>
             <th style="width: 50px ;  padding: 0px 3px">Ghi chú</th>
@@ -1018,15 +1018,18 @@ htmltable += `<div id="formprint">
               </div>
             </td>
             <td align="center"   >
-              <div style="text-align: center ">
-                
-                ` +
-       doc_code +
-      `</div>
+
+              <div >
+               <div style="text-align:center;padding:0px"> <span style="font-weight:600">` + doc_code +'</span>   <br/>'+dispatch_book_code
+      +
+      ` </div>
+              
+              </div>
+              
             </td>
             <td   >
               <div >
-               <div style="text-align:center;padding:0px"> <span style="font-weight:600">` + receive_date +'</span>   <hr style="margin:0px 25px; font-weight:600"/>'+doc_date
+               <div style="text-align:center;padding:0px"> <span style="font-weight:600">` + receive_date +'</span> <br/>'+doc_date
       +
       ` </div>
               
