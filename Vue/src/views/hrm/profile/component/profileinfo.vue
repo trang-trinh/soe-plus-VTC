@@ -29,7 +29,7 @@ const basedomainURL = baseURL;
 //Declare
 const views = ref([
   { view: 1, title: "Sơ yếu", icon: "fa-regular fa-address-card" },
-  { view: 2, title: "Công việc", icon: "fa-solid fa-list-check" },
+  { view: 2, title: "Phân công", icon: "fa-solid fa-list-check" },
   { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
   { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
   { view: 5, title: "Phiếu lương", icon: "a-solid fa-money-check-dollar" },
@@ -48,7 +48,7 @@ const options = ref({
   total: 0,
   sort: "created_date desc",
   orderBy: "desc",
-  view: 13,
+  view: 1,
   profile_id: null,
   key_id: null,
   contract_id: null,
@@ -458,7 +458,7 @@ const menuButs = ref();
 const itemButs = ref([
   {
     label: "Thông tin chung/liên hệ",
-    icon: "pi pi-file",
+    icon: "pi pi-id-card",
     command: (event) => {
       openEditDialog(1, "Cập nhật thay đổi thông tin");
     },
@@ -470,6 +470,16 @@ const itemButs = ref([
       openEditDialog(
         2,
         "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
+      );
+    },
+  },
+  {
+    label: "Thông tin bảo hiểm",
+    icon: "pi pi-shield",
+    command: (event) => {
+      openEditDialog(
+        2,
+        "Cập nhật thay đổi thông bảo hiểm"
       );
     },
   },
@@ -2118,7 +2128,8 @@ const onPage = (event) => {
           aria-controls="overlay_Export"
         >
           <div>
-            <span class="mr-2">Cập nhật thay đổi thông tin</span>
+            <span class="mr-2"><i class="pi pi-user-edit"></i></span>
+            <b class="mr-2">Cập nhật thay đổi thông tin</b>
             <span><i class="pi pi-chevron-down"></i></span>
           </div>
         </Button>
@@ -2144,7 +2155,7 @@ const onPage = (event) => {
             class="selectbutton-custom"
           >
             <template #option="slotProps">
-              <div>
+              <b>
                 <span
                   v-if="slotProps.option.icon != null"
                   :class="{ 'mr-2': slotProps.option.title != null }"
@@ -2152,7 +2163,7 @@ const onPage = (event) => {
                   <font-awesome-icon :icon="slotProps.option.icon" />
                 </span>
                 <span> {{ slotProps.option.title }}</span>
-              </div>
+              </b>
             </template>
           </SelectButton>
           <span class="p-buttonset">
@@ -2291,7 +2302,6 @@ const onPage = (event) => {
                                   "
                                 />
                               </div>
-                              <label class="text-center">Ảnh đại diện</label>
                             </div>
                           </div>
                           <div class="col-9 md:col-9 p-0">
@@ -3693,15 +3703,15 @@ const onPage = (event) => {
                           <Column
                             field="department_name"
                             header="Phòng ban"
-                            headerStyle="text-align:center;width:150px;height:50px"
-                            bodyStyle="text-align:center;width:150px;"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
                             class="align-items-center justify-content-center text-center"
                           />
                           <Column
                             field="work_position_name"
                             header="Vị trí"
-                            headerStyle="text-align:center;width:150px;height:50px"
-                            bodyStyle="text-align:center;width:150px;"
+                            headerStyle="text-align:center;width:200px;height:50px"
+                            bodyStyle="text-align:center;width:200px;"
                             class="align-items-center justify-content-center text-center"
                           />
                           <Column
@@ -4835,19 +4845,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -4928,19 +4935,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -5021,19 +5025,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -5173,6 +5174,11 @@ const onPage = (event) => {
     color: #ffffff;
     background: #64748b;
     border: 1px solid #64748b;
+  }
+}
+::v-deep(.border-radius) {
+  img {
+    border-radius: 5px;
   }
 }
 </style>

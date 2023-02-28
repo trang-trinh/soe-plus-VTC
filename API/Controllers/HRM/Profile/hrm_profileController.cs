@@ -874,16 +874,23 @@ namespace API.Controllers.HRM.Profile
                     var provider = new MultipartFormDataStreamProvider(rootTemp);
                     var task = await Request.Content.ReadAsMultipartAsync(provider);
 
+                    bool isEdit = bool.Parse(provider.FormData.GetValues("isEdit").SingleOrDefault());
                     var md = provider.FormData.GetValues("model").SingleOrDefault();
 
                     hrm_profile_edit model = JsonConvert.DeserializeObject<hrm_profile_edit>(md);
-                    model.is_flag = db.hrm_profile_edit.Count(x => x.profile_id == model.profile_id) + 1;
-                    model.created_by = uid;
-                    model.created_date = DateTime.Now;
-                    model.created_ip = ip;
-                    model.created_token_id = tid;
-                    db.hrm_profile_edit.Add(model);
-
+                    if (isEdit)
+                    {
+                        db.Entry(model).State = EntityState.Modified;
+                    }
+                    else
+                    {
+                        model.is_flag = db.hrm_profile_edit.Count(x => x.profile_id == model.profile_id) + 1;
+                        model.created_by = uid;
+                        model.created_date = DateTime.Now;
+                        model.created_ip = ip;
+                        model.created_token_id = tid;
+                        db.hrm_profile_edit.Add(model);
+                    }
                     await db.SaveChangesAsync();
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }

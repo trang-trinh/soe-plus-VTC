@@ -98,7 +98,27 @@ const props = defineProps({
         </tr>
         <tr>
           <td colspan="3">12) Ngày được tuyển dụng: </td>
-          <td colspan="3">,Vào cơ quan nào: ,Ở đâu: </td>
+          <td colspan="3"> ;Vào cơ quan nào: ;Ở đâu: </td>
+        </tr>
+        <tr>
+          <td colspan="3">13) Ngày vào cơ quan hiện đang công tác: </td>
+          <td colspan="3"> ;Ngày tham gia cách mạng: </td>
+        </tr>
+        <tr>
+          <td colspan="3">14) Ngày vào Đảng Cộng sản Việt Nam: </td>
+          <td colspan="3"> ;Ngày chính thức: </td>
+        </tr>
+        <tr>
+          <td colspan="6">15) Ngày tham gia các tổ chức chính trị xã hội ( Ngày vào Đoàn TNCSHCM, Công đoàn, Hội ...): </td>
+        </tr>
+        <tr>
+          <td colspan="6">16) Ngày nhập ngũ: ;Ngày xuất ngũ: ;Quân hàm: </td>
+        </tr>
+        <tr>
+          <td colspan="6">17) Trình độ học vấn (Giáo dục phổ thông lớp mấy): ;Học hàm, học vị cao nhất (GS, PGS, TS, Thạc sĩ, Cử nhân, Kỹ sư,…năm nào, chuyên ngành): </td>
+        </tr>
+        <tr>
+          <td colspan="6">- Lý luận chính trị (Cử nhân, Cao cấp, Trung cấp, Sơ cấp): ;Quản lý nhà nước (Chuyên viên cao cấp, Chuyên viên chính ...): ;</td>
         </tr>
       </tbody>
     </table>
