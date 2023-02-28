@@ -8,8 +8,8 @@ import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
 import printprofile from "../component/printprofile.vue";
+import diloginsurance from "../../insurance/component/diloginsurance.vue";
 import moment from "moment";
-import { init } from "events";
 
 const route = useRoute();
 const router = inject("router");
@@ -453,6 +453,176 @@ const closeDialog = () => {
   displayDialog.value = false;
 };
 
+//Function edit bảo hiểm
+const statuss = ref([
+  { value: 1, text: "Trả" },
+  { value: 2, text: "Sửa" },
+  { value: 3, text: "Chốt" },
+  { value: 4, text: "Xin cấp" },
+  { value: 5, text: "Gộp" },
+  { value: 6, text: "Người lao động giữ sổ" },
+]);
+const hinhthucs = ref([
+  { value: 1, text: "Bao tăng" },
+  { value: 2, text: "Báo giảm" },
+]);
+const insurance_dictionarys = ref([]);
+const initDictionaryInsurance = () => {
+  axios
+    .post(
+      baseURL + "api/insurance/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_insurance_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if(data != null){
+        insurance_dictionarys.value = data;
+      }
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const headerDialogInsurance = ref();
+const displayDialogInsurance = ref(false);
+const openEditDialogInsurance = (str) => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_insurance_edit",
+            par: [{ par: "profile_id", va: options.value["profile_id"] }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        if (data[0] != null && data[0].length > 0) {
+          insurance.value = data[0][0];
+        } else {
+          insurance.value = {};
+        }
+        //get child
+        if (data[1] != null && data[1].length > 0) {
+          insurance_pays.value = data[1];
+          insurance_pays.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+          });
+        } else {
+          insurance_pays.value = [];
+        }
+
+        if (data[2] != null && data[2].length > 0) {
+          insurance_resolves.value = data[2];
+          insurance_resolves.value.forEach((item) => {
+            if (item.received_file_date != null) {
+              item.received_file_date = new Date(item.received_file_date);
+            }
+            if (item.completed_date != null) {
+              item.completed_date = new Date(item.completed_date);
+            }
+            if (item.received_money_date != null) {
+              item.received_money_date = new Date(item.received_money_date);
+            }
+          });
+        } else {
+          insurance_resolves.value = [];
+        }
+      }
+      headerDialogInsurance.value = str;
+      displayDialogInsurance.value = true;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+const closeDialogInsurance = () => {
+  displayDialogInsurance.value = false;
+};
+const addRow = (type) => {
+  //relative
+  if (type == 1) {
+    let obj = {
+      start_date: null,
+      payment_form: null,
+      reason: null,
+      end_date: null,
+      organization_payment: null,
+      total_payment: null,
+      company_payment: null,
+      member_payment: null,
+    };
+    insurance_pays.value.push(obj);
+  }
+  if (type == 2) {
+    let obj = {
+      type_mode: null,
+      payment_form: null,
+      type_mode: null,
+      completed_date: null,
+      received_money_date: null,
+      money: null,
+    };
+    insurance_resolves.value.push(obj);
+  }
+};
+const deleteRow = (idx, type) => {
+  if (type == 1) {
+    insurance_pays.value.splice(idx, 1);
+  }
+  if (type == 2) {
+    insurance_resolves.value.splice(idx, 1);
+  }
+};
+
 //Function mores
 const menuButs = ref();
 const itemButs = ref([
@@ -477,10 +647,7 @@ const itemButs = ref([
     label: "Thông tin bảo hiểm",
     icon: "pi pi-shield",
     command: (event) => {
-      openEditDialog(
-        2,
-        "Cập nhật thay đổi thông bảo hiểm"
-      );
+      openEditDialogInsurance("Cập nhật thay đổi thông bảo hiểm");
     },
   },
 ]);
@@ -529,6 +696,14 @@ const itemButPrints = ref([
     icon: "fa-regular fa-file",
     command: (event) => {
       goPrint(14);
+    },
+  },
+  {
+    view: 14,
+    label: "Sổ lao động mẫu 145/2020/NĐ-CP",
+    icon: "fa-regular fa-file",
+    command: (event) => {
+      goPrint(15);
     },
   },
 ]);
@@ -902,7 +1077,7 @@ const initView1 = (rf) => {
           var idx = marital_status.value.findIndex(
             (x) => x["value"] === profile.value["marital_status"]
           );
-          if (profile.value["value"] != null && idx != -1) {
+          if (profile.value["marital_status"] != null && idx != -1) {
             profile.value["marital_status"] = marital_status.value[idx]["text"];
           }
           //
@@ -1914,6 +2089,7 @@ onMounted(() => {
     options.value["key_id"] = route.params.id;
     options.value["profile_id"] = route.query.id;
     initRelate();
+    initDictionaryInsurance();
     initData();
   } else {
     router.back();
@@ -2287,7 +2463,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12 p-0">
                         <div class="row">
                           <div class="col-3 md:col-3 format-center">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <div
                                 class="inputanh2 relative mb-2"
                                 style="margin: 0 auto"
@@ -2307,7 +2483,7 @@ const onPage = (event) => {
                           <div class="col-9 md:col-9 p-0">
                             <div class="row">
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label>
                                     Mã nhân sự:
                                     <span class="description-2">{{
@@ -2317,7 +2493,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Mã chấm công:
                                     <span class="description-2">{{
@@ -2327,7 +2503,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Mã quản lý cấp trên:
                                     <span class="description-2">{{
@@ -2337,7 +2513,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Ngày tuyển dụng:
                                     <span class="description-2">{{
@@ -2347,7 +2523,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Họ và tên:
                                     <span class="description-2">{{
@@ -2357,7 +2533,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Tên gọi khác:
                                     <span class="description-2">{{
@@ -2367,7 +2543,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Ngày sinh:
                                     <span class="description-2">{{
@@ -2377,7 +2553,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Giới tính:
                                     <span class="description-2">{{
@@ -2391,7 +2567,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Nơi sinh:
                             <span class="description-2">{{
@@ -2401,7 +2577,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Quê quán:
                             <span class="description-2">{{
@@ -2411,7 +2587,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Nơi đăng ký HKTT:
                             <span class="description-2">{{
@@ -2423,7 +2599,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12 p-0">
                         <div class="row">
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Loại giấy tờ:
                                 <span class="description-2">{{
@@ -2433,7 +2609,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số:
                                 <span class="description-2">{{
@@ -2443,7 +2619,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày cấp:
                                 <span class="description-2">{{
@@ -2453,7 +2629,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Nơi cấp:
                                 <span class="description-2">{{
@@ -2463,7 +2639,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quốc tịch:
                                 <span class="description-2">{{
@@ -2473,7 +2649,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tình trạng hôn nhân:
                                 <span class="description-2">{{
@@ -2483,7 +2659,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Dân tộc:
                                 <span class="description-2">{{
@@ -2493,7 +2669,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tôn giáo:
                                 <span class="description-2">{{
@@ -2503,7 +2679,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Mã số thuế:
                                 <span class="description-2">{{
@@ -2556,7 +2732,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Trình độ phổ thông:
                                 <span class="description-2">{{
@@ -2566,7 +2742,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Trình độ học vấn cao nhất:
                                 <span class="description-2">{{
@@ -2576,7 +2752,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Chuyên ngành học:
                                 <span class="description-2">{{
@@ -2586,7 +2762,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quản lý nhà nước:
                                 <span class="description-2">{{
@@ -2639,7 +2815,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số điện thoại:
                                 <span class="description-2">{{
@@ -2649,7 +2825,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Email:
                                 <span class="description-2">{{
@@ -2659,7 +2835,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Thường trú:
                                 <span class="description-2">{{
@@ -2669,7 +2845,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Chỗ ở hiện nay:
                                 <span class="description-2">{{
@@ -2679,12 +2855,12 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label class="m-0">Khi cần báo tin cho:</label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Họ và tên:
                                 <span class="description-2">{{
@@ -2694,7 +2870,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số điện thoại:
                                 <span class="description-2">{{
@@ -3213,7 +3389,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày nhập ngũ:
                                 <span class="description-2">{{
@@ -3223,7 +3399,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày xuất ngũ:
                                 <span class="description-2">{{
@@ -3233,7 +3409,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quân hàm cao nhất:
                                 <span class="description-2">{{
@@ -3243,7 +3419,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Danh hiệu cao nhất:
                                 <span class="description-2">{{
@@ -3253,7 +3429,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Sở trường công tác:
                                 <span class="description-2">{{
@@ -3263,7 +3439,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Sức khỏe:
                                 <span class="description-2">{{
@@ -3273,7 +3449,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Khen thưởng:
                                 <span class="description-2">{{
@@ -3283,7 +3459,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Kỷ luật:
                                 <span class="description-2">{{
@@ -3293,7 +3469,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6 m-0">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Thương binh hạng:
                                 <span class="description-2">{{
@@ -3303,7 +3479,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6 m-0">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Con gia đình chính sách:
                                 <span class="description-2">{{
@@ -3438,7 +3614,7 @@ const onPage = (event) => {
                         <span>9. Đặc điểm lịch sử bản thân</span>
                       </template>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Thông tin 1:
                             <span class="description-2">{{
@@ -3448,7 +3624,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Thông tin 2:
                             <span class="description-2">{{
@@ -5092,6 +5268,23 @@ const onPage = (event) => {
     :displayDialog="displayDialogFile"
     :file="options.file"
     :closeDialog="closeDialogFile"
+  />
+  <diloginsurance
+    :key="componentKey"
+    :headerDialog="headerDialogInsurance"
+    :displayDialog="displayDialogInsurance"
+    :closeDialog="closeDialogInsurance"
+    :isAdd="false"
+    :isView="false"
+    :model="insurance"
+    :addRow="addRow"
+    :deleteRow="deleteRow"
+    :insurance_pays="insurance_pays"
+    :insurance_resolves="insurance_resolves"
+    :statuss="statuss"
+    :hinhthucs="hinhthucs"
+    :dictionarys="insurance_dictionarys"
+    :initData="initView6"
   />
 </template>
 <style scoped>
