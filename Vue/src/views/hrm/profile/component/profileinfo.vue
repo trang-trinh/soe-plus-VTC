@@ -458,7 +458,7 @@ const menuButs = ref();
 const itemButs = ref([
   {
     label: "Thông tin chung/liên hệ",
-    icon: "pi pi-file",
+    icon: "pi pi-id-card",
     command: (event) => {
       openEditDialog(1, "Cập nhật thay đổi thông tin");
     },
@@ -470,6 +470,16 @@ const itemButs = ref([
       openEditDialog(
         2,
         "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
+      );
+    },
+  },
+  {
+    label: "Thông tin bảo hiểm",
+    icon: "pi pi-shield",
+    command: (event) => {
+      openEditDialog(
+        2,
+        "Cập nhật thay đổi thông bảo hiểm"
       );
     },
   },
@@ -2118,7 +2128,8 @@ const onPage = (event) => {
           aria-controls="overlay_Export"
         >
           <div>
-            <span class="mr-2">Cập nhật thay đổi thông tin</span>
+            <span class="mr-2"><i class="pi pi-user-edit"></i></span>
+            <b class="mr-2">Cập nhật thay đổi thông tin</b>
             <span><i class="pi pi-chevron-down"></i></span>
           </div>
         </Button>
@@ -2144,7 +2155,7 @@ const onPage = (event) => {
             class="selectbutton-custom"
           >
             <template #option="slotProps">
-              <div>
+              <b>
                 <span
                   v-if="slotProps.option.icon != null"
                   :class="{ 'mr-2': slotProps.option.title != null }"
@@ -2152,7 +2163,7 @@ const onPage = (event) => {
                   <font-awesome-icon :icon="slotProps.option.icon" />
                 </span>
                 <span> {{ slotProps.option.title }}</span>
-              </div>
+              </b>
             </template>
           </SelectButton>
           <span class="p-buttonset">
@@ -2291,7 +2302,6 @@ const onPage = (event) => {
                                   "
                                 />
                               </div>
-                              <label class="text-center">Ảnh đại diện</label>
                             </div>
                           </div>
                           <div class="col-9 md:col-9 p-0">
@@ -4835,19 +4845,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -4928,19 +4935,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -5021,19 +5025,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -5173,6 +5174,11 @@ const onPage = (event) => {
     color: #ffffff;
     background: #64748b;
     border: 1px solid #64748b;
+  }
+}
+::v-deep(.border-radius) {
+  img {
+    border-radius: 5px;
   }
 }
 </style>

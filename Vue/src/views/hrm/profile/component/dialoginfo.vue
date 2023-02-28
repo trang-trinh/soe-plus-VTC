@@ -610,7 +610,10 @@ onMounted(() => {
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
-      <Toolbar class="outline-none surface-0 border-none pt-0">
+      <Toolbar
+        v-if="props.isType === 1"
+        class="outline-none surface-0 border-none pt-0"
+      >
         <template #start>
           <ul class="flex p-0 m-0" :style="{ listStyle: 'none' }">
             <li
@@ -1264,8 +1267,17 @@ onMounted(() => {
         @click="props.closeDialog()"
         class="p-button-text"
       />
-      <Button label="Cập nhật" icon="pi pi-save" @click="saveModel(true)" />
-      <Button label="Lưu thay đổi" icon="pi pi-check" @click="saveModel(false)" />
+      <Button
+        v-if="props.isType === 1"
+        label="Cập nhật"
+        icon="pi pi-save"
+        @click="saveModel(true)"
+      />
+      <Button
+        label="Lưu thay đổi"
+        icon="pi pi-check"
+        @click="saveModel(false)"
+      />
     </template>
   </Dialog>
 </template>
