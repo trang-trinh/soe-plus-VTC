@@ -38,7 +38,7 @@ const views = ref([
   { view: 8, title: "Đào tạo", icon: "fa-solid fa-person-chalkboard" },
   { view: 9, title: "Quyết định", icon: "fa-solid fa-envelope-open" },
   { view: 10, title: "File", icon: "fa-solid fa-paperclip" },
-  { view: 11, title: "Tiếp nhận HS", icon: "fa-regular fa-file" },
+  { view: 11, title: "Tiếp nhận", icon: "fa-regular fa-file" },
   { view: 12, title: "Sức khỏe", icon: "fa-solid fa-briefcase-medical" },
 ]);
 const options = ref({
@@ -2114,7 +2114,7 @@ const onPage = (event) => {
 </script>
 <template>
   <div class="surface-100 p-2">
-    <Toolbar class="outline-none surface-0 border-none">
+    <Toolbar class="outline-none surface-0 border-none pb-1">
       <template #start>
         <span v-if="options.view === 10" class="p-input-icon-left">
           <i class="pi pi-search" />
@@ -2588,9 +2588,9 @@ const onPage = (event) => {
                                 <div class="form-group m-0">
                                   <label>
                                     Mã nhân sự:
-                                    <span class="description-2">{{
+                                    <b class="m-0" :style="{ color: '#2ECC71' }">{{
                                       profile.profile_id
-                                    }}</span>
+                                    }}</b>
                                   </label>
                                 </div>
                               </div>
