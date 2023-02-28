@@ -5,6 +5,7 @@ import { useToast } from "vue-toastification";
 import dilogprofile from "../profile/component/dilogprofile.vue";
 import dialogreceipt from "../profile/component/dialogreceipt.vue";
 import dialoghealth from "../profile/component/dialoghealth.vue";
+import dialogrelate from "../profile/component/dialogrelate.vue";
 import moment from "moment";
 const router = inject("router");
 const store = inject("store");
@@ -175,9 +176,12 @@ watch(selectedNodes, () => {
 });
 
 //Function
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if(!componentKey.value[type]){
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
 const menuButMores = ref();
 const itemButMores = ref([
@@ -221,6 +225,13 @@ const itemButMores = ref([
     icon: "pi pi-tags",
     command: (event) => {
       //editItem(profile.value, "Chỉnh sửa hợp đồng");
+    },
+  },
+  {
+    label: "Xác nhận là vợ/chồng",
+    icon: "pi pi-check",
+    command: (event) => {
+      openEditDialogRelate(profile.value, "Xác nhận kết hôn với");
     },
   },
   {
@@ -273,13 +284,7 @@ const itemButMoresPlus = ref([
       openEditDialogHealth(profile.value, "Thông tin sức khỏe");
     },
   },
-  {
-    label: "Xác nhận là vợ/chồng",
-    icon: "pi pi-check",
-    command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
-    },
-  },
+  
 ]);
 const toggleMoresPlus = (event, item) => {
   profile.value = item;
@@ -714,7 +719,7 @@ const receipts = ref([]);
 const headerDialogReceipt = ref();
 const displayDialogReceipt = ref(false);
 const openEditDialogReceipt = (item, str) => {
-  forceRerender();
+  forceRerender(1);
   headerDialogReceipt.value = str;
   displayDialogReceipt.value = true;
 };
@@ -726,13 +731,26 @@ const closeDialogReceipt = () => {
 const headerDialogHealth = ref();
 const displayDialogHealth = ref(false);
 const openEditDialogHealth = (item, str) => {
-  forceRerender();
+  forceRerender(2);
   headerDialogHealth.value = str;
   displayDialogHealth.value = true;
 };
 const closeDialogHealth = () => {
   displayDialogHealth.value = false;
 };
+
+//function relate
+const headerDialogRelate = ref();
+const displayDialogRelate = ref(false);
+const openEditDialogRelate = (item, str) => {
+  forceRerender(3);
+  headerDialogRelate.value = str;
+  displayDialogRelate.value = true;
+};
+const closeDialogRelate = () => {
+  displayDialogRelate.value = false;
+};
+
 
 //Init
 const initPlace = () => {
@@ -1827,33 +1845,38 @@ onMounted(() => {
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <Avatar
-              v-bind:label="
-                slotProps.data.avatar
-                  ? ''
-                  : (slotProps.data.profile_user_name ?? '')
-                      .substring(0, 1)
-                      .toUpperCase()
-              "
-              v-bind:image="
-                slotProps.data.avatar
-                  ? basedomainURL + slotProps.data.avatar
-                  : basedomainURL + '/Portals/Image/noimg.jpg'
-              "
-              style="
-                background-color: #2196f3;
-                color: #ffffff;
-                width: 5rem;
-                height: 5rem;
-                font-size: 1.5rem !important;
-                border-radius: 5px;
-              "
-              :style="{
-                background: bgColor[slotProps.index % 7],
-              }"
-              size="xlarge"
-              class="border-radius"
-            />
+            <div class="relative">
+              <Avatar
+                v-bind:label="
+                  slotProps.data.avatar
+                    ? ''
+                    : (slotProps.data.profile_user_name ?? '')
+                        .substring(0, 1)
+                        .toUpperCase()
+                "
+                v-bind:image="
+                  slotProps.data.avatar
+                    ? basedomainURL + slotProps.data.avatar
+                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                "
+                :style="{
+                  background: bgColor[slotProps.index % 7],
+                  color: '#ffffff',
+                  width: '5rem',
+                  height: '5rem',
+                  fontSize: '1.5rem !important',
+                  borderRadius: '5px',
+                }"
+                size="xlarge"
+                class="border-radius"
+              />
+              <span v-if="slotProps.data.isEdit" class="is-sign" v-tooltip="'Đã hiệu chỉnh hồ sơ'">
+                <font-awesome-icon
+                  icon="fa-solid fa-circle-check"
+                  style="font-size: 16px; display: block; color: #f4b400"
+                />
+              </span>
+            </div>
           </template>
         </Column>
         <Column
@@ -1867,10 +1890,19 @@ onMounted(() => {
                 <b>{{ slotProps.data.profile_user_name }}</b>
               </div>
               <div class="mb-1">
-                <span>{{ slotProps.data.profile_id }}</span>
+                <span
+                  >{{ slotProps.data.superior_id }}
+                  <span
+                    v-if="
+                      slotProps.data.superior_id && slotProps.data.profile_id
+                    "
+                    >|</span
+                  >
+                  {{ slotProps.data.profile_id }}</span
+                >
               </div>
               <div class="mb-1" v-if="slotProps.data.recruitment_date">
-                Ngày vào: {{ slotProps.data.recruitment_date }}
+                {{ slotProps.data.recruitment_date }}
               </div>
             </div>
           </template>
@@ -1937,13 +1969,13 @@ onMounted(() => {
           <template #body="slotProps">
             <div style="min-width: 200px">
               <div class="mb-1">
-                <span>{{ slotProps.data.department_name }}</span>
+                <b>{{ slotProps.data.position_name }}</b>
               </div>
               <div class="mb-1">
                 <span>{{ slotProps.data.work_position_name }}</span>
               </div>
               <div class="mb-1">
-                <span>{{ slotProps.data.position_name }}</span>
+                <span>{{ slotProps.data.department_name }}</span>
               </div>
             </div>
           </template>
@@ -1951,8 +1983,8 @@ onMounted(() => {
         <Column
           field="status"
           header="Trạng thái"
-          headerStyle="text-align:center;max-width:50px;height:50px"
-          bodyStyle="text-align:center;max-width:50px;"
+          headerStyle="text-align:center;max-width:30px;height:50px"
+          bodyStyle="text-align:center;max-width:30px;"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
@@ -1962,7 +1994,7 @@ onMounted(() => {
                 border: slotProps.data.bg_color,
                 backgroundColor: slotProps.data.bg_color,
                 color: slotProps.data.text_color,
-                padding: '0.1rem 0.6rem',
+                padding: '0.001rem 0.4rem',
               }"
               v-tooltip.top="slotProps.data.status_name"
             />
@@ -2068,19 +2100,27 @@ onMounted(() => {
     :initData="initData"
   />
   <dialogreceipt
-    :key="componentKey"
+    :key="componentKey['1']"
     :headerDialog="headerDialogReceipt"
     :displayDialog="displayDialogReceipt"
     :closeDialog="closeDialogReceipt"
     :profile="profile"
   />
   <dialoghealth
-    :key="componentKey"
+    :key="componentKey['2']"
     :headerDialog="headerDialogHealth"
     :displayDialog="displayDialogHealth"
     :closeDialog="closeDialogHealth"
     :profile="profile"
     :users="dictionarys[19]"
+  />
+  <dialogrelate 
+    :key="componentKey['3']"
+    :headerDialog="headerDialogRelate"
+    :displayDialog="displayDialogRelate"
+    :closeDialog="closeDialogRelate"
+    :profile="profile"
+    :users="dictionarys[24]"
   />
   <Menu
     id="overlay_More"
@@ -2103,6 +2143,16 @@ onMounted(() => {
 }
 .icon-star {
   color: #f4b400 !important;
+}
+.is-sign {
+  position: absolute;
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #fff;
+  right: -5px !important;
+  bottom: 0;
 }
 </style>
 <style lang="scss" scoped>

@@ -12,30 +12,30 @@ const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const basedomainURL = baseURL;
-const rules = {
-  insurance_id: {
-    required,
-    maxLength: maxLength(50),
-    $errors: [
-      {
-        $property: "insurance_id",
-        $validator: "required",
-        $message: "Số sổ bảo hiểm không được để trống!",
-      },
-    ],
-  },
-  insurance_code: {
-    required,
-    maxLength: maxLength(50),
-    $errors: [
-      {
-        $property: "insurance_code",
-        $validator: "required",
-        $message: "Số thẻ bảo hiểm không được để trống!",
-      },
-    ],
-  },
-};
+// const rules = {
+//   insurance_id: {
+//     required,
+//     maxLength: maxLength(50),
+//     $errors: [
+//       {
+//         $property: "insurance_id",
+//         $validator: "required",
+//         $message: "Số sổ bảo hiểm không được để trống!",
+//       },
+//     ],
+//   },
+//   insurance_code: {
+//     required,
+//     maxLength: maxLength(50),
+//     $errors: [
+//       {
+//         $property: "insurance_code",
+//         $validator: "required",
+//         $message: "Số thẻ bảo hiểm không được để trống!",
+//       },
+//     ],
+//   },
+// };
 //Get arguments
 const props = defineProps({
   key: Number,
@@ -54,7 +54,7 @@ const props = defineProps({
   hinhthucs: Array,
   initData: Function,
 });
-const v$ = useVuelidate(rules, props.model);
+//const v$ = useVuelidate(rules, props.model);
 
 //Declare dictionary
 const bgColor = ref([
@@ -69,9 +69,24 @@ const bgColor = ref([
 
 //function
 const submitted = ref(false);
-const saveData = (isFormValid) => {
+const saveData = () => {
   submitted.value = true;
-  if (!isFormValid) {
+  if (isEmpty(props.model.insurance_id)) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Số sổ bảo hiểm không được để trống!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  if (isEmpty(props.model.insurance_code)) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Số thẻ BHYT không được để trống!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
     return;
   }
   props.insurance_pays.forEach((item) => {
@@ -110,7 +125,7 @@ const saveData = (isFormValid) => {
   });
   let formData = new FormData();
 
-  formData.append("insurance", JSON.stringify(insurance.value));
+  formData.append("insurance", JSON.stringify(props.model));
   formData.append(
     "insurance_pay",
     JSON.stringify(
@@ -134,11 +149,11 @@ const saveData = (isFormValid) => {
     },
   });
   axios({
-    method: isAdd.value == false ? "put" : "post",
+    method: props.isAdd == false ? "put" : "post",
     url:
       baseURL +
       `/api/insurance/${
-        isAdd.value == false ? "update_insurance" : "add_insurance"
+        props.isAdd  == false ? "update_insurance" : "add_insurance"
       }`,
     data: formData,
     headers: {
@@ -193,49 +208,9 @@ onMounted(() => {});
             v-model="props.model.insurance_id"
             spellcheck="false"
             class="col-10 ip33"
-            :class="{ 'p-invalid': v$.insurance_id.$invalid && submitted }"
           />
         </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="
-            (v$.insurance_id.required.$invalid && submitted) ||
-            v$.insurance_id.required.$pending.$response
-          "
-        >
-          <small class="col-12 p-error block">
-            <div class="field col-12 md:col-12 flex">
-              <label class="col-2"></label>
-              <span class="col-10 p-0">
-                {{
-                  v$.insurance_id.required.$message
-                    .replace("Value", "Số sổ ")
-                    .replace("is required", "không được để trống")
-                }}
-              </span>
-            </div>
-          </small>
-          <small
-            class="col-12 p-error block"
-            v-if="
-              (v$.insurance_id.maxLength.$invalid && submitted) ||
-              v$.insurance_id.maxLength.$pending.$response
-            "
-          >
-            <div class="field col-12 md:col-12 flex">
-              <label class="col-2 text-left"></label>
-              <span class="col-4 p-0">
-                {{
-                  v$.insurance_id.maxLength.$message.replace(
-                    "The maximum length allowed is",
-                    "Số sổ không được vượt quá"
-                  )
-                }}
-                ký tự
-              </span>
-            </div>
-          </small>
-        </div>
+
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left p-0">Trạng thái</label>
           <Dropdown
@@ -267,48 +242,7 @@ onMounted(() => {});
             v-model="props.model.insurance_code"
             spellcheck="false"
             class="col-10 ip33"
-            :class="{ 'p-invalid': v$.insurance_code.$invalid && submitted }"
           />
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="
-            (v$.insurance_code.required.$invalid && submitted) ||
-            v$.insurance_code.required.$pending.$response
-          "
-        >
-          <small class="col-12 p-error block">
-            <div class="field col-12 md:col-12 flex">
-              <label class="col-2"></label>
-              <span class="col-10 p-0">
-                {{
-                  v$.insurance_code.required.$message
-                    .replace("Value", "Số thẻ BHYT ")
-                    .replace("is required", "không được để trống")
-                }}
-              </span>
-            </div>
-          </small>
-          <small
-            class="col-12 p-error block"
-            v-if="
-              (v$.insurance_code.maxLength.$invalid && submitted) ||
-              v$.insurance_code.maxLength.$pending.$response
-            "
-          >
-            <div class="field col-12 md:col-12 flex">
-              <label class="col-2 text-left"></label>
-              <span class="col-4 p-0">
-                {{
-                  v$.insurance_code.maxLength.$message.replace(
-                    "The maximum length allowed is",
-                    "Số thẻ BHYT không được vượt quá"
-                  )
-                }}
-                ký tự
-              </span>
-            </div>
-          </small>
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left p-0">Mã tỉnh cấp</label>
@@ -379,8 +313,7 @@ onMounted(() => {});
               <tbody>
                 <tr v-for="(item, index) in props.insurance_pays" :key="index">
                   <td
-                    class="sticky"
-                    align="center"
+                    class="sticky" align="center"
                     style="
                       color: black;
                       width: 100px;
@@ -590,7 +523,7 @@ onMounted(() => {});
       <Button
         label="Lưu"
         icon="pi pi-check"
-        @click="saveData(!v$.$invalid)"
+        @click="saveData()"
         autofocus
       />
     </template>

@@ -346,7 +346,7 @@ const loadDataContinue = (rf)=>{
                 data[0].forEach((d, i) => {
                     d.status_name = d.status != null ? listDropdownStatus.value.filter((x) => x.value == d.status)[0].text : "";
                     d.STT = i + 1;
-                    d.organization_name = (d.organization_name) ? d.organization_name : '';
+                    // d.organization_name = (d.organization_name) ? d.organization_name : 'Công việc không thuộc phòng ban';
                 })
                 listTaskReportDepartment.value = data[0];
             } else {
