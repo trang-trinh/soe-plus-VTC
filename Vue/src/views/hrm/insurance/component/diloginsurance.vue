@@ -110,7 +110,7 @@ const saveData = (isFormValid) => {
   });
   let formData = new FormData();
 
-  formData.append("insurance", JSON.stringify(insurance.value));
+  formData.append("insurance", JSON.stringify(props.model));
   formData.append(
     "insurance_pay",
     JSON.stringify(
@@ -134,11 +134,11 @@ const saveData = (isFormValid) => {
     },
   });
   axios({
-    method: isAdd.value == false ? "put" : "post",
+    method: props.isAdd == false ? "put" : "post",
     url:
       baseURL +
       `/api/insurance/${
-        isAdd.value == false ? "update_insurance" : "add_insurance"
+        props.isAdd  == false ? "update_insurance" : "add_insurance"
       }`,
     data: formData,
     headers: {
