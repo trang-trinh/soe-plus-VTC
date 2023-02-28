@@ -775,7 +775,7 @@ namespace API.Controllers
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
-            
+
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
             string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
@@ -1153,10 +1153,10 @@ namespace API.Controllers
                         }
                         string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                         //sql += @"ORDER BY ld." + (filterSQL.sqlO.Contains("DESC") ? filterSQL.sqlO.Replace("DESC", "ASC") : filterSQL.sqlO.Contains("ASC") ? filterSQL.sqlO.Replace("ASC", "DESC") : (filterSQL.sqlO + " DESC"))
-                        sql += Environment.NewLine + "ORDER BY ld." + (filterSQL.sqlO.Length > 50 || filterSQL.sqlO.Contains("select") || filterSQL.sqlO.Contains("update") || filterSQL.sqlO.Contains("delete") || filterSQL.sqlO.Contains("drop") ? "created_date" : filterSQL.sqlO) 
+                        sql += Environment.NewLine + "ORDER BY ld." + (filterSQL.sqlO.Length > 50 || filterSQL.sqlO.Contains("select") || filterSQL.sqlO.Contains("update") || filterSQL.sqlO.Contains("delete") || filterSQL.sqlO.Contains("drop") ? "created_date" : filterSQL.sqlO)
                                 + Environment.NewLine + "DESC"
-                                + Environment.NewLine + "OFFSET " + OFFSET 
-                                + Environment.NewLine + "ROWS FETCH NEXT " + filterSQL.PageSize 
+                                + Environment.NewLine + "OFFSET " + OFFSET
+                                + Environment.NewLine + "ROWS FETCH NEXT " + filterSQL.PageSize
                                 + Environment.NewLine + "ROWS ONLY ";
                         sql += Environment.NewLine + sqlCount;
                         //sql = sql.Replace("\r", " ").Replace("\n", " ").Replace("   ", " ").Trim();
@@ -1196,7 +1196,7 @@ namespace API.Controllers
                 Log.Error(contents);
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1", sql });
             }
-            
+
         }
 
         #region ImportLaw
@@ -1381,11 +1381,14 @@ namespace API.Controllers
                                                     dv.publish_number = vl != null ? vl.ToString().Trim() : null;
                                                     break;
                                                 case "publish_date":
-                                                    if (vl != null && vl.ToString().Trim() != "")
+                                                    if (vl != null && vl.ToString() != null && vl.ToString().Trim() != "")
                                                     {
-                                                        if (vl.ToString().Contains("/"))
+                                                        //if (vl.ToString().Contains("/"))
+                                                        //{
+                                                        var dateStr = vl.ToString() ?? "";
+                                                        var dates = dateStr.Split('/');
+                                                        if (dates[0] != null && dates[1] != null && dates[2] != null)
                                                         {
-                                                            var dates = vl.ToString().Split('/');
                                                             var dd = int.Parse(dates[0]);
                                                             var mm = int.Parse(dates[1]);
                                                             var yyyy = int.Parse(dates[2]);
@@ -1393,9 +1396,14 @@ namespace API.Controllers
                                                         }
                                                         else
                                                         {
-                                                            DateTime myDate = DateTime.FromOADate(Double.Parse(vl.ToString()));
-                                                            dv.publish_date = myDate;
+                                                            dv.publish_date = null;
                                                         }
+                                                        //}
+                                                        //else
+                                                        //{
+                                                        //    DateTime myDate = DateTime.FromOADate(Double.Parse(vl.ToString()));
+                                                        //    dv.publish_date = myDate;
+                                                        //}
                                                     }
                                                     else
                                                     {
@@ -1411,11 +1419,14 @@ namespace API.Controllers
                                                     }
                                                     break;
                                                 case "issued_date":
-                                                    if (vl != null && vl.ToString().Trim() != "")
+                                                    if (vl != null && vl.ToString() != null && vl.ToString().Trim() != "")
                                                     {
-                                                        if (vl.ToString().Contains("/"))
+                                                        //if (vl.ToString().Contains("/"))
+                                                        //{
+                                                        var dateStr = vl.ToString() ?? "";
+                                                        var dates = dateStr.Split('/');
+                                                        if (dates[0] != null && dates[1] != null && dates[2] != null)
                                                         {
-                                                            var dates = vl.ToString().Split('/');
                                                             var dd = int.Parse(dates[0]);
                                                             var mm = int.Parse(dates[1]);
                                                             var yyyy = int.Parse(dates[2]);
@@ -1423,9 +1434,14 @@ namespace API.Controllers
                                                         }
                                                         else
                                                         {
-                                                            DateTime myDate = DateTime.FromOADate(Double.Parse(vl.ToString()));
-                                                            dv.issued_date = myDate;
+                                                            dv.issued_date = null;
                                                         }
+                                                        //}
+                                                        //else
+                                                        //{
+                                                        //    DateTime myDate = DateTime.FromOADate(Double.Parse(vl.ToString()));
+                                                        //    dv.issued_date = myDate;
+                                                        //}
                                                     }
                                                     else
                                                     {
@@ -1433,11 +1449,14 @@ namespace API.Controllers
                                                     }
                                                     break;
                                                 case "expiration_date":
-                                                    if (vl != null && vl.ToString().Trim() != "")
+                                                    if (vl != null && vl.ToString() != null && vl.ToString().Trim() != "")
                                                     {
-                                                        if (vl.ToString().Contains("/"))
+                                                        //if (vl.ToString().Contains("/"))
+                                                        //{
+                                                        var dateStr = vl.ToString() ?? "";
+                                                        var dates = dateStr.Split('/');
+                                                        if (dates[0] != null && dates[1] != null && dates[2] != null)
                                                         {
-                                                            var dates = vl.ToString().Split('/');
                                                             var dd = int.Parse(dates[0]);
                                                             var mm = int.Parse(dates[1]);
                                                             var yyyy = int.Parse(dates[2]);
@@ -1445,9 +1464,14 @@ namespace API.Controllers
                                                         }
                                                         else
                                                         {
-                                                            DateTime myDate = DateTime.FromOADate(Double.Parse(vl.ToString()));
-                                                            dv.expiration_date = myDate;
+                                                            dv.expiration_date = null;
                                                         }
+                                                        //}
+                                                        //else
+                                                        //{
+                                                        //    DateTime myDate = DateTime.FromOADate(Double.Parse(vl.ToString()));
+                                                        //    dv.expiration_date = myDate;
+                                                        //}
                                                     }
                                                     else
                                                     {

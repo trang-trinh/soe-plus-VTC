@@ -696,7 +696,7 @@ const onFilterDM = () => {
   if (options.value.department_id_process) {
     for (const key in options.value.department_id_process) {
       strG += strk + key;
-      debugger
+       
        var tsc=listFilterDM.value.department_list.find(x=>x.key==key).label;
       FilterStr.value+= strk +tsc;
       strk = ",";
@@ -864,26 +864,29 @@ function renderhtml(id, htmltable) {
       background: #fff !important;
     }
     #formprint * {
-      font-family: "Times New Roman", Times, serif !important;
-      font-size: 14pt;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
     }
     .title1,
     .title1 * {
-      font-size: 24pt !important;
+      font-size: 16pt !important;
     }
     .title2,
     .title2 * {
-      font-size: 16pt !important;
+      font-size: 14pt !important;
     }
     .title3,
     .title3 * {
-      font-size: 15pt !important;
+      font-size: 12pt !important;
     }
     .boder tr th,
     .boder tr td {
+    
       border: 1px solid #999999 !important;
-      padding: 0.5rem;
+      padding: 0.25rem;
     }
+    .boder tr td {  font-size: 12pt !important;}
+
     table {
       min-width: 100% !important;
       page-break-inside: auto !important;
@@ -927,7 +930,7 @@ function renderhtml(id, htmltable) {
   
   
   `;
-htmltable += `<div id="formprint">
+htmltable += `<div id="formprint" style="width:100%">
       <table>
         <thead>
           <tr>
@@ -940,7 +943,7 @@ htmltable += `<div id="formprint">
               </td>
             <td    style="width:33.33%;padding: 0 0 0.5rem 0 ;text-align:center; " >
             
-               <div style="width:100%;font-weight:600;height:100%; font-size:32px; padding-top:0">VĂN BẢN ĐẾN</div> 
+               <div class="title1" style="width:100%;font-weight:600;height:100%;    padding-top:0">VĂN BẢN ĐẾN</div> 
              
           <div></div>
             </td>
@@ -955,9 +958,9 @@ htmltable += `<div id="formprint">
         <thead class="boder">
           <tr>
        
-            <th style="width: 70px ;  padding: 0px 3px">Số đến phòng</th>
-            <th style="width: 100px ;  padding: 0px 3px">Số,ký hiệu</th>
-            <th style="width: 100px ;word-break: break-word;  padding: 0px 2px"> <b>Ngày thu </b>
+            <th style="width: 60px ;  padding: 0px 3px">Số đến phòng</th>
+            <th style="width: 80px ;  padding: 0px 3px">Số,ký hiệu</th>
+            <th style="width: 80px ;word-break: break-word;  padding: 0px 2px"> <b>Ngày thu </b>
               <hr style="margin:3px 25px 0px 25px ; font-weight:600"/>
        
              <b> Ban hành </b>
@@ -967,11 +970,11 @@ htmltable += `<div id="formprint">
             <th style="min-width: 150px ;word-break: break-word;  padding: 0px 3px">Trích yếu</th>
          
          
-            <th style="width: 30px ;  padding: 0px 3px">Số bản</th>
-            <th style="width: 30px ;  padding: 0px 3px">Số tờ</th>
-            <th style="width: 55px ;  padding: 0px 3px">Độ mật</th>
-            <th style="width: 30px ; font-size:15px !important ; padding: 0px 3px">Bản đ/tử</th>
-            <th style=" min-width: 80px ;word-break: break-word;  padding: 0px 3px">Ng/nhận</th>
+            <th style="width: 20px ;  padding: 0px 3px">Số bản</th>
+            <th style="width: 20px ;  padding: 0px 3px">Số tờ</th>
+            <th style="width: 40px ;  padding: 0px 3px">Độ mật</th>
+            <th style="width: 20px ;  ; padding: 0px 3px"  >Bản đ/tử</th>
+            <th style=" min-width: 70px ;word-break: break-word;  padding: 0px 3px">Ng/nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký nhận</th>
             <th style="width: 40px ;  padding: 0px 3px">Ký trả</th>
             <th style="width: 50px ;  padding: 0px 3px">Ghi chú</th>
@@ -985,7 +988,7 @@ htmltable += `<div id="formprint">
     var receive_date = "";
     var num_of_pages="";
     var num_of_copies="";
-    var is_not_send_papper="";
+    var is_not_send_paper="";
     var security="";
     var dispatch_book_code="";
     var doc_code="";
@@ -998,10 +1001,11 @@ htmltable += `<div id="formprint">
     if(value.num_of_copies)
     num_of_copies=value.num_of_copies;
     if(value.security)
-    security=value.security;
-  
-    if(value.is_not_send_papper==true)
-    is_not_send_papper="1";
+    security=value.security; 
+ 
+    if(value.is_not_send_paper==1)
+    is_not_send_paper="1";
+     debugger
     if (value.doc_date)
       doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
     if (value.receive_date)
@@ -1020,7 +1024,7 @@ htmltable += `<div id="formprint">
             <td align="center"   >
 
               <div >
-               <div style="text-align:center;padding:0px"> <span style="font-weight:600">` + doc_code +'</span>   <br/>'+dispatch_book_code
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + doc_code +'</div>    '+dispatch_book_code
       +
       ` </div>
               
@@ -1029,13 +1033,13 @@ htmltable += `<div id="formprint">
             </td>
             <td   >
               <div >
-               <div style="text-align:center;padding:0px"> <span style="font-weight:600">` + receive_date +'</span> <br/>'+doc_date
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + receive_date +'</div>  '+doc_date
       +
       ` </div>
               
               </div>
             </td>
-            <td  style=" word-break: break-word">
+            <td  style=" word-break: break-word; text-align:center">
             <div >
               ` +value.issue_place + `
        
@@ -1074,7 +1078,7 @@ htmltable += `<div id="formprint">
             <td  style=" word-break: break-word">
               <div style="text-align: center">
                 ` +
-      is_not_send_papper +
+                is_not_send_paper +
       `
               </div>
             </td>
@@ -1178,6 +1182,7 @@ const exportExcelR = () => {
           if (!element.dispatch_book_num) element.dispatch_book_num = "";
           if (!element.doc_code) element.doc_code = "";
         });
+         
         if (data.length > 0) {
           datalistsExport.value = data;
 

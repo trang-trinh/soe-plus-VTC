@@ -8,8 +8,8 @@ import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
 import printprofile from "../component/printprofile.vue";
+import diloginsurance from "../../insurance/component/diloginsurance.vue";
 import moment from "moment";
-import { init } from "events";
 
 const route = useRoute();
 const router = inject("router");
@@ -32,12 +32,14 @@ const views = ref([
   { view: 2, title: "Phân công", icon: "fa-solid fa-list-check" },
   { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
   { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
-  { view: 5, title: "Phiếu lương", icon: "a-solid fa-money-check-dollar" },
+  { view: 5, title: "Lương", icon: "a-solid fa-money-check-dollar" },
   { view: 6, title: "Bảo hiểm", icon: "fa-solid fa-file-shield" },
   { view: 7, title: "Phép", icon: "fa-regular fa-calendar-days" },
   { view: 8, title: "Đào tạo", icon: "fa-solid fa-person-chalkboard" },
   { view: 9, title: "Quyết định", icon: "fa-solid fa-envelope-open" },
   { view: 10, title: "File", icon: "fa-solid fa-paperclip" },
+  { view: 11, title: "Tiếp nhận", icon: "fa-regular fa-file" },
+  { view: 12, title: "Sức khỏe", icon: "fa-solid fa-briefcase-medical" },
 ]);
 const options = ref({
   loading: true,
@@ -453,12 +455,182 @@ const closeDialog = () => {
   displayDialog.value = false;
 };
 
+//Function edit bảo hiểm
+const statuss = ref([
+  { value: 1, text: "Trả" },
+  { value: 2, text: "Sửa" },
+  { value: 3, text: "Chốt" },
+  { value: 4, text: "Xin cấp" },
+  { value: 5, text: "Gộp" },
+  { value: 6, text: "Người lao động giữ sổ" },
+]);
+const hinhthucs = ref([
+  { value: 1, text: "Bao tăng" },
+  { value: 2, text: "Báo giảm" },
+]);
+const insurance_dictionarys = ref([]);
+const initDictionaryInsurance = () => {
+  axios
+    .post(
+      baseURL + "api/insurance/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_insurance_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if (data != null) {
+        insurance_dictionarys.value = data;
+      }
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const headerDialogInsurance = ref();
+const displayDialogInsurance = ref(false);
+const openEditDialogInsurance = (str) => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_insurance_edit",
+            par: [{ par: "profile_id", va: options.value["profile_id"] }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        if (data[0] != null && data[0].length > 0) {
+          insurance.value = data[0][0];
+        } else {
+          insurance.value = {};
+        }
+        //get child
+        if (data[1] != null && data[1].length > 0) {
+          insurance_pays.value = data[1];
+          insurance_pays.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+          });
+        } else {
+          insurance_pays.value = [];
+        }
+
+        if (data[2] != null && data[2].length > 0) {
+          insurance_resolves.value = data[2];
+          insurance_resolves.value.forEach((item) => {
+            if (item.received_file_date != null) {
+              item.received_file_date = new Date(item.received_file_date);
+            }
+            if (item.completed_date != null) {
+              item.completed_date = new Date(item.completed_date);
+            }
+            if (item.received_money_date != null) {
+              item.received_money_date = new Date(item.received_money_date);
+            }
+          });
+        } else {
+          insurance_resolves.value = [];
+        }
+      }
+      headerDialogInsurance.value = str;
+      displayDialogInsurance.value = true;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+const closeDialogInsurance = () => {
+  displayDialogInsurance.value = false;
+};
+const addRow = (type) => {
+  //relative
+  if (type == 1) {
+    let obj = {
+      start_date: null,
+      payment_form: null,
+      reason: null,
+      end_date: null,
+      organization_payment: null,
+      total_payment: null,
+      company_payment: null,
+      member_payment: null,
+    };
+    insurance_pays.value.push(obj);
+  }
+  if (type == 2) {
+    let obj = {
+      type_mode: null,
+      payment_form: null,
+      type_mode: null,
+      completed_date: null,
+      received_money_date: null,
+      money: null,
+    };
+    insurance_resolves.value.push(obj);
+  }
+};
+const deleteRow = (idx, type) => {
+  if (type == 1) {
+    insurance_pays.value.splice(idx, 1);
+  }
+  if (type == 2) {
+    insurance_resolves.value.splice(idx, 1);
+  }
+};
+
 //Function mores
 const menuButs = ref();
 const itemButs = ref([
   {
     label: "Thông tin chung/liên hệ",
-    icon: "pi pi-file",
+    icon: "pi pi-id-card",
     command: (event) => {
       openEditDialog(1, "Cập nhật thay đổi thông tin");
     },
@@ -471,6 +643,13 @@ const itemButs = ref([
         2,
         "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
       );
+    },
+  },
+  {
+    label: "Thông tin bảo hiểm",
+    icon: "pi pi-shield",
+    command: (event) => {
+      openEditDialogInsurance("Cập nhật thay đổi thông bảo hiểm");
     },
   },
 ]);
@@ -519,6 +698,14 @@ const itemButPrints = ref([
     icon: "fa-regular fa-file",
     command: (event) => {
       goPrint(14);
+    },
+  },
+  {
+    view: 14,
+    label: "Sổ lao động mẫu 145/2020/NĐ-CP",
+    icon: "fa-regular fa-file",
+    command: (event) => {
+      goPrint(15);
     },
   },
 ]);
@@ -821,6 +1008,11 @@ const initView1 = (rf) => {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
           profile.value = tbs[0][0];
+          profile.value["relates"] = JSON.parse(profile.value["relates"]);
+          profile.value["relate"] = profile.value["relates"][0];
+          if(profile.value["relate"]["relate_time"] != null){
+            profile.value["relate"]["relate_time"] = moment(new Date(profile.value["relate"]["relate_time"])).format("DD/MM/YYYY");
+          }
           profile.value["gender"] =
             profile.value["gender"] == 1
               ? "Nam"
@@ -892,7 +1084,7 @@ const initView1 = (rf) => {
           var idx = marital_status.value.findIndex(
             (x) => x["value"] === profile.value["marital_status"]
           );
-          if (profile.value["value"] != null && idx != -1) {
+          if (profile.value["marital_status"] != null && idx != -1) {
             profile.value["marital_status"] = marital_status.value[idx]["text"];
           }
           //
@@ -1904,6 +2096,7 @@ onMounted(() => {
     options.value["key_id"] = route.params.id;
     options.value["profile_id"] = route.query.id;
     initRelate();
+    initDictionaryInsurance();
     initData();
   } else {
     router.back();
@@ -1921,7 +2114,7 @@ const onPage = (event) => {
 </script>
 <template>
   <div class="surface-100 p-2">
-    <Toolbar class="outline-none surface-0 border-none">
+    <Toolbar class="outline-none surface-0 border-none pb-1">
       <template #start>
         <span v-if="options.view === 10" class="p-input-icon-left">
           <i class="pi pi-search" />
@@ -2112,13 +2305,14 @@ const onPage = (event) => {
         <Button
           @click="toggleEdit"
           label="Cập nhật thay đổi thông tin"
-          class="p-button-warning"
+          class="p-button-warning mr-2"
           icon="pi pi-file-excel"
           aria-haspopup="true"
           aria-controls="overlay_Export"
         >
           <div>
-            <span class="mr-2">Cập nhật thay đổi thông tin</span>
+            <span class="mr-2"><i class="pi pi-user-edit"></i></span>
+            <b class="mr-2">Cập nhật thay đổi thông tin</b>
             <span><i class="pi pi-chevron-down"></i></span>
           </div>
         </Button>
@@ -2128,6 +2322,46 @@ const onPage = (event) => {
           id="overlay_Export"
           ref="menuButs"
         />
+        <Button
+          @click="
+            togglePrints($event);
+            $event.stopPropagation();
+          "
+          class="p-button-outlined p-button-secondary p-button-custom'"
+        >
+          <span class="mr-2"
+            ><font-awesome-icon icon="fa-solid fa-print"
+          /></span>
+          <span class="mr-2">In</span>
+          <span><i class="pi pi-chevron-down"></i></span>
+        </Button>
+        <OverlayPanel
+          :showCloseIcon="false"
+          ref="menuButPrints"
+          appendTo="body"
+          class="p-0 m-0"
+          id="overlay_More"
+          style="min-width: max-content"
+        >
+          <ul class="m-0 p-0" style="list-style: none">
+            <li
+              v-for="(value, key) in itemButPrints"
+              :key="key"
+              @click="changeView(value.view)"
+              class="item-menu"
+              :class="{
+                'item-menu-highlight': value.view === options.view,
+              }"
+            >
+              <div>
+                <span :class="{ 'mr-2': value.label != null }"
+                  ><font-awesome-icon :icon="value.icon"
+                /></span>
+                <span>{{ value.label }}</span>
+              </div>
+            </li>
+          </ul>
+        </OverlayPanel>
       </template>
     </Toolbar>
     <Toolbar class="outline-none surface-0 border-none pt-0">
@@ -2144,7 +2378,7 @@ const onPage = (event) => {
             class="selectbutton-custom"
           >
             <template #option="slotProps">
-              <div>
+              <b>
                 <span
                   v-if="slotProps.option.icon != null"
                   :class="{ 'mr-2': slotProps.option.title != null }"
@@ -2152,33 +2386,10 @@ const onPage = (event) => {
                   <font-awesome-icon :icon="slotProps.option.icon" />
                 </span>
                 <span> {{ slotProps.option.title }}</span>
-              </div>
+              </b>
             </template>
           </SelectButton>
-          <span class="p-buttonset">
-            <Button
-              @click="
-                togglePrints($event);
-                $event.stopPropagation();
-              "
-              :class="{
-                'p-button-outlined p-button-secondary p-button-custom':
-                  options.view < 13,
-              }"
-              :style="{
-                background: options.view < 13 ? '#ffffff' : '',
-                borderColor: options.view < 13 ? '#ced4da' : '',
-                color: options.view < 13 ? '#495057' : '',
-                transition:
-                  'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
-                height: '30px',
-              }"
-            >
-              <span class="mr-2"
-                ><font-awesome-icon icon="fa-solid fa-print"
-              /></span>
-              In
-            </Button>
+          <!-- <span class="p-buttonset">
             <Button
               @click="
                 toggleMores($event);
@@ -2202,33 +2413,6 @@ const onPage = (event) => {
               <font-awesome-icon icon="fa-solid fa-ellipsis" />
             </Button>
           </span>
-          <OverlayPanel
-            :showCloseIcon="false"
-            ref="menuButPrints"
-            appendTo="body"
-            class="p-0 m-0"
-            id="overlay_More"
-            style="min-width: max-content"
-          >
-            <ul class="m-0 p-0" style="list-style: none">
-              <li
-                v-for="(value, key) in itemButPrints"
-                :key="key"
-                @click="changeView(value.view)"
-                class="item-menu"
-                :class="{
-                  'item-menu-highlight': value.view === options.view,
-                }"
-              >
-                <div>
-                  <span :class="{ 'mr-2': value.label != null }"
-                    ><font-awesome-icon :icon="value.icon"
-                  /></span>
-                  <span>{{ value.label }}</span>
-                </div>
-              </li>
-            </ul>
-          </OverlayPanel>
           <OverlayPanel
             :showCloseIcon="false"
             ref="menuButMores"
@@ -2255,7 +2439,7 @@ const onPage = (event) => {
                 </div>
               </li>
             </ul>
-          </OverlayPanel>
+          </OverlayPanel> -->
         </div>
       </template>
       <template #end> </template>
@@ -2268,15 +2452,121 @@ const onPage = (event) => {
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
                   <!-- 1. Thông tin chung -->
-                  <Accordion class="w-full mb-2" :activeIndex="0">
+                  <Accordion class="w-full mb-2 header-padding-y-0" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
-                        <span>1. Thông tin chung</span>
+                        <Toolbar class="w-full custoolbar p-0 font-bold py-0">
+                          <template #start>
+                            <!-- <i class="pi pi-users mr-2"></i> -->
+                            <span>1. Thông tin chung</span>
+                          </template>
+                          <template #end>
+                            <div class="relative relative-hover" :style="{ margin: '0.5rem 0' }">
+                              <Avatar
+                                v-if="profile.relate"
+                                v-bind:label="
+                                  profile.relate.avatar
+                                    ? ''
+                                    : (profile.relate.profile_user_name ?? '')
+                                        .substring(0, 1)
+                                        .toUpperCase()
+                                "
+                                v-bind:image="
+                                  profile.relate.avatar
+                                    ? basedomainURL + profile.relate.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                :style="{
+                                  background: bgColor[1 % 7],
+                                  color: '#ffffff',
+                                  width: '2rem',
+                                  height: '2rem',
+                                  fontSize: '1rem',
+                                  borderRadius: '50%',
+                                  fontSize: '1rem !important',
+                                }"
+                                size="xlarge"
+                                class="border-radius"
+                              />
+                              <span class="absolute" :style="{ color: 'red', bottom: '-3px', right: '-3px' }"><i class="pi pi-heart-fill"></i></span>
+                              <div
+                                v-if="profile.relate"
+                                class="absolute absolute-hover"
+                                :style="{
+                                  backgroundColor: '#fff',
+                                  minHeight: 'unset',
+                                  top: '100%',
+                                  right: '0',
+                                  width: '350px',
+                                  borderRadius: '3px',
+                                  border: 'solid 1px rgba(0,0,0,0.1)',
+                                  padding: '0.75rem',
+                                }"
+                              >
+                                <div class="flex">
+                                  <div class="mr-2 format-center">
+                                    <div>
+                                      <Avatar
+                                      v-bind:label="
+                                        profile.relate.avatar
+                                          ? ''
+                                          : (
+                                              profile.relate
+                                                .profile_user_name ?? ''
+                                            )
+                                              .substring(0, 1)
+                                              .toUpperCase()
+                                      "
+                                      v-bind:image="
+                                        profile.relate.avatar
+                                          ? basedomainURL +
+                                            profile.relate.avatar
+                                          : basedomainURL +
+                                            '/Portals/Image/noimg.jpg'
+                                      "
+                                      :style="{
+                                        background: bgColor[1 % 7],
+                                        color: '#ffffff',
+                                        width: '5rem',
+                                        height: '5rem',
+                                        fontSize: '1.5rem',
+                                        borderRadius: '5px',
+                                        fontSize: '1.5rem !important',
+                                      }"
+                                      size="xlarge"
+                                      class="border-radius"
+                                    />
+                                    <div class="description format-center" :style="{fontSize: '11px'}">{{ profile.relate.relate_time }}</div>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div class="mb-2"><span :style="{ color: 'rgb(0, 90, 158)' }">Đã kết hôn với</span> <b>{{profile.relate.profile_user_name}}</b></div>
+                                    <div class="description">
+                                      <span>{{
+                                        profile.relate.department_name
+                                      }}</span>
+                                    </div>
+                                    <div class="description">
+                                      <span>{{
+                                        profile.relate.work_position_name
+                                      }}</span>
+                                    </div>
+                                    <div class="description">
+                                      <span>{{
+                                        profile.relate.position_name
+                                      }}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </Toolbar>
                       </template>
                       <div class="col-12 md:col-12 p-0">
                         <div class="row">
                           <div class="col-3 md:col-3 format-center">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <div
                                 class="inputanh2 relative mb-2"
                                 style="margin: 0 auto"
@@ -2291,23 +2581,22 @@ const onPage = (event) => {
                                   "
                                 />
                               </div>
-                              <label class="text-center">Ảnh đại diện</label>
                             </div>
                           </div>
                           <div class="col-9 md:col-9 p-0">
                             <div class="row">
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label>
                                     Mã nhân sự:
-                                    <span class="description-2">{{
+                                    <b class="m-0" :style="{ color: '#2ECC71' }">{{
                                       profile.profile_id
-                                    }}</span>
+                                    }}</b>
                                   </label>
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Mã chấm công:
                                     <span class="description-2">{{
@@ -2317,7 +2606,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Mã quản lý cấp trên:
                                     <span class="description-2">{{
@@ -2327,7 +2616,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Ngày tuyển dụng:
                                     <span class="description-2">{{
@@ -2337,7 +2626,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Họ và tên:
                                     <span class="description-2">{{
@@ -2347,7 +2636,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Tên gọi khác:
                                     <span class="description-2">{{
@@ -2357,7 +2646,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Ngày sinh:
                                     <span class="description-2">{{
@@ -2367,7 +2656,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Giới tính:
                                     <span class="description-2">{{
@@ -2381,7 +2670,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Nơi sinh:
                             <span class="description-2">{{
@@ -2391,7 +2680,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Quê quán:
                             <span class="description-2">{{
@@ -2401,7 +2690,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Nơi đăng ký HKTT:
                             <span class="description-2">{{
@@ -2413,7 +2702,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12 p-0">
                         <div class="row">
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Loại giấy tờ:
                                 <span class="description-2">{{
@@ -2423,7 +2712,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số:
                                 <span class="description-2">{{
@@ -2433,7 +2722,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày cấp:
                                 <span class="description-2">{{
@@ -2443,7 +2732,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Nơi cấp:
                                 <span class="description-2">{{
@@ -2453,7 +2742,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quốc tịch:
                                 <span class="description-2">{{
@@ -2463,7 +2752,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tình trạng hôn nhân:
                                 <span class="description-2">{{
@@ -2473,7 +2762,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Dân tộc:
                                 <span class="description-2">{{
@@ -2483,7 +2772,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tôn giáo:
                                 <span class="description-2">{{
@@ -2493,7 +2782,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Mã số thuế:
                                 <span class="description-2">{{
@@ -2546,7 +2835,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Trình độ phổ thông:
                                 <span class="description-2">{{
@@ -2556,7 +2845,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Trình độ học vấn cao nhất:
                                 <span class="description-2">{{
@@ -2566,7 +2855,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Chuyên ngành học:
                                 <span class="description-2">{{
@@ -2576,7 +2865,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quản lý nhà nước:
                                 <span class="description-2">{{
@@ -2629,7 +2918,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số điện thoại:
                                 <span class="description-2">{{
@@ -2639,7 +2928,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Email:
                                 <span class="description-2">{{
@@ -2649,7 +2938,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Thường trú:
                                 <span class="description-2">{{
@@ -2659,7 +2948,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Chỗ ở hiện nay:
                                 <span class="description-2">{{
@@ -2669,12 +2958,12 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label class="m-0">Khi cần báo tin cho:</label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Họ và tên:
                                 <span class="description-2">{{
@@ -2684,7 +2973,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số điện thoại:
                                 <span class="description-2">{{
@@ -3203,7 +3492,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày nhập ngũ:
                                 <span class="description-2">{{
@@ -3213,7 +3502,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày xuất ngũ:
                                 <span class="description-2">{{
@@ -3223,7 +3512,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quân hàm cao nhất:
                                 <span class="description-2">{{
@@ -3233,7 +3522,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Danh hiệu cao nhất:
                                 <span class="description-2">{{
@@ -3243,7 +3532,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Sở trường công tác:
                                 <span class="description-2">{{
@@ -3253,7 +3542,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Sức khỏe:
                                 <span class="description-2">{{
@@ -3263,7 +3552,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Khen thưởng:
                                 <span class="description-2">{{
@@ -3273,7 +3562,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Kỷ luật:
                                 <span class="description-2">{{
@@ -3283,7 +3572,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6 m-0">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Thương binh hạng:
                                 <span class="description-2">{{
@@ -3293,7 +3582,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6 m-0">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Con gia đình chính sách:
                                 <span class="description-2">{{
@@ -3428,7 +3717,7 @@ const onPage = (event) => {
                         <span>9. Đặc điểm lịch sử bản thân</span>
                       </template>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Thông tin 1:
                             <span class="description-2">{{
@@ -3438,7 +3727,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Thông tin 2:
                             <span class="description-2">{{
@@ -4831,23 +5120,20 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -4924,23 +5210,20 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -5017,23 +5300,20 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -5092,6 +5372,23 @@ const onPage = (event) => {
     :file="options.file"
     :closeDialog="closeDialogFile"
   />
+  <diloginsurance
+    :key="componentKey"
+    :headerDialog="headerDialogInsurance"
+    :displayDialog="displayDialogInsurance"
+    :closeDialog="closeDialogInsurance"
+    :isAdd="false"
+    :isView="false"
+    :model="insurance"
+    :addRow="addRow"
+    :deleteRow="deleteRow"
+    :insurance_pays="insurance_pays"
+    :insurance_resolves="insurance_resolves"
+    :statuss="statuss"
+    :hinhthucs="hinhthucs"
+    :dictionarys="insurance_dictionarys"
+    :initData="initView6"
+  />
 </template>
 <style scoped>
 @import url(../../profile/component/stylehrm.css);
@@ -5130,6 +5427,14 @@ const onPage = (event) => {
   background: #e9ecef !important;
   border-color: #ced4da !important;
   color: #495057 !important;
+}
+.absolute-hover{
+  display: none;
+  animation: 0.5s;
+  z-index: 999;
+}
+.relative-hover:hover .absolute-hover{
+  display: block;
 }
 </style>
 <style lang="scss" scoped>
@@ -5170,9 +5475,23 @@ const onPage = (event) => {
 }
 ::v-deep(.selectbutton-custom) {
   .p-button.p-highlight {
-    color: #ffffff;
-    background: #64748b;
-    border: 1px solid #64748b;
+    // color: #ffffff;
+    // background: #64748b;
+    // border: 1px solid #64748b;
+    color: #000;
+    background: #d3e3f8;
+    border: 1px solid #d3e3f8;
+  }
+}
+::v-deep(.border-radius) {
+  img {
+    border-radius: 5px;
+  }
+}
+::v-deep(.header-padding-y-0){
+  .p-accordion-header-link{
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 </style>

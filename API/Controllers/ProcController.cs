@@ -229,52 +229,54 @@ namespace Controllers
             //try
             //{
             string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+            string json = System.IO.File.ReadAllText(HttpContext.Current.Server.MapPath("~/Config/Config.json"));
+            var dataSet = JsonConvert.DeserializeObject<settings>(json);
 
-                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-                try
-                {
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
                    
-                    if (proc.publictoken != helper.publictoken)
+                if (proc.publictoken != dataSet.publictoken)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã Token không hợp lệ! Vui lòng thử lại.", err = "1",ms1=proc.publictoken,ms2=helper.publictoken });
+                }
+                var sqlpas = new List<SqlParameter>();
+                if (proc != null && proc.par != null)
+                {
+                    foreach (sqlPar p in proc.par)
                     {
-                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã Token không hợp lệ! Vui lòng thử lại.", err = "1",ms1=proc.publictoken,ms2=helper.publictoken });
+                        sqlpas.Add(new SqlParameter("@" + p.par, p.va));
                     }
-                    var sqlpas = new List<SqlParameter>();
-                    if (proc != null && proc.par != null)
-                    {
-                        foreach (sqlPar p in proc.par)
-                        {
-                            sqlpas.Add(new SqlParameter("@" + p.par, p.va));
-                        }
-                    }
-                    var arrpas = sqlpas.ToArray();
-                    DateTime sdate = DateTime.Now;
-                    var task = Task.Run(() => SqlHelper.ExecuteDataset(Connection, proc.proc, arrpas).Tables);
-                    var tables = await task;
-                    DateTime edate = DateTime.Now;
+                }
+                var arrpas = sqlpas.ToArray();
+                DateTime sdate = DateTime.Now;
+                var task = Task.Run(() => SqlHelper.ExecuteDataset(Connection, proc.proc, arrpas).Tables);
+                var tables = await task;
+                DateTime edate = DateTime.Now;
      
-                    string JSONresult = JsonConvert.SerializeObject(tables);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
-                }
-                catch (DbEntityValidationException e)
+                string JSONresult = JsonConvert.SerializeObject(tables);
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                if (!helper.debug)
                 {
-                    string contents = helper.getCatchError(e, null);
-                    if (!helper.debug)
-                    {
-                        contents = helper.logCongtent;
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = helper.logCongtent;
                 }
-                catch (Exception e)
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                if (!helper.debug)
                 {
-                    string contents = helper.ExceptionMessage(e);
-                    if (!helper.debug)
-                    {
-                        contents = helper.logCongtent;
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = helper.logCongtent;
                 }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
             //}
             //catch (Exception)
             //{
