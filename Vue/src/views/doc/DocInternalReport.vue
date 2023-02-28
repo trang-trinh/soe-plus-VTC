@@ -35,6 +35,7 @@ const options = ref({
   id: null,
   pagenoExport: 1,
 });
+
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -109,6 +110,7 @@ const loadData = () => {
   }
   if(strG!=null)
   options.value.department_id_process_fake= strG;
+  debugger
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -237,7 +239,8 @@ const refreshData = () => {
       constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
     },
   };
-  filterSQL.value = [];
+  first.value=0;
+    filterSQL.value = [];
   loadData();
 };
 const filterButs = ref();
@@ -647,7 +650,7 @@ const onRefilterDM = () => {
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
   options.value.ca_groups_list = null;
-
+  options.value.pageno=0;
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
@@ -655,8 +658,9 @@ const onRefilterDM = () => {
   options.value.end_dateD = null;
   options.value.start_dateD = null;
   filterButs.value.hide();
-  filterSQL.value = [];
+  filterSQL.value = [];   options.value.pageno=0;
   options.value.loading = true;
+  first.value=0;
   loadData();
 };
 const onFilterDM = () => {
@@ -665,7 +669,7 @@ const onFilterDM = () => {
   checkFilter.value = true;
   filterSQL.value = [];
   let filterS = null;
-
+  options.value.pageno=0;
   var strG = "";
   var strk = "";
   if (options.value.ca_groups_list)
@@ -854,6 +858,7 @@ const onFilterDM = () => {
 
     }
   }
+  first.value=0;
 
   if (filterSQL.value.length > 0) loadDataSQL();
   else loadData(true);
@@ -1368,7 +1373,7 @@ const onFilter = (event) => {
   isDynamicSQL.value = true;
   loadData(true);
 };
-
+const first=ref(0);
 //Sort
 const onSort = (event) => {
   if (event.sortField == null) {
@@ -1416,6 +1421,7 @@ onMounted(() => {
         :currentPageReportTemplate="
           isDynamicSQL ? '{currentPage}' : '{currentPage}/{totalPages}'
         "
+         v-model:first="first"
         responsiveLayout="scroll"
         :scrollable="true"
         scrollHeight="flex"

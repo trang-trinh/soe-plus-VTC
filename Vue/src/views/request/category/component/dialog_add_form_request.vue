@@ -10,7 +10,7 @@ const store = inject("store");
 const swal = inject("$swal");
 //const emitter = inject("emitter");
 const basedomainURL = baseURL;
-const baseUrlCheck = "http://localhost:8080/";
+const baseUrlCheck = baseURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
