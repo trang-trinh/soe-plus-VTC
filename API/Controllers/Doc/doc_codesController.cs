@@ -345,7 +345,7 @@ namespace API.Controllers.Doc
             }
         }
         [HttpDelete]
-        public async Task<HttpResponseMessage> delete_doc_codes([FromBody] List<string> ids)
+        public async Task<HttpResponseMessage> delete_doc_codes([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> ids)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;

@@ -7,6 +7,7 @@ import dialogcontract from "../../contract/component/dialogcontract.vue";
 import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
+import printprofile from "../component/printprofile.vue";
 import moment from "moment";
 import { init } from "events";
 
@@ -47,7 +48,7 @@ const options = ref({
   total: 0,
   sort: "created_date desc",
   orderBy: "desc",
-  view: 1,
+  view: 13,
   profile_id: null,
   key_id: null,
   contract_id: null,
@@ -409,6 +410,11 @@ const type_vaccines = ref([
 const health = ref({});
 const vaccines = ref([]);
 
+//data view 13
+const goPrint = (view) => {
+  options.value.view = view;
+};
+
 //filter
 const goFile = (file) => {
   window.open(basedomainURL + file.file_path, "_blank");
@@ -435,6 +441,8 @@ const openEditDialog = (type, str) => {
   forceRerender();
   if (type === 1) {
     isType.value = type;
+    headerDialog.value = str;
+    displayDialog.value = true;
   } else if (type === 2) {
     isType.value = type;
     headerDialog.value = str;
@@ -449,9 +457,11 @@ const closeDialog = () => {
 const menuButs = ref();
 const itemButs = ref([
   {
-    label: "Thông tin liên hệ",
+    label: "Thông tin chung/liên hệ",
     icon: "pi pi-file",
-    command: (event) => {},
+    command: (event) => {
+      openEditDialog(1, "Cập nhật thay đổi thông tin");
+    },
   },
   {
     label: "Gia đình, người phụ thuộc",
@@ -496,17 +506,19 @@ const toggleMores = (event) => {
 const menuButPrints = ref();
 const itemButPrints = ref([
   {
+    view: 13,
     label: "Sơ yếu lý lịch(Mẫu 2C-BNV/2008)",
     icon: "fa-regular fa-file",
     command: (event) => {
-      print(1);
+      goPrint(13);
     },
   },
   {
+    view: 14,
     label: "Sơ yếu lý lịch (Mẫu 2C/TCTW-98)",
     icon: "fa-regular fa-file",
     command: (event) => {
-      print(2);
+      goPrint(14);
     },
   },
 ]);
@@ -2151,12 +2163,12 @@ const onPage = (event) => {
               "
               :class="{
                 'p-button-outlined p-button-secondary p-button-custom':
-                  options.view < 11,
+                  options.view < 13,
               }"
               :style="{
-                background: '#ffffff',
-                borderColor: '#ced4da',
-                color: '#495057',
+                background: options.view < 13 ? '#ffffff' : '',
+                borderColor: options.view < 13 ? '#ced4da' : '',
+                color: options.view < 13 ? '#495057' : '',
                 transition:
                   'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
                 height: '30px',
@@ -2174,12 +2186,14 @@ const onPage = (event) => {
               "
               :class="{
                 'p-button-outlined p-button-secondary p-button-custom':
-                  options.view < 11,
+                  options.view < 11 || options.view > 12,
               }"
               :style="{
-                background: '#ffffff',
-                borderColor: '#ced4da',
-                color: '#495057',
+                background:
+                  options.view < 11 || options.view > 12 ? '#ffffff' : '',
+                borderColor:
+                  options.view < 11 || options.view > 12 ? '#ced4da' : '',
+                color: options.view < 11 || options.view > 12 ? '#495057' : '',
                 transition:
                   'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
                 height: '30px',
@@ -3870,16 +3884,13 @@ const onPage = (event) => {
                               ? basedomainURL + slotProps.data.avatar
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
-                          style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 2rem;
-                            height: 2rem;
-                            font-size: 1rem !important;
-                          "
                           :style="{
                             background:
                               bgColor[slotProps.data.created_is_order % 7],
+                            color: '#ffffff',
+                            width: '2rem',
+                            height: '2rem',
+                            fontSize: '1rem',
                           }"
                           class="text-avatar"
                           size="xlarge"
@@ -3916,12 +3927,12 @@ const onPage = (event) => {
                   <template #empty>
                     <div
                       class="align-items-center justify-content-center p-4 text-center m-auto"
-                      style="
-                        display: flex;
-                        width: 100%;
-                        height: calc(100vh - 303px);
-                        background-color: #fff;
-                      "
+                      :style="{
+                        display: 'flex',
+                        width: '100%',
+                        height: 'calc(100vh - 303px)',
+                        backgroundColor: '#fff',
+                      }"
                     >
                       <div v-if="!options.loading && options.total == 0">
                         <img
@@ -4738,6 +4749,13 @@ const onPage = (event) => {
                       </div>
                     </AccordionTab>
                   </Accordion>
+                </div>
+              </div>
+            </div>
+            <div v-show="options.view === 13" class="f-full">
+              <div class="row p-2 justify-content-center">
+                <div class="col-10 md:col-10 p-0">
+                  <printprofile :key="componentKey" />
                 </div>
               </div>
             </div>

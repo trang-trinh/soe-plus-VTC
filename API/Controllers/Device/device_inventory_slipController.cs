@@ -617,9 +617,9 @@ namespace API.Controllers.Device
 
                         foreach (string strP in paths)
                         {
-                            bool exists = File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Inventory/" + Path.GetFileName(strP));
+                            bool exists = File.Exists(root+ "/" + dvid + "/Inventory/" + Path.GetFileName(strP));
                             if (exists)
-                                System.IO.File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Inventory/" + Path.GetFileName(strP));
+                                System.IO.File.Delete(root+ "/" + dvid + "/Inventory/" + Path.GetFileName(strP));
                         }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });

@@ -530,9 +530,9 @@ db.SaveChanges();
                         foreach (string strP in paths)
                         {
 
-                            bool exists = File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" + Path.GetFileName(strP));
+                            bool exists = File.Exists(root+ "/" + dvid + "/Device/" + Path.GetFileName(strP));
                             if (exists)
-                                System.IO.File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" + Path.GetFileName(strP));
+                                System.IO.File.Delete(root+ "/" + dvid + "/Device/" + Path.GetFileName(strP));
                         }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -724,9 +724,9 @@ db.SaveChanges();
                         await db.SaveChangesAsync();
                         foreach (string strP in paths)
                         {
-                            bool exists = File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/"   + Path.GetFileName(strP) );
+                            bool exists = File.Exists(root+ "/" + dvid + "/Device/"   + Path.GetFileName(strP) );
                             if (exists)
-                                System.IO.File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" + Path.GetFileName(strP));
+                                System.IO.File.Delete(root + "/" + dvid + "/Device/" + Path.GetFileName(strP));
                         }
 
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -1219,12 +1219,13 @@ db.SaveChanges();
                 {
                     using (DBEntities db = new DBEntities())
                     {
+                        string root = HttpContext.Current.Server.MapPath("~/Portals");
                         var user_now = db.sys_users.AsNoTracking().FirstOrDefault(x => x.user_id == uid);
                         string rootPath = HttpContext.Current.Server.MapPath("~/Portals/" + user_now.organization_id + "/Word/");
-                        bool existPath = System.IO.Directory.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Word/");
+                        bool existPath = System.IO.Directory.Exists(root+ "/" + dvid + "/Word/");
                         if (!existPath)
                         {
-                            System.IO.Directory.CreateDirectory(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Word/");
+                            System.IO.Directory.CreateDirectory(root + "/" + dvid + "/Word/");
                         }
                         string path = "/Portals/" + user_now.organization_id + "/Word/" + model.name + "_" + DateTime.Now.ToString("ddMMyyyy")+".doc";
                         string strPath = Path.Combine(rootPath + model.name + "_" + DateTime.Now.ToString("ddMMyyyy") + ".doc");
@@ -1257,9 +1258,9 @@ db.SaveChanges();
                             pageMargins.Left = opt.left;
                             SaveOptions opit = SaveOptions.DocxDefault;
 
-                            if (File.Exists(HttpContext.Current.Server.MapPath("~/Portals")+"/" + dvid + "/Word/"+ Path.GetFileName(strPath)))
+                            if (File.Exists(root+"/" + dvid + "/Word/"+ Path.GetFileName(strPath)))
                             {
-                                File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Word/" + Path.GetFileName(strPath));
+                                File.Delete(root + "/" + dvid + "/Word/" + Path.GetFileName(strPath));
                             }
                             document.Save(strPath, opit);
                         }

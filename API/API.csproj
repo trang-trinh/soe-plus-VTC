@@ -1014,6 +1014,9 @@
     <Compile Include="Models\hrm_ca_cultural_level.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\hrm_ca_decision.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\hrm_ca_degree.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -1159,6 +1162,9 @@
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\hrm_profile_clan_history.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\hrm_profile_edit.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\hrm_profile_experience.cs">

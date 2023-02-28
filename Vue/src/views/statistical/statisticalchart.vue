@@ -291,7 +291,6 @@ const changeView = (view) => {
             currentweek.value["week_end_date"]
           );
         }
-        initData(true);
         break;
       case 2:
         options.value["week_start_date"] = new Date(
@@ -304,7 +303,6 @@ const changeView = (view) => {
           options.value.month,
           0
         );
-        initData(true);
         break;
       case 3:
         options.value["week_start_date"] = new Date(
@@ -317,10 +315,12 @@ const changeView = (view) => {
           11,
           31
         );
-        initData(true);
         break;
       default:
         break;
+    }
+    if(options.value["week_start_date"] && options.value["week_end_date"]){
+          initData(true);
     }
   }
 };
@@ -841,6 +841,12 @@ const initData = (rf) => {
       },
     });
   }
+  let tu = '';
+  let den = '';
+  if(options.value["week_start_date"])
+  tu = moment(options.value["week_start_date"]).format("DD/MM/yyyy");
+  if(options.value["week_end_date"])
+  den = moment(options.value["week_end_date"]).format("DD/MM/yyyy");
   axios
     .post(
       baseURL + "/api/statistical/statistical_get",
@@ -848,8 +854,8 @@ const initData = (rf) => {
         str: encr(
           JSON.stringify({
             statistical_id: options.value.statistical_id,
-            tu: options.value["week_start_date"],
-            den: options.value["week_end_date"],
+            tu: tu,
+            den: den,
           }),
           SecretKey,
           cryoptojs
@@ -1361,6 +1367,12 @@ onMounted(() => {
 .description {
   color: #aaa;
   font-size: 12px;
+}
+.format-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 </style>
 <style lang="scss" scoped>

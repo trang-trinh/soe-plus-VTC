@@ -801,6 +801,12 @@ onMounted(() => {
   color: #aaa;
   font-size: 12px;
 }
+.format-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.d-lang-table) {

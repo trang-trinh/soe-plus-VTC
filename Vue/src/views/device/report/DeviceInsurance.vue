@@ -96,9 +96,11 @@ const loadData = () => {
     return false;
   }
   axios
-    .post(
-      baseURL + "/api/Proc/CallProc",
+  .post(
+      baseURL + "/api/device_card/getData",
       {
+        str: encr(
+          JSON.stringify({
         proc: "device_report_insurance",
         par: [
            { par: "filterMonth", va: options.value.filterMonth },
@@ -106,8 +108,11 @@ const loadData = () => {
           { par: "pagesize", va: options.value.pagesize },
           { par: "user_id", va: store.state.user.user_id }
         ],
-      },
-      config
+      }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];

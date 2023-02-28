@@ -34,7 +34,7 @@ namespace Controllers
         }
         [Authorize]
         [HttpPost]
-        public async Task<HttpResponseMessage> CallProc([FromBody] JObject data)
+        public async Task<HttpResponseMessage> CallProc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -109,7 +109,7 @@ namespace Controllers
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "Proc/CallProc", ip, tid, "Lỗi khi gọi proc", 0, "Proc");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "DocProc/CallProc", ip, tid, "Lỗi khi gọi proc", 0, "Proc");
                     if (!helper.debug)
                     {
                         contents = helper.logCongtent;
@@ -119,7 +119,7 @@ namespace Controllers
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "Proc/CallProc", ip, tid, "Lỗi khi gọi proc", 0, "Proc");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "DocProc/CallProc", ip, tid, "Lỗi khi gọi proc", 0, "Proc");
                     if (!helper.debug)
                     {
                         contents = helper.logCongtent;

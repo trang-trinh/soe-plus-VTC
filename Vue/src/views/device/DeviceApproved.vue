@@ -355,13 +355,18 @@ const onCloseReturnRepair = () => {
 const openDetailsHandover = (data) => {
   if (data.device_process_type == 1) {
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
           proc: "device_process_get",
           par: [{ par: "device_process_id", va: data.device_process_id }],
-        },
-        config
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
@@ -386,13 +391,18 @@ const openDetailsHandover = (data) => {
     listUserA.value = [];
     files.value = [];
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
           proc: "device_process_inventory_get",
           par: [{ par: "device_process_id", va: data.device_process_id }],
-        },
-        config
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];

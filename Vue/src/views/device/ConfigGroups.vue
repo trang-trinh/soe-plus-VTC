@@ -497,15 +497,20 @@ const openDetails = (data) => {
     swithViewGroups.value = true;
     axios
       .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+        baseURL + "/api/device_card/getData",
+        { str: encr(
+          JSON.stringify({
           proc: "device_approved_group_list_user",
           par: [
             { par: "approved_group_id", va: data.approved_group_id },
             { par: "search", va: null },
           ],
-        },
-        config
+        }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data);

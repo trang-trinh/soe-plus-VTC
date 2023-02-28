@@ -14,7 +14,9 @@ import dialogenact from "../component/dialogenact.vue";
 import dialogchart from "../component/dialogchart.vue";
 import dialogcoincide from "../component/dialogcoincide.vue";
 import frameprintweek from "../component/frameprintweek.vue";
+import frameprintweek2 from "../component/frameprintweek2.vue";
 import framewordweek from "../component/framewordweek.vue";
+import framewordweek2 from "../component/framewordweek2.vue";
 import { de } from "date-fns/locale";
 import max from "date-fns/max";
 import min from "date-fns/min";
@@ -85,6 +87,9 @@ const props = defineProps({
 //Declare
 const isFirst = ref(true);
 const datas = ref([]);
+const datadays = ref([]);
+const datachutris = ref([]);
+const holiday = ref({});
 const selectedKeys = ref([]);
 const bgColor = ref([
   "#F8E69A",
@@ -226,8 +231,13 @@ const exportData = (method) => {
 };
 //Print
 const print = () => {
+  forceRerender();
   var htmltable = "";
-  htmltable = renderhtml("formprint", htmltable);
+  if (props.group === 0) {
+    htmltable = renderhtml("formprint", htmltable);
+  } else if (props.group === 1) {
+    htmltable = renderhtml("formprint_2", htmltable);
+  }
   var printframe = window.frames["printframe"];
   printframe.document.write(htmltable);
   setTimeout(function () {
@@ -239,6 +249,27 @@ function renderhtml(id, htmltable) {
   htmltable = "";
   //Style
   htmltable += `<style>
+    @page Section1 {
+      size: 595.45pt 841.7pt;
+      margin: 1in 1.25in 1in 1.25in;
+      mso-header-margin: 0.5in;
+      mso-footer-margin: 0.5in;
+      mso-paper-source: 0;
+    }
+    div.Section1 {
+      page: Section1;
+    }
+    @page Section2 {
+      size: 841.7pt 595.45pt;
+      mso-page-orientation: landscape;
+      margin: 1.25in 1in 1.25in 1in;
+      mso-header-margin: 0.5in;
+      mso-footer-margin: 0.5in;
+      mso-paper-source: 0;
+    }
+    div.Section2 {
+      page: Section2;
+    }
     #formprint, #formword  {
       background: #fff !important;
     }
@@ -308,6 +339,7 @@ function renderhtml(id, htmltable) {
 }
 //export word
 const exportWord = (method) => {
+  forceRerender();
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -315,7 +347,14 @@ const exportWord = (method) => {
     },
   });
   var htmltable = "";
-  htmltable = renderhtml("formword", htmltable);
+  var orientation = "";
+  if (props.group === 0) {
+    htmltable = renderhtml("formword", htmltable);
+    orientation = "Portrait";
+  } else if (props.group === 1) {
+    htmltable = renderhtml("formword_2", htmltable);
+    orientation = "Landscape";
+  }
   axios
     .post(
       baseURL + "/api/calendar_duty/ExportDoc",
@@ -329,7 +368,7 @@ const exportWord = (method) => {
           ".doc",
         html: htmltable,
         opition: {
-          orientation: "Portrait",
+          orientation: orientation,
           pageSize: "A4",
           left: 37.79,
           top: 68.03,
@@ -478,6 +517,12 @@ const bindDateBetweenFirstAndLast = (
 };
 const addLog = (log) => {
   axios.post(baseURL + "/api/calendar/add_log", log, config);
+};
+const groupBy = (list, props) => {
+  return list.reduce((a, b) => {
+    (a[b[props]] = a[b[props]] || []).push(b);
+    return a;
+  }, {});
 };
 
 //Function filter
@@ -1249,6 +1294,7 @@ const modelenact = ref({});
 const headerDialogEnact = ref(false);
 const displayDialogEnact = ref(false);
 const openAddDialogEnact = (str, type) => {
+  files.value = [];
   submitted.value = false;
   modelenact.value = {
     content: "",
@@ -1742,6 +1788,8 @@ const initData = (rf) => {
     return;
   }
   datas.value = [];
+  datadays.value = [];
+  datachutris.value = [];
   axios
     .post(
       baseURL + "/api/calendar/get_datas",
@@ -1814,6 +1862,24 @@ const initData = (rf) => {
               }
             });
           }
+          if (tbs[1] != null && tbs[1].length > 0) {
+            var data1 = JSON.parse(JSON.stringify(tbs[1]));
+            let obj = groupBy(data1, "user_id");
+            var result = Object.entries(obj);
+            result.forEach((item) => {
+              let obj = {
+                user_id: item[0],
+                full_name: item[1][0].full_name,
+              };
+              datachutris.value.push(obj);
+            });
+            tbs[1].forEach((item, i) => {
+              if (item["contents"] != null) {
+                item["contents"] = item["contents"].replaceAll("\n", "<br/>");
+              }
+              item["is_holiday"] = new Date(item["day"]).getDay() == 0;
+            });
+          }
           if (filterDate.value) {
             let dateinweeks = bindDateBetweenFirstAndLast(
               new Date(options.value["week_start_date"]),
@@ -1837,11 +1903,50 @@ const initData = (rf) => {
             tbs[0] = tbs[0].sort(function (a, b) {
               return new Date(a["day"]) - new Date(b["day"]);
             });
+            dateinweeks
+              .filter(
+                (a) =>
+                  tbs[1].findIndex(
+                    (b) => b["day_string"] === moment(a).format("DD/MM/YYYY")
+                  ) === -1
+              )
+              .forEach((day, i) => {
+                tbs[1].push({
+                  day: day,
+                  day_name: getDayDate(day),
+                  day_string: moment(day).format("DD/MM/YYYY"),
+                  is_holiday: day.getDay() == 0,
+                });
+              });
+            tbs[1] = tbs[1].sort(function (a, b) {
+              return new Date(a["day"]) - new Date(b["day"]);
+            });
           }
           if (tbs[0] != null && tbs[0].length > 0) {
             datas.value = tbs[0];
           } else {
             datas.value = [];
+          }
+          if (tbs[1] != null && tbs[1].length > 0) {
+            var data1 = JSON.parse(JSON.stringify(tbs[1]));
+            let obj = groupBy(data1, "day_string");
+            var result = Object.entries(obj);
+            result.forEach((item) => {
+              let obj = {
+                day_string: item[0],
+                day: item[1][0].day,
+                day_name: item[1][0].day_name,
+                is_holiday: item[1][0].is_holiday,
+                list_contents: item[1],
+              };
+              datadays.value.push(obj);
+            });
+            var idx = datadays.value.findIndex((x) => x.is_holiday);
+            if (idx != -1) {
+              holiday.value = datadays.value[idx];
+            }
+          } else {
+            datadays.value = [];
           }
           options.value.total = datas.value.length;
           if (is_check_all.value === true) {
@@ -2600,11 +2705,7 @@ onMounted(() => {
               <Button
                 v-if="slotProps.data.is_copy"
                 @click="copyItem(slotProps.data)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                  mb-2
-                "
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                 type="button"
                 icon="pi pi-copy"
                 v-tooltip.top="'Nhân bản'"
@@ -2612,11 +2713,7 @@ onMounted(() => {
               <Button
                 v-if="slotProps.data.calendar_id != null"
                 @click="logItem(slotProps.data)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                  mb-2
-                "
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                 type="button"
                 icon="pi pi-chart-bar"
                 v-tooltip.top="'Quy trình xử lý'"
@@ -2624,11 +2721,7 @@ onMounted(() => {
               <Button
                 v-if="slotProps.data.is_edit"
                 @click="editItem(slotProps.data)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                  mb-2
-                "
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                 type="button"
                 icon="pi pi-pencil"
                 v-tooltip.top="'Sửa'"
@@ -2636,11 +2729,7 @@ onMounted(() => {
               <Button
                 v-if="slotProps.data.is_cancel"
                 @click="cancelItem(slotProps.data)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                  mb-2
-                "
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                 type="button"
                 icon="pi pi-times"
                 v-tooltip.top="'Hủy lịch'"
@@ -2648,11 +2737,7 @@ onMounted(() => {
               <Button
                 v-if="slotProps.data.is_delete"
                 @click="deleteItem(slotProps.data)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                  mb-2
-                "
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                 type="button"
                 v-tooltip.top="'Xóa'"
                 icon="pi pi-trash"
@@ -2662,13 +2747,7 @@ onMounted(() => {
         </Column>
         <template #empty>
           <div
-            class="
-              align-items-center
-              justify-content-center
-              p-4
-              text-center
-              m-auto
-            "
+            class="align-items-center justify-content-center p-4 text-center m-auto"
             v-if="!options.loading && (!isFirst || options.total == 0)"
             style="display: flex; height: calc(100vh - 245px)"
           >
@@ -2755,6 +2834,9 @@ onMounted(() => {
     :displayDialog="displayDialogEnact"
     :closeDialog="closeDialogEnact"
     :modelenact="modelenact"
+    :files="files"
+    :selectFile="selectFile"
+    :removeFile="removeFile"
     :selectedNodes="selectedNodes"
     :initData="initData"
   />
@@ -2782,7 +2864,18 @@ onMounted(() => {
 
   <!--print-->
   <frameprintweek
+    :key="componentKey"
     :datas="datas"
+    :group="options.is_group"
+    :week_start_date="options.week_start_date"
+    :week_end_date="options.week_end_date"
+  />
+
+  <frameprintweek2
+    :key="componentKey"
+    :datadays="datadays"
+    :holiday="holiday"
+    :datachutris="datachutris"
     :group="options.is_group"
     :week_start_date="options.week_start_date"
     :week_end_date="options.week_end_date"
@@ -2790,7 +2883,18 @@ onMounted(() => {
 
   <!--word-->
   <framewordweek
+    :key="componentKey"
     :datas="datas"
+    :group="options.is_group"
+    :week_start_date="options.week_start_date"
+    :week_end_date="options.week_end_date"
+  />
+
+  <framewordweek2
+    :key="componentKey"
+    :datadays="datadays"
+    :holiday="holiday"
+    :datachutris="datachutris"
     :group="options.is_group"
     :week_start_date="options.week_start_date"
     :week_end_date="options.week_end_date"

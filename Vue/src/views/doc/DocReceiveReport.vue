@@ -6,6 +6,7 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import moment from "moment";
 import { encr } from "../../util/function";
+import router from "@/router";
 //Khai báo
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -129,7 +130,7 @@ const loadData = () => {
               { par: "start_dateD", va: options.value.start_dateD },
               { par: "end_dateD", va: options.value.end_dateD },
               { par: "search", va: options.value.search },
-              { par: "sort", va: options.value.sort },
+              { par: "sort", va: options.value.sort }
             ],
           }),
           SecretKey,
@@ -187,7 +188,7 @@ const refreshData = () => {
   options.value.end_dateD = null;
   options.value.search = null;
   options.value.loading = true;
-  checkFilter.value = false;
+  checkFilter.value = false; first.value=0;
   filters.value = {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     dispatch_book_num: {
@@ -434,37 +435,7 @@ const loadFilterDM = () => {
     .catch((error) => {
       console.log(error);
     });
-  // axios
-  //   .post(
-  //     baseURL + "/api/DocProc/CallProc",
-  //     {
-  //       str: encr(
-  //         JSON.stringify({
-  //           proc: "ca_issue_place_list",
-  //           par: [
-  //             { par: "pageno", va: 0 },
-  //             { par: "pagesize", va: 1000000 },
-  //             { par: "user_id", va: store.getters.user.user_id },
-  //           ],
-  //         }),
-  //         SecretKey,
-  //         cryoptojs
-  //       ).toString(),
-  //     },
-  //     config
-  //   )
-  //   .then((response) => {
-  //     let data = JSON.parse(response.data.data)[0];
-  //     data.forEach((element) => {
-  //       listFilterDM.value.ca_issue_place_list.push({
-  //         name: element.issue_place_name,
-  //         code: element.issue_place_id,
-  //       });
-  //     });
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //   });
+   
   axios
     .post(
       baseURL + "/api/device_card/getData",
@@ -614,7 +585,7 @@ const onRefilterDM = () => {
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
   options.value.ca_groups_list = null;
-
+  first.value=0;
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
@@ -623,7 +594,7 @@ const onRefilterDM = () => {
   options.value.start_dateD = null;
   filterButs.value.hide();
   filterSQL.value = [];
-
+  options.value.pageno=0;
   isDynamicSQL.value = false;
   checkFilter.value = false;
   options.value.loading = true;
@@ -635,7 +606,7 @@ const onFilterDM = () => {
   options.value.loading = true;
   checkFilter.value = true;
   filterSQL.value = [];
-
+  options.value.pageno=0;
   let filterS = null;
 
   var strG = "";
@@ -791,7 +762,7 @@ const onFilterDM = () => {
     if (options.value.end_dateI) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+        filterconstraints: [  { value: options.value.end_dateI, matchMode: "dateIs" }],
         filteroperator: "or",
         key: "receive_date",
       };
@@ -838,6 +809,7 @@ const onFilterDM = () => {
 
     }
   }
+  first.value=0;
   if (filterSQL.value.length > 0) loadDataSQL();
   else loadData(true);
 };
@@ -950,33 +922,45 @@ function renderhtml(id, htmltable) {
   
   
   `;
-  htmltable += `<div id="formprint">
+htmltable += `<div id="formprint">
       <table>
         <thead>
           <tr>
             <td class="text-center" colspan="6">
               <div style="padding: 1rem 0">
-                <div class="uppercase title2"><b>BÁO CÁO SỔ CÔNG VĂN ĐẾN</b></div>
+                <div class="uppercase title2"><b>BÁO CÁO KHỐI NỘI BỘ</b></div>
              
               </div>
             </td>
           </tr>
         </thead>
       </table>
+      <div style="display:flex; font-weight:600">
+          <div style="width:100%; align-item:center"> Tổng số: `+  datalistsExport.value.length+` </div>
+          <div  style="width:100%; text-align:right; align-item:center"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
+        </div>
       <table>
         <thead class="boder">
           <tr>
-            <th style="width: 30px">TT</th>
-            <th style="width: 100px">Số vào sổ</th>
-            <th style="width: 130px">Ngày vào sổ</th>
-            <th style="width: 100px">Số ký hiệu</th>
-            <th style="width: 130px">Ngày văn bản</th>
-            <th style="min-width: 150px">Trích yếu</th>
-            <th style="min-width: 130px">Nơi ban hành</th>
-            <th style="min-width: 150px">Nơi nhận</th>
-            <th style="width: 110px">LĐT</th>
-            <th style="width: 110px">Người ký</th>
-        
+       
+            <th style="width: 100px ;  padding: 0px 3px">Số vào sổ</th>
+            <th style="width: 100px ;  padding: 0px 3px">Số ký hiệu</th>
+            <th style="width: 100px ;  padding: 0px 3px"><div  style="padding: 0px">Ngày thu</div>
+              <div style="padding: 0 ">------</div>
+              <div style="padding: 0 ">Ban hành</div>
+              </th>
+              <th style=" min-width: 120px ;  padding: 0px 3px">Nơi ban hành</th>
+       
+            <th style="min-width: 150px ;  padding: 0px 3px">Trích yếu</th>
+         
+         
+            <th style="width: 40px ;  padding: 0px 3px">Số bản</th>
+            <th style="width: 40px ;  padding: 0px 3px">Số tờ</th>
+            <th style="width: 55px ;  padding: 0px 3px">Độ mật</th>
+            <th style="width: 40px ;  padding: 0px 3px">Bản Đ/tử</th>
+            <th style=" min-width: 120px ;  padding: 0px 3px">Nơi nhận</th>
+            <th style="width: 40px ;  padding: 0px 3px">Ký nhận</th>
+            <th style="width: 40px ;  padding: 0px 3px">Ký trả</th>
           </tr>
         </thead>
         <tbody class="boder">`;
@@ -985,6 +969,25 @@ function renderhtml(id, htmltable) {
 
     var doc_date = "";
     var receive_date = "";
+    var num_of_pages="";
+    var num_of_copies="";
+    var is_not_send_papper="";
+    var security="";
+    var dispatch_book_code="";
+    var doc_code="";
+    if(value.dispatch_book_code)
+    dispatch_book_code=value.dispatch_book_code;
+    if(value.doc_code)
+    doc_code=value.doc_code;
+    if(value.num_of_pages)
+    num_of_pages=value.num_of_pages;
+    if(value.num_of_copies)
+    num_of_copies=value.num_of_copies;
+    if(value.security)
+    security=value.security;
+  
+    if(value.is_not_send_papper==true)
+    is_not_send_papper="1";
     if (value.doc_date)
       doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
     if (value.receive_date)
@@ -992,38 +995,36 @@ function renderhtml(id, htmltable) {
     htmltable +=
       `
           <tr >
-            <td align="center">
-              <div>` +
-      (index + 1) +
-      `</div>
-            </td>
-            <td  style="width: 100px">
-              <div >
+          
+            <td  >
+              <div style="text-align: center">
                 ` +
-      value.dispatch_book_code +
+    dispatch_book_code +
       `
               </div>
             </td>
-            <td  style="width: 130px">
+            <td align="center"   >
+              <div style="text-align: center">
+                
+                ` +
+       doc_code +
+      `</div>
+            </td>
+            <td   >
               <div >
-                ` + receive_date
+               <div style="text-align:center;padding:0px"> ` + receive_date +'</div> <div style="text-align:center;padding:0px">-----</div>  <div style="text-align:center;padding:0px">'+doc_date
       +
-      `
+      ` </div>
               
               </div>
             </td>
-            <td align="center"  style="width: 100px">
-              <div>
-                
-                ` +
-      value.doc_code +
-      `</div>
-            </td>
-            <td align="center"  style="width: 130px">
-              <div>     ` +
-      doc_date +
-      `</div>
-            </td>
+            <td  style=" word-break: break-word">
+            <div >
+              ` +value.issue_place + `
+       
+            </div>
+          </td>
+            
             <td  style=" word-break: break-word">
               <div >
                 ` +
@@ -1033,11 +1034,33 @@ function renderhtml(id, htmltable) {
               </div>
             </td>
             <td  style=" word-break: break-word">
-            <div>
-              ` +value.issue_place + `
-       
-            </div>
-          </td>
+              <div style="text-align: center">
+                ` +
+       num_of_pages +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+      num_of_copies +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` + 
+       security +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+      is_not_send_papper +
+      `
+              </div>
+            </td>
             <td  style=" word-break: break-word">
               <div>
                 ` +
@@ -1046,18 +1069,15 @@ function renderhtml(id, htmltable) {
          
               </div>
             </td>
-            <td  style="width: 130px;word-break: break-word">
+          
+            <td  style=" word-break: break-word">
               <div>
-                ` +
-      value.ldt +
-      `
+                
               </div>
             </td>
-            <td  style="width: 130px;word-break: break-word">
+            <td  style=" word-break: break-word">
               <div>
-                ` +
-      value.signer +
-      `
+                
               </div>
             </td>
           </tr>`;
@@ -1075,7 +1095,7 @@ function renderhtml(id, htmltable) {
 }
 const datalistsExport = ref();
 var checkTypeExpport = false;
-
+const first=ref(0);
 //Xuất excel
 const menuButs = ref();
 const exportExcelR = () => {
@@ -1092,6 +1112,7 @@ const exportExcelR = () => {
 
   if (checkTypeExpport) exportData("ExportExcel");
   else {
+     
     options.value.loading = true;
     axios
       .post(
@@ -1204,7 +1225,7 @@ const exportData = (method) => {
     .post(
       baseURL + "/api/Excel/ExportExcel",
       {
-        excelname: "BÁO CÁO SỔ CÔNG VĂN ĐẾN",
+        excelname: "BÁO CÁO KHỐI CƠ QUAN ĐẾN",
         proc: "doc_report_list_receive_export",
         par: [
           { par: "pageno", va: options.value.pagenoExport - 1 },
@@ -1362,8 +1383,8 @@ onMounted(() => {
       <DataTable class="w-full p-datatable-sm e-sm p-table-custom-d" :lazy="true" @page="onPage($event)"
         @filter="onFilter($event)" @sort="onSort($event)" :value="datalists" :loading="options.loading"
         :paginator="options.totalRecords > options.pagesize" :rows="options.pagesize" :totalRecords="options.totalRecords"
-        dataKey="doc_master_id" :rowHover="true" :filters="filters" :showGridlines="true" filterDisplay="menu"
-        filterMode="lenient" responsiveLayout="scroll" :scrollable="true" scrollHeight="flex"
+        dataKey="doc_master_id" :rowHover="true" :filters="filters" :showGridlines="true" filterDisplay="menu" 
+        filterMode="lenient" responsiveLayout="scroll" :scrollable="true" scrollHeight="flex"  v-model:first="first"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks  NextPageLink LastPageLink    RowsPerPageDropdown"
         :rowsPerPageOptions="[20, 30, 50, 100, 200]">
         <template #header>
@@ -1409,7 +1430,7 @@ onMounted(() => {
 
                     <div class="field col-12 md:col-12 flex">
                       <div class="col-3 p-0 align-items-center flex">
-                        Ngày vào sổ:
+                        Ngày thu:
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar class="w-full" v-model="options.start_dateI" placeholder="dd/MM/yy" />
@@ -1424,7 +1445,7 @@ onMounted(() => {
                     </div>
                     <div class="field col-12 md:col-12 flex">
                       <div class="col-3 p-0 align-items-center flex">
-                        Ngày văn bản:
+                        Ngày ban hành:
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar class="w-full" v-model="options.start_dateD" placeholder="dd/MM/yy" />
@@ -1723,7 +1744,7 @@ onMounted(() => {
             <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
           </template>
         </Column>
-        <Column header="Ngày vào sổ" class="
+        <Column header="Ngày thu" class="
               align-items-center
               justify-content-center
               text-center
@@ -1749,7 +1770,7 @@ onMounted(() => {
             <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
           </template>
         </Column>
-        <Column field="doc_date" header="Ngày văn bản" class="
+        <Column field="doc_date" header="Ban hành" class="
               align-items-center
               justify-content-center
               text-center
@@ -1816,7 +1837,7 @@ onMounted(() => {
                 p-4
                 text-center
                 m-auto
-              " v-if="!isFirst">
+              " v-if="!isFirstCard">
             <img src="../../assets/background/nodata.png" height="144" />
             <h3 class="m-1">Không có dữ liệu</h3>
           </div>

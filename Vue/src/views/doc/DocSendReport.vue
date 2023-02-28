@@ -4,6 +4,7 @@ import { useToast } from "vue-toastification";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
+import router from "@/router";
 import moment from "moment";
 import _ from "lodash";
 import { encr } from "../../util/function";
@@ -151,7 +152,7 @@ const loadData = () => {
               { par: "start_dateD", va: options.value.start_dateD },
               { par: "end_dateD", va: options.value.end_dateD },
               { par: "search", va: options.value.search },
-              { par: "sort", va: options.value.sort },
+              { par: "sort", va: options.value.sort }
         ],
       }
       ),
@@ -204,7 +205,7 @@ const searchReceive = () => {
 };
 
 const refreshData = () => {
-  
+  first.value=0;
   options.value.fields_id = null;
   options.value.department_id = null;
   options.value.department_id_process = null;
@@ -638,7 +639,7 @@ const renderTreeDV1 = (data, id, name, title, org_id) => {
 const checkFilter = ref(false);
 const onRefilterDM = () => {
   options.value.doc_group_id = null;
- 
+  options.value.pageno=0;
   options.value.fields_id = null;
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
@@ -652,7 +653,7 @@ const onRefilterDM = () => {
   options.value.end_dateD = null;
   options.value.start_dateD = null;
   filterButs.value.hide();
-  filterSQL.value=[];
+  filterSQL.value=[];first.value=0;
   options.value.loading = true;
   loadData();
 };
@@ -853,7 +854,7 @@ if (options.value.start_dateI && options.value.end_dateI) {
 
     }
   }
-
+  first.value=0;
 if( filterSQL.value.length>0)
   loadDataSQL();
   else
@@ -952,105 +953,171 @@ htmltable += `<style>
 
 
 `;
-htmltable+=`<div id="formprint">
-    <table>
-      <thead>
-        <tr>
-          <td class="text-center" colspan="6">
-            <div style="padding: 1rem 0">
-              <div class="uppercase title2"><b>BÁO CÁO SỔ CÔNG VĂN ĐI</b></div>
-           
-            </div>
-          </td>
-        </tr>
-      </thead>
-    </table>
-    <table>
-      <thead class="boder">
-        <tr>
-          <th style="width: 30px">TT</th>
-          <th style="width: 100px">Số vào sổ</th>
-          <th style="width: 130px">Ngày vào sổ</th>
-          <th style="width: 100px">Số ký hiệu</th>
-          <th style="width: 130px">Ngày văn bản</th>
-          <th style="min-width: 150px">Trích yếu</th>
-          <th style="min-width: 130px">Nơi ban hành</th>
-          <th style="min-width: 150px">Nơi nhận</th>
-          <th style="width: 110px">LĐT</th>
-          <th style="width: 110px">Người ký</th>
-      
-        </tr>
-      </thead>
-      <tbody class="boder">`;
-for (let index = 0; index < datalistsExport.value.length; index++) {
-  const value = datalistsExport.value[index];
-  var doc_date="";
-    var receive_date="";
-    if(value.doc_date)
-    doc_date=moment(new Date(value.doc_date)).format("DD/MM/YYYY");
-    if(value.receive_date)
-    receive_date=  moment(new Date(value.receive_date)).format("DD/MM/YYYY");
-  htmltable+=`
-        <tr >
-          <td align="center">
-            <div>` + (index + 1)+ `</div>
-          </td>
-          <td  style="width: 100px">
-            <div >
-              ` +value.dispatch_book_code + `
-            </div>
-          </td>
-          <td  style="width: 130px">
-            <div >
-              ` +receive_date+ `
-            
-            </div>
-          </td>
-          <td align="center"  style="width: 100px">
-            <div>
-              
-              ` +value.doc_code + `</div>
-          </td>
-          <td align="center"  style="width: 130px">
-            <div>     ` + 
-              doc_date
-              + `</div>
-          </td>
-          <td  style=" word-break: break-word">
-            <div >
-              ` +value.compendium + `
+htmltable += `<div id="formprint">
+      <table>
+        <thead>
+          <tr>
+            <td class="text-center" colspan="6">
+              <div style="padding: 1rem 0">
+                <div class="uppercase title2"><b>BÁO CÁO KHỐI NỘI BỘ</b></div>
              
-            </div>
-          </td>
-          <td  style=" word-break: break-word">
-            <div>
+              </div>
+            </td>
+          </tr>
+        </thead>
+      </table>
+      <div style="display:flex; font-weight:600">
+          <div style="width:100%; align-item:center"> Tổng số: `+  datalistsExport.value.length+` </div>
+          <div  style="width:100%; text-align:right; align-item:center"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
+        </div>
+      <table>
+        <thead class="boder">
+          <tr>
+            
+            <th style="width: 100px ; padding: 0px 3px">Số vào sổ</th>
+            <th style="width: 100px ; padding: 0px 3px">Số ký hiệu</th>
+            <th style="width: 100px ; padding: 0px 3px"><div  style="padding: 0px">Ngày thu</div>
+              <div style="padding: 0 ">------</div>
+              <div style="padding: 0 ">Ban hành</div>
+              </th>
+              <th style=" min-width: 120px ; padding: 0px 3px">Nơi ban hành</th>
+       
+            <th style="min-width: 150px ; padding: 0px 3px">Trích yếu</th>
+         
+         
+            <th style="width: 40px ; padding: 0px 3px">Số bản</th>
+            <th style="width: 40px ; padding: 0px 3px">Số tờ</th>
+            <th style="width: 55px ; padding: 0px 3px">Độ mật</th>
+            <th style="width: 40px ; padding: 0px 3px">Bản Đ/tử</th>
+            <th style=" min-width: 120px ; padding: 0px 3px">Nơi nhận</th>
+            <th style="width: 40px ; padding: 0px 3px">Ký nhận</th>
+            <th style="width: 40px ; padding: 0px 3px">Ký trả</th>
+          </tr>
+        </thead>
+        <tbody class="boder">`;
+  for (let index = 0; index < datalistsExport.value.length; index++) {
+    const value = datalistsExport.value[index];
+
+    var doc_date = "";
+    var receive_date = "";
+    var num_of_pages="";
+    var num_of_copies="";
+    var is_not_send_papper="";
+    var security="";
+    var dispatch_book_code="";
+    var doc_code="";
+    if(value.dispatch_book_code)
+    dispatch_book_code=value.dispatch_book_code;
+    if(value.doc_code)
+    doc_code=value.doc_code;
+    if(value.num_of_pages)
+    num_of_pages=value.num_of_pages;
+    if(value.num_of_copies)
+    num_of_copies=value.num_of_copies;
+    if(value.security)
+    security=value.security;
+  
+    if(value.is_not_send_papper==true)
+    is_not_send_papper="1";
+    if (value.doc_date)
+      doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
+    if (value.receive_date)
+    receive_date=  moment(new Date(value.receive_date)).format("DD/MM/YYYY")
+    htmltable +=
+      `
+          <tr >
+            
+            <td  >
+              <div style="text-align: center">
+                ` +
+    dispatch_book_code +
+      `
+              </div>
+            </td>
+            <td align="center"   >
+              <div style="text-align: center">
+                
+                ` +
+       doc_code +
+      `</div>
+            </td>
+            <td   >
+              <div >
+               <div style="text-align:center;padding:0px"> ` + receive_date +'</div> <div style="text-align:center;padding:0px">-----</div>  <div style="text-align:center;padding:0px">'+doc_date
+      +
+      ` </div>
+              
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+            <div >
               ` +value.issue_place + `
        
             </div>
           </td>
-          <td  style=" word-break: break-word">
-            <div>
-              ` +value.user_receive + `
-       
-            </div>
-          </td>
-          <td  style="width: 130px;word-break: break-word">
-            <div>
-              ` +value.ldt + `
-            </div>
-          </td>
-          <td  style="width: 130px;word-break: break-word">
-            <div>
-              ` +value.signer + `
-            </div>
-          </td>
-        </tr>`
-}
-htmltable+=`
-      </tbody>
-    
-    </table>
-  </div>`
+            
+            <td  style=" word-break: break-word">
+              <div >
+                ` +
+      value.compendium +
+      `
+               
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+       num_of_pages +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+      num_of_copies +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` + 
+       security +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+      is_not_send_papper +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div>
+                ` +
+      value.user_receive +
+      `
+         
+              </div>
+            </td>
+          
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
+          </tr>`;
+  }
+  htmltable += `
+        </tbody>
+      
+      </table>
+    </div>`;
 // var html = document.getElementById(id);
 // if (html) {
 //   htmltable += html.innerHTML;
@@ -1251,7 +1318,7 @@ const exportData = (method) => {
       }
     });
 };
-
+const first=ref(0);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   dispatch_book_num: {

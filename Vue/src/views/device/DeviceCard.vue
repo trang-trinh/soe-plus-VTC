@@ -873,7 +873,7 @@ const options = ref({
   sortDM: "device_id DESC",
   search: "",
   pageno: 0,
-  pagesize: 20,
+  pagesize:2 ,
   pagenoDM: 0,
   pagesizeDM: 20,
   loading: true,
@@ -1234,9 +1234,11 @@ const addDeviceHanover = () => {
      
     };
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
           proc: "device_config_number_get",
           par: [
             { par: "user_id", va: store.getters.user.user_id },
@@ -1247,8 +1249,11 @@ const addDeviceHanover = () => {
             { par: "code_number", va: "TS_PhieuBanGiao" },
             { par: "status", va: true },
           ],
-        },
-        config
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];

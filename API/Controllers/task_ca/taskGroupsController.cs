@@ -182,7 +182,7 @@ namespace API.Controllers.Task_Ca
                 {
                     foreach (var da in das)
                     {
-                        var arrC = db.task_ca_taskgroup.Where(a => a.parent_id != null).ToArray();
+                        var arrC = db.task_ca_taskgroup.Where(a => a.parent_id != null ).ToArray();
                         del.Add(da.group_id);
                         var arrId = new List<int>();
                         for (int i = 0; i < id.Count; i++)
@@ -259,7 +259,7 @@ namespace API.Controllers.Task_Ca
                         foreach (var da in del)
                         {
                             var used = db.task_origin.Where(x => x.group_id == da.group_id).ToList();
-                            if (used != null)
+                            if (used.Count != 0)
                             {
                                 count++;
                             }

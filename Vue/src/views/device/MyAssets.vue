@@ -69,7 +69,7 @@ const rules = {
         $validator: "required",
         $message: "Kho thiết bị không được để trống!",
       },
-    ],
+    ]
   },
   warehouse_id: {
     required,
@@ -79,7 +79,7 @@ const rules = {
         $validator: "required",
         $message: "Kho thiết bị không được để trống!",
       },
-    ],
+    ]
   },
   device_unit: {
     required,
@@ -1008,9 +1008,11 @@ const loadCount = () => {
 const addDeviceHanover = () => {
   if (devicecard.value.device_user_id) {
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
           proc: "device_config_number_get",
           par: [
             { par: "current_number", va: null },
@@ -1020,8 +1022,11 @@ const addDeviceHanover = () => {
             { par: "code_number", va: "TS_PhieuBanGiao" },
             { par: "status", va: true },
           ],
-        },
-        config
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];

@@ -29,7 +29,7 @@ namespace API.Controllers.Device
 
         public string getipaddress()
         {
-      return  HttpContext.Current.Request.UserHostAddress;
+            return HttpContext.Current.Request.UserHostAddress;
         }
         public class barCodeReader
         {
@@ -38,11 +38,11 @@ namespace API.Controllers.Device
             public int barcode_type { get; set; }
         }
         #region CallProc
-       
+
         [HttpPost]
         public async Task<HttpResponseMessage> getData([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
-             var identity = User.Identity as ClaimsIdentity;
+            var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
@@ -51,7 +51,7 @@ namespace API.Controllers.Device
             string dataProc = data["str"].ToObject<string>();
             string des = Codec.DecryptString(dataProc, helper.psKey);
             sqlProc proc = JsonConvert.DeserializeObject<sqlProc>(des);
-          
+
             try
             {
                 string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
@@ -110,7 +110,7 @@ namespace API.Controllers.Device
                 {
                     string contents = helper.getCatchError(e, null);
 
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "Proc/CallProc", ip, tid, "Lỗi khi gọi proc " , 0, "Proc");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "Proc/CallProc", ip, tid, "Lỗi khi gọi proc ", 0, "Proc");
                     if (!helper.debug)
                     {
                         contents = helper.logCongtent;
@@ -121,7 +121,7 @@ namespace API.Controllers.Device
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "Proc/CallProc", ip, tid, "Lỗi khi gọi proc "  , 0, "Proc");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "Proc/CallProc", ip, tid, "Lỗi khi gọi proc ", 0, "Proc");
                     if (!helper.debug)
                     {
                         contents = helper.logCongtent;
@@ -140,7 +140,7 @@ namespace API.Controllers.Device
         [HttpPost]
         public async Task<HttpResponseMessage> GenBarcode()
         {
-             var identity = User.Identity as ClaimsIdentity;
+            var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
@@ -153,7 +153,7 @@ namespace API.Controllers.Device
             string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
             string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-          
+
             try
             {
                 using (DBEntities db = new DBEntities())
@@ -170,14 +170,14 @@ namespace API.Controllers.Device
                     var task = Request.Content.ReadAsMultipartAsync(provider).
                     ContinueWith<HttpResponseMessage>(t =>
                     {
-                    if (t.IsFaulted || t.IsCanceled)
-                    {
-                        Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
-                    }
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
 
 
-                    fdcard = provider.FormData.GetValues("barcode").SingleOrDefault();
-                    var card = JsonConvert.DeserializeObject<barCodeReader>(fdcard);
+                        fdcard = provider.FormData.GetValues("barcode").SingleOrDefault();
+                        var card = JsonConvert.DeserializeObject<barCodeReader>(fdcard);
                         if (card.barcode_old != null && card.barcode_old != "")
                         {
                             if (File.Exists(root + card.barcode_old.Substring(8)))
@@ -189,7 +189,7 @@ namespace API.Controllers.Device
                         }
                         else
                         {
-                          
+
                             db.Configuration.LazyLoadingEnabled = false;
                             db.Configuration.ProxyCreationEnabled = false;
                             var barcodeWriter = new BarcodeWriter
@@ -222,7 +222,7 @@ namespace API.Controllers.Device
 
                         }
                     });
-                
+
                     return await task;
                 }
 
@@ -254,7 +254,7 @@ namespace API.Controllers.Device
         [HttpPost]
         public async Task<HttpResponseMessage> add_device_card()
         {
-             var identity = User.Identity as ClaimsIdentity;
+            var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
@@ -267,7 +267,7 @@ namespace API.Controllers.Device
             string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
             string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-           
+
             try
             {
                 using (DBEntities db = new DBEntities())
@@ -294,51 +294,51 @@ namespace API.Controllers.Device
                         }
                         fdcard = provider.FormData.GetValues("card").SingleOrDefault();
                         device_card card = JsonConvert.DeserializeObject<device_card>(fdcard);
-                        if(card.device_name!=null)
-                        if (card.device_name.Length > 250)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên tài sản không được lớn hơn 250 kí tự!", err = "1" });
-                        }
+                        if (card.device_name != null)
+                            if (card.device_name.Length > 250)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên tài sản không được lớn hơn 250 kí tự!", err = "1" });
+                            }
                         if (card.producer != null)
                             if (card.producer.Length > 350)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Nhà sản xuất không được lớn hơn 350 kí tự!", err = "1" });
-                        }
-                       
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Nhà sản xuất không được lớn hơn 350 kí tự!", err = "1" });
+                            }
+
                         if (card.warranty_company != null)
                             if (card.warranty_company.Length > 350)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Công ty bảo hành không được lớn hơn 350 kí tự!", err = "1" });
-                        }
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Công ty bảo hành không được lớn hơn 350 kí tự!", err = "1" });
+                            }
                         if (card.warranty_company_address != null)
                             if (card.warranty_company_address.Length > 350)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên tài sản không được lớn hơn 250 kí tự!", err = "1" });
-                        }
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên tài sản không được lớn hơn 250 kí tự!", err = "1" });
+                            }
                         if (card.warranty_contact != null)
                             if (card.warranty_contact.Length > 250)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Người liên hệ không được lớn hơn 250 kí tự!", err = "1" });
-                        }
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Người liên hệ không được lớn hơn 250 kí tự!", err = "1" });
+                            }
                         if (card.barcode_id != null)
                             if (card.barcode_id.Length > 250)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã Barcode không được lớn hơn 250 kí tự!", err = "1" });
-                        }
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã Barcode không được lớn hơn 250 kí tự!", err = "1" });
+                            }
                         if (card.assets_condition != null)
                             if (card.assets_condition.Length > 250)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tình trạng không được lớn hơn 250 kí tự!", err = "1" });
+                            }
+
+
+                        var checkBarcode = db.device_card.Where(a => a.barcode_id == card.barcode_id).FirstOrDefault();
+
+
+
+                        if (checkBarcode != null)
                         {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tình trạng không được lớn hơn 250 kí tự!", err = "1" });
-                        }
-
-
-                        var checkBarcode =    db.device_card.Where(a =>   a.barcode_id== card.barcode_id).FirstOrDefault();
-
-
-
-                        if(checkBarcode!=null)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã Barcode đã tồn tại! Vui lòng nhập lại", err = "1" } );
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã Barcode đã tồn tại! Vui lòng nhập lại", err = "1" });
                         }
 
 
@@ -392,7 +392,7 @@ namespace API.Controllers.Device
                             if (File.Exists(root + card.barcode_image.Substring(8)))
                                 File.Delete(root + card.barcode_image.Substring(8));
                         }
-                        if (card.barcode_id!=null )
+                        if (card.barcode_id != null)
                         {
                             db.Configuration.LazyLoadingEnabled = false;
                             db.Configuration.ProxyCreationEnabled = false;
@@ -450,8 +450,8 @@ namespace API.Controllers.Device
                             handover.user_receiver_id = card.device_user_id;
                             handover.user_receiver_name = userR.full_name;
                             handover.user_receiver_department_id = userR.department_id;
-                            if(posiR!=null)
-                            handover.user_receiver_position = posiR.position_name !=null? posiR.position_name : null;
+                            if (posiR != null)
+                                handover.user_receiver_position = posiR.position_name != null ? posiR.position_name : null;
                             handover.organization_id = int.Parse(dvid);
                             handover.created_date = DateTime.Now;
                             handover.created_by = uid;
@@ -459,12 +459,13 @@ namespace API.Controllers.Device
                             handover.modified_date = DateTime.Now;
                             handover.modified_by = uid;
                             handover.modified_ip = ip;
-                          
+
                             db.device_handover.Add(handover);
                             db.SaveChanges();
                             var userSenHub = db.sys_users.Where(s => s.user_id == handover.user_receiver_id
                          ).FirstOrDefault();
-                            if (userSenHub!=null) { 
+                            if (userSenHub != null)
+                            {
                                 var sh = new sys_sendhub();
                                 sh.senhub_id = helper.GenKey();
                                 sh.user_send = uid;
@@ -534,7 +535,7 @@ namespace API.Controllers.Device
 
                             device_log log = new device_log();
                             log.title = "Thêm thẻ tài sản " + card.device_name;
-           
+
                             log.log_module = "device_card";
                             log.log_type = 0;
                             log.id_key = card.card_id.ToString();
@@ -580,7 +581,7 @@ namespace API.Controllers.Device
         [HttpPut]
         public async Task<HttpResponseMessage> update_device_card()
         {
-             var identity = User.Identity as ClaimsIdentity;
+            var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
@@ -595,7 +596,7 @@ namespace API.Controllers.Device
             bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             List<string> delfiles = new List<string>();
-           
+
             try
             {
                 using (DBEntities db = new DBEntities())
@@ -605,7 +606,7 @@ namespace API.Controllers.Device
                         throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
                     }
 
-                    string root = HttpContext.Current.Server.MapPath("~/Portals") ;
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
                     string strPath = root + "/" + dvid + "/Device";
                     bool exists = Directory.Exists(strPath);
                     if (!exists)
@@ -667,7 +668,7 @@ namespace API.Controllers.Device
                                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tình trạng không được lớn hơn 250 kí tự!", err = "1" });
                             }
 
-                        var checkBarcode = db.device_card.Where(a => a.barcode_id == card.barcode_id && a.card_id !=card.card_id).FirstOrDefault();
+                        var checkBarcode = db.device_card.Where(a => a.barcode_id == card.barcode_id && a.card_id != card.card_id).FirstOrDefault();
 
 
 
@@ -716,7 +717,7 @@ namespace API.Controllers.Device
                             {
                                 card.image = "/Portals/" + dvid + "/Device/" + fileName;
                                 ffileData = fileData;
-                       
+
                                 //Add ảnh
                                 if (fileInfo != null)
                                 {
@@ -728,58 +729,58 @@ namespace API.Controllers.Device
                                     helper.ResizeImage(newFileName, 640, 640, 90);
                                 }
                             }
-                          
+
                         }
-                        if(showsOld!=null)
-                        { 
-                        if (showsOld.image != null && showsOld.image != "" && showsOld.image != card.image)
+                        if (showsOld != null)
                         {
-                            string fileOld = showsOld.image.Substring(8);
-                            delfiles.Add(  fileOld);
-                        }
-                        if (showsOld.barcode_id != card.barcode_id || showsOld.barcode_image!= card.barcode_image)
-                        {
-                            if (card.barcode_image != null && card.barcode_image != "")
+                            if (showsOld.image != null && showsOld.image != "" && showsOld.image != card.image)
                             {
-                                
-                                if (File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" +  Path.GetFileName(card.barcode_image)))
-                                    File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" + Path.GetFileName(card.barcode_image));
+                                string fileOld = showsOld.image.Substring(8);
+                                delfiles.Add(fileOld);
                             }
-                            if (showsOld.barcode_image != null && showsOld.barcode_image != "")
+                            if (showsOld.barcode_id != card.barcode_id || showsOld.barcode_image != card.barcode_image)
                             {
-                                if (File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" + Path.GetFileName(showsOld.barcode_image)))
-                                    File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" + Path.GetFileName(showsOld.barcode_image));
-                            }
-                            db.Configuration.LazyLoadingEnabled = false;
-                            db.Configuration.ProxyCreationEnabled = false;
-                            var barcodeWriter = new BarcodeWriter
-                            {
-                                Format = card.barcode_type == 1 ? BarcodeFormat.QR_CODE : BarcodeFormat.CODE_128,
-                                //Format = BarcodeFormat.CODE_128,
-                                Options = new ZXing.Common.EncodingOptions
+                                if (card.barcode_image != null && card.barcode_image != "")
                                 {
-                                    //Width = 300,
-                                    //Height = 50,
-                                    Width = card.barcode_type == 1 ? 200 : 300,
-                                    Height = card.barcode_type == 1 ? 200 : 50,
-                                    Margin = 0
+
+                                    if (File.Exists(root + "/" + dvid + "/Device/" + Path.GetFileName(card.barcode_image)))
+                                        File.Delete(root+ "/" + dvid + "/Device/" + Path.GetFileName(card.barcode_image));
                                 }
-                            };
-                            try
-                            {
-                                var barcode = barcodeWriter.Write(card.barcode_id);
-                                string nameFile = helper.GenKey().Substring(0, 5) + "-orient-" + card.barcode_id;
+                                if (showsOld.barcode_image != null && showsOld.barcode_image != "")
+                                {
+                                    if (File.Exists(root + "/" + dvid + "/Device/" + Path.GetFileName(showsOld.barcode_image)))
+                                        File.Delete(root + "/" + dvid + "/Device/" + Path.GetFileName(showsOld.barcode_image));
+                                }
+                                db.Configuration.LazyLoadingEnabled = false;
+                                db.Configuration.ProxyCreationEnabled = false;
+                                var barcodeWriter = new BarcodeWriter
+                                {
+                                    Format = card.barcode_type == 1 ? BarcodeFormat.QR_CODE : BarcodeFormat.CODE_128,
+                                    //Format = BarcodeFormat.CODE_128,
+                                    Options = new ZXing.Common.EncodingOptions
+                                    {
+                                        //Width = 300,
+                                        //Height = 50,
+                                        Width = card.barcode_type == 1 ? 200 : 300,
+                                        Height = card.barcode_type == 1 ? 200 : 50,
+                                        Margin = 0
+                                    }
+                                };
+                                try
+                                {
+                                    var barcode = barcodeWriter.Write(card.barcode_id);
+                                    string nameFile = helper.GenKey().Substring(0, 5) + "-orient-" + card.barcode_id;
 
-                                barcode.Save(strPath + "/" + nameFile + ".png");
-                                string str = "/Portals/" + dvid + "/Device/" + nameFile + ".png";
-                                card.barcode_image = str;
-                            }
-                            catch (Exception e)
-                            {
+                                    barcode.Save(strPath + "/" + nameFile + ".png");
+                                    string str = "/Portals/" + dvid + "/Device/" + nameFile + ".png";
+                                    card.barcode_image = str;
+                                }
+                                catch (Exception e)
+                                {
 
-                                return Request.CreateResponse(HttpStatusCode.OK, new { data = "Có lỗi xảy ra! Vui lòng kiểm tra lại." + e, err = "1" });
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { data = "Có lỗi xảy ra! Vui lòng kiểm tra lại." + e, err = "1" });
+                                }
                             }
-                        }
                         }
                         card.organization_id = int.Parse(dvid);
                         card.modified_date = DateTime.Now;
@@ -787,13 +788,13 @@ namespace API.Controllers.Device
                         card.modified_ip = ip;
                         db.Entry(card).State = EntityState.Modified;
                         db.SaveChanges();
-                        
+
                         if (delfiles.Count > 0)
                         {
                             foreach (string fpath in delfiles)
                             {
-                                if (File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" + Path.GetFileName(fpath)))
-                                    File.Delete(HttpContext.Current.Server.MapPath("~/Portals") + "/" + dvid + "/Device/" + Path.GetFileName(fpath));
+                                if (File.Exists(root+ "/" + dvid + "/Device/" + Path.GetFileName(fpath)))
+                                    File.Delete(root+ "/" + dvid + "/Device/" + Path.GetFileName(fpath));
                             }
                         }
 
@@ -803,7 +804,7 @@ namespace API.Controllers.Device
 
                             device_log log = new device_log();
                             log.title = "Sửa thẻ tài sản " + card.device_name;
-                   
+
                             log.log_module = "device_card";
                             log.id_key = card.card_id.ToString();
                             log.log_type = 1;
@@ -850,14 +851,14 @@ namespace API.Controllers.Device
         [HttpDelete]
         public async Task<HttpResponseMessage> delete_device_card([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
         {
-             var identity = User.Identity as ClaimsIdentity;
+            var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
             IEnumerable<Claim> claims = identity.Claims;
 
-             
+
             try
             {
                 string root = HttpContext.Current.Server.MapPath("~/Portals");
@@ -886,9 +887,9 @@ namespace API.Controllers.Device
 
                                     del.Add(da);
                                     if (!string.IsNullOrWhiteSpace(da.barcode_image))
-                                        paths.Add(  da.barcode_image);
+                                        paths.Add(da.barcode_image);
                                     if (!string.IsNullOrWhiteSpace(da.image))
-                                        paths.Add(  da.image);
+                                        paths.Add(da.image);
                                 }
                                 #region add device_log
                                 if (helper.wlog)
@@ -896,7 +897,7 @@ namespace API.Controllers.Device
 
                                     device_log log = new device_log();
                                     log.title = "Xóa thẻ tài sản " + da.device_name;
-        
+
                                     log.log_module = "device_card";
                                     log.id_key = da.card_id.ToString();
                                     log.log_type = 2;
