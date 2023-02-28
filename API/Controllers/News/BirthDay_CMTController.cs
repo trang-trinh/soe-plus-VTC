@@ -549,7 +549,7 @@ namespace API.Controllers.News
             {
                 using (DBEntities db = new DBEntities())
                 {
-
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
                     var das = await db.birthday_cmt.Where(a => id.Contains(a.id)).ToListAsync();
 
                     if (das.Count == 0)
@@ -620,7 +620,7 @@ namespace API.Controllers.News
                     await db.SaveChangesAsync();
                     foreach (string strPath in paths)
                     {
-                        bool exists = File.Exists(HttpContext.Current.Server.MapPath("~/Portals") + "/BirthDay_CMT/" + Path.GetFileName(strPath));
+                        bool exists = File.Exists(root + "/BirthDay_CMT/" + Path.GetFileName(strPath));
                         if (exists)
                             File.Delete(HttpContext.Current.Server.MapPath("~/Portals/BirthDay_CMT/") + Path.GetFileName(strPath));
                     }

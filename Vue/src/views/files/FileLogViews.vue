@@ -22,7 +22,7 @@ const opition = ref({
   IsNext: true,
   sort: "file_log_id DESC",
   PageNo: 0,
-  PageSize: 20,
+  PageSize: 30,
   Filteruser_id: null,
   user_id: store.getters.user_id,
   department_id: store.getters.user.organization_id,
@@ -110,11 +110,13 @@ const onRefersh = () => {
     sort: "file_log_id DESC",
     PageNo: 0,
     IsLess: true,
-    PageSize: 20,
+    PageSize: 30,
     Filteruser_id: null,
     user_id: store.getters.user.user_id,
     start_date: null,
     end_date: null,
+      department_id: store.getters.user.organization_id,
+
   };
   first.value = 0;
   //isDynamicSQL.value = false;
@@ -676,7 +678,7 @@ onMounted(() => {
         </template>
       </Column>
             <Column
-        :sortable="true"
+        :sortable="false"
         field="full_name"
         dataType="date"
         header="Người tạo"
@@ -686,7 +688,7 @@ onMounted(() => {
       >
       </Column>
       <Column
-        :sortable="true"
+        :sortable="false"
         field="created_date"
         dataType="date"
         header="Ngày tạo"
@@ -699,7 +701,7 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        :sortable="true"
+        :sortable="false"
         field="count_view_file"
         dataType="date"
         header="Lượt xem"

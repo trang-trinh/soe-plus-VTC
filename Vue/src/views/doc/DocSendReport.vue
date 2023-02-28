@@ -4,6 +4,7 @@ import { useToast } from "vue-toastification";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
+import router from "@/router";
 import moment from "moment";
 import _ from "lodash";
 import { encr } from "../../util/function";
@@ -118,6 +119,17 @@ const loadData = () => {
     loadDataSQL();
     return false;
   }
+  var strG = "";
+  var strk = "";
+
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if(strG!=null)
+  options.value.department_id_process_fake= strG;
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -133,13 +145,14 @@ const loadData = () => {
               { par: "dispatch_book_id", va: options.value.dispatch_book_id },
               { par: "doc_group_id", va: options.value.doc_group_id },
               { par: "field_id", va: options.value.field_id },
+              { par: "department_id_process", va: options.value.department_id_process },
               { par: "department_id", va: options.value.department_id },
               { par: "start_dateI", va: options.value.start_dateI },
               { par: "end_dateI", va: options.value.end_dateI },
               { par: "start_dateD", va: options.value.start_dateD },
               { par: "end_dateD", va: options.value.end_dateD },
               { par: "search", va: options.value.search },
-              { par: "sort", va: options.value.sort },
+              { par: "sort", va: options.value.sort }
         ],
       }
       ),
@@ -192,9 +205,10 @@ const searchReceive = () => {
 };
 
 const refreshData = () => {
-  
+  first.value=0;
   options.value.fields_id = null;
   options.value.department_id = null;
+  options.value.department_id_process = null;
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
@@ -243,6 +257,7 @@ const hideFilter = () => {
                 options.value.dispatch_book_id ==null &&
                 options.value.start_dateI ==null&&
                 options.value.ca_groups_list ==null &&
+                options.value.department_id_process == null&&
                 options.value.department_id ==null&&
                 options.value.ca_fields_list ==null &&
                 options.value.ca_dispatch_book_list ==null &&
@@ -624,12 +639,13 @@ const renderTreeDV1 = (data, id, name, title, org_id) => {
 const checkFilter = ref(false);
 const onRefilterDM = () => {
   options.value.doc_group_id = null;
- 
+  options.value.pageno=0;
   options.value.fields_id = null;
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
   options.value.ca_groups_list = null;
   options.value.department_id = null;
+  options.value.department_id_process = null;
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
@@ -637,7 +653,7 @@ const onRefilterDM = () => {
   options.value.end_dateD = null;
   options.value.start_dateD = null;
   filterButs.value.hide();
-  filterSQL.value=[];
+  filterSQL.value=[];first.value=0;
   options.value.loading = true;
   loadData();
 };
@@ -722,6 +738,29 @@ if (options.value.department_id) {
   }  else{
     options.value.department_id =null;
   }
+  strG = "";
+  strk = "";
+  FilterStr.value  = "";
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      var tsc=listFilterDM.value.department_list.find(x=>x.key==key).label;
+      FilterStr.value+= strk +tsc;
+      strk = ",";
+    }
+  }
+  if (strG != "") {
+    
+    filterS = {
+      filterconstraints: [],
+      filteroperator:strG,
+      key: "department_id_process",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else{
+    options.value.department_id_process =null;
+  }
 
   strG = "";
   strk = "";
@@ -740,12 +779,96 @@ if(strG!=""){
       };
       filterSQL.value.push(filterS); 
 }
+
+
+if (options.value.start_dateI && options.value.end_dateI) {
+    filterS = {
+      filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateAfter" }, { value: options.value.start_dateI, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "receive_date",
+    };
+    filterSQL.value.push(filterS);
+
+    filterS = {
+      filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "receive_date",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else {
+    if (options.value.start_dateI) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "receive_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (options.value.end_dateI) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "receive_date",
+      };
+      filterSQL.value.push(filterS);
+
+    }
+  }
+
+  if (options.value.start_dateD && options.value.end_dateD) {
+    filterS = {
+      filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateAfter" }, { value: options.value.start_dateD, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "doc_date",
+    };
+    filterSQL.value.push(filterS);
+
+    filterS = {
+      filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateBefore" }, { value: options.value.end_dateD, matchMode: "dateIs" }],
+      filteroperator: "or",
+      key: "doc_date",
+    };
+    filterSQL.value.push(filterS);
+  }
+  else {
+    if (options.value.start_dateD) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "doc_date",
+      };
+      filterSQL.value.push(filterS);
+
+
+    }
+    if (options.value.end_dateD) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "doc_date",
+      };
+      filterSQL.value.push(filterS);
+
+    }
+  }
+  first.value=0;
 if( filterSQL.value.length>0)
   loadDataSQL();
   else
   loadData(true);
 };
 
+const displaySidebarDR = ref(false);
+const liUserRecever = ref([]);
+const showDetailsRecever = (value) => {
+  liUserRecever.value = value;
+  displaySidebarDR.value = true;
+};
 //Xuất excel
 // IN
 
@@ -765,159 +888,259 @@ function renderhtml(id, htmltable) {
 htmltable = "";
 //Style
 htmltable += `<style>
-  #formprint {
-    background: #fff !important;
-  }
-  #formprint * {
-    font-family: "Times New Roman", Times, serif !important;
-    font-size: 13pt;
-  }
-  .title1,
-  .title1 * {
-    font-size: 17pt !important;
-  }
-  .title2,
-  .title2 * {
-    font-size: 16pt !important;
-  }
-  .title3,
-  .title3 * {
-    font-size: 15pt !important;
-  }
-  .boder tr th,
-  .boder tr td {
-    border: 1px solid #999999 !important;
-    padding: 0.5rem;
-  }
-  table {
-    min-width: 100% !important;
-    page-break-inside: auto !important;
-    border-collapse: collapse !important;
-    table-layout: fixed !important;
-  }
-  thead {
-    display: table-header-group !important;
-  }
-  tbody {
-    display: table-header-group !important;
-  }
-  tr {
-    -webkit-column-break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-  td{
-    word-break: break-all;
-  }
-  tfoot {
-    display: table-footer-group !important;
-  }
-  .uppercase,
-  .uppercase * {
-    text-transform: uppercase !important;
-  }
-  .text-center {
-    text-align: center !important;
-  }
-  .text-left {
-    text-align: left !important;
-  }
-  .text-right {
-    text-align: right !important;
-  }
-  .html p{
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-</style>
+    #formprint {
+      background: #fff !important;
+    }
+    #formprint * {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+    }
+    .title1,
+    .title1 * {
+      font-size: 16pt !important;
+    }
+    .title2,
+    .title2 * {
+      font-size: 14pt !important;
+    }
+    .title3,
+    .title3 * {
+      font-size: 12pt !important;
+    }
+    .boder tr th,
+    .boder tr td {
+    
+      border: 1px solid #999999 !important;
+      padding: 0.25rem;
+    }
+    .boder tr td {  font-size: 12pt !important;}
 
-
-`;
-htmltable+=`<div id="formprint">
-    <table>
-      <thead>
-        <tr>
-          <td class="text-center" colspan="6">
-            <div style="padding: 1rem 0">
-              <div class="uppercase title2"><b>BÁO CÁO SỔ CÔNG VĂN ĐI</b></div>
-           
-            </div>
-          </td>
-        </tr>
-      </thead>
-    </table>
-    <table>
-      <thead class="boder">
-        <tr>
-          <th style="width: 30px">TT</th>
-          <th style="width: 100px">Số vào sổ</th>
-          <th style="width: 130px">Ngày vào sổ</th>
-          <th style="width: 100px">Số ký hiệu</th>
-          <th style="width: 130px">Ngày văn bản</th>
-          <th style="min-width: 150px">Trích yếu</th>
-          <th style="min-width: 150px">Nơi nhận</th>
-          <th style="width: 110px">LĐT</th>
-          <th style="width: 110px">Người ký</th>
-      
-        </tr>
-      </thead>
-      <tbody class="boder">`;
-for (let index = 0; index < datalistsExport.value.length; index++) {
-  const value = datalistsExport.value[index];
-  htmltable+=`
-        <tr >
-          <td align="center">
-            <div>` + (index + 1)+ `</div>
-          </td>
-          <td  style="width: 100px">
-            <div >
-              ` +value.dispatch_book_num + `
-            </div>
-          </td>
-          <td  style="width: 130px">
-            <div >
-              ` + moment(new Date(value.receive_date)).format("DD/MM/YYYY") + `
+    table {
+      min-width: 100% !important;
+      page-break-inside: auto !important;
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
+    }
+    thead {
+      display: table-header-group !important;
+    }
+    tbody {
+      display: table-header-group !important;
+    }
+    tr {
+      -webkit-column-break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+    td{
+      word-break: break-all;
+    }
+    tfoot {
+      display: table-footer-group !important;
+    }
+    .uppercase,
+    .uppercase * {
+      text-transform: uppercase !important;
+    }
+    .text-center {
+      text-align: center !important;
+    }
+    .text-left {
+      text-align: left !important;
+    }
+    .text-right {
+      text-align: right !important;
+    }
+    .html p{
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  </style>
+  
+  
+  `;
+htmltable += `<div id="formprint" style="width:100%">
+      <table>
+        <thead>
+          <tr>
+            <td style="width:33.33%">
+          
+              <div style="width:100%; align-item:center; font-weight:600;word-break: break-word;">`+  FilterStr.value+` </div>
+          <div style="width:100%; align-item:center; font-weight:600">Tổng số: `+  datalistsExport.value.length+` </div>
+          
+     
+              </td>
+            <td    style="width:33.33%;padding: 0 0 0.5rem 0 ;text-align:center; " >
             
-            </div>
-          </td>
-          <td align="center"  style="width: 100px">
-            <div>
-              
-              ` +value.doc_code + `</div>
-          </td>
-          <td align="center"  style="width: 130px">
-            <div>     ` + 
-              moment(new Date(value.doc_date)).format("DD/MM/YYYY")
-              + `</div>
-          </td>
-          <td  style=" word-break: break-word">
-            <div >
-              ` +value.compendium + `
+               <div class="title1" style="width:100%;font-weight:600;height:100%;    padding-top:0">VĂN BẢN ĐI</div> 
              
-            </div>
-          </td>
-          <td  style=" word-break: break-word">
-            <div>
-              ` +value.user_receive + `
+          <div></div>
+            </td>
+            <td style="width:33.33%">
+              <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
+            </td>
+          </tr>
+        </thead>
+      </table>
+    
+      <table>
+        <thead class="boder">
+          <tr>
+       
+            <th style="width: 60px ;  padding: 0px 3px">Số đến phòng</th>
+            <th style="width: 80px ;  padding: 0px 3px">Số,ký hiệu</th>
+            <th style="width: 80px ;word-break: break-word;  padding: 0px 2px"> <b>Ngày thu </b>
+              <hr style="margin:3px 25px 0px 25px ; font-weight:600"/>
+       
+             <b> Ban hành </b>
+              </th>
+              <th style=" min-width: 80px ; word-break: break-word;  padding: 0px 3px">CQ ban hành</th>
+       
+            <th style="min-width: 150px ;word-break: break-word;  padding: 0px 3px">Trích yếu</th>
+         
+         
+            <th style="width: 20px ;  padding: 0px 3px">Số bản</th>
+            <th style="width: 20px ;  padding: 0px 3px">Số tờ</th>
+            <th style="width: 40px ;  padding: 0px 3px">Độ mật</th>
+            <th style="width: 20px ;  ; padding: 0px 3px"  >Bản đ/tử</th>
+            <th style=" min-width: 70px ;word-break: break-word;  padding: 0px 3px">Ng/nhận</th>
+            <th style="width: 40px ;  padding: 0px 3px">Ký nhận</th>
+            <th style="width: 40px ;  padding: 0px 3px">Ký trả</th>
+            <th style="width: 50px ;  padding: 0px 3px">Ghi chú</th>
+          </tr>
+        </thead>
+        <tbody class="boder">`;
+  for (let index = 0; index < datalistsExport.value.length; index++) {
+    const value = datalistsExport.value[index];
+
+    var doc_date = "";
+    var receive_date = "";
+    var num_of_pages="";
+    var num_of_copies="";
+    var is_not_send_paper="";
+    var security="";
+    var dispatch_book_code="";
+    var doc_code="";
+    if(value.dispatch_book_code)
+    dispatch_book_code=value.dispatch_book_code;
+    if(value.doc_code)
+    doc_code=value.doc_code;
+    if(value.num_of_pages)
+    num_of_pages=value.num_of_pages;
+    if(value.num_of_copies)
+    num_of_copies=value.num_of_copies;
+    if(value.security)
+    security=value.security; 
+ 
+    if(value.is_not_send_paper==1)
+    is_not_send_paper="1";
+      
+    if (value.doc_date)
+      doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
+    if (value.receive_date)
+    receive_date=  moment(new Date(value.receive_date)).format("DD/MM/YYYY")
+    htmltable +=
+      `
+          <tr >
+          
+            <td  >
+              <div style="text-align: center">
+                ` +
+    dispatch_book_code +
+      `
+              </div>
+            </td>
+            <td align="center"   >
+
+              <div >
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + doc_code +'</div>    '+dispatch_book_code
+      +
+      ` </div>
+              
+              </div>
+              
+            </td>
+            <td   >
+              <div >
+               <div style="text-align:center;padding:0px">  `+doc_date
+      +
+      ` </div>
+              
+              </div>
+            </td>
+            <td  style=" word-break: break-word; text-align:center">
+            <div >
+              ` +value.issue_place + `
        
             </div>
           </td>
-          <td  style="width: 130px;word-break: break-word">
-            <div>
-              ` +value.ldt + `
-            </div>
-          </td>
-          <td  style="width: 130px;word-break: break-word">
-            <div>
-              ` +value.signer + `
-            </div>
-          </td>
-        </tr>`
-}
-htmltable+=`
-      </tbody>
-    
-    </table>
-  </div>`
+            
+            <td  style=" word-break: break-word">
+              <div >
+                ` +
+      value.compendium +
+      `
+               
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+       num_of_pages +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+      num_of_copies +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` + 
+       security +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div style="text-align: center">
+                ` +
+                is_not_send_paper +
+      `
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div>
+                ` +
+      value.user_receive +
+      `
+         
+              </div>
+            </td>
+          
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
+            <td  style=" word-break: break-word">
+              <div>
+                
+              </div>
+            </td>
+          </tr>`;
+  }
+  htmltable += `
+        </tbody>
+      
+      </table>
+    </div>`;
 // var html = document.getElementById(id);
 // if (html) {
 //   htmltable += html.innerHTML;
@@ -956,12 +1179,13 @@ else
             proc: "doc_report_list_send",
             par: [
                  { par: "pageno", va: options.value.pagenoExport-1 },
-              { par: "pagesize", va: options.value.pagesize },
+              { par: "pagesize", va: options.value.totalRecordsExport },
               { par: "user_id", va: store.state.user.user_id },
-              { par: "user_recever", va: options.value.user_recever },
+              { par: "user_recever", va: options.value.ca_user_recever_list },
               { par: "dispatch_book_id", va: options.value.dispatch_book_id },
               { par: "doc_group_id", va: options.value.doc_group_id },
               { par: "field_id", va: options.value.field_id },
+              { par: "department_id_process", va: options.value.department_id_process_fake },
               { par: "department_id", va: options.value.department_id },
               { par: "start_dateI", va: options.value.start_dateI },
               { par: "end_dateI", va: options.value.end_dateI },
@@ -1013,7 +1237,7 @@ else
 
 }
 }
-
+const FilterStr=ref("");
 
 const itemButs = ref([
 {
@@ -1045,6 +1269,17 @@ const itemButs = ref([
 ]);
 
 const toggleExport = (event) => {
+  var strG = "";
+  var strk = "";
+
+  if (options.value.department_id_process) {
+    for (const key in options.value.department_id_process) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if(strG!=null)
+  options.value.department_id_process_fake= strG;
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
@@ -1064,9 +1299,11 @@ const exportData = (method) => {
           { par: "pageno", va:  (options.value.pagenoExport-1  ) },
           { par: "pagesize", va: options.value.totalRecordsExport },
           { par: "user_id", va: store.state.user.user_id },
+          { par: "user_recever", va: options.value.ca_user_recever_list },
           { par: "dispatch_book_id", va: options.value.dispatch_book_id },
           { par: "doc_group_id", va: options.value.doc_group_id },
           { par: "field_id", va: options.value.field_id },
+          { par: "department_id_process", va: options.value.department_id_process_fake },
           { par: "department_id", va: options.value.department_id },
           { par: "start_dateI", va: options.value.start_dateI },
           { par: "end_dateI", va: options.value.end_dateI },
@@ -1104,7 +1341,7 @@ const exportData = (method) => {
       }
     });
 };
-
+const first=ref(0);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   dispatch_book_num: {
@@ -1267,6 +1504,8 @@ onMounted(() => {
                 options.start_dateI !=null ||
                 options.ca_groups_list !=null ||
                 options.department_id !=null ||
+                options.department_id_process !=null ||
+                 
                 options.ca_fields_list !=null ||
                 options.ca_dispatch_book_list !=null ||
                 options.end_dateI !=null ||
@@ -1336,6 +1575,7 @@ onMounted(() => {
                         <Calendar
                           class="w-full"
                           v-model="options.end_dateI"
+                          :minDate="options.start_dateI? new Date(options.start_dateI) :null"
                           placeholder="dd/MM/yy"
                         />
                       </div>
@@ -1360,6 +1600,7 @@ onMounted(() => {
                         <Calendar
                           class="w-full"
                           v-model="options.end_dateD"
+                          :minDate="options.start_dateD? new Date(options.start_dateD) :null"
                           placeholder="dd/MM/yy"
                         />
                       </div>
@@ -1405,7 +1646,7 @@ onMounted(() => {
                     </div>
                     <div class="field col-12 md:col-12 flex">
                       <div class="col-3 p-0 align-items-center flex">
-                        Phòng ban:
+                        Phòng ban soạn thảo:
                       </div>
                       <div class="col-9 p-0 align-items-center flex">
                         <TreeSelect
@@ -1415,6 +1656,22 @@ onMounted(() => {
                           display="chip"
                           selectionMode="checkbox"
                           placeholder="Chọn phòng ban"
+                        ></TreeSelect>
+                      </div>
+                    </div>
+                    <div class="field col-12 md:col-12 flex">
+                      <div class="col-3 p-0 align-items-center flex">
+                        Phòng ban xử lý:
+                      </div>
+                      <div class="col-9 p-0 align-items-center flex">
+                        <TreeSelect
+                          class="w-full"
+                          v-model="options.department_id_process"
+                          :options="listFilterDM.department_list"
+                          display="chip"
+                          selectionMode="checkbox"
+                          placeholder="Chọn phòng ban xử lý"
+                          :clear="true"
                         ></TreeSelect>
                       </div>
                     </div>
@@ -1753,7 +2010,7 @@ onMounted(() => {
           <template #body="data">
             <div>
               {{
-                moment(new Date(data.data.receive_date)).format("DD/MM/YYYY")
+               data.data.receive_date? moment(new Date(data.data.receive_date)).format("DD/MM/YYYY"):''
               }}
             </div>
           </template>
@@ -1801,7 +2058,7 @@ onMounted(() => {
           </template>
           <template #body="data">
             <div>
-              {{ moment(new Date(data.data.doc_date)).format("DD/MM/YYYY") }}
+              {{  data.data.doc_date?moment(new Date(data.data.doc_date)).format("DD/MM/YYYY"):'' }}
             </div>
           </template>
         </Column>
@@ -1816,7 +2073,7 @@ onMounted(() => {
 {{data.data.compendium}}
           </template>
         </Column>
-        <Column
+        <!-- <Column
           field="receive_place"
           header="Cơ quan nhận"
           class="text-left text-justify"
@@ -1826,6 +2083,23 @@ onMounted(() => {
         >
       
 
+        </Column> -->
+          <Column
+          field="user_receive"
+          header="Nơi nhận"
+          class="text-left text-justify"
+          headerStyle="text-align:center"
+          bodyStyle="text-align:center; word-break:break-word"
+          headerClass="format-center"
+        >
+          <template #body="data">
+            <div
+              class="limit-line cursor-pointer"
+              @click="showDetailsRecever(data.data.user_receive)"
+            >
+              {{ data.data.user_receive }}
+            </div>
+          </template>
         </Column>
         <Column
           headerStyle="text-align:center;max-width:150px;height:50px"
@@ -1922,6 +2196,23 @@ onMounted(() => {
     </div>
   </div>
 </Dialog>
+
+<Sidebar
+    :showCloseIcon="false"
+    position="right"
+    v-model:visible="displaySidebarDR"
+  >
+    <div class="w-full format-center">
+      <h3>Danh sách nơi nhận</h3>
+    </div>
+    <div>
+      <div v-for="(item, index) in liUserRecever.split(',')" :key="index">
+        <div class="py-2 align-items-center justify-content-center">
+          <i class="pi pi-angle-double-right pr-1"></i>{{ item }}
+        </div>
+      </div>
+    </div>
+  </Sidebar>
 </template>
 <style scoped>
 .d-lang-table {

@@ -86,9 +86,30 @@ namespace API.Controllers.Task_Origin1
                         {
                             #region file
                             string path = root + "/" + task.organization_id + "/TaskOrigin/" + task.task_id + "/" + cmtbug.report_id;
-                            bool exists = Directory.Exists(path);
+
+                            // Format path
+                            var pathFormat = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPath = pathFormat.Split('/');
+                            var pathConfig = "";
+                            var sttPartPath = 1;
+                            foreach (var item in listPath)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    if (sttPartPath == 1)
+                                    {
+                                        pathConfig += (item);
+                                    }
+                                    else
+                                    {
+                                        pathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                sttPartPath++;
+                            }
+                            bool exists = Directory.Exists(pathConfig);
                             if (!exists)
-                                Directory.CreateDirectory(path);
+                                Directory.CreateDirectory(pathConfig);
                             List<task_file> dfs = new List<task_file>();
                             foreach (MultipartFileData fileData in provider.FileData)
                             {
@@ -102,14 +123,14 @@ namespace API.Controllers.Task_Origin1
                                     org_name_file = System.IO.Path.GetFileName(org_name_file);
                                 }
                                 string name_file = helper.UniqueFileName(org_name_file);
-                                string rootPath = path + "/" + name_file;
+                                string rootPath = pathConfig + "/" + name_file;
                                 string Duongdan = "/Portals/" + task.organization_id + "/TaskOrigin/" + task.task_id + "/" + cmtbug.report_id + "/" + name_file;
 
                                 string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName).Replace("\"", "");
                                 if (rootPath.Length > 500)
                                 {
                                     name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
-                                    int le = 500 - (path.Length + 1) - Dinhdang.Length;
+                                    int le = 500 - (pathConfig.Length + 1) - Dinhdang.Length;
                                     name_file = name_file.Substring(0, le) + Dinhdang;
                                 }
                                 if (File.Exists(rootPath))

@@ -1,31 +1,27 @@
 import { fileURLToPath, URL } from "url";
 
 import { defineConfig } from "vite";
-import legacy from "@vitejs/plugin-legacy";
+
 import vue from "@vitejs/plugin-vue";
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    legacy({
-      targets: [
-        "chrome >= 64",
-        "edge >= 37",
-        "safari >= 11.1",
-        "firefox >= 67",
-      ],
-      ignoreBrowserslistConfig: true,
-      renderLegacyChunks: false,
-      modernPolyfills: ["es/global-this"],
-      //  or
-      // modernPolyfills: true,
-    }),
-    vue(),
-  ],
-  resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    plugins: [
+        // legacy({
+        //     targets: ['chrome >= 64', 'edge >= 79', 'safari >= 11.1', 'firefox >= 67'],
+        //     ignoreBrowserslistConfig: true,
+        //     renderLegacyChunks: false,
+        //     modernPolyfills: ['es/global-this'],
+        //     //  or
+        //     // modernPolyfills: true,
+        // }),
+        vue()
+    ],
+    resolve: {
+        alias: {
+            "@": fileURLToPath(new URL("./src",
+                import.meta.url)),
+        },
     },
-  },
 
   // Local test
   define: {

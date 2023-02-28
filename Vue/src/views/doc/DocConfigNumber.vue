@@ -106,11 +106,6 @@ const loadAddDocCodes = () => {
       });
     });
 };
-const listCodesReceiver = ref();
-
-const listCodesSend = ref();
-
-const listCodesInternal = ref();
 const loadData = (is_clickfirst) => {
   let nav_type = doc_number.value.doc_number_receiver ? 1 : (doc_number.value.doc_number_send ? 2 : 3);
   axios
@@ -213,6 +208,8 @@ const onChangeTypeDoc = (value) => {
       doc_number.value.doc_number_send = true;
     }
   }
+  selected_doc_code.value = null;
+  doc_code.value = null;
   loadData();
 };
 function array_is_unique(array, size) {
@@ -294,7 +291,6 @@ const saveDocConfig = () => {
     .then((response) => {
       
       if (response.data.err != "1") {
-      
         swal.close();
         loadData(true);
         toast.success("Cập nhật số hiệu thành công!");
@@ -316,7 +312,6 @@ const saveDocConfig = () => {
     });
 };
 const delDocConfig = () => {
-  debugger
   let id = selected_doc_code.value.code_master_id;
   swal
     .fire({
@@ -541,7 +536,7 @@ onMounted(() => {
               <div v-if="selected_doc_code" class="flex align-items-center">
                 <div class="pr-2">Mặc định:</div>
                 <InputSwitch
-                  @change="onChangeTypeDoc(1)"
+                  
                   class="w-4rem lck-checked"
                   v-model="selected_doc_code.is_default"
                 />

@@ -782,39 +782,7 @@ const loadData = (rf) => {
         store.commit("gologout");
       }
     });
-
-  // axios
-  //   .post(
-  //     baseURL + "/api/Proc/CallProc",
-  //     {
-  //       proc: "SQL_Menu_List",
-  //       par: [{ par: "m_search", va: options.value.search }],
-  //     },
-  //     config
-  //   )
-  //   .then((response) => {
-  //     let data = JSON.parse(response.data.data)[0];
-  //     renderTree(data);
-  //     danhMucAdd.value = danhMuc.value.slice(1);
-  //   })
-  //   .catch((error) => {
-  //     options.value.loading = false;
-  //     addLog({
-  //       title: "Lỗi tải Menu_ID",
-  //       controller: "Shows.vue",
-  //       logcontent: error.message,
-  //       loai: 2,
-  //     });
-  //     if (error && error.status === 401) {
-  //       swal.fire({
-  //         title: "Error!",
-  //         text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-  //         icon: "error",
-  //         confirmButtonText: "OK",
-  //       });
-  //       store.commit("gologout");
-  //     }
-  //   });
+ 
 };
 
 const filterButs = ref();

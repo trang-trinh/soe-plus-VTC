@@ -26,3 +26,24 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+*.dll
+
+
+#C#
+../API/bin/
+../packages/
+*.config
+../API/obj/
+../API/Portals/
+../API/Models/
+../API/App_Data/
+../API/Content/
+../API/fonts/
+../API/Scripts/
+*.csproj
+../API/Web References/
+*.pdb
+*.user
+*.csproj
+*.asax
+../API.sln

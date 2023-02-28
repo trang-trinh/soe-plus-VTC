@@ -15,6 +15,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
@@ -293,6 +294,7 @@ namespace API.Controllers.Filles
                     {
                         var das = await db.file_folder.Where(a => ids.Contains(a.folder_id)).ToListAsync();
                         List<string> paths = new List<string>();
+                        string root = HttpContext.Current.Server.MapPath("~/");
                         if (das.Count > 0)
                         {
                             List<file_folder> del = new List<file_folder>();
@@ -305,7 +307,7 @@ namespace API.Controllers.Filles
                                     foreach (var f in files)
                                     {
                                         if (!string.IsNullOrWhiteSpace(f.is_filepath) && f.id_key == null)
-                                            paths.Add(HttpContext.Current.Server.MapPath("~/") + f.is_filepath);
+                                            paths.Add(f.is_filepath);
                                     }
                                 }
                                 del.Add(da);
@@ -315,9 +317,18 @@ namespace API.Controllers.Filles
                             }
                             foreach (string strPath in paths)
                             {
-                                bool exists = System.IO.File.Exists(strPath);
+                                var listPathEdit = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                bool exists = System.IO.File.Exists(root + pathEdit);
                                 if (exists)
-                                    System.IO.File.Delete(strPath);
+                                    System.IO.File.Delete(root + pathEdit);
                             }
                             db.file_folder.RemoveRange(del);
                         }

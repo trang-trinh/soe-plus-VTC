@@ -58,7 +58,7 @@ const tabs = ref([
     title: "Đang làm việc",
     icon: "",
     total: 0,
-    bg_color: "#2196f3",
+    bg_color: "#AFE362",
     text_color: "#fff",
   },
   {
@@ -1827,53 +1827,77 @@ onMounted(() => {
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <Avatar
-              v-bind:label="
-                slotProps.data.avatar
-                  ? ''
-                  : (slotProps.data.profile_user_name ?? '')
-                      .substring(0, 1)
-                      .toUpperCase()
-              "
-              v-bind:image="
-                slotProps.data.avatar
-                  ? basedomainURL + slotProps.data.avatar
-                  : basedomainURL + '/Portals/Image/noimg.jpg'
-              "
-              style="
-                background-color: #2196f3;
-                color: #ffffff;
-                width: 5rem;
-                height: 5rem;
-                font-size: 1.5rem !important;
-                border-radius: 5px;
-              "
-              :style="{
-                background: bgColor[slotProps.index % 7],
-              }"
-              size="xlarge"
-              class="border-radius"
-            />
+            <div class="relative">
+              <Avatar
+                v-bind:label="
+                  slotProps.data.avatar
+                    ? ''
+                    : (slotProps.data.profile_user_name ?? '')
+                        .substring(0, 1)
+                        .toUpperCase()
+                "
+                v-bind:image="
+                  slotProps.data.avatar
+                    ? basedomainURL + slotProps.data.avatar
+                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                "
+                :style="{
+                  background: bgColor[slotProps.index % 7],
+                  color: '#ffffff',
+                  width: '5rem',
+                  height: '5rem',
+                  fontSize: '1.5rem !important',
+                  borderRadius: '5px',
+                }"
+                size="xlarge"
+                class="border-radius"
+              />
+              <span v-if="slotProps.data.isEdit" class="is-sign">
+                <font-awesome-icon
+                  icon="fa-solid fa-circle-check"
+                  style="font-size: 16px; display: block; color: #f4b400"
+                />
+              </span>
+            </div>
           </template>
         </Column>
         <Column
           field="profile_user_name"
           header="Họ và tên"
-          headerStyle="height:50px;max-width:auto;"
+          headerStyle="height:50px;min-width:200px;"
         >
           <template #body="slotProps">
-            <div class="mr-2" style="min-width: 200px">
+            <div style="min-width: 200px">
               <div class="mb-2">
                 <b>{{ slotProps.data.profile_user_name }}</b>
               </div>
               <div class="mb-1">
-                <span>{{ slotProps.data.profile_id }}</span>
+                <span
+                  >{{ slotProps.data.superior_id }}
+                  <span
+                    v-if="
+                      slotProps.data.superior_id && slotProps.data.profile_id
+                    "
+                    >|</span
+                  >
+                  {{ slotProps.data.profile_id }}</span
+                >
               </div>
               <div class="mb-1" v-if="slotProps.data.recruitment_date">
-                Ngày vào: {{ slotProps.data.recruitment_date }}
+                {{ slotProps.data.recruitment_date }}
               </div>
             </div>
-            <div class="mr-2" style="min-width: 200px">
+          </template>
+        </Column>
+        <Column
+          field="profile_user_name"
+          header="Họ và tên"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
+          class="align-items-center justify-content-left text-left"
+        >
+          <template #body="slotProps">
+            <div style="min-width: 200px">
               <div class="mb-1" v-if="slotProps.data.gender">
                 <span>{{ slotProps.data.gender == 1 ? "Nam" : "Nữ" }}</span>
               </div>
@@ -1884,7 +1908,17 @@ onMounted(() => {
                 <span>{{ slotProps.data.birthplace_name }}</span>
               </div>
             </div>
-            <div class="mr-2" style="min-width: 200px">
+          </template>
+        </Column>
+        <Column
+          field="profile_user_name"
+          header="Họ và tên"
+          headerStyle="text-align:center;max-width:300px;height:50px"
+          bodyStyle="text-align:center;max-width:300px;"
+          class="align-items-center justify-content-left text-left"
+        >
+          <template #body="slotProps">
+            <div style="min-width: 200px">
               <div class="mb-1">
                 <span
                   >{{ slotProps.data.phone }}
@@ -1905,15 +1939,25 @@ onMounted(() => {
                 <span>{{ slotProps.data.place_residence }}</span>
               </div>
             </div>
-            <div class="mr-2" style="min-width: 200px">
+          </template>
+        </Column>
+        <Column
+          field="profile_user_name"
+          header="Họ và tên"
+          headerStyle="text-align:center;max-width:300px;height:50px"
+          bodyStyle="text-align:center;max-width:300px;"
+          class="align-items-center justify-content-left text-left"
+        >
+          <template #body="slotProps">
+            <div style="min-width: 200px">
               <div class="mb-1">
-                <span>{{ slotProps.data.department_name }}</span>
+                <b>{{ slotProps.data.position_name }}</b>
               </div>
               <div class="mb-1">
                 <span>{{ slotProps.data.work_position_name }}</span>
               </div>
               <div class="mb-1">
-                <span>{{ slotProps.data.position_name }}</span>
+                <span>{{ slotProps.data.department_name }}</span>
               </div>
             </div>
           </template>
@@ -1921,18 +1965,20 @@ onMounted(() => {
         <Column
           field="status"
           header="Trạng thái"
-          headerStyle="text-align:center;max-width:150px;height:50px"
-          bodyStyle="text-align:center;max-width:150px;"
+          headerStyle="text-align:center;max-width:50px;height:50px"
+          bodyStyle="text-align:center;max-width:50px;"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
             <Button
-              :label="slotProps.data.status_name"
               :style="{
+                borderRadius: '50%',
                 border: slotProps.data.bg_color,
                 backgroundColor: slotProps.data.bg_color,
                 color: slotProps.data.text_color,
+                padding: '0.05rem 0.5rem',
               }"
+              v-tooltip.top="slotProps.data.status_name"
             />
           </template>
         </Column>
@@ -2071,6 +2117,16 @@ onMounted(() => {
 }
 .icon-star {
   color: #f4b400 !important;
+}
+.is-sign {
+  position: absolute;
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #fff;
+  right: -5px !important;
+  bottom: 0;
 }
 </style>
 <style lang="scss" scoped>

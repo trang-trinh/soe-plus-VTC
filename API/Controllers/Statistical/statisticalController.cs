@@ -22,6 +22,7 @@ using System.Security.Cryptography.Xml;
 using Spire.Doc;
 using System.Threading;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+using System.Globalization;
 
 namespace API.Controllers.Statistical
 {
@@ -622,16 +623,21 @@ namespace API.Controllers.Statistical
 
                         //Parameter
                         string proc = statistical.FirstOrDefault().procedure_name;
-                        DateTime? tu = jobject["tu"]?.ToObject<DateTime?>();
-                        DateTime? den = jobject["den"]?.ToObject<DateTime?>();
+                        String tu = jobject["tu"]?.ToObject<String>();
+                        String den = jobject["den"]?.ToObject<String>();
                         int? loai = statistical.FirstOrDefault().is_type;
                         DateTime date = DateTime.Now;
                         var firstDayOfMonth = (new DateTime(date.Year, date.Month, 1));
+                        //DateTime dt_first = DateTime.ParseExact(firstDayOfMonth.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                        string init_first = firstDayOfMonth.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+
                         var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+                        //DateTime dt_last = DateTime.ParseExact(lastDayOfMonth.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                        string init_last = lastDayOfMonth.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 
                         List<sqlPar2> par = new List<sqlPar2>();
-                        par.Add(new sqlPar2() { key = "tu", value = tu != null ? tu.ToString() : firstDayOfMonth.ToString() });
-                        par.Add(new sqlPar2() { key = "den", value = den != null ? den.ToString() : lastDayOfMonth.ToString() });
+                        par.Add(new sqlPar2() { key = "tu", value = tu != null ? tu.ToString() : init_first.ToString() });
+                        par.Add(new sqlPar2() { key = "den", value = den != null ? den.ToString() : init_last.ToString() });
                         par.Add(new sqlPar2() { key = "loai", value = loai.ToString() });
                         sqlProc2 jb = new sqlProc2();
                         jb.token = config.tokenBHBQP;

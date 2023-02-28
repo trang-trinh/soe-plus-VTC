@@ -17,6 +17,7 @@ using Microsoft.ApplicationBlocks.Data;
 using GemBox.Document;
 using System.Text;
 using System.Data.SqlClient;
+using System.Text.RegularExpressions;
 
 namespace API.Controllers.Calendar
 {
@@ -240,10 +241,25 @@ namespace API.Controllers.Calendar
                         {
                             foreach(var f in fileold)
                             {
-                                var rp = root + "/" + f.file_path;
-                                if (System.IO.File.Exists(rp))
+                                //var rp = root + "/" + f.file_path;
+                                //if (System.IO.File.Exists(rp))
+                                //{
+                                //    System.IO.File.Delete(rp);
+                                //}
+                                // Format f.file_path
+                                var pathFormat = Regex.Replace(f.file_path.Replace("\\", "/"), @"\.*/+", "/");
+                                var listPath = pathFormat.Split('/');
+                                var pathConfig = "";
+                                foreach (var item in listPath)
                                 {
-                                    System.IO.File.Delete(rp);
+                                    if (item.Trim() != "")
+                                    {
+                                        pathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                if (System.IO.File.Exists(root + pathConfig))
+                                {
+                                    System.IO.File.Delete(root + pathConfig);
                                 }
                             }
                             db.calendar_file.RemoveRange(fileold);
@@ -314,13 +330,14 @@ namespace API.Controllers.Calendar
                         db.calendar_log.Add(log);
                     }
                     #endregion
+
                     await db.SaveChangesAsync();
                     #region Send Message
                     if (model.status == 2)
                     {
                         //Send Message
                         string sendTitle = "Lịch trực ban";
-                        string sendContent = "Vừa cập nhật lịch: \"" + model.contents + "\".";
+                        string sendContent = "Vừa cập nhật lịch trực ngày: \"" + model.date_timelot?.ToString("MM/dd/yyyy") + "\".";
                         //Notify tất cả user tham gia lịch
                         string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
                         var sqlpas = new List<SqlParameter>();
@@ -689,10 +706,25 @@ namespace API.Controllers.Calendar
                                 {
                                     foreach (var f in files)
                                     {
-                                        var rootPath = root + "/" + f.file_path;
-                                        if (System.IO.File.Exists(rootPath))
+                                        //var rootPath = root + "/" + f.file_path;
+                                        //if (System.IO.File.Exists(rootPath))
+                                        //{
+                                        //    System.IO.File.Delete(rootPath);
+                                        //}
+                                        // Format f.file_path
+                                        var pathFormat = Regex.Replace(f.file_path.Replace("\\", "/"), @"\.*/+", "/");
+                                        var listPath = pathFormat.Split('/');
+                                        var pathConfig = "";
+                                        foreach (var item in listPath)
                                         {
-                                            System.IO.File.Delete(rootPath);
+                                            if (item.Trim() != "")
+                                            {
+                                                pathConfig += "/" + Path.GetFileName(item);
+                                            }
+                                        }
+                                        if (System.IO.File.Exists(root + pathConfig))
+                                        {
+                                            System.IO.File.Delete(root + pathConfig);
                                         }
                                     }
                                 }
@@ -714,12 +746,13 @@ namespace API.Controllers.Calendar
                                 }
                                 #endregion
 
+                                await db.SaveChangesAsync();
                                 #region Send Message
                                 if (da.status == 2)
                                 {
                                     //Send Message
                                     string sendTitle = "Lịch trực ban";
-                                    string sendContent = "Vừa xóa lịch: \"" + da.contents + "\".";
+                                    string sendContent = "Vừa xóa lịch trực ngày: \"" + da.date_timelot?.ToString("MM/dd/yyyy") + "\".";
                                     //Notify tất cả user tham gia lịch
                                     string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
                                     var sqlpas = new List<SqlParameter>();
@@ -845,10 +878,25 @@ namespace API.Controllers.Calendar
                         {
                             foreach (var p in paths)
                             {
-                                var rootPath = root + "/" + p;
-                                if (System.IO.File.Exists(rootPath))
+                                //var rootPath = root + "/" + p;
+                                //if (System.IO.File.Exists(rootPath))
+                                //{
+                                //    System.IO.File.Delete(rootPath);
+                                //}
+                                // Format p
+                                var pathFormat = Regex.Replace(p.Replace("\\", "/"), @"\.*/+", "/");
+                                var listPath = pathFormat.Split('/');
+                                var pathConfig = "";
+                                foreach (var item in listPath)
                                 {
-                                    System.IO.File.Delete(rootPath);
+                                    if (item.Trim() != "")
+                                    {
+                                        pathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                if (System.IO.File.Exists(root + pathConfig))
+                                {
+                                    System.IO.File.Delete(root + pathConfig);
                                 }
                             }
                         }
@@ -1164,7 +1212,7 @@ namespace API.Controllers.Calendar
                             //Send Message
                             List<string> sendUsers = new List<string>();
                             string sendTitle = "Lịch trực ban";
-                            string sendContent = "Vừa gửi đến bạn lịch chờ duyệt: \"" + calendar.contents + "\".";
+                            string sendContent = "Vừa gửi đến bạn lịch trực chờ duyệt ngày: \"" + calendar.date_timelot?.ToString("MM/dd/yyyy") + "\".";
                             //Log
                             calendar_log log = new calendar_log();
 
@@ -1490,9 +1538,31 @@ namespace API.Controllers.Calendar
                             #region file
                             string root = HttpContext.Current.Server.MapPath("~/Portals");
                             string path = root + "/" + calendar.organization_id + "/Calendar/" + calendar_duty_id;
-                            bool exists = Directory.Exists(path);
+
+                            // Format path
+                            var pathFormat = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPath = pathFormat.Split('/');
+                            var pathConfig = "";
+                            var sttPartPath = 1;
+                            foreach (var item in listPath)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    if (sttPartPath == 1)
+                                    {
+                                        pathConfig += (item);
+                                    }
+                                    else
+                                    {
+                                        pathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                sttPartPath++;
+                            }
+                            bool exists = Directory.Exists(pathConfig);
                             if (!exists)
-                                Directory.CreateDirectory(path);
+                                Directory.CreateDirectory(pathConfig);
+
                             List<calendar_file> dfs = new List<calendar_file>();
                             foreach (MultipartFileData fileData in provider.FileData)
                             {
@@ -1506,13 +1576,13 @@ namespace API.Controllers.Calendar
                                     org_name_file = System.IO.Path.GetFileName(org_name_file);
                                 }
                                 string name_file = org_name_file; //helper.UniqueFileName(org_name_file);
-                                string rootPath = path + "/" + name_file;
+                                string rootPath = pathConfig + "/" + name_file;
                                 string Duongdan = "/Portals/" + calendar.organization_id + "/Calendar/" + calendar_duty_id + "/" + name_file;
                                 string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
                                 if (rootPath.Length > 260)
                                 {
                                     name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
-                                    int le = 260 - (path.Length + 1) - Dinhdang.Length;
+                                    int le = 260 - (pathConfig.Length + 1) - Dinhdang.Length;
                                     name_file = name_file.Substring(0, le) + Dinhdang;
                                 }
                                 if (File.Exists(rootPath))
@@ -1563,6 +1633,7 @@ namespace API.Controllers.Calendar
                             }
                             #endregion
 
+                            await db.SaveChangesAsync();
                             #region Send Message
                             if (sendUsers.Count > 0)
                             {
@@ -1662,7 +1733,7 @@ namespace API.Controllers.Calendar
                             //Send Message
                             List<string> sendUsers = new List<string>();
                             string sendTitle = "Lịch trực ban";
-                            string sendContent = "Vừa gửi đến bạn lịch chờ duyệt: \"" + calendar.contents + "\".";
+                            string sendContent = "Vừa gửi đến bạn lịch trực chờ duyệt ngày: \"" + calendar.date_timelot?.ToString("MM/dd/yyyy") + "\".";
 
                             calendar_procedure procedure = await db.calendar_procedure.FirstOrDefaultAsync(x => x.calendar_duty_id == calendar_duty_id && x.is_close != true);
                             var procedure_id = procedure?.procedure_id;
@@ -1939,9 +2010,31 @@ namespace API.Controllers.Calendar
                             #region file
                             string root = HttpContext.Current.Server.MapPath("~/Portals");
                             string path = root + "/" + calendar.organization_id + "/Calendar/" + calendar_duty_id;
-                            bool exists = Directory.Exists(path);
+
+                            // Format path
+                            var pathFormat = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPath = pathFormat.Split('/');
+                            var pathConfig = "";
+                            var sttPartPath = 1;
+                            foreach (var item in listPath)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    if (sttPartPath == 1)
+                                    {
+                                        pathConfig += (item);
+                                    }
+                                    else
+                                    {
+                                        pathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                sttPartPath++;
+                            }
+                            bool exists = Directory.Exists(pathConfig);
                             if (!exists)
-                                Directory.CreateDirectory(path);
+                                Directory.CreateDirectory(pathConfig);
+
                             List<calendar_file> dfs = new List<calendar_file>();
                             foreach (MultipartFileData fileData in provider.FileData)
                             {
@@ -1955,13 +2048,13 @@ namespace API.Controllers.Calendar
                                     org_name_file = System.IO.Path.GetFileName(org_name_file);
                                 }
                                 string name_file = org_name_file; //helper.UniqueFileName(org_name_file);
-                                string rootPath = path + "/" + name_file;
+                                string rootPath = pathConfig + "/" + name_file;
                                 string Duongdan = "/Portals/" + calendar.organization_id + "/Calendar/" + calendar_duty_id + "/" + name_file;
                                 string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
                                 if (rootPath.Length > 260)
                                 {
                                     name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
-                                    int le = 260 - (path.Length + 1) - Dinhdang.Length;
+                                    int le = 260 - (pathConfig.Length + 1) - Dinhdang.Length;
                                     name_file = name_file.Substring(0, le) + Dinhdang;
                                 }
                                 if (File.Exists(rootPath))
@@ -2030,11 +2123,12 @@ namespace API.Controllers.Calendar
                             }
                             #endregion
 
+                            await db.SaveChangesAsync();
                             #region Send Message
                             switch (calendar.status)
                             {
                                 case 2:
-                                    sendContent = "Vừa ban hành lịch: \"" + calendar.contents + "\".";
+                                    sendContent = "Vừa ban hành lịch trực ngày \"" + calendar.date_timelot?.ToString("MM/dd/yyyy") + "\".";
                                     //Notify tất cả user tham gia lịch
                                     string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
                                     var sqlpas = new List<SqlParameter>();
@@ -2047,10 +2141,10 @@ namespace API.Controllers.Calendar
                                     send_message(uid, calendar.calendar_duty_id, users, sendTitle, sendContent, 2);
                                     break;
                                 case 3:
-                                    sendContent = "Vừa trả lại lịch: \"" + calendar.contents + "\".";
+                                    sendContent = "Vừa trả lại lịch trực ngày: \"" + calendar.date_timelot?.ToString("MM/dd/yyyy") + "\".";
                                     break;
                                 case 4:
-                                    sendContent = "Vừa hủy lịch: \"" + calendar.contents + "\".";
+                                    sendContent = "Vừa hủy lịch trực ngày: \"" + calendar.date_timelot?.ToString("MM/dd/yyyy") + "\".";
                                     break;
                             }
                             if (sendUsers.Count > 0)
@@ -2149,7 +2243,7 @@ namespace API.Controllers.Calendar
                         {
                             //Send Message
                             string sendTitle = "Lịch trực ban";
-                            string sendContent = "Vừa ban hành lịch: \"" + calendar.contents + "\".";
+                            string sendContent  = "Vừa ban hành lịch trực ngày \"" + calendar.date_timelot?.ToString("MM/dd/yyyy") + "\".";
 
                             #region model
                             calendar.status = 2; //Ban hành
@@ -2160,22 +2254,109 @@ namespace API.Controllers.Calendar
                             #endregion
 
                             #region Add user co quyền ban hành vào quy trình
-                            calendar_signuser signuser = new calendar_signuser();
-                            signuser.signuser_id = helper.GenKey();
-                            signuser.calendar_duty_id = calendar_duty_id;
-                            signuser.user_id = uid;
-                            signuser.is_step = db.calendar_signuser.Count(x => x.calendar_duty_id == calendar_duty_id) + 1;
-                            signuser.is_type = 0;
-                            signuser.is_sign = 2;
-                            signuser.sign_date = DateTime.Now;
-                            signuser.sign_content = content;
-                            signuser.read_date = read_date;
-                            signuser.status = true;
-                            signuser.created_by = uid;
-                            signuser.created_date = DateTime.Now;
-                            signuser.created_ip = ip;
-                            signuser.created_token_id = tid;
-                            db.calendar_signuser.Add(signuser);
+                            if (calendar.is_type_send == null || calendar.is_type_send == -1)
+                            {
+                                calendar.is_type_send = 2;
+                                calendar_signuser signuser = new calendar_signuser();
+                                signuser.signuser_id = helper.GenKey();
+                                signuser.calendar_duty_id = calendar_duty_id;
+                                signuser.user_id = uid;
+                                signuser.is_step = db.calendar_signuser.Count(x => x.calendar_duty_id == calendar_duty_id) + 1;
+                                signuser.is_type = 0;
+                                signuser.is_sign = 2;
+                                signuser.sign_date = DateTime.Now;
+                                signuser.sign_content = content;
+                                signuser.read_date = read_date;
+                                signuser.status = true;
+                                signuser.created_by = uid;
+                                signuser.created_date = DateTime.Now;
+                                signuser.created_ip = ip;
+                                signuser.created_token_id = tid;
+                                db.calendar_signuser.Add(signuser);
+                            }
+                            #endregion
+
+                            #region file
+                            string root = HttpContext.Current.Server.MapPath("~/Portals");
+                            string path = root + "/" + calendar.organization_id + "/Calendar/" + calendar_duty_id;
+
+                            // Format path
+                            var pathFormat = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPath = pathFormat.Split('/');
+                            var pathConfig = "";
+                            var sttPartPath = 1;
+                            foreach (var item in listPath)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    if (sttPartPath == 1)
+                                    {
+                                        pathConfig += (item);
+                                    }
+                                    else
+                                    {
+                                        pathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                sttPartPath++;
+                            }
+                            bool exists = Directory.Exists(pathConfig);
+                            if (!exists)
+                                Directory.CreateDirectory(pathConfig);
+
+                            List<calendar_file> dfs = new List<calendar_file>();
+                            foreach (MultipartFileData fileData in provider.FileData)
+                            {
+                                string org_name_file = fileData.Headers.ContentDisposition.FileName;
+                                if (org_name_file.StartsWith("\"") && org_name_file.EndsWith("\""))
+                                {
+                                    org_name_file = org_name_file.Trim('"');
+                                }
+                                if (org_name_file.Contains(@"/") || org_name_file.Contains(@"\"))
+                                {
+                                    org_name_file = System.IO.Path.GetFileName(org_name_file);
+                                }
+                                string name_file = org_name_file; //helper.UniqueFileName(org_name_file);
+                                string rootPath = pathConfig + "/" + name_file;
+                                string Duongdan = "/Portals/" + calendar.organization_id + "/Calendar/" + calendar_duty_id + "/" + name_file;
+                                string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
+                                if (rootPath.Length > 260)
+                                {
+                                    name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
+                                    int le = 260 - (pathConfig.Length + 1) - Dinhdang.Length;
+                                    name_file = name_file.Substring(0, le) + Dinhdang;
+                                }
+                                if (File.Exists(rootPath))
+                                {
+                                    File.Delete(rootPath);
+                                }
+                                File.Move(fileData.LocalFileName, rootPath);
+                                //File.Copy(fileData.LocalFileName, rootPathFile, true);
+                                var df = new calendar_file();
+                                df.file_id = helper.GenKey();
+                                df.calendar_duty_id = calendar.calendar_duty_id;
+                                df.file_name = name_file;
+                                df.file_path = Duongdan;
+                                df.file_type = Dinhdang;
+                                var file_info = new FileInfo(rootPath);
+                                df.file_size = file_info.Length;
+                                df.is_image = helper.IsImageFileName(name_file);
+                                if (df.is_image == true)
+                                {
+                                    //helper.ResizeImage(rootPathFile, 1024, 768, 90);
+                                }
+                                df.is_type = 3;
+                                df.status = true;
+                                df.created_by = uid;
+                                df.created_date = DateTime.Now;
+                                df.created_ip = ip;
+                                df.created_token_id = tid;
+                                dfs.Add(df);
+                            }
+                            if (dfs.Count > 0)
+                            {
+                                db.calendar_file.AddRange(dfs);
+                            }
                             #endregion
 
                             #region log
@@ -2196,6 +2377,7 @@ namespace API.Controllers.Calendar
                             }
                             #endregion
 
+                            await db.SaveChangesAsync();
                             #region Send Message
                             //Notify tất cả user tham gia lịch
                             string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
@@ -2282,7 +2464,7 @@ namespace API.Controllers.Calendar
 
                             //Send Message
                             string sendTitle = "Lịch trực ban";
-                            string sendContent = "Vừa ban hủy lịch: \"" + calendar.contents + "\".";
+                            string sendContent = "Vừa hủy lịch trực: \"" + calendar.date_timelot?.ToString("MM/dd/yyyy") + "\".";
 
                             calendar.status = 4; //Hủy
                             calendar.modified_by = uid;
@@ -2309,6 +2491,7 @@ namespace API.Controllers.Calendar
                             }
                             #endregion
 
+                            await db.SaveChangesAsync();
                             #region Send Message
                             //Notify tất cả user tham gia lịch
                             string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
@@ -2387,10 +2570,31 @@ namespace API.Controllers.Calendar
                     {
                         var user_now = db.sys_users.AsNoTracking().FirstOrDefault(x => x.user_id == uid);
                         string rootPath = HttpContext.Current.Server.MapPath("~/Portals/" + user_now.organization_id + "/Word/");
-                        bool existPath = System.IO.Directory.Exists(rootPath);
+
+                        // Format rootPath
+                        var pathFormat_1 = Regex.Replace(rootPath.Replace("\\", "/"), @"\.*/+", "/");
+                        var listPath_1 = pathFormat_1.Split('/');
+                        var pathRootConfig = "";
+                        var sttPartPath_1 = 1;
+                        foreach (var item in listPath_1)
+                        {
+                            if (item.Trim() != "")
+                            {
+                                if (sttPartPath_1 == 1)
+                                {
+                                    pathRootConfig += (item);
+                                }
+                                else
+                                {
+                                    pathRootConfig += "/" + Path.GetFileName(item);
+                                }
+                            }
+                            sttPartPath_1++;
+                        }
+                        bool existPath = System.IO.Directory.Exists(pathRootConfig);
                         if (!existPath)
                         {
-                            System.IO.Directory.CreateDirectory(rootPath);
+                            System.IO.Directory.CreateDirectory(pathRootConfig);
                         }
                         string path = "/Portals/" + user_now.organization_id + "/Word/" + model.name;
                         string strPath = Path.Combine(rootPath + model.name);
@@ -2421,11 +2625,31 @@ namespace API.Controllers.Calendar
                             pageMargins.Left = opt.left;
                             SaveOptions opit = SaveOptions.DocxDefault;
 
-                            if (File.Exists(strPath))
+                            // Format path strPath
+                            var pathFormat = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPath = pathFormat.Split('/');
+                            var pathConfig = "";
+                            var sttPartPath = 1;
+                            foreach (var item in listPath)
                             {
-                                File.Delete(strPath);
+                                if (item.Trim() != "")
+                                {
+                                    if (sttPartPath == 1)
+                                    {
+                                        pathConfig += (item);
+                                    }
+                                    else
+                                    {
+                                        pathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                sttPartPath++;
                             }
-                            document.Save(strPath, opit);
+                            if (File.Exists(pathConfig))
+                            {
+                                File.Delete(pathConfig);
+                            }
+                            document.Save(pathConfig, opit);
                         }
                         return Request.CreateResponse(HttpStatusCode.OK, new { path = path, err = "0" });
                     }
@@ -2459,7 +2683,7 @@ namespace API.Controllers.Calendar
         #endregion
 
         #region Send Message
-        public void send_message(string user_send, string id_key, List<string> users, string title, string content, int is_type)
+        public void send_message(string user_send, string id_key, [System.Web.Mvc.Bind(Include = "")][FromBody] List<string> users, string title, string content, int is_type)
         {
             System.Threading.Tasks.Task.Run(async () =>
             {

@@ -4,9 +4,6 @@ import { inject, onMounted, ref } from "vue";
 import moment from "moment";
 import ModuleMenu from "../../components/base/ModuleMenu.vue";
 import Notify from "../../components/base/Notify.vue";
-import detailstask from "../task/detailstask.vue";
-import taskbug from "../../components/task/taskbug.vue";
-import checklist from "../../components/task/checklist.vue";
 import { encr } from "../../util/function.js";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
@@ -140,35 +137,35 @@ const loadNoti = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
-      let data = JSON.parse(response.data.data);
+      let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
-        count_noti.value = data[0][0].c;
+        count_noti.value = data[0].c;
       }
     });
 };
-const clickNoti = ()=>{
+const clickNoti = () => {
   showSidebarNoti.value = true;
-    axios({
-    method:  "put",
-    url:baseURL + "/api/Notify/Update_Noti",
+  axios({
+    method: "put",
+    url: baseURL + "/api/Notify/Update_Noti",
     headers: {
       Authorization: `Bearer ${store.getters.token}`,
     },
-  })
-}
+  });
+};
 //Vue App
 onMounted(() => {
   loadNoti();
   socket.on("sendNotify", (data) => {
     loadNoti();
     let audioNotify = new Audio(
-      basedomainURL + "/Portals/FileChatSystem/pristine-sound.mp3"
+      basedomainURL + "/Portals/FileChatSystem/pristine-sound.mp3",
     );
     if (audioNotify != null) {
       audioNotify.play();
@@ -181,15 +178,21 @@ onMounted(() => {
       }, 8000);
     }
   });
-    
+
   return {};
 });
 </script>
 <template>
   <div class="flex flex-row shadow-3 header-bar">
     <div class="flex flex-row flex-grow-1 headerbar align-items-center">
-      <div class="ml-3 mr-2" v-if="store.getters.user.logo">
-        <img :src="basedomainURL + store.getters.user.logo" height="40" />
+      <div
+        class="ml-3 mr-2"
+        v-if="store.getters.user.logo"
+      >
+        <img
+          :src="basedomainURL + store.getters.user.logo"
+          height="40"
+        />
       </div>
       <h2 class="title-org">
         {{
@@ -225,22 +228,18 @@ onMounted(() => {
             @click="goLang(item)"
             class="p-button-text p-button-plain w-full"
           >
-            <img :src="item.icon" height="16" class="mr-1" />
+            <img
+              :src="item.icon"
+              height="16"
+              class="mr-1"
+            />
             {{ item.label }}
           </Button>
         </template>
       </Menu>
       <Button
         type="button"
-        class="
-          module-button
-          p-button
-          p-component
-          p-button-icon-only
-          p-button-rounded
-          p-button-plain
-          p-button-text
-        "
+        class="module-button p-button p-component p-button-icon-only p-button-rounded p-button-plain p-button-text"
         @click="toggle($event, 2)"
         aria-haspopup="true"
         aria-controls="module_menu"
@@ -258,15 +257,7 @@ onMounted(() => {
       <!-- <Menu id="module_menu" ref="menuTaikhoan" :model="itemheaders" :popup="true" /> -->
       <Button
         type="button"
-        class="
-          noti-button
-          p-button
-          p-component
-          p-button-icon-only
-          p-button-rounded
-          p-button-secondary
-          p-button-text
-        "
+        class="noti-button p-button p-component p-button-icon-only p-button-rounded p-button-secondary p-button-text"
         aria-haspopup="true"
         aria-controls="overlay_menu"
         style="padding: 0.5rem"
@@ -275,7 +266,7 @@ onMounted(() => {
         <span
           id="bell"
           v-ripple
-          :class="count_noti && count_noti>0 ?'': 'hide-bell'"
+          :class="count_noti && count_noti > 0 ? '' : 'hide-bell'"
           class="pi pi-bell p-button-icon"
           style="font-size: 1.5rem"
           v-badge="count_noti"
@@ -326,7 +317,10 @@ onMounted(() => {
       />
     </h2>
 
-    <div v-for="(value, name) in skin" :key="name">
+    <div
+      v-for="(value, name) in skin"
+      :key="name"
+    >
       <h5>{{ name }}</h5>
       <div class="grid col-12">
         <div
@@ -335,7 +329,11 @@ onMounted(() => {
           :key="item.name"
           @click="setTheme(item.name)"
         >
-          <Avatar class="divskin" v-bind:image="item.icon" size="xlarge" />
+          <Avatar
+            class="divskin"
+            v-bind:image="item.icon"
+            size="xlarge"
+          />
           <h5>{{ item.title }}</h5>
         </div>
       </div>
@@ -613,5 +611,4 @@ onMounted(() => {
     display: none;
   }
 }
-
 </style>

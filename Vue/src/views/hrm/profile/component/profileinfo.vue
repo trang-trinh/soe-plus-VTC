@@ -6,8 +6,10 @@ import { useRoute } from "vue-router";
 import dialogcontract from "../../contract/component/dialogcontract.vue";
 import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
+import dialogfile from "../../profile/component/dialogfile.vue";
+import printprofile from "../component/printprofile.vue";
+import diloginsurance from "../../insurance/component/diloginsurance.vue";
 import moment from "moment";
-import { init } from "events";
 
 const route = useRoute();
 const router = inject("router");
@@ -27,7 +29,7 @@ const basedomainURL = baseURL;
 //Declare
 const views = ref([
   { view: 1, title: "Sơ yếu", icon: "fa-regular fa-address-card" },
-  { view: 2, title: "Công việc", icon: "fa-solid fa-list-check" },
+  { view: 2, title: "Phân công", icon: "fa-solid fa-list-check" },
   { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
   { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
   { view: 5, title: "Phiếu lương", icon: "a-solid fa-money-check-dollar" },
@@ -51,6 +53,9 @@ const options = ref({
   key_id: null,
   contract_id: null,
   training_emps: {},
+  file: {},
+  type_files: [],
+  is_type_files: [],
 });
 const bgColor = ref([
   "#F8E69A",
@@ -64,14 +69,19 @@ const bgColor = ref([
 const selectedNodes = ref([]);
 watch(selectedNodes, () => {});
 const selectRow = (event) => {
-  if (options.value.view === 1) {
-    goProfile(event.data);
-  } else if (options.value.view === 3) {
-    options.value["contract_id"] = event.data["contract_id"];
-    openViewDialogContract("Thông tin hợp đồng");
-  } else if (options.value.view === 8) {
-    options.value["training_emps"] = event.data;
-    openViewDialogTranning("Thông tin khóa đào tạo");
+  if (event && event.data) {
+    if (options.value.view === 1) {
+      goProfile(event.data);
+    } else if (options.value.view === 3) {
+      options.value["contract_id"] = event.data["contract_id"];
+      openViewDialogContract("Thông tin hợp đồng");
+    } else if (options.value.view === 8) {
+      options.value["training_emps"] = event.data;
+      openViewDialogTranning("Thông tin khóa đào tạo");
+    } else if (options.value.view === 10) {
+      options.value["file"] = event.data;
+      openViewDialogFile(event.data["file_name"]);
+    }
   }
 };
 const goProfile = (profile) => {
@@ -84,6 +94,26 @@ const goProfile = (profile) => {
     .then(() => {
       router.go();
     });
+};
+
+//filter
+const searchData = () => {
+  initData();
+};
+const opfilter = ref();
+const toggleFilter = (event) => {
+  opfilter.value.toggle(event);
+};
+const resetFilter = () => {
+  options.value.type_files = [];
+  options.value.is_type_files = [];
+};
+const removeFilter = (idx, array) => {
+  array.splice(idx, 1);
+};
+const filter = (event) => {
+  opfilter.value.toggle(event);
+  initData();
 };
 
 //data view 1
@@ -312,6 +342,42 @@ const closeDialogTranning = () => {
   displayDialogTranning.value = false;
 };
 
+//data view 10
+const typeFiles = ref([
+  { is_type: 0, title: "Sơ yếu lí lịch" },
+  { is_type: 1, title: "Hợp đồng" },
+  { is_type: 2, title: "Đào tạo" },
+]);
+const type_files = ref([
+  { type_file: "pdf", title: "PDF" },
+  { type_file: "jpg,jpeg,png,gif", title: "Ảnh" },
+  { type_file: "doc,docs,xls,xlsx", title: "Word,Excel" },
+  { type_file: "orther", title: "Khác" },
+]);
+const is_type_files = ref([
+  { is_type: 0, title: "File sơ yếu lý lịch" },
+  { is_type: 1, title: "File hợp đồng" },
+  { is_type: 2, title: "File đào tạo" },
+]);
+const files = ref([]);
+const formatBytes = (bytes, decimals = 2) => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+};
+const headerDialogFile = ref();
+const displayDialogFile = ref(false);
+const openViewDialogFile = (str) => {
+  headerDialogFile.value = str;
+  displayDialogFile.value = true;
+};
+const closeDialogFile = () => {
+  displayDialogFile.value = false;
+};
+
 //data view 11
 const receipts = ref([]);
 
@@ -344,6 +410,11 @@ const type_vaccines = ref([
 const health = ref({});
 const vaccines = ref([]);
 
+//data view 13
+const goPrint = (view) => {
+  options.value.view = view;
+};
+
 //filter
 const goFile = (file) => {
   window.open(basedomainURL + file.file_path, "_blank");
@@ -370,6 +441,8 @@ const openEditDialog = (type, str) => {
   forceRerender();
   if (type === 1) {
     isType.value = type;
+    headerDialog.value = str;
+    displayDialog.value = true;
   } else if (type === 2) {
     isType.value = type;
     headerDialog.value = str;
@@ -380,13 +453,185 @@ const closeDialog = () => {
   displayDialog.value = false;
 };
 
+//Function edit bảo hiểm
+const statuss = ref([
+  { value: 1, text: "Trả" },
+  { value: 2, text: "Sửa" },
+  { value: 3, text: "Chốt" },
+  { value: 4, text: "Xin cấp" },
+  { value: 5, text: "Gộp" },
+  { value: 6, text: "Người lao động giữ sổ" },
+]);
+const hinhthucs = ref([
+  { value: 1, text: "Bao tăng" },
+  { value: 2, text: "Báo giảm" },
+]);
+const insurance_dictionarys = ref([]);
+const initDictionaryInsurance = () => {
+  axios
+    .post(
+      baseURL + "api/insurance/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_insurance_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if(data != null){
+        insurance_dictionarys.value = data;
+      }
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const headerDialogInsurance = ref();
+const displayDialogInsurance = ref(false);
+const openEditDialogInsurance = (str) => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_insurance_edit",
+            par: [{ par: "profile_id", va: options.value["profile_id"] }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        if (data[0] != null && data[0].length > 0) {
+          insurance.value = data[0][0];
+        } else {
+          insurance.value = {};
+        }
+        //get child
+        if (data[1] != null && data[1].length > 0) {
+          insurance_pays.value = data[1];
+          insurance_pays.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
+            }
+          });
+        } else {
+          insurance_pays.value = [];
+        }
+
+        if (data[2] != null && data[2].length > 0) {
+          insurance_resolves.value = data[2];
+          insurance_resolves.value.forEach((item) => {
+            if (item.received_file_date != null) {
+              item.received_file_date = new Date(item.received_file_date);
+            }
+            if (item.completed_date != null) {
+              item.completed_date = new Date(item.completed_date);
+            }
+            if (item.received_money_date != null) {
+              item.received_money_date = new Date(item.received_money_date);
+            }
+          });
+        } else {
+          insurance_resolves.value = [];
+        }
+      }
+      headerDialogInsurance.value = str;
+      displayDialogInsurance.value = true;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+const closeDialogInsurance = () => {
+  displayDialogInsurance.value = false;
+};
+const addRow = (type) => {
+  //relative
+  if (type == 1) {
+    let obj = {
+      start_date: null,
+      payment_form: null,
+      reason: null,
+      end_date: null,
+      organization_payment: null,
+      total_payment: null,
+      company_payment: null,
+      member_payment: null,
+    };
+    insurance_pays.value.push(obj);
+  }
+  if (type == 2) {
+    let obj = {
+      type_mode: null,
+      payment_form: null,
+      type_mode: null,
+      completed_date: null,
+      received_money_date: null,
+      money: null,
+    };
+    insurance_resolves.value.push(obj);
+  }
+};
+const deleteRow = (idx, type) => {
+  if (type == 1) {
+    insurance_pays.value.splice(idx, 1);
+  }
+  if (type == 2) {
+    insurance_resolves.value.splice(idx, 1);
+  }
+};
+
 //Function mores
 const menuButs = ref();
 const itemButs = ref([
   {
-    label: "Thông tin liên hệ",
-    icon: "pi pi-file",
-    command: (event) => {},
+    label: "Thông tin chung/liên hệ",
+    icon: "pi pi-id-card",
+    command: (event) => {
+      openEditDialog(1, "Cập nhật thay đổi thông tin");
+    },
   },
   {
     label: "Gia đình, người phụ thuộc",
@@ -396,6 +641,13 @@ const itemButs = ref([
         2,
         "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
       );
+    },
+  },
+  {
+    label: "Thông tin bảo hiểm",
+    icon: "pi pi-shield",
+    command: (event) => {
+      openEditDialogInsurance("Cập nhật thay đổi thông bảo hiểm");
     },
   },
 ]);
@@ -426,6 +678,37 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event) => {
   menuButMores.value.toggle(event);
+};
+
+const menuButPrints = ref();
+const itemButPrints = ref([
+  {
+    view: 13,
+    label: "Sơ yếu lý lịch(Mẫu 2C-BNV/2008)",
+    icon: "fa-regular fa-file",
+    command: (event) => {
+      goPrint(13);
+    },
+  },
+  {
+    view: 14,
+    label: "Sơ yếu lý lịch (Mẫu 2C/TCTW-98)",
+    icon: "fa-regular fa-file",
+    command: (event) => {
+      goPrint(14);
+    },
+  },
+  {
+    view: 14,
+    label: "Sổ lao động mẫu 145/2020/NĐ-CP",
+    icon: "fa-regular fa-file",
+    command: (event) => {
+      goPrint(15);
+    },
+  },
+]);
+const togglePrints = (event) => {
+  menuButPrints.value.toggle(event);
 };
 
 //init Dictionary view 1
@@ -794,7 +1077,7 @@ const initView1 = (rf) => {
           var idx = marital_status.value.findIndex(
             (x) => x["value"] === profile.value["marital_status"]
           );
-          if (profile.value["value"] != null && idx != -1) {
+          if (profile.value["marital_status"] != null && idx != -1) {
             profile.value["marital_status"] = marital_status.value[idx]["text"];
           }
           //
@@ -1471,6 +1754,104 @@ const initView8 = (rf) => {
       }
     });
 };
+const initView10 = (rf) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  var type_files = null;
+  if (options.value.type_files != null && options.value.type_files.length > 0) {
+    type_files = options.value.type_files.map((x) => x["type_file"]).join(",");
+  }
+  var is_type_files = null;
+  if (
+    options.value.is_type_files != null &&
+    options.value.is_type_files.length > 0
+  ) {
+    is_type_files = options.value.is_type_files
+      .map((x) => x["is_type"])
+      .join(",");
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_file_get",
+            par: [
+              { par: "profile_id", va: options.value["profile_id"] },
+              { par: "search", va: options.value["search"] },
+              { par: "pageNo", va: options.value.pageNo },
+              { par: "pageSize", va: options.value.pageSize },
+              { par: "type_files", va: type_files },
+              { par: "is_type_files", va: is_type_files },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          tbs[0].forEach((item) => {
+            if (item["file_size"] != null) {
+              item["file_size"] = formatBytes(item["file_size"]);
+            }
+            if (item["created_date"] != null) {
+              item["created_date"] = moment(
+                new Date(item["created_date"])
+              ).format("DD/MM/YYYY");
+            }
+            var idx = typeFiles.value.findIndex(
+              (x) => x["is_type"] === item["is_type"]
+            );
+            if (idx !== -1) {
+              item["is_type_name"] = typeFiles.value[idx]["title"];
+            }
+          });
+          files.value = tbs[0];
+          if (tbs[1] != null && tbs[1].length > 0) {
+            options.value.total = tbs[1][0].total;
+          }
+        } else {
+          files.value = [];
+          options.value.total = 0;
+        }
+      }
+      swal.close();
+    })
+    .catch((error) => {
+      swal.close();
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 const initView11 = (rf) => {
   if (ref) {
     swal.fire({
@@ -1695,6 +2076,8 @@ const initData = () => {
     initDictionary6();
   } else if (options.value.view === 8) {
     initDictionary8();
+  } else if (options.value.view === 10) {
+    initView10(true);
   } else if (options.value.view === 11) {
     initView11(true);
   } else if (options.value.view === 12) {
@@ -1706,6 +2089,7 @@ onMounted(() => {
     options.value["key_id"] = route.params.id;
     options.value["profile_id"] = route.query.id;
     initRelate();
+    initDictionaryInsurance();
     initData();
   } else {
     router.back();
@@ -1724,7 +2108,181 @@ const onPage = (event) => {
 <template>
   <div class="surface-100 p-2">
     <Toolbar class="outline-none surface-0 border-none">
-      <template #start> </template>
+      <template #start>
+        <span v-if="options.view === 10" class="p-input-icon-left">
+          <i class="pi pi-search" />
+          <InputText
+            @keypress.enter="searchData()"
+            v-model="options.search"
+            type="text"
+            spellcheck="false"
+            :placeholder="'Tìm kiếm'"
+          />
+        </span>
+        <Button
+          v-if="options.view === 10"
+          @click="toggleFilter($event)"
+          type="button"
+          class="ml-2 p-button-outlined p-button-secondary"
+          aria:haspopup="true"
+          aria-controls="overlay_panel"
+        >
+          <div>
+            <span class="mr-2"><i class="pi pi-filter"></i></span>
+            <span class="mr-2">Lọc dữ liệu</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
+        <OverlayPanel
+          :showCloseIcon="false"
+          ref="opfilter"
+          appendTo="body"
+          class="p-0 m-0"
+          id="overlay_panel"
+          style="width: 400px"
+        >
+          <div class="grid formgrid m-0">
+            <div
+              class="col-12 md:col-12 p-0"
+              :style="{
+                minHeight: 'unset',
+                maxHeight: 'calc(100vh - 300px)',
+                overflow: 'auto',
+              }"
+            >
+              <div class="row">
+                <div class="col-12 md:col-12">
+                  <div class="row">
+                    <div class="col-12 md:col-12 p-0">
+                      <div class="form-group">
+                        <label>Loại file</label>
+                        <MultiSelect
+                          :options="type_files"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.type_files"
+                          optionLabel="title"
+                          placeholder="Chọn loại file"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.title }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.type_files);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>
+                    <div class="col-12 md:col-12 p-0">
+                      <div class="form-group">
+                        <label>Vị trí file</label>
+                        <MultiSelect
+                          :options="is_type_files"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.is_type_files"
+                          optionLabel="title"
+                          placeholder="Chọn vị trí"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.title }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(
+                                          index,
+                                          options.is_type_files
+                                        );
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 md:col-12 p-0">
+              <Toolbar
+                class="border-none surface-0 outline-none px-0 pb-0 w-full"
+              >
+                <template #start>
+                  <Button
+                    @click="resetFilter()"
+                    class="p-button-outlined"
+                    label="Bỏ chọn"
+                  ></Button>
+                </template>
+                <template #end>
+                  <Button @click="filter($event)" label="Lọc"></Button>
+                </template>
+              </Toolbar>
+            </div>
+          </div>
+        </OverlayPanel>
+      </template>
       <template #end>
         <ul class="flex p-0 m-0 mr-2" style="list-style: none">
           <li>
@@ -1746,7 +2304,8 @@ const onPage = (event) => {
           aria-controls="overlay_Export"
         >
           <div>
-            <span class="mr-2">Cập nhật thay đổi thông tin</span>
+            <span class="mr-2"><i class="pi pi-user-edit"></i></span>
+            <b class="mr-2">Cập nhật thay đổi thông tin</b>
             <span><i class="pi pi-chevron-down"></i></span>
           </div>
         </Button>
@@ -1772,7 +2331,7 @@ const onPage = (event) => {
             class="selectbutton-custom"
           >
             <template #option="slotProps">
-              <div>
+              <b>
                 <span
                   v-if="slotProps.option.icon != null"
                   :class="{ 'mr-2': slotProps.option.title != null }"
@@ -1780,36 +2339,83 @@ const onPage = (event) => {
                   <font-awesome-icon :icon="slotProps.option.icon" />
                 </span>
                 <span> {{ slotProps.option.title }}</span>
-              </div>
+              </b>
             </template>
           </SelectButton>
-          <Button
-            @click="
-              toggleMores($event);
-              $event.stopPropagation();
-            "
-            :class="{
-              'p-button-outlined p-button-secondary': options.view < 11,
-            }"
-            style="border: 1px solid #ced4da; height: 30px"
+          <span class="p-buttonset">
+            <Button
+              @click="
+                togglePrints($event);
+                $event.stopPropagation();
+              "
+              :class="{
+                'p-button-outlined p-button-secondary p-button-custom':
+                  options.view < 13,
+              }"
+              :style="{
+                background: options.view < 13 ? '#ffffff' : '',
+                borderColor: options.view < 13 ? '#ced4da' : '',
+                color: options.view < 13 ? '#495057' : '',
+                transition:
+                  'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
+                height: '30px',
+              }"
+            >
+              <span class="mr-2"
+                ><font-awesome-icon icon="fa-solid fa-print"
+              /></span>
+              In
+            </Button>
+            <Button
+              @click="
+                toggleMores($event);
+                $event.stopPropagation();
+              "
+              :class="{
+                'p-button-outlined p-button-secondary p-button-custom':
+                  options.view < 11 || options.view > 12,
+              }"
+              :style="{
+                background:
+                  options.view < 11 || options.view > 12 ? '#ffffff' : '',
+                borderColor:
+                  options.view < 11 || options.view > 12 ? '#ced4da' : '',
+                color: options.view < 11 || options.view > 12 ? '#495057' : '',
+                transition:
+                  'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
+                height: '30px',
+              }"
+            >
+              <font-awesome-icon icon="fa-solid fa-ellipsis" />
+            </Button>
+          </span>
+          <OverlayPanel
+            :showCloseIcon="false"
+            ref="menuButPrints"
+            appendTo="body"
+            class="p-0 m-0"
+            id="overlay_More"
+            style="min-width: max-content"
           >
-            <span class="mr-2"
-              ><font-awesome-icon icon="fa-solid fa-print"
-            /></span>
-            In
-          </Button>
-          <Button
-            @click="
-              toggleMores($event);
-              $event.stopPropagation();
-            "
-            :class="{
-              'p-button-outlined p-button-secondary': options.view < 11,
-            }"
-            style="border: 1px solid #ced4da; height: 30px"
-          >
-            <font-awesome-icon icon="fa-solid fa-ellipsis" />
-          </Button>
+            <ul class="m-0 p-0" style="list-style: none">
+              <li
+                v-for="(value, key) in itemButPrints"
+                :key="key"
+                @click="changeView(value.view)"
+                class="item-menu"
+                :class="{
+                  'item-menu-highlight': value.view === options.view,
+                }"
+              >
+                <div>
+                  <span :class="{ 'mr-2': value.label != null }"
+                    ><font-awesome-icon :icon="value.icon"
+                  /></span>
+                  <span>{{ value.label }}</span>
+                </div>
+              </li>
+            </ul>
+          </OverlayPanel>
           <OverlayPanel
             :showCloseIcon="false"
             ref="menuButMores"
@@ -1857,7 +2463,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12 p-0">
                         <div class="row">
                           <div class="col-3 md:col-3 format-center">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <div
                                 class="inputanh2 relative mb-2"
                                 style="margin: 0 auto"
@@ -1872,13 +2478,12 @@ const onPage = (event) => {
                                   "
                                 />
                               </div>
-                              <label class="text-center">Ảnh đại diện</label>
                             </div>
                           </div>
                           <div class="col-9 md:col-9 p-0">
                             <div class="row">
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label>
                                     Mã nhân sự:
                                     <span class="description-2">{{
@@ -1888,7 +2493,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Mã chấm công:
                                     <span class="description-2">{{
@@ -1898,7 +2503,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Mã quản lý cấp trên:
                                     <span class="description-2">{{
@@ -1908,7 +2513,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Ngày tuyển dụng:
                                     <span class="description-2">{{
@@ -1918,7 +2523,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Họ và tên:
                                     <span class="description-2">{{
@@ -1928,7 +2533,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Tên gọi khác:
                                     <span class="description-2">{{
@@ -1938,7 +2543,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Ngày sinh:
                                     <span class="description-2">{{
@@ -1948,7 +2553,7 @@ const onPage = (event) => {
                                 </div>
                               </div>
                               <div class="col-6 md:col-6">
-                                <div class="form-group">
+                                <div class="form-group m-0">
                                   <label
                                     >Giới tính:
                                     <span class="description-2">{{
@@ -1962,7 +2567,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Nơi sinh:
                             <span class="description-2">{{
@@ -1972,7 +2577,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Quê quán:
                             <span class="description-2">{{
@@ -1982,7 +2587,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Nơi đăng ký HKTT:
                             <span class="description-2">{{
@@ -1994,7 +2599,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12 p-0">
                         <div class="row">
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Loại giấy tờ:
                                 <span class="description-2">{{
@@ -2004,7 +2609,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số:
                                 <span class="description-2">{{
@@ -2014,7 +2619,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày cấp:
                                 <span class="description-2">{{
@@ -2024,7 +2629,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Nơi cấp:
                                 <span class="description-2">{{
@@ -2034,7 +2639,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quốc tịch:
                                 <span class="description-2">{{
@@ -2044,7 +2649,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tình trạng hôn nhân:
                                 <span class="description-2">{{
@@ -2054,7 +2659,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Dân tộc:
                                 <span class="description-2">{{
@@ -2064,7 +2669,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Tôn giáo:
                                 <span class="description-2">{{
@@ -2074,7 +2679,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Mã số thuế:
                                 <span class="description-2">{{
@@ -2127,7 +2732,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Trình độ phổ thông:
                                 <span class="description-2">{{
@@ -2137,7 +2742,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Trình độ học vấn cao nhất:
                                 <span class="description-2">{{
@@ -2147,7 +2752,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Chuyên ngành học:
                                 <span class="description-2">{{
@@ -2157,7 +2762,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quản lý nhà nước:
                                 <span class="description-2">{{
@@ -2210,7 +2815,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số điện thoại:
                                 <span class="description-2">{{
@@ -2220,7 +2825,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Email:
                                 <span class="description-2">{{
@@ -2230,7 +2835,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Thường trú:
                                 <span class="description-2">{{
@@ -2240,7 +2845,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Chỗ ở hiện nay:
                                 <span class="description-2">{{
@@ -2250,12 +2855,12 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label class="m-0">Khi cần báo tin cho:</label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Họ và tên:
                                 <span class="description-2">{{
@@ -2265,7 +2870,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Số điện thoại:
                                 <span class="description-2">{{
@@ -2784,7 +3389,7 @@ const onPage = (event) => {
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày nhập ngũ:
                                 <span class="description-2">{{
@@ -2794,7 +3399,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Ngày xuất ngũ:
                                 <span class="description-2">{{
@@ -2804,7 +3409,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Quân hàm cao nhất:
                                 <span class="description-2">{{
@@ -2814,7 +3419,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Danh hiệu cao nhất:
                                 <span class="description-2">{{
@@ -2824,7 +3429,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Sở trường công tác:
                                 <span class="description-2">{{
@@ -2834,7 +3439,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Sức khỏe:
                                 <span class="description-2">{{
@@ -2844,7 +3449,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Khen thưởng:
                                 <span class="description-2">{{
@@ -2854,7 +3459,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Kỷ luật:
                                 <span class="description-2">{{
@@ -2864,7 +3469,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6 m-0">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Thương binh hạng:
                                 <span class="description-2">{{
@@ -2874,7 +3479,7 @@ const onPage = (event) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6 m-0">
-                            <div class="form-group">
+                            <div class="form-group m-0">
                               <label
                                 >Con gia đình chính sách:
                                 <span class="description-2">{{
@@ -3009,7 +3614,7 @@ const onPage = (event) => {
                         <span>9. Đặc điểm lịch sử bản thân</span>
                       </template>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Thông tin 1:
                             <span class="description-2">{{
@@ -3019,7 +3624,7 @@ const onPage = (event) => {
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
-                        <div class="form-group">
+                        <div class="form-group m-0">
                           <label
                             >Thông tin 2:
                             <span class="description-2">{{
@@ -3274,15 +3879,15 @@ const onPage = (event) => {
                           <Column
                             field="department_name"
                             header="Phòng ban"
-                            headerStyle="text-align:center;width:150px;height:50px"
-                            bodyStyle="text-align:center;width:150px;"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
                             class="align-items-center justify-content-center text-center"
                           />
                           <Column
                             field="work_position_name"
                             header="Vị trí"
-                            headerStyle="text-align:center;width:150px;height:50px"
-                            bodyStyle="text-align:center;width:150px;"
+                            headerStyle="text-align:center;width:200px;height:50px"
+                            bodyStyle="text-align:center;width:200px;"
                             class="align-items-center justify-content-center text-center"
                           />
                           <Column
@@ -3465,16 +4070,13 @@ const onPage = (event) => {
                               ? basedomainURL + slotProps.data.avatar
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
-                          style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 2rem;
-                            height: 2rem;
-                            font-size: 1rem !important;
-                          "
                           :style="{
                             background:
                               bgColor[slotProps.data.created_is_order % 7],
+                            color: '#ffffff',
+                            width: '2rem',
+                            height: '2rem',
+                            fontSize: '1rem',
                           }"
                           class="text-avatar"
                           size="xlarge"
@@ -3511,12 +4113,12 @@ const onPage = (event) => {
                   <template #empty>
                     <div
                       class="align-items-center justify-content-center p-4 text-center m-auto"
-                      style="
-                        display: flex;
-                        width: 100%;
-                        height: calc(100vh - 303px);
-                        background-color: #fff;
-                      "
+                      :style="{
+                        display: 'flex',
+                        width: '100%',
+                        height: 'calc(100vh - 303px)',
+                        backgroundColor: '#fff',
+                      }"
                     >
                       <div v-if="!options.loading && options.total == 0">
                         <img
@@ -3992,7 +4594,103 @@ const onPage = (event) => {
               </div>
             </div>
             <div v-show="options.view === 9" class="f-full">Quyết định</div>
-            <div v-show="options.view === 10" class="f-full">Tệp số hóa</div>
+            <div v-show="options.view === 10" class="f-full">
+              <div class="d-lang-table-1 p-2">
+                <DataTable
+                  @page="onPage($event)"
+                  @rowSelect="selectRow"
+                  :value="files"
+                  :paginator="true"
+                  :rows="options.pageSize"
+                  :rowsPerPageOptions="[25, 50, 100, 200]"
+                  :totalRecords="options.total"
+                  :scrollable="true"
+                  :lazy="true"
+                  :rowHover="true"
+                  :showGridlines="false"
+                  :globalFilterFields="['file_name']"
+                  v-model:selection="selectedNodes"
+                  selectionMode="single"
+                  dataKey="file_id"
+                  scrollHeight="flex"
+                  filterDisplay="menu"
+                  filterMode="lenient"
+                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                  responsiveLayout="scroll"
+                  rowGroupMode="subheader"
+                  groupRowsBy="is_type_name"
+                >
+                  <template #groupheader="slotProps">
+                    <i class="pi pi-list mr-2"></i
+                    >{{ slotProps.data.is_type_name }}
+                  </template>
+                  <Column
+                    field="file_name"
+                    header="Tên file số hóa"
+                    headerStyle="text-align:center;height:50px"
+                    bodyStyle="text-align:left;"
+                    class="align-items-center justify-content-left text-left"
+                  >
+                    <template #body="slotProps">
+                      <div class="flex align-items-center">
+                        <img
+                          class="mr-2"
+                          :src="
+                            basedomainURL +
+                            '/Portals/Image/file/' +
+                            slotProps.data.file_type +
+                            '.png'
+                          "
+                          style="object-fit: contain"
+                          width="40"
+                          height="40"
+                        />
+                        <span
+                          :style="{
+                            wordBreak: 'break-word',
+                          }"
+                        >
+                          {{ slotProps.data.file_name }}</span
+                        >
+                      </div>
+                    </template>
+                  </Column>
+                  <Column
+                    field="file_size"
+                    header="Kích cỡ"
+                    headerStyle="text-align:center;max-width:150px;height:50px"
+                    bodyStyle="text-align:center;max-width:150px;"
+                    class="align-items-center justify-content-center text-center"
+                  />
+                  <Column
+                    field="created_date"
+                    header="Ngày tạo"
+                    headerStyle="text-align:center;max-width:150px;height:50px"
+                    bodyStyle="text-align:center;max-width:150px;"
+                    class="align-items-center justify-content-center text-center"
+                  />
+                  <template #empty>
+                    <div
+                      class="align-items-center justify-content-center p-4 text-center m-auto"
+                      style="
+                        display: flex;
+                        width: 100%;
+                        height: calc(100vh - 291px);
+                        background-color: #fff;
+                      "
+                    >
+                      <div v-if="!options.loading && options.total == 0">
+                        <img
+                          src="../../../../assets/background/nodata.png"
+                          height="144"
+                        />
+                        <h3 class="m-1">Không có dữ liệu</h3>
+                      </div>
+                    </div>
+                  </template>
+                </DataTable>
+              </div>
+            </div>
             <div v-show="options.view === 11" class="f-full">
               <div class="d-lang-table-1 p-2">
                 <DataTable
@@ -4240,6 +4938,13 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
+            <div v-show="options.view === 13" class="f-full">
+              <div class="row p-2 justify-content-center">
+                <div class="col-10 md:col-10 p-0">
+                  <printprofile :key="componentKey" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div
@@ -4316,19 +5021,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -4409,19 +5111,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -4502,19 +5201,16 @@ const onPage = (event) => {
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
-                                Phòng ban:
                                 <span>{{
                                   slotProps.data.department_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Vị trí:
                                 <span>{{
                                   slotProps.data.work_position_name
                                 }}</span>
                               </div>
                               <div class="description">
-                                Chức vụ:
                                 <span>{{ slotProps.data.position_name }}</span>
                               </div>
                             </div>
@@ -4566,6 +5262,30 @@ const onPage = (event) => {
     :closeDialog="closeDialogTranning"
     :view="true"
   />
+  <dialogfile
+    :key="componentKey"
+    :headerDialog="headerDialogFile"
+    :displayDialog="displayDialogFile"
+    :file="options.file"
+    :closeDialog="closeDialogFile"
+  />
+  <diloginsurance
+    :key="componentKey"
+    :headerDialog="headerDialogInsurance"
+    :displayDialog="displayDialogInsurance"
+    :closeDialog="closeDialogInsurance"
+    :isAdd="false"
+    :isView="false"
+    :model="insurance"
+    :addRow="addRow"
+    :deleteRow="deleteRow"
+    :insurance_pays="insurance_pays"
+    :insurance_resolves="insurance_resolves"
+    :statuss="statuss"
+    :hinhthucs="hinhthucs"
+    :dictionarys="insurance_dictionarys"
+    :initData="initView6"
+  />
 </template>
 <style scoped>
 @import url(../../profile/component/stylehrm.css);
@@ -4600,11 +5320,24 @@ const onPage = (event) => {
   border-color: #2196f3 !important;
   color: #ffffff !important;
 }
+.p-button.p-button-secondary.p-button-custom:hover {
+  background: #e9ecef !important;
+  border-color: #ced4da !important;
+  color: #495057 !important;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.disable-header) {
   table thead {
     display: none;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
   }
 }
 ::v-deep(.padding-0) {
@@ -4634,6 +5367,11 @@ const onPage = (event) => {
     color: #ffffff;
     background: #64748b;
     border: 1px solid #64748b;
+  }
+}
+::v-deep(.border-radius) {
+  img {
+    border-radius: 5px;
   }
 }
 </style>

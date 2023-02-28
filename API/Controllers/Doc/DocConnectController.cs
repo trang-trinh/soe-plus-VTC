@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
@@ -38,6 +39,39 @@ namespace API.Controllers.Doc
         private void saveXML(string root, List<string> column_names, List<int> doc_master_ids, string save_dir_path)
         {
             string xml_result = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>";
+            // Format root
+            string rootCheck = Regex.Replace(root.Replace("\\", "/"), @"\.*/+", "/");
+            var listPath = rootCheck.Split('/');
+            var rootConfig = "";
+            var sttPartPath = 1;
+            foreach (var item in listPath)
+            {
+                if (item.Trim() != "")
+                {
+                    if (sttPartPath == 1)
+                    {
+                        rootConfig += (item);
+                    }
+                    else
+                    {
+                        rootConfig += "/" + Path.GetFileName(item);
+                    }
+                }
+                sttPartPath++;
+            }
+
+            // format save_dir_path
+            string pathCheck = Regex.Replace(save_dir_path.Replace("\\", "/"), @"\.*/+", "/");
+            var listPathCheck = pathCheck.Split('/');
+            var pathConfig = "";
+            foreach (var item in listPathCheck)
+            {
+                if (item.Trim() != "")
+                {
+                    pathConfig += "/" + Path.GetFileName(item);
+                }
+            }
+
             using (DBEntities db = new DBEntities())
             {
                 foreach(int id in doc_master_ids)
@@ -59,7 +93,20 @@ namespace API.Controllers.Doc
                         xml_result += @"<" + col_name + @">" + column_value + @"</" + col_name + @">";
                     }
                     xml_result += "<file-name>" + doc.file_name + "</file-name>";
-                    Byte[] bytes_doc = File.ReadAllBytes(root + doc.file_path);
+
+                    // format doc.file_path
+                    string pathCheck_1 = Regex.Replace(doc.file_path.Replace("\\", "/"), @"\.*/+", "/");
+                    var listPathCheck_1 = pathCheck_1.Split('/');
+                    var pathDoc_Config = "";
+                    foreach (var item in listPathCheck_1)
+                    {
+                        if (item.Trim() != "")
+                        {
+                            pathDoc_Config += "/" + Path.GetFileName(item);
+                        }
+                    }
+                    Byte[] bytes_doc = File.ReadAllBytes(rootConfig + pathDoc_Config);
+
                     String file_doc = Convert.ToBase64String(bytes_doc);
                     xml_result += "<file-data>" + file_doc + "</file-data>";
                     var files = db.doc_files.Where(x => x.doc_master_id == id && x.doc_file_type != 4).ToList();
@@ -71,7 +118,20 @@ namespace API.Controllers.Doc
                             xml_result += "<attach-file>";
                             xml_result += "<file-id>" + fi.file_id + "</file-id>";
                             xml_result += "<file-name>" + fi.file_name + "</file-name>";
-                            Byte[] bytes = File.ReadAllBytes(root + fi.file_path);
+
+                            // format fi.file_path
+                            string pathCheck_2 = Regex.Replace(fi.file_path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPathCheck_2 = pathCheck_2.Split('/');
+                            var pathDoc_Config_fi = "";
+                            foreach (var item in listPathCheck_2)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    pathDoc_Config_fi += "/" + Path.GetFileName(item);
+                                }
+                            }
+                            Byte[] bytes = File.ReadAllBytes(rootConfig + pathDoc_Config_fi);
+
                             String file = Convert.ToBase64String(bytes);
                             xml_result += "<file-data>" + file + "</file-data>";
                             xml_result += "</attach-file>";
@@ -79,12 +139,57 @@ namespace API.Controllers.Doc
                         xml_result += "</attach-files>";
                     }
                     xml_result += "</document>";
-                    File.WriteAllText(root + save_dir_path + doc.doc_master_guid + ".xml", xml_result);
+
+                    // format doc.doc_master_guid
+                    string pathCheck_3 = Regex.Replace(doc.doc_master_guid.Replace("\\", "/"), @"\.*/+", "/");
+                    var listPathCheck_3 = pathCheck_3.Split('/');
+                    var pathDocMaster_Config = "";
+                    foreach (var item in listPathCheck_3)
+                    {
+                        if (item.Trim() != "")
+                        {
+                            pathDocMaster_Config += "/" + Path.GetFileName(item);
+                        }
+                    }
+                    File.WriteAllText(rootConfig + pathConfig + pathDocMaster_Config + ".xml", xml_result);
                 }
             };
         }
         private void saveJSON(string root, List<string> column_names, List<int> doc_master_ids, string save_dir_path)
         {
+            // Format root
+            string rootCheck = Regex.Replace(root.Replace("\\", "/"), @"\.*/+", "/");
+            var listPath = rootCheck.Split('/');
+            var rootConfig = "";
+            var sttPartPath = 1;
+            foreach (var item in listPath)
+            {
+                if (item.Trim() != "")
+                {
+                    if (sttPartPath == 1)
+                    {
+                        rootConfig += (item);
+                    }
+                    else
+                    {
+                        rootConfig += "/" + Path.GetFileName(item);
+                    }
+                }
+                sttPartPath++;
+            }
+
+            // format save_dir_path
+            string pathCheck = Regex.Replace(save_dir_path.Replace("\\", "/"), @"\.*/+", "/");
+            var listPathCheck = pathCheck.Split('/');
+            var pathConfig = "";
+            foreach (var item in listPathCheck)
+            {
+                if (item.Trim() != "")
+                {
+                    pathConfig += "/" + Path.GetFileName(item);
+                }
+            }
+
             string json_result = @"{";
             using (DBEntities db = new DBEntities())
             {
@@ -107,7 +212,19 @@ namespace API.Controllers.Doc
                         json_result += @"""" + col_name + @""": """ + column_value + @""",";
                     }
                     json_result += @"""file_name"":""" + doc.file_name + @""",";
-                    Byte[] bytes_doc = File.ReadAllBytes(root + doc.file_path);
+
+                    // format doc.file_path
+                    string pathCheck_1 = Regex.Replace(doc.file_path.Replace("\\", "/"), @"\.*/+", "/");
+                    var listPathCheck_1 = pathCheck_1.Split('/');
+                    var pathDoc_Config = "";
+                    foreach (var item in listPathCheck_1)
+                    {
+                        if (item.Trim() != "")
+                        {
+                            pathDoc_Config += "/" + Path.GetFileName(item);
+                        }
+                    }
+                    Byte[] bytes_doc = File.ReadAllBytes(rootConfig + pathDoc_Config);
                     String file_doc = Convert.ToBase64String(bytes_doc);
                     json_result += @"""file_data"":""" + file_doc + @""",";
                     json_result = json_result.Remove(json_result.Length - 1);
@@ -121,7 +238,19 @@ namespace API.Controllers.Doc
                             json_result += "{";
                             json_result += @"""file_id"": """ + fi.file_id + @""",";
                             json_result += @"""file_name"": """ + fi.file_name + @""",";
-                            Byte[] bytes = File.ReadAllBytes(root + fi.file_path);
+
+                            // format fi.file_path
+                            string pathCheck_2 = Regex.Replace(fi.file_path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPathCheck_2 = pathCheck_2.Split('/');
+                            var pathDoc_Config_fi = "";
+                            foreach (var item in listPathCheck_2)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    pathDoc_Config_fi += "/" + Path.GetFileName(item);
+                                }
+                            }
+                            Byte[] bytes = File.ReadAllBytes(rootConfig + pathDoc_Config_fi);
                             String file = Convert.ToBase64String(bytes);
                             json_result += @"""file_data"":""" + file + @"""";
                             json_result += "},";
@@ -130,7 +259,19 @@ namespace API.Controllers.Doc
                         json_result += "]";
                     }
                     json_result += "}";
-                    File.WriteAllText(root + save_dir_path + doc.doc_master_guid + ".json", json_result);
+
+                    // format doc.doc_master_guid
+                    string pathCheck_3 = Regex.Replace(doc.doc_master_guid.Replace("\\", "/"), @"\.*/+", "/");
+                    var listPathCheck_3 = pathCheck_3.Split('/');
+                    var pathDocMaster_Config = "";
+                    foreach (var item in listPathCheck_3)
+                    {
+                        if (item.Trim() != "")
+                        {
+                            pathDocMaster_Config += "/" + Path.GetFileName(item);
+                        }
+                    }
+                    File.WriteAllText(rootConfig + pathConfig + pathDocMaster_Config + ".json", json_result);
                 }
             };
         }
@@ -192,9 +333,22 @@ namespace API.Controllers.Doc
                         {
                             var checked_doc_ids = new List<int>();
                             string dir_path = "/Portals/" + organization_id_user + "/Doc/ConnectSend/" + organization_connect_id + "/";
-                            bool exists_dir = Directory.Exists(root + dir_path);
+
+                            // format dir_path
+                            string checkPathFile = Regex.Replace(dir_path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPath = checkPathFile.Split('/');
+                            var config_dir_path = "";
+                            foreach (var item in listPath)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    config_dir_path += "/" + Path.GetFileName(item);
+                                }
+                            }
+
+                            bool exists_dir = Directory.Exists(root + config_dir_path);
                             if (!exists_dir)
-                                Directory.CreateDirectory(root + dir_path);
+                                Directory.CreateDirectory(root + config_dir_path);
                             foreach (var id in doc_master_ids)
                             {
                                 var exists = db.doc_connect.FirstOrDefault(x => x.doc_master_id == id && x.organization_connect_id == organization_connect_id && x.is_type == 0);
@@ -251,7 +405,7 @@ namespace API.Controllers.Doc
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
-        public async Task<HttpResponseMessage> Update_Status_Send(string token_key, bool status)
+        public async Task<HttpResponseMessage> Update_Status_Send(string token_key, [System.Web.Mvc.Bind(Include = "")][FromBody] bool status)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -411,7 +565,7 @@ namespace API.Controllers.Doc
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
-        public async Task<HttpResponseMessage> Delete_Send(string token_key, List<string> doc_ids)
+        public async Task<HttpResponseMessage> Delete_Send(string token_key, [System.Web.Mvc.Bind(Include = "")][FromBody] List<string> doc_ids)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -497,5 +651,6 @@ namespace API.Controllers.Doc
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
+
     }
 }

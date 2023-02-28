@@ -65,7 +65,7 @@ const props = defineProps({
           <tr>
             <th style="width: 30px">STT</th>
             <th style="width: 200px">Họ và tên</th>
-            <th style="width: 100px">Chức vụ <br />Phòng ban</th>
+            <th style="width: 100px">Phòng ban</th>
             <th style="width: 110px">Tên báo cáo</th>
             <th style="width: 150px">Điểm tự đánh giá</th>
             <th style="width: 130px">Điểm đánh giá</th>

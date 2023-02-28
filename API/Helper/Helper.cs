@@ -25,6 +25,7 @@ using System.Security.Cryptography.Xml;
 using SocketIOClient;
 using System.Net.Sockets;
 
+
 namespace Helper
 {
     public static class helper
@@ -1604,9 +1605,147 @@ namespace Helper
                     noty.created_token_id = created_token_id;
                     db.sys_sendhub.Add(noty);
                     db.SaveChanges();
+
+                    #region SendSocket
+                    //send socket
+                    List<string> users = new List<string>();
+                    users.Add(receiver);
+                    var message = new Dictionary<string, dynamic>
+                        {
+                            { "event", "sendNotify" },
+                        {    "user_id", user_send },
+                            { "title", title },
+                            { "contents", contents },
+                            { "date", DateTime.Now },
+                            { "uids", users },
+                        };
+                    if (helper.socketClient != null && helper.socketClient.Connected == true)
+                    {
+                        try
+                        {
+                            helper.socketClient.EmitAsync("sendData", message);
+                        }
+                        catch { };
+                    }
+                    #endregion
                 }
             }
             catch { }
         }
+
+        #region Send noti chat
+        public static void send_noti_chat(string user_send, string id_key, string group_id, List<string> users, string title, string content, int is_type, string ip, string token_id)
+        {
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        #region Sendhub
+                        List<sys_sendhub> sendhubs = new List<sys_sendhub>();
+                        foreach (String user_id in users)
+                        {
+                            var sh = new sys_sendhub();
+                            sh.senhub_id = helper.GenKey();
+                            sh.title = title;
+                            sh.id_key = id_key;
+                            sh.group_id = group_id;
+                            sh.user_send = user_send;
+                            sh.created_by = user_send;
+                            sh.created_date = DateTime.Now;
+                            sh.created_ip = ip;
+                            sh.created_token_id = token_id;
+                            sh.receiver = user_id;
+                            sh.type = 4;
+                            sh.is_type = is_type;
+                            sh.module_key = "M8";
+                            sh.token_id = token_id;
+                            sh.contents = content;
+                            sh.date_send = DateTime.Now;
+                            sh.seen = false;
+                            sendhubs.Add(sh);
+                        }
+                        if (sendhubs.Count > 0)
+                        {
+                            db.sys_sendhub.AddRange(sendhubs);
+                            await db.SaveChangesAsync();
+                        }
+                        #endregion
+                        #region SendSocket
+                        //send socket
+                        var message = new Dictionary<string, dynamic>
+                        {
+                            { "event", "sendNotify" },
+                            { "user_id", user_send },
+                            { "title", title },
+                            { "contents", content },
+                            { "date", DateTime.Now },
+                            { "uids", users },
+                        };
+                        if (helper.socketClient != null && helper.socketClient.Connected == true)
+                        {
+                            try
+                            {
+                                await helper.socketClient.EmitAsync("sendData", message);
+                            }
+                            catch { };
+                        }
+                        #endregion
+                    }
+                }
+                catch { }
+            });
+        }
+        #endregion
+
+        #region Check SQL Injection
+        public static Boolean checkForSQLInjection(string userInput)
+        {
+            bool isSQLInjection = false;
+            string[] sqlCheckList = { "--",
+                                      ";--",
+                                      ";",
+                                      "/*",
+                                      "*/",
+                                      "@@",
+                                      "@",
+                                      "char",
+                                      "nchar",
+                                      "varchar",
+                                      "nvarchar",
+                                      "alter",
+                                      "begin",
+                                      "cast",
+                                      "create",
+                                      "cursor",
+                                      "declare",
+                                      "delete",
+                                      "drop",
+                                      "end",
+                                      "exec",
+                                      "execute",
+                                      "fetch",
+                                      "insert",
+                                      "kill",
+                                      "select",
+                                      "sys",
+                                      "sysobjects",
+                                      "syscolumns",
+                                      "table",
+                                      "update"
+                                    };
+            string CheckString = userInput.Replace("'", "''");
+            for (int i = 0; i <= sqlCheckList.Length - 1; i++)
+            {
+                if ((CheckString.IndexOf(sqlCheckList[i], StringComparison.OrdinalIgnoreCase) >= 0))
+                {
+                    isSQLInjection = true;
+                }
+            }
+            return isSQLInjection;
+        }
+        #endregion
+
     }
 }

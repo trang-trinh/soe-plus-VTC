@@ -623,14 +623,14 @@ const itemButMores = ref([
     label: "Hiệu chỉnh nội dung",
     icon: "pi pi-pencil",
     command: (event) => {
-      editTem(declare.value, "Chỉnh sửa hợp đồng");
+     ;
     },
   },
   {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
-      delTem(declare.value);
+     
     },
   },
 ]);
@@ -1303,42 +1303,20 @@ onMounted(() => {
           <div>
             <div>
               <Toolbar>
-                <template #start>
-                  <span class="p-input-icon-left">
-                    <i class="pi pi-search" />
-                    <InputText v-model="options.search" @keyup="searchStamp" type="text" spellcheck="false"
-                      placeholder="Tìm kiếm phiếu lương" />
-
-                    
-
-
-                  </span>
-                </template>
+              <template #start>
+                <span class="p-input-icon-left">
+                 <i class="pi pi-search" />
+                  <InputText v-model="options.search" @keyup="searchStamp" type="text" spellcheck="false"      placeholder="Tìm kiếm phiếu lương" />
+                </span>
+              </template> 
                 <template #end>
-                  <Button @click="openBasic('Thêm mới')" label="Thêm mới" icon="pi pi-plus" class="mr-2" />
+                  <Button v-tooltip.top="'Thêm mới phiếu lương'" @click="openBasic('Thêm mới')" label="Thêm mới" icon="pi pi-plus" class="mr-2" />
               
                 </template>
               </Toolbar>
             </div>
             <div class=" flex">
-              <div>
-                <SelectButton @click="onFilterDeclacre()" v-model="selectedDeclareId" :options="justifyOptions"
-                  optionLabel="value" optionVlaue="code" dataKey="code" aria-labelledby="custom">
-                  <template #option="slotProps">
-                    <div class="flex h-full">
-                      <div class="">
-
-                        <font-awesome-icon :icon="slotProps.option.icon" class="p-custom"
-                          style="padding-right: 0.75rem" />
-                        <font-awesome-icon />
-                      </div>
-                      <div>
-                        {{ slotProps.option.value }}
-                      </div>
-                    </div>
-                  </template>
-                </SelectButton>
-              </div>
+          
 
 
 
@@ -1352,15 +1330,16 @@ onMounted(() => {
                   responsiveLayout="scroll" :scrollable="true">
                   <template #list="slotProps">
                     <div class="grid h-full  w-full  formgrid"
-                    :class="declare.declare_id==slotProps.data.declare_id?'bg-blue-100':''"
+   
+   
+                    :class="declare.declare_id==slotProps.data.declare_id?
+                    'bg-d-selected':''"
                     @click="changeViewDeclare(slotProps.data)"
                     >
                       <div class="col-12  mb-2 p-2  flex align-items-center"
                       
                       >
-                        <div class="  col-1 ">
-                          <Badge :value="slotProps.data.STT" class="text-lg" size="large"></Badge>
-                        </div>
+                        
                         <div class="px-2 col-9 ">
                           <div class="  font-bold text-lg">
                             {{ slotProps.data.declare_name }}
@@ -1373,12 +1352,22 @@ onMounted(() => {
                               Date(slotProps.data.created_date)).format("DD/MM/YYYY") }}
                           </div>
                         </div>
-                        <div class="pr-2 col-1"> </div>
-                        <div class="pr-2 col-1">
-                          <Button icon="pi pi-ellipsis-h" class="p-button-rounded p-button-text ml-2"
-                            @click="toggleMores($event, slotProps.data)" aria-haspopup="true" aria-controls="overlay_More"
-                            v-tooltip.top="'Tác vụ'" />
+                        
+                        <div class="pr-2 col-3 flex">
+                          <Toolbar class="w-full p-0 m-0 custoolbar ">
+            <template #end>
+                          <Button @click=" editTem(slotProps.data, 'Chỉnh sửa hợp đồng')"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-pencil"
+                    v-tooltip.top="'Sửa'"></Button>
+                  <Button @click=" delTem(slotProps.data)"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-trash"
+                    v-tooltip.top="'Xóa'"></Button>
 
+</template>
+</Toolbar>
+
+
+                      
                         </div>
                       </div>
 
@@ -1407,7 +1396,7 @@ onMounted(() => {
                 </template>
 
             <template #end>
-            <Button @click="openBasicP('Thêm mới')" label="Thêm mới" icon="pi pi-plus" class="mx-2" />
+            <Button v-tooltip.top="'Thêm mới đầu mục'"  @click="openBasicP('Thêm mới')" label="Thêm mới" icon="pi pi-plus" class="mx-2" />
 
               <Button @click="refreshStamp" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
                 v-tooltip="'Tải lại'" />
@@ -1433,14 +1422,14 @@ onMounted(() => {
             >
 
             <Column field="is_order" header="STT" class="align-items-center justify-content-center text-center font-bold"
-              headerStyle="text-align:center;max-width:70px" bodyStyle="text-align:center;max-width:70px">
+              headerStyle="text-align:center;max-width:50px" bodyStyle="text-align:center;max-width:50px">
               <template #body="md">
                 <div v-bind:class="md.node.data.status ? '' : 'text-error'">
                   {{ md.node.data.STT }}
                 </div>
               </template>
             </Column> <Column field="type_order" header="Loại sắp xếp" class="align-items-center justify-content-center"
-              headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px"
+              headerStyle="text-align:center;max-width:70px" bodyStyle="text-align:center;max-width:70px"
               filterMatchMode="contains">
               <template #body="md">
                 <div v-bind:class="md.node.data.parent_id==null ? 'font-bold ' : ' '">
@@ -1464,7 +1453,7 @@ onMounted(() => {
               </template> </Column>
              
             <Column field="paycheck_unit" header="Đơn vị tính" class="align-items-center justify-content-center"
-              headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px"
+              headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px"
               filterMatchMode="contains">
               <template #body="md">
                 <div v-bind:class="md.node.data.parent_id==null ? 'font-bold ' : ' '">
@@ -1474,7 +1463,7 @@ onMounted(() => {
             </Column>
            
             <Column field="status" header="Trạng thái" class="align-items-center justify-content-center"
-              headerStyle="text-align:center;max-width:130px" bodyStyle="text-align:center;max-width:130px"
+              headerStyle="text-align:center;max-width:70px" bodyStyle="text-align:center;max-width:70px"
               filterMatchMode="contains">
               <template #body="data">
                 <Checkbox :disabled="
@@ -1720,10 +1709,15 @@ onMounted(() => {
 
 .d-lang-table {
   margin: 0px;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 160px);
 }.d-lang-table-r{
   margin: 0px;
-  height: calc(100vh - 165px);
+  height: calc(100vh - 160px);
+}
+
+.bg-d-selected{
+  background-color:#E3F2FD !important;
+   
 }
 </style>
     

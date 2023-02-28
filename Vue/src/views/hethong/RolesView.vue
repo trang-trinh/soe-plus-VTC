@@ -532,7 +532,7 @@ const addConfigRole = () => {
   modules.value.forEach((element) => {
     mdmodules.push({
       role_module_id: element.data.role_module_id || -1,
-      role_id: element.data.role_id,
+      role_id:  is_coppy_module.value?id_temp.value: element.data.role_id,
       module_id: element.data.module_id,
       is_grade: element.data.is_grade,
       is_permission: element.data.is_permission
@@ -546,7 +546,7 @@ const addConfigRole = () => {
       element.children.forEach((ec) => {
         mdmodules.push({
           role_module_id: ec.data.role_module_id || -1,
-          role_id: ec.data.role_id,
+          role_id: is_coppy_module.value?id_temp.value: ec.data.role_id,
           module_id: ec.data.module_id,
           is_grade: ec.data.is_grade,
           is_permission: ec.data.is_permission
@@ -571,7 +571,7 @@ const addConfigRole = () => {
           ec.children.forEach((ec2) => {
             mdmodules.push({
               role_module_id: ec2.data.role_module_id || -1,
-              role_id: ec2.data.role_id,
+              role_id: is_coppy_module.value?id_temp.value: ec2.data.role_id,
               module_id: ec2.data.module_id,
               is_grade: ec2.data.is_grade,
               is_permission: ec2.data.is_permission

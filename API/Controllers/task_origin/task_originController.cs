@@ -22,6 +22,7 @@ using API.Controllers;
 using API.Helper;
 using Microsoft.ApplicationBlocks.Data;
 using System.Data.SqlClient;
+using System.Text.RegularExpressions;
 
 namespace API.Controllers
 {
@@ -37,7 +38,8 @@ namespace API.Controllers
         {
             var identity = User.Identity as ClaimsIdentity;
             string fdtask = "";
-            string fdtaskmember = "";
+            string fdtaskmember;
+            string fdXML = "";
             IEnumerable<Claim> claims = identity.Claims;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
@@ -60,6 +62,7 @@ namespace API.Controllers
                     }
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string rootXML = HttpContext.Current.Server.MapPath("~/");
                     //string strPath = root + "/" + task_origin.organization_id + "/TaskOrigin/" + task_origin.task_id;
                     //bool exists = Directory.Exists(strPath);
                     //if (!exists)
@@ -76,6 +79,7 @@ namespace API.Controllers
                         }
                         fdtask = provider.FormData.GetValues("taskOrigin").SingleOrDefault();
                         fdtaskmember = provider.FormData.GetValues("taskmember").SingleOrDefault();
+                        fdXML = provider.FormData.GetValues("isXML").SingleOrDefault();
                         task_origin task_origin = JsonConvert.DeserializeObject<task_origin>(fdtask);
                         List<task_member> members = JsonConvert.DeserializeObject<List<task_member>>(fdtaskmember);
 
@@ -208,11 +212,13 @@ namespace API.Controllers
                             if (members.Count > 0)
                             {
                                 List<sys_sendhub> listsendhubs = new List<sys_sendhub>();
+                                var contentNoti = "Thêm công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
                                 foreach (var item in members)
                                 {
                                     if(listsendhubs.Where(x=>x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
                                     {
                                         var ns_sh = db.sys_users.Find(item.user_id);
+                                        var created_by = db.sys_users.Find(uid);
 
                                         var sh = new sys_sendhub();
                                         sh.senhub_id = helper.GenKey();
@@ -221,7 +227,7 @@ namespace API.Controllers
                                         sh.receiver = ns_sh.user_id;
                                         sh.icon = ns_sh.avatar;
                                         sh.title = "Công việc";
-                                        sh.contents = "Thêm công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
+                                        sh.contents = contentNoti;
                                         sh.type = 2;
                                         sh.is_type = -1;
                                         sh.date_send = DateTime.Now;
@@ -232,16 +238,74 @@ namespace API.Controllers
                                         sh.created_by = uid;
                                         sh.created_token_id = tid;
                                         sh.created_ip = ip;
+
+                                        if (bool.Parse(fdXML) == true)
+                                        {
+                                            string xml_result = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>";
+                                            xml_result += "<document>";
+                                            xml_result += "<element>";
+                                            xml_result += "<taskid>" + (task_origin.task_id ?? "") + "</taskid>";
+                                            xml_result += "<taskname>" + (task_origin.task_name ?? "") + "</taskname>";
+                                            xml_result += "<created_by>" + (created_by.full_name ?? "") + "</created_by>";
+                                            xml_result += "<receiver>" + (ns_sh.full_name ?? "") + "</receiver>";
+                                            xml_result += "<created_date>" + (sh.created_date) + "</created_date>";
+                                            xml_result += "<contents>" + (sh.contents) + "</contents>";
+                                            xml_result += "</element>";
+                                            xml_result += "</document>";
+
+                                            var user_now = db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                                            System.Net.WebClient webc = new System.Net.WebClient();
+                                            string path = rootXML + helper.path_xml + "/TaskOrigin/";
+                                            bool exists = Directory.Exists(path);
+                                            if (!exists)
+                                                Directory.CreateDirectory(path);
+
+                                            string name_file = task_origin.task_id + ".xml";
+                                            string root_path = path + "/" + name_file;
+                                            string duong_dan = helper.path_xml + "/TaskOrigin/" + name_file;
+                                            string url = ConfigurationManager.AppSettings["ValidAudience"] + duong_dan;
+
+                                            File.WriteAllText(root_path, xml_result);
+                                            var res_encr = helper.encryptXML(root_path, "document", helper.psKey);
+                                            if (res_encr != "OK")
+                                            {
+                                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Không thể mã hoã file XML!", err = "1" });
+                                            };
+                                        }
+
                                         listsendhubs.Add(sh);
                                     }
                                 }
                                 if (listsendhubs.Count > 0)
                                 {
                                     db.sys_sendhub.AddRange(listsendhubs);
+
+                                    #region sendSocket
+                                    var users = listsendhubs.Where(x => x.receiver != uid).Select(x => x.receiver).Distinct().ToList();
+                                    var message = new Dictionary<string, dynamic>
+                                    {
+                                        { "event", "sendNotify" },
+                                        { "user_id", uid },
+                                        { "title", "Công việc" },
+                                        { "contents", contentNoti },
+                                        { "date", DateTime.Now },
+                                        { "uids", users },
+                                    };
+                                    if (helper.socketClient != null && helper.socketClient.Connected == true)
+                                    {
+                                        try
+                                        {
+                                            helper.socketClient.EmitAsync("sendData", message);
+                                        }
+                                        catch { };
+                                    }
+                                    #endregion
                                 }
                             }
                         }
                         #endregion
+
+                        
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -279,6 +343,7 @@ namespace API.Controllers
             var identity = User.Identity as ClaimsIdentity;
             string fdtask = ""; 
             string fdtaskmember = "";
+            string fdXML = "";
             IEnumerable<Claim> claims = identity.Claims;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
@@ -301,6 +366,7 @@ namespace API.Controllers
                     }
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string rootXML = HttpContext.Current.Server.MapPath("~/");
                     //string strPath = root + "/TaskOrigin";
                     //bool exists = Directory.Exists(strPath);
                     //if (!exists)
@@ -317,6 +383,7 @@ namespace API.Controllers
                         }
                         fdtask = provider.FormData.GetValues("taskOrigin").SingleOrDefault();
                         fdtaskmember = provider.FormData.GetValues("taskmember").SingleOrDefault();
+                        fdXML = provider.FormData.GetValues("isXML").SingleOrDefault();
                         task_origin task_origin = JsonConvert.DeserializeObject<task_origin>(fdtask);
                         List<task_member> members = JsonConvert.DeserializeObject<List<task_member>>(fdtaskmember);
 
@@ -533,11 +600,13 @@ namespace API.Controllers
                             if (members.Count > 0)
                             {
                                 List<sys_sendhub> listsendhubs = new List<sys_sendhub>();
+                                var contentNoti = "Sửa công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
                                 foreach (var item in members)
                                 {
                                     if (listsendhubs.Where(x => x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
                                     {
                                         var ns_sh = db.sys_users.Find(item.user_id);
+                                        var created_by = db.sys_users.Find(uid);
 
                                         var sh = new sys_sendhub();
                                         sh.senhub_id = helper.GenKey();
@@ -546,7 +615,7 @@ namespace API.Controllers
                                         sh.receiver = ns_sh.user_id;
                                         sh.icon = ns_sh.avatar;
                                         sh.title = "Công việc";
-                                        sh.contents = "Sửa công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
+                                        sh.contents = contentNoti;
                                         sh.type = 2;
                                         sh.is_type = -1;
                                         sh.date_send = DateTime.Now;
@@ -557,12 +626,68 @@ namespace API.Controllers
                                         sh.created_by = uid;
                                         sh.created_token_id = tid;
                                         sh.created_ip = ip;
+
+                                        if (bool.Parse(fdXML) == true)
+                                        {
+                                            string xml_result = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>";
+                                            xml_result += "<document>";
+                                            xml_result += "<element>";
+                                            xml_result += "<taskid>" + (task_origin.task_id ?? "") + "</taskid>";
+                                            xml_result += "<taskname>" + (task_origin.task_name ?? "") + "</taskname>";
+                                            xml_result += "<created_by>" + (created_by.full_name ?? "") + "</created_by>";
+                                            xml_result += "<receiver>" + (ns_sh.full_name ?? "") + "</receiver>";
+                                            xml_result += "<created_date>" + (sh.created_date) + "</created_date>";
+                                            xml_result += "<contents>" + (sh.contents) + "</contents>";
+                                            xml_result += "</element>";
+                                            xml_result += "</document>";
+
+                                            var user_now = db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                                            System.Net.WebClient webc = new System.Net.WebClient();
+                                            string path = rootXML + helper.path_xml + "/TaskOrigin/";
+                                            bool exists = Directory.Exists(path);
+                                            if (!exists)
+                                                Directory.CreateDirectory(path);
+
+                                            string name_file = task_origin.task_id + ".xml";
+                                            string root_path = path + "/" + name_file;
+                                            string duong_dan = helper.path_xml + "/TaskOrigin/" + name_file;
+                                            string url = ConfigurationManager.AppSettings["ValidAudience"] + duong_dan;
+
+                                            File.WriteAllText(root_path, xml_result);
+                                            var res_encr = helper.encryptXML(root_path, "document", helper.psKey);
+                                            if (res_encr != "OK")
+                                            {
+                                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Không thể mã hoã file XML!", err = "1" });
+                                            };
+                                        }
+
                                         listsendhubs.Add(sh);
                                     }
                                 }
                                 if (listsendhubs.Count > 0)
                                 {
                                     db.sys_sendhub.AddRange(listsendhubs);
+
+                                    #region sendSocket
+                                    var users = listsendhubs.Where(x => x.receiver != uid).Select(x => x.receiver).Distinct().ToList();
+                                    var message = new Dictionary<string, dynamic>
+                                    {
+                                        { "event", "sendNotify" },
+                                        { "user_id", uid },
+                                        { "title", "Công việc" },
+                                        { "contents", contentNoti },
+                                        { "date", DateTime.Now },
+                                        { "uids", users },
+                                    };
+                                    if (helper.socketClient != null && helper.socketClient.Connected == true)
+                                    {
+                                        try
+                                        {
+                                            helper.socketClient.EmitAsync("sendData", message);
+                                        }
+                                        catch { };
+                                    }
+                                    #endregion
                                 }
                             }
                         }
@@ -792,9 +917,36 @@ namespace API.Controllers
                             db.task_review.RemoveRange(del_review);
                             foreach (string strPath in paths)
                             {
-                                bool exists = File.Exists(strPath);
+                                //bool exists = File.Exists(strPath);
+                                //if (exists)
+                                //{
+                                //    System.IO.File.Delete(strPath);
+                                //}
+                                // Format logo
+
+                                var listPathEdit_logo = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_logo = "";
+                                var sttPathEdit_logo = 1;
+                                foreach (var itemEdit in listPathEdit_logo)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        if (sttPathEdit_logo == 1)
+                                        {
+                                            pathEdit_logo += itemEdit;
+                                        }
+                                        else
+                                        {
+                                            pathEdit_logo += "/" + Path.GetFileName(itemEdit);
+                                        }
+                                    }
+                                    sttPathEdit_logo++;
+                                }
+                                bool exists = File.Exists(pathEdit_logo);
                                 if (exists)
-                                    System.IO.File.Delete(strPath);
+                                {
+                                    System.IO.File.Delete(pathEdit_logo);
+                                }
                             }
                         }
                         await db.SaveChangesAsync();

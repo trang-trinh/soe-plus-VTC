@@ -978,7 +978,7 @@ const loadCount = () => {
               { par: "manufacture_year", va: options.value.manufacture_year },
               { par: "device_number", va: options.value.device_number },
               { par: "barcode_type", va: options.value.barcode_type },
-              { par: "device_unit", va: options.value.device_unit },
+              { par: "device_unit", va: options.value.device_unit }
             ],
           }),
           SecretKey,
@@ -1007,9 +1007,11 @@ const loadCount = () => {
 const addDeviceHanover = () => {
   if (devicecard.value.device_user_id) {
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
           proc: "device_config_number_get",
           par: [
             { par: "current_number", va: null },
@@ -1019,8 +1021,11 @@ const addDeviceHanover = () => {
             { par: "code_number", va: "TS_PhieuBanGiao" },
             { par: "status", va: true },
           ],
-        },
-        config
+        }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
@@ -1297,7 +1302,7 @@ const loadData = (rf) => {
               { par: "barcode_type", va: options.value.barcode_type },
               { par: "device_unit", va: options.value.device_unit },
               { par: "pageno", va: options.value.pageno },
-              { par: "pagesize", va: options.value.pagesize },
+              { par: "pagesize", va: options.value.pagesize }
             ],
           }),
           SecretKey,
@@ -1839,7 +1844,7 @@ const exportData = (method) => {
           { par: "end_date", va: options.value.end_date },
           { par: "sort", va: options.value.sort },
           { par: "pageno", va: options.value.pageno },
-          { par: "pagesize", va: options.value.totalRecordsExport },
+          { par: "pagesize", va: options.value.totalRecordsExport }
         ],
       },
       config

@@ -130,6 +130,9 @@ namespace API.Controllers.Tasks
                     var udp = db.task_department_configuration.FirstOrDefault(x => x.department_id == user.department_id || x.department_id == user.organization_id);
                     if (udp != null)
                     {
+                        string recei = udp.user_id;
+                        helper.saveNotify(uid, recei, null, "Công việc", "Đã gửi yêu cầu đánh giá công việc trong Đánh giá công việc",
+                                null, 11, -1, false, "M4", "", null, null, tid, ip);
                         task_person_report_processing tp = new task_person_report_processing();
                         role_Groups.status = 1;
                         db.Entry(role_Groups).State = EntityState.Modified;
@@ -143,8 +146,14 @@ namespace API.Controllers.Tasks
                         tp.created_by = uid;
                         tp.created_token_id = tid;
                         db.task_person_report_processing.Add(tp);
+
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+
+
+
+
+
                     }
                     else
                     {

@@ -35,9 +35,9 @@ const props = defineProps({
               colspan="2"
               style="width: 40%; vertical-align: bottom"
             >
-              <div class="uppercase">Bộ quốc phòng</div>
-              <div class="uppercase">
-                <b>Bảo hiểm xã hội</b>
+              <div>BỘ QUỐC PHÒNG</div>
+              <div>
+                <b>BẢO HIỂM XÃ HỘI</b>
                 <div
                   class="text-center"
                   style="border-top: 1.5px solid #000; margin: 0px 100px"
@@ -49,7 +49,7 @@ const props = defineProps({
               colspan="4"
               style="min-width: 40%; vertical-align: bottom"
             >
-              <div class="uppercase">
+              <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
               <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
@@ -72,9 +72,9 @@ const props = defineProps({
           <tr>
             <td class="text-center" colspan="6">
               <div style="padding: 1rem 0">
-                <div class="uppercase title2">
+                <div class="title2">
                   <b>{{
-                    props.group === 0 ? "Lịch họp tuần" : "Lịch công tác"
+                    props.group === 0 ? "LỊCH HỌP TUẦN" : "LỊCH CÔNG TÁC"
                   }}</b>
                 </div>
                 <div class="">
@@ -186,8 +186,8 @@ const props = defineProps({
             <td colspan="4" style="vertical-align: top; width: 40%"></td>
             <td align="center" colspan="2" style="vertical-align: top">
               <div style="padding-top: 3rem; min-height: 150px">
-                <div style="text-transform: uppercase"><b>KT.Giám Đốc</b></div>
-                <div style="text-transform: uppercase"><b>Phó GIám Đốc</b></div>
+                <div><b>KT.GIÁM ĐỐC</b></div>
+                <div><b>PHÓ GIÁM ĐỐC</b></div>
                 <div style="height: 170px; position: relative"></div>
               </div>
             </td>
@@ -240,10 +240,6 @@ tr {
 }
 tfoot {
   display: table-footer-group !important;
-}
-.uppercase,
-.uppercase * {
-  text-transform: uppercase !important;
 }
 .text-center {
   text-align: center !important;

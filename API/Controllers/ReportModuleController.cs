@@ -84,13 +84,17 @@ namespace API.Controllers
 
                     // Params
                     var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
+                    var is_link = provider.FormData.GetValues("is_link").SingleOrDefault();
+                    var link2 = JsonConvert.DeserializeObject<string>(is_link);
+                    var module_id = Int32.Parse(provider.FormData.GetValues("module_id").SingleOrDefault());
+
                     List<report_modules> multiple = JsonConvert.DeserializeObject<List<report_modules>>(provider.FormData.GetValues("user_module").SingleOrDefault());
                     //List<calendar_member> mbs = JsonConvert.DeserializeObject<List<calendar_member>>(provider.FormData.GetValues("members").SingleOrDefault());
                     //List<calendar_attend> dps = JsonConvert.DeserializeObject<List<calendar_attend>>(provider.FormData.GetValues("departments").SingleOrDefault());
                     if (multiple.Count > 0)
                     {
                         // del all
-                        List<report_modules> itemToRemove = db.report_modules.Where(a => a.module_id == 195 && a.is_link == "/reportmodule/history").ToList();
+                        List<report_modules> itemToRemove = db.report_modules.Where(a => a.module_id == module_id && a.is_link == link2).ToList();
                         if (itemToRemove.Count > 0) db.report_modules.RemoveRange(itemToRemove);
                         foreach (var model in multiple)
                         {

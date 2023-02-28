@@ -38,7 +38,7 @@ namespace API.Controllers
         }
         [Authorize]
         [HttpPost]
-        public async Task<HttpResponseMessage> Count_Doc([FromBody] JObject data)
+        public async Task<HttpResponseMessage> Count_Doc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
             var identity = User.Identity as ClaimsIdentity;
@@ -131,7 +131,7 @@ namespace API.Controllers
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
-        public async Task<HttpResponseMessage> List_Doc([FromBody] JObject data)
+        public async Task<HttpResponseMessage> List_Doc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
             var identity = User.Identity as ClaimsIdentity;
