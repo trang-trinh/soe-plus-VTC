@@ -236,7 +236,7 @@ namespace Controllers
                    
                     if (proc.publictoken != helper.publictoken)
                     {
-                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã Token không hợp lệ! Vui lòng thử lại.", err = "1" });
+                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã Token không hợp lệ! Vui lòng thử lại.", err = "1",ms1=proc.publictoken,ms2=helper.publictoken });
                     }
                     var sqlpas = new List<SqlParameter>();
                     if (proc != null && proc.par != null)

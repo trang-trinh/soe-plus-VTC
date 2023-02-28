@@ -42,3 +42,5 @@ coverage
 ../API/Scripts/
 *.csproj
 ../API/Web References/
+*.pdb
+*.user

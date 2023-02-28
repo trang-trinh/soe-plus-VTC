@@ -392,10 +392,33 @@ namespace API.Controllers.Calendar
                         organization_id_user = user_now.organization_id.ToString();
                     }
                     string strPath = HttpContext.Current.Server.MapPath("~/Portals/" + organization_id_user + "/Excel/");
-                    bool exists = Directory.Exists(strPath);
+
+                    // Format strPath
+                    var strPathFormat = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/");
+                    var listStrPath = strPathFormat.Split('/');
+                    var strPathConfig = "";
+                    var sttPartPath = 1;
+                    foreach (var item in listStrPath)
+                    {
+                        if (item.Trim() != "")
+                        {
+                            if (sttPartPath == 1)
+                            {
+                                strPathConfig += (item);
+                            }
+                            else
+                            {
+                                strPathConfig += "/" + Path.GetFileName(item);
+                            }
+                        }
+                        sttPartPath++;
+                    }
+
+                    bool exists = Directory.Exists(strPathConfig);
                     if (!exists)
-                        Directory.CreateDirectory(strPath);
-                    var provider = new MultipartFormDataStreamProvider(strPath);
+                        Directory.CreateDirectory(strPathConfig);
+
+                    var provider = new MultipartFormDataStreamProvider(strPathConfig);
                     var task = Request.Content.ReadAsMultipartAsync(provider).ContinueWith<HttpResponseMessage>(t =>
                     {
                         int type = int.Parse(provider.FormData.GetValues("type").SingleOrDefault());
@@ -407,9 +430,31 @@ namespace API.Controllers.Calendar
 
                         string guid = Guid.NewGuid().ToString();
 
-                        File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        // Format finfo.FullName
+                        var pathFullNameFormat = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
+                        var listFullNamePath = pathFullNameFormat.Split('/');
+                        var pathFullNameConfig = "";
+                        var sttFullNamePath = 1;
+                        foreach (var item in listFullNamePath)
+                        {
+                            if (item.Trim() != "")
+                            {
+                                if (sttPartPath == 1)
+                                {
+                                    pathFullNameConfig += (item);
+                                }
+                                else
+                                {
+                                    pathFullNameConfig += "/" + Path.GetFileName(item);
+                                }
+                            }
+                            sttFullNamePath++;
+                        }
 
-                        fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
+                        //File.Move(finfo.FullName, Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                        File.Move(pathFullNameConfig, Path.Combine(strPathConfig, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+
+                        fpath = strPathConfig + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
 
                         FileInfo temp = new FileInfo(fpath);
                         using (ExcelPackage pck = new ExcelPackage(temp))
@@ -596,9 +641,30 @@ namespace API.Controllers.Calendar
                     #region file
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
                     string path = root + "/" + model.organization_id + "/Calendar/Mission/" + model.mission_id;
-                    bool exists = Directory.Exists(path);
+
+                    // Format path
+                    var pathFormat = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/");
+                    var listPath = pathFormat.Split('/');
+                    var pathConfig = "";
+                    var sttPartPath = 1;
+                    foreach (var item in listPath)
+                    {
+                        if (item.Trim() != "")
+                        {
+                            if (sttPartPath == 1)
+                            {
+                                pathConfig += (item);
+                            }
+                            else
+                            {
+                                pathConfig += "/" + Path.GetFileName(item);
+                            }
+                        }
+                        sttPartPath++;
+                    }
+                    bool exists = Directory.Exists(pathConfig);
                     if (!exists)
-                        Directory.CreateDirectory(path);
+                        Directory.CreateDirectory(pathConfig);
                     foreach (MultipartFileData fileData in provider.FileData)
                     {
                         string org_name_file = fileData.Headers.ContentDisposition.FileName;
@@ -611,13 +677,13 @@ namespace API.Controllers.Calendar
                             org_name_file = System.IO.Path.GetFileName(org_name_file);
                         }
                         string name_file = org_name_file; //helper.UniqueFileName(org_name_file);
-                        string rootPath = path + "/" + name_file;
+                        string rootPath = pathConfig + "/" + name_file;
                         string Duongdan = "/Portals/" + model.organization_id + "/Calendar/Mission/" + model.mission_id + "/" + name_file;
                         string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
                         if (rootPath.Length > 260)
                         {
                             name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
-                            int le = 260 - (path.Length + 1) - Dinhdang.Length;
+                            int le = 260 - (pathConfig.Length + 1) - Dinhdang.Length;
                             name_file = name_file.Substring(0, le) + Dinhdang;
                         }
                         if (File.Exists(rootPath))
@@ -640,11 +706,28 @@ namespace API.Controllers.Calendar
                             model.path_signature = Duongdan;
                             if (!string.IsNullOrWhiteSpace(path_signature_old) && path_signature_old.Contains("Portals"))
                             {
-                                var strPath = root + "\\" + path_signature_old;
-                                bool ex = System.IO.Directory.Exists(strPath);
+                                //var strPath = root + "\\" + path_signature_old;
+                                //bool ex = System.IO.Directory.Exists(strPath);
+                                //if (ex)
+                                //{
+                                //    System.IO.Directory.Delete(strPath, true);
+                                //}
+
+                                // Format path_signature_old
+                                var strPathFormat = Regex.Replace(path_signature_old.Replace("\\", "/"), @"\.*/+", "/");
+                                var listStrPath = strPathFormat.Split('/');
+                                var strPathConfig = "";
+                                foreach (var item in listStrPath)
+                                {
+                                    if (item.Trim() != "")
+                                    {
+                                        strPathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                bool ex = System.IO.Directory.Exists(root + strPathConfig);
                                 if (ex)
                                 {
-                                    System.IO.Directory.Delete(strPath, true);
+                                    System.IO.Directory.Delete(root + strPathConfig, true);
                                 }
                             }
                         }
@@ -653,11 +736,28 @@ namespace API.Controllers.Calendar
                             model.path_stamp = Duongdan;
                             if (!string.IsNullOrWhiteSpace(path_signature_old) && path_signature_old.Contains("Portals"))
                             {
-                                var strPath = root + "\\" + path_signature_old;
-                                bool ex = System.IO.Directory.Exists(strPath);
+                                //var strPath = root + "\\" + path_signature_old;
+                                //bool ex = System.IO.Directory.Exists(strPath);
+                                //if (ex)
+                                //{
+                                //    System.IO.Directory.Delete(strPath, true);
+                                //}
+
+                                // Format path_signature_old
+                                var strPathFormat = Regex.Replace(path_signature_old.Replace("\\", "/"), @"\.*/+", "/");
+                                var listStrPath = strPathFormat.Split('/');
+                                var strPathConfig = "";
+                                foreach (var item in listStrPath)
+                                {
+                                    if (item.Trim() != "")
+                                    {
+                                        strPathConfig += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                bool ex = System.IO.Directory.Exists(root + strPathConfig);
                                 if (ex)
                                 {
-                                    System.IO.Directory.Delete(strPath, true);
+                                    System.IO.Directory.Delete(root + strPathConfig, true);
                                 }
                             }
                         }

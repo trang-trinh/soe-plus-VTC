@@ -1859,10 +1859,10 @@ onMounted(() => {
         <Column
           field="profile_user_name"
           header="Họ và tên"
-          headerStyle="height:50px;max-width:auto;"
+          headerStyle="height:50px;min-width:200px;"
         >
           <template #body="slotProps">
-            <div class="mr-2" style="min-width: 200px">
+            <div style="min-width: 200px">
               <div class="mb-2">
                 <b>{{ slotProps.data.profile_user_name }}</b>
               </div>
@@ -1873,7 +1873,17 @@ onMounted(() => {
                 Ngày vào: {{ slotProps.data.recruitment_date }}
               </div>
             </div>
-            <div class="mr-2" style="min-width: 200px">
+          </template>
+        </Column>
+        <Column
+          field="profile_user_name"
+          header="Họ và tên"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
+          class="align-items-center justify-content-left text-left"
+        >
+          <template #body="slotProps">
+            <div style="min-width: 200px">
               <div class="mb-1" v-if="slotProps.data.gender">
                 <span>{{ slotProps.data.gender == 1 ? "Nam" : "Nữ" }}</span>
               </div>
@@ -1884,7 +1894,17 @@ onMounted(() => {
                 <span>{{ slotProps.data.birthplace_name }}</span>
               </div>
             </div>
-            <div class="mr-2" style="min-width: 200px">
+          </template>
+        </Column>
+        <Column
+          field="profile_user_name"
+          header="Họ và tên"
+          headerStyle="text-align:center;max-width:300px;height:50px"
+          bodyStyle="text-align:center;max-width:300px;"
+          class="align-items-center justify-content-left text-left"
+        >
+          <template #body="slotProps">
+            <div style="min-width: 200px">
               <div class="mb-1">
                 <span
                   >{{ slotProps.data.phone }}
@@ -1905,7 +1925,17 @@ onMounted(() => {
                 <span>{{ slotProps.data.place_residence }}</span>
               </div>
             </div>
-            <div class="mr-2" style="min-width: 200px">
+          </template>
+        </Column>
+        <Column
+          field="profile_user_name"
+          header="Họ và tên"
+          headerStyle="text-align:center;max-width:300px;height:50px"
+          bodyStyle="text-align:center;max-width:300px;"
+          class="align-items-center justify-content-left text-left"
+        >
+          <template #body="slotProps">
+            <div style="min-width: 200px">
               <div class="mb-1">
                 <span>{{ slotProps.data.department_name }}</span>
               </div>
@@ -1932,6 +1962,7 @@ onMounted(() => {
                 border: slotProps.data.bg_color,
                 backgroundColor: slotProps.data.bg_color,
                 color: slotProps.data.text_color,
+                padding: '0.1rem 0.6rem',
               }"
               v-tooltip.top="slotProps.data.status_name"
             />
