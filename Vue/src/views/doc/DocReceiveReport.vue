@@ -981,9 +981,10 @@ htmltable += `<div id="formprint" style="width:100%">
           </tr>
         </thead>
         <tbody class="boder">`;
+          var stt= options.value.pagenoExport*options.value.totalRecordsExport - (options.value.totalRecordsExport -1 );
   for (let index = 0; index < datalistsExport.value.length; index++) {
     const value = datalistsExport.value[index];
-
+    
     var doc_date = "";
     var receive_date = "";
     var num_of_pages="";
@@ -1005,7 +1006,7 @@ htmltable += `<div id="formprint" style="width:100%">
  
     if(value.is_not_send_paper==1)
     is_not_send_paper="1";
-     debugger
+     
     if (value.doc_date)
       doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
     if (value.receive_date)
@@ -1017,7 +1018,7 @@ htmltable += `<div id="formprint" style="width:100%">
             <td  >
               <div style="text-align: center">
                 ` +
-    dispatch_book_code +
+                stt  +
       `
               </div>
             </td>
@@ -1107,6 +1108,8 @@ htmltable += `<div id="formprint" style="width:100%">
               </div>
             </td>
           </tr>`;
+
+          stt++;
   }
   htmltable += `
         </tbody>

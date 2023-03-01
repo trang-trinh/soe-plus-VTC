@@ -1003,6 +1003,8 @@ htmltable += `<div id="formprint" style="width:100%">
           </tr>
         </thead>
         <tbody class="boder">`;
+
+          var stt= options.value.pagenoExport*options.value.totalRecordsExport - (options.value.totalRecordsExport -1 );
   for (let index = 0; index < datalistsExport.value.length; index++) {
     const value = datalistsExport.value[index];
 
@@ -1039,7 +1041,7 @@ htmltable += `<div id="formprint" style="width:100%">
             <td  >
               <div style="text-align: center">
                 ` +
-    dispatch_book_code +
+                stt +
       `
               </div>
             </td>
@@ -1129,6 +1131,7 @@ htmltable += `<div id="formprint" style="width:100%">
               </div>
             </td>
           </tr>`;
+          stt++;
   }
   htmltable += `
         </tbody>
