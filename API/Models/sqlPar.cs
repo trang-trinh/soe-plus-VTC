@@ -9,18 +9,23 @@ namespace API.Models
     public class docReport
     {
         public DateTime timeExport { get; set; }
-        public DateTime start_dateI { get; set; }
-        public DateTime end_dateI { get; set; }
-        public DateTime start_dateD { get; set; }
-        public DateTime end_dateD { get; set; }
-
+       
+        public string user_id { get; set; }
+        public int report_type { get; set; }
+        public int page_no { get; set; }
+        public int page_size { get; set; }
+        public DateTime? start_dateI { get; set; }
+        public DateTime? end_dateI { get; set; }
+        public DateTime? start_dateD { get; set; }
+        public DateTime? end_dateD { get; set; }
         public string search { get; set; }
-        public string ca_groups_list { get; set; }
-        public string department_id { get; set; }
+        public string user_recever { get; set; }
+        public string field_id { get; set; }
+        public string dispatch_book_id { get; set; }
+        public string doc_group_id { get; set; }
         public string department_id_process { get; set; }
-        public string ca_fields_list { get; set; }
-        public string ca_dispatch_book_list { get; set; }
-        public string ca_user_recever_list { get; set; }
+        public string department_id { get; set; }
+   
     }
     public class colExcel
     {

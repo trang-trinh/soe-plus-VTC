@@ -32,17 +32,17 @@ const DataUsing = () => import("../views/hethong/DataUsing.vue");
 const SQLTableView = () => import("../views/autocode/SQLTableView.vue");
 //Danh mục
 //Sys
-//CMS
-const CMSView = () => import("../views/cms/CMSView.vue");
-const CMSHomeView = () => import("../views/cms/CMSHomeView.vue");
-const LangView = () => import("../views/cms/LangView.vue");
-const CMSLogsView = () => import("../views/cms/LogsView.vue");
-const NewsView = () => import("../views/cms/NewsView.vue");
-const SlideShowView = () => import("../views/cms/SlideShowView.vue");
-const TopicFlagView = () => import("../views/cms/TopicFlagView.vue");
-const TopicView = () => import("../views/cms/TopicView.vue");
-//Canva
-const CanvaView = () => import("../views/canva/CanvaView.vue");
+// //CMS
+// const CMSView = () => import("../views/cms/CMSView.vue");
+// const CMSHomeView = () => import("../views/cms/CMSHomeView.vue");
+// const LangView = () => import("../views/cms/LangView.vue");
+// const CMSLogsView = () => import("../views/cms/LogsView.vue");
+// const NewsView = () => import("../views/cms/NewsView.vue");
+// const SlideShowView = () => import("../views/cms/SlideShowView.vue");
+// const TopicFlagView = () => import("../views/cms/TopicFlagView.vue");
+// const TopicView = () => import("../views/cms/TopicView.vue");
+// //Canva
+// const CanvaView = () => import("../views/canva/CanvaView.vue");
 //API
 // const Project = () =>
 //     import ("../views/project/Project.vue");
@@ -393,11 +393,11 @@ const router = createRouter({
       component: Organization,
     },
     //Canva
-    {
-      path: "/canva",
-      name: "canva",
-      component: CanvaView,
-    },
+    // {
+    //   path: "/canva",
+    //   name: "canva",
+    //   component: CanvaView,
+    // },
     //Hệ thống
     {
       path: "/module",
@@ -494,44 +494,44 @@ const router = createRouter({
 
     //Sys
     //CMS
-    {
-      path: "/cms",
-      name: "cms",
-      component: CMSView,
-      children: [
-        { path: "", component: CMSHomeView },
-        {
-          path: "log",
-          name: "log",
-          component: LangView,
-        },
-        {
-          path: "lang",
-          name: "lang",
-          component: LangView,
-        },
-        {
-          path: "topic-flag",
-          name: "topic-flag",
-          component: TopicFlagView,
-        },
-        {
-          path: "topic",
-          name: "topic",
-          component: TopicView,
-        },
-        {
-          path: "new",
-          name: "new",
-          component: NewsView,
-        },
-        {
-          path: "slideshow",
-          name: "slideshow",
-          component: SlideShowView,
-        },
-      ],
-    },
+    // {
+    //   path: "/cms",
+    //   name: "cms",
+    //   component: CMSView,
+    //   children: [
+    //     { path: "", component: CMSHomeView },
+    //     {
+    //       path: "log",
+    //       name: "log",
+    //       component: LangView,
+    //     },
+    //     {
+    //       path: "lang",
+    //       name: "lang",
+    //       component: LangView,
+    //     },
+    //     {
+    //       path: "topic-flag",
+    //       name: "topic-flag",
+    //       component: TopicFlagView,
+    //     },
+    //     {
+    //       path: "topic",
+    //       name: "topic",
+    //       component: TopicView,
+    //     },
+    //     {
+    //       path: "new",
+    //       name: "new",
+    //       component: NewsView,
+    //     },
+    //     {
+    //       path: "slideshow",
+    //       name: "slideshow",
+    //       component: SlideShowView,
+    //     },
+    //   ],
+    // },
     //API
     {
       path: "/project",
