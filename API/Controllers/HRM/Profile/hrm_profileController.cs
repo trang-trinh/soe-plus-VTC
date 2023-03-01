@@ -994,5 +994,87 @@ namespace API.Controllers.HRM.Profile
                 return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
         }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_profile_relate()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+                    var profile_id = provider.FormData.GetValues("profile_id").SingleOrDefault();
+                    var rl = provider.FormData.GetValues("relate").SingleOrDefault();
+
+                    hrm_profile_relate relate = JsonConvert.DeserializeObject<hrm_profile_relate>(rl);
+
+                    var relate_old = await db.hrm_profile_relate.Where(x => x.profile_id == profile_id).ToListAsync();
+                    if (relate_old.Count > 0)
+                    {
+                        db.hrm_profile_relate.RemoveRange(relate_old);
+                    }
+                    var check = await db.hrm_profile_relate.CountAsync(x => x.relate_id == profile_id) > 0;
+                    if (!check)
+                    {
+                        relate.profile_id = profile_id;
+                        relate.created_by = uid;
+                        relate.created_date = DateTime.Now;
+                        relate.created_ip = ip;
+                        relate.created_token_id = tid;
+                        db.hrm_profile_relate.Add(relate);
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile_replate", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile_replate", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
     }
 }

@@ -608,12 +608,16 @@ namespace API.Controllers
                             {
                                 organization_id_user = user_now.organization_id.ToString();
                             }
-                            string[] listFilePath = da.url_file.Split(',');
-                            foreach (string path in listFilePath)
+                            if (da.url_file != null)
                             {
-                                string filePath = "/Portals/" + organization_id_user + "/Law/" + da.law_id + "/Comment/" + Path.GetFileName(path);
-                                if (filePath == (path)) {
-                                    paths.Add(filePath);
+                                string[] listFilePath = da.url_file.Split(',');
+                                foreach (string path in listFilePath)
+                                {
+                                    string filePath = "/Portals/" + organization_id_user + "/Law/" + da.law_id + "/Comment/" + Path.GetFileName(path);
+                                    if (filePath == (path))
+                                    {
+                                        paths.Add(filePath);
+                                    }
                                 }
                             }
                             #region add cms_logs
@@ -648,7 +652,7 @@ namespace API.Controllers
                         }
                         db.law_comment.RemoveRange(del);
                     }
-                    //await db.SaveChangesAsync();
+                    db.SaveChanges();
                     foreach (string strPath in paths)
                     {
                         var listPathEdit = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/").Split('/');

@@ -267,7 +267,7 @@ namespace API.Controllers
 
                                                 }
                                             case "wards":
-                                                if (vl != null && vl != "")
+                                                if (vl != null && vl.ToString() != "")
                                                 {
                                                     var district = db.ca_places.Where(x => GetBeforeColumn1.ToString() == x.name && x.parent_id == city_ID).FirstOrDefault();
                                                     var checkWards = db.ca_places.AsNoTracking().Where(x => vl.ToString() == x.name && x.parent_id == district.place_id).FirstOrDefault();
@@ -730,7 +730,7 @@ namespace API.Controllers
                                         }
 
 
-                                        if (ws.Cells[i, 8].Value != null && ws.Cells[i, 8].Value != "") //kiểm tra phòng ban của đơn vị
+                                        if (ws.Cells[i, 8].Value != null && ws.Cells[i, 8].Value.ToString() != "") //kiểm tra phòng ban của đơn vị
                                         {
                                             string cell8 = ws.Cells[i, 8].Value.ToString();
                                             int id = org.organization_name == cell8 ? org.organization_id : getID(org.organization_id, cell8);
@@ -1065,8 +1065,15 @@ namespace API.Controllers
                                         }
                                         else if (ws.Cells[i, 4].Value.ToString().ToUpper() != "HỆ THỐNG")
                                         {
+                                            //string celli4 = ws.Cells[i, 4].Value.ToString();
+                                            //var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            //if (org == null)
+                                            //{
+                                            //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                            //}
+
                                             string celli4 = ws.Cells[i, 4].Value.ToString();
-                                            var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            var org = db.sys_organization.Where(x => celli4.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
@@ -1593,8 +1600,15 @@ namespace API.Controllers
                                         }
                                         else if (ws.Cells[i, 4].Value.ToString().ToUpper() != "HỆ THỐNG")
                                         {
+                                            //string celli4 = ws.Cells[i, 4].Value.ToString();
+                                            //var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            //if (org == null)
+                                            //{
+                                            //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                            //}
+
                                             string celli4 = ws.Cells[i, 4].Value.ToString();
-                                            var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            var org = db.sys_organization.Where(x => celli4.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
@@ -1846,8 +1860,15 @@ namespace API.Controllers
                                         }
                                         else if (ws.Cells[i, 7].Value.ToString().ToUpper() != "HỆ THỐNG")
                                         {
-                                            string celli4 = ws.Cells[i, 7].Value.ToString();
-                                            var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            //string celli4 = ws.Cells[i, 7].Value.ToString();
+                                            //var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            //if (org == null)
+                                            //{
+                                            //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                            //}
+
+                                            string celli4 = ws.Cells[i, 4].Value.ToString();
+                                            var org = db.sys_organization.Where(x => celli4.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
@@ -2113,8 +2134,15 @@ namespace API.Controllers
                                         }
                                         else if (ws.Cells[i, 8].Value.ToString().ToUpper() != "HỆ THỐNG")
                                         {
-                                            string celli8 = ws.Cells[i, 8].Value.ToString();
-                                            var org = db.sys_organization.Where(x => celli8.Contains(x.organization_name)).FirstOrDefault();
+                                            //string celli8 = ws.Cells[i, 8].Value.ToString();
+                                            //var org = db.sys_organization.Where(x => celli8.Contains(x.organization_name)).FirstOrDefault();
+                                            //if (org == null)
+                                            //{
+                                            //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                            //}
+
+                                            string celli8 = ws.Cells[i, 4].Value.ToString();
+                                            var org = db.sys_organization.Where(x => celli8.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
@@ -3189,20 +3217,42 @@ namespace API.Controllers
                                 {
                                     if (ws.Cells[i, 5].Value != null) // kiểm tra đơn vị có trong dtb
                                     {
+                                        //string ceilli5 = ws.Cells[i, 5].Value.ToString();
+                                        //var org = db.sys_organization.Where(x => ceilli5.Contains(x.organization_name)).FirstOrDefault();
+                                        //if (ws.Cells[i, 5].Value.ToString().ToUpper() == "HỆ THỐNG" && sp == false)
+                                        //{
+                                        //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
+                                        //}
+                                        //else if (ws.Cells[i, 5].Value.ToString().ToUpper() != "HỆ THỐNG")
+                                        //{
+                                        //    if (org == null)
+                                        //    {
+                                        //        listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                        //    }
+
+                                        //    if (ws.Cells[i, 4].Value != null && ws.Cells[i, 4].Value != "") //kiểm tra phòng ban của đơn vị
+                                        //    {
+                                        //        string cell8 = ws.Cells[i, 4].Value.ToString();
+                                        //        int id = org.organization_name == cell8 ? org.organization_id : getID(org.organization_id, cell8);
+                                        //        if (id == 0 || id.ToString() == null)
+                                        //        {
+                                        //            listErr += "Dòng thứ " + i + " cột <b>Phòng ban</b>: <b style='color:red'>Đơn vị không tồn tại phòng ban " + ws.Cells[i, 8].Value + " trong hệ thống</b><br>";
+                                        //        }
+                                        //    }
+                                        //}
                                         string ceilli5 = ws.Cells[i, 5].Value.ToString();
-                                        var org = db.sys_organization.Where(x => ceilli5.Contains(x.organization_name)).FirstOrDefault();
-                                        if (ws.Cells[i, 5].Value.ToString().ToUpper() == "HỆ THỐNG" && sp == false)
+                                        if (ceilli5.ToUpper() == "HỆ THỐNG" && sp == false)
                                         {
                                             listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
                                         }
-                                        else if (ws.Cells[i, 5].Value.ToString().ToUpper() != "HỆ THỐNG")
+                                        else if (ceilli5.ToUpper() != "HỆ THỐNG")
                                         {
+                                            var org = db.sys_organization.Where(x => ceilli5.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
                                             }
-
-                                            if (ws.Cells[i, 4].Value != null && ws.Cells[i, 4].Value != "") //kiểm tra phòng ban của đơn vị
+                                            if (ws.Cells[i, 4].Value != null && ws.Cells[i, 4].Value.ToString() != "") //kiểm tra phòng ban của đơn vị
                                             {
                                                 string cell8 = ws.Cells[i, 4].Value.ToString();
                                                 int id = org.organization_name == cell8 ? org.organization_id : getID(org.organization_id, cell8);
@@ -3212,6 +3262,7 @@ namespace API.Controllers
                                                 }
                                             }
                                         }
+
                                         if (ws.Cells[i, 5].Value.ToString().ToUpper() == "HỆ THỐNG" || ws.Cells[i, 5].Value.ToString().Trim() == null)
                                         { listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red'>Đơn vị không tồn tại trong hệ thống</b> <br>"; }
                                     }
@@ -3503,8 +3554,15 @@ namespace API.Controllers
                                         }
                                         else if (ws.Cells[i, 4].Value.ToString().ToUpper() != "HỆ THỐNG")
                                         {
+                                            //string celli4 = ws.Cells[i, 4].Value.ToString();
+                                            //var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            //if (org == null)
+                                            //{
+                                            //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                            //}
+
                                             string celli4 = ws.Cells[i, 4].Value.ToString();
-                                            var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            var org = db.sys_organization.Where(x => celli4.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
@@ -3758,21 +3816,33 @@ namespace API.Controllers
                                 {
                                     if (ws.Cells[i, 6].Value != null) // kiểm tra đơn vị có trong dtb
                                     {
-                                        string celli6 = ws.Cells[i, 6].Value.ToString();
+                                        //string celli6 = ws.Cells[i, 6].Value.ToString();
+                                        //if (celli6.ToUpper() == "HỆ THỐNG" && sp == false)
+                                        //{
+                                        //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
+                                        //}
+                                        //else if (celli6.ToUpper() != "HỆ THỐNG")
+                                        //{
+                                        //    var org = db.sys_organization.Where(x => celli6.Contains(x.organization_name)).FirstOrDefault();
+                                        //    if (org == null)
+                                        //    {
+                                        //        listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                        //    }
+                                        //}
 
+                                        string celli6 = ws.Cells[i, 6].Value.ToString();
                                         if (celli6.ToUpper() == "HỆ THỐNG" && sp == false)
                                         {
                                             listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
                                         }
                                         else if (celli6.ToUpper() != "HỆ THỐNG")
                                         {
-                                            var org = db.sys_organization.Where(x => celli6.Contains(x.organization_name)).FirstOrDefault();
+                                            var org = db.sys_organization.Where(x => celli6.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
                                             }
                                         }
-
                                     }
                                     //--------------------------------Kiểm tra trường bắt buộc nhập-----------------------------------
                                     listErr += ws.Cells[i, 1].Value == null ? "Dòng thứ " + i + " cột <b>STT</b> không được để trống <br>" : null;
@@ -4267,22 +4337,39 @@ namespace API.Controllers
 
                                 for (int i = 5; i <= ws.Dimension.End.Row; i++)
                                 {
-                                    string celli4 = ws.Cells[i, 4].Value.ToString();
-                                    if (ws.Cells[i, 4].Value != null) // kiểm tra đơn vị có trong dtb
+                                    //string celli4 = ws.Cells[i, 4].Value.ToString();
+                                    //if (ws.Cells[i, 4].Value != null) // kiểm tra đơn vị có trong dtb
+                                    //{
+                                    //    if (celli4.ToUpper() == "HỆ THỐNG" && sp == false)
+                                    //    {
+                                    //        listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
+                                    //    }
+                                    //    else if (celli4.ToUpper() != "HỆ THỐNG")
+                                    //    {
+                                    //        var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                    //        if (org == null)
+                                    //        {
+                                    //            listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                    //        }
+                                    //    }
+                                    //}
+                                    if (ws.Cells[i, 4].Value != null)
                                     {
+                                        string celli4 = ws.Cells[i, 4].Value.ToString();
                                         if (celli4.ToUpper() == "HỆ THỐNG" && sp == false)
                                         {
                                             listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
                                         }
                                         else if (celli4.ToUpper() != "HỆ THỐNG")
                                         {
-                                            var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            var org = db.sys_organization.Where(x => celli4.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
                                             }
                                         }
                                     }
+
                                     //--------------------------------Kiểm tra trường bắt buộc nhập-----------------------------------
                                     listErr += ws.Cells[i, 1].Value == null ? "Dòng thứ " + i + " cột <b>STT</b> không được để trống <br>" : null;
                                     listErr += ws.Cells[i, 2].Value == null ? "Dòng thứ " + i + " cột <b>Nhãn</b> không được để trống <br>" : null;
@@ -4526,6 +4613,20 @@ namespace API.Controllers
                                     //listErr += check != null ? "Dòng thứ " + i + " cột <b>Mã loại</b> đã có trong cơ sở dữ liệu" : null;
                                     if (ws.Cells[i, 5].Value != null) // kiểm tra đơn vị có trong dtb
                                     {
+                                        //string celli4 = ws.Cells[i, 5].Value.ToString();
+                                        //if (celli4.ToUpper() == "HỆ THỐNG" && sp == false)
+                                        //{
+                                        //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
+                                        //}
+                                        //else if (celli4.ToUpper() != "HỆ THỐNG")
+                                        //{
+                                        //    var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                        //    if (org == null)
+                                        //    {
+                                        //        listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                        //    }
+                                        //}
+
                                         string celli4 = ws.Cells[i, 5].Value.ToString();
                                         if (celli4.ToUpper() == "HỆ THỐNG" && sp == false)
                                         {
@@ -4533,7 +4634,7 @@ namespace API.Controllers
                                         }
                                         else if (celli4.ToUpper() != "HỆ THỐNG")
                                         {
-                                            var org = db.sys_organization.Where(x => celli4.Contains(x.organization_name)).FirstOrDefault();
+                                            var org = db.sys_organization.Where(x => celli4.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
@@ -4804,6 +4905,20 @@ namespace API.Controllers
                                 {
                                     if (ws.Cells[i, 5].Value != null) // kiểm tra đơn vị có trong dtb
                                     {
+                                        //string celli5 = ws.Cells[i, 5].Value.ToString();
+                                        //if (celli5.ToUpper() == "HỆ THỐNG" && sp == false)
+                                        //{
+                                        //    listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b style='color:red;'>Bạn không phải quản trị viên hệ thống</b> <br>";
+                                        //}
+                                        //else if (celli5.ToUpper() != "HỆ THỐNG")
+                                        //{
+                                        //    var org = db.sys_organization.Where(x => celli5.Contains(x.organization_name)).FirstOrDefault();
+                                        //    if (org == null)
+                                        //    {
+                                        //        listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
+                                        //    }
+                                        //}
+
                                         string celli5 = ws.Cells[i, 5].Value.ToString();
                                         if (celli5.ToUpper() == "HỆ THỐNG" && sp == false)
                                         {
@@ -4811,13 +4926,12 @@ namespace API.Controllers
                                         }
                                         else if (celli5.ToUpper() != "HỆ THỐNG")
                                         {
-                                            var org = db.sys_organization.Where(x => celli5.Contains(x.organization_name)).FirstOrDefault();
+                                            var org = db.sys_organization.Where(x => celli5.ToLower().Contains(x.organization_name.Trim().ToLower())).FirstOrDefault();
                                             if (org == null)
                                             {
                                                 listErr += "Dòng thứ " + i + " cột <b>Đơn vị</b>: <b>Đơn vị không tồn tại trong hệ thống</b> <br>";
                                             }
                                         }
-
                                     }
                                     //--------------------------------Kiểm tra trường bắt buộc nhập-----------------------------------
                                     listErr += ws.Cells[i, 1].Value == null ? "Dòng thứ " + i + " cột <b>STT</b> không được để trống <br>" : null;
@@ -5091,7 +5205,24 @@ namespace API.Controllers
                                             case "full_name":
                                                 user.full_name = vl != null ? vl.ToString() : null;
                                                 user.full_name_en = vl != null ? helper.convertToUnSign(vl.ToString()) : null;
-                                                user.last_name = vl != null ? vl.ToString().Split(' ').LastOrDefault().Trim() : null;
+                                                if (user.full_name != null)
+                                                {
+                                                    var splitName = user.full_name.Split(' ');
+                                                    var lastName = "";
+                                                    foreach (var itemName in splitName)
+                                                    {
+                                                        if (itemName.Trim() != "")
+                                                        {
+                                                            lastName = itemName.Trim();
+                                                        }
+                                                    }
+                                                    user.last_name = lastName != "" ? lastName : null;
+                                                }
+                                                else
+                                                {
+                                                    user.last_name = null;
+                                                }
+                                                //user.last_name = user.full_name_en != null && vl.ToString() != null && vl.ToString().Split(' ').Count() > 0 ? vl.ToString().Split(' ').LastOrDefault().Trim() : null;
                                                 break;
                                             case "gender":
                                                 user.gender = helper.convertToUnSign(vl.ToString().Trim().ToUpper()) == "NAM" ? 1 : (helper.convertToUnSign(vl.ToString().Trim().ToUpper()) == "NU" ? 0 : 2);
