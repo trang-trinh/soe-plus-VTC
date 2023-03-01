@@ -439,7 +439,13 @@ li.p-chips-token {
 .p-inputtext {
     max-width: 100%;
 }
-
+.duy-inpput .p-inputtext {
+    text-align: center !important;
+}
+.duy-inpput.p-inputtext {
+    text-align: center !important;
+}
+ 
 .p-card.nopadd .p-card-footer {
     padding: 0;
 }

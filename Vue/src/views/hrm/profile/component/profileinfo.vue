@@ -32,12 +32,14 @@ const views = ref([
   { view: 2, title: "Phân công", icon: "fa-solid fa-list-check" },
   { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
   { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
-  { view: 5, title: "Phiếu lương", icon: "a-solid fa-money-check-dollar" },
+  { view: 5, title: "Lương", icon: "a-solid fa-money-check-dollar" },
   { view: 6, title: "Bảo hiểm", icon: "fa-solid fa-file-shield" },
   { view: 7, title: "Phép", icon: "fa-regular fa-calendar-days" },
   { view: 8, title: "Đào tạo", icon: "fa-solid fa-person-chalkboard" },
   { view: 9, title: "Quyết định", icon: "fa-solid fa-envelope-open" },
   { view: 10, title: "File", icon: "fa-solid fa-paperclip" },
+  { view: 11, title: "Tiếp nhận", icon: "fa-regular fa-file" },
+  { view: 12, title: "Sức khỏe", icon: "fa-solid fa-briefcase-medical" },
 ]);
 const options = ref({
   loading: true,
@@ -485,7 +487,7 @@ const initDictionaryInsurance = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      if(data != null){
+      if (data != null) {
         insurance_dictionarys.value = data;
       }
     })
@@ -1006,6 +1008,11 @@ const initView1 = (rf) => {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
           profile.value = tbs[0][0];
+          profile.value["relates"] = JSON.parse(profile.value["relates"]);
+          profile.value["relate"] = profile.value["relates"][0];
+          if(profile.value["relate"]["relate_time"] != null){
+            profile.value["relate"]["relate_time"] = moment(new Date(profile.value["relate"]["relate_time"])).format("DD/MM/YYYY");
+          }
           profile.value["gender"] =
             profile.value["gender"] == 1
               ? "Nam"
@@ -2107,7 +2114,7 @@ const onPage = (event) => {
 </script>
 <template>
   <div class="surface-100 p-2">
-    <Toolbar class="outline-none surface-0 border-none">
+    <Toolbar class="outline-none surface-0 border-none pb-1">
       <template #start>
         <span v-if="options.view === 10" class="p-input-icon-left">
           <i class="pi pi-search" />
@@ -2298,7 +2305,7 @@ const onPage = (event) => {
         <Button
           @click="toggleEdit"
           label="Cập nhật thay đổi thông tin"
-          class="p-button-warning"
+          class="p-button-warning mr-2"
           icon="pi pi-file-excel"
           aria-haspopup="true"
           aria-controls="overlay_Export"
@@ -2315,6 +2322,46 @@ const onPage = (event) => {
           id="overlay_Export"
           ref="menuButs"
         />
+        <Button
+          @click="
+            togglePrints($event);
+            $event.stopPropagation();
+          "
+          class="p-button-outlined p-button-secondary p-button-custom'"
+        >
+          <span class="mr-2"
+            ><font-awesome-icon icon="fa-solid fa-print"
+          /></span>
+          <span class="mr-2">In</span>
+          <span><i class="pi pi-chevron-down"></i></span>
+        </Button>
+        <OverlayPanel
+          :showCloseIcon="false"
+          ref="menuButPrints"
+          appendTo="body"
+          class="p-0 m-0"
+          id="overlay_More"
+          style="min-width: max-content"
+        >
+          <ul class="m-0 p-0" style="list-style: none">
+            <li
+              v-for="(value, key) in itemButPrints"
+              :key="key"
+              @click="changeView(value.view)"
+              class="item-menu"
+              :class="{
+                'item-menu-highlight': value.view === options.view,
+              }"
+            >
+              <div>
+                <span :class="{ 'mr-2': value.label != null }"
+                  ><font-awesome-icon :icon="value.icon"
+                /></span>
+                <span>{{ value.label }}</span>
+              </div>
+            </li>
+          </ul>
+        </OverlayPanel>
       </template>
     </Toolbar>
     <Toolbar class="outline-none surface-0 border-none pt-0">
@@ -2342,30 +2389,7 @@ const onPage = (event) => {
               </b>
             </template>
           </SelectButton>
-          <span class="p-buttonset">
-            <Button
-              @click="
-                togglePrints($event);
-                $event.stopPropagation();
-              "
-              :class="{
-                'p-button-outlined p-button-secondary p-button-custom':
-                  options.view < 13,
-              }"
-              :style="{
-                background: options.view < 13 ? '#ffffff' : '',
-                borderColor: options.view < 13 ? '#ced4da' : '',
-                color: options.view < 13 ? '#495057' : '',
-                transition:
-                  'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
-                height: '30px',
-              }"
-            >
-              <span class="mr-2"
-                ><font-awesome-icon icon="fa-solid fa-print"
-              /></span>
-              In
-            </Button>
+          <!-- <span class="p-buttonset">
             <Button
               @click="
                 toggleMores($event);
@@ -2389,33 +2413,6 @@ const onPage = (event) => {
               <font-awesome-icon icon="fa-solid fa-ellipsis" />
             </Button>
           </span>
-          <OverlayPanel
-            :showCloseIcon="false"
-            ref="menuButPrints"
-            appendTo="body"
-            class="p-0 m-0"
-            id="overlay_More"
-            style="min-width: max-content"
-          >
-            <ul class="m-0 p-0" style="list-style: none">
-              <li
-                v-for="(value, key) in itemButPrints"
-                :key="key"
-                @click="changeView(value.view)"
-                class="item-menu"
-                :class="{
-                  'item-menu-highlight': value.view === options.view,
-                }"
-              >
-                <div>
-                  <span :class="{ 'mr-2': value.label != null }"
-                    ><font-awesome-icon :icon="value.icon"
-                  /></span>
-                  <span>{{ value.label }}</span>
-                </div>
-              </li>
-            </ul>
-          </OverlayPanel>
           <OverlayPanel
             :showCloseIcon="false"
             ref="menuButMores"
@@ -2442,7 +2439,7 @@ const onPage = (event) => {
                 </div>
               </li>
             </ul>
-          </OverlayPanel>
+          </OverlayPanel> -->
         </div>
       </template>
       <template #end> </template>
@@ -2455,10 +2452,116 @@ const onPage = (event) => {
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
                   <!-- 1. Thông tin chung -->
-                  <Accordion class="w-full mb-2" :activeIndex="0">
+                  <Accordion class="w-full mb-2 header-padding-y-0" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
-                        <span>1. Thông tin chung</span>
+                        <Toolbar class="w-full custoolbar p-0 font-bold py-0">
+                          <template #start>
+                            <!-- <i class="pi pi-users mr-2"></i> -->
+                            <span>1. Thông tin chung</span>
+                          </template>
+                          <template #end>
+                            <div class="relative relative-hover" :style="{ margin: '0.5rem 0' }">
+                              <Avatar
+                                v-if="profile.relate"
+                                v-bind:label="
+                                  profile.relate.avatar
+                                    ? ''
+                                    : (profile.relate.profile_user_name ?? '')
+                                        .substring(0, 1)
+                                        .toUpperCase()
+                                "
+                                v-bind:image="
+                                  profile.relate.avatar
+                                    ? basedomainURL + profile.relate.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                :style="{
+                                  background: bgColor[1 % 7],
+                                  color: '#ffffff',
+                                  width: '2rem',
+                                  height: '2rem',
+                                  fontSize: '1rem',
+                                  borderRadius: '50%',
+                                  fontSize: '1rem !important',
+                                }"
+                                size="xlarge"
+                                class="border-radius"
+                              />
+                              <span class="absolute" :style="{ color: 'red', bottom: '-3px', right: '-3px' }"><i class="pi pi-heart-fill"></i></span>
+                              <div
+                                v-if="profile.relate"
+                                class="absolute absolute-hover"
+                                :style="{
+                                  backgroundColor: '#fff',
+                                  minHeight: 'unset',
+                                  top: '100%',
+                                  right: '0',
+                                  width: '350px',
+                                  borderRadius: '3px',
+                                  border: 'solid 1px rgba(0,0,0,0.1)',
+                                  padding: '0.75rem',
+                                }"
+                              >
+                                <div class="flex">
+                                  <div class="mr-2 format-center">
+                                    <div>
+                                      <Avatar
+                                      v-bind:label="
+                                        profile.relate.avatar
+                                          ? ''
+                                          : (
+                                              profile.relate
+                                                .profile_user_name ?? ''
+                                            )
+                                              .substring(0, 1)
+                                              .toUpperCase()
+                                      "
+                                      v-bind:image="
+                                        profile.relate.avatar
+                                          ? basedomainURL +
+                                            profile.relate.avatar
+                                          : basedomainURL +
+                                            '/Portals/Image/noimg.jpg'
+                                      "
+                                      :style="{
+                                        background: bgColor[1 % 7],
+                                        color: '#ffffff',
+                                        width: '5rem',
+                                        height: '5rem',
+                                        fontSize: '1.5rem',
+                                        borderRadius: '5px',
+                                        fontSize: '1.5rem !important',
+                                      }"
+                                      size="xlarge"
+                                      class="border-radius"
+                                    />
+                                    <div class="description format-center" :style="{fontSize: '11px'}">{{ profile.relate.relate_time }}</div>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div class="mb-2"><span :style="{ color: 'rgb(0, 90, 158)' }">Đã kết hôn với</span> <b>{{profile.relate.profile_user_name}}</b></div>
+                                    <div class="description">
+                                      <span>{{
+                                        profile.relate.department_name
+                                      }}</span>
+                                    </div>
+                                    <div class="description">
+                                      <span>{{
+                                        profile.relate.work_position_name
+                                      }}</span>
+                                    </div>
+                                    <div class="description">
+                                      <span>{{
+                                        profile.relate.position_name
+                                      }}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </Toolbar>
                       </template>
                       <div class="col-12 md:col-12 p-0">
                         <div class="row">
@@ -2486,9 +2589,9 @@ const onPage = (event) => {
                                 <div class="form-group m-0">
                                   <label>
                                     Mã nhân sự:
-                                    <span class="description-2">{{
+                                    <b class="m-0" :style="{ color: '#2ECC71' }">{{
                                       profile.profile_id
-                                    }}</span>
+                                    }}</b>
                                   </label>
                                 </div>
                               </div>
@@ -5017,7 +5120,7 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
@@ -5107,7 +5210,7 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
@@ -5197,7 +5300,7 @@ const onPage = (event) => {
                               />
                             </div>
                             <div>
-                              <div class="mb-2">
+                              <div class="mb-1">
                                 <b>{{ slotProps.data.profile_user_name }}</b>
                               </div>
                               <div class="description">
@@ -5325,6 +5428,14 @@ const onPage = (event) => {
   border-color: #ced4da !important;
   color: #495057 !important;
 }
+.absolute-hover{
+  display: none;
+  animation: 0.5s;
+  z-index: 999;
+}
+.relative-hover:hover .absolute-hover{
+  display: block;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.disable-header) {
@@ -5364,14 +5475,23 @@ const onPage = (event) => {
 }
 ::v-deep(.selectbutton-custom) {
   .p-button.p-highlight {
-    color: #ffffff;
-    background: #64748b;
-    border: 1px solid #64748b;
+    // color: #ffffff;
+    // background: #64748b;
+    // border: 1px solid #64748b;
+    color: #000;
+    background: #d3e3f8;
+    border: 1px solid #d3e3f8;
   }
 }
 ::v-deep(.border-radius) {
   img {
     border-radius: 5px;
+  }
+}
+::v-deep(.header-padding-y-0){
+  .p-accordion-header-link{
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 </style>
