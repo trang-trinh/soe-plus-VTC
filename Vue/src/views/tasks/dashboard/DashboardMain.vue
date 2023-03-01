@@ -67,14 +67,14 @@ const ListButtonLabel = ref([
     status: false,
     badgeCount: null,
   },
-  {
-    label: "Filter",
-    icon: "pi pi-clock",
-    code: "7",
-    count: "",
-    status: false,
-    badgeCount: null,
-  },
+  // {
+  //   label: "Filter",
+  //   icon: "pi pi-clock",
+  //   code: "7",
+  //   count: "",
+  //   status: false,
+  //   badgeCount: null,
+  // },
 ]);
 const ChangeView = (value) => {
   ListButtonLabel.value.forEach((x) => {
@@ -86,7 +86,7 @@ const ChangeView = (value) => {
   });
 };
 onMounted(() => {
-  ChangeView(4);
+  ChangeView(2);
   return;
 });
 </script>
@@ -116,22 +116,12 @@ onMounted(() => {
       <OrganizationTasks
         v-if="ListButtonLabel[3].status == true"
       ></OrganizationTasks>
-      <TaskReport
-        v-if="ListButtonLabel[4].status == true"
-        :project="listDropdownProject"
-        :group="listDropdownGroup"
-      ></TaskReport>
-      <TaskReview
-        v-if="ListButtonLabel[5].status == true"
-        :project="listDropdownProject"
-        :group="listDropdownGroup"
-      ></TaskReview>
+      <TaskReport v-if="ListButtonLabel[4].status == true"></TaskReport>
+      <TaskReview v-if="ListButtonLabel[5].status == true"></TaskReview>
       <TaskExtendDashboard
         v-if="ListButtonLabel[6].status == true"
-        :project="listDropdownProject"
-        :group="listDropdownGroup"
       ></TaskExtendDashboard>
-      <FilterTask v-if="ListButtonLabel[7].status == true"></FilterTask>
+      <!-- <FilterTask v-if="ListButtonLabel[7].status == true"></FilterTask> -->
     </div>
   </div>
 </template>

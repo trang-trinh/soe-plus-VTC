@@ -41,7 +41,7 @@ const Switch = (e) => {
       LoadMember(null);
       LoadUser();
       break;
-    case 1:
+    case "1":
       TatCa.value = true;
       NguoiXuLy.value = false;
       NguoiDongXuLy.value = false;
@@ -50,7 +50,7 @@ const Switch = (e) => {
       LoadMember(null);
       LoadUser();
       break;
-    case 2:
+    case "2":
       TatCa.value = false;
       NguoiXuLy.value = true;
       NguoiDongXuLy.value = false;
@@ -59,7 +59,7 @@ const Switch = (e) => {
       LoadMember(1);
       LoadUser();
       break;
-    case 3:
+    case "3":
       TatCa.value = false;
       NguoiXuLy.value = false;
       NguoiDongXuLy.value = true;
@@ -68,7 +68,7 @@ const Switch = (e) => {
       LoadUser();
       LoadMember(2);
       break;
-    case 4:
+    case "4":
       TatCa.value = false;
       NguoiXuLy.value = false;
       NguoiDongXuLy.value = false;
@@ -77,7 +77,7 @@ const Switch = (e) => {
       LoadUser();
       LoadMember(3);
       break;
-    case 5:
+    case "5":
       TatCa.value = false;
       NguoiXuLy.value = false;
       NguoiDongXuLy.value = false;
@@ -138,6 +138,21 @@ const LoadMember = (type) => {
       nth.value = countMemType1[0].countType1;
       ndth.value = countMemType2[0].countType2;
       ntd.value = countMemType3[0].countType3;
+      tabs.value = [];
+      tabs.value.push({ header: "Tất cả (" + allMembers.value + ")", va: "1" });
+      tabs.value.push({ header: "Người quản lý (" + ngv.value + ")", va: "5" });
+      tabs.value.push({
+        header: "Người xử lý chính (" + nth.value + ")",
+        va: "2",
+      });
+      tabs.value.push({
+        header: "Người đồng xử lý (" + ndth.value + ")",
+        va: "3",
+      });
+      tabs.value.push({
+        header: "Người theo dõi (" + ntd.value + ")",
+        va: "4",
+      });
       let sttgv = 0;
       let sttth = 0;
       let sttdth = 0;
@@ -404,7 +419,10 @@ const delMember = (user) => {
       }
     });
 };
-
+const tabs = ref([]);
+const changeTab = (e) => {
+  Switch(tabs.value[e].va);
+};
 onMounted(() => {
   Switch(props.isType ? props.isType : 1);
 });
@@ -412,50 +430,14 @@ onMounted(() => {
 <template>
   <div>
     <div class="grid">
-      <div class="row col-12 format-center">
-        <div class="col px-1">
-          <Button
-            :label="'Tất cả (' + allMembers + ')'"
-            class="p-button-text py-2"
-            :class="TatCa == true ? 'activated' : 'p-button-text-custom'"
-            @click="Switch(1)"
-          />
-        </div>
-        <div class="col px-1">
-          <Button
-            :label="'Người quản lý (' + ngv + ')'"
-            class="p-button-text py-2"
-            :class="NguoiQuanLy == true ? 'activated' : 'p-button-text-custom'"
-            @click="Switch(5)"
-          />
-        </div>
-        <div class="col px-1">
-          <Button
-            :label="'Người xử lý chính (' + nth + ')'"
-            class="p-button-text py-2"
-            :class="NguoiXuLy == true ? 'activated' : 'p-button-text-custom'"
-            @click="Switch(2)"
-          />
-        </div>
-        <div class="col px-1">
-          <Button
-            :label="'Người đồng xử lý (' + ndth + ')'"
-            class="p-button-text py-2"
-            :class="
-              NguoiDongXuLy == true ? 'activated' : 'p-button-text-custom'
-            "
-            @click="Switch(3)"
-          />
-        </div>
-        <div class="col px-1">
-          <Button
-            :label="'Người theo dõi (' + ntd + ')'"
-            class="p-button-text py-2"
-            :class="NguoiTheoDoi == true ? 'activated' : 'p-button-text-custom'"
-            @click="Switch(4)"
-          />
-        </div>
-      </div>
+      <TabView @tab-change="changeTab($event.index)">
+        <TabPanel
+          v-for="(item, index) in tabs"
+          :key="index"
+          :header="item.header"
+        >
+        </TabPanel>
+      </TabView>
 
       <div class="row col-12">
         <AutoComplete
