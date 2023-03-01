@@ -217,9 +217,8 @@ namespace API.Controllers.Task_Origin1
                 using (DBEntities db = new DBEntities())
                 {
                     List<task_extend> del = new List<task_extend>();
-                    foreach (string idp in id)
-                    {
-                        var das = await db.task_extend.Where(a => idp.Contains(a.extend_id)).ToListAsync();
+           
+                        var das = await db.task_extend.Where(a => id.Contains(a.extend_id)).ToListAsync();
                         List<string> paths = new List<string>();
                         if (das != null)
                         {
@@ -257,7 +256,7 @@ namespace API.Controllers.Task_Origin1
                                     null, 2, -1, false, module_key, ssid, null, null, tid, ip);
                             }
                         }
-                    }
+                
                     if (del.Count == 0)
                     {
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });

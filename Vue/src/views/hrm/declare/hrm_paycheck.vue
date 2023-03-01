@@ -1212,9 +1212,11 @@ const loadDataDetails = (rf) => {
       loadCountDetails();
     }
     axios
-      .post(
-        baseURL + "/api/Proc/CallProc",
-        {
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
           proc: "hrm_paycheck_list",
           par: [
           { par: "search", va: options.value.SearchText },
@@ -1224,7 +1226,11 @@ const loadDataDetails = (rf) => {
             { par: "user_id", va: store.getters.user.user_id },
             { par: "status", va: null },
           ],
-        },
+        }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
         config
       )
       .then((response) => {

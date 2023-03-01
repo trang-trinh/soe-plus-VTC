@@ -8540,7 +8540,15 @@ namespace Controllers
                                     case "dateAfter":
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
                                         break;
-
+                                    case "dateIsH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) = CAST('" + m.value + "' as DATETIME)";
+                                        break;
+                                    case "dateBeforeH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) < CAST('" + m.value + "' as DATETIME)";
+                                        break;
+                                    case "dateAfterH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) > CAST('" + m.value + "' as DATETIME)";
+                                        break;
                                 }
                             }
                             WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
@@ -8825,7 +8833,15 @@ namespace Controllers
                                     case "dateAfter":
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
                                         break;
-
+                                    case "dateIsH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) = CAST('" + m.value + "' as DATETIME)";
+                                        break;
+                                    case "dateBeforeH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) < CAST('" + m.value + "' as DATETIME)";
+                                        break;
+                                    case "dateAfterH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) > CAST('" + m.value + "' as DATETIME)";
+                                        break;
                                 }
                             }
                             WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
@@ -9125,7 +9141,15 @@ namespace Controllers
                                     case "dateAfter":
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
                                         break;
-
+                                    case "dateIsH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) = CAST('" + m.value + "' as DATETIME)";
+                                        break;
+                                    case "dateBeforeH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) < CAST('" + m.value + "' as DATETIME)";
+                                        break;
+                                    case "dateAfterH":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as DATETIME) > CAST('" + m.value + "' as DATETIME)";
+                                        break;
                                 }
                             }
                             WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
