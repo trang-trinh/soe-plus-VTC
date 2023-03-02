@@ -91,7 +91,7 @@ const loadData = () => {
               { par: "fromDate", va: options.value.start_date },
               { par: "toDate", va: options.value.end_date },
               { par: "search", va: options.value.searchText },
-              { par: "search", va: options.value.filterDateType },
+              { par: "filterDateType", va: options.value.filterDateType },
             ],
           }),
           // eslint-disable-next-line no-undef
@@ -526,12 +526,6 @@ watch(showDetail, () => {
   if (showDetail.value == false) {
     loadData();
   }
-});
-const listDropdownProject = ref([]);
-const listDropdownGroup = ref([]);
-const props = defineProps({
-  project: Array,
-  group: Array,
 });
 
 const op = ref();
