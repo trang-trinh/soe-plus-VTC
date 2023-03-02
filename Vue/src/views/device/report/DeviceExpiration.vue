@@ -77,15 +77,7 @@ const loadDataSQL = () => {
     })
     .catch((error) => {
       options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-      console.log(error);
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
     });
 };
 const loadData = () => {
@@ -133,7 +125,7 @@ const loadData = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+   
      
     });
 };
@@ -177,7 +169,7 @@ const openDetails = (data) => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+   
     });
 };
 const closeDetails = () => {
@@ -216,18 +208,9 @@ const loadWareHouse = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+    
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 
@@ -263,18 +246,10 @@ const loadDeviceType = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+   
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+   
     });
 };
 const listUnit = ref();
@@ -310,18 +285,9 @@ const loadDeviceUnit = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+      
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 
@@ -374,17 +340,10 @@ const loadUser = () => {
       listDropdownUserCheck.value = listDropdownUser.value;
     })
     .catch((error) => {
-      console.log(error);
+    
 
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 
@@ -801,15 +760,9 @@ return;
     })
     .catch((error) => {
       options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-      console.log(error);
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
+    
+  
     });
 
  
@@ -1025,18 +978,10 @@ const loadStatusDevice = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+    
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
     });
 };
  

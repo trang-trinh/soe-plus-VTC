@@ -5393,12 +5393,12 @@ const onPage = (event) => {
 <style scoped>
 @import url(../../profile/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 166px) !important;
+  height: calc(100vh - 156px) !important;
   background-color: #fff;
   overflow: hidden;
 }
 .d-lang-table-1 {
-  height: calc(100vh - 166px) !important;
+  height: calc(100vh - 156px) !important;
   overflow-x: hidden;
   overflow-y: auto;
 }

@@ -158,6 +158,8 @@ const loadData = () => {
         checkShow.value = true;
         checkShow2.value = true;
         checkShow3.value = true;
+        checkShow4.value = true;
+        checkShow5.value = true;
       })
       .catch((error) => { });
   }
@@ -423,7 +425,8 @@ const listObjTraining = ref([
 const checkShow = ref(false);
 const checkShow2 = ref(false);
 const checkShow3 = ref(false);
-
+const checkShow4 = ref(false);
+const checkShow5 = ref(false);
 const showHidePanel = (type) => {
   if (type == 1) {
     if (checkShow.value == true) {
@@ -446,12 +449,30 @@ const showHidePanel = (type) => {
       checkShow3.value = true;
     }
   }
+  if (type == 4) {
+    if (checkShow4.value == true) {
+      checkShow4.value = false;
+    } else {
+      checkShow4.value = true;
+    }
+  }
+  if (type == 5) {
+    if (checkShow5.value == true) {
+      checkShow5.value = false;
+    } else {
+      checkShow5.value = true;
+    }
+  }
 };
 const addRow_Item = (type) => {
   //relative
   if (type == 1) {
     checkShow.value = true;
 
+    
+  }
+  if (type == 2) {
+    checkShow2.value = true;
     let obj = {
       is_order: list_users_training.value.length + 1,
       data: null,
@@ -473,8 +494,8 @@ const addRow_Item = (type) => {
       listDataUsers.value = arr;
     }
   }
-  if (type == 2) {
-    checkShow2.value = true;
+  if (type == 3) {
+
     let obj = {
       is_order: list_schedule.value.length + 1,
       class_schedule_name: null,
@@ -487,9 +508,13 @@ const addRow_Item = (type) => {
       training_class_id: null,
     };
     list_schedule.value.push(obj);
-  }
-  if (type == 3) {
     checkShow3.value = true;
+  }
+  if (type == 4) {
+    checkShow4.value = true;
+  }
+  if (type == 5) {
+    checkShow5.value = true;
   }
 };
 const deleteFileH = (value) => {
@@ -1065,7 +1090,7 @@ onMounted(() => {
               CMT/Căn cước 
             </div>
             <div style="width: calc(100% - 10rem)">
-              <InputText v-model="candidate.candidate_name" class="w-full" placeholder="168xxxxxx" />
+              <InputText v-model="candidate.candidate_name" class="w-full" placeholder="0202XXXXXXXX" />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
@@ -1175,8 +1200,8 @@ onMounted(() => {
         </div>
 
         <div class="col-12 p-0 border-1 border-300 border-solid">
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(1)">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3 cursor-pointer" @click="showHidePanel(1)">
+            <div class="font-bold flex align-items-center w-full " >
               <i class="pi pi-angle-right" v-if="checkShow == false" style="font-size: 1.25rem"></i>
               <i class="pi pi-angle-down" v-if="checkShow == true" style="font-size: 1.25rem"></i>
               <div class="pl-2">
@@ -1267,10 +1292,10 @@ onMounted(() => {
 
 
         <div class="col-12 p-0 border-1 border-300 border-solid">
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(1)">
-              <i class="pi pi-angle-right" v-if="checkShow == false" style="font-size: 1.25rem"></i>
-              <i class="pi pi-angle-down" v-if="checkShow == true" style="font-size: 1.25rem"></i>
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3  cursor-pointer" @click="showHidePanel(2)">
+            <div class="font-bold flex align-items-center w-full" >
+              <i class="pi pi-angle-right" v-if="checkShow2 == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow2 == true" style="font-size: 1.25rem"></i>
               <div class="pl-2">
                 Thông tin gia đình
                 <span v-if="list_users_training.length > 0">
@@ -1278,13 +1303,13 @@ onMounted(() => {
               </div>
             </div>
             <div class="w-1 text-right" v-if="!view">
-              <a @click="addRow_Item(1)" class="hover" v-tooltip.top="'Thêm học viên'">
+              <a @click="addRow_Item(2)" class="hover" v-tooltip.top="'Thêm học viên'">
                 <i class="pi pi-plus-circle" style="font-size: 18px"></i>
               </a>
             </div>
           </div>
 
-          <div class="w-full p-0" v-if="checkShow == true">
+          <div class="w-full p-0" v-if="checkShow2 == true">
             <div v-if="list_users_training.length > 0">
               <DataTable :value="list_users_training" :scrollable="true" :lazy="true" :rowHover="true"
                 :showGridlines="true" scrollDirection="both">
@@ -1373,11 +1398,11 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 border-1 border-300 border-solid">
+        <div class="col-12 p-0 border-1 border-300 border-solid  cursor-pointer" @click="showHidePanel(3)">
           <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(2)">
-              <i class="pi pi-angle-right" v-if="checkShow2 == false" style="font-size: 1.25rem"></i>
-              <i class="pi pi-angle-down" v-if="checkShow2 == true" style="font-size: 1.25rem"></i>
+            <div class="font-bold flex align-items-center w-full" >
+              <i class="pi pi-angle-right" v-if="checkShow3 == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow3 == true" style="font-size: 1.25rem"></i>
               <div class="pl-2">
                 Trình độ học vấn
                 <span v-if="list_schedule.length > 0">
@@ -1385,13 +1410,13 @@ onMounted(() => {
               </div>
             </div>
             <div class="w-1 text-right" v-if="!view">
-              <a @click="addRow_Item(2)" class="hover" v-tooltip.top="'Thêm lịch học'">
+              <a @click="addRow_Item(3)" class="hover" v-tooltip.top="'Thêm lịch học'">
                 <i class="pi pi-plus-circle" style="font-size: 18px"></i>
               </a>
             </div>
           </div>
 
-          <div class="w-full px-0 pt-0" v-if="checkShow2 == true">
+          <div class="w-full px-0 pt-0" v-if="checkShow3 == true">
             <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
               <DataTable :value="list_schedule" :scrollable="true" :lazy="true" :rowHover="true" :showGridlines="true"
                 scrollDirection="both">
@@ -1487,11 +1512,11 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 border-1 border-300 border-solid">
+        <div class="col-12 p-0 border-1 border-300 border-solid cursor-pointer" @click="showHidePanel(4)">
           <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(2)">
-              <i class="pi pi-angle-right" v-if="checkShow2 == false" style="font-size: 1.25rem"></i>
-              <i class="pi pi-angle-down" v-if="checkShow2 == true" style="font-size: 1.25rem"></i>
+            <div class="font-bold flex align-items-center w-full " >
+              <i class="pi pi-angle-right" v-if="checkShow4 == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow4 == true" style="font-size: 1.25rem"></i>
               <div class="pl-2">
                 Kinh nghiệm làm việc
                 <span v-if="list_schedule.length > 0">
@@ -1499,13 +1524,13 @@ onMounted(() => {
               </div>
             </div>
             <div class="w-1 text-right" v-if="!view">
-              <a @click="addRow_Item(2)" class="hover" v-tooltip.top="'Thêm lịch học'">
+              <a @click="addRow_Item(4)" class="hover" v-tooltip.top="'Thêm lịch học'">
                 <i class="pi pi-plus-circle" style="font-size: 18px"></i>
               </a>
             </div>
           </div>
 
-          <div class="w-full px-0 pt-0" v-if="checkShow2 == true">
+          <div class="w-full px-0 pt-0" v-if="checkShow4 == true">
             <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
               <DataTable :value="list_schedule" :scrollable="true" :lazy="true" :rowHover="true" :showGridlines="true"
                 scrollDirection="both">
@@ -1608,14 +1633,14 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 p-0 border-1 border-300 border-solid">
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div class="font-bold flex align-items-center w-full cursor-pointer" @click="showHidePanel(3)">
-              <i class="pi pi-angle-right" v-if="checkShow3 == false" style="font-size: 1.25rem"></i>
-              <i class="pi pi-angle-down" v-if="checkShow3 == true" style="font-size: 1.25rem"></i>
+          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3 cursor-pointer" @click="showHidePanel(5)">
+            <div class="font-bold flex align-items-center w-full " >
+              <i class="pi pi-angle-right" v-if="checkShow5 == false" style="font-size: 1.25rem"></i>
+              <i class="pi pi-angle-down" v-if="checkShow5 == true" style="font-size: 1.25rem"></i>
               <div class="pl-2">File đính kèm</div>
             </div>
           </div>
-          <div class="w-full" v-if="checkShow3 == true">
+          <div class="w-full" v-if="checkShow5 == true">
             <FileUpload chooseLabel="Chọn File" :showUploadButton="false" :showCancelButton="false" :multiple="false"
               :maxFileSize="524288000" @select="onUploadFile" @remove="removeFile"
               :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'">

@@ -775,7 +775,7 @@ namespace API.Controllers
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
-
+            
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
             string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
@@ -1153,10 +1153,10 @@ namespace API.Controllers
                         }
                         string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                         //sql += @"ORDER BY ld." + (filterSQL.sqlO.Contains("DESC") ? filterSQL.sqlO.Replace("DESC", "ASC") : filterSQL.sqlO.Contains("ASC") ? filterSQL.sqlO.Replace("ASC", "DESC") : (filterSQL.sqlO + " DESC"))
-                        sql += Environment.NewLine + "ORDER BY ld." + (filterSQL.sqlO.Length > 50 || filterSQL.sqlO.Contains("select") || filterSQL.sqlO.Contains("update") || filterSQL.sqlO.Contains("delete") || filterSQL.sqlO.Contains("drop") ? "created_date" : filterSQL.sqlO)
+                        sql += Environment.NewLine + "ORDER BY ld." + (filterSQL.sqlO.Length > 50 || filterSQL.sqlO.Contains("select") || filterSQL.sqlO.Contains("update") || filterSQL.sqlO.Contains("delete") || filterSQL.sqlO.Contains("drop") ? "created_date" : filterSQL.sqlO) 
                                 + Environment.NewLine + "DESC"
-                                + Environment.NewLine + "OFFSET " + OFFSET
-                                + Environment.NewLine + "ROWS FETCH NEXT " + filterSQL.PageSize
+                                + Environment.NewLine + "OFFSET " + OFFSET 
+                                + Environment.NewLine + "ROWS FETCH NEXT " + filterSQL.PageSize 
                                 + Environment.NewLine + "ROWS ONLY ";
                         sql += Environment.NewLine + sqlCount;
                         //sql = sql.Replace("\r", " ").Replace("\n", " ").Replace("   ", " ").Trim();
@@ -1196,7 +1196,7 @@ namespace API.Controllers
                 Log.Error(contents);
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1", sql });
             }
-
+            
         }
 
         #region ImportLaw

@@ -8449,26 +8449,26 @@ namespace Controllers
                         else if (field.key == "department_id")
                         {
 
-                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+                            sql += "  SELECT su.user_key INTO #SysUI from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
 
 
                             sql += " SELECT organization_id, organization_name into #Phongban FROM  sys_organization WHERE organization_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
                             sql +=      
-                               " SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                               " SELECT df.doc_master_id into #FollowsI from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysUI) AND df.receive_type =0) " +
                                " OR df.receive_type=2  );";
 
 
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "(  dm.department_id in (select organization_id from #Phongban) or  dm.doc_master_id in (select doc_master_id from #Follows) ) ";
+                            WhereSQL += " " + "(  dm.department_id in (select organization_id from #Phongban) or  dm.doc_master_id in (select doc_master_id from #FollowsI) ) ";
                         }
                         else if (field.key == "user_recever")
                         {
-                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.user_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
+                            sql += "  SELECT su.user_key INTO #SysUR from sys_users su WHERE su.user_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
                                 " SELECT DISTINCT dcrgu.role_group_id into #NhomNguoiDung FROM doc_ca_role_group_users dcrgu WHERE dcrgu.user_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
-                                " SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                                " SELECT df.doc_master_id into #FollowsR from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysUR) AND df.receive_type =0) " +
                                 " OR df.receive_type=2 OR (df.receive_by IN(SELECT role_group_id from #NhomNguoiDung) AND df.receive_type=1 )) ;";
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "    dm.doc_master_id in (select doc_master_id from #Follows)";
+                            WhereSQL += " " + "    dm.doc_master_id in (select doc_master_id from #FollowsR)";
                         }
                         else if (field.key == "department_id_process")
                         {
@@ -8572,7 +8572,7 @@ namespace Controllers
                             WhereSQLR = WhereSQLR.Substring(3);
                         }
 
-                        if (check == true)
+                        if (check == true && WhereSQLR!="")
                         {
                             WhereSQLR = "  and  " + WhereSQLR;
                         }
@@ -8742,26 +8742,26 @@ namespace Controllers
 
 
 
-                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+                            sql += "  SELECT su.user_key INTO #SysUI from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
 
 
                             sql += " SELECT organization_id, organization_name into #Phongban FROM  sys_organization WHERE organization_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
                             sql +=
-                               " SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                               " SELECT df.doc_master_id into #FollowsI from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysUI) AND df.receive_type =0) " +
                                " OR df.receive_type=2  );";
 
 
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "(  dm.department_id in (select organization_id from #Phongban) or  dm.doc_master_id in (select doc_master_id from #Follows) ) ";
+                            WhereSQL += " " + "(  dm.department_id in (select organization_id from #Phongban) or  dm.doc_master_id in (select doc_master_id from #FollowsI) ) ";
                         }
                         else if (field.key == "user_recever")
                         {
-                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.user_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
+                            sql += "  SELECT su.user_key INTO #SysUR from sys_users su WHERE su.user_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
                                 " SELECT DISTINCT dcrgu.role_group_id into #NhomNguoiDung FROM doc_ca_role_group_users dcrgu WHERE dcrgu.user_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
-                                "SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                                "SELECT df.doc_master_id into #FollowsR from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysUR) AND df.receive_type =0) " +
                                 "OR df.receive_type=2 OR (df.receive_by IN(SELECT role_group_id from #NhomNguoiDung) AND df.receive_type=1 )) ;";
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "    dm.doc_master_id in (select doc_master_id from #Follows)";
+                            WhereSQL += " " + "    dm.doc_master_id in (select doc_master_id from #FollowsR)";
                         }
                         else if (field.key == "department_id_process")
                         {
@@ -8865,7 +8865,7 @@ namespace Controllers
                             WhereSQLR = WhereSQLR.Substring(3);
                         }
 
-                        if (check == true)
+                        if (check == true && WhereSQLR != "")
                         {
                             WhereSQLR = "  and  " + WhereSQLR;
                         }
@@ -9052,26 +9052,26 @@ namespace Controllers
                         }
                         else if (field.key == "department_id")
                         {
-                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
+                            sql += "  SELECT su.user_key INTO #SysUI from sys_users su WHERE su.department_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
 
 
                             sql += " SELECT organization_id, organization_name into #Phongban FROM  sys_organization WHERE organization_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
                             sql +=
-                               " SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                               " SELECT df.doc_master_id into #FollowsI from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysUI) AND df.receive_type =0) " +
                                " OR df.receive_type=2  );";
 
 
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "(  dm.department_id in (select organization_id from #Phongban) or  dm.doc_master_id in (select doc_master_id from #Follows) ) ";
+                            WhereSQL += " " + "(  dm.department_id in (select organization_id from #Phongban) or  dm.doc_master_id in (select doc_master_id from #FollowsI) ) ";
                         }
                         else if (field.key == "user_recever")
                         {
-                            sql += "  SELECT su.user_key INTO #SysU from sys_users su WHERE su.user_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
+                            sql += "  SELECT su.user_key INTO #SysUR from sys_users su WHERE su.user_id IN (select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
                                 " SELECT DISTINCT dcrgu.role_group_id into #NhomNguoiDung FROM doc_ca_role_group_users dcrgu WHERE dcrgu.user_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));" +
-                                "SELECT df.doc_master_id into #Follows from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysU) AND df.receive_type =0) " +
+                                "SELECT df.doc_master_id into #FollowsR from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysUR) AND df.receive_type =0) " +
                                 "OR df.receive_type=2 OR (df.receive_by IN(SELECT role_group_id from #NhomNguoiDung) AND df.receive_type=1  ) ) ;";
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
-                            WhereSQL += " " + "    dm.doc_master_id in (select doc_master_id from #Follows)";
+                            WhereSQL += " " + "    dm.doc_master_id in (select doc_master_id from #FollowsR)";
                         }
                         else if (field.key == "department_id_process")
                         {
@@ -9173,7 +9173,7 @@ namespace Controllers
                             WhereSQLR = WhereSQLR.Substring(3);
                         }
 
-                        if (check == true)
+                        if (check == true && WhereSQLR != "")
                         {
                             WhereSQLR = "  and  " + WhereSQLR;
                         }
