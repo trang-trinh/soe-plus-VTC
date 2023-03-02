@@ -1239,7 +1239,7 @@ const openDetailsHandover = (data) => {
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
       let data2 = JSON.parse(response.data.data)[2];
-      debugger
+     
       device_handover.value = data[0];
       displayDetailsHandover.value = true;
       listAssetsH.value = data1;
@@ -1917,14 +1917,9 @@ const saveHandover = (isFormValid, isPrint) => {
         }
       })
       .catch((error) => {
-        console.log(error);
+     
         swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+   
       });
   } else {
     axios
@@ -2986,17 +2981,11 @@ const loadUser = () => {
       );
     })
     .catch((error) => {
-      console.log(error);
+ 
 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
     });
 };
 const listOrganization = ref([]);
@@ -3036,18 +3025,9 @@ const loadOrganization = () => {
       } else listDepartment.value = [];
     })
     .catch((error) => {
-      console.log("err", error);
+ 
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 

@@ -121,7 +121,7 @@ const loadData = (rf) => {
     .catch((error) => {
       
       options.value.loading=false;
-      console.log(error);
+     
     });
 };
 
@@ -200,9 +200,7 @@ const loadDataNews = () => {
         datalistNews.value = data;
       } else datalistNews.value = [];
     })
-    .catch((error) => {
-      console.log(error);
-    });
+ 
 };const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -249,9 +247,7 @@ const loadDataViews = () => {
         datalistViews.value = data;
       } else datalistViews.value = [];
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    
 };
 const lengthFor=ref(0);
  

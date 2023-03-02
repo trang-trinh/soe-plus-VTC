@@ -199,6 +199,7 @@ namespace API.Controllers
                             log.description = "Thêm công việc: " + task_origin.task_name;
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
+                            log.is_type = 1;
                             log.created_token_id = tid;
                             log.created_ip = ip;
                             db.task_logs.Add(log);
@@ -588,6 +589,7 @@ namespace API.Controllers
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
                             log.created_token_id = tid;
+                            log.is_type = 1;
                             log.created_ip = ip;
                             db.task_logs.Add(log);
                             db.SaveChanges();
@@ -850,17 +852,19 @@ namespace API.Controllers
                                 #region add cms_logs
                                 if (helper.wlog)
                                 {
-                                    cms_logs log = new cms_logs();
-                                    log.log_title = "Xóa công việc: " + da.group_id;
-                                    log.log_module = "Task Origin";
-                                    log.id_key = da.group_id.ToString();
+                                    task_logs log = new task_logs();
+                                    log.log_id = helper.GenKey();
+                                    log.task_id = da.task_id;
+                                    log.project_id = null;
+                                    log.description = "Xóa công việc: " + da.task_name;
                                     log.created_date = DateTime.Now;
                                     log.created_by = uid;
+                                    log.is_type = 1;
                                     log.created_token_id = tid;
                                     log.created_ip = ip;
-                                    db.cms_logs.Add(log);
+                                    db.task_logs.Add(log);
                                     db.SaveChanges();
-                                }
+                            }
                             #endregion
 
                             #region add sendhub

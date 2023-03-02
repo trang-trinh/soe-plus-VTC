@@ -29,8 +29,8 @@ namespace API.Controllers.Doc
         {
             return HttpContext.Current.Request.UserHostAddress;
         }
-        [HttpGet]
-        public async Task<HttpResponseMessage> getData( int type)
+        [HttpPost]
+        public async Task<HttpResponseMessage> getData()
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -49,18 +49,53 @@ namespace API.Controllers.Doc
                 string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
                 try
                 {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
 
                     string root = HttpContext.Current.Server.MapPath("~/");
-                    string rootFileBlock = Path.Combine(root, "/Config/Doc");
-                    string jsondocreport = "";
-                    if (type == 1) { 
-                      jsondocreport = System.IO.File.ReadAllText(Path.Combine(rootFileBlock, Path.GetFileName("/ReceivedReport.json")));
-                    List<docReport> doc_Report_li = JsonConvert.DeserializeObject<List<docReport>>(jsondocreport);
-                    doc_Report_li = doc_Report_li.OrderByDescending(x => x.timeExport).ToList();
 
-                    }
-                   
-                    return Request.CreateResponse(HttpStatusCode.OK, new { data = jsondocreport, err = "0" });
+                    var provider = new MultipartFormDataStreamProvider(root + "/Portals");
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                       
+                        string rootFileBlock = Path.Combine(root, "Config/Doc");
+                        var strType = provider.FormData.GetValues("type").SingleOrDefault();
+                        string jsondocreport = "";
+                        if (int.Parse(strType) == 1)
+                        {
+                            jsondocreport = System.IO.File.ReadAllText(Path.Combine(rootFileBlock, Path.GetFileName("/ReceivedReport.json")));
+                        
+
+                        }
+                        if (int.Parse(strType) == 2)
+                        {
+                            jsondocreport = System.IO.File.ReadAllText(Path.Combine(rootFileBlock, Path.GetFileName("/InternalReport.json")));
+
+
+                        }
+                        if (int.Parse(strType) == 3)
+                        {
+                            jsondocreport = System.IO.File.ReadAllText(Path.Combine(rootFileBlock, Path.GetFileName("/SendReport.json")));
+
+
+                        }
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = jsondocreport, err = "0" });
+                    });
+                    return await task;
+
+                  
+
+                
                 }
                 catch (DbEntityValidationException e)
                 {
@@ -129,7 +164,8 @@ namespace API.Controllers.Doc
 
                         doc_report.timeExport = DateTime.Now;
                         doc_report.user_id = uid;
-                        string rootFileBlock = Path.Combine(root, "/Config/Doc");
+                        doc_report.user_name = name;
+                        string rootFileBlock = Path.Combine(root, "Config/Doc");
                         if (doc_report.report_type == 1)
                         {
                             string jsondocreport = System.IO.File.ReadAllText(Path.Combine(rootFileBlock, Path.GetFileName("/ReceivedReport.json")));
@@ -137,6 +173,7 @@ namespace API.Controllers.Doc
                             {
                                 List<docReport> doc_Report_li = JsonConvert.DeserializeObject<List<docReport>>(jsondocreport).OrderByDescending(x => x.timeExport).Take(29).ToList(); ;
                                 doc_Report_li.Add(doc_report);
+                                doc_Report_li = doc_Report_li.OrderByDescending(x => x.timeExport).ToList();
                                 string jsonData = JsonConvert.SerializeObject(doc_Report_li, Formatting.None);
                                 //System.IO.File.WriteAllText(HttpContext.Current.Server.MapPath(config.pathBlockIP), jsonData);
                                 System.IO.File.WriteAllText(Path.Combine(rootFileBlock, Path.GetFileName("/ReceivedReport.json")), jsonData);
@@ -146,8 +183,47 @@ namespace API.Controllers.Doc
                                 List<docReport> doc_Report_li_U = new List<docReport>();
                                 doc_Report_li_U.Add(doc_report);
                                 string jsonData = JsonConvert.SerializeObject(doc_Report_li_U, Formatting.None);
-
                                 System.IO.File.WriteAllText(Path.Combine(rootFileBlock, Path.GetFileName("/ReceivedReport.json")), jsonData);
+                            }
+                        }
+                        if (doc_report.report_type == 2)
+                        {
+                            string jsondocreport = System.IO.File.ReadAllText(Path.Combine(rootFileBlock, Path.GetFileName("/InternalReport.json")));
+                            if (jsondocreport != null && jsondocreport != "")
+                            {
+                                List<docReport> doc_Report_li = JsonConvert.DeserializeObject<List<docReport>>(jsondocreport).OrderByDescending(x => x.timeExport).Take(29).ToList(); ;
+                                doc_Report_li.Add(doc_report);
+                                doc_Report_li = doc_Report_li.OrderByDescending(x => x.timeExport).ToList();
+                                string jsonData = JsonConvert.SerializeObject(doc_Report_li, Formatting.None);
+                                //System.IO.File.WriteAllText(HttpContext.Current.Server.MapPath(config.pathBlockIP), jsonData);
+                                System.IO.File.WriteAllText(Path.Combine(rootFileBlock, Path.GetFileName("/InternalReport.json")), jsonData);
+                            }
+                            else
+                            {
+                                List<docReport> doc_Report_li_U = new List<docReport>();
+                                doc_Report_li_U.Add(doc_report);
+                                string jsonData = JsonConvert.SerializeObject(doc_Report_li_U, Formatting.None);
+                                System.IO.File.WriteAllText(Path.Combine(rootFileBlock, Path.GetFileName("/InternalReport.json")), jsonData);
+                            }
+                        }
+                        if (doc_report.report_type == 3)
+                        {
+                            string jsondocreport = System.IO.File.ReadAllText(Path.Combine(rootFileBlock, Path.GetFileName("/SendReport.json")));
+                            if (jsondocreport != null && jsondocreport != "")
+                            {
+                                List<docReport> doc_Report_li = JsonConvert.DeserializeObject<List<docReport>>(jsondocreport).OrderByDescending(x => x.timeExport).Take(29).ToList(); ;
+                                doc_Report_li.Add(doc_report);
+                                doc_Report_li = doc_Report_li.OrderByDescending(x => x.timeExport).ToList();
+                                string jsonData = JsonConvert.SerializeObject(doc_Report_li, Formatting.None);
+                                //System.IO.File.WriteAllText(HttpContext.Current.Server.MapPath(config.pathBlockIP), jsonData);
+                                System.IO.File.WriteAllText(Path.Combine(rootFileBlock, Path.GetFileName("/SendReport.json")), jsonData);
+                            }
+                            else
+                            {
+                                List<docReport> doc_Report_li_U = new List<docReport>();
+                                doc_Report_li_U.Add(doc_report);
+                                string jsonData = JsonConvert.SerializeObject(doc_Report_li_U, Formatting.None);
+                                System.IO.File.WriteAllText(Path.Combine(rootFileBlock, Path.GetFileName("/SendReport.json")), jsonData);
                             }
                         }
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });

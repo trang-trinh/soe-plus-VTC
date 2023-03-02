@@ -26,7 +26,6 @@ namespace API.Controllers
     [Authorize(Roles = "login")]
     public class chatController : ApiController
     {
-        Upload upload = new Upload();
         public string getipaddress()
         {
             //var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -100,9 +99,31 @@ namespace API.Controllers
                             isAddNew = true;
                         }
                         string strPath = root + "/Portals/" + organization_id_user + "/Chat/" + chat_main.chat_group_id + "/Avatar";
-                        bool exists = Directory.Exists(strPath);
+
+                        // format strPath
+                        string checkPathFile = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/");
+                        var listPath = checkPathFile.Split('/');
+                        var config_strPath = "";
+                        var sttPartPathFile = 1;
+                        foreach (var item in listPath)
+                        {
+                            if (item.Trim() != "")
+                            {
+                                if (sttPartPathFile == 1)
+                                {
+                                    config_strPath += (item);
+                                }
+                                else
+                                {
+                                    config_strPath += "/" + Path.GetFileName(item);
+                                }                                
+                            }
+                            sttPartPathFile++;
+                        }
+
+                        bool exists = Directory.Exists(config_strPath);
                         if (!exists)
-                            Directory.CreateDirectory(strPath);
+                            Directory.CreateDirectory(config_strPath);
 
                         // This illustrates how to get thefile names.
                         FileInfo fileInfo = null;
@@ -136,7 +157,7 @@ namespace API.Controllers
                                     pathEdit_1 += "/" + Path.GetFileName(itemEdit);
                                 }
                             }
-                            newFileName = root + pathEdit_1;
+                            newFileName = pathEdit_1;
 
                             fileInfo = new FileInfo(newFileName);
                             if (fileInfo.Exists)
@@ -147,7 +168,7 @@ namespace API.Controllers
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
 
-                                newFileName = Path.Combine(root + "/Portals/" + organization_id_user + "/Chat/" + chat_main.chat_group_id + "/Avatar", fileName);
+                                newFileName = Path.Combine("/Portals/" + organization_id_user + "/Chat/" + chat_main.chat_group_id + "/Avatar", fileName);
                             }
 
                             chat_main.avatar_group = "/Portals/" + organization_id_user + "/Chat/" + chat_main.chat_group_id + "/Avatar/" + fileName;
@@ -156,11 +177,36 @@ namespace API.Controllers
                             //Add file
                             if (fileInfo != null)
                             {
-                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                var strDirectory = "/Portals/" + organization_id_user + "/Chat/" + chat_main.chat_group_id + "/Avatar";
+                                var listPathEdit = Regex.Replace(strDirectory.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit = "";
+                                foreach (var itemEdit in listPathEdit)
                                 {
-                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                File.Move(ffileData.LocalFileName, newFileName);
+                                if (!Directory.Exists(root + pathEdit))
+                                {
+                                    Directory.CreateDirectory(root + pathEdit);
+                                }
+                                //if (!Directory.Exists(fileInfo.Directory.FullName))
+                                //{
+                                //    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                //}
+
+                                var listPathEdit_2 = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                                var pathEdit_2 = "";
+                                foreach (var itemEdit in listPathEdit_2)
+                                {
+                                    if (itemEdit.Trim() != "")
+                                    {
+                                        pathEdit_2 += "/" + Path.GetFileName(itemEdit);
+                                    }
+                                }
+                                File.Move(ffileData.LocalFileName, root + pathEdit_2);
+                                //File.Move(ffileData.LocalFileName, newFileName);
                                 helper.ResizeImage(newFileName, 1920, 1080, 90);
                                 listPathFileUp.Add(ffileData.LocalFileName);
                             }
@@ -383,13 +429,13 @@ namespace API.Controllers
                         {
                             var content = "<soe>" + user_now.full_name + "</soe> vừa thêm <soe>" + pushname + " vào nhóm chat: <soe>" + chat_main.chat_group_name + "</soe>";
                             List<string> sendUsers = dataMember.Select(x => x.users_id).ToList();
-                            send_message(user_now.user_id, chat_main.chat_group_id, chat_main.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
+                            helper.send_noti_chat(user_now.user_id, chat_main.chat_group_id, chat_main.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
                         }
 
                         if (idMembersGetChange.Count > 0)
                         {
                             List<string> sendUsers = dataMember.Select(x => x.users_id).ToList();
-                            send_message(user_now.user_id, chat_main.chat_group_id, chat_main.chat_group_id, sendUsers, "Tin nhắn", typeChangeChat, 0, ip, tid);
+                            helper.send_noti_chat(user_now.user_id, chat_main.chat_group_id, chat_main.chat_group_id, sendUsers, "Tin nhắn", typeChangeChat, 0, ip, tid);
                         }
                         #endregion Sendnoti
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", chatGroupID = chat_group_id_add });
@@ -467,8 +513,6 @@ namespace API.Controllers
                     {
                         organization_id_user = user_now.organization_id.ToString();
                     }
-
-                    //HttpContext context = HttpContext.Current;
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
                     var provider = new MultipartFormDataStreamProvider(root);
                     // Read the form data and return an async task.
@@ -670,10 +714,6 @@ namespace API.Controllers
                                         File.Move(ffileData.LocalFileName, root + pathEdit_1);
                                         //File.Move(ffileData.LocalFileName, newFileName);
                                         listPathFileUp.Add(ffileData.LocalFileName);
-
-                                        //string jwtcookie = context.Request.Cookies["jwt"].Value;
-                                        //upload.UpdateFile(jwtcookie, root, ffileData, newFileName, null, null);
-                                        //Task.Run(() => upload.UpdateFile(jwtcookie, root, fileData, ("/Folder/" + model.folder_id + "/" + fileName), 160));
                                     }
                                 }
                                 if (listMessage.Count > 0)
@@ -1481,7 +1521,7 @@ namespace API.Controllers
 
                                             var content = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (chatGet.is_group_chat == true ? ("đến nhóm chat <soe>\"" + chatGet.chat_group_name + "\"</soe>") : "đến bạn");
                                             List<string> sendUsers = fbs.Select(x => x.users_id).ToList();
-                                            send_message(user_now.user_id, item, item, sendUsers, "Tin nhắn", content, 0, ip, tid);
+                                            helper.send_noti_chat(user_now.user_id, item, item, sendUsers, "Tin nhắn", content, 0, ip, tid);
                                             foreach (var to in fbs)
                                             {
                                                 users.Add(new Users()
@@ -1649,7 +1689,7 @@ namespace API.Controllers
                                             List<UserToken> fbs = UserTokenByTable(tables);
                                             var content = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (chatGet.is_group_chat == true ? ("đến nhóm chat <soe>\"" + chatGet.chat_group_name + "\"</soe>") : "đến bạn");
                                             List<string> sendUsers = fbs.Select(x => x.users_id).ToList();
-                                            send_message(user_now.user_id, chatGet.chat_group_id, chatGet.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
+                                            helper.send_noti_chat(user_now.user_id, chatGet.chat_group_id, chatGet.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
                                             foreach (var to in fbs)
                                             {
                                                 users.Add(new Users()
@@ -1809,7 +1849,7 @@ namespace API.Controllers
 
                                                 var content = "<soe>" + ng.full_name + "</soe> gửi một tin nhắn " + (new_chat.is_group_chat == true ? ("đến nhóm chat <soe>\"" + new_chat.chat_group_name + "\"</soe>") : "đến bạn");
                                                 List<string> sendUsers = fbs.Select(x => x.users_id).ToList();
-                                                send_message(user_now.user_id, new_chat.chat_group_id, new_chat.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
+                                                helper.send_noti_chat(user_now.user_id, new_chat.chat_group_id, new_chat.chat_group_id, sendUsers, "Tin nhắn", content, 0, ip, tid);
                                                 foreach (var to in fbs)
                                                 {
                                                     users.Add(new Users()
@@ -2092,11 +2132,13 @@ namespace API.Controllers
                     }
                     List<string> listPathFileUp = new List<string>();
                     bool hasVirus = false;
+                    var resultCheck = "";
                     foreach (MultipartFileData fileData in provider.FileData)
                     {
                         var scanner = new AntiVirus.Scanner();
                         var resultScan = scanner.ScanAndClean(fileData.LocalFileName);
                         listPathFileUp.Add(fileData.LocalFileName);
+                        resultCheck = resultScan.ToString();
                         if (resultScan.ToString() != "VirusNotFound")
                         {
                             hasVirus = true;
@@ -2114,9 +2156,9 @@ namespace API.Controllers
                     }
                     if (hasVirus)
                     {
-                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Warning: File exists virus.", err = "1" });
+                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Warning: File exists virus.", err = "1", ms1 = resultCheck });
                     }
-                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", ms1 = resultCheck });
                 });
                 return await task;
             }
@@ -2146,69 +2188,69 @@ namespace API.Controllers
         #endregion
 
         #region Send noti
-        public void send_message(string user_send, string id_key, string group_id, [System.Web.Mvc.Bind(Include = "")][FromBody] List<string> users, string title, string content, int is_type, string ip, string token_id)
-        {
-            System.Threading.Tasks.Task.Run(async () =>
-            {
-                try
-                {
-                    using (DBEntities db = new DBEntities())
-                    {
-                        #region Sendhub
-                        List<sys_sendhub> sendhubs = new List<sys_sendhub>();
-                        foreach (String user_id in users)
-                        {
-                            var sh = new sys_sendhub();
-                            sh.senhub_id = helper.GenKey();
-                            sh.title = title;
-                            sh.id_key = id_key;
-                            sh.group_id = group_id;
-                            sh.user_send = user_send;
-                            sh.created_by = user_send;
-                            sh.created_date = DateTime.Now;
-                            sh.created_ip = ip;
-                            sh.created_token_id = token_id;
-                            sh.receiver = user_id;
-                            sh.type = 4;
-                            sh.is_type = is_type;
-                            sh.module_key = "M8";
-                            sh.token_id = token_id;
-                            sh.contents = content;
-                            sh.date_send = DateTime.Now;
-                            sh.seen = false;
-                            sendhubs.Add(sh);
-                        }
-                        if (sendhubs.Count > 0)
-                        {
-                            db.sys_sendhub.AddRange(sendhubs);
-                            await db.SaveChangesAsync();
-                        }
-                        #endregion
-                        #region SendSocket
-                        //send socket
-                        var message = new Dictionary<string, dynamic>
-                        {
-                            { "event", "sendNotify" },
-                            { "user_id", user_send },
-                            { "title", title },
-                            { "contents", content },
-                            { "date", DateTime.Now },
-                            { "uids", users },
-                        };
-                        if (helper.socketClient != null && helper.socketClient.Connected == true)
-                        {
-                            try
-                            {
-                                await helper.socketClient.EmitAsync("sendData", message);
-                            }
-                            catch { };
-                        }
-                        #endregion
-                    }
-                }
-                catch { }
-            });
-        }
+        //public static void send_message(string user_send, string id_key, string group_id, [System.Web.Mvc.Bind(Include = "")][FromBody] List<string> users, string title, string content, int is_type, string ip, string token_id)
+        //{
+        //    System.Threading.Tasks.Task.Run(async () =>
+        //    {
+        //        try
+        //        {
+        //            using (DBEntities db = new DBEntities())
+        //            {
+        //                #region Sendhub
+        //                List<sys_sendhub> sendhubs = new List<sys_sendhub>();
+        //                foreach (String user_id in users)
+        //                {
+        //                    var sh = new sys_sendhub();
+        //                    sh.senhub_id = helper.GenKey();
+        //                    sh.title = title;
+        //                    sh.id_key = id_key;
+        //                    sh.group_id = group_id;
+        //                    sh.user_send = user_send;
+        //                    sh.created_by = user_send;
+        //                    sh.created_date = DateTime.Now;
+        //                    sh.created_ip = ip;
+        //                    sh.created_token_id = token_id;
+        //                    sh.receiver = user_id;
+        //                    sh.type = 4;
+        //                    sh.is_type = is_type;
+        //                    sh.module_key = "M8";
+        //                    sh.token_id = token_id;
+        //                    sh.contents = content;
+        //                    sh.date_send = DateTime.Now;
+        //                    sh.seen = false;
+        //                    sendhubs.Add(sh);
+        //                }
+        //                if (sendhubs.Count > 0)
+        //                {
+        //                    db.sys_sendhub.AddRange(sendhubs);
+        //                    await db.SaveChangesAsync();
+        //                }
+        //                #endregion
+        //                #region SendSocket
+        //                //send socket
+        //                var message = new Dictionary<string, dynamic>
+        //                {
+        //                    { "event", "sendNotify" },
+        //                    { "user_id", user_send },
+        //                    { "title", title },
+        //                    { "contents", content },
+        //                    { "date", DateTime.Now },
+        //                    { "uids", users },
+        //                };
+        //                if (helper.socketClient != null && helper.socketClient.Connected == true)
+        //                {
+        //                    try
+        //                    {
+        //                        await helper.socketClient.EmitAsync("sendData", message);
+        //                    }
+        //                    catch { };
+        //                }
+        //                #endregion
+        //            }
+        //        }
+        //        catch { }
+        //    });
+        //}
         #endregion
         public List<UserToken> UserTokenByTable([System.Web.Mvc.Bind(Include = "Rows")] DataTable dt)
         {

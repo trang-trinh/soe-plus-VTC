@@ -89,9 +89,7 @@ const loadCount = () => {
         options.value.totalRecords = data[0].totalRecords - 11;
       } else options.value.totalRecords = 0;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+  
 };
 const loadData = () => {
   loadCount();
@@ -157,17 +155,11 @@ const loadData = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+    
 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
     });
 };
 const showDetails = (data) => {
@@ -222,17 +214,10 @@ const onloadNewsViews = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
+   
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+  
     });
 };
 function removeVietnameseTones(str) {

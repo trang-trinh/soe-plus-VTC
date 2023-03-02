@@ -328,9 +328,8 @@ const openDetails = (device_process_id) => {
 const liItemsAccept = ref([]);
 
 const onShowConfigGroup = (type, module) => {
-  if (type == 1) {
-     console.log("");
-  } else {
+  if (type != 1) {
+  
     checkDefault.value = false;
     displayDeviceRepair.value = true;
   }
