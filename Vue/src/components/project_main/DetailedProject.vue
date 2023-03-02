@@ -3,6 +3,7 @@ import { ref, inject, onMounted, onBeforeUnmount, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../util/function.js";
 import moment from "moment";
+import TaskOrigin from "../../views/task_origin/TaskOrigin.vue";
 
 const cryoptojs = inject("cryptojs");
 const opition = ref({
@@ -18,6 +19,7 @@ const store = inject("store");
 const swal = inject("$swal");
 const toast = useToast();
 const emitter = inject("emitter");
+const basedomainURL = fileURL;
 
 const countTasks = ref(0);
 const countMembers = ref(0);
@@ -62,6 +64,7 @@ const chartData = ref();
 const listChartDate = ref();
 const listProjectMainChild = ref([]);
 const listProjectMainLogs = ref([]);
+const checkListProjectMainLogs = ref([]);
 const selectedProjectMains = ref();
 const listProjectMainFile = ref([]);
 const listDropdownStatus = ref([
@@ -130,7 +133,7 @@ const optionsChart = {
     title: {
       display: true,
       position: "bottom",
-      text: "",
+      text: opition.value.title_type_chart,
     },
     legend: {
       position: "bottom",
@@ -218,7 +221,7 @@ const loadData = (rf) => {
       let data = JSON.parse(response.data.data);
       ProjectMainDetail.value = data[0][0];
       ProjectMainDetail.value.status_name = listStatusProjectMain.value.filter(x=>x.value == data[0][0].status)[0].text;
-      Thanhviens.value = data[1];
+      Thanhviens.value = new Set(data[1]);
       if(data[1].length > 5) {
         ThanhvienShows.value = data[1].slice(0, 5);
       } else {
@@ -230,7 +233,6 @@ const loadData = (rf) => {
       PhongBanThamGia.value.forEach((pb) => {
         pb.tenToChuc = data[1].filter(x=>x.department_id == pb.department_id)[0].tenToChuc ? data[1].filter(x=>x.department_id == pb.department_id)[0].tenToChuc : '';
       })
-
         //biểu đồ tròn trạng thái công việc
         let chart1 = {
         labels: [],
@@ -249,6 +251,7 @@ const loadData = (rf) => {
       };
       
       if(data[3].length > 0) {
+        countTasks.value = data[3].length;
         let listCV = groupBy(data[3], "status");
         var arrNew = [];
         for (let k in listCV) {
@@ -274,10 +277,13 @@ const loadData = (rf) => {
       listChartDate.value = data[4];
         if(opition.value.type_chart == 1){
             var list = data[4].filter(x=>x.is_type == 1 || x.is_type == 2 || x.is_type == 3);
+            opition.value.title_type_chart = "Công việc tham gia";
         }else if(opition.value.type_chart == 2){
             var list = data[4].filter(x=>x.is_type == 1 || x.is_type == 2);
+            opition.value.title_type_chart = "Công việc thực hiện";
         }else if(opition.value.type_chart == 3){
             var list = data[4].filter(x=>x.is_type == 0);
+            opition.value.title_type_chart = "Công việc quản lý";
         }
         var listCV = groupBy(list, "user_id");
             var arrNewChart = [];
@@ -477,6 +483,7 @@ const groupByLog = (array, key) => {
     }
     result[item[key]].push(item);
   });
+  checkListProjectMainLogs.value = array;
   listProjectMainLogs.value = result;
 };
 
@@ -759,7 +766,7 @@ onMounted(() => {
                                                     <Chart type="bar" :data="chartData" :options="optionsChart"/>
                                                 </div>
                                                     </div>
-                                                </div>
+                                              </div>
                                             </div>
                                         </div>
                                 <div class="col-6 p-0 m-0 tab-project-content-right">
@@ -962,11 +969,13 @@ onMounted(() => {
                                 </DataTable>
                             </div>
                         </TabPanel>
-                        <TabPanel header="Giai đoạn">
-                            <p>Giai đoạn</p>
-                        </TabPanel>
                         <TabPanel header="Công việc">
-                            <p>Công việc</p>
+                          <TaskOrigin
+                              :isShow="showDetail"
+                              :id="props.id"
+                              :turn="0"
+                            >
+                            </TaskOrigin>
                         </TabPanel>
                         <TabPanel header="Tài liệu">
                           <div class="h-full w-full col-md-12 p-0 m-0">
@@ -975,7 +984,6 @@ onMounted(() => {
                                 >
                                     <ul style="display: flex; padding: 0px; float: left">
                                     <li
-                                        @click="addLinkTaskOrigin(datalists)"
                                         style="list-style: none; margin-right: 20px;font-weight: 600;"
                                     >
                                         <a style="display: flex; font-size: 15px; align-items: center;"
@@ -1042,6 +1050,21 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                             </li>
+                                            <div 
+                                              class="align-items-center justify-content-center p-4 text-center m-auto" style="
+                                                  min-height: calc(100vh - 215px);
+                                                  max-height: calc(100vh - 215px);
+                                                  display: flex;
+                                                  flex-direction: column;
+                                              "
+                                              v-if="listProjectMainFile.length == 0"
+                                              >
+                                              <img
+                                                  src="../../assets/background/nodata.png"
+                                                  height="144"
+                                              />
+                                              <h3 class="m-1">Không có dữ liệu</h3>
+                                              </div>
                                         </ul>
                                     </div>
                                 </div>
@@ -1175,6 +1198,22 @@ onMounted(() => {
                                             </li>
                                         </ul>
                                     </div>
+                                    <div 
+                                              class="align-items-center justify-content-center p-4 text-center m-auto" 
+                                              style="
+                                                  min-height: calc(100vh - 215px);
+                                                  max-height: calc(100vh - 215px);
+                                                  display: flex;
+                                                  flex-direction: column;
+                                              "
+                                              v-if="checkListProjectMainLogs.length == 0"
+                                              >
+                                              <img
+                                                  src="../../assets/background/nodata.png"
+                                                  height="144"
+                                              />
+                                              <h3 class="m-1">Không có dữ liệu</h3>
+                                     </div>
                                 </div>
                             </div>
                         </TabPanel>
@@ -1244,6 +1283,7 @@ onMounted(() => {
   height: 99% !important;
   padding: 10px;
 }
+
 </style>
 <style>
 .p-tabview-panels .p-tabview-panel{
@@ -1257,5 +1297,8 @@ onMounted(() => {
     height: 96%;
     padding: 0px !important;
     /* background-color: #f3f3f3; */
+}
+.main-layout{
+  height: 100%;
 }
 </style>
