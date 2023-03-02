@@ -938,7 +938,7 @@ const deleteMultipleCheckList = () => {
           },
         });
         axios
-          .delete(baseURL + "/api/checkList/deleteTaskChecklist", {
+          .delete(baseURL + "/api/checkList/deleteChecklist", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
             data: id,
           })

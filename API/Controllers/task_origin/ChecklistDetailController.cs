@@ -340,42 +340,41 @@ namespace API.Controllers.Task_Ca
                 {
                     List<task_origin> delTask = new List<task_origin>();
 
-                    foreach (string idp in id)
+
+                    var das = await db.task_origin.Where(t => id.Contains(t.task_id)).ToListAsync();
+                    foreach (var de in das)
                     {
-                        var das = await db.task_origin.Where(t => idp.Contains(t.task_id)).ToListAsync();
-                        foreach (var de in das)
+                        delTask.Add(de);
+
+                        #region add task_logs
+                        if (helper.wlog)
                         {
-                            delTask.Add(de);
 
-                            #region add task_logs
-                            if (helper.wlog)
-                            {
-
-                                task_logs log = new task_logs();
-                                log.log_id = helper.GenKey();
-                                log.task_id = de.task_id;
-                                log.project_id = null;
-                                log.description = "xóa công việc checklist ";
-                                log.created_date = DateTime.Now;
-                                log.created_by = uid;
-                                log.created_token_id = tid;
-                                log.created_ip = ip;
-                                db.task_logs.Add(log);
-                                db.SaveChanges();
-                            }
-                            #endregion
-                        }//notify
-                        string ssid = das[0].parent_id;
-
-                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
-                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
-                        listuser.Remove(uid);
-                        foreach (var l in listuser)
-                        {
-                            helper.saveNotify(uid, l, null, "Công việc", "Xóa công việc checklist,công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
-                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                            task_logs log = new task_logs();
+                            log.log_id = helper.GenKey();
+                            log.task_id = de.task_id;
+                            log.project_id = null;
+                            log.description = "xóa công việc checklist ";
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.task_logs.Add(log);
+                            db.SaveChanges();
                         }
+                        #endregion
+                    }//notify
+                    string ssid = das[0].parent_id;
+
+                    var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                    string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                    listuser.Remove(uid);
+                    foreach (var l in listuser)
+                    {
+                        helper.saveNotify(uid, l, null, "Công việc", "Xóa công việc checklist,công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                            null, 2, -1, false, module_key, ssid, null, null, tid, ip);
                     }
+
                     if (delTask.Count == 0)
                     {
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });

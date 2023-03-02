@@ -178,7 +178,7 @@ watch(selectedNodes, () => {
 //Function
 const componentKey = ref({});
 const forceRerender = (type) => {
-  if(!componentKey.value[type]){
+  if (!componentKey.value[type]) {
     componentKey.value[type] = 0;
   }
   componentKey.value[type] += 1;
@@ -284,7 +284,6 @@ const itemButMoresPlus = ref([
       openEditDialogHealth(profile.value, "Thông tin sức khỏe");
     },
   },
-  
 ]);
 const toggleMoresPlus = (event, item) => {
   profile.value = item;
@@ -750,7 +749,6 @@ const openEditDialogRelate = (item, str) => {
 const closeDialogRelate = () => {
   displayDialogRelate.value = false;
 };
-
 
 //Init
 const initPlace = () => {
@@ -1870,7 +1868,11 @@ onMounted(() => {
                 size="xlarge"
                 class="border-radius"
               />
-              <span v-if="slotProps.data.isEdit" class="is-sign" v-tooltip="'Đã hiệu chỉnh hồ sơ'">
+              <span
+                v-if="slotProps.data.isEdit"
+                class="is-sign"
+                v-tooltip="'Đã hiệu chỉnh hồ sơ'"
+              >
                 <font-awesome-icon
                   icon="fa-solid fa-circle-check"
                   style="font-size: 16px; display: block; color: #f4b400"
@@ -1988,16 +1990,17 @@ onMounted(() => {
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <Button
+            <div
               :style="{
                 borderRadius: '50%',
                 border: slotProps.data.bg_color,
                 backgroundColor: slotProps.data.bg_color,
                 color: slotProps.data.text_color,
-                padding: '0.001rem 0.4rem',
+                width: '15px',
+                height: '15px',
               }"
               v-tooltip.top="slotProps.data.status_name"
-            />
+            ></div>
           </template>
         </Column>
         <Column
@@ -2114,7 +2117,7 @@ onMounted(() => {
     :profile="profile"
     :users="dictionarys[19]"
   />
-  <dialogrelate 
+  <dialogrelate
     :key="componentKey['3']"
     :headerDialog="headerDialogRelate"
     :displayDialog="displayDialogRelate"

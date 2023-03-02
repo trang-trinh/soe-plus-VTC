@@ -6,8 +6,13 @@ import moment from "moment";
 
 const cryoptojs = inject("cryptojs");
 const opition = ref({
-    type_chart : 1
+    type_chart : 1,
+    PageNo: 0,
+    PageSize: 20,
+    sort: "created_date",
+    ob: "DESC",
 });
+const first = ref(0);
 const axios = inject("axios"); // inject axios
 const store = inject("store");
 const swal = inject("$swal");
@@ -56,7 +61,9 @@ const chartDataPie = ref();
 const chartData = ref();
 const listChartDate = ref();
 const listProjectMainChild = ref([]);
-
+const listProjectMainLogs = ref([]);
+const selectedProjectMains = ref();
+const listProjectMainFile = ref([]);
 const listDropdownStatus = ref([
   {
     value: 0,
@@ -78,6 +85,29 @@ const listDropdownStatus = ref([
   { value: 7, text: "HT sau hạn", bg_color: "#ff8b4e", text_color: "#FFFFFF" },
   { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
   { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
+]);
+
+const listDropdownStatusProject = ref([
+  {
+    value: 0,
+    text: "Chưa bắt đầu",
+    bg_color: "#bbbbbb",
+    text_color: "#FFFFFF",
+  },
+  {
+    value: 1,
+    text: "Đang thực hiện",
+    bg_color: "#2196f3",
+    text_color: "#FFFFFF",
+  },
+  {
+    value: 2,
+    text: "Đã hoàn thành",
+    bg_color: "#04D215",
+    text_color: "#FFFFFF",
+  },
+  { value: 3, text: "Tạm dừng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 4, text: "Đóng", bg_color: "red", text_color: "#FFFFFF" },
 ]);
 
 const optionsChartPie = {
@@ -259,7 +289,6 @@ const loadData = (rf) => {
                 arrNewChart.push({
                     user_id: k,
                     user_name: listCV[k].filter((x) => x.user_id == k)[0].last_name,
-                    // status_bg_color: listDropdownStatus.value.filter((x) => x.value == k)[0].bg_color,
                     CVGroup: CVGroup,
                     });
             }
@@ -272,7 +301,7 @@ const loadData = (rf) => {
                 });
             })
             chartData.value = chart2;
-            listProjectMainChild.value = data[5];
+            // listProjectMainChild.value = data[5];
       if (rf) {
         opition.value.loading = false;
         swal.close();
@@ -297,8 +326,255 @@ const loadData = (rf) => {
     });
 }
 
+const loadProjectMainChild = () => {
+    axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "project_main_get_list_child",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "project_id", va: props.id },
+              { par: "pageno", va: opition.value.PageNo },
+              { par: "pagesize", va: opition.value.PageSize },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      listProjectMainChild.value = data[0];
+      if(listProjectMainChild.value.length > 0){
+        listProjectMainChild.value.forEach((element, i) => {
+          element.status_name = listDropdownStatusProject.value.filter(
+            (x) => x.value == element.status,
+          )[0].text;
+          element.status_bg_color = listDropdownStatusProject.value.filter(
+            (x) => x.value == element.status,
+          )[0].bg_color;
+          element.status_text_color = listDropdownStatusProject.value.filter(
+            (x) => x.value == element.status,
+          )[0].text_color;
+          element.STT = opition.value.PageNo * opition.value.PageSize + i + 1;
+        });
+      }
+      opition.value.totalRecordProjectMainChilds = data[1][0].total;
+    })
+    .catch((error) => {
+        debugger
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "LogsView.vue",
+        log_content: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+}
+
+const onPage = (event) => {
+  if (event.rows != opition.value.PageSize) {
+    opition.value.PageSize = event.rows;
+  }
+
+  if (event.page == 0) {
+    //Trang đầu
+    opition.value.id = null;
+    opition.value.IsNext = true;
+  } else if (event.page > opition.value.PageNo + 1) {
+    //Trang cuối
+    opition.value.id = -1;
+    opition.value.IsNext = false;
+  } else if (event.page > opition.value.PageNo) {
+    //Trang sau
+
+    opition.value.id =
+    listProjectMainChild.value[listProjectMainChild.value.length - 1].project_id;
+    opition.value.IsNext = true;
+  } else if (event.page < opition.value.PageNo) {
+    //Trang trước
+    opition.value.id = listProjectMainChild.value[0].project_id;
+    opition.value.IsNext = false;
+  }
+  opition.value.PageNo = event.page;
+  loadProjectMainChild();
+};
+
+const loadTaskLogProjetc = () => {
+    axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "project_main_get_list_log",
+            par: [
+                { par: "project_id", va: props.id },
+                { par: "ob", va: opition.value.ob },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        var weekday = new Array(7);
+        weekday[0] = "Chủ nhật";
+        weekday[1] = "Thứ 2";
+        weekday[2] = "Thứ 3";
+        weekday[3] = "Thứ 4";
+        weekday[4] = "Thứ 5";
+        weekday[5] = "Thứ 6";
+        weekday[6] = "Thứ 7";
+        data.forEach(function (r) {
+            r.created_date = new Date(r.created_date);
+            r.DaysName = weekday[r.created_date.getDay()];
+            r.Time = r.DaysName + " (" + r.Ngay + ")";
+        });
+        groupByLog(data, "Time");
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "LogsView.vue",
+        log_content: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+}
+
+const groupByLog = (array, key) => {
+  const result = {};
+  array.forEach((item) => {
+    if (!result[item[key]]) {
+      result[item[key]] = [];
+    }
+    result[item[key]].push(item);
+  });
+  listProjectMainLogs.value = result;
+};
+
+const ChangeSort = () => {
+  if (opition.value.ob == "DESC") {
+    opition.value.ob = "ASC";
+  } else {
+    opition.value.ob = "DESC";
+  }
+  loadTaskLogProjetc();
+};
+
+const loadFileTaiLieu = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "project_main_get_list_file",
+            par: [
+                { par: "project_id", va: props.id },
+                { par: "ob", va: opition.value.ob },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        listProjectMainFile.value = data;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "LogsView.vue",
+        log_content: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+}
+
+const ChangeTab = (event) => {
+    switch(event){
+        case 0:
+            //Thông tin chung
+            loadData(false);
+            break;
+        case 1:
+            // dự án con
+            loadProjectMainChild();
+            break;
+        case 2:
+            //giai đoạn
+            loadProjectMainChild();
+            break;
+        case 3:
+            //Công việc
+            loadProjectMainChild();
+            break;
+        case 4:
+            //Tàil iệu
+            loadFileTaiLieu();
+            break;
+        case 5:
+            //Thảo luận
+            loadFileTaiLieu();
+            break;
+        case 6:
+            //Lịch
+            loadProjectMainChild();
+            break;
+        case 7:
+            //Báo cáo
+            loadProjectMainChild();
+            break;
+        case 8:
+            //hoạt động
+            loadTaskLogProjetc();
+            break;
+    }
+}
+
 onMounted(() => {
-  loadData(true);
+    ChangeTab(0);
+//   loadData(true);
   return {};
 });
 </script>
@@ -368,7 +644,7 @@ onMounted(() => {
                             />
                         </AvatarGroup>
                     </div>
-                    <TabView ref="tabview1" style="height: 100%;">
+                    <TabView ref="tabview1" @tab-change="ChangeTab($event.index)"  style="height: 100%;">
                         <TabPanel header="Thông tin chung">
                             <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
                                 <div class="col-6 p-0 m-0 tab-project-content-left">
@@ -610,8 +886,80 @@ onMounted(() => {
                             </div>
                         </TabPanel>
                         <TabPanel header="Dự án con">
-                            <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
-                                Danh sách dự án con
+                            <div class="h-full w-full col-md-12 p-0 m-0">
+                                <DataTable
+                                id="projectmain-child"
+                                v-model:first="first"
+                                :rowHover="true"
+                                :value="listProjectMainChild"
+                                :paginator="true"
+                                :rows="opition.PageSize"
+                                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                                :rowsPerPageOptions="[1,20, 30, 50, 100, 200]"
+                                :scrollable="true"
+                                scrollHeight="flex"
+                                :totalRecords="opition.totalRecordProjectMainChilds"
+                                :row-hover="true"
+                                dataKey="project_id"
+                                v-model:selection="selectedProjectMains"
+                                @page="onPage($event)"
+                                @sort="onSort($event)"
+                                @filter="onFilter($event)"
+                                :lazy="true"
+                                selectionMode="single"
+                                >
+                                <Column field="STT" header="STT"
+                                    class="align-items-center justify-content-center text-center font-bold"
+                                    headerStyle="text-align:center;max-width:4rem" bodyStyle="text-align:center;max-width:4rem">
+                                </Column>
+                                <Column field="Logo" header="Logo" class="align-items-center justify-content-center text-center"
+                                    headerStyle="text-align:center;max-width:80px" bodyStyle="text-align:center;max-width:80px">
+                                    <template #body="md">
+                                    <Avatar v-if="md.data.logo" :image="basedomainURL + md.data.logo" class="mr-2" size="large" />
+                                    </template>
+                                </Column>
+                                <Column field="project_name" header="Tên dự án" headerStyle="max-width:auto;">
+                                    <template #body="md">
+                                    <div style="display: flex; align-items: center">
+                                        <span style="margin-left: 5px">{{
+                                        md.data.project_name
+                                        }}</span>
+                                    </div>
+                                    </template>
+                                </Column>
+                                <Column field="project_code" header="Mã dự án" class="align-items-center justify-content-center text-center"
+                                    headerStyle="max-width:100px;text-align:center;" bodyStyle="max-width:100px;text-align:center;">
+                                </Column>
+                                <Column field="group_name" header="Nhóm dự án" class="align-items-center justify-content-center text-center"
+                                    headerStyle="max-width:300px;text-align:center;" bodyStyle="max-width:300px;text-align:center;">
+                                </Column>
+                                <Column field="status" header="Trạng thái" class="align-items-center justify-content-center text-center"
+                                    headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px">
+                                    <template #body="md">
+                                    <Chip :style="{
+                                        background: md.data.status_bg_color,
+                                        color: md.data.status_text_color,
+                                    }" v-bind:label="md.data.status_name" />
+                                    </template>
+                                </Column>
+                                <template #empty>
+                                    <div
+                                    class="align-items-center justify-content-center p-4 text-center m-auto" style="
+                                        min-height: calc(100vh - 215px);
+                                        max-height: calc(100vh - 215px);
+                                        display: flex;
+                                        flex-direction: column;
+                                    "
+                                    v-if="listProjectMainChild != null"
+                                    >
+                                    <img
+                                        src="../../assets/background/nodata.png"
+                                        height="144"
+                                    />
+                                    <h3 class="m-1">Không có dữ liệu</h3>
+                                    </div>
+                                </template>
+                                </DataTable>
                             </div>
                         </TabPanel>
                         <TabPanel header="Giai đoạn">
@@ -621,7 +969,83 @@ onMounted(() => {
                             <p>Công việc</p>
                         </TabPanel>
                         <TabPanel header="Tài liệu">
-                            <p>Tài liệu</p>
+                          <div class="h-full w-full col-md-12 p-0 m-0">
+                                <div
+                                    style="border-bottom: 1px solid #ccc; margin-right: 10px; height: 40px; padding-left: 10px;"
+                                >
+                                    <ul style="display: flex; padding: 0px; float: left">
+                                    <li
+                                        @click="addLinkTaskOrigin(datalists)"
+                                        style="list-style: none; margin-right: 20px;font-weight: 600;"
+                                    >
+                                        <a style="display: flex; font-size: 15px; align-items: center;"
+                                        >
+                                        Danh sách file tài liệu dự án</a
+                                        >
+                                    </li>
+                                    </ul>
+                                </div>
+                                <div
+                                    class="col-12 p-0 m-0" style="
+                                    max-height: calc(100vh - 110px);
+                                    min-height: calc(100vh - 110px);
+                                    overflow-y: auto;
+                                    "
+                                >
+                                    <div>
+                                        <ul class="project-active-list" style="margin: 0px; padding: 0px">
+                                            <li
+                                            style="list-style: none; padding: 5px 10px"
+                                            v-for="(value, index) in listProjectMainFile"
+                                            >
+                                            <div style="display: flex; align-items: center;">
+                                                <div style="display: flex; flex: 1">
+                                                  <!-- <Avatar
+                                                    :key="index"
+                                                    v-bind:label="
+                                                    value.file_type
+                                                        ? ''
+                                                        : (value.last_name ?? '').substring(0, 1)
+                                                    "
+                                                    v-bind:image="basedomainURL + value.avatar"
+                                                    style="
+                                                    background-color: #2196f3;
+                                                    color: #ffffff;
+                                                    width: 48px;
+                                                    height: 48px;
+                                                    font-size: 15px !important;
+                                                    "
+                                                    :style="{
+                                                    background: bgColor[index%7] + '!important',
+                                                    }"
+                                                    class="cursor-pointer"
+                                                    size="xlarge"
+                                                    shape="circle"
+                                                /> -->
+                                                  <div
+                                                      style="
+                                                      font-size: 13px;
+                                                      display: flex;
+                                                      flex-direction: column;
+                                                      padding: 8px 20px;
+                                                      "
+                                                  >
+                                                    <span style="flex: 1; font-weight: 500;">{{ value.file_name }}</span>
+                                                  </div>
+                                                </div>
+                                                <div style="font-size: 11px; color: #aaa">
+                                                <span style="font-weight: 500">{{
+                                                    moment(new Date(value.created_date)).format(
+                                                    "HH:mm DD/MM/YYYY",
+                                                    )
+                                                }}</span>
+                                                </div>
+                                            </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </TabPanel>
                         <TabPanel header="Thảo luận">
                             <p>Thảo luận</p>
@@ -633,7 +1057,126 @@ onMounted(() => {
                             <p>Báo cáo</p>
                         </TabPanel>
                         <TabPanel header="Hoạt động">
-                            <p>Hoatrj động</p>
+                            <div class="h-full w-full col-md-12 p-0 m-0">
+                                <div
+                                    style="border-bottom: 1px solid #ccc; margin-right: 10px; height: 40px; padding-left: 10px;"
+                                >
+                                    <ul style="display: flex; padding: 0px; float: left">
+                                    <li
+                                        @click="addLinkTaskOrigin(datalists)"
+                                        style="list-style: none; margin-right: 20px; color: #0d89ec"
+                                    >
+                                        <a style="display: flex; font-size: 15px; align-items: center;"
+                                        ><i
+                                            style="margin-right: 5px"
+                                            class="p-custom pi pi-calendar-times"
+                                        ></i>
+                                        Hoạt động gần nhất</a
+                                        >
+                                    </li>
+                                    </ul>
+                                    <ul
+                                    id="project-active-sort"
+                                    style="display: flex; padding: 0px; float: right"
+                                    >
+                                    <li
+                                        style="list-style: none; margin-right: 20px"
+                                        @click="ChangeSort()"
+                                        :class="{ active: opition.sort }"
+                                        aria-haspopup="true"
+                                        aria-controls="overlay_Export"
+                                    >
+                                        <a style="display: flex; font-size: 15px; align-items: center"
+                                        ><i class="pi pi-sort"></i> Sắp xếp
+                                        <i class="pi pi-angle-down"></i
+                                        ></a>
+                                    </li>
+                                    </ul>
+                                </div>
+                                <div
+                                    class="col-12 p-0 m-0" style="
+                                    max-height: calc(100vh - 110px);
+                                    min-height: calc(100vh - 110px);
+                                    overflow-y: auto;
+                                    "
+                                >
+                                    <div v-for="(group, groupName) in listProjectMainLogs">
+                                        <span
+                                            style="
+                                            color: #0d89ec;
+                                            font-size: 12px;
+                                            border-bottom: 1px solid #ccc;
+                                            display: block;
+                                            padding: 10px;
+                                            "
+                                            >{{ groupName }}</span
+                                        >
+                                        <ul class="project-active-list" style="margin: 0px; padding: 0px">
+                                            <li
+                                            style="list-style: none; padding: 5px 10px"
+                                            v-for="(value, index) in group"
+                                            >
+                                            <div style="display: flex">
+                                                <div style="display: flex; flex: 1">
+                                                <Avatar
+                                                    :key="index"
+                                                    v-tooltip.bottom="{
+                                                    value:
+                                                        value.full_name +
+                                                        '<br/>' +
+                                                        (value.tenChucVu || '') +
+                                                        '<br/>' +
+                                                        (value.tenToChuc || ''),
+                                                    escape: true,
+                                                    }"
+                                                    v-bind:label="
+                                                    value.avatar
+                                                        ? ''
+                                                        : (value.last_name ?? '').substring(0, 1)
+                                                    "
+                                                    v-bind:image="basedomainURL + value.avatar"
+                                                    style="
+                                                    background-color: #2196f3;
+                                                    color: #ffffff;
+                                                    width: 48px;
+                                                    height: 48px;
+                                                    font-size: 15px !important;
+                                                    "
+                                                    :style="{
+                                                    background: bgColor[index%7] + '!important',
+                                                    }"
+                                                    class="cursor-pointer"
+                                                    size="xlarge"
+                                                    shape="circle"
+                                                />
+                                                <div
+                                                    style="
+                                                    font-size: 13px;
+                                                    display: flex;
+                                                    flex-direction: column;
+                                                    padding: 8px 20px;
+                                                    "
+                                                >
+                                                    <span style="flex: 1; font-weight: 600;">{{ value.full_name }}</span>
+                                                    <span
+                                                    style="font-weight: 500"
+                                                    v-html="value.description"
+                                                    ></span>
+                                                </div>
+                                                </div>
+                                                <div style="font-size: 11px; color: #aaa">
+                                                <span style="font-weight: 500">{{
+                                                    moment(new Date(value.created_date)).format(
+                                                    "HH:mm DD/MM/YYYY",
+                                                    )
+                                                }}</span>
+                                                </div>
+                                            </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </TabPanel>
                     </TabView>
                 </div>
@@ -642,6 +1185,17 @@ onMounted(() => {
     </div>
 </template>
 <style scoped>
+#project-active-sort li:hover {
+  cursor: pointer;
+  color: #0d89ec;
+}
+.project-active-list li {
+  border-bottom: 1px solid #ccc;
+}
+.project-active-list li:hover {
+  cursor: pointer;
+  background-color: #e5f3ff !important;
+}
 .tab-project-content{
     height: calc(100vh - 50px) !important;
     background-color: #f3f3f3;
@@ -685,8 +1239,16 @@ onMounted(() => {
 ::-webkit-scrollbar{
     width: 17px !important;
 }
+
+#projectmain-child {
+  height: 99% !important;
+  padding: 10px;
+}
 </style>
 <style>
+.p-tabview-panels .p-tabview-panel{
+    height: 100%;
+}
 .p-sidebar  .p-sidebar-content{
     height: 100%;
     background-color: #f3f3f3;

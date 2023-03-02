@@ -328,7 +328,10 @@ const addTreeProjectMain = (p) => {
     parent_id: p.project_id,
     group_code: null,
     status: 0,
+    start_date: new Date(),
     is_order: listProjectMains.value.length + 1,
+    managers: [],
+    participants: [],
   };
   if (store.state.user.is_super) {
     ProjectMain.value.organization_id = 0;

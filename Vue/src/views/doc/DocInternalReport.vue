@@ -787,14 +787,14 @@ const onFilterDM = () => {
   
   if (options.value.start_dateI && options.value.end_dateI) {
     filterS = {
-      filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateAfter" }, { value: options.value.start_dateI, matchMode: "dateIs" }],
+      filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateAfterH" }, { value: options.value.start_dateIH, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "receive_date",
     };
     filterSQL.value.push(filterS);
 
     filterS = {
-      filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+      filterconstraints: [{ value: options.value.end_dateIH, matchMode: "dateBeforeH" }, { value: options.value.end_dateIH, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "receive_date",
     };
@@ -804,7 +804,7 @@ const onFilterDM = () => {
     if (options.value.start_dateI) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateIs" }],
+        filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateIsH" }],
         filteroperator: "or",
         key: "receive_date",
       };
@@ -813,7 +813,7 @@ const onFilterDM = () => {
     if (options.value.end_dateI) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+        filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBeforeH" }, { value: options.value.end_dateI, matchMode: "dateIsH" }],
         filteroperator: "or",
         key: "receive_date",
       };
@@ -824,14 +824,14 @@ const onFilterDM = () => {
 
   if (options.value.start_dateD && options.value.end_dateD) {
     filterS = {
-      filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateAfter" }, { value: options.value.start_dateD, matchMode: "dateIs" }],
+      filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateAfterH" }, { value: options.value.start_dateD, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "doc_date",
     };
     filterSQL.value.push(filterS);
 
     filterS = {
-      filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateBefore" }, { value: options.value.end_dateD, matchMode: "dateIs" }],
+      filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateBeforeH" }, { value: options.value.end_dateD, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "doc_date",
     };
@@ -841,7 +841,7 @@ const onFilterDM = () => {
     if (options.value.start_dateD) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateIs" }],
+        filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateIsH" }],
         filteroperator: "or",
         key: "doc_date",
       };
@@ -852,7 +852,7 @@ const onFilterDM = () => {
     if (options.value.end_dateD) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateIs" }],
+        filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateIsH" }],
         filteroperator: "or",
         key: "doc_date",
       };
@@ -1003,6 +1003,8 @@ htmltable += `<div id="formprint" style="width:100%">
           </tr>
         </thead>
         <tbody class="boder">`;
+
+          var stt= options.value.pagenoExport*options.value.totalRecordsExport - (options.value.totalRecordsExport -1 );
   for (let index = 0; index < datalistsExport.value.length; index++) {
     const value = datalistsExport.value[index];
 
@@ -1039,7 +1041,7 @@ htmltable += `<div id="formprint" style="width:100%">
             <td  >
               <div style="text-align: center">
                 ` +
-    dispatch_book_code +
+                stt +
       `
               </div>
             </td>
@@ -1129,6 +1131,7 @@ htmltable += `<div id="formprint" style="width:100%">
               </div>
             </td>
           </tr>`;
+          stt++;
   }
   htmltable += `
         </tbody>
@@ -1533,6 +1536,7 @@ onMounted(() => {
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
+                        :showTime="true"
                           class="w-full"
                           v-model="options.start_dateI"
                           placeholder="dd/MM/yy"
@@ -1545,7 +1549,7 @@ onMounted(() => {
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
-                          class="w-full"
+                          class="w-full"  :showTime="true"
                           v-model="options.end_dateI"  :minDate="options.start_dateI? new Date(options.start_dateI) :null"
                           placeholder="dd/MM/yy"
                         />
@@ -1557,7 +1561,7 @@ onMounted(() => {
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
-                          class="w-full"
+                          class="w-full"  :showTime="true"
                           v-model="options.start_dateD"
                           placeholder="dd/MM/yy"
                         />
@@ -1569,7 +1573,7 @@ onMounted(() => {
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
-                          class="w-full"
+                          class="w-full"  :showTime="true"
                           v-model="options.end_dateD"
                           placeholder="dd/MM/yy"
                           :minDate="options.start_dateD? new Date(options.start_dateD) :null"
