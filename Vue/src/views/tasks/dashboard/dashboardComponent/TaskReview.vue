@@ -4,6 +4,7 @@ import { useToast } from "vue-toastification";
 import { encr } from "../../../../util/function.js";
 import moment from "moment";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
+import FilterTask from "./filterTask.vue";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 //khai báo
@@ -56,6 +57,7 @@ const loadData = () => {
               { par: "fromDate", va: options.value.start_date },
               { par: "toDate", va: options.value.end_date },
               { par: "search", va: options.value.searchText },
+              { par: "filterDateType", va: options.value.filterDateType },
             ],
           }),
           // eslint-disable-next-line no-undef
@@ -108,6 +110,7 @@ const first = ref(0);
 const checkDelList = ref(false);
 const selectedTasks = ref([]);
 const refresh = () => {
+  removeFilter();
   first.value = 0;
   styleObj.value = "";
   options.value = {
@@ -368,12 +371,6 @@ const SaveData = () => {
       });
   });
 };
-const listDropdownProject = ref([]);
-const listDropdownGroup = ref([]);
-const props = defineProps({
-  project: Array,
-  group: Array,
-});
 
 const op = ref();
 const toggle = (event) => {
@@ -386,19 +383,14 @@ const style = ref({
   " border": "1px solid #5ca7e3 !important",
 });
 const size = ref(75);
-
+const filterChange = () => {
+  styleObj.value = style.value;
+};
+const removeFilter = () => {
+  styleObj.value = {};
+};
 onMounted(() => {
   loadData();
-
-  props.project.forEach((element) => {
-    listDropdownProject.value.push({
-      label: element.project_name,
-      value: element.project_id,
-    });
-  });
-  props.group.forEach((x) => {
-    listDropdownGroup.value.push({ label: x.group_name, value: x.group_id });
-  });
 });
 </script>
 <template>
@@ -464,102 +456,14 @@ onMounted(() => {
               id="overlay_panel"
               style="width: 45vw; z-index: 1000"
             >
-              <div class="col-12 flex">
-                <div class="flex col-4 align-items-center">Dự án</div>
-                <Dropdown
-                  :filter="true"
-                  v-model="options.project_id"
-                  :options="listDropdownProject"
-                  optionLabel="label"
-                  placeholder="Chọn dự án"
-                  panelClass="d-design-dropdown"
-                  class="col-8 p-0"
-                  optionValue="value"
-                  :showClear="true"
-                >
-                </Dropdown>
-              </div>
-              <div class="col-12 flex">
-                <div class="flex col-4 align-items-center">Nhóm công việc</div>
-
-                <Dropdown
-                  :filter="true"
-                  v-model="options.group_id"
-                  :options="listDropdownGroup"
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Chọn nhóm công việc"
-                  class="col-8 p-0"
-                  :showClear="true"
-                  panelClass="d-design-dropdown"
-                >
-                </Dropdown>
-              </div>
-              <div class="col-12 flex py-1">
-                <div class="col-6 py-0 flex align-items-center">
-                  Ngày bắt đầu
-                  <div
-                    class="flex align-items-center"
-                    v-if="
-                      options.start_date != null && options.start_date != ''
-                    "
-                  >
-                    <p class="px-2 font-bold text-blue-500">
-                      {{ moment(options.start_date).format("DD/MM/YYYY") }}
-                    </p>
-                    <Button
-                      icon="pi pi-times"
-                      class="p-button-rounded p-button-text p-button-danger"
-                      @click="options.start_date = null"
-                    >
-                    </Button>
-                  </div>
-                </div>
-                <div class="col-6 py-0 flex align-items-center">
-                  Ngày kết thúc
-                  <div
-                    class="flex align-items-center"
-                    v-if="options.end_date != null && options.end_date != ''"
-                  >
-                    <p class="px-2 font-bold text-blue-500">
-                      {{ moment(options.end_date).format("DD/MM/YYYY") }}
-                    </p>
-                    <Button
-                      icon="pi pi-times"
-                      class="p-button-rounded p-button-text p-button-danger"
-                      @click="options.end_date = null"
-                    >
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 flex py-0">
-                <Calendar
-                  v-model="options.start_date"
-                  :inline="true"
-                  class="col-6 py-0"
-                ></Calendar>
-                <Calendar
-                  v-model="options.end_date"
-                  :inline="true"
-                  class="col-6 py-0"
-                ></Calendar>
-              </div>
-
-              <div class="col-12 flex align-items-center justify-content-end">
-                <Button
-                  icon="pi pi-check"
-                  class="mx-2 p-button-raised"
-                  label="Lọc"
-                  @click="loadData(), (styleObj = style), op.hide()"
-                ></Button>
-                <Button
-                  icon="pi pi-times"
-                  class="mx-2 p-button-text p-button-raised"
-                  label="Hủy"
-                  @click="refresh(), op.hide()"
-                ></Button>
-              </div>
+              <FilterTask
+                class="w-full"
+                :func="loadData"
+                :data="options"
+                :refs="refresh"
+                :filterChange="filterChange"
+              >
+              </FilterTask>
             </OverlayPanel>
             <Button
               class="p-button-outlined p-button-secondary"

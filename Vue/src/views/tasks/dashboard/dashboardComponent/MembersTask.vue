@@ -536,7 +536,7 @@ onMounted(() => {
             <span>
               <span class="font-bold"> {{ data.data.total }}</span>
               <br />
-              <span class="font-bold">Công việc</span>
+              <span class="font-bold">Tất cả</span>
             </span>
           </Button>
           <Button
@@ -556,7 +556,7 @@ onMounted(() => {
             <span>
               <span class="font-bold"> {{ data.data.finished }}</span>
               <br />
-              <span class="font-bold">Công việc</span>
+              <span class="font-bold">Hoàn thành</span>
             </span>
           </Button>
           <Button
@@ -566,7 +566,7 @@ onMounted(() => {
             <span>
               <span class="font-bold"> {{ data.data.expired }}</span>
               <br />
-              <span class="font-bold">Công việc</span>
+              <span class="font-bold">Quá hạn</span>
             </span>
           </Button>
         </template>
