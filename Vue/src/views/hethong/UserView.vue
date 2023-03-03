@@ -32,7 +32,7 @@ const rules = {
   is_psword: {
     required,
     minLength: minLength(8),
-    maxLength: maxLength(25),
+    maxLength: maxLength(100),
   },
   email: {
     email,
@@ -730,7 +730,7 @@ const loadUser = (rf, rfpb) => {
     });
     loadCount();
   }
-  debugger;
+ 
   axios
     .post(
       baseURL + "/api/Users/GetDataProc",
@@ -831,7 +831,7 @@ const editUser = (md) => {
             dt.getDate()
           );
         }
-        getInfoPass(user.value);
+        //getInfoPass(user.value);
         selectCapcha.value = {};
         selectCapcha.value[user.value.department_id || "-1"] = true;
       }
@@ -1272,7 +1272,7 @@ const configRole = (md) => {
       opition.value.moduleloading = false;
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
-      debugger
+     
       if (data1.length > 0) {
         is_role.value = data1[0].is_role;
         role_name.value = data1[0].role_name;
