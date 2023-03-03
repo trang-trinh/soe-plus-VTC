@@ -329,7 +329,7 @@ const EncryptUser = () => {
     .post(
       baseURL + "/api/Users/EncryptAllUser",
       data,
-      config
+      configHeader
     )
     .then((response) => {
       if (response.data.err == "0") {
@@ -634,9 +634,16 @@ onMounted(() => {
             @click="exportLogError"
           />
           <Button
+            class="mr-2"
             icon="pi pi-save"
             label="Cập nhật"
             @click="saveConfig"
+          />  
+          <Button
+            v-if="showEncr == true"
+            label="Encrypt user"
+            icon="pi pi-file-excel"
+            @click="EncryptUser()"
           />
         </div>
       </template>
@@ -685,13 +692,7 @@ onMounted(() => {
         label="Xuất file"
         icon="pi pi-check"
         @click="expotFileLog()"
-      />      
-      <Button
-        v-if="showEncr == true"
-        label="Encrypt user"
-        icon="pi pi-check"
-        @click="EncryptUser()"
-      />
+      />    
     </template>
   </Dialog>
 </template>
