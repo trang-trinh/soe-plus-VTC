@@ -953,9 +953,7 @@ const openDetails = (data) => {
       displayDetails.value = true;
       options.value.loading = false;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
 const closeDetails = () => {
   displayDetails.value = false;
@@ -1034,9 +1032,7 @@ const addDeviceHanover = () => {
           loadDeviceNumberHandover(data[0].text_symbols, data[0]);
         }
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      
     device_handover.value = {
       status: 1,
       is_order: 1,
@@ -1126,13 +1122,8 @@ const onConvertBarCode = () => {
       })
       .catch((error) => {
         swal.close();
-        console.log("sss", error);
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+       
+      
       });
   }
 };
@@ -1260,18 +1251,10 @@ const loadDataDeviceMain = (rf) => {
       }, 200);
     })
     .catch((error) => {
-      console.log("err", error);
+    
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
     });
 };
 const loadData = (rf) => {
@@ -1327,22 +1310,10 @@ const loadData = (rf) => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
+      
+   
       options.value.loading = false;
-      addLog({
-        title: "Lỗi tải Tin tức",
-        controller: "Card.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+      
     });
 };
 
@@ -1818,15 +1789,7 @@ const exportExcelR = () => {
       })
       .catch((error) => {
         options.value.loading = false;
-        toast.error("Tải dữ liệu không thành công!");
-        console.log(error);
-        if (error && error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
-          store.commit("gologout");
-        }
+     
       });
   }
 };
@@ -2024,18 +1987,10 @@ const loadDeviceType = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+ 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 const listUnit = ref();
@@ -2072,18 +2027,10 @@ const loadDeviceUnit = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+    
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+  
     });
 };
 const listWarehouse = ref();
@@ -2119,18 +2066,10 @@ const loadWareHouse = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+ 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
     });
 };
 
@@ -2188,17 +2127,10 @@ const loadUser = () => {
       listDropdownUserCheck.value = listDropdownUser.value;
     })
     .catch((error) => {
-      console.log(error);
-
+     
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
     });
 };
 
@@ -2239,18 +2171,10 @@ const loadOrganization = (value) => {
       } else listDepartment.value = [];
     })
     .catch((error) => {
-      console.log("err", error);
+    
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
     });
 };
 const loadStatusDevice = () => {
@@ -2285,18 +2209,9 @@ const loadStatusDevice = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+      
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 const loadProducerDevice = () => {
@@ -2335,18 +2250,10 @@ const loadProducerDevice = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+      
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+      
     });
 };
 

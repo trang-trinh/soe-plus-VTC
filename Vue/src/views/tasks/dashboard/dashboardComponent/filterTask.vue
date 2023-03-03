@@ -206,6 +206,7 @@ onMounted(() => {
               class="col-6"
               :manualInput="true"
               @date-select="OnSelectDate(1)"
+              @keyup.enter="OnSelectDate(1)"
             >
             </Calendar>
           </div>
@@ -242,6 +243,7 @@ onMounted(() => {
               :showTime="true"
               class="col-6"
               @date-select="OnSelectDate(2)"
+              @keyup.enter="OnSelectDate(2)"
               :manualInput="true"
             >
             </Calendar>

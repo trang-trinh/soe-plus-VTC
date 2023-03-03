@@ -762,9 +762,7 @@ const initTudien = () => {
         listDepartment.value = obj.arrtreeChils;
       }
     })
-    .catch((error) => {
-      console.log(error);
-    });
+  
 };
 
 const listAssetsH = ref();
@@ -859,9 +857,7 @@ const onShowProcedure = () => {
       displayProcedure.value = true;
       // loadDTliView(data[0].approved_group_id)
     })
-    .catch((error) => {
-      console.log(error);
-    });
+  
 };
 
 const listLogs = ref([]);
@@ -954,9 +950,7 @@ const onShowConfigGroup = (type) => {
         }
       })
 
-      .catch((error) => {
-        console.log(error);
-      });
+     
   } else {
     checkDefault.value = false;
     displayDeviceRepair.value = true;
@@ -990,9 +984,7 @@ const openDetailsHandover = (data) => {
       listAssetsH.value = data1;
       listFilesS.value = data2;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+ 
 };
 
 const displayDeviceRepair = ref(false);
@@ -1248,9 +1240,7 @@ const editCard = (data) => {
       isSaveCard.value = true;
       displayBasic.value = true;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+  
 };
 const checkImg = (src) => {
   let allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
@@ -1305,9 +1295,7 @@ const loadDeviceNumber = (dataVL) => {
           data[0].text_symbols;
       }
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    
 };
 
 const openBasic = (str) => {
@@ -1373,9 +1361,7 @@ const openBasic = (str) => {
          
       }
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    
 
 
 };
@@ -1434,22 +1420,11 @@ const loadData = (rf) => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
+ 
+   
       options.value.loading = false;
-      addLog({
-        title: "Lỗi tải Tin tức",
-        controller: "Card.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
+     
     });
 };
 const listSignature = ref([]);
@@ -1497,7 +1472,7 @@ const print = () => {
     })
     .catch((err) => {
        
-      console.log(err);
+    
       
     });
 };
@@ -2105,18 +2080,9 @@ const loadDeviceType = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+   
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 
@@ -2151,18 +2117,10 @@ const loadWareHouse = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+ 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
     });
 };
 
@@ -2216,7 +2174,7 @@ const loadUser = () => {
       });
     })
     .catch((error) => {
-      console.log(error);
+      
 
       options.value.loading = false;
     });
