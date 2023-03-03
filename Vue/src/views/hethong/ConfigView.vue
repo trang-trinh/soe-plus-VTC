@@ -13,6 +13,7 @@ const baseUrlCheck = baseURL;
 const configHeader = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
+const showEncr = ref(false);
 const initConfig = () => {
   axios
     .get(baseUrlCheck + "/api/Cache/GetConfig", {
@@ -22,6 +23,7 @@ const initConfig = () => {
       swal.close();
       if (response.data.err != "1") {
         config.value = response.data.data;
+        showEncr.value = response.data.u_crypt;
         //console.log(response.data.data);
         if (
           config.value != null &&
@@ -685,6 +687,7 @@ onMounted(() => {
         @click="expotFileLog()"
       />      
       <Button
+        v-if="showEncr == true"
         label="Encrypt user"
         icon="pi pi-check"
         @click="EncryptUser()"
