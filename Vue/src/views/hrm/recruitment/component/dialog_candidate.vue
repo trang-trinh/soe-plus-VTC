@@ -5,6 +5,7 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { encr, checkURL } from "../../../../util/function.js";
 import moment from "moment";
+ 
 const cryoptojs = inject("cryptojs");
 
 const store = inject("store");
@@ -64,11 +65,13 @@ const listFilesS = ref([]);
 const candidate = ref({});
 const submitted = ref(false);
 const list_users_family = ref([]);
-const list_schedule = ref([]);
+const list_academic_level = ref([]);
+const list_work_experience = ref([]);
 const loadData = () => {
   if (props.checkadd == true) {
     list_users_family.value = [];
-    list_schedule.value = [];
+    list_academic_level.value = [];
+    list_work_experience.value = [];
     candidate.value = props.candidate;
   } else {
     axios
@@ -96,6 +99,7 @@ const loadData = () => {
         let data1 = JSON.parse(response.data.data)[1];
         let data2 = JSON.parse(response.data.data)[2];
         let data3 = JSON.parse(response.data.data)[3];
+        let data4 = JSON.parse(response.data.data)[4];
         if (data) {
           candidate.value = data[0];
 
@@ -145,9 +149,14 @@ const loadData = () => {
             element.start_time = new Date(element.start_time);
           if (element.end_time) element.end_time = new Date(element.end_time);
         });
-        list_schedule.value = data2;
+        list_academic_level.value = data2;
+
         if (data3) {
-          listFilesS.value = data3;
+          list_work_experience.value = data3;
+        }
+
+        if (data4) {
+          listFilesS.value = data4;
         }
 
         checkShow.value = true;
@@ -198,7 +207,7 @@ const saveData = (isFormValid) => {
     });
     return;
   }
-  list_schedule.value.forEach((element) => {
+  list_academic_level.value.forEach((element) => {
     if (element.class_schedule_name)
       if (element.class_schedule_name.length >= 250) {
         swal.fire({
@@ -246,8 +255,18 @@ const saveData = (isFormValid) => {
   }
 
   formData.append("hrm_candidate", JSON.stringify(candidate.value));
-  formData.append("hrm_students", JSON.stringify(list_users_family.value));
-  formData.append("hrm_schedule", JSON.stringify(list_schedule.value));
+  formData.append(
+    "hrm_candidate_family ",
+    JSON.stringify(list_users_family.value)
+  );
+  formData.append(
+    "hrm_candidate_academic  ",
+    JSON.stringify(list_academic_level.value)
+  );
+  formData.append(
+    "hrm_candidate_family ",
+    JSON.stringify(list_work_experience.value)
+  );
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
   swal.fire({
     width: 110,
@@ -390,11 +409,7 @@ const loadUser = () => {
     });
 };
 const v$ = useVuelidate(rules, candidate);
-const listFormTraining = ref([
-  { name: "Bắt buộc", code: 1 },
-  { name: "Đăng ký", code: 2 },
-  { name: "Cả hai", code: 3 },
-]);
+ 
 const listStatus = ref([
   { name: "Lên kế hoạch", code: 1 },
   { name: "Đang thực hiện", code: 2 },
@@ -454,49 +469,53 @@ const addRow_Item = (type) => {
   //relative
   if (type == 1) {
     checkShow.value = true;
-  }
-  if (type == 2) {
-    checkShow2.value = true;
+  } else if (type == 2) {
     let obj = {
       is_order: list_users_family.value.length + 1,
-      data: null,
-      profile_user_name: null,
-      work_position_id: null,
-      position_name: null,
-      position_id: null,
-      work_position_name: null,
-      note: null,
-      department_name: null,
-      profile_id: null,
+      relationship_id: null,
+      candidate_id: null,
+      full_name: null,
+      birthday: null,
+      major_id: null,
+      phone_number: null,
+      address: null,
+      organization_id: store.getters.user.organization_id,
+      status: true,
     };
     list_users_family.value.push(obj);
-    if (list_users_family.value.length > 0) {
-      var arr = [...listDataUsersSave.value];
-      list_users_family.value.forEach((element) => {
-        arr = arr.filter((x) => x.code.profile_id != element.profile_id);
-      });
-      listDataUsers.value = arr;
-    }
-  }
-  if (type == 3) {
+
+    checkShow2.value = true;
+  } else if (type == 3) {
     let obj = {
-      is_order: list_schedule.value.length + 1,
-      class_schedule_name: null,
-      limit: 1,
-      lecturers_name: null,
-      phone_number: null,
-      date_study: null,
-      start_time: null,
-      end_time: null,
-      training_class_id: null,
+      is_order: list_academic_level.value.length + 1,
+      start_date: null,
+      degree_id: null,
+      end_date: null,
+      learning_place_id: null,
+      specialization_id: null,
+      form_training: null,
+      organization_id: store.getters.user.organization_id,
+      status: true,
     };
-    list_schedule.value.push(obj);
+    list_academic_level.value.push(obj);
     checkShow3.value = true;
-  }
-  if (type == 4) {
+  } else if (type == 4) {
+    let obj = {
+      is_order: list_work_experience.value.length + 1,
+      start_date: null,
+      end_date: null,
+      company_name: null,
+      position_id: null,
+      reference_person: null,
+      phone_number: null,
+      work_des: null,
+      organization_id: store.getters.user.organization_id,
+      status: true,
+    };
+    list_work_experience.value.push(obj);
+
     checkShow4.value = true;
-  }
-  if (type == 5) {
+  } else if (type == 5) {
     checkShow5.value = true;
   }
 };
@@ -504,7 +523,344 @@ const deleteFileH = (value) => {
   listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
 };
 const treedonvis = ref();
+const listDiaDanh = ref([]);
+const listDiaDanhSave = ref([]);
+
+const onChangeCandidatePlace = (value, type) => {
+  let idPlace = null;
+
+  for (const key in value) {
+    if (Object.hasOwnProperty.call(value, key)) {
+      idPlace = key;
+    }
+  }
+
+  var strPlace = "";
+  var placeSelected = listDiaDanhSave.value.find(
+    (x) => x.place_id == Number(idPlace)
+  );
+  strPlace += placeSelected.name;
+
+  if (placeSelected.parent_id) {
+    var renPP = (parent_id) => {
+      var dd = listDiaDanhSave.value.find(
+        (x) => x.place_id == Number(parent_id)
+      );
+
+      if (dd) {
+        strPlace += " - " + dd.name;
+        if (dd.parent_id) {
+          renPP(dd.parent_id);
+        }
+      }
+      return strPlace;
+    };
+    strPlace = renPP(placeSelected.parent_id);
+  }
+  if (type == 1) candidate.value.candidate_place = strPlace;
+  else if (type == 2) candidate.value.candidate_domicile = strPlace;
+  else if (type == 3) candidate.value.resident_address = strPlace;
+  else if (type == 4) candidate.value.resident_curent_address = strPlace;
+};
+const renderTreePlace = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      m.IsOrder = i + 1;
+      let om = { key: m[id], data: m };
+      // const rechildren = (mm, pid) => {
+      //   let dts = data.filter((x) => x.parent_id == pid);
+      //   if (dts.length > 0) {
+      //     if (!mm.children) mm.children = [];
+      //     dts.forEach((em) => {
+      //       let om1 = { key: em[id], data: em };
+      //       rechildren(om1, em[id]);
+      //       mm.children.push(om1);
+      //     });
+      //   }
+      // };
+      // rechildren(om, m[id]);
+      // arrChils.push(om);
+      //
+      om = { key: m[id], data: m[id], label: m[name] };
+      const retreechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em[id], label: em[name] };
+            retreechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      retreechildren(om, m[id]);
+      arrtreeChils.push(om);
+    });
+  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+};
+const listTrainingGroups = ref([]);
+const listIdentityPlace = ref([]);
+const listMarital = ref([
+  { name: "Chưa kết hôn", code: 1 },
+  { name: "Đang có vợ/chồng", code: 2 },
+  { name: "Góa", code: 3 },
+  { name: "Ly hôn/Ly thân", code: 4 },
+  { name: "Khác", code: 5 },
+]);
+const listNationality = ref([]);
+const listMilitary = ref([
+  { name: "Chưa tham gia", code: 1 },
+  { name: "Đã tham gia", code: 2 },
+  { name: "Không đủ điều kiện tham gia", code: 3 },
+  { name: "Không cần tham gia", code: 4 },
+  { name: "Khác", code: 5 },
+]);
+
+const listRelationship= ref([]);
+const listSpecialization= ref([]);
+const listAcademicLevel= ref([]);
+const listLearningPlace=ref([]);
+const listFormTraining=ref([]);
+const listPositions=ref([]);
+
 const initTudien = () => {
+  
+  axios
+      .post(
+        baseURL + "/api/DictionaryProc/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "doc_ca_positions_list",
+              par: [
+                { par: "pageno", va: 0},
+                { par: "pagesize", va:10000 },
+                { par: "user_id", va: store.state.user.user_id },
+              ],
+            }),
+            SecretKey,
+            cryoptojs,
+          ).toString(),
+        },
+        config,
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        listPositions.value = [];
+        
+      data.forEach((element, i) => {
+        listPositions.value.push({
+          name: element.position_name,
+          code: element.position_id,
+        });
+      }); 
+      })
+      .catch((error) => {
+        toast.error("Tải dữ liệu không thành công!");
+        options.value.loading = false;
+       
+      });
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_form_traning_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listFormTraining.value = [];
+       
+      data.forEach((element, i) => {
+        listFormTraining.value.push({
+          name: element.form_traning_name,
+          code: element.form_traning_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_learning_place_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listLearningPlace.value = [];
+      data.forEach((element, i) => {
+        listLearningPlace.value.push({
+          name: element.learning_place_name,
+          code: element.learning_place_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_academic_level_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listAcademicLevel.value = [];
+      data.forEach((element, i) => {
+        listAcademicLevel.value.push({
+          name: element.academic_level_name,
+          code: element.academic_level_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_specialization_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listSpecialization.value = [];
+      data.forEach((element, i) => {
+        listSpecialization.value.push({
+          name: element.specialization_name,
+          code: element.specialization_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+    axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_relationship_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listRelationship.value = [];
+      data.forEach((element, i) => {
+        listRelationship.value.push({
+          name: element.relationship_name,
+          code: element.relationship_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  axios
+    .post(
+      baseURL + "/api/DictionaryProc/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_d_ca_places_list",
+            par: [{ par: "status", va: true }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if (data[0].length > 0) {
+        listDiaDanhSave.value = [...data[0]];
+
+        let obj = renderTreePlace(data[0], "place_id", "name", "Địa danh");
+
+        listDiaDanh.value = obj.arrtreeChils;
+      }
+    })
+
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+    });
+
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -541,10 +897,10 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_enecting_group_list",
+            proc: "hrm_ca_nationality_list",
             par: [
               { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
+              { par: "pagesize", va: 300 },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: true },
             ],
@@ -557,50 +913,20 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listTrainingGroups.value = [];
+      listNationality.value = [];
       data.forEach((element, i) => {
-        listTrainingGroups.value.push({
-          name: element.enecting_group_name,
-          code: element.enecting_group_id,
+        listNationality.value.push({
+          name: element.nationality_name,
+          code: element.nationality_id,
         });
       });
     })
     .catch((error) => {
       console.log(error);
     });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_classroom_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listClasroom.value = [];
-      data.forEach((element, i) => {
-        listClasroom.value.push({
-          name: element.classroom_name,
-          code: element.classroom_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+  
+
+    
 };
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -784,13 +1110,13 @@ const loadUserProfiles = () => {
 const changeLecturers = (value, index) => {
   if (value) {
     var arf = listDropdownUserGive.value.find((x) => x.code == value);
-    list_schedule.value[index - 1].phone_number = arf.phone_number;
-    list_schedule.value[index - 1].avatar = arf.avatar;
-    list_schedule.value[index - 1].lecturers_name = arf.name;
+    list_academic_level.value[index - 1].phone_number = arf.phone_number;
+    list_academic_level.value[index - 1].avatar = arf.avatar;
+    list_academic_level.value[index - 1].lecturers_name = arf.name;
   } else {
-    list_schedule.value[index - 1].phone_number = null;
-    list_schedule.value[index - 1].avatar = null;
-    list_schedule.value[index - 1].lecturers_name = null;
+    list_academic_level.value[index - 1].phone_number = null;
+    list_academic_level.value[index - 1].avatar = null;
+    list_academic_level.value[index - 1].lecturers_name = null;
   }
 };
 const changeUserTrainding = (data, index) => {
@@ -799,8 +1125,7 @@ const changeUserTrainding = (data, index) => {
     list_users_family.value[index].profile_id = data.profile_id;
     list_users_family.value[index].profile_user_name = data.profile_user_name;
     list_users_family.value[index].work_position_id = data.work_position_id;
-    list_users_family.value[index].work_position_name =
-      data.work_position_name;
+    list_users_family.value[index].work_position_name = data.work_position_name;
     list_users_family.value[index].position_name = data.position_name;
     list_users_family.value[index].position_id = data.position_id;
     list_users_family.value[index].department_id = data.department_id;
@@ -840,11 +1165,14 @@ const delRow_Item = (item, type) => {
     }
   }
   if (type == 2) {
-    list_schedule.value.splice(list_schedule.value.lastIndexOf(item), 1);
+    list_academic_level.value.splice(
+      list_academic_level.value.lastIndexOf(item),
+      1
+    );
   }
 };
 //Thêm bản ghi
-const listTrainingGroups = ref([]);
+
 onMounted(() => {
   loadData();
   initTudien();
@@ -937,8 +1265,10 @@ onMounted(() => {
             (candidate.candidate_source == null && submitted)
           "
         >
-          <div class="col-6 p-0 flex"   v-if="
-            (v$.candidate_code.$invalid && submitted) ">
+          <div
+            class="col-6 p-0 flex"
+            v-if="v$.candidate_code.$invalid && submitted"
+          >
             <div class="w-10rem"></div>
             <small style="width: calc(100% - 10rem)">
               <span style="color: red" class="w-full">{{
@@ -948,8 +1278,10 @@ onMounted(() => {
               }}</span>
             </small>
           </div>
-          <div class="col-6 p-0 flex"  v-if="
-            (candidate.candidate_source == null && submitted) ">
+          <div
+            class="col-6 p-0 flex"
+            v-if="candidate.candidate_source == null && submitted"
+          >
             <div class="w-10rem"></div>
             <small style="width: calc(100% - 10rem)">
               <span style="color: red" class="w-full">{{
@@ -992,7 +1324,7 @@ onMounted(() => {
                 <Calendar
                   class="w-full"
                   v-model="candidate.candidate_birthday"
-                  autocomplete="on"
+                  autocomplete="off"
                   placeholder="dd/mm/yyyy"
                   :showIcon="true"
                 />
@@ -1023,9 +1355,7 @@ onMounted(() => {
         </div>
         <div
           class="col-12 p-0 field flex"
-          v-if="
-            (v$.candidate_name.$invalid && submitted)  
-          "
+          v-if="v$.candidate_name.$invalid && submitted"
         >
           <div class="col-6 p-0 flex">
             <div class="w-10rem"></div>
@@ -1037,47 +1367,74 @@ onMounted(() => {
               }}</span>
             </small>
           </div>
-        
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="w-10rem">Nơi sinh</div>
           <div style="width: calc(100% - 10rem)">
-            <Dropdown
-              v-model="candidate.candidate_place"
-              :options="listObjTraining"
-              optionLabel="name"
-              optionValue="code"
+            <TreeSelect
+              :options="listDiaDanh"
+              v-model="candidate.candidate_place_fake"
               placeholder="Xã phường, Quận huyện, Tỉnh thành"
+              optionLabel="name"
+              optionValue="place_id"
+              style="min-height: 36px"
               class="w-full"
-              panelClass="d-design-dropdown"
-               
-            />
+              @change="onChangeCandidatePlace($event, 1)"
+              :editable="true"
+            >
+              <template #value="slotProps">
+                <div
+                  class="p-ulchip"
+                  v-if="slotProps.value && slotProps.value.length > 0"
+                >
+                  {{ candidate.candidate_place }}
+                </div>
+                <span v-else>
+                  {{ slotProps.placeholder }}
+                </span>
+              </template>
+            </TreeSelect>
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="w-10rem">Nguyên quán</div>
           <div style="width: calc(100% - 10rem)">
-            <Dropdown
-              v-model="candidate.candidate_domicile"
-              :options="listObjTraining"
-              optionLabel="name"
-              optionValue="code"
+            <TreeSelect
+              :options="listDiaDanh"
+              v-model="candidate.candidate_domicile_fake"
               placeholder="Xã phường, Quận huyện, Tỉnh thành"
+              optionLabel="name"
+              optionValue="place_id"
+              style="min-height: 36px"
               class="w-full"
-              panelClass="d-design-dropdown"
-               
-            />
+              @change="onChangeCandidatePlace($event, 2)"
+              :editable="true"
+            >
+              <template #value="slotProps">
+                <div
+                  class="p-ulchip"
+                  v-if="slotProps.value && slotProps.value.length > 0"
+                >
+                  {{ candidate.candidate_domicile }}
+                </div>
+                <span v-else>
+                  {{ slotProps.placeholder }}
+                </span>
+              </template>
+            </TreeSelect>
           </div>
         </div>
-        
+
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">CMT/Căn cước</div>
             <div style="width: calc(100% - 10rem)">
-              <InputText
+              <InputMask
+                spellcheck="false"
+                class="w-full h-full d-design-it"
                 v-model="candidate.candidate_identity"
-                class="w-full"
-                placeholder="0202XXXXXXXX"
+                mask="9999-9999-9999"
+                placeholder="0202-XXXX-XXXX"
               />
             </div>
           </div>
@@ -1088,26 +1445,25 @@ onMounted(() => {
                 class="w-full"
                 id="basic_purchase_date"
                 v-model="candidate.candidate_identity_date"
-                autocomplete="on"
+                autocomplete="off"
                 placeholder="dd/mm/yyyy"
                 :showIcon="true"
               />
             </div>
           </div>
         </div>
-       
 
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="w-10rem">Nơi cấp</div>
           <div style="width: calc(100% - 10rem)">
             <Dropdown
               v-model="candidate.candidate_identity_place"
-              :options="listObjTraining"
+              :options="listIdentityPlace"
               optionLabel="name"
               optionValue="code"
               class="w-full"
               panelClass="d-design-dropdown"
-           
+              :filter="true"
             />
           </div>
         </div>
@@ -1117,12 +1473,11 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 v-model="candidate.candidate_marital"
-                :options="listObjTraining"
+                :options="listMarital"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
                 panelClass="d-design-dropdown"
-           
               />
             </div>
           </div>
@@ -1131,12 +1486,11 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 v-model="candidate.candidate_nationality"
-                :options="listObjTraining"
+                :options="listNationality"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
                 panelClass="d-design-dropdown"
-              
               />
             </div>
           </div>
@@ -1146,15 +1500,21 @@ onMounted(() => {
             <div class="col-6 p-0 flex text-left align-items-center">
               <div class="w-10rem">Chiều cao</div>
               <div style="width: calc(100% - 10rem)">
-               <InputNumber v-model="candidate.candidate_height"  class="w-full"  /> 
-            
+                <InputNumber
+                  v-model="candidate.candidate_height"
+                  class="w-full"
+                  suffix=" Cm"
+                />
               </div>
             </div>
             <div class="col-6 p-0 flex text-left align-items-center">
               <div class="w-10rem format-center">Cân nặng</div>
               <div style="width: calc(100% - 10rem)">
-                <InputNumber v-model="candidate.candidate_weight"  class="w-full"  /> 
-               
+                <InputNumber
+                  v-model="candidate.candidate_weight"
+                  class="w-full"
+                  suffix=" Kg"
+                />
               </div>
             </div>
           </div>
@@ -1163,12 +1523,11 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 v-model="candidate.candidate_military"
-                :options="listObjTraining"
+                :options="listMilitary"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
                 panelClass="d-design-dropdown"
-               
               />
             </div>
           </div>
@@ -1190,10 +1549,10 @@ onMounted(() => {
 
         <div class="col-12 p-0 border-1 border-300 border-solid">
           <div
-            class="w-full surface-100 flex border-bottom-1 border-200 p-3 cursor-pointer"
+            class="w-full surface-100 flex border-bottom-1 border-200 cursor-pointer"
             @click="showHidePanel(1)"
           >
-            <div class="font-bold flex align-items-center w-full">
+            <div class="font-bold flex align-items-center w-full p-3">
               <i
                 class="pi pi-angle-right"
                 v-if="checkShow == false"
@@ -1213,14 +1572,29 @@ onMounted(() => {
             <div class="col-12 field p-0 flex text-left align-items-center">
               <div class="w-10rem">Điện thoại</div>
               <div style="width: calc(100% - 10rem)">
-                <Chips v-model="candidate.candidate_phone" class="w-full" />
+                <Chips
+                  v-model="candidate.candidate_phone_fake"
+                  class="w-full d-design-chips"
+                  :placeholder="
+                    candidate.candidate_phone_fake
+                      ? ''
+                      : 'Nhập số điện thoại, Enter để nhập nhiều'
+                  "
+                />
               </div>
-              <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
             </div>
             <div class="col-12 field p-0 flex text-left align-items-center">
               <div class="w-10rem">Email</div>
               <div style="width: calc(100% - 10rem)">
-                <Chips v-model="candidate.candidate_email" class="w-full" />
+                <Chips
+                  v-model="candidate.candidate_email_fake"
+                  class="w-full d-design-chips"
+                  :placeholder="
+                    candidate.candidate_email_fake
+                      ? ''
+                      : 'Nhập email, Enter để nhập nhiều'
+                  "
+                />
               </div>
               <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
             </div>
@@ -1228,24 +1602,35 @@ onMounted(() => {
               <div class="col-6 p-0 flex text-left align-items-center">
                 <div class="w-10rem">Thường trú</div>
                 <div style="width: calc(100% - 10rem)">
-                  <InputText
-                    v-model="candidate.resident"
-                    class="w-full"
-                  />
+                  <InputText v-model="candidate.resident" class="w-full" />
                 </div>
               </div>
               <div class="col-6 p-0 flex text-left align-items-center">
                 <div class="w-10rem pl-3">Địa chỉ</div>
                 <div style="width: calc(100% - 10rem)">
-                  <Dropdown
-                    v-model="candidate.resident_address"
-                    :options="listObjTraining"
+                  <TreeSelect
+                    :options="listDiaDanh"
+                    v-model="candidate.resident_address_fake"
+                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     optionLabel="name"
-                    optionValue="code"
+                    optionValue="place_id"
+                    style="min-height: 36px"
                     class="w-full"
-                    panelClass="d-design-dropdown"
-                
-                  />
+                    @change="onChangeCandidatePlace($event, 3)"
+                    :editable="true"
+                  >
+                    <template #value="slotProps">
+                      <div
+                        class="p-ulchip"
+                        v-if="slotProps.value && slotProps.value.length > 0"
+                      >
+                        {{ candidate.resident_address }}
+                      </div>
+                      <span v-else>
+                        {{ slotProps.placeholder }}
+                      </span>
+                    </template>
+                  </TreeSelect>
                 </div>
               </div>
               <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
@@ -1263,15 +1648,29 @@ onMounted(() => {
               <div class="col-6 p-0 flex text-left align-items-center">
                 <div class="w-10rem pl-3">Địa chỉ</div>
                 <div style="width: calc(100% - 10rem)">
-                  <Dropdown
-                    v-model="candidate.resident_curent_address"
-                    :options="listObjTraining"
+                  <TreeSelect
+                    :options="listDiaDanh"
+                    v-model="candidate.resident_curent_address_fake"
+                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     optionLabel="name"
-                    optionValue="code"
+                    optionValue="place_id"
+                    style="min-height: 36px"
                     class="w-full"
-                    panelClass="d-design-dropdown"
-                   
-                  />
+                    @change="onChangeCandidatePlace($event, 4)"
+                    :editable="true"
+                  >
+                    <template #value="slotProps">
+                      <div
+                        class="p-ulchip"
+                        v-if="slotProps.value && slotProps.value.length > 0"
+                      >
+                        {{ candidate.resident_curent_address }}
+                      </div>
+                      <span v-else>
+                        {{ slotProps.placeholder }}
+                      </span>
+                    </template>
+                  </TreeSelect>
                 </div>
               </div>
               <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
@@ -1281,10 +1680,12 @@ onMounted(() => {
 
         <div class="col-12 p-0 border-1 border-300 border-solid">
           <div
-            class="w-full surface-100 flex border-bottom-1 border-200 p-3 cursor-pointer"
-            @click="showHidePanel(2)"
+            class="w-full surface-100 flex border-bottom-1 border-200 cursor-pointer"
           >
-            <div class="font-bold flex align-items-center w-full">
+            <div
+              class="font-bold flex align-items-center w-full p-3"
+              @click="showHidePanel(2)"
+            >
               <i
                 class="pi pi-angle-right"
                 v-if="checkShow2 == false"
@@ -1302,12 +1703,12 @@ onMounted(() => {
                 >
               </div>
             </div>
-            <div class="w-1 text-right" v-if="!view">
-              <a
-                @click="addRow_Item(2)"
-                class="hover"
-                v-tooltip.top="'Thêm học viên'"
-              >
+            <div
+              class="w-1 text-right p-3 hover"
+              v-if="!view"
+              @click="addRow_Item(2)"
+            >
+              <a class="hover" v-tooltip.top="'Thêm người thân'">
                 <i class="pi pi-plus-circle" style="font-size: 18px"></i>
               </a>
             </div>
@@ -1332,7 +1733,6 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     {{ slotProps.data.is_order }}
-                 
                   </template>
                 </Column>
                 <Column
@@ -1345,15 +1745,15 @@ onMounted(() => {
                   <template #body="slotProps">
                     <div class="w-full">
                       <Dropdown
-                    v-model="slotProps.data.relationship_id"
-                    :options="listObjTraining"
-                    optionLabel="name"
-                    optionValue="code"
-                    class="w-full"
-                    panelClass="d-design-dropdown"
-                   
-                  />
-
+                        v-model="slotProps.data.relationship_id"
+                        :options="listRelationship"
+                        optionLabel="name"
+                        optionValue="code"
+                        class="w-full"
+                        panelClass="d-design-dropdown"
+                        placeholder="Chọn mối quan hệ"
+                        :filter="true"
+                      />
                     </div>
                   </template>
                 </Column>
@@ -1366,8 +1766,11 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <div class="w-full">
-<InputText v-model="slotProps.data.full_name" />
-
+                      <InputText
+                        v-model="slotProps.data.full_name"
+                        class="w-full"
+                        placeholder="Nhập họ và tên"
+                      />
                     </div>
                   </template>
                 </Column>
@@ -1380,31 +1783,31 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <Calendar
-                  class="w-full"
-                  v-model="slotProps.data.birthday"
-                  autocomplete="on"
-                  placeholder="dd/mm/yyyy"
-                  :showIcon="true"
-                />
+                      class="w-full"
+                      v-model="slotProps.data.birthday"
+                      autocomplete="off"
+                      placeholder="dd/mm/yyyy"
+                      :showIcon="true"
+                    />
                   </template>
                 </Column>
                 <Column
                   field="end_date"
                   header="Nghề nghiệp"
-                  headerStyle="text-align:center;width:180px;height:50px"
-                  bodyStyle="text-align:center;width:180px;"
+                  headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="text-align:center;width:250px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
                     <Dropdown
-                    v-model="slotProps.data.major_id"
-                    :options="listObjTraining"
-                    optionLabel="name"
-                    optionValue="code"
-                    class="w-full"
-                    panelClass="d-design-dropdown"
-                   
-                  />
+                      v-model="slotProps.data.major_id"
+                      :options="listSpecialization"
+                      optionLabel="name"
+                      optionValue="code"
+                      class="w-full"
+                      panelClass="d-design-dropdown"
+                      placeholder="Chọn nghề nghiệp"
+                    />
                   </template>
                 </Column>
                 <Column
@@ -1415,12 +1818,11 @@ onMounted(() => {
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <InputText
+                    <InputMask
                       spellcheck="false"
                       class="w-full h-full d-design-it"
-                      style="width: 170px"
-                      v-model="slotProps.data.position_name"
-                      disabled
+                      v-model="slotProps.data.phone_number"
+                      mask="9999-999-999"
                     />
                   </template>
                 </Column>
@@ -1433,8 +1835,9 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <InputText
-                      v-model="slotProps.data.note"
+                      v-model="slotProps.data.address"
                       spellcheck="false"
+                      placeholder="Nhập địa chỉ"
                       type="text"
                       class="w-full h-full"
                       maxLength="250"
@@ -1449,9 +1852,9 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <a
-                      @click="delRow_Item(slotProps.data, 1)"
+                      @click="delRow_Item(slotProps.data, 2)"
                       class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa học viên'"
+                      v-tooltip.top="'Xóa người thân'"
                     >
                       <i class="pi pi-times-circle" style="font-size: 18px"></i>
                     </a>
@@ -1467,12 +1870,12 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div
-          class="col-12 p-0 border-1 border-300 border-solid cursor-pointer"
-          @click="showHidePanel(3)"
-        >
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div class="font-bold flex align-items-center w-full">
+        <div class="col-12 p-0 border-1 border-300 border-solid cursor-pointer">
+          <div class="w-full surface-100 flex border-bottom-1 border-200">
+            <div
+              class="font-bold flex align-items-center w-full p-3"
+              @click="showHidePanel(3)"
+            >
               <i
                 class="pi pi-angle-right"
                 v-if="checkShow3 == false"
@@ -1485,26 +1888,29 @@ onMounted(() => {
               ></i>
               <div class="pl-2">
                 Trình độ học vấn
-                <span v-if="list_schedule.length > 0">
-                  ( {{ list_schedule.length }} )</span
+                <span v-if="list_academic_level.length > 0">
+                  ( {{ list_academic_level.length }} )</span
                 >
               </div>
             </div>
-            <div class="w-1 text-right" v-if="!view">
-              <a
-                @click="addRow_Item(3)"
-                class="hover"
-                v-tooltip.top="'Thêm lịch học'"
-              >
+            <div
+              class="w-1 text-right p-3 hover"
+              v-if="!view"
+              @click="addRow_Item(3)"
+            >
+              <a class="hover" v-tooltip.top="'Thêm trình độ học vấn'">
                 <i class="pi pi-plus-circle" style="font-size: 18px"></i>
               </a>
             </div>
           </div>
 
           <div class="w-full px-0 pt-0" v-if="checkShow3 == true">
-            <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
+            <div
+              style="overflow-x: scroll"
+              v-if="list_academic_level.length > 0"
+            >
               <DataTable
-                :value="list_schedule"
+                :value="list_academic_level"
                 :scrollable="true"
                 :lazy="true"
                 :rowHover="true"
@@ -1525,8 +1931,8 @@ onMounted(() => {
                 <Column
                   field="form"
                   header="Từ tháng"
-                  headerStyle="text-align:center;width:250px;height:50px"
-                  bodyStyle="text-align:center;width:250px;"
+                  headerStyle="text-align:center;width:150px;height:50px"
+                  bodyStyle="text-align:center;width:150px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
@@ -1534,18 +1940,15 @@ onMounted(() => {
                       <Calendar
                         class="w-full"
                         id="basic_purchase_date"
-                        v-model="slotProps.data.date_study"
-                        autocomplete="on"
+                        v-model="slotProps.data.start_date"
+                        autocomplete="off"
                         :showIcon="true"
-                        placeholder="dd/mm/yyyy"
+                        placeholder="mm/yyyy"
+                        view="month"
+                        dateFormat="mm/yy"
                         :maxDate="
                           candidate.end_date
                             ? new Date(candidate.end_date)
-                            : null
-                        "
-                        :minDate="
-                          candidate.start_date
-                            ? new Date(candidate.start_date)
                             : null
                         "
                       />
@@ -1563,13 +1966,12 @@ onMounted(() => {
                     <Calendar
                       class="w-full"
                       id="basic_purchase_date"
-                      v-model="slotProps.data.date_study"
-                      autocomplete="on"
+                      v-model="slotProps.data.end_date"
+                      autocomplete="off"
                       :showIcon="true"
-                      placeholder="dd/mm/yyyy"
-                      :maxDate="
-                        candidate.end_date ? new Date(candidate.end_date) : null
-                      "
+                      view="month"
+                      dateFormat="mm/yy"
+                      placeholder="mm/yyyy"
                       :minDate="
                         candidate.start_date
                           ? new Date(candidate.start_date)
@@ -1580,47 +1982,58 @@ onMounted(() => {
                 </Column>
 
                 <Column
-                  field="admission_place"
                   header="Bằng cấp, trình độ"
-                  headerStyle="text-align:center;width:150px;height:50px"
-                  bodyStyle="text-align:center;width:150px;"
+                  headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
+                    <Dropdown
+                      v-model="slotProps.data.academic_level_id"
+                      placeholder="Chọn trình độ"
+                      :options="listAcademicLevel"
+                      optionLabel="name"
                       class="w-full"
-                      v-model="slotProps.data.phone_number"
+                      panelClass="d-design-dropdown"
+              v
                     />
                   </template>
                 </Column>
                 <Column
                   field="transfer_place"
                   header="Nơi đào tạo"
-                  headerStyle="text-align:center;width:180px ;height:50px"
-                  bodyStyle="text-align:center ;width:180px;"
+                  headerStyle="text-align:center;width:250px ;height:50px"
+                  bodyStyle="text-align:center ;width:250px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
+                    <Dropdown
+                      v-model="slotProps.data.learning_place_id"
+                      :options="listLearningPlace"
+                      optionLabel="name"
                       class="w-full"
-                      v-model="slotProps.data.phone_number"
+                      panelClass="d-design-dropdown"
+                      :editable="true"
+                      placeholder="Chọn nơi đào tạo"
                     />
                   </template>
                 </Column>
                 <Column
                   field="transfer_place"
                   header="Chuyên ngành"
-                  headerStyle="text-align:center;width:7rem ;height:50px"
-                  bodyStyle="text-align:center ;width:7rem;"
+                  headerStyle="text-align:center;width:250px ;height:50px"
+                  bodyStyle="text-align:center ;width:250px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
+                    <Dropdown
+                      v-model="slotProps.data.specialization_id"
+                      :options="listSpecialization"
+                      optionLabel="name"
                       class="w-full"
-                      v-model="slotProps.data.phone_number"
+                      panelClass="d-design-dropdown"
+                      :editable="true"
+                      placeholder="Chọn chuyên nghành"
                     />
                   </template>
                 </Column>
@@ -1628,17 +2041,19 @@ onMounted(() => {
                 <Column
                   field="transfer_place"
                   header="Hình thức đào tạo"
-                  headerStyle="text-align:center;width:16rem ;height:50px"
-                  bodyStyle="  width:16rem;"
+                  headerStyle="text-align:center;width:250px ;height:50px"
+                  bodyStyle="  width:250px;"
                   class="align-items-center justify-content-center"
                 >
                   <template #body="slotProps">
-                    <InputText
-                      v-model="slotProps.data.note"
-                      spellcheck="false"
-                      type="text"
-                      class="w-full h-full"
-                      maxLength="250"
+                    <Dropdown
+                      v-model="slotProps.data.form_training"
+                      :options="listFormTraining"
+                      optionLabel="name"
+                      optionValue="code"
+                      class="w-full"
+                      placeholder="Chọn hình thức đào tạo"
+                      panelClass="d-design-dropdown"
                     />
                   </template>
                 </Column>
@@ -1652,7 +2067,7 @@ onMounted(() => {
                     <a
                       @click="delRow_Item(slotProps.data, 2)"
                       class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa lịch học'"
+                      v-tooltip.top="'Xóa trình độ học vấn'"
                     >
                       <i class="pi pi-times-circle" style="font-size: 18px"></i>
                     </a>
@@ -1668,12 +2083,12 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div
-          class="col-12 p-0 border-1 border-300 border-solid cursor-pointer"
-          @click="showHidePanel(4)"
-        >
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
-            <div class="font-bold flex align-items-center w-full">
+        <div class="col-12 p-0 border-1 border-300 border-solid cursor-pointer">
+          <div class="w-full surface-100 flex border-bottom-1 border-200">
+            <div
+              class="font-bold flex align-items-center w-full p-3"
+              @click="showHidePanel(4)"
+            >
               <i
                 class="pi pi-angle-right"
                 v-if="checkShow4 == false"
@@ -1686,26 +2101,29 @@ onMounted(() => {
               ></i>
               <div class="pl-2">
                 Kinh nghiệm làm việc
-                <span v-if="list_schedule.length > 0">
-                  ( {{ list_schedule.length }} )</span
+                <span v-if="list_work_experience.length > 0">
+                  ( {{ list_work_experience.length }} )</span
                 >
               </div>
             </div>
-            <div class="w-1 text-right" v-if="!view">
-              <a
-                @click="addRow_Item(4)"
-                class="hover"
-                v-tooltip.top="'Thêm lịch học'"
-              >
+            <div
+              class="w-1 text-right p-3 hover"
+              v-if="!view"
+              @click="addRow_Item(4)"
+            >
+              <a class="hover" v-tooltip.top="'Thêm kinh nghiệm làm việc'">
                 <i class="pi pi-plus-circle" style="font-size: 18px"></i>
               </a>
             </div>
           </div>
 
           <div class="w-full px-0 pt-0" v-if="checkShow4 == true">
-            <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
+            <div
+              style="overflow-x: scroll"
+              v-if="list_work_experience.length > 0"
+            >
               <DataTable
-                :value="list_schedule"
+                :value="list_work_experience"
                 :scrollable="true"
                 :lazy="true"
                 :rowHover="true"
@@ -1726,8 +2144,8 @@ onMounted(() => {
                 <Column
                   field="form"
                   header="Từ tháng"
-                  headerStyle="text-align:center;width:250px;height:50px"
-                  bodyStyle="text-align:center;width:250px;"
+                  headerStyle="text-align:center;width:150px;height:50px"
+                  bodyStyle="text-align:center;width:150px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
@@ -1735,18 +2153,15 @@ onMounted(() => {
                       <Calendar
                         class="w-full"
                         id="basic_purchase_date"
-                        v-model="slotProps.data.date_study"
-                        autocomplete="on"
+                        v-model="slotProps.data.start_date"
+                        autocomplete="off"
                         :showIcon="true"
-                        placeholder="dd/mm/yyyy"
+                        placeholder="mm/yyyy"
+                        view="month"
+                        dateFormat="mm/yy"
                         :maxDate="
                           candidate.end_date
                             ? new Date(candidate.end_date)
-                            : null
-                        "
-                        :minDate="
-                          candidate.start_date
-                            ? new Date(candidate.start_date)
                             : null
                         "
                       />
@@ -1764,13 +2179,12 @@ onMounted(() => {
                     <Calendar
                       class="w-full"
                       id="basic_purchase_date"
-                      v-model="slotProps.data.date_study"
-                      autocomplete="on"
+                      v-model="slotProps.data.end_date"
+                      autocomplete="off"
                       :showIcon="true"
-                      placeholder="dd/mm/yyyy"
-                      :maxDate="
-                        candidate.end_date ? new Date(candidate.end_date) : null
-                      "
+                      view="month"
+                      dateFormat="mm/yy"
+                      placeholder="mm/yyyy"
                       :minDate="
                         candidate.start_date
                           ? new Date(candidate.start_date)
@@ -1782,60 +2196,68 @@ onMounted(() => {
                 <Column
                   field="end_date"
                   header="Công ty"
-                  headerStyle="text-align:center;width:16rem;height:50px"
-                  bodyStyle="width:16rem;"
+                  headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="width:250px;"
                   class="align-items-center justify-content-center"
                 >
                   <template #body="slotProps">
                     <InputText
                       spellcheck="false"
                       class="w-full"
-                      v-model="slotProps.data.lecturers_name"
+                      v-model="slotProps.data.company_name"
+                      placeholder="Nhập tên công ty"
                     />
                   </template>
                 </Column>
                 <Column
                   field="admission_place"
                   header="Vị trí"
-                  headerStyle="text-align:center;width:150px;height:50px"
-                  bodyStyle="text-align:center;width:150px;"
+                  headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
+                    <Dropdown
+                    v-model="slotProps.data.position_id"
+                      :options="listPositions"
+                      optionLabel="name"
                       class="w-full"
-                      v-model="slotProps.data.phone_number"
+                      panelClass="d-design-dropdown"
+                     :filter="true"
+                      placeholder="Chọn vị trí"
                     />
+                  
+                  
                   </template>
                 </Column>
                 <Column
-                  field="transfer_place"
                   header="Người tham chiếu"
-                  headerStyle="text-align:center;width:180px ;height:50px"
-                  bodyStyle="text-align:center ;width:180px;"
+                  headerStyle="text-align:center;width:200px ;height:50px"
+                  bodyStyle="text-align:center ;width:200px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
                     <InputText
                       spellcheck="false"
+                      placeholder="Nhập họ và tên"
                       class="w-full"
-                      v-model="slotProps.data.phone_number"
+                      v-model="slotProps.data.reference_person"
                     />
                   </template>
                 </Column>
                 <Column
                   field="transfer_place"
                   header="Điện thoại"
-                  headerStyle="text-align:center;width:7rem ;height:50px"
-                  bodyStyle="text-align:center ;width:7rem;"
+                  headerStyle="text-align:center;width:150px ;height:50px"
+                  bodyStyle="text-align:center ;width:150px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <InputText
+                    <InputMask
                       spellcheck="false"
-                      class="w-full"
+                      class="w-full h-full d-design-it"
                       v-model="slotProps.data.phone_number"
+                      mask="9999-999-999"
                     />
                   </template>
                 </Column>
@@ -1843,17 +2265,19 @@ onMounted(() => {
                 <Column
                   field="transfer_place"
                   header="Mô tả công việc"
-                  headerStyle="text-align:center;width:16rem ;height:50px"
-                  bodyStyle="  width:16rem;"
+                  headerStyle="text-align:center;width:300px ;height:50px"
+                  bodyStyle="  width:300px;"
                   class="align-items-center justify-content-center"
                 >
                   <template #body="slotProps">
-                    <InputText
-                      v-model="slotProps.data.note"
-                      spellcheck="false"
-                      type="text"
-                      class="w-full h-full"
-                      maxLength="250"
+                    <Textarea
+                      :autoResize="true"
+                      rows="1"
+                      cols="30"
+                      v-model="slotProps.data.work_des"
+                      class="w-full"
+                      placeholder="Nhập mô tả"
+                      panelClass="d-design-dropdown"
                     />
                   </template>
                 </Column>
@@ -1867,7 +2291,7 @@ onMounted(() => {
                     <a
                       @click="delRow_Item(slotProps.data, 2)"
                       class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa lịch học'"
+                      v-tooltip.top="'Xóa kinh nghiệm'"
                     >
                       <i class="pi pi-times-circle" style="font-size: 18px"></i>
                     </a>
@@ -1885,10 +2309,12 @@ onMounted(() => {
         </div>
         <div class="col-12 p-0 border-1 border-300 border-solid">
           <div
-            class="w-full surface-100 flex border-bottom-1 border-200 p-3 cursor-pointer"
-            @click="showHidePanel(5)"
+            class="w-full surface-100 flex border-bottom-1 border-200 cursor-pointer"
           >
-            <div class="font-bold flex align-items-center w-full">
+            <div
+              class="font-bold flex align-items-center w-full p-3"
+              @click="showHidePanel(5)"
+            >
               <i
                 class="pi pi-angle-right"
                 v-if="checkShow5 == false"
@@ -1902,7 +2328,7 @@ onMounted(() => {
               <div class="pl-2">File đính kèm</div>
             </div>
           </div>
-          <div class="w-full" v-if="checkShow5 == true">
+          <div class="w-full p-3" v-if="checkShow5 == true">
             <FileUpload
               chooseLabel="Chọn File"
               :showUploadButton="false"

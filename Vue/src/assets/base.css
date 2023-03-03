@@ -1156,3 +1156,6 @@ li.p-chips-token {
     align-items: center;
     text-align: center;
 }
+.d-design-chips.p-chips.p-component .p-inputtext .p-chips-token{
+    margin-bottom: 0px !important;
+}
