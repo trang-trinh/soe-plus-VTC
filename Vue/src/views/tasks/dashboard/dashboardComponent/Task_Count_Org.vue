@@ -6,6 +6,7 @@ import moment from "moment";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
 import TaskChart from "./Chart/TaskChart.vue";
 import TaskdeptChild from "./TaskdeptChild.vue";
+import FilterTask from "./filterTask.vue";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
@@ -73,9 +74,8 @@ const datalists = ref([]);
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
-  let vl = data.filter((x) => x.parent_id == null);
 
-  if (vl.length > 0) {
+  if (props.type != 1) {
     data
       .filter((x) => x.parent_id == null)
       .forEach((m, i) => {
@@ -97,24 +97,35 @@ const renderTree = (data, id, name, title) => {
         //
       });
   } else {
-    data.forEach((m, i) => {
-      if (!m.children) m.children = [];
-      const rechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em) => {
-            rechildren(em, em[id]);
-            mm.children.push(em);
-          });
-        }
-      };
-      rechildren(m, m[id]);
-      arrChils.push(m);
-      //
+    let parent_id = [];
+    data.forEach((z) => {
+      parent_id.push(z.parent_id);
+    });
+
+    data
+      .filter((x) => x.parent_id == null)
+      .forEach((m, i) => {
+        const rechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em) => {
+              rechildren(em, em[id]);
+              mm.children.push(em);
+            });
+          }
+        };
+        rechildren(m, m[id]);
+        arrChils.push(m);
+      });
+    arrChils.forEach((x) => {
+      let z = x;
+      if (z.children.length > 0)
+        z.children.forEach((y) => {
+          arrtreeChils.push(y);
+        });
     });
   }
-
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 const Chartdata = ref();
@@ -127,11 +138,16 @@ const loadData = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "task_dashboar_count_by_org",
+            proc: "task_dashboar_count_by_org_bh",
             par: [
               { par: "user_id", va: user.user_id },
               { par: "type", va: props.type },
+              { par: "project_id", va: options.value.project_id },
+              { par: "group_id", va: options.value.group_id },
+              { par: "fromDate", va: options.value.start_date },
+              { par: "toDate", va: options.value.end_date },
               { par: "search", va: options.value.SearchText },
+              { par: "filterDateType", va: options.value.filterDateType },
             ],
           }),
           // eslint-disable-next-line no-undef
@@ -145,10 +161,12 @@ const loadData = () => {
       datalists.value = [];
       let data = JSON.parse(response.data.data)[0];
       let count = JSON.parse(response.data.data)[1];
-
+      options.value.total = count[0].total;
+      options.value.progress = count[0].progress;
       Chartdata.value = data;
       if (props.type == 1) {
         data.forEach((x) => {
+          x.children = [];
           x.progress = x.dept_progress != null ? x.dept_progress : 100;
           x.task_info = JSON.parse(x.task_info);
           if (x.task_info != null)
@@ -175,8 +193,15 @@ const loadData = () => {
                 t.p_id == -1 ? "Công việc không thuộc dự án" : t.project_name;
             });
         });
-        let obj = renderTree(data, "organization_id", "", "");
-        datalists.value = obj.arrChils;
+        if (
+          options.value.SearchText != null &&
+          options.value.SearchText != ""
+        ) {
+          datalists.value = data;
+        } else {
+          let obj = renderTree(data, "organization_id", "", "");
+          datalists.value = obj.arrtreeChils;
+        }
       } else {
         data.forEach((x) => {
           x.progress = x.org_progress != null ? x.org_progress : 100;
@@ -208,7 +233,22 @@ const loadData = () => {
 };
 const expandedKeys = ref();
 const refresh = () => {
+  removeFilter;
   first.value = 0;
+  styleObj.value = "";
+  options.value = {
+    PageSize: 20,
+    PageNo: 0,
+    loading: true,
+    totalRecords: 0,
+    filterDateType: null,
+    project_id: null,
+    group_id: null,
+    start_date: null,
+    end_date: null,
+    searchText: null,
+  };
+  options.value.loading = true;
   options.value.SearchText = "";
   loadData();
 };
@@ -467,6 +507,22 @@ emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
 });
 
+const op = ref();
+const toggle = (event) => {
+  op.value.toggle(event);
+};
+const filterChange = () => {
+  styleObj.value = style.value;
+};
+const removeFilter = () => {
+  styleObj.value = {};
+};
+const styleObj = ref();
+const style = ref({
+  "background-color": "#2196F3 !important",
+  color: "#fff !important",
+  " border": "1px solid #5ca7e3 !important",
+});
 onMounted(() => {
   loadData();
 });
@@ -686,7 +742,87 @@ onMounted(() => {
       :showGridlines="true"
       v-model:expandedRows="expandedRows"
     >
-      <template #header></template>
+      <template #header>
+        <h3>
+          {{
+            props.type == 1
+              ? "Thống kê số lượng công việc theo phòng ban"
+              : "Thống kê số lượng công việc theo đơn vị"
+          }}
+          <span
+            v-if="options.total"
+            style="color: #2196f3"
+            >( Tổng số công việc: {{ options.total }} - Tiến độ:
+            {{ options.progress }}% )</span
+          >
+        </h3>
+        <Toolbar class="w-full custoolbar">
+          <template #start>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText
+                v-model="options.SearchText"
+                type="text"
+                spellcheck="false"
+                placeholder="Tìm kiếm"
+                @keyup.enter="loadData()"
+              />
+            </span>
+          </template>
+
+          <template #end>
+            <Button
+              class="mx-2 p-button-outlined p-button-secondary"
+              label=""
+              icon="pi pi-filter"
+              v-tooltip="'Lọc'"
+              type="button"
+              @click="toggle"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+              :style="[styleObj]"
+            ></Button>
+            <OverlayPanel
+              ref="op"
+              appendTo="body"
+              class="p-0 m-0"
+              :showCloseIcon="false"
+              id="overlay_panel"
+              style="z-index: 1000"
+            >
+              <FilterTask
+                class="w-full"
+                :func="loadData"
+                :data="options"
+                :refs="refresh"
+                :filterChange="filterChange"
+              >
+              </FilterTask>
+            </OverlayPanel>
+
+            <Button
+              @click="refresh()"
+              class="mr-2 p-button-outlined p-button-secondary"
+              icon="pi pi-refresh"
+              v-tooltip="'Tải lại'"
+            />
+            <Button
+              label="Tiện ích"
+              icon="pi pi-file-excel"
+              class="mr-2 p-button-outlined p-button-secondary"
+              @click="toggleExport"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            />
+            <Menu
+              id="overlay_Export"
+              ref="menuButs"
+              :model="itemButs"
+              :popup="true"
+            />
+          </template>
+        </Toolbar>
+      </template>
       <Column
         :expander="true"
         class="max-w-3rem"

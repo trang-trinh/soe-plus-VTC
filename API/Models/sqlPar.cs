@@ -11,6 +11,7 @@ namespace API.Models
         public DateTime timeExport { get; set; }
        
         public string user_id { get; set; }
+        public string user_name { get; set; }
         public int report_type { get; set; }
         public int page_no { get; set; }
         public int page_size { get; set; }

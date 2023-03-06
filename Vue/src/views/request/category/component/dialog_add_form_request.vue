@@ -1,6 +1,9 @@
 <script setup>
 import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
+import { required, maxLength } from "@vuelidate/validators";
+import { useVuelidate } from "@vuelidate/core";
+import { encr, checkURL } from "../../../../util/function.js";
 //import moment from "moment";
 //import treeuser from "../../../../components/user/treeuser.vue";
 //const cryoptojs = inject("cryptojs");
@@ -26,6 +29,33 @@ const props = defineProps({
 	closeDialog: Function,
 });
 
+const rules = {
+	request_form_name: {
+		required,
+		maxLength: maxLength(500),
+		$errors: [
+			{
+				$property: "request_form_name",
+				$validator: "required",
+				$message: "Tên loại đề xuất không được để trống!",
+			},
+		],
+	},
+	request_form_code: {
+		required,
+		maxLength: maxLength(50),
+		$errors: [
+			{
+				$property: "request_form_code",
+				$validator: "required",
+				$message: "Mã loại đề xuất không được để trống!",
+			},
+		],
+	},
+};
+const request_form = ref(props.dataForm);
+const v$ = useVuelidate(rules, request_form);
+
 onMounted(() => {
 	return {};
 });
@@ -38,9 +68,211 @@ onMounted(() => {
 		:closable="false"
 		:modal="true"
 	>
-		<div class="grid formgrid m-0">
-			Form add 
-		</div>
+		<form @submit.prevent="">
+			<div class="grid formgrid m-0">
+				<div class="field col-12 md:col-12 algn-items-center flex p-0">
+					<div class="col-3 text-left flex p-0" style="align-items:center;">
+						Mã loại đề xuất <span class="redsao pl-1"> (*)</span>
+					</div>
+					<Textarea
+						v-model="request_form.request_form_code"
+						spellcheck="false"
+						class="col-9 ip36 p-2"
+						autoResize
+						autofocus
+						rows="1"
+						:class="{ 'p-invalid': v$.request_form_code.$invalid && submitted, }"
+					/>
+				</div>
+				<div class="field col-12 md:col-12 flex p-0">
+					<div class="col-3 text-left"></div>
+					<small
+						v-if="
+							(v$.request_form_code.$invalid && submitted) ||
+							v$.request_form_code.$pending.$response
+						"
+						class="col-9 p-error"
+					>
+						<span class="col-12 p-0">
+							{{
+								v$.request_form_code.required.$message
+									.replace(
+										"Value",
+										"Mã loại đề xuất"
+									)
+									.replace(
+										"is required",
+										"không được để trống"
+									)
+							}}
+						</span>
+					</small>
+					<small
+						class="col-12 p-error mt-2"
+						v-if="
+							(v$.request_form_code.maxLength.$invalid &&
+								submitted) ||
+							v$.request_form_code.maxLength.$pending.$response
+						"
+					>
+						<div class="col-12 md:col-12 flex">
+							<label class="col-2 text-left"></label>
+							<span class="col-10 p-0">
+								{{
+									v$.request_form_code.maxLength.$message.replace(
+										"The maximum length allowed is",
+										"Mã loại đề xuất không được vượt quá"
+									)
+								}}
+								ký tự
+							</span>
+						</div>
+					</small>
+				</div>
+
+				<div class="field col-12 md:col-12 algn-items-center flex p-0">
+					<div class="col-3 text-left flex p-0" style="align-items:center;">
+						Tên loại đề xuất <span class="redsao pl-1"> (*)</span>
+					</div>
+					<Textarea
+						v-model="request_form.request_form_name"
+						spellcheck="false"
+						class="col-9 ip36 p-2"
+						autoResize
+						autofocus
+						rows="1"
+						:class="{ 'p-invalid': v$.request_form_name.$invalid && submitted, }"
+					/>
+				</div>
+				<div class="field col-12 md:col-12 flex p-0">
+					<div class="col-3 text-left"></div>
+					<small
+						v-if="
+							(v$.request_form_name.$invalid && submitted) ||
+							v$.request_form_name.$pending.$response
+						"
+						class="col-9 p-error"
+					>
+						<span class="col-12 p-0">
+							{{
+								v$.request_form_name.required.$message
+									.replace(
+										"Value",
+										"Tên loại đề xuất"
+									)
+									.replace(
+										"is required",
+										"không được để trống"
+									)
+							}}
+						</span>
+					</small>
+					<small
+						class="col-12 p-error mt-2"
+						v-if="
+							(v$.request_form_name.maxLength.$invalid &&
+								submitted) ||
+							v$.request_form_name.maxLength.$pending.$response
+						"
+					>
+						<div class="col-12 md:col-12 flex">
+							<label class="col-2 text-left"></label>
+							<span class="col-10 p-0">
+								{{
+									v$.request_form_name.maxLength.$message.replace(
+										"The maximum length allowed is",
+										"Tên loại đề xuất không được vượt quá"
+									)
+								}}
+								ký tự
+							</span>
+						</div>
+					</small>
+				</div>
+
+				<div class="field col-12 md:col-12 algn-items-center flex p-0">
+					<div class="col-3 text-left flex p-0" style="align-items:center;">
+						Mô tả
+					</div>
+					<Textarea
+						v-model="request_form.description"
+						spellcheck="false"
+						class="col-9 ip36 p-2"
+						autoResize
+						rows="2"
+					/>
+				</div>
+				<div class="field col-12 md:col-12 algn-items-center flex p-0">
+					<div class="col-3 text-left flex p-0" style="align-items:center;">
+						Nhóm đề xuất
+					</div>
+					<Dropdown
+						:options="props.groups"
+						:filter="true"
+						:showClear="true"
+						:editable="false"
+						v-model="request_form.request_group_id"
+						optionLabel="request_group_name"
+						optionValue="request_group_id"
+						placeholder="Chọn vị trí"
+						class="ip36"
+						>
+						<template #option="slotProps">
+							<div class="country-item flex align-items-center">
+							<div class="pt-1 pl-2">
+								{{ slotProps.option.request_group_name }}
+							</div>
+							</div>
+						</template>
+					</Dropdown>
+				</div>
+
+				<div class="col-12 field md:col-12 flex p-0">
+					<div class="field col-6 md:col-6 p-0 align-items-center flex">
+						<div class="col-6 text-left p-0" style="align-items:center;">
+							Số giờ xử lý tối đa <span class="redsao pl-1"> (*)</span>
+						</div>
+						<InputNumber
+							v-model="request_form.is_order"
+							class="col-6 ip36 p-0"
+						/>
+					</div>
+					<div class="field col-6 md:col-6 p-0 align-items-center flex">
+						<div class="col-6 text-center p-0">Thứ tự</div>
+						<InputNumber
+							v-model="request_form.is_order"
+							:disabled="true"
+							class="col-6 ip36 p-0"
+						/>
+					</div>
+				</div>
+
+				<div class="field col-12 md:col-12 algn-items-center flex p-0">
+					<div class="col-3 text-left flex p-0" style="align-items:center;">
+						Kiểu duyệt
+					</div>
+					<Dropdown
+						:options="props.groups"
+						:filter="true"
+						:showClear="true"
+						:editable="false"
+						v-model="request_form.request_group_id"
+						optionLabel="request_group_name"
+						optionValue="request_group_id"
+						placeholder="Chọn vị trí"
+						class="ip36"
+						>
+						<template #option="slotProps">
+							<div class="country-item flex align-items-center">
+							<div class="pt-1 pl-2">
+								{{ slotProps.option.request_group_name }}
+							</div>
+							</div>
+						</template>
+					</Dropdown>
+				</div>
+			</div>
+		</form>
 		<template #footer>
 			<Button
 				label="Hủy"

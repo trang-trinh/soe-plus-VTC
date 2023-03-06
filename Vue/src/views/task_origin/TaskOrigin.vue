@@ -23,6 +23,12 @@ document.onkeyup = fkey;
 
 var wasPressed = false;
 
+const props = defineProps({
+  isShow: Boolean,
+  id: String,
+  turn: Intl,
+});
+
 function fkey(e) {
   if (idTaskLoaded.value != null) {
     e = e || window.event;
@@ -1260,7 +1266,7 @@ const loadData = (rf, type) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "task_origin_list",
+            proc: "task_origin_list_new",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "pageno", va: opition.value.PageNo },
@@ -1275,6 +1281,7 @@ const loadData = (rf, type) => {
               { par: "filter_date", va: opition.value.filter_date },
               { par: "filter_duan", va: opition.value.filter_duan },
               { par: "filter_taskgroup", va: opition.value.filter_taskgroup },
+              { par: "project_id", va: props.id ? props.id : null },
             ],
           }),
           SecretKey,

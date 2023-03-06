@@ -206,7 +206,7 @@ const reloadTivi = (data) => {
     //     var data = response.data.data;
     //     if (data != null) {
     //       	var dataTivi = JSON.parse(decr(data, SecretKey, cryoptojs));
-	// 	  	debugger;
+ 
 	// 		socket.emit("listTivi", dataTivi[0]);
 	// 		toast.success("Gửi lệnh thành công.");
     //     }
@@ -1717,6 +1717,7 @@ onMounted(() => {
       v-if="showSideBar == true"
       :isShow="showSideBar"
       :listLog="listLogTivi"
+	  :infoTivi="tiviViewLog"
 	  :key="componentKey"
     />
 </template>

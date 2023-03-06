@@ -63,9 +63,7 @@ const onDownloadS=()=>{
           }
       
     })
-    .catch((error) => {
-    console.log(error);
-    });
+    
   
 }
 const loadCount = () => {
@@ -140,9 +138,7 @@ const loadData = (rf) => {
         datalists.value = data;
       } else datalists.value = [];
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    
 };
 const datalistViews = ref([]);
 const loadDataViews = () => {
@@ -175,9 +171,7 @@ const loadDataViews = () => {
         datalistViews.value = data;
       } else datalistViews.value = [];
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    
 };
 const shows = ref();
 
@@ -352,16 +346,10 @@ const getData = () => {
       }
     })
     .catch((error) => {
-      console.log(error);
+     
       toast.error("Tải dữ liệu không thành công!");
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 

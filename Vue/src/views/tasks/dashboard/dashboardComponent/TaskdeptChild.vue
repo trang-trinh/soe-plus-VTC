@@ -3,7 +3,7 @@ import { ref, inject, onMounted, watch, h } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../../util/function.js";
 import moment from "moment";
-import TaskdeptChild2 from ".//TaskdeptChild.vue";
+import TaskdeptChild2 from "./TaskdeptChild.vue";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
 import TaskChart from "./Chart/TaskChart.vue";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
@@ -15,9 +15,7 @@ const props = defineProps({
 });
 const expandedRows = ref([]);
 const expandedRowGroups = ref([]);
-onMounted(() => {
-  console.log(props.option);
-});
+onMounted(() => {});
 const showDetail = ref(false);
 const selectedTaskID = ref();
 const onNodeSelect = (id) => {
@@ -27,11 +25,11 @@ const onNodeSelect = (id) => {
 };
 emitter.on("SideBar", (obj) => {
   showDetail.value = obj;
-  loadData(true);
+  props.func();
 });
 watch(showDetail, () => {
   if (showDetail.value == false) {
-    loadData(true);
+    props.func();
   }
 });
 const PositionSideBar = ref("right");
@@ -163,7 +161,7 @@ emitter.on("psb", (obj) => {
               v-model:expandedRowGroups="expandedRowGroups"
               ><template #header>
                 <h3>
-                  Phòng ban con của :<span class="pl-2">{{
+                  Công việc của :<span class="pl-2">{{
                     slotProps.data.organization_name
                   }}</span>
                 </h3>
@@ -411,10 +409,10 @@ emitter.on("psb", (obj) => {
             class="col-12"
             v-if="slotProps.data.children != null"
           >
-            <TaskdeptChild
+            <TaskdeptChild2
               :data="slotProps.data"
               :option="props.option"
-            ></TaskdeptChild></div
+            ></TaskdeptChild2></div
         ></span>
       </template>
       <template #empty>

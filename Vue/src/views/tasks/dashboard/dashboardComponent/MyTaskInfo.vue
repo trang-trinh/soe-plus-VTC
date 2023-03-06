@@ -161,7 +161,7 @@ const LoadActive = () => {
     )
     .then((response) => {
       let listact = JSON.parse(response.data.data)[0];
-      console.log(listact);
+
       let listDate = [];
       listact.forEach((x) => {
         x.creator = JSON.parse(x.creator);
