@@ -79,15 +79,9 @@ const loadDataSQL = () => {
     })
     .catch((error) => {
       options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-      console.log(error);
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
+    
+  
     });
 };
 const loadData = () => {
@@ -131,10 +125,7 @@ const loadData = () => {
 
       options.value.loading = false;
     })
-    .catch((error) => {
-      console.log(error);
-     
-    });
+   
 };
 const devicecard = ref({
   is_order: 1,
@@ -175,9 +166,7 @@ const openDetails = (data) => {
       displayDetails.value = true;
       options.value.loading = false;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+ 
 };
 const closeDetails = () => {
   displayDetails.value = false;
@@ -215,18 +204,10 @@ const loadWareHouse = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+ 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+  
     });
 };
 
@@ -262,18 +243,10 @@ const loadDeviceType = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+ 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+   
     });
 };
 const listUnit = ref();
@@ -309,18 +282,10 @@ const loadDeviceUnit = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+      
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
     });
 };
 
@@ -373,17 +338,11 @@ const loadUser = () => {
       listDropdownUserCheck.value = listDropdownUser.value;
     })
     .catch((error) => {
-      console.log(error);
+   
 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+   
     });
 };
 
@@ -578,19 +537,24 @@ function renderhtml(id, htmltable) {
     }
     #formprint * {
       font-family: "Times New Roman", Times, serif !important;
-      font-size: 13pt;
+      font-size: 10pt;
     }
     .title1,
     .title1 * {
-      font-size: 17pt !important;
+      font-size: 16pt !important;
     }
     .title2,
     .title2 * {
-      font-size: 16pt !important;
+      font-size: 14pt !important;
     }
     .title3,
     .title3 * {
-      font-size: 15pt !important;
+      font-size: 12pt !important;
+    }
+    .boder tr th,
+    .boder tr td {
+      border: 1px solid #999999 !important;
+      padding: 0.25rem;
     }
     .boder tr th,
     .boder tr td {
@@ -638,18 +602,29 @@ function renderhtml(id, htmltable) {
   
   `;
   htmltable+=`<div id="formprint">
-      <table>
+    <table>
         <thead>
           <tr>
-            <td class="text-center" colspan="6">
-              <div style="padding: 1rem 0">
-                <div class="  title2"><b>BÁO CÁO TRANG THIẾT BỊ ĐẾN THỜI KỲ BẢO HÀNH, BẢO TRÌ</b></div>
+            <td style="width:33.33%">
+          
+ 
+          <div style="width:100%; align-item:center; font-weight:600">Tổng số: `+  datalistsExport.value.length+` </div>
+          
+     
+              </td>
+            <td    style="width:33.33%;padding: 0 0 0.5rem 0 ;text-align:center; " >
+            
+               <div class="title2" style="width:100%;font-weight:600;height:100%;    padding-top:0">BÁO CÁO TRANG THIẾT BỊ ĐẾN THỜI KỲ BẢO HÀNH, BẢO TRÌ</div> 
              
-              </div>
+          <div></div>
+            </td>
+            <td style="width:33.33%">
+              <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
             </td>
           </tr>
         </thead>
       </table>
+       
       <table>
         <thead class="boder">
           <tr>
@@ -793,15 +768,8 @@ return;
     })
     .catch((error) => {
       options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-      console.log(error);
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
+      
     });
 
  
@@ -1018,18 +986,10 @@ const loadStatusDevice = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+   
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
     });
 };
 const showFilter = ref(false);

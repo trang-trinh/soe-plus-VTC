@@ -138,9 +138,7 @@ const loadCountNotify = () => {
         options.value.totalNotiRecords = data[0].totalRecords;
       } else options.value.totalNotiRecords = 0;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
 const datalistsNotify = ref();
 const loadDataNotify = () => {
@@ -209,17 +207,11 @@ const loadDataNotify = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+    
 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+  
     });
 };
 const showDetailsKey = (value) => {
@@ -294,17 +286,9 @@ const onloadNewsViews = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
+     
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 const listRelated = ref([]);
@@ -398,17 +382,7 @@ const onloadNews = () => {
         }
       } else news.value = store.getters.news;
     })
-    .catch((error) => {
-      console.log(error);
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
+     
 };
 
 const datalistsDiff = ref();
@@ -474,17 +448,11 @@ const onloadNewsDiff = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+ 
 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 

@@ -386,12 +386,47 @@ for (const key in datalistsD.value) {
  
  }
 
+ const organization = ref();
+const loadOrg = () => {
+  axios
+    .post(
+      baseURL + "/api/DocProc/CallProc",
+      {
+        str:
+          encr(JSON.stringify(
+            {
+              proc: "doc_organization_get",
+              par: [
+                { par: "user_id", va: store.getters.user.user_id },
+              ],
+            }
+          ),
+            SecretKey, cryoptojs)
+            .toString()
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+        organization.value = data[0];
+      }
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+ 
+      options.value.loading = false;
+
+    
+    });
+};
 onMounted(() => {
     if (!checkURL(window.location.pathname, store.getters.listModule)) {
      //router.back();
   }
   loadUser();
-  
+  loadOrg();
  
   return {
     isFirst,
@@ -406,8 +441,8 @@ onMounted(() => {
       <div class=" w-full  p-4 style-vb-1  text-center text-3xl">
           BẢNG THIẾT LẬP NGƯỜI NHẬN PHÒNG BAN
         </div>
-        <div class="w-full p-0 style-vb-2 text-center text-xl"  >
-    BẢO HIỂM XÃ HỘI BỘ QUỐC PHÒNG
+        <div class="w-full p-0 style-vb-2 text-center text-xl" v-if="organization">
+          {{ organization.organization_name }}
         </div>
        
       <div class="grid mt-4 ">

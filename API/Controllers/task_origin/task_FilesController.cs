@@ -236,15 +236,11 @@ namespace API.Controllers.Task_Origin1
                 {
                     List<task_file> delTask = new List<task_file>();
 
-                    foreach (string idp in id)
+
+                    var das = await db.task_file.Where(t => id.Contains(t.file_id)).ToListAsync();
+                    foreach (var de in das)
                     {
-                        var das = await db.task_file.Where(t => idp.Contains(t.file_id)).ToListAsync();
-                        foreach (var de in das)
-                        {
-                            delTask.Add(de);
-                        }
-
-
+                        delTask.Add(de);
                     }
                     if (delTask.Count == 0)
                     {
@@ -255,9 +251,27 @@ namespace API.Controllers.Task_Origin1
                     string root = HttpContext.Current.Server.MapPath("~/");
                     foreach (var task_file in delTask)
                     {
-                        if (File.Exists(root + task_file.file_path))
+                        var listPath = task_file.file_path.Split('/');
+                        var pathConfig = "";
+                        var sttPartPath = 1;
+                        foreach (var item in listPath)
                         {
-                            File.Delete(root + task_file.file_path);
+                            if (item.Trim() != "")
+                            {
+                                if (sttPartPath == 1)
+                                {
+                                    pathConfig += Path.GetFileName(item);
+                                }
+                                else
+                                {
+                                    pathConfig += "/" + Path.GetFileName(item);
+                                }
+                            }
+                            sttPartPath++;
+                        }
+                        if (File.Exists(root + pathConfig))
+                        {
+                            File.Delete(root + pathConfig);
                             #region add task_logs
                             if (helper.wlog)
                             {
@@ -284,7 +298,7 @@ namespace API.Controllers.Task_Origin1
                     listuser.Remove(uid);
                     foreach (var l in listuser)
                     {
-                        helper.saveNotify(uid, l, null, "Công việc", "Thêm tệp tài liệu công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                        helper.saveNotify(uid, l, null, "Công việc", "Xóa tệp tài liệu công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
                             null, 2, -1, false, module_key, ssid, null, null, tid, ip);
                     }
                     await db.SaveChangesAsync();

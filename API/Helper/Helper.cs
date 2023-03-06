@@ -1739,13 +1739,12 @@ namespace Helper
             for (int i = 0; i <= sqlCheckList.Length - 1; i++)
             {
                 if ((CheckString.IndexOf(sqlCheckList[i], StringComparison.OrdinalIgnoreCase) >= 0))
-                {
-                    isSQLInjection = true;
+                { 
+                    isSQLInjection = true; 
                 }
             }
             return isSQLInjection;
         }
         #endregion
-
     }
 }

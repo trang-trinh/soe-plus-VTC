@@ -674,7 +674,7 @@ onMounted(() => {
                       :showIcon="true"
                       class="w-full h-full"
                       placeholder="Thời gian xử lý mới"
-                      :minDate="new Date(props.data.end_date)"
+                      :minDate="new Date()"
                     />
                   </div>
                 </div>

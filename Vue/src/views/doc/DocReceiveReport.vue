@@ -7,6 +7,8 @@ import { useVuelidate } from "@vuelidate/core";
 import moment from "moment";
 import { encr } from "../../util/function";
 import router from "@/router";
+ 
+
 //Khai báo
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -41,11 +43,14 @@ const options = ref({
   id: null,
   totalRecordsExport: 50,
   pagenoExport: 1,
+  start_dateD: null,
+  end_dateD: null
 });
 
 const datalists = ref();
 const isDynamicSQL = ref(false);
 const loadDataSQL = () => {
+  
   let dataTeo = {
     id: "doc_master_id",
     next: options.value.IsNext,
@@ -80,15 +85,7 @@ const loadDataSQL = () => {
     })
     .catch((error) => {
       options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-      console.log(error);
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
     });
 };
 const loadData = () => {
@@ -105,9 +102,23 @@ const loadData = () => {
       strk = ",";
     }
   }
-  if(strG!=null)
-  options.value.department_id_process_fake= strG;
-
+  if (strG != null && strG != "")
+    options.value.department_id_process_fake = strG;
+  else
+    options.value.department_id_process_fake = null;
+    
+    strG = "";
+   strk = "";
+  if (options.value.department_id) {
+    for (const key in options.value.department_id) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if (strG != null && strG != "")
+    options.value.department_id_fake = strG;
+  else
+    options.value.department_id_fake = null;
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -124,7 +135,7 @@ const loadData = () => {
               { par: "doc_group_id", va: options.value.doc_group_id },
               { par: "field_id", va: options.value.field_id },
               { par: "department_id_process", va: options.value.department_id_process_fake },
-              { par: "department_id", va: options.value.department_id },
+              { par: "department_id", va: options.value.department_id_fake },
               { par: "start_dateI", va: options.value.start_dateI },
               { par: "end_dateI", va: options.value.end_dateI },
               { par: "start_dateD", va: options.value.start_dateD },
@@ -156,9 +167,7 @@ const loadData = () => {
 
       options.value.loading = false;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+  
 };
 
 //Tìm kiếm
@@ -188,7 +197,7 @@ const refreshData = () => {
   options.value.end_dateD = null;
   options.value.search = null;
   options.value.loading = true;
-  checkFilter.value = false; first.value=0;
+  checkFilter.value = false; first.value = 0;
   filters.value = {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     dispatch_book_num: {
@@ -320,10 +329,110 @@ const loadOrganization = () => {
       } else {
       }
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
+const rightSideReport = ref(false);
+const ReportData = () => {
+  rightSideReport.value = true;
+
+
+}
+const onFilterHistory = (value) => {
+  // listFilterDM.department_list
+  if (value.doc_group_id) {
+
+    options.value.ca_groups_list = [];
+    value.doc_group_id.split(',').forEach(element => {
+      listFilterDM.value.ca_groups_list.forEach(item => {
+        if (Number(element) == item.code)
+          options.value.ca_groups_list.push(item);
+      });
+    });
+  }
+
+
+  if (value.field_id) {
+
+    options.value.ca_fields_list = [];
+    value.field_id.split(',').forEach(element => {
+      listFilterDM.value.ca_fields_list.forEach(item => {
+        if (Number(element) == item.code)
+          options.value.ca_fields_list.push(item);
+      });
+    });
+  }
+
+  if (value.dispatch_book_id) {
+
+    options.value.ca_dispatch_book_list = [];
+    value.dispatch_book_id.split(',').forEach(element => {
+      listFilterDM.value.ca_dispatch_book_list.forEach(item => {
+        if (Number(element) == item.code)
+          options.value.ca_dispatch_book_list.push(item);
+      });
+    });
+  }
+  if (value.user_recever) {
+
+    options.value.ca_user_recever_list = [];
+    value.user_recever.split(',').forEach(element => {
+      listFilterDM.value.ca_user_recever_list.forEach(item => {
+        if (element == item.code)
+          options.value.ca_user_recever_list.push(item);
+      });
+    });
+  }
+
+
+  if (value.department_id) {
+    options.value.department_id = {};
+    ;
+    value.department_id.split(',').forEach(element => {
+      options.value.department_id[element] = {
+        checked: true, partialChecked: false
+      };
+    });
+  }
+  if (value.department_id_process) {
+    options.value.department_id_process = {};
+    ;
+    value.department_id_process.split(',').forEach(element => {
+      options.value.department_id_process[element] = {
+        checked: true, partialChecked: false
+      };
+    });
+  }
+
+
+  if (value.start_dateI)
+    options.value.start_dateI = new Date(value.start_dateI);
+    else
+    options.value.start_dateI=null;
+  if (value.end_dateI)
+    options.value.end_dateI = new Date(value.end_dateI);
+    else
+    options.value.end_dateI=null;
+  if (value.start_dateD)
+    options.value.start_dateD = new Date(value.start_dateD);
+    else
+    options.value.start_dateD=null;
+  if (value.end_dateD)
+    options.value.end_dateD = new Date(value.end_dateD);
+    else
+    options.value.end_dateD=null;
+  if (value.search)
+    options.value.search = value.search;
+
+  options.value.pageno = value.page_no-1;
+  options.value.pagesize=value.page_size;
+ 
+  onFilterDM(null);
+  rightSideReport.value=false;
+
+}
+
+
+
 
 const selectedColumns = ref();
 const columns = ref([
@@ -395,7 +504,7 @@ const loadFilterDM = () => {
       });
     })
     .catch((error) => {
-      console.log(error);
+    
 
       options.value.loading = false;
     });
@@ -432,10 +541,8 @@ const loadFilterDM = () => {
         });
       });
     })
-    .catch((error) => {
-      console.log(error);
-    });
-   
+ 
+
   axios
     .post(
       baseURL + "/api/device_card/getData",
@@ -465,7 +572,7 @@ const loadFilterDM = () => {
       }
     })
     .catch((error) => {
-      console.log("err", error);
+    
       options.value.loading = false;
     });
   axios
@@ -496,9 +603,7 @@ const loadFilterDM = () => {
         });
       });
     })
-    .catch((error) => {
-      console.log(error);
-    });
+  
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -528,9 +633,7 @@ const loadFilterDM = () => {
         });
       });
     })
-    .catch((error) => {
-      console.log(error);
-    });
+ 
 };
 const renderTreeDV1 = (data, id, name, title, org_id) => {
   let arrtreeChils = [];
@@ -585,30 +688,31 @@ const onRefilterDM = () => {
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
   options.value.ca_groups_list = null;
-  first.value=0;
+  first.value = 0;
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
   options.value.ca_user_recever_list = null;
   options.value.end_dateD = null;
   options.value.start_dateD = null;
- 
+
   filterButs.value.hide();
   filterSQL.value = [];
-  options.value.pageno=0;
+  options.value.pageno = 0;
   isDynamicSQL.value = false;
   checkFilter.value = false;
   options.value.loading = true;
 
   loadData();
 };
-const FilterStr=ref("");
-const onFilterDM = () => {
+const FilterStr = ref("");
+const onFilterDM = (pageno) => {
   filterButs.value.hide();
   options.value.loading = true;
   checkFilter.value = true;
   filterSQL.value = [];
-  options.value.pageno=0;
+  if(pageno)
+  options.value.pageno = pageno;
   let filterS = null;
 
   var strG = "";
@@ -690,15 +794,17 @@ const onFilterDM = () => {
 
 
 
+
   strG = "";
   strk = "";
-  FilterStr.value="";
+  FilterStr.value = "";
   if (options.value.department_id_process) {
     for (const key in options.value.department_id_process) {
       strG += strk + key;
-       
-       var tsc=listFilterDM.value.department_list.find(x=>x.key==key).label;
-      FilterStr.value+= strk +tsc;
+
+      var tsc = listFilterDM.value.department_list.find(x => x.key == key);
+      if (tsc)
+        FilterStr.value += strk + tsc.label;
       strk = ",";
     }
   }
@@ -741,14 +847,16 @@ const onFilterDM = () => {
 
   if (options.value.start_dateI && options.value.end_dateI) {
     filterS = {
-      filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateAfter" }, { value: options.value.start_dateI, matchMode: "dateIs" }],
+      filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateAfterH" },
+      { value: options.value.start_dateI, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "receive_date",
     };
     filterSQL.value.push(filterS);
 
     filterS = {
-      filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBefore" }, { value: options.value.end_dateI, matchMode: "dateIs" }],
+      filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBeforeH" },
+      { value: options.value.end_dateI, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "receive_date",
     };
@@ -764,28 +872,31 @@ const onFilterDM = () => {
       };
       filterSQL.value.push(filterS);
     }
+    else options.value.start_dateI = null;
     if (options.value.end_dateI) {
 
       filterS = {
-        filterconstraints: [  { value: options.value.end_dateI, matchMode: "dateIs" }],
+        filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateIs" }],
         filteroperator: "or",
         key: "receive_date",
       };
       filterSQL.value.push(filterS);
 
-    }
+    } else options.value.end_dateI = null;
   }
 
   if (options.value.start_dateD && options.value.end_dateD) {
     filterS = {
-      filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateAfter" }, { value: options.value.start_dateD, matchMode: "dateIs" }],
+      filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateAfterH" },
+      { value: options.value.start_dateD, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "doc_date",
     };
     filterSQL.value.push(filterS);
 
     filterS = {
-      filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateBefore" }, { value: options.value.end_dateD, matchMode: "dateIs" }],
+      filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateBeforeH" },
+      { value: options.value.end_dateD, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "doc_date",
     };
@@ -802,7 +913,7 @@ const onFilterDM = () => {
       filterSQL.value.push(filterS);
 
 
-    }
+    } else options.value.start_dateD = null;
     if (options.value.end_dateD) {
 
       filterS = {
@@ -812,9 +923,9 @@ const onFilterDM = () => {
       };
       filterSQL.value.push(filterS);
 
-    }
+    } else options.value.end_dateD = null;
   }
-  first.value=0;
+  first.value = 0;
   if (filterSQL.value.length > 0) loadDataSQL();
   else loadData(true);
 };
@@ -854,6 +965,57 @@ const print = () => {
     printframe.print();
     printframe.document.close();
   }, 0);
+
+
+  let formData = new FormData();
+
+  if (options.value.search == "") {
+    options.value.search = null;
+  }
+
+  var dataUp = {
+
+    report_type: 1,
+    page_no: options.value.pagenoExport,
+    page_size: options.value.totalRecordsExport,
+    start_dateI: options.value.start_dateI,
+    end_dateI: options.value.end_dateI,
+    start_dateD: options.value.start_dateD,
+    end_dateD: options.value.end_dateD,
+    search: options.value.search,
+    user_recever: options.value.user_recever,
+    field_id: options.value.field_id,
+    dispatch_book_id: options.value.dispatch_book_id,
+    doc_group_id: options.value.doc_group_id,
+    department_id_process: options.value.department_id_process_fake,
+    department_id: options.value.department_id_fake
+  }
+  if(checkFilter.value==false){
+    dataUp.start_dateI=null;
+    dataUp.end_dateI=null;
+    dataUp.start_dateD=null;
+    dataUp.end_dateD=null;
+  }
+  formData.append("doc_export", JSON.stringify(dataUp));
+  axios
+    .post(baseURL + "/api/DocExport/add_doc_export", formData, config)
+    .then(() => {
+      loadHistoryRP();
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+
+
+
+
+
 };
 
 function renderhtml(id, htmltable) {
@@ -930,14 +1092,14 @@ function renderhtml(id, htmltable) {
   
   
   `;
-htmltable += `<div id="formprint" style="width:100%">
+  htmltable += `<div id="formprint" style="width:100%">
       <table>
         <thead>
           <tr>
             <td style="width:33.33%">
           
-              <div style="width:100%; align-item:center; font-weight:600;word-break: break-word;">`+  FilterStr.value+` </div>
-          <div style="width:100%; align-item:center; font-weight:600">Tổng số: `+  datalistsExport.value.length+` </div>
+              <div style="width:100%; align-item:center; font-weight:600;word-break: break-word;">`+ FilterStr.value + ` </div>
+          <div style="width:100%; align-item:center; font-weight:600">Tổng số: `+ datalistsExport.value.length + ` </div>
           
      
               </td>
@@ -948,7 +1110,7 @@ htmltable += `<div id="formprint" style="width:100%">
           <div></div>
             </td>
             <td style="width:33.33%">
-              <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
+              <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: `+ moment(new Date()).format("DD/MM/YYYY") + ` </div>
             </td>
           </tr>
         </thead>
@@ -981,35 +1143,36 @@ htmltable += `<div id="formprint" style="width:100%">
           </tr>
         </thead>
         <tbody class="boder">`;
+  var stt = options.value.pagenoExport * options.value.totalRecordsExport - (options.value.totalRecordsExport - 1);
   for (let index = 0; index < datalistsExport.value.length; index++) {
     const value = datalistsExport.value[index];
 
     var doc_date = "";
     var receive_date = "";
-    var num_of_pages="";
-    var num_of_copies="";
-    var is_not_send_paper="";
-    var security="";
-    var dispatch_book_code="";
-    var doc_code="";
-    if(value.dispatch_book_code)
-    dispatch_book_code=value.dispatch_book_code;
-    if(value.doc_code)
-    doc_code=value.doc_code;
-    if(value.num_of_pages)
-    num_of_pages=value.num_of_pages;
-    if(value.num_of_copies)
-    num_of_copies=value.num_of_copies;
-    if(value.security)
-    security=value.security; 
- 
-    if(value.is_not_send_paper==1)
-    is_not_send_paper="1";
-     debugger
+    var num_of_pages = "";
+    var num_of_copies = "";
+    var is_not_send_paper = "";
+    var security = "";
+    var dispatch_book_code = "";
+    var doc_code = "";
+    if (value.dispatch_book_code)
+      dispatch_book_code = value.dispatch_book_code;
+    if (value.doc_code)
+      doc_code = value.doc_code;
+    if (value.num_of_pages)
+      num_of_pages = value.num_of_pages;
+    if (value.num_of_copies)
+      num_of_copies = value.num_of_copies;
+    if (value.security)
+      security = value.security;
+
+    if (value.is_not_send_paper == 1)
+      is_not_send_paper = "1";
+
     if (value.doc_date)
       doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
     if (value.receive_date)
-    receive_date=  moment(new Date(value.receive_date)).format("DD/MM/YYYY")
+      receive_date = moment(new Date(value.receive_date)).format("DD/MM/YYYY")
     htmltable +=
       `
           <tr >
@@ -1017,14 +1180,14 @@ htmltable += `<div id="formprint" style="width:100%">
             <td  >
               <div style="text-align: center">
                 ` +
-    dispatch_book_code +
+      stt +
       `
               </div>
             </td>
             <td align="center"   >
 
               <div >
-               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + doc_code +'</div>    '+dispatch_book_code
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + doc_code + '</div>    ' + dispatch_book_code
       +
       ` </div>
               
@@ -1033,7 +1196,7 @@ htmltable += `<div id="formprint" style="width:100%">
             </td>
             <td   >
               <div >
-               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + receive_date +'</div>  '+doc_date
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + receive_date + '</div>  ' + doc_date
       +
       ` </div>
               
@@ -1041,7 +1204,7 @@ htmltable += `<div id="formprint" style="width:100%">
             </td>
             <td  style=" word-break: break-word; text-align:center">
             <div >
-              ` +value.issue_place + `
+              ` + value.issue_place + `
        
             </div>
           </td>
@@ -1057,7 +1220,7 @@ htmltable += `<div id="formprint" style="width:100%">
             <td  style=" word-break: break-word">
               <div style="text-align: center">
                 ` +
-       num_of_pages +
+      num_of_pages +
       `
               </div>
             </td>
@@ -1070,15 +1233,15 @@ htmltable += `<div id="formprint" style="width:100%">
             </td>
             <td  style=" word-break: break-word">
               <div style="text-align: center">
-                ` + 
-       security +
+                ` +
+      security +
       `
               </div>
             </td>
             <td  style=" word-break: break-word">
               <div style="text-align: center">
                 ` +
-                is_not_send_paper +
+      is_not_send_paper +
       `
               </div>
             </td>
@@ -1107,6 +1270,8 @@ htmltable += `<div id="formprint" style="width:100%">
               </div>
             </td>
           </tr>`;
+
+    stt++;
   }
   htmltable += `
         </tbody>
@@ -1121,7 +1286,7 @@ htmltable += `<div id="formprint" style="width:100%">
 }
 const datalistsExport = ref();
 var checkTypeExpport = false;
-const first=ref(0);
+const first = ref(0);
 //Xuất excel
 const menuButs = ref();
 const exportExcelR = () => {
@@ -1138,8 +1303,9 @@ const exportExcelR = () => {
 
   if (checkTypeExpport) exportData("ExportExcel");
   else {
-     
+
     options.value.loading = true;
+    debugger
     axios
       .post(
         baseURL + "/api/DocProc/CallProc",
@@ -1156,11 +1322,11 @@ const exportExcelR = () => {
                 { par: "doc_group_id", va: options.value.doc_group_id },
                 { par: "field_id", va: options.value.field_id },
                 { par: "department_id_process", va: options.value.department_id_process_fake },
-                { par: "department_id", va: options.value.department_id },
-                { par: "start_dateI", va: options.value.start_dateI },
-                { par: "end_dateI", va: options.value.end_dateI },
-                { par: "start_dateD", va: options.value.start_dateD },
-                { par: "end_dateD", va: options.value.end_dateD },
+                { par: "department_id", va: options.value.department_id_fake },
+                { par: "start_dateI", va:sDateI},
+                { par: "end_dateI", va: eDateI},
+                 { par: "start_dateD", va: sDateD},
+                { par: "end_dateD", va:sDateD},
                 { par: "search", va: options.value.search },
                 { par: "sort", va: options.value.sort },
               ],
@@ -1182,7 +1348,7 @@ const exportExcelR = () => {
           if (!element.dispatch_book_num) element.dispatch_book_num = "";
           if (!element.doc_code) element.doc_code = "";
         });
-         
+
         if (data.length > 0) {
           datalistsExport.value = data;
 
@@ -1192,10 +1358,9 @@ const exportExcelR = () => {
         } else {
           datalistsExport.value = [];
         }
+        options.value.loading = false;
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      
   }
 };
 
@@ -1226,8 +1391,23 @@ const itemButs = ref([
     },
   },
 ]);
+var sDateI=null;
+var eDateI=null;
+var sDateD=null;
+var eDateD=null;
 const toggleExport = (event) => {
-  
+if(checkFilter.value == true){
+  sDateI=options.value.sDateI;
+  eDateI=options.value.eDateI;
+  sDateD=options.value.sDateD;
+  eDateD=options.value.eDateD;
+}
+else{
+  sDateI=null;
+  eDateI=null;
+  sDateD=null;
+  eDateD=null;
+}
   var strG = "";
   var strk = "";
 
@@ -1237,8 +1417,23 @@ const toggleExport = (event) => {
       strk = ",";
     }
   }
-  if(strG!=null)
-  options.value.department_id_process_fake= strG;
+  if (strG != null && strG != "")
+    options.value.department_id_process_fake = strG;
+  else
+    options.value.department_id_process_fake = null;
+
+    strG = "";
+   strk = "";
+  if (options.value.department_id) {
+    for (const key in options.value.department_id) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if (strG != null && strG != "")
+    options.value.department_id_fake = strG;
+  else
+    options.value.department_id_fake = null;
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
@@ -1263,11 +1458,11 @@ const exportData = (method) => {
           { par: "doc_group_id", va: options.value.doc_group_id },
           { par: "field_id", va: options.value.field_id },
           { par: "department_id_process", va: options.value.department_id_process_fake },
-          { par: "department_id", va: options.value.department_id },
-          { par: "start_dateI", va: options.value.start_dateI },
-          { par: "end_dateI", va: options.value.end_dateI },
-          { par: "start_dateD", va: options.value.start_dateD },
-          { par: "end_dateD", va: options.value.end_dateD },
+          { par: "department_id", va: options.value.department_id_fake },
+          { par: "start_dateI", va:sDateI},
+          { par: "end_dateI", va: eDateI},
+          { par: "start_dateD", va: sDateD},
+          { par: "end_dateD", va:sDateD},
           { par: "search", va: options.value.search },
           { par: "sort", va: options.value.sort },
         ],
@@ -1398,9 +1593,44 @@ const onSort = (event) => {
     loadData();
   }
 };
+const listHistoryRP = ref([]);
+const loadHistoryRP = () => {
+  var formData = new FormData();
+  formData.append("type", 1);
+  axios
+    .post(baseURL + "/api/DocExport/getData", formData, config)
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if(response.data.data){
+      if (data.length > 0) {
+
+        listHistoryRP.value = data;
+   
+        if (data[0].start_dateI)
+          options.value.start_dateI = new Date(data[0].end_dateI);
+        if (data[0].end_dateI)
+          options.value.end_dateI = new Date();
+        if (data[0].start_dateD)
+          options.value.start_dateD = new Date(data[0].end_dateD);
+        if (data[0].end_dateD)
+          options.value.end_dateD = new Date();
+      }}
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+
+}
 onMounted(() => {
   loadFilterDM();
   // loadOrganization();
+  loadHistoryRP();
   loadData();
 });
 </script>
@@ -1410,8 +1640,8 @@ onMounted(() => {
       <DataTable class="w-full p-datatable-sm e-sm p-table-custom-d" :lazy="true" @page="onPage($event)"
         @filter="onFilter($event)" @sort="onSort($event)" :value="datalists" :loading="options.loading"
         :paginator="options.totalRecords > options.pagesize" :rows="options.pagesize" :totalRecords="options.totalRecords"
-        dataKey="doc_master_id" :rowHover="true" :filters="filters" :showGridlines="true" filterDisplay="menu" 
-        filterMode="lenient" responsiveLayout="scroll" :scrollable="true" scrollHeight="flex"  v-model:first="first"
+        dataKey="doc_master_id" :rowHover="true" :filters="filters" :showGridlines="true" filterDisplay="menu"
+        filterMode="lenient" responsiveLayout="scroll" :scrollable="true" scrollHeight="flex" v-model:first="first"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks  NextPageLink LastPageLink    RowsPerPageDropdown"
         :rowsPerPageOptions="[20, 30, 50, 100, 200]">
         <template #header>
@@ -1460,13 +1690,13 @@ onMounted(() => {
                         Ngày thu:
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
-                        <Calendar class="w-full" v-model="options.start_dateI" placeholder="dd/MM/yy" />
+                        <Calendar :showTime="true" class="w-full" v-model="options.start_dateI" placeholder="dd/MM/yy" />
                       </div>
                       <div class="col-1 p-0 align-center align-items-center flex">
                         <span class="w-full text-center font-bold">-</span>
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
-                        <Calendar class="w-full" v-model="options.end_dateI"
+                        <Calendar class="w-full" v-model="options.end_dateI" :showTime="true"
                           :minDate="options.start_dateI ? new Date(options.start_dateI) : null" placeholder="dd/MM/yy" />
                       </div>
                     </div>
@@ -1475,13 +1705,13 @@ onMounted(() => {
                         Ngày ban hành:
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
-                        <Calendar class="w-full" v-model="options.start_dateD" placeholder="dd/MM/yy" />
+                        <Calendar class="w-full" :showTime="true" v-model="options.start_dateD" placeholder="dd/MM/yy" />
                       </div>
                       <div class="col-1 p-0 align-center align-items-center flex">
                         <span class="w-full text-center font-bold">-</span>
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
-                        <Calendar class="w-full" v-model="options.end_dateD"
+                        <Calendar class="w-full" v-model="options.end_dateD" :showTime="true"
                           :minDate="options.start_dateD ? new Date(options.start_dateD) : null" placeholder="dd/MM/yy" />
                       </div>
                     </div>
@@ -1536,48 +1766,48 @@ onMounted(() => {
                       </div>
                     </div>
                     <!-- <div class="field col-12 md:col-12 flex">
-                        <div class="col-3 p-0 align-items-center flex">
-                          Phòng ban:
-                        </div>
-                        <div class="col-9 p-0 align-items-center flex">
-                          <MultiSelect
-                            v-model="options.ca_issue_place_list"
-                            :options="listFilterDM.ca_issue_place_list"
-                            optionLabel="name"
-                            placeholder="Chọn nhóm văn bản"
-                            :filter="true"
-                            class="multiselect-custom w-full"
-                          >
-                            <template #value="slotProps">
-                              <div class="flex">
-                                <div
-                                  class="country-item country-item-value mr-2"
-                                  v-for="option of slotProps.value"
-                                  :key="option.code"
+                              <div class="col-3 p-0 align-items-center flex">
+                                Phòng ban:
+                              </div>
+                              <div class="col-9 p-0 align-items-center flex">
+                                <MultiSelect
+                                  v-model="options.ca_issue_place_list"
+                                  :options="listFilterDM.ca_issue_place_list"
+                                  optionLabel="name"
+                                  placeholder="Chọn nhóm văn bản"
+                                  :filter="true"
+                                  class="multiselect-custom w-full"
                                 >
-                                  <Chip
-                                    :label="option.name"
-                                    removable
-                                    @remove="RemoveMul(2, option.code)"
-                                  />
-                                </div>
+                                  <template #value="slotProps">
+                                    <div class="flex">
+                                      <div
+                                        class="country-item country-item-value mr-2"
+                                        v-for="option of slotProps.value"
+                                        :key="option.code"
+                                      >
+                                        <Chip
+                                          :label="option.name"
+                                          removable
+                                          @remove="RemoveMul(2, option.code)"
+                                        />
+                                      </div>
+                                    </div>
+                                    <template
+                                      v-if="
+                                        !slotProps.value || slotProps.value.length === 0
+                                      "
+                                    >
+                                      Chọn nơi ban hành
+                                    </template>
+                                  </template>
+                                  <template #option="slotProps">
+                                    <div class="country-item">
+                                      <div>{{ slotProps.option.name }}</div>
+                                    </div>
+                                  </template>
+                                </MultiSelect>
                               </div>
-                              <template
-                                v-if="
-                                  !slotProps.value || slotProps.value.length === 0
-                                "
-                              >
-                                Chọn nơi ban hành
-                              </template>
-                            </template>
-                            <template #option="slotProps">
-                              <div class="country-item">
-                                <div>{{ slotProps.option.name }}</div>
-                              </div>
-                            </template>
-                          </MultiSelect>
-                        </div>
-                      </div> -->
+                            </div> -->
                     <div class="field col-12 md:col-12 flex">
                       <div class="col-3 p-0 align-items-center flex">
                         Lĩnh vực:
@@ -1664,15 +1894,15 @@ onMounted(() => {
                             <div class="country-item flex align-items-center">
                               <div class="grid w-full p-0">
                                 <div class="
-                                      field
-                                      p-0
-                                      py-1
-                                      col-12
-                                      flex
-                                      m-0
-                                      cursor-pointer
-                                      align-items-center
-                                    ">
+                                            field
+                                            p-0
+                                            py-1
+                                            col-12
+                                            flex
+                                            m-0
+                                            cursor-pointer
+                                            align-items-center
+                                          ">
                                   <div class="col-1 mx-2 p-0 align-items-center">
                                     <Avatar v-bind:label="
                                       slotProps.option.avatar
@@ -1706,21 +1936,21 @@ onMounted(() => {
                                         {{ slotProps.option.name }}
                                       </div>
                                       <div class="
-                                            flex
-                                            w-full
-                                            text-sm
-                                            font-italic
-                                            text-500
-                                          ">
+                                                  flex
+                                                  w-full
+                                                  text-sm
+                                                  font-italic
+                                                  text-500
+                                                ">
                                         <div>
                                           {{ slotProps.option.position_name }}
                                         </div>
                                       </div>
                                       <!-- <div
-                                class="flex w-full text-sm font-italic text-500"
-                              >
-                                {{ slotProps.option.department_name }}
-                              </div> -->
+                                      class="flex w-full text-sm font-italic text-500"
+                                    >
+                                      {{ slotProps.option.department_name }}
+                                    </div> -->
                                     </div>
                                   </div>
                                 </div>
@@ -1736,7 +1966,7 @@ onMounted(() => {
                           <Button @click="onRefilterDM()" class="p-button-outlined" label="Xóa"></Button>
                         </template>
                         <template #end>
-                          <Button @click="onFilterDM()" label="Lọc"></Button>
+                          <Button @click="onFilterDM(0)" label="Lọc"></Button>
                         </template>
                       </Toolbar>
                     </div>
@@ -1746,8 +1976,14 @@ onMounted(() => {
             </template>
 
             <template #end>
+
+
               <MultiSelect :modelValue="selectedColumns" :options="columns" optionLabel="header" class="mx-2"
                 placeholder="Hiển thị thêm" @update:modelValue="onToggle" />
+              <Button class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-clock"
+                v-tooltip.top="'Lịch sử in báo cáo'" @click="ReportData" />
+
+
               <Button class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh" @click="refreshData" />
 
               <Button label="Tiện ích" icon="pi pi-file-excel" class="mr-2 p-button-outlined p-button-secondary"
@@ -1761,22 +1997,22 @@ onMounted(() => {
           headerStyle="text-align:center;max-width:50px"
           bodyStyle="text-align:center;max-width:50px; word-break:break-all"></Column>
         <Column field="dispatch_book_code" header="Số vào sổ" class="
-              align-items-center
-              justify-content-center
-              text-center
-              limit-line
-            " headerStyle="text-align:center;max-width:130px" bodyStyle="text-align:center;max-width:130px;word-break:break-all
-            " headerClass="limit-line-1" :sortable="true">
+                    align-items-center
+                    justify-content-center
+                    text-center
+                    limit-line
+                  " headerStyle="text-align:center;max-width:130px" bodyStyle="text-align:center;max-width:130px;word-break:break-all
+                  " headerClass="limit-line-1" :sortable="true">
           <template #filter="{ filterModel }">
             <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
           </template>
         </Column>
         <Column header="Ngày thu" class="
-              align-items-center
-              justify-content-center
-              text-center
-              limit-line
-            " headerStyle="text-align:center;max-width:130px"
+                    align-items-center
+                    justify-content-center
+                    text-center
+                    limit-line
+                  " headerStyle="text-align:center;max-width:130px"
           bodyStyle="text-align:center;max-width:130px; word-break:break-word" :sortable="true" filterField="receive_date"
           dataType="date">
           <template #filter="{ filterModel }">
@@ -1798,11 +2034,11 @@ onMounted(() => {
           </template>
         </Column>
         <Column field="doc_date" header="Ban hành" class="
-              align-items-center
-              justify-content-center
-              text-center
-              limit-line
-            " headerStyle="text-align:center;max-width:120px"
+                    align-items-center
+                    justify-content-center
+                    text-center
+                    limit-line
+                  " headerStyle="text-align:center;max-width:120px"
           bodyStyle="text-align:center;max-width:120px; word-break:break-word" headerClass="limit-line-1" :sortable="true"
           filterField="doc_date" dataType="date">
           <template #filter="{ filterModel }">
@@ -1816,11 +2052,11 @@ onMounted(() => {
         </Column>
 
         <Column class="
-              align-items-center
-              justify-content-center
-              text-center
-              limit-line
-            " headerStyle="text-align:center;max-width:120px"
+                    align-items-center
+                    justify-content-center
+                    text-center
+                    limit-line
+                  " headerStyle="text-align:center;max-width:120px"
           bodyStyle="text-align:center;max-width:120px; word-break:break-word" v-for="(col, index) of selectedColumns"
           :field="col.field" :header="col.header" :key="index">
         </Column>
@@ -1837,19 +2073,19 @@ onMounted(() => {
           </template>
         </Column>
         <Column field="signer" header="Người ký" class="
-              align-items-center
-              justify-content-center
-              text-center
-              limit-line
-            " headerStyle="text-align:center;max-width:120px"
+                    align-items-center
+                    justify-content-center
+                    text-center
+                    limit-line
+                  " headerStyle="text-align:center;max-width:120px"
           bodyStyle="text-align:center;max-width:120px; word-break:break-word">
         </Column>
         <Column header="Ghi chú" class="
-              align-items-center
-              justify-content-center
-              text-center
-              limit-line
-            " headerStyle="text-align:center;max-width:70px" bodyStyle="text-align:center;max-width:70px">
+                    align-items-center
+                    justify-content-center
+                    text-center
+                    limit-line
+                  " headerStyle="text-align:center;max-width:70px" bodyStyle="text-align:center;max-width:70px">
           <template #body="data">
             <div v-if="data.data.file_path">
               <Button @click="showURLSCV(basedomainURL + data.data.file_path)" icon="pi pi-paperclip"
@@ -1859,12 +2095,12 @@ onMounted(() => {
         </Column>
         <template #empty>
           <div class="
-                align-items-center
-                justify-content-center
-                p-4
-                text-center
-                m-auto
-              " v-if="!isFirstCard">
+                      align-items-center
+                      justify-content-center
+                      p-4
+                      text-center
+                      m-auto
+                    " v-if="!isFirstCard">
             <img src="../../assets/background/nodata.png" height="144" />
             <h3 class="m-1">Không có dữ liệu</h3>
           </div>
@@ -1911,6 +2147,55 @@ onMounted(() => {
       </div>
     </div>
   </Dialog>
+  <Sidebar :showCloseIcon="false" v-model:visible="rightSideReport" class="p-sidebar-md" :baseZIndex="10000"
+    position="right">
+    <h3>Danh sách báo cáo xuất</h3>
+    <DataTable :value="listHistoryRP">
+      <Column>
+        <template #header>
+          <div class="w-full format-center">
+            Họ và tên
+          </div>
+        </template>
+        <template #body="data">
+          <div class="w-full format-center font-bold ">
+            {{ data.data.user_name }}
+          </div>
+        </template>
+      </Column>
+      <Column headerStyle="text-align:center; width:200px" bodyStyle="text-align:center; width:200px"
+        field="organization_name">
+        <template #header>
+          <div class="w-full format-center">
+            Ngày xuất
+          </div>
+        </template>
+        <template #body="data">
+          <div class="w-full format-center">
+            {{ moment(new Date(data.data.timeExport)).format("DD/MM/YYYY HH:mm") }}
+          </div>
+        </template>
+      </Column>
+
+
+      <Column headerStyle="text-align:center; width:100px" bodyStyle="text-align:center; width:100px"
+        field="organization_name">
+        <template #header>
+          <div class="w-full  ">
+            Lọc
+          </div>
+        </template>
+        <template #body="data">
+          <div class="w-full  ">
+
+            <Button class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-filter"
+              @click="onFilterHistory(data.data)"></Button>
+          </div>
+        </template>
+      </Column>
+
+    </DataTable>
+  </Sidebar>
 </template>
 <style scoped>
 .d-lang-table {

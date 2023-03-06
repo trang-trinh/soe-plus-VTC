@@ -109,17 +109,10 @@ const onSearch = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
+     
+      
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
   loadDataNotify();
 };
@@ -163,9 +156,7 @@ const loadCountNotify = () => {
         options.value.totalNotiRecords = data[0].totalRecords;
       } else options.value.totalNotiRecords = 0;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    
 };
 const loadCount = () => {
   axios
@@ -202,9 +193,7 @@ const loadCount = () => {
         options.value.totalRecords = data[0].totalRecords - 11;
       } else options.value.totalRecords = 0;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    
 };
 const loadData = () => {
   loadCount();
@@ -270,17 +259,11 @@ const loadData = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+     
 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+     
     });
   axios
     .post(
@@ -320,17 +303,11 @@ const loadData = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+      
 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
     });
 };
 const datalistsNotify = ref();
@@ -400,17 +377,9 @@ const loadDataNotify = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-
+    
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 const filterMonth = ref();
@@ -510,17 +479,11 @@ const loadDataMain = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+     
 
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
     });
 };
 onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {

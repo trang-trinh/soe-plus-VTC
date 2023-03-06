@@ -91,7 +91,8 @@ namespace Controllers
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã có tài khoản người dùng này trong hệ thống rồi!", err = "1" });
                         }
                         // This illustrates how to get thefile names.
-                        string depass = Codec.EncryptString(model.is_psword, helper.psKey);
+                        //string depass = Codec.EncryptString(model.is_psword, helper.psKey);
+                        string depass = BCrypt.Net.BCrypt.HashPassword(model.is_psword);
                         model.is_psword = depass;
                         model.key_encript = Convert.ToBase64String(Encoding.UTF8.GetBytes(helper.psKey));
                         FileInfo fileInfo = null;
@@ -240,9 +241,18 @@ namespace Controllers
                         string noidung = provider.FormData.GetValues("noidung") != null ? provider.FormData.GetValues("noidung").SingleOrDefault() : "";
                         sys_users model = JsonConvert.DeserializeObject<sys_users>(fdmodel);
                         var um = db.sys_users.AsNoTracking().FirstOrDefault(x => x.user_id == model.user_id);
-                        string depass = Codec.EncryptString(model.is_psword, helper.psKey);
+                        //string depass = Codec.EncryptString(model.is_psword, helper.psKey);
+                        var ischangeps = false;
                         if (um?.is_psword != model.is_psword)
-                            model.is_psword = depass;
+                        {
+                            //model.is_psword = depass;
+                            model.is_psword = BCrypt.Net.BCrypt.HashPassword(model.is_psword);
+                            ischangeps = true;
+                        }
+                        if (um?.status != model.status && um?.status == 0 && model.status == 1)
+                        {
+                            um.wrong_pass_count = 0;
+                        }
                         #region nội dung thay đổi
                         if (noidung == "")
                         {
@@ -258,7 +268,8 @@ namespace Controllers
                             {
                                 noidung += "Chỉnh sửa nhóm tài khoản\n";
                             }
-                            if (um?.is_psword != depass)
+                            //if (um?.is_psword != depass)
+                            if (ischangeps)
                             {
                                 noidung += "Chỉnh sửa mật khẩu\n";
                             }
@@ -926,5 +937,60 @@ namespace Controllers
         #endregion
 
         #endregion
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> EncryptAllUser()
+        {
+            using (DBEntities db = new DBEntities())
+            {
+                var identity = User.Identity as ClaimsIdentity;
+                IEnumerable<Claim> claims = identity.Claims;
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+                try
+                {
+                    var listUsers = db.sys_users.Where(x => x.is_psword != null && x.is_psword.Contains("==")).ToList();
+                    if (listUsers.Count > 0)
+                    {
+                        foreach (var user in listUsers)
+                        {
+                            var deps = Codec.DecryptString(user.is_psword, helper.psKey);
+                            user.is_psword = BCrypt.Net.BCrypt.HashPassword(deps);
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên đăng nhập hoặc mật khẩu không đúng!", err = "1" });
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { contents }), domainurl + "Login/EncryptAllUser", ip, tid, "Lỗi khi encrypt ps", 0, "Login");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { contents }), domainurl + "Login/EncryptAllUser", ip, tid, "Lỗi khi  encrypt ps", 0, "Login");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+            }
+        }
     }
 }

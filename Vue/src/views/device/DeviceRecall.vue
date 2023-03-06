@@ -720,7 +720,7 @@ const loadWareHouse = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+      
       options.value.loading = false;
 
       
@@ -759,7 +759,7 @@ const loadUserWarehouse = (value) => {
       });
     })
     .catch((error) => {
-      console.log(error);
+    
 
       options.value.loading = false;
     });
@@ -815,7 +815,7 @@ const loadUser = () => {
       });
     })
     .catch((error) => {
-      console.log(error);
+      
 
       options.value.loading = false;
 
@@ -937,9 +937,7 @@ const initTudien = () => {
         listDepartment.value = obj.arrtreeChils;
       }
     })
-    .catch((error) => {
-      console.log(error);
-    });
+  
 };
 const displayDetails = ref(false);
 const listAssetsH = ref();
@@ -1055,9 +1053,7 @@ loadLogs( deviceDataDetails.value.device_recall_id,3);
       displayProcedure.value = true;
       // loadDTliView(data[0].approved_group_id)
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
 const listLogs = ref([]);
 const loadLogs=(device_note_id, type)=>{
@@ -1171,9 +1167,7 @@ const onShowConfigGroup = (type) => {
         }
       })
 
-      .catch((error) => {
-        console.log(error);
-      });
+     
   } else {
     checkDefault.value = false;
     displayDeviceRepair.value = true;
@@ -1432,9 +1426,7 @@ const editCard = (data) => {
       isSaveCard.value = true;
       displayBasic.value = true;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
 const checkImg = (src) => {
   let allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
@@ -1490,9 +1482,7 @@ const loadDeviceNumber = (  dataVL) => {
            data[0].text_symbols;
       }
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
 
 const itemsBtnFunc = ref([
@@ -1596,9 +1586,7 @@ const openBasic = (str) => {
          
       }
     })
-    .catch((error) => {
-      console.log(error);
-    });
+  
  
 };
 const closeDialogDC = () => {
@@ -1657,17 +1645,11 @@ const loadData = (rf) => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
+     
+     
       options.value.loading = false;
       
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+   
     });
 };
 
@@ -1698,9 +1680,7 @@ const print = () => {
       listFilesS.value = data2;
       listSig(); 
     })
-    .catch((error) => {
-      console.log(error);
-    });
+ 
 };
 
 const listSignature = ref([]);
@@ -2243,18 +2223,10 @@ const loadDeviceType = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+     
       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+   
     });
 };
 const listUnit = ref();
@@ -2291,18 +2263,9 @@ const loadDeviceUnit = () => {
       });
     })
     .catch((error) => {
-      console.log("err", error);
+    
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 }; 
 

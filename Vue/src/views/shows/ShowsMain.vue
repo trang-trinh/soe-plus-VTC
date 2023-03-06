@@ -279,7 +279,7 @@ const onDropDown = (value) => {
         toast.success("Sửa trạng thái thành công!");
         loadData(false);
       } else {
-        console.log("LỖI A:", response);
+        
         swal.fire({
           title: "Error!",
           text: response.data.ms,
@@ -315,7 +315,7 @@ const onCheckBox = (value) => {
         toast.success("Cập nhật tin thành công!");
         loadData(false);
       } else {
-        console.log("LỖI A:", response);
+      
         swal.fire({
           title: "Error!",
           text: response.data.ms,
@@ -531,7 +531,7 @@ const saveShows = (isFormValid) => {
     });
     return;
   }
-  console.log("sjpw",shows.value);
+ 
   let formData = new FormData();
   for (var i = 0; i < files.length; i++) {
     let file = files[i];
@@ -771,16 +771,10 @@ const loadData = (rf) => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
+     
+     
       options.value.loading = false;
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+  
     });
  
 };

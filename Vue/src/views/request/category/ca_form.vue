@@ -230,10 +230,10 @@ onMounted(() => {
 				</Toolbar>
 			</template>
 			<template #groupheader="slotProps">
-				<span class="ca-text">
+				<span class="ca-text pl-4">
 					{{ slotProps.data.request_group_name }}
 				</span>
-				<span class="ca-text pl-1">{{ '(' + 1 + ')' }}</span>
+				<span class="ca-text pl-1">{{ '(' + (slotProps.data.count_group || 0) + ')' }}</span>
 			</template>
 			<Column
 				:expander="true"
@@ -244,7 +244,7 @@ onMounted(() => {
 			<Column
 				field="request_form_name"
 				header="Tên loại đề xuất"
-				headerStyle="height:50px;border-left:none;border-right:none;"
+				headerStyle="height:50px;border-left:none;border-right:none;padding-left:0.5rem;padding-right:1.5rem;"
 				bodyStyle="border-left:none;border-right:none;"
 				class="align-items-center"
 			>
@@ -278,7 +278,7 @@ onMounted(() => {
 				header="Quy trình duyệt"
 				headerStyle="max-width:40rem;height:50px;border-left:none;border-right:none;"
 				bodyStyle="max-width:40rem;border-left:none;border-right:none;"
-				class="align-items-center justify-content-center text-center"
+				class="align-items-center"
 			>
 				<template #body="data">
 					<div class="name-hover">

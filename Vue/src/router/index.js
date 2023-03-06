@@ -32,17 +32,17 @@ const DataUsing = () => import("../views/hethong/DataUsing.vue");
 const SQLTableView = () => import("../views/autocode/SQLTableView.vue");
 //Danh mục
 //Sys
-//CMS
-const CMSView = () => import("../views/cms/CMSView.vue");
-const CMSHomeView = () => import("../views/cms/CMSHomeView.vue");
-const LangView = () => import("../views/cms/LangView.vue");
-const CMSLogsView = () => import("../views/cms/LogsView.vue");
-const NewsView = () => import("../views/cms/NewsView.vue");
-const SlideShowView = () => import("../views/cms/SlideShowView.vue");
-const TopicFlagView = () => import("../views/cms/TopicFlagView.vue");
-const TopicView = () => import("../views/cms/TopicView.vue");
-//Canva
-const CanvaView = () => import("../views/canva/CanvaView.vue");
+// //CMS
+// const CMSView = () => import("../views/cms/CMSView.vue");
+// const CMSHomeView = () => import("../views/cms/CMSHomeView.vue");
+// const LangView = () => import("../views/cms/LangView.vue");
+// const CMSLogsView = () => import("../views/cms/LogsView.vue");
+// const NewsView = () => import("../views/cms/NewsView.vue");
+// const SlideShowView = () => import("../views/cms/SlideShowView.vue");
+// const TopicFlagView = () => import("../views/cms/TopicFlagView.vue");
+// const TopicView = () => import("../views/cms/TopicView.vue");
+// //Canva
+// const CanvaView = () => import("../views/canva/CanvaView.vue");
 //API
 // const Project = () =>
 //     import ("../views/project/Project.vue");
@@ -53,6 +53,7 @@ const CanvaView = () => import("../views/canva/CanvaView.vue");
 // const Plugin = () =>
 //     import ("../views/project/Plugin.vue");
 //TUDIEN
+const caRank = () => import("../views/dictionary/Ca_Rank.vue");
 const BrowseRole = () => import("../views/dictionary/NhomDuyet.vue");
 const DocRole = () => import("../views/dictionary/NhomChucNang.vue");
 const Gif = () => import("../views/dictionary/Gif.vue");
@@ -336,20 +337,15 @@ const caHRMTypeContract = () =>
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
 const caLeavingReason = () =>
-    import ("../views/hrm/category/caLeavingReason.vue");
-    const caExperience = () =>
-    import ("../views/hrm/category/caExperience.vue");
-    const Candidate = () =>
-    import ("../views/hrm/recruitment/hrm_candidate.vue");
-    
-const caClassroom = () =>
-    import ("../views/hrm/category/caClassroom.vue");
-const caReceipt = () =>
-    import ("../views/hrm/category/caReceipt.vue");
+  import("../views/hrm/category/caLeavingReason.vue");
+const caExperience = () => import("../views/hrm/category/caExperience.vue");
+const Candidate = () => import("../views/hrm/recruitment/hrm_candidate.vue");
+
+const caClassroom = () => import("../views/hrm/category/caClassroom.vue");
+const caReceipt = () => import("../views/hrm/category/caReceipt.vue");
 const caEnectingGroup = () =>
   import("../views/hrm/category/caEnectingGroup.vue");
 
- 
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigUserCode.vue");
@@ -393,11 +389,11 @@ const router = createRouter({
       component: Organization,
     },
     //Canva
-    {
-      path: "/canva",
-      name: "canva",
-      component: CanvaView,
-    },
+    // {
+    //   path: "/canva",
+    //   name: "canva",
+    //   component: CanvaView,
+    // },
     //Hệ thống
     {
       path: "/module",
@@ -494,44 +490,44 @@ const router = createRouter({
 
     //Sys
     //CMS
-    {
-      path: "/cms",
-      name: "cms",
-      component: CMSView,
-      children: [
-        { path: "", component: CMSHomeView },
-        {
-          path: "log",
-          name: "log",
-          component: LangView,
-        },
-        {
-          path: "lang",
-          name: "lang",
-          component: LangView,
-        },
-        {
-          path: "topic-flag",
-          name: "topic-flag",
-          component: TopicFlagView,
-        },
-        {
-          path: "topic",
-          name: "topic",
-          component: TopicView,
-        },
-        {
-          path: "new",
-          name: "new",
-          component: NewsView,
-        },
-        {
-          path: "slideshow",
-          name: "slideshow",
-          component: SlideShowView,
-        },
-      ],
-    },
+    // {
+    //   path: "/cms",
+    //   name: "cms",
+    //   component: CMSView,
+    //   children: [
+    //     { path: "", component: CMSHomeView },
+    //     {
+    //       path: "log",
+    //       name: "log",
+    //       component: LangView,
+    //     },
+    //     {
+    //       path: "lang",
+    //       name: "lang",
+    //       component: LangView,
+    //     },
+    //     {
+    //       path: "topic-flag",
+    //       name: "topic-flag",
+    //       component: TopicFlagView,
+    //     },
+    //     {
+    //       path: "topic",
+    //       name: "topic",
+    //       component: TopicView,
+    //     },
+    //     {
+    //       path: "new",
+    //       name: "new",
+    //       component: NewsView,
+    //     },
+    //     {
+    //       path: "slideshow",
+    //       name: "slideshow",
+    //       component: SlideShowView,
+    //     },
+    //   ],
+    // },
     //API
     {
       path: "/project",
@@ -553,6 +549,11 @@ const router = createRouter({
       name: "plugin",
       component: Plugin,
     }, //Từ điển
+    {
+      path: "/rank",
+      name: "rank",
+      component: caRank,
+    },
     {
       path: "/browse",
       name: "browse",
@@ -1653,77 +1654,77 @@ const router = createRouter({
       component: caLeavingReason,
     },
 
-        {
-            path: "/hrm/category/ca_leavingreason",
-            name: "caHRMLeavingReason",
-            component: caLeavingReason,
-        },
-        {
-            path: "/hrm/category/ca_experience",
-            name: "caHRMExperience",
-            component: caExperience,
-        },
-        {
-            path: "/hrm/recruitment/candidate",
-            name: "caHRMCandidate",
-            component: Candidate,
-        },
-        {
-            path: "/hrm/category/ca_classroom",
-            name: "caHRMClassroom",
-            component: caClassroom,
-        },
-        {
-            path: "/hrm/category/ca_receipt",
-            name: "caHRMReceipt",
-            component: caReceipt,
-        },
-        {
-            path: "/hrm/category/ca_enectinggroup",
-            name: "caHRMEnectingGroup",
-            component: caEnectingGroup,
-        },
+    {
+      path: "/hrm/category/ca_leavingreason",
+      name: "caHRMLeavingReason",
+      component: caLeavingReason,
+    },
+    {
+      path: "/hrm/category/ca_experience",
+      name: "caHRMExperience",
+      component: caExperience,
+    },
+    {
+      path: "/hrm/recruitment/candidate",
+      name: "caHRMCandidate",
+      component: Candidate,
+    },
+    {
+      path: "/hrm/category/ca_classroom",
+      name: "caHRMClassroom",
+      component: caClassroom,
+    },
+    {
+      path: "/hrm/category/ca_receipt",
+      name: "caHRMReceipt",
+      component: caReceipt,
+    },
+    {
+      path: "/hrm/category/ca_enectinggroup",
+      name: "caHRMEnectingGroup",
+      component: caEnectingGroup,
+    },
 
-        //HRM
-        {
-            path: "/hrm/hrm_training",
-            name: "HRM_Training",
-            component: HRM_Training,
-        }, 
-        
-        {
-          path: "/hrm/config/configuser",
-          name: "HRM_ConfigUser",
-          component: HRM_ConfigUser,
-      }, 
-        
-        // Tài liệu
-        {
-            path: "/files/file_main/:id/:type",
-            name: "files/file_main_detail",
-            component: FileMain_Detail,
-        },
-        {
-            path: "/hrm/insurance",
-            name: "insurance",
-            component: Insurance,
-        },
-        {
-            path: "/hrm/hrm_file",
-            name: "Hrm_File",
-            component: Hrm_File,
-        },
-        {
-            path: "/hrm/recruitment/campaign",
-            name: "Hrm_campaign",
-            component: Hrm_campaign,
-        }, 
-        {
-            path: "/hrm/hrm_paycheck",
-            name: "Hrm_paycheck",
-            component: Hrm_paycheck,
-        },
-       // Request
+    //HRM
+    {
+      path: "/hrm/hrm_training",
+      name: "HRM_Training",
+      component: HRM_Training,
+    },
+
+    {
+      path: "/hrm/config/configuser",
+      name: "HRM_ConfigUser",
+      component: HRM_ConfigUser,
+    },
+
+    // Tài liệu
+    {
+      path: "/files/file_main/:id/:type",
+      name: "files/file_main_detail",
+      component: FileMain_Detail,
+    },
+    {
+      path: "/hrm/insurance",
+      name: "insurance",
+      component: Insurance,
+    },
+    {
+      path: "/hrm/hrm_file",
+      name: "Hrm_File",
+      component: Hrm_File,
+    },
+    {
+      path: "/hrm/recruitment/campaign",
+      name: "Hrm_campaign",
+      component: Hrm_campaign,
+    },
+    {
+      path: "/hrm/hrm_paycheck",
+      name: "Hrm_paycheck",
+      component: Hrm_paycheck,
+    },
+    // Request
     {
       path: "/request/dashboard",
       name: "Request_Dashboard",
@@ -1776,7 +1777,7 @@ const router = createRouter({
       name: "Request_Config_Number",
       component: Request_Config_Number,
     },
-    ],
+  ],
 });
 // router.beforeEach((to, from) => {
 //   return true

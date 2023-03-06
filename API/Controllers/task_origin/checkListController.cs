@@ -205,9 +205,8 @@ namespace API.Controllers.Task_Origin
                     List<task_checklists> del = new List<task_checklists>();
                     List<task_origin> delTask = new List<task_origin>();
 
-                    foreach (string idp in id)
-                    {
-                        var das = await db.task_checklists.Where(a => idp.Contains(a.checklist_id)).ToListAsync();
+                    
+                        var das = await db.task_checklists.Where(a => id.Contains(a.checklist_id)).ToListAsync();
                         List<string> paths = new List<string>();
                         if (das != null)
                         {
@@ -247,7 +246,7 @@ namespace API.Controllers.Task_Origin
 
                                     foreach (var l in listuser)
                                     {
-                                        helper.saveNotify(uid, l, null, "Công việc", "Xóa gia hạn công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                        helper.saveNotify(uid, l, null, "Công việc", "Xóa checklist công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
                                             null, 2, -1, false, module_key, ssid, null, null, tid, ip);
                                     }
                                 }    
@@ -272,7 +271,7 @@ namespace API.Controllers.Task_Origin
 
 
                         }
-                    }
+                    
                     if (del.Count == 0)
                     {
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });

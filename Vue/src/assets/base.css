@@ -435,11 +435,18 @@ li.p-chips-token {
     height: 100%;
     overflow-y: auto;
 }
+ 
 
 .p-inputtext {
     max-width: 100%;
 }
-
+.duy-inpput .p-inputtext {
+    text-align: center !important;
+}
+.duy-inpput.p-inputtext {
+    text-align: center !important;
+}
+ 
 .p-card.nopadd .p-card-footer {
     padding: 0;
 }
@@ -948,9 +955,7 @@ li.p-chips-token {
     padding: 0;
     list-style-type: none;
 }
-.app-system .v-sidebar-menu.vsm_white-theme .vsm--link_level-1 .vsm--icon{
-    font-size: 18px !important;
-}
+
 .panelFuncMes ul.ul-func-mes li {
     cursor: pointer;
 }
@@ -1150,4 +1155,14 @@ li.p-chips-token {
     justify-content: center;
     align-items: center;
     text-align: center;
+}
+.d-design-chips.p-chips.p-component .p-inputtext .p-chips-token{
+    margin-bottom: 0px !important;
+}
+.v-sidebar-menu .vsm--icon{
+    margin-right: 10px !important;
+}
+.v-sidebar-menu .vsm--link{
+    line-height: 18px;
+    white-space: normal;
 }
