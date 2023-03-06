@@ -680,7 +680,7 @@ page.value = Math.floor(numScroll.value * (currentweek.value.week_no / 52));
 
 //init week
 const initWeek = (rf) => {
-  //debugger
+ 
   if (rf) {
     options.value.loading = true;
     swal.fire({
