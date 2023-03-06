@@ -1,9 +1,12 @@
+<!-- eslint-disable no-undef -->
 <script setup>
-import { ref, inject, onMounted } from "vue";
+import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../util/function.js";
+import { FilterMatchMode, FilterOperator } from "primevue/api";
 const cryoptojs = inject("cryptojs");
 const toast = useToast();
+// eslint-disable-next-line no-undef
 const basedomainURL = fileURL;
 const swal = inject("$swal");
 const store = inject("store");
@@ -13,6 +16,7 @@ const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const addLog = (log) => {
+  // eslint-disable-next-line no-undef
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
 };
 const Department = {
@@ -21,7 +25,7 @@ const Department = {
   user_id: null,
 };
 const listDepartments = ref();
-const listTreeDepartments = ref();
+
 const headerAddDepartment = ref();
 const listUsers = ref([]);
 const displayDepartment = ref(false);
@@ -39,25 +43,17 @@ const opition = ref({
 
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
-  let arrtreeChils = [];
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
-      m.IsOrder = i + 1;
-      m.label_order = m.IsOrder.toString();
-      if (opition.value.PageNo > 0) {
-        m.STT = (opition.value.PageNo - 1) * opition.value.PageSize + i + 1;
-      } else {
-        m.STT = i + 1;
-      }
       let om = { key: m[id], data: m };
       const rechildren = (mm, pid) => {
         let dts = data.filter((x) => x.parent_id == pid);
         if (dts.length > 0) {
           if (!mm.children) mm.children = [];
           dts.forEach((em, index) => {
-            em.label_order = mm.data.label_order + "." + em.is_order;
-            em.STT = mm.data.STT + "." + (index + 1);
+            em.label_order = em.is_order;
+            em.STT = mm.data.STT ? mm.data.STT + "." + (index + 1) : index + 1;
             let om1 = { key: em[id], data: em };
             rechildren(om1, em[id]);
             mm.children.push(om1);
@@ -66,30 +62,12 @@ const renderTree = (data, id, name, title) => {
       };
       rechildren(om, m[id]);
       arrChils.push(om);
-      //
-      om = { key: m[id], data: m[id], label: m[name] };
-      const retreechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em) => {
-            let om1 = { key: em[id], data: em[id], label: em[name] };
-            retreechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
-        }
-      };
-      retreechildren(om, m[id]);
-      arrtreeChils.push(om);
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: -1,
-    label: "-----Chọn " + title + "----",
-  });
-  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
-};
 
+  return { arrChils: arrChils[0].children, arrtreeChils: arrChils };
+};
+const datalist = ref([]);
+const listDepartmentsTemp = ref([]);
 const loadData = (rf) => {
   if (rf) {
     opition.value.loading = true;
@@ -102,6 +80,7 @@ const loadData = (rf) => {
   }
   axios
     .post(
+      // eslint-disable-next-line no-undef
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
@@ -128,14 +107,22 @@ const loadData = (rf) => {
           if (d.ThanhvienRole != null)
             d.ThanhvienRole = JSON.parse(d.ThanhvienRole);
         });
+        listDepartmentsTemp.value = [...data[0]];
         let obj = renderTree(
           data[0],
           "organization_id",
           "organization_name",
           "đơn vị",
         );
-        listDepartments.value = obj.arrChils;
-        listTreeDepartments.value = obj.arrtreeChils;
+        datalist.value = obj.arrChils;
+        listDepartments.value = obj.arrtreeChils;
+        datalist.value.forEach((element) => {
+          expandNodeMain(element);
+        });
+        listDepartments.value.forEach((element) => {
+          expandNode(element);
+        });
+
         // opition.value.totalRecords = data[1][0].totalrecords;
       } else {
         listDepartments.value = [];
@@ -164,61 +151,6 @@ const loadData = (rf) => {
     });
 };
 
-const listUser = (department_id) => {
-  axios
-    .post(
-      baseURL + "/api/DictionaryProc/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_task_origin",
-            par: [
-              { par: "search", va: opition.value.SearchTextUser },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: department_id },
-              { par: "position_id", va: null },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs,
-        ).toString(),
-      },
-      config,
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listUsers.value = data.map((x) => ({
-        name: x.full_name,
-        code: x.user_id,
-        avatar: x.avatar,
-        is_check: false,
-        full_name: x.full_name,
-        tenChucVu: x.position_name,
-        tenToChuc: x.department_name,
-      }));
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      opition.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
 const listdel = ref([]);
 const DelDepartmentUser = (data) => {
   listdel.value = [];
@@ -280,14 +212,21 @@ const DelDepartmentUser = (data) => {
 };
 
 const updateDepartmentUser = (data) => {
-  listUser(data.organization_id);
+  goOrganization(data);
+  selectedNodeUser.value = [];
+  if (data.data.ThanhvienRole != null) {
+    data.data.ThanhvienRole.forEach((x) => {
+      let u = listUsers.value.filter((z) => z.user_id == x.user_id);
+      selectedNodeUser.value.push(u[0]);
+    });
+  }
   Department.value = {
     id: -1,
-    department_id: data.organization_id,
+    department_id: data.data.organization_id,
     user_id: null,
   };
   headerAddDepartment.value =
-    "Cập nhật người duyệt phòng ban (" + data.organization_name + ")";
+    "Cập nhật người duyệt phòng ban (" + data.data.organization_name + ")";
   displayDepartment.value = true;
 };
 
@@ -305,28 +244,19 @@ const closeDialogDepartment = () => {
   displayDepartment.value = false;
 };
 
-const ChangeUserDepartment = (model) => {
-  listUsers.value.forEach((u) => {
-    if (u.code == model.code) {
-      u.is_check = true;
-    }
-  });
-};
-
 const saveDepartmentUser = () => {
   let formData = new FormData();
   let listsend = [];
-  if (listUsers.value) {
-    if (listUsers.value.filter((x) => x.is_check == true).length > 0) {
-      listUsers.value.forEach((t) => {
-        Department.value.user_id = t.code;
-        if (t.is_check == true) {
-          let dept = {
-            department_id: Department.value.department_id,
-            user_id: t.code,
-          };
-          listsend.push(dept);
-        }
+  if (selectedNodeUser.value) {
+    if (selectedNodeUser.value.length > 0) {
+      selectedNodeUser.value.forEach((t) => {
+        console.log(t);
+        Department.value.user_id = t.user_id;
+        let dept = {
+          department_id: Department.value.department_id,
+          user_id: t.user_id,
+        };
+        listsend.push(dept);
       });
     }
   }
@@ -359,19 +289,194 @@ const saveDepartmentUser = () => {
       });
     });
 };
-const first = ref(0);
-const filters = ref();
+const loadUsers = () => {
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "[sys_user_list_tree]",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              {
+                par: "filter_organization_id",
+                va: options.value.filter_organization_id,
+              },
+              { par: "page_no", va: options.value.pageNo },
+              { par: "page_size", va: options.value.pageSize },
+              { par: "search", va: options.value.search },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        let tbs = JSON.parse(data);
+
+        if (tbs[0] != null && tbs[0].length > 0) {
+          tbs[0].forEach((element, i) => {
+            if (element["created_date"] != null) {
+              var ldate = element["created_date"].split(" ");
+              element["created_date"] = ldate[0];
+            }
+          });
+          if (tbs[0].length > 0) {
+            tbs[0].forEach((element, i) => {
+              element["STT"] = i + 1;
+            });
+          }
+          listUsers.value = tbs[0];
+        }
+        swal.close();
+      }
+    })
+    .catch((error) => {
+      if (options.value.loading) options.value.loading = false;
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
+
 const selectedKey = ref();
-const options = ref();
-const temporganizations = ref([]);
-const expandedKeys2 = ref();
+const isFirst = ref(false);
+const options = ref({});
+const expandedKeys = ref([]);
 const selectedNodeOrganization = ref();
-const tempusers = ref([]);
-const selectedNodeUser = ref();
-const searchUser = () => {};
-const goOrganization = () => {};
+const expandNode = (node) => {
+  if (node.children && node.children.length) {
+    expandedKeys.value[node.key] = true;
+    for (let child of node.children) {
+      expandNode(child);
+    }
+  }
+};
+const expandedKeysMain = ref([]);
+const expandNodeMain = (node) => {
+  if (node.children && node.children.length) {
+    expandedKeysMain.value[node.key] = true;
+    for (let child of node.children) {
+      expandNode(child);
+    }
+  }
+};
+const selectedNodeUser = ref([]);
+const filters1 = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  department_id: { value: [], matchMode: FilterMatchMode.IN },
+});
+const goOrganization = (organization) => {
+  filters1.value["department_id"].value = [];
+  options.value.filter_organization_id = organization.data.organization_id;
+  if (organization.data.parent_id != null) {
+    filters1.value["department_id"].value.push(
+      organization.data.organization_id,
+    );
+    if (organization.children != null) {
+      organization.children.forEach((x) => {
+        filters1.value["department_id"].value.push(x.data.organization_id);
+      });
+    }
+  } else filters1.value["department_id"].value = [];
+};
+
+const changeOrganizationChecked = () => {
+  let choses = selectedNodeOrganization.value;
+  filters1.value["department_id"].value = [];
+  for (var o in choses) {
+    if (choses[o]["checked"] == true) {
+      let organization = listDepartmentsTemp.value.find(
+        (x) => x["organization_id"] === parseInt(o),
+      );
+      filters1.value["department_id"].value.push(parseInt(o));
+      let filters = [];
+      switch (organization["organization_type"]) {
+        case 0:
+          filters = listUsers.value.filter(
+            (a) =>
+              a["organization_id"] === organization["organization_id"] &&
+              selectedNodeUser.value.findIndex(
+                (b) => b["user_id"] === a["user_id"],
+              ) === -1,
+          );
+          selectedNodeUser.value = selectedNodeUser.value.concat(filters);
+          break;
+        case 1:
+          filters = listUsers.value.filter(
+            (a) =>
+              a["department_id"] === organization["organization_id"] &&
+              selectedNodeUser.value.findIndex(
+                (b) => b["user_id"] === a["user_id"],
+              ) === -1,
+          );
+
+          selectedNodeUser.value = selectedNodeUser.value.concat(filters);
+          break;
+      }
+    }
+  }
+  let notexists = listDepartmentsTemp.value.filter(
+    (a) =>
+      selectedNodeOrganization.value[a["organization_id"].toString()] == null,
+  );
+  if (notexists.length > 0) {
+    for (var i = 0; i < notexists.length; i++) {
+      var deleted = [];
+      switch (notexists[i]["organization_type"]) {
+        case 0:
+          deleted = listUsers.value.filter(
+            (a) =>
+              a["organization_id"] === notexists[i]["organization_id"] &&
+              selectedNodeUser.value.findIndex(
+                (b) => b["user_id"] === a["user_id"],
+              ) !== -1,
+          );
+          break;
+        case 1:
+          deleted = listUsers.value.filter(
+            (a) =>
+              a["department_id"] === notexists[i]["organization_id"] &&
+              selectedNodeUser.value.findIndex(
+                (b) => b["user_id"] === a["user_id"],
+              ) !== -1,
+          );
+          break;
+      }
+      for (var j = 0; j < deleted.length; j++) {
+        var idx = selectedNodeUser.value.findIndex(
+          (x) => x["user_id"] === deleted[j]["user_id"],
+        );
+        if (idx != -1) {
+          selectedNodeUser.value = selectedNodeUser.value.splice(idx, 0);
+        }
+      }
+    }
+  }
+};
+watch(selectedNodeOrganization, () => {
+  changeOrganizationChecked();
+});
+const filters2 = ref({});
+// const SearchBytext = () => {
+//   if (options.value.SearchText != null) {
+//     filters2.value["global"] = options.value.SearchText;
+//   } else filters2.value["global"] = "";
+// };
+
 onMounted(() => {
   loadData(true);
+  loadUsers();
   return {};
 });
 </script>
@@ -381,18 +486,10 @@ onMounted(() => {
     class="main-layout true flex-grow-1 p-2"
   >
     <TreeTable
-      :value="listDepartments"
+      :value="datalist"
+      :expandedKeys="expandedKeysMain"
       v-model:selectionKeys="selectedKey"
-      v-model:first="first"
       :loading="opition.loading"
-      @page="onPage($event)"
-      @sort="onSort($event)"
-      :paginator="true"
-      :rows="opition.PageSize"
-      :totalRecords="opition.totalRecords"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :filters="filters"
       :showGridlines="true"
       filterMode="strict"
       class="p-treetable-sm"
@@ -433,8 +530,7 @@ onMounted(() => {
         field="organization_name"
         header="Tên phòng ban"
         :expander="true"
-        headerStyle="height:50px;max-width:auto;"
-        bodyStyle="max-height:60px"
+        headerClass="align-items-center justify-content-center text-center"
       >
         <template #body="md">
           <div style="display: flex; align-items: center">
@@ -446,9 +542,9 @@ onMounted(() => {
       </Column>
       <Column
         header="Người duyệt"
-        headerStyle="height:50px;max-width:100px;"
-        class="align-items-center justify-content-center text-center font-bold"
-        bodyStyle="text-align:center;max-height:60px; max-width: 100px;"
+        headerStyle="text-align:center;max-width:10rem;height:50px"
+        bodyStyle="text-align:center;max-width:10rem"
+        class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
           <AvatarGroup>
@@ -456,40 +552,66 @@ onMounted(() => {
               v-for="(value, index) in data.node.data.ThanhvienRole"
               :key="index"
             >
-              <div>
-                <Avatar
-                  v-tooltip.bottom="{
-                    value:
-                      value.full_name +
-                      '<br/>' +
-                      (value.position_name || '') +
-                      '<br/>' +
-                      (value.department_name ||
-                        value.organization_child_name ||
-                        value.organization_name),
-                    escape: true,
-                  }"
-                  v-bind:label="
-                    value.avatar ? '' : (value.full_name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + value.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-              </div>
+              <Avatar
+                v-if="index < 3"
+                v-tooltip.bottom="{
+                  value:
+                    value.full_name +
+                    '<br/>' +
+                    (value.position_name || '') +
+                    '<br/>' +
+                    (value.department_name ||
+                      value.organization_child_name ||
+                      value.organization_name),
+                  escape: true,
+                }"
+                v-bind:label="
+                  value.avatar ? '' : (value.full_name ?? '').substring(0, 1)
+                "
+                v-bind:image="basedomainURL + value.avatar"
+                style="
+                  background-color: #2196f3;
+                  color: #ffffff;
+                  width: 32px;
+                  height: 32px;
+                  font-size: 15px !important;
+                  margin-left: -10px;
+                "
+                :style="{
+                  background: bgColor[index % 7] + '!important',
+                }"
+                class="cursor-pointer"
+                size="xlarge"
+                shape="circle"
+              />
             </div>
+            <Avatar
+              v-if="
+                data.node.data.ThanhvienRole != null &&
+                data.node.data.ThanhvienRole.length > 4
+              "
+              v-tooltip.right="{
+                value:
+                  'và ' +
+                  (data.node.data.ThanhvienRole.length - 3) +
+                  ' người khác',
+              }"
+              :label="'+' + (data.node.data.ThanhvienRole.length - 3)"
+              style="
+                background-color: #2196f3;
+                color: #ffffff;
+                width: 32px;
+                height: 32px;
+                font-size: 15px !important;
+                margin-left: -10px;
+              "
+              :style="{
+                background: bgColor[index % 7] + '!important',
+              }"
+              class="cursor-pointer"
+              size="xlarge"
+              shape="circle"
+            />
           </AvatarGroup>
         </template>
       </Column>
@@ -509,7 +631,7 @@ onMounted(() => {
               v-tooltip.top="'Cập nhật người duyệt'"
               class="p-button-rounded p-button-secondary p-button-outlined"
               style="margin-right: 0.5rem"
-              @click="updateDepartmentUser(md.node.data)"
+              @click="updateDepartmentUser(md.node)"
             ></Button>
             <Button
               v-if="md.node.data.ThanhvienRole"
@@ -541,122 +663,203 @@ onMounted(() => {
         </div>
       </template>
     </TreeTable>
-
-    <Dialog
-      :header="headerAddDepartment"
-      v-model:visible="displayDepartment"
-      :style="{ width: '40vw' }"
-      :closable="true"
-      :maximizable="true"
-    >
-      <form>
-        <div class="grid formgrid m-2">
-          <div class="field col-12 md:col-12">
-            <DataTable
-              v-model:first="first"
-              :rowHover="true"
-              :value="listUsers"
-              :row-hover="true"
-              dataKey="code"
-              v-model:selection="selectedTasks"
-              @page="onPage($event)"
-              @sort="onSort($event)"
-              @filter="onFilter($event)"
-              :lazy="true"
-              selectionMode="single"
-              @rowSelect="onRowSelect($event.data)"
-              @rowUnselect="onRowUnselect($event.data)"
+  </div>
+  <Dialog
+    :header="headerAddDepartment"
+    v-model:visible="displayDepartment"
+    :style="{ width: '50vw' }"
+    :closable="true"
+    :maximizable="true"
+  >
+    <form class="flex col-12">
+      <div class="col-5 md:col-5">
+        <Toolbar
+          class="outline-none surface-0 border-none px-0 pt-0 custom-search"
+        >
+          <template #start>
+            <span
+              class="p-input-icon-left"
+              style="width: 100%"
             >
-              <Column
-                headerStyle="text-align:center;width:1rem;min-height:3.125rem"
-                bodyStyle="text-align:center;width:1rem;"
-                class="align-items-center justify-content-center text-center"
-              >
-                <template #body="data">
-                  <Checkbox
-                    inputId="binary"
-                    @change="ChangeUserDepartment(data.data)"
-                    v-model="data.data.is_check"
-                    :binary="true"
-                  />
-                </template>
-              </Column>
-              <Column
-                header="Ảnh"
-                headerStyle="text-align:center;width:1rem;min-height:3.125rem"
-                bodyStyle="text-align:center;width:1rem;"
-                class="align-items-center justify-content-center text-center"
-              >
-                <template #body="value">
+              <i class="pi pi-search" />
+              <!-- v-model="options.SearchText"
+                @keyup.enter="SearchBytext()" -->
+              <InputText
+                type="text"
+                v-model="filters2['global']"
+                spellcheck="false"
+                placeholder="Tìm kiếm phòng ban"
+                style="width: 100%"
+              />
+            </span>
+          </template>
+        </Toolbar>
+        <TreeTable
+          :value="listDepartments"
+          v-model:filters="filters2"
+          filterMode="lenient"
+          :scrollable="true"
+          :rowHover="true"
+          :expandedKeys="expandedKeys"
+          dataKey="organization_id"
+          v-model:selectionKeys="selectedNodeOrganization"
+          :selectionMode="'checkbox'"
+          scrollHeight="flex"
+          filterDisplay="menu"
+          class="d-lang-table"
+          globalFilterFields="['organization_id', 'organization_name']"
+        >
+          <Column
+            field="organization_name"
+            header="Đơn vị"
+            :expander="true"
+            style="min-width: 200px"
+          >
+            <template #body="slotProps">
+              <span
+                @click="goOrganization(slotProps.node)"
+                :class="
+                  slotProps.node.data.organization_id ===
+                    options.filter_organization_id ||
+                  (options.filter_organization_id == null &&
+                    slotProps.node.data.parent_id == null)
+                    ? 'row-active'
+                    : ''
+                "
+                >{{ slotProps.node.data.organization_name }}
+              </span>
+            </template>
+          </Column>
+        </TreeTable>
+      </div>
+      <div class="col-7 md:col-7">
+        <Toolbar
+          class="outline-none surface-0 border-none px-0 pt-0 custom-search"
+        >
+          <template #start>
+            <span
+              class="p-input-icon-left"
+              style="width: 100%"
+            >
+              <i class="pi pi-search" />
+              <InputText
+                type="text"
+                v-model="filters1['global'].value"
+                spellcheck="false"
+                placeholder=" Tìm kiếm người dùng"
+                style="width: 100%"
+              />
+            </span>
+          </template>
+        </Toolbar>
+        <DataTable
+          :value="listUsers"
+          class="d-lang-table"
+          :scrollable="true"
+          dataKey="user_id"
+          v-model:selection="selectedNodeUser"
+          scrollHeight="flex"
+          rowGroupMode="subheader"
+          groupRowsBy="department_id"
+          removableSort
+          v-model:filters="filters1"
+          :globalFilterFields="['user_id', 'full_name']"
+        >
+          <template #groupheader="slotProps">
+            <i class="pi pi-list mr-2"></i
+            >{{ slotProps.data.organization_name ?? "Không thuộc phòng ban" }}
+          </template>
+          <Column
+            :selectionMode="'multiple'"
+            headerStyle="text-align:center;max-width:50px"
+            bodyStyle="text-align:center;max-width:50px"
+            class="align-items-center justify-content-center text-center"
+          ></Column>
+          <Column
+            field="full_name"
+            header="Họ và tên"
+            headerStyle="height:50px;max-width:auto;"
+            bodyStyle="max-height:60px"
+            :sortable="true"
+          >
+            <template #body="slotProps">
+              <div class="flex">
+                <div class="format-center">
                   <Avatar
-                    v-tooltip.bottom="{
-                      value:
-                        value.data.full_name +
-                        '<br/>' +
-                        (value.data.tenChucVu || '') +
-                        '<br/>' +
-                        (value.data.tenToChuc || ''),
-                      escape: true,
-                    }"
                     v-bind:label="
-                      value.data.avatar != null
+                      slotProps.data.avatar
                         ? ''
-                        : (value.data.full_name ?? '')
-                            .split(' ')
-                            .at(-1)
-                            .substring(0, 1)
+                        : slotProps.data.last_name.substring(0, 1)
                     "
-                    v-bind:image="basedomainURL + value.data.avatar"
+                    v-bind:image="basedomainURL + slotProps.data.avatar"
                     style="
                       background-color: #2196f3;
                       color: #ffffff;
-                      width: 2.5rem;
-                      height: 2.5rem;
-                      font-size: 15px !important;
+                      width: 3rem;
+                      height: 3rem;
                     "
                     :style="{
-                      background: bgColor[0] + '!important',
+                      background: bgColor[slotProps.data.STT % 7],
                     }"
-                    class="cursor-pointer"
+                    class="mr-2 text-avatar"
                     size="xlarge"
                     shape="circle"
                   />
-                </template>
-              </Column>
-              <Column
-                field="name"
-                header="Tên người dùng"
-                headerStyle="text-align:center;max-width:auto;min-height:3.125rem"
-                bodyStyle="text-align:left;max-width:auto;"
-                class="align-items-left justify-content-center text-left"
-              >
-              </Column>
-              <template #empty>
-                <div
-                  class="align-items-center justify-content-center p-4 text-center m-auto"
-                  style=""
-                  v-if="listUsers != null"
-                >
-                  <h3 class="m-1">Không có dữ liệu</h3>
                 </div>
-              </template>
-            </DataTable>
-          </div>
-        </div>
-      </form>
-      <template #footer>
-        <Button
-          label="Hủy"
-          icon="pi pi-times"
-          @click="closeDialogDepartment()"
-          class="p-button-text"
-        />
-        <Button
-          label="Lưu"
-          icon="pi pi-check"
-          @click="saveDepartmentUser()"
-        />
-      </template>
-    </Dialog>
-  </div>
+                <div class="format-center justify-content-left ml-3">
+                  <div>
+                    <div style="text-align: left">
+                      {{ slotProps.data.full_name }}
+                    </div>
+                    <div
+                      class="description"
+                      style="text-align: left"
+                    >
+                      {{ slotProps.data.position_name }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </Column>
+        </DataTable>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialogDepartment()"
+        class="p-button-text"
+      />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveDepartmentUser()"
+      />
+    </template>
+  </Dialog>
 </template>
+<style lang="scss" scoped>
+.d-lang-table {
+  min-height: unset;
+  max-height: calc(100vh - 350px);
+}
+::v-deep(.text-avatar) {
+  .p-avatar-text {
+    font-size: 1.5rem;
+  }
+}
+
+::v-deep(.custom-search) {
+  .p-toolbar-group-left {
+    width: 100%;
+  }
+  input {
+    width: 100%;
+  }
+}
+.row-active {
+  color: rgb(13, 137, 236);
+}
+</style>
