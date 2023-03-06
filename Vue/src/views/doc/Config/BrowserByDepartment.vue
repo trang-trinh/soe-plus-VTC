@@ -125,7 +125,8 @@ const loadData = (rf) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
         data[0].forEach((d) => {
-          d.ThanhvienRole = JSON.parse(d.ThanhvienRole);
+          if (d.ThanhvienRole != null)
+            d.ThanhvienRole = JSON.parse(d.ThanhvienRole);
         });
         let obj = renderTree(
           data[0],
@@ -135,7 +136,7 @@ const loadData = (rf) => {
         );
         listDepartments.value = obj.arrChils;
         listTreeDepartments.value = obj.arrtreeChils;
-        opition.value.totalRecords = data[1][0].totalrecords;
+        // opition.value.totalRecords = data[1][0].totalrecords;
       } else {
         listDepartments.value = [];
       }
@@ -218,8 +219,11 @@ const listUser = (department_id) => {
       }
     });
 };
-
+const listdel = ref([]);
 const DelDepartmentUser = (data) => {
+  listdel.value = [];
+  listdel.value.push(data.organization_id);
+
   swal
     .fire({
       title: "Thông báo",
@@ -239,12 +243,11 @@ const DelDepartmentUser = (data) => {
             swal.showLoading();
           },
         });
-        var listId = [];
-        listId.push(data.role_group_department_id);
+
         axios
           .delete(baseURL + "/api/Doc_Role_Department/DeleteUser", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: listId,
+            data: listdel.value != null ? listdel.value : 0,
           })
           .then((response) => {
             swal.close();
@@ -304,36 +307,39 @@ const closeDialogDepartment = () => {
 
 const ChangeUserDepartment = (model) => {
   listUsers.value.forEach((u) => {
-    if (u.code != model.code) {
-      u.is_check = false;
-    } else {
+    if (u.code == model.code) {
       u.is_check = true;
     }
   });
 };
 
 const saveDepartmentUser = () => {
+  let formData = new FormData();
+  let listsend = [];
   if (listUsers.value) {
     if (listUsers.value.filter((x) => x.is_check == true).length > 0) {
-      listUsers.value
-        .filter((x) => x.is_check == true)
-        .forEach((t) => {
-          Department.value.user_id = t.code;
-        });
+      listUsers.value.forEach((t) => {
+        Department.value.user_id = t.code;
+        if (t.is_check == true) {
+          let dept = {
+            department_id: Department.value.department_id,
+            user_id: t.code,
+          };
+          listsend.push(dept);
+        }
+      });
     }
   }
+
+  formData.append("group", JSON.stringify(listsend));
   axios
-    .put(
-      baseURL + "/api/Doc_Role_Department/Update_user",
-      Department.value,
-      config,
-    )
+    .put(baseURL + "/api/Doc_Role_Department/Update_user", formData, config)
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
-        toast.success("Cập nhật phòng ban thành công!");
         loadData(true);
         closeDialogDepartment();
+        toast.success("Cập nhật phòng ban thành công!");
       } else {
         swal.fire({
           title: "Thông báo!",
@@ -353,14 +359,27 @@ const saveDepartmentUser = () => {
       });
     });
 };
-
+const first = ref(0);
+const filters = ref();
+const selectedKey = ref();
+const options = ref();
+const temporganizations = ref([]);
+const expandedKeys2 = ref();
+const selectedNodeOrganization = ref();
+const tempusers = ref([]);
+const selectedNodeUser = ref();
+const searchUser = () => {};
+const goOrganization = () => {};
 onMounted(() => {
   loadData(true);
   return {};
 });
 </script>
 <template>
-  <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
+  <div
+    v-if="store.getters.islogin"
+    class="main-layout true flex-grow-1 p-2"
+  >
     <TreeTable
       :value="listDepartments"
       v-model:selectionKeys="selectedKey"
@@ -385,9 +404,7 @@ onMounted(() => {
     >
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
-          <i class="pi pi-microsoft"></i> Danh sách phòng ban ({{
-            opition.totalRecords
-          }})
+          <i class="pi pi-microsoft"></i> Danh sách phòng ban
         </h3>
         <Toolbar class="w-full custoolbar">
           <!-- <template #start>
@@ -443,17 +460,17 @@ onMounted(() => {
                 <Avatar
                   v-tooltip.bottom="{
                     value:
-                      value.type_name +
-                      ': <br/>' +
-                      value.fullName +
+                      value.full_name +
                       '<br/>' +
-                      (value.tenChucVu || '') +
+                      (value.position_name || '') +
                       '<br/>' +
-                      (value.tenToChuc || ''),
+                      (value.department_name ||
+                        value.organization_child_name ||
+                        value.organization_name),
                     escape: true,
                   }"
                   v-bind:label="
-                    value.avatar ? '' : (value.ten ?? '').substring(0, 1)
+                    value.avatar ? '' : (value.full_name ?? '').substring(0, 1)
                   "
                   v-bind:image="basedomainURL + value.avatar"
                   style="
@@ -516,7 +533,10 @@ onMounted(() => {
           "
           v-if="!isFirst"
         >
-          <img src="../../../assets/background/nodata.png" height="144" />
+          <img
+            src="../../../assets/background/nodata.png"
+            height="144"
+          />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -631,7 +651,11 @@ onMounted(() => {
           @click="closeDialogDepartment()"
           class="p-button-text"
         />
-        <Button label="Lưu" icon="pi pi-check" @click="saveDepartmentUser()" />
+        <Button
+          label="Lưu"
+          icon="pi pi-check"
+          @click="saveDepartmentUser()"
+        />
       </template>
     </Dialog>
   </div>
