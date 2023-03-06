@@ -396,7 +396,7 @@ const onDropDown = (value) => {
         toast.success("Sửa trạng thái thành công!");
         loadData(false);
       } else {
-        console.log("LỖI A:", response);
+   
         swal.fire({
           title: "Error!",
           text: response.data.ms,
@@ -432,7 +432,7 @@ const onCheckBox = (value) => {
         toast.success("Cập nhật tin thành công!");
         loadData(false);
       } else {
-        console.log("LỖI A:", response);
+    
         swal.fire({
           title: "Error!",
           text: response.data.ms,

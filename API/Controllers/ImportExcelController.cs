@@ -5199,7 +5199,8 @@ namespace API.Controllers
                                                 user.user_id = vl != null ? vl.ToString() : null;
                                                 break;
                                             case "is_psword":
-                                                string depass = vl != null ? Codec.EncryptString(vl.ToString(), helper.psKey) : null;
+                                                //string depass = vl != null ? Codec.EncryptString(vl.ToString(), helper.psKey) : null;
+                                                string depass = vl != null ? BCrypt.Net.BCrypt.HashPassword(vl.ToString()) : null;
                                                 user.is_psword = depass;
                                                 break;
                                             case "full_name":

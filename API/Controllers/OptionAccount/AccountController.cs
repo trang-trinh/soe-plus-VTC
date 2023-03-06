@@ -525,19 +525,26 @@ namespace API.Controllers
                     string desNewPass = Codec.DecryptString(new_pass, helper.psKey);
 
                     //string dop = helper.Encrypt("os", Codec.DecryptString(old_pass, helper.passkey));
-                    string dop = Codec.EncryptString(des, helper.psKey);
+                    //string dop = Codec.EncryptString(des, helper.psKey);
                     var ou = db.sys_users.FirstOrDefault(x => x.user_id == user_id);
                     if (ou != null)
                     {
-                        if (ou.is_psword != dop)
+                        //if (ou.is_psword != dop)
+                        //{
+                        //    return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", op = 0 });
+                        //}
+                        //else
+                        //{
+                        //    ou.is_psword = Codec.EncryptString(desNewPass, helper.psKey); //helper.Encrypt("os", u.matKhau);
+                        //}
+                        if (BCrypt.Net.BCrypt.Verify(des, ou.is_psword))
                         {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", op = 0 });
+                            ou.is_psword = BCrypt.Net.BCrypt.HashPassword(desNewPass);
                         }
                         else
                         {
-                            ou.is_psword = Codec.EncryptString(desNewPass, helper.psKey); //helper.Encrypt("os", u.matKhau);
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", op = 0 });
                         }
-
                         #region add cms_logs
                         if (helper.wlog)
                         {

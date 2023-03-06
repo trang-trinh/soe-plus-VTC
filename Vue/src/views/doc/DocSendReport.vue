@@ -48,7 +48,8 @@ const options = ref({
   end_date: null,
   next: true,
   filterOrg: [],
-  id: null,pagenoExport:1
+  id: null,pagenoExport:1	,  start_dateD: null,	
+  end_dateD: null
 });
 
 const datalists = ref();
@@ -89,15 +90,7 @@ const loadDataSQL = () => {
     })
     .catch((error) => {
       options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-      console.log(error);
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+    
     });
 };
 
@@ -128,8 +121,24 @@ const loadData = () => {
       strk = ",";
     }
   }
-  if(strG!=null)
-  options.value.department_id_process_fake= strG;
+  if (strG != null && strG != "")	
+    options.value.department_id_process_fake = strG;	
+  else	
+    options.value.department_id_process_fake = null;	
+
+
+    strG = "";
+   strk = "";
+  if (options.value.department_id) {
+    for (const key in options.value.department_id) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if (strG != null && strG != "")
+    options.value.department_id_fake = strG;
+  else
+    options.value.department_id_fake = null;
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -146,7 +155,7 @@ const loadData = () => {
               { par: "doc_group_id", va: options.value.doc_group_id },
               { par: "field_id", va: options.value.field_id },
               { par: "department_id_process", va: options.value.department_id_process },
-              { par: "department_id", va: options.value.department_id },
+              { par: "department_id", va: options.value.department_id_fake  },
               { par: "start_dateI", va: options.value.start_dateI },
               { par: "end_dateI", va: options.value.end_dateI },
               { par: "start_dateD", va: options.value.start_dateD },
@@ -179,27 +188,16 @@ const loadData = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
+  
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+ 
     });
 };
 
-//Tìm kiếm
 const searchReceive = () => {
-  options.value.pageno=0;
   options.value.loading = true;
-  if(options.value.search!=null && options.value.search!="")
-  loadDataSQL();
-  else{
+  if (options.value.search != null && options.value.search != "") loadDataSQL();
+  else {
     loadData();
   }
 };
@@ -347,11 +345,94 @@ const loadOrganization = () => {
       } else {
       }
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
-
+const rightSideReport = ref(false);	
+const ReportData = () => {	
+  rightSideReport.value = true;	
+}	
+const onFilterHistory = (value) => {	
+  // listFilterDM.department_list	
+  if (value.doc_group_id) {	
+    options.value.ca_groups_list = [];	
+    value.doc_group_id.split(',').forEach(element => {	
+      listFilterDM.value.ca_groups_list.forEach(item => {	
+        if (Number(element) == item.code)	
+          options.value.ca_groups_list.push(item);	
+      });	
+    });	
+  }	
+  if (value.field_id) {	
+    options.value.ca_fields_list = [];	
+    value.field_id.split(',').forEach(element => {	
+      listFilterDM.value.ca_fields_list.forEach(item => {	
+        if (Number(element) == item.code)	
+          options.value.ca_fields_list.push(item);	
+      });	
+    });	
+  }	
+  if (value.dispatch_book_id) {	
+    options.value.ca_dispatch_book_list = [];	
+    value.dispatch_book_id.split(',').forEach(element => {	
+      listFilterDM.value.ca_dispatch_book_list.forEach(item => {	
+        if (Number(element) == item.code)	
+          options.value.ca_dispatch_book_list.push(item);	
+      });	
+    });	
+  }	
+  if (value.user_recever) {	
+    options.value.ca_user_recever_list = [];	
+    value.user_recever.split(',').forEach(element => {	
+      listFilterDM.value.ca_user_recever_list.forEach(item => {	
+        if (element == item.code)	
+          options.value.ca_user_recever_list.push(item);	
+      });	
+    });	
+  }	
+  if (value.department_id) {	
+    options.value.department_id = {};	
+    ;	
+    value.department_id.split(',').forEach(element => {	
+      options.value.department_id[element] = {	
+        checked: true, partialChecked: false	
+      };	
+    });	
+  }	
+  if (value.department_id_process) {	
+    options.value.department_id_process = {};	
+    ;	
+    value.department_id_process.split(',').forEach(element => {	
+      options.value.department_id_process[element] = {	
+        checked: true, partialChecked: false	
+      };	
+    });	
+  }	
+  
+  if (value.start_dateI)
+    options.value.start_dateI = new Date(value.start_dateI);
+    else
+    options.value.start_dateI=null;
+  if (value.end_dateI)
+    options.value.end_dateI = new Date(value.end_dateI);
+    else
+    options.value.end_dateI=null;
+  if (value.start_dateD)
+    options.value.start_dateD = new Date(value.start_dateD);
+    else
+    options.value.start_dateD=null;
+  if (value.end_dateD)
+    options.value.end_dateD = new Date(value.end_dateD);
+    else
+    options.value.end_dateD=null;
+  if (value.search)
+    options.value.search = value.search;
+ 
+    options.value.pageno = value.page_no-1;
+  options.value.pagesize=value.page_size;
+ 
+  onFilterDM(null);
+  rightSideReport.value=false;
+}
 const selectedColumns = ref();
 const columns = ref([
   { field: "issue_place", header: "Nơi gửi" },
@@ -424,7 +505,7 @@ const loadFilterDM = () => {
       });
     })
     .catch((error) => {
-      console.log(error);
+ 
 
       options.value.loading = false;
     });
@@ -460,42 +541,10 @@ const loadFilterDM = () => {
           code: element.doc_group_id,
         });
       });
-      console.log(listFilterDM.value.ca_groups_list, "sps");
+ 
     })
-    .catch((error) => {
-      console.log(error);
-    });
-  // axios
-  //   .post(
-  //     baseURL + "/api/DocProc/CallProc",
-  //     {str: 
-  //       encr(JSON.stringify(
-  //         {
-  //       proc: "ca_issue_place_list",
-  //       par: [
-  //         { par: "pageno", va: 0 },
-  //         { par: "pagesize", va: 1000000 },
-  //         { par: "user_id", va: store.getters.user.user_id },
-  //       ],
-  //     }
-  //     ),
-  //       SecretKey, cryoptojs)
-  //       .toString()
-  //     },
-  //     config
-  //   )
-  //   .then((response) => {
-  //     let data = JSON.parse(response.data.data)[0];
-  //     data.forEach((element) => {
-  //       listFilterDM.value.ca_issue_place_list.push({
-  //         name: element.issue_place_name,
-  //         code: element.issue_place_id,
-  //       });
-  //     });
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //   });
+ 
+ 
    axios
     .post(
       baseURL + "/api/device_card/getData",
@@ -525,7 +574,7 @@ const loadFilterDM = () => {
       }
     })
     .catch((error) => {
-      console.log("err", error);
+   
       options.value.loading = false;
     });
   axios
@@ -556,9 +605,7 @@ const loadFilterDM = () => {
         });
       });
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -588,9 +635,7 @@ const loadFilterDM = () => {
         });
       });
     })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
 const renderTreeDV1 = (data, id, name, title, org_id) => {
   let arrtreeChils = [];
@@ -657,12 +702,13 @@ const onRefilterDM = () => {
   options.value.loading = true;
   loadData();
 };
-const onFilterDM = () => {
+const onFilterDM = (pageno) => {
   filterButs.value.hide();
   options.value.loading = true;
   checkFilter.value = true;
  filterSQL.value=[];
-  options.value.pageno=0;
+ if(pageno)
+  options.value.pageno = pageno;
 let filterS=null;
   
   var strG = "";
@@ -744,8 +790,9 @@ if (options.value.department_id) {
   if (options.value.department_id_process) {
     for (const key in options.value.department_id_process) {
       strG += strk + key;
-      var tsc=listFilterDM.value.department_list.find(x=>x.key==key).label;
-      FilterStr.value+= strk +tsc;
+      var tsc = listFilterDM.value.department_list.find(x => x.key == key);	
+      if (tsc)	
+        FilterStr.value += strk + tsc.label;
       strk = ",";
     }
   }
@@ -802,23 +849,23 @@ if (options.value.start_dateI && options.value.end_dateI) {
     if (options.value.start_dateI) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateIsH" }],
+        filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateIs" }],
         filteroperator: "or",
         key: "receive_date",
       };
       filterSQL.value.push(filterS);
-    }
+    }else options.value.start_dateI = null;
     if (options.value.end_dateI) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.end_dateI, matchMode: "dateBeforeH" }, 
-        { value: options.value.end_dateI, matchMode: "dateIsH" }],
+        filterconstraints: [ 
+        { value: options.value.end_dateI, matchMode: "dateIs" }],
         filteroperator: "or",
         key: "receive_date",
       };
       filterSQL.value.push(filterS);
 
-    }
+    }else options.value.end_dateI = null;
   }
 
   if (options.value.start_dateD && options.value.end_dateD) {
@@ -842,24 +889,24 @@ if (options.value.start_dateI && options.value.end_dateI) {
     if (options.value.start_dateD) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateIsH" }],
+        filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateIs" }],
         filteroperator: "or",
         key: "doc_date",
       };
       filterSQL.value.push(filterS);
 
 
-    }
+    }else options.value.start_dateD = null;
     if (options.value.end_dateD) {
 
       filterS = {
-        filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateIsH" }],
+        filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateIs" }],
         filteroperator: "or",
         key: "doc_date",
       };
       filterSQL.value.push(filterS);
 
-    }
+    }else options.value.end_dateD = null;
   }
   first.value=0;
 if( filterSQL.value.length>0)
@@ -887,6 +934,43 @@ setTimeout(function () {
   printframe.print();
   printframe.document.close();
 }, 0);
+
+	
+let formData = new FormData();	
+  if (options.value.search == "") {	
+    options.value.search = null;	
+  }	
+  var dataUp = {	
+    report_type: 2,	
+    page_no: options.value.pagenoExport,	
+    page_size: options.value.totalRecordsExport,	
+    start_dateI: options.value.start_dateI,	
+    end_dateI: options.value.end_dateI,	
+    start_dateD: options.value.start_dateD,	
+    end_dateD: options.value.end_dateD,	
+    search: options.value.search,	
+    user_recever: options.value.user_recever,	
+    field_id: options.value.field_id,	
+    dispatch_book_id: options.value.dispatch_book_id,	
+    doc_group_id: options.value.doc_group_id,	
+    department_id_process: options.value.department_id_process_fake,	
+    department_id: options.value.department_id_fake	
+  }	
+  formData.append("doc_export", JSON.stringify(dataUp));	
+  axios	
+    .post(baseURL + "/api/DocExport/add_doc_export", formData, config)	
+    .catch((error) => {	
+      swal.close();	
+      swal.fire({	
+        title: "Error!",	
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",	
+        icon: "error",	
+        confirmButtonText: "OK",	
+      });	
+    });	
+
+
+
 };
 
 function renderhtml(id, htmltable) {
@@ -1193,11 +1277,11 @@ else
               { par: "doc_group_id", va: options.value.doc_group_id },
               { par: "field_id", va: options.value.field_id },
               { par: "department_id_process", va: options.value.department_id_process_fake },
-              { par: "department_id", va: options.value.department_id },
-              { par: "start_dateI", va: options.value.start_dateI },
-              { par: "end_dateI", va: options.value.end_dateI },
-              { par: "start_dateD", va: options.value.start_dateD },
-              { par: "end_dateD", va: options.value.end_dateD },
+              { par: "department_id", va: options.value.department_id_fake  },
+              { par: "start_dateI", va:sDateI},
+          { par: "end_dateI", va: eDateI},
+          { par: "start_dateD", va: sDateD},
+          { par: "end_dateD", va:sDateD},
               { par: "search", va: options.value.search },
               { par: "sort", va: options.value.sort },
             ],
@@ -1234,13 +1318,10 @@ else
     options.value.loading = false;
     } else {
       datalistsExport.value = [];
-    }
+    }options.value.loading=false;
  
   })
-  .catch((error) => {
-    console.log(error);
-   
-  });
+ 
 
 }
 }
@@ -1274,8 +1355,23 @@ const itemButs = ref([
   },
 },
 ]);
-
+var sDateI=null;
+var eDateI=null;
+var sDateD=null;
+var eDateD=null;
 const toggleExport = (event) => {
+if(checkFilter.value == true){
+  sDateI=options.value.sDateI;
+  eDateI=options.value.eDateI;
+  sDateD=options.value.sDateD;
+  eDateD=options.value.eDateD;
+}
+else{
+  sDateI=null;
+  eDateI=null;
+  sDateD=null;
+  eDateD=null;
+}
   var strG = "";
   var strk = "";
 
@@ -1285,8 +1381,25 @@ const toggleExport = (event) => {
       strk = ",";
     }
   }
-  if(strG!=null)
-  options.value.department_id_process_fake= strG;
+  if (strG != null && strG != "")	
+    options.value.department_id_process_fake = strG;	
+  else	
+    options.value.department_id_process_fake = null;	
+
+
+   
+    strG = "";
+   strk = "";
+  if (options.value.department_id) {
+    for (const key in options.value.department_id) {
+      strG += strk + key;
+      strk = ",";
+    }
+  }
+  if (strG != null && strG != "")
+    options.value.department_id_fake = strG;
+  else
+    options.value.department_id_fake = null;
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
@@ -1311,11 +1424,11 @@ const exportData = (method) => {
           { par: "doc_group_id", va: options.value.doc_group_id },
           { par: "field_id", va: options.value.field_id },
           { par: "department_id_process", va: options.value.department_id_process_fake },
-          { par: "department_id", va: options.value.department_id },
-          { par: "start_dateI", va: options.value.start_dateI },
-          { par: "end_dateI", va: options.value.end_dateI },
-          { par: "start_dateD", va: options.value.start_dateD },
-          { par: "end_dateD", va: options.value.end_dateD },
+          { par: "department_id", va: options.value.department_id_fake },
+          { par: "start_dateI", va:sDateI},
+          { par: "end_dateI", va: eDateI},
+          { par: "start_dateD", va: sDateD},
+          { par: "end_dateD", va:sDateD},
           { par: "search", va: options.value.search },
           { par: "sort", va: options.value.sort },
         ],
@@ -1444,8 +1557,40 @@ const onSort = (event) => {
     loadData();
   }
 };
+const listHistoryRP = ref([]);	
+const loadHistoryRP = () => {	
+  var formData = new FormData();	
+  formData.append("type", 3);	
+  axios	
+    .post(baseURL + "/api/DocExport/getData", formData, config)	
+    .then((response) => {	
+      if(response.data.data){let data = JSON.parse(response.data.data);	
+      if (data.length > 0) {	
+        listHistoryRP.value = data;	
+        if (data[0].start_dateI)	
+          options.value.start_dateI = new Date(data[0].end_dateI);	
+        if (data[0].end_dateI)	
+          options.value.end_dateI = new Date();	
+        if (data[0].start_dateD)	
+          options.value.start_dateD = new Date(data[0].end_dateD);	
+        if (data[0].end_dateD)	
+          options.value.end_dateD = new Date();	
+      }	
+    }
+    })	
+    .catch((error) => {	
+      swal.close();	
+      swal.fire({	
+        title: "Error!",	
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",	
+        icon: "error",	
+        confirmButtonText: "OK",	
+      });	
+    });	
+}
 onMounted(() => {
   loadFilterDM();
+  loadHistoryRP();
   // loadOrganization();
   loadData();
 });
@@ -1925,7 +2070,7 @@ onMounted(() => {
                           ></Button>
                         </template>
                         <template #end>
-                          <Button @click="onFilterDM()" label="Lọc"></Button>
+                          <Button @click="onFilterDM(0)" label="Lọc"></Button>
                         </template>
                       </Toolbar>
                     </div>
@@ -1943,7 +2088,9 @@ onMounted(() => {
                 placeholder="Hiển thị thêm"
                
                 @update:modelValue="onToggle"
-              />
+              />   <Button class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-clock"
+                v-tooltip.top="'Lịch sử in báo cáo'" @click="ReportData" />
+
               <Button
                 class="mr-2 p-button-outlined p-button-secondary"
                 icon="pi pi-refresh"
@@ -2219,6 +2366,51 @@ onMounted(() => {
         </div>
       </div>
     </div>
+  </Sidebar>
+  <Sidebar :showCloseIcon="false" v-model:visible="rightSideReport" class="p-sidebar-md" :baseZIndex="10000"	
+    position="right">	
+    <h3>Danh sách báo cáo xuất</h3>	
+    <DataTable :value="listHistoryRP">	
+      <Column>	
+        <template #header>	
+          <div class="w-full format-center">	
+            Họ và tên	
+          </div>	
+        </template>	
+        <template #body="data">	
+          <div class="w-full format-center font-bold ">	
+            {{ data.data.user_name }}	
+          </div>	
+        </template>	
+      </Column>	
+      <Column headerStyle="text-align:center; width:200px" bodyStyle="text-align:center; width:200px"	
+        field="organization_name">	
+        <template #header>	
+          <div class="w-full format-center">	
+            Ngày xuất	
+          </div>	
+        </template>	
+        <template #body="data">	
+          <div class="w-full format-center">	
+            {{ moment(new Date(data.data.timeExport)).format("DD/MM/YYYY HH:mm") }}	
+          </div>	
+        </template>	
+      </Column>	
+      <Column headerStyle="text-align:center; width:100px" bodyStyle="text-align:center; width:100px"	
+        field="organization_name">	
+        <template #header>	
+          <div class="w-full  ">	
+            Lọc	
+          </div>	
+        </template>	
+        <template #body="data">	
+          <div class="w-full  ">	
+            <Button class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-filter"	
+              @click="onFilterHistory(data.data)"></Button>	
+          </div>	
+        </template>	
+      </Column>	
+    </DataTable>	
   </Sidebar>
 </template>
 <style scoped>

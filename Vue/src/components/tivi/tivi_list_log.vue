@@ -19,6 +19,7 @@ const bgColor = ref([
 const props = defineProps({
 	isShow: Boolean,
 	listLog: Object,
+	infoTivi: Object,
 	key: Number
 });
 const showContentLog = ref(false);
@@ -118,6 +119,51 @@ const deleteContentLog = (dataLog, isDelMulti) => {
 		}
 		});
 };
+const exportExcelLog = () => {
+	swal.fire({
+		width: 110,
+		didOpen: () => {
+			swal.showLoading();
+		},
+	});
+	axios
+		.post(
+			baseUrlCheck + "/api/Excel/ExportExcel",
+			{
+				excelname: "DANH SÁCH LOG TIVI " + (props.infoTivi != null ? props.infoTivi.tivi_name : ""),
+				proc: "tivi_log_listexport",
+				par: [
+					{ par: "tivi_id", va: props.listLog[0].tivi_id },
+					{ par: "topdata", va: 200 }
+				],
+			},
+			config
+		)
+		.then((response) => {
+			swal.close();
+			if (response.data.err != "1") {
+				swal.close();
+				toast.success("Kết xuất Data thành công!");
+				window.open(baseUrlCheck + response.data.path);
+			} else {
+				swal.fire({
+					title: "Thông báo",
+					text: response.data.ms,
+					icon: "error",
+					confirmButtonText: "OK",
+				});
+			}
+		})
+		.catch((error) => {
+			if (error.status === 401) {
+				swal.fire({					
+					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",					
+					confirmButtonText: "OK",
+				});
+				store.commit("gologout");
+			}
+		});
+};
 onMounted(() => {
 	showSidebar.value = props.isShow;
 });
@@ -143,17 +189,32 @@ onMounted(() => {
 			</div>
 			<div class="w-full px-0 py-2 m-0 ml-2 flex" style="align-items: center;justify-content: space-between;">
 				<span class="font-bold" style="font-size: 1.2rem;">Danh sách Log</span>
-				<Button
-					@click="deleteContentLog(null, true)"
-					class="p-button-danger m-0"
-					type="button"
-					icon="pi pi-trash"
-					label="Xóa log"
-				/>
+				<div>
+					<Button
+						@click="deleteContentLog(null, true)"
+						class="p-button-danger m-0"
+						type="button"
+						icon="pi pi-trash"
+						label="Xóa log"
+					/>
+					<Button
+						@click="exportExcelLog()"
+						class="p-button-primary m-0 ml-2"
+						type="button"
+						icon="pi pi-file-excel"
+						label="Xuất excel"
+						v-if="props.listLog.length > 0"
+					/>
+				</div>
 			</div>
 		</div>
-		<div>
-			<DataTable class="table-list-log" :value="props.listLog" responsiveLayout="scroll">
+		<div style="max-height: calc(100vh - 75px); overflow-y: auto;">
+			<DataTable class="table-list-log" 
+				:value="props.listLog" 
+      			:scrollable="true"
+				:rowHover="true"
+      			scrollHeight="flex"
+				responsiveLayout="scroll">
 				<Column field="action" header="Action" 
 					headerStyle="padding:0.5rem;height:40px;border-right:1px solid #ccc;"
 					bodyStyle="padding:0.5rem;border-right:1px solid #ccc;">

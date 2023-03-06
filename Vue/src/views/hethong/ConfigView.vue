@@ -13,6 +13,7 @@ const baseUrlCheck = baseURL;
 const configHeader = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
+const showEncr = ref(false);
 const initConfig = () => {
   axios
     .get(baseUrlCheck + "/api/Cache/GetConfig", {
@@ -22,7 +23,8 @@ const initConfig = () => {
       swal.close();
       if (response.data.err != "1") {
         config.value = response.data.data;
-        console.log(response.data.data);
+        showEncr.value = response.data.u_crypt;
+        //console.log(response.data.data);
         if (
           config.value != null &&
           (config.value.fileNameSettingApp || "") != "" &&
@@ -309,7 +311,9 @@ const ValidateEmail = () => {
   if (textbox.value != "" && textbox.value != null) {
     //var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     //if (textbox.value.match(mailformat)) {
-    const regexExp = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/gi;    
+
+    const regexExp = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/gi;
+    
     if (regexExp.test(textbox.value)) {
       isTrueEmail.value = true;
       return;
@@ -318,6 +322,38 @@ const ValidateEmail = () => {
       return;
     }
   }
+};
+const EncryptUser = () => {
+  var data = {};
+  axios
+    .post(
+      baseURL + "/api/Users/EncryptAllUser",
+      data,
+      configHeader
+    )
+    .then((response) => {
+      if (response.data.err == "0") {
+        toast.success("Cập nhật thành công!");
+      }
+      else if (response.data.err == "2") {
+        toast.info(response.data.ms);
+      }
+      else {
+        swal.fire({
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
 };
 const fileApkUp = ref(null);
 onMounted(() => {
@@ -598,9 +634,16 @@ onMounted(() => {
             @click="exportLogError"
           />
           <Button
+            class="mr-2"
             icon="pi pi-save"
             label="Cập nhật"
             @click="saveConfig"
+          />  
+          <Button
+            v-if="showEncr == true"
+            label="Encrypt user"
+            icon="pi pi-file-excel"
+            @click="EncryptUser()"
           />
         </div>
       </template>
@@ -649,7 +692,7 @@ onMounted(() => {
         label="Xuất file"
         icon="pi pi-check"
         @click="expotFileLog()"
-      />
+      />    
     </template>
   </Dialog>
 </template>

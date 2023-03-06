@@ -67,8 +67,17 @@ namespace Controllers
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             try
             {
-                string json = System.IO.File.ReadAllText(HttpContext.Current.Server.MapPath("~/Config/Config.json"));
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.DeserializeObject<settings>(json) });
+                using (DBEntities db = new DBEntities())
+                {
+                    string json = System.IO.File.ReadAllText(HttpContext.Current.Server.MapPath("~/Config/Config.json"));
+                    var numUserEncrypt = db.sys_users.Count(x => x.is_psword.Contains("=="));
+                    var is_user_encrypt = false;
+                    if (numUserEncrypt > 0)
+                    {
+                        is_user_encrypt = true;
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.DeserializeObject<settings>(json), u_crypt = is_user_encrypt });
+                }
             }
             catch (Exception e)
             {

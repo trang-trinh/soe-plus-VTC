@@ -435,6 +435,7 @@ li.p-chips-token {
     height: 100%;
     overflow-y: auto;
 }
+ 
 
 .p-inputtext {
     max-width: 100%;
@@ -1154,4 +1155,7 @@ li.p-chips-token {
     justify-content: center;
     align-items: center;
     text-align: center;
+}
+.d-design-chips.p-chips.p-component .p-inputtext .p-chips-token{
+    margin-bottom: 0px !important;
 }
