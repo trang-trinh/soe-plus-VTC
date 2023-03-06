@@ -94,6 +94,7 @@ const loadCount = () => {
       });
     });
 };
+const listParent = ref();
 const loadData = (rf) => {
   options.value.loading = true;
   if (store.state.user.is_super) {
@@ -124,6 +125,19 @@ const loadData = (rf) => {
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
+        listParent.value = [];
+        data.forEach((x) => {
+          let z = {
+            name: x.issue_place_name,
+            value: x.issue_place_id,
+            level: x.level == null ? 0 : x.level,
+            static_code: x.static_code,
+            dynamic_code: x.dynamic_code,
+            search_code: x.search_code,
+            display_code: x.display_code,
+          };
+          listParent.value.push(z);
+        });
         if (isFirst.value) isFirst.value = false;
         let obj = renderTree(data, "issue_place_id", "", "");
         datalists.value = obj.arrChils;
@@ -240,6 +254,8 @@ const closeDialog = () => {
 
     status: true,
   };
+  editChild.value = false;
+
   issuePlace.value.organization_id = null;
   displayBasic.value = false;
 };
@@ -276,6 +292,7 @@ const saveField = (isFormValid) => {
     },
   })
     .then((response) => {
+      editChild.value = false;
       if (response.data.err != "1") {
         swal.close();
         toast.success(
@@ -309,7 +326,9 @@ const saveField = (isFormValid) => {
 
 const sttField = ref();
 //Sửa bản ghi
+const editChild = ref(false);
 const editField = (dataPlace) => {
+  editChild.value = true;
   submitted.value = false;
   issuePlace.value = dataPlace;
   headerDialog.value = "Sửa nơi ban hành";
@@ -599,6 +618,8 @@ const deleteList = () => {
 };
 const first = ref();
 const searchField = () => {
+  editChild.value = false;
+
   selectedFields.value = [];
   first.value = 0;
   options.value.PageNo = 0;
@@ -877,6 +898,7 @@ const SearchBytext = () => {
     filters.value["global"] = options.value.SearchText;
   } else filters.value["global"] = "";
 };
+
 onMounted(() => {
   loadData(true);
   return {};
@@ -1207,15 +1229,39 @@ onMounted(() => {
       <div class="col-12">
         <div
           class="col-12 flex"
-          v-if="issuePlace.parent_name != null"
+          v-if="issuePlace.parent_name != null || editChild == true"
         >
           <div class="col-3 text-left">Cấp cha</div>
-          <InputText
-            v-model="issuePlace.parent_name"
-            spellcheck="false"
-            class="col-9 ip36"
-            disabled
-          />
+          <Dropdown
+            class="col-9 p-1"
+            v-model="issuePlace.parent_id"
+            :options="listParent"
+            optionLabel="name"
+            optionValue="value"
+            showClear="true"
+            placeholder="Chọn nơi ban hành"
+            filter="true"
+            :filterFields="[
+              'name',
+              'static_code',
+              'dynamic_code',
+              'search_code',
+              'display_code',
+            ]"
+          >
+            <template #option="slotProps">
+              <div
+                :style="{
+                  'padding-left':
+                    slotProps.option.level > 1
+                      ? slotProps.option.level - 1 + 'rem'
+                      : '0',
+                }"
+              >
+                {{ slotProps.option.name }}
+              </div>
+            </template>
+          </Dropdown>
         </div>
         <div class="col-12 flex">
           <div class="col-3 text-left">
@@ -1412,15 +1458,6 @@ onMounted(() => {
 
 <style scoped></style>
 <style>
-.p-treeselect-panel {
-  max-width: 30vw !important;
-}
-.p-treeselect-panel .p-treeselect-items-wrapper .p-tree {
-  max-height: 17vh !important;
-}
-.p-dropdown-item {
-  white-space: normal !important;
-}
 .word-break {
   word-break: break-all;
 }

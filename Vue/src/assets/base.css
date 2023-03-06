@@ -1158,3 +1158,10 @@ li.p-chips-token {
 .d-design-chips.p-chips.p-component .p-inputtext .p-chips-token{
     margin-bottom: 0px !important;
 }
+.v-sidebar-menu .vsm--icon{
+    margin-right: 10px !important;
+}
+.v-sidebar-menu .vsm--link{
+    line-height: 18px;
+    white-space: normal;
+}
