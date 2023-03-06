@@ -4,11 +4,9 @@ import { encr } from "../../../util/function";
 import detailedwork from "../../../components/task_origin/DetailedWork.vue";
 import DocStatus from "../../../components/doc/DocStatus.vue";
 import dialogcutrice from "./dialogcutrice.vue";
+import moment from "moment";
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
-import vi from "date-fns/locale/vi";
-import moment from "moment";
-import { useToast } from "vue-toastification";
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -49,6 +47,8 @@ const options = ref({
 });
 
 //Declare
+const holiday = ref({});
+const duty_sunday = ref({});
 const holidays = ref([]);
 const databookings = ref([]);
 const datanews = ref([]);
@@ -122,7 +122,7 @@ const bindDateBetweenFirstAndLast = (
   start_date,
   end_date,
   add_fn,
-  interval,
+  interval
 ) => {
   var retVal = [];
   if (isValidDate(start_date) && isValidDate(end_date)) {
@@ -217,7 +217,7 @@ const removeVietnameseTones = (str) => {
   // Bỏ dấu câu, kí tự đặc biệt
   str = str.replace(
     /!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'|\"|\&|\#|\[|\]|~|\$|_|`|-|{|}|\||\\/g,
-    " ",
+    " "
   );
   return str;
 };
@@ -334,10 +334,10 @@ const initCutRice = (rf) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -354,10 +354,10 @@ const initCutRice = (rf) => {
                 item["members"] = JSON.parse(item["members"]);
 
                 item["chutris"] = item["members"].filter(
-                  (x) => x["is_type"] === "0",
+                  (x) => x["is_type"] === "0"
                 );
                 item["thamgias"] = item["members"].filter(
-                  (x) => x["is_type"] === "1",
+                  (x) => x["is_type"] === "1"
                 );
               }
               var start_date_copy = new Date(item["start_date"]);
@@ -365,12 +365,12 @@ const initCutRice = (rf) => {
               var start_date_new = new Date(
                 start_date_copy.getFullYear(),
                 start_date_copy.getMonth(),
-                start_date_copy.getDate(),
+                start_date_copy.getDate()
               );
               var end_date_new = new Date(
                 end_date_copy.getFullYear(),
                 end_date_copy.getMonth(),
-                end_date_copy.getDate(),
+                end_date_copy.getDate()
               );
               if ((start_date_new = end_date_new)) {
                 let obj = { ...item };
@@ -382,7 +382,7 @@ const initCutRice = (rf) => {
               } else {
                 let dateinweeks = bindDateBetweenFirstAndLast(
                   new Date(item["start_date"]),
-                  new Date(item["end_date"]),
+                  new Date(item["end_date"])
                 );
                 dateinweeks.forEach((day, i) => {
                   let obj = { ...item };
@@ -406,18 +406,18 @@ const initCutRice = (rf) => {
                   holidays.value.filter(
                     (b) =>
                       moment(b).format("DD/MM/YYYY") ===
-                      moment(a["day"]).format("DD/MM/YYYY"),
+                      moment(a["day"]).format("DD/MM/YYYY")
                   ).length > 0 ||
                   userbooks.filter(
                     (b) =>
                       moment(b["booking_date"]).format("DD/MM/YYYY") ===
-                      moment(a["day"]).format("DD/MM/YYYY"),
-                  ).length > 0,
+                      moment(a["day"]).format("DD/MM/YYYY")
+                  ).length > 0
               );
               if (skip != null && skip.length > 0) {
                 skip.forEach((item) => {
                   var idx = databookings.value.findIndex(
-                    (x) => x["calendar_id"] === item["calendar_id"],
+                    (x) => x["calendar_id"] === item["calendar_id"]
                   );
                   if (idx != -1) {
                     databookings.value.splice(idx, 1);
@@ -444,10 +444,10 @@ const initCounts = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -486,10 +486,10 @@ const initCountCongviec = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -526,10 +526,10 @@ const initCongviec = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -540,30 +540,30 @@ const initCongviec = () => {
             tbn[0].forEach((item) => {
               if (item["start_date"] != null) {
                 item["start_date"] = moment(
-                  new Date(item["start_date"]),
+                  new Date(item["start_date"])
                 ).format("DD/MM/YYYY");
               }
               if (item["end_date"] != null) {
                 item["end_date"] = moment(new Date(item["end_date"])).format(
-                  "DD/MM/YYYY",
+                  "DD/MM/YYYY"
                 );
               }
               item.status_name =
                 item.status != null
                   ? listDropdownStatus.value.filter(
-                      (x) => x.value == item.status,
+                      (x) => x.value == item.status
                     )[0].text
                   : "";
               item.status_bg_color =
                 item.status != null
                   ? listDropdownStatus.value.filter(
-                      (x) => x.value == item.status,
+                      (x) => x.value == item.status
                     )[0].bg_color
                   : "";
               item.status_text_color =
                 item.status != null
                   ? listDropdownStatus.value.filter(
-                      (x) => x.value == item.status,
+                      (x) => x.value == item.status
                     )[0].text_color
                   : "";
               //thời gian xử lý
@@ -608,10 +608,10 @@ const initCountVanban = () => {
             par: [{ par: "user_key", va: store.getters.user.user_key }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -653,10 +653,10 @@ const initVanban = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -667,7 +667,7 @@ const initVanban = () => {
             tbn[0].forEach((item) => {
               if (item["doc_date"] != null) {
                 item["doc_date"] = moment(new Date(item["doc_date"])).format(
-                  "DD/MM/YYYY",
+                  "DD/MM/YYYY"
                 );
               }
             });
@@ -705,10 +705,10 @@ const initNew = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -719,7 +719,7 @@ const initNew = () => {
             tbn[0].forEach((item, i) => {
               if (item["approved_date"] != null) {
                 item["approved_date"] = moment(
-                  new Date(item["approved_date"]),
+                  new Date(item["approved_date"])
                 ).format("HH:mm DD/MM/YYYY");
               }
             });
@@ -757,10 +757,10 @@ const initNotify = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -778,7 +778,7 @@ const initNotify = () => {
               }
               if (element["approved_date"] != null) {
                 element["approved_date"] = moment(
-                  new Date(element["approved_date"]),
+                  new Date(element["approved_date"])
                 ).format("HH:mm DD/MM/YYYY");
               }
             });
@@ -802,10 +802,10 @@ const initVideo = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -844,10 +844,10 @@ const initLideshow = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -857,7 +857,7 @@ const initLideshow = () => {
           if (tbn[0] != null && tbn[0].length > 0) {
             tbn[0].forEach((item, i) => {
               item["created_date"] = moment(
-                new Date(item["created_date"]),
+                new Date(item["created_date"])
               ).format("HH:mm DD/MM/YYYY");
             });
             datalideshows.value = tbn[0];
@@ -883,10 +883,10 @@ const initBirthday = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -897,7 +897,7 @@ const initBirthday = () => {
             tbn[0].forEach((item, i) => {
               if (item["birthday"] != null) {
                 item["birthday"] = moment(new Date(item["birthday"])).format(
-                  "DD/MM/YYYY",
+                  "DD/MM/YYYY"
                 );
               }
             });
@@ -907,7 +907,7 @@ const initBirthday = () => {
             tbn[1].forEach((item, i) => {
               if (item["birthday"] != null) {
                 item["birthday"] = moment(new Date(item["birthday"])).format(
-                  "DD/MM/YYYY",
+                  "DD/MM/YYYY"
                 );
               }
             });
@@ -917,7 +917,7 @@ const initBirthday = () => {
             tbn[3].forEach((item, i) => {
               if (item["birthday"] != null) {
                 item["birthday"] = moment(new Date(item["birthday"])).format(
-                  "DD/MM/YYYY",
+                  "DD/MM/YYYY"
                 );
               }
             });
@@ -944,10 +944,10 @@ const initDictionaryCalendarDuty = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -963,11 +963,11 @@ const initDictionaryCalendarDuty = () => {
             weeks.value.findIndex((x) => x["is_current_week"] === true) != -1;
           if (exist) {
             currentweek.value = weeks.value.find(
-              (x) => x["is_current_week"] === true,
+              (x) => x["is_current_week"] === true
             );
           } else {
             currentweek.value = weeks.value.find(
-              (x) => x["week_no"] === options.value.week || 0,
+              (x) => x["week_no"] === options.value.week || 0
             );
           }
           if (currentweek.value != null) {
@@ -975,34 +975,34 @@ const initDictionaryCalendarDuty = () => {
             switch (options.value.view) {
               case 1:
                 options.value["week_start_date"] = new Date(
-                  currentweek.value["week_start_date"],
+                  currentweek.value["week_start_date"]
                 );
                 options.value["week_end_date"] = new Date(
-                  currentweek.value["week_end_date"],
+                  currentweek.value["week_end_date"]
                 );
                 break;
               case 2:
                 options.value["week_start_date"] = new Date(
                   options.value.year,
                   options.value.month - 1,
-                  1,
+                  1
                 );
                 options.value["week_end_date"] = new Date(
                   options.value.year,
                   options.value.month,
-                  0,
+                  0
                 );
                 break;
               case 3:
                 options.value["week_start_date"] = new Date(
                   options.value["year"],
                   0,
-                  1,
+                  1
                 );
                 options.value["week_end_date"] = new Date(
                   options.value["year"],
                   11,
-                  31,
+                  31
                 );
                 break;
               default:
@@ -1032,6 +1032,7 @@ const initDictionaryCalendarDuty = () => {
       }
     })
     .then(() => {
+      initDutySunday();
       initCalendar(true);
       //initCalendarDuty(true);
     })
@@ -1060,10 +1061,10 @@ const initCalendar = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -1080,10 +1081,10 @@ const initCalendar = () => {
                 item["members"] = JSON.parse(item["members"]);
 
                 item["chutris"] = item["members"].filter(
-                  (x) => x["is_type"] === "0",
+                  (x) => x["is_type"] === "0"
                 );
                 item["thamgias"] = item["members"].filter(
-                  (x) => x["is_type"] === "1",
+                  (x) => x["is_type"] === "1"
                 );
               }
               item["is_holiday"] = new Date(item["day"]).getDay() == 0;
@@ -1091,14 +1092,14 @@ const initCalendar = () => {
           }
           let dateinweeks1 = bindDateBetweenFirstAndLast(
             new Date(currentweek.value["week_start_date"]),
-            new Date(currentweek.value["week_end_date"]),
+            new Date(currentweek.value["week_end_date"])
           );
           dateinweeks1
             .filter(
               (a) =>
                 tbs[1].findIndex(
-                  (b) => b["day_string"] === moment(a).format("DD/MM/YYYY"),
-                ) === -1,
+                  (b) => b["day_string"] === moment(a).format("DD/MM/YYYY")
+                ) === -1
             )
             .forEach((day, i) => {
               tbs[1].push({
@@ -1113,6 +1114,10 @@ const initCalendar = () => {
           });
           if (tbs[1] != null && tbs[1].length > 0) {
             datacalendars.value = tbs[1];
+            var idx = datacalendars.value.findIndex((x) => x.is_holiday);
+            if (idx != -1) {
+              holiday.value = datacalendars.value[idx];
+            }
           } else {
             datacalendars.value = [];
           }
@@ -1123,10 +1128,10 @@ const initCalendar = () => {
               if (item["members"] != null) {
                 item["members"] = JSON.parse(item["members"]);
                 item["trucbans"] = item["members"].filter(
-                  (x) => x["is_type"] === "0",
+                  (x) => x["is_type"] === "0"
                 );
                 item["chihuys"] = item["members"].filter(
-                  (x) => x["is_type"] === "1",
+                  (x) => x["is_type"] === "1"
                 );
               }
               if (item["files"] != null) {
@@ -1139,14 +1144,14 @@ const initCalendar = () => {
           }
           let dateinweeks2 = bindDateBetweenFirstAndLast(
             new Date(options.value["week_start_date"]),
-            new Date(options.value["week_end_date"]),
+            new Date(options.value["week_end_date"])
           );
           dateinweeks2
             .filter(
               (a) =>
                 tbs[2].findIndex(
-                  (b) => b["day_string"] === moment(a).format("DD/MM/YYYY"),
-                ) === -1,
+                  (b) => b["day_string"] === moment(a).format("DD/MM/YYYY")
+                ) === -1
             )
             .forEach((day, i) => {
               tbs[2].push({
@@ -1171,6 +1176,40 @@ const initCalendar = () => {
       console.log(error);
     });
 };
+const initDutySunday = () => {
+  axios
+    .post(
+      baseURL + "/api/calendar/get_datas",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "calendar_duty_sunday_getweek",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "year", va: options.value.year },
+              { par: "week", va: options.value.week },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          var tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            duty_sunday.value = tbs[0][0];
+          } else {
+            duty_sunday.value = {};
+          }
+        }
+      }
+    });
+};
 const initCalendarDuty = (rf) => {
   datacalendardutys.value = [];
   axios
@@ -1191,10 +1230,10 @@ const initCalendarDuty = (rf) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       if (response != null && response.data != null) {
@@ -1207,10 +1246,10 @@ const initCalendarDuty = (rf) => {
               if (item["members"] != null) {
                 item["members"] = JSON.parse(item["members"]);
                 item["trucbans"] = item["members"].filter(
-                  (x) => x["is_type"] === "0",
+                  (x) => x["is_type"] === "0"
                 );
                 item["chihuys"] = item["members"].filter(
-                  (x) => x["is_type"] === "1",
+                  (x) => x["is_type"] === "1"
                 );
               }
               if (item["files"] != null) {
@@ -1223,14 +1262,14 @@ const initCalendarDuty = (rf) => {
           }
           let dateinweeks = bindDateBetweenFirstAndLast(
             new Date(options.value["week_start_date"]),
-            new Date(options.value["week_end_date"]),
+            new Date(options.value["week_end_date"])
           );
           dateinweeks
             .filter(
               (a) =>
                 tbs[0].findIndex(
-                  (b) => b["day_string"] === moment(a).format("DD/MM/YYYY"),
-                ) === -1,
+                  (b) => b["day_string"] === moment(a).format("DD/MM/YYYY")
+                ) === -1
             )
             .forEach((day, i) => {
               tbs[0].push({
@@ -1253,6 +1292,13 @@ const initCalendarDuty = (rf) => {
     })
     .catch((error) => {
       console.log(error);
+    });
+};
+const ActiveMessage = (user) => {
+  router
+    .push({ name: "chat_message/fromdashboard", params: { uid: user.user_id, typeid: 'dashboard' } || {} })
+    .then(() => {
+      router.go(0);
     });
 };
 const initData = () => {
@@ -1282,10 +1328,7 @@ onMounted(() => {
         <div class="d-grid formgrid">
           <div class="col-12 md:col-12 p-0">
             <div class="card m-1">
-              <div
-                class="card-body p-0"
-                style="height: max-content"
-              >
+              <div class="card-body p-0" style="height: max-content">
                 <div class="d-grid formgrid">
                   <div class="col-4 md:col-4">
                     <div
@@ -1295,10 +1338,7 @@ onMounted(() => {
                     >
                       <div class="card-body">
                         <div class="format-grid-center">
-                          <h1
-                            class="my-2"
-                            style="word-break: break-all"
-                          >
+                          <h1 class="my-2" style="word-break: break-all">
                             {{ counts.countcalendar }}
                           </h1>
                           <h4 class="m-0">Lịch họp/trực ban</h4>
@@ -1314,10 +1354,7 @@ onMounted(() => {
                     >
                       <div class="card-body">
                         <div class="format-grid-center">
-                          <h1
-                            class="my-2"
-                            style="word-break: break-all"
-                          >
+                          <h1 class="my-2" style="word-break: break-all">
                             {{ counts.countdoc }}
                           </h1>
                           <h4 class="m-0">Văn bản</h4>
@@ -1333,10 +1370,7 @@ onMounted(() => {
                     >
                       <div class="card-body">
                         <div class="format-grid-center">
-                          <h1
-                            class="my-2"
-                            style="word-break: break-all"
-                          >
+                          <h1 class="my-2" style="word-break: break-all">
                             {{ counts.counttask }}
                           </h1>
                           <h4 class="m-0">Công việc chờ xử lý</h4>
@@ -1352,10 +1386,7 @@ onMounted(() => {
                     >
                       <div class="card-body">
                         <div class="format-grid-center">
-                          <h1
-                            class="my-2"
-                            style="word-break: break-all"
-                          >
+                          <h1 class="my-2" style="word-break: break-all">
                             {{ counts.countbooking }}
                           </h1>
                           <h4 class="m-0">Báo cắt cơm</h4>
@@ -1371,10 +1402,7 @@ onMounted(() => {
                     >
                       <div class="card-body">
                         <div class="format-grid-center">
-                          <h1
-                            class="my-2"
-                            style="word-break: break-all"
-                          >
+                          <h1 class="my-2" style="word-break: break-all">
                             {{ counts.countmessage }}
                           </h1>
                           <h4 class="m-0">Tin nhắn chưa đọc</h4>
@@ -1390,10 +1418,7 @@ onMounted(() => {
                     >
                       <div class="card-body">
                         <div class="format-grid-center">
-                          <h1
-                            class="my-2"
-                            style="word-break: break-all"
-                          >
+                          <h1 class="my-2" style="word-break: break-all">
                             {{ counts.countlaw }}
                           </h1>
                           <h4 class="m-0">Văn bản luật</h4>
@@ -1416,12 +1441,12 @@ onMounted(() => {
               </div>
               <div
                 class="card-body carousel-hidden-p-link"
-                style="height: 400px"
+                style="height: 475px"
               >
                 <div
                   v-if="datatasks.length > 0"
                   class="scroll-outer"
-                  style="overflow: auto; height: 375px"
+                  style="overflow: auto; height: 450px"
                 >
                   <div class="scroll-inner">
                     <div class="d-grid formgrid">
@@ -1563,12 +1588,12 @@ onMounted(() => {
               </div> -->
               <div
                 class="card-body carousel-hidden-p-link"
-                style="height: 400px"
+                style="height: 475px"
               >
                 <div
                   v-if="datadocs.length > 0"
                   class="scroll-outer"
-                  style="overflow: auto; height: 375px"
+                  style="overflow: auto; height: 450px"
                 >
                   <div class="scroll-inner">
                     <div class="d-grid formgrid">
@@ -1580,10 +1605,7 @@ onMounted(() => {
                         :key="index"
                       >
                         <div class="flex">
-                          <div
-                            class="mr-2"
-                            style="flex: 1"
-                          >
+                          <div class="mr-2" style="flex: 1">
                             <div
                               style="
                                 display: flex;
@@ -1645,7 +1667,7 @@ onMounted(() => {
               </div>
               <div
                 class="card-body carousel-hidden-p-link"
-                style="height: 400px"
+                style="height: 475px"
               >
                 <Carousel
                   v-show="datanews.length > 0"
@@ -1654,7 +1676,7 @@ onMounted(() => {
                   :numScroll="3"
                   :circular="true"
                   orientation="vertical"
-                  verticalViewPortHeight="330px"
+                  verticalViewPortHeight="420px"
                 >
                   <template #item="slotProps">
                     <div
@@ -1772,7 +1794,7 @@ onMounted(() => {
               </div>
               <div
                 class="card-body carousel-hidden-p-link"
-                style="height: 400px"
+                style="height: 475px"
               >
                 <Carousel
                   v-show="datalideshows.length > 0"
@@ -1781,7 +1803,7 @@ onMounted(() => {
                   :numScroll="1"
                   :circular="true"
                   orientation="horizontal"
-                  verticalViewPortHeight="400px"
+                  verticalViewPortHeight="475px"
                 >
                   <template #item="slotProps">
                     <div
@@ -1795,7 +1817,7 @@ onMounted(() => {
                     >
                       <div class="d-grid formgrid">
                         <div class="col-12 md:col-12 p-0">
-                          <div style="height: 275px">
+                          <div style="height: 350px">
                             <img
                               :src="
                                 slotProps.data.image
@@ -2025,6 +2047,47 @@ onMounted(() => {
             <div class="card m-1">
               <div
                 class="card-header"
+                @click="goRouter('calendarplantripenact')"
+                style="cursor: pointer"
+              >
+                <span>Trực chủ nhật ({{ holiday.day_string }})</span>
+              </div>
+              <div class="card-body" style="height: 100px; overflow-y: auto;">
+                <div v-if="duty_sunday && duty_sunday.user_id">
+                  <div class="mb-2">
+                    <Avatar
+                      v-bind:label="
+                        duty_sunday.avatar
+                          ? ''
+                          : (duty_sunday.last_name ?? '').substring(0, 1)
+                      "
+                      v-bind:image="
+                        duty_sunday.avatar
+                          ? basedomainURL + duty_sunday.avatar
+                          : basedomainURL + '/Portals/Image/noimg.jpg'
+                      "
+                      :style="{
+                        background: bgColor[1 % 7],
+                        color: '#ffffff',
+                        width: '3rem',
+                        height: '3rem',
+                        fontSize: '1rem !important',
+                      }"
+                      class="mr-2 text-avatar"
+                      size="xlarge"
+                      shape="circle"
+                    />
+                    <span>{{ duty_sunday.full_name }}</span>
+                  </div>
+                  <div>{{ duty_sunday.note }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 md:col-12 p-0">
+            <div class="card m-1">
+              <div
+                class="card-header"
                 @click="goRouter('calendardutyapproved')"
                 style="cursor: pointer"
               >
@@ -2139,10 +2202,7 @@ onMounted(() => {
               <div class="card-header">
                 <span>Sinh nhật</span>
               </div>
-              <div
-                class="card-body"
-                style="height: 80px"
-              >
+              <div class="card-body" style="height: 80px">
                 <div class="d-grid formgrid">
                   <div class="col-3 md:col-3 p-0">
                     <div class="format-grid-center">
@@ -2162,16 +2222,32 @@ onMounted(() => {
                   <div class="col-9 md:col-9 p-0">
                     <div class="d-grid formgrid">
                       <div class="col-12 md:col-12 p-0 pb-2 text-center">
-                        <span v-if="datatodaybirthdays && datatodaybirthdays.length > 0">Sinh nhật hôm nay</span>
+                        <span
+                          v-if="
+                            datatodaybirthdays && datatodaybirthdays.length > 0
+                          "
+                          >Sinh nhật hôm nay</span
+                        >
                         <span v-else>Sinh nhật sắp tới</span>
                       </div>
-                      <div v-if="datatodaybirthdays && datatodaybirthdays.length > 0" class="col-12 md:col-12 p-0">
+                      <div
+                        v-if="
+                          datatodaybirthdays && datatodaybirthdays.length > 0
+                        "
+                        class="col-12 md:col-12 p-0"
+                      >
                         <div class="flex justify-content-center">
                           <AvatarGroup
-                            v-if="datatodaybirthdays && datatodaybirthdays.length > 0"
+                            v-if="
+                              datatodaybirthdays &&
+                              datatodaybirthdays.length > 0
+                            "
                           >
                             <Avatar
-                              v-for="(item, index) in datatodaybirthdays.slice(0, 3)"
+                              v-for="(item, index) in datatodaybirthdays.slice(
+                                0,
+                                3
+                              )"
                               v-bind:label="
                                 item.avatar
                                   ? ''
@@ -2194,7 +2270,10 @@ onMounted(() => {
                               :style="{ backgroundColor: bgColor[index % 7] }"
                             />
                             <Avatar
-                              v-if="datatodaybirthdays && datatodaybirthdays.length > 3"
+                              v-if="
+                                datatodaybirthdays &&
+                                datatodaybirthdays.length > 3
+                              "
                               v-bind:label="
                                 '+' + (datatodaybirthdays.length - 3).toString()
                               "
@@ -2269,10 +2348,7 @@ onMounted(() => {
                   >{{ dataphonebooks.length }} người</span
                 >
               </div>
-              <div
-                class="card-body"
-                style="height: 270px"
-              >
+              <div class="card-body" style="height: 270px">
                 <div
                   v-if="dataphonebooks.length > 0"
                   class="scroll-outer"
@@ -2286,7 +2362,7 @@ onMounted(() => {
                         v-bind:id="item.user_id.replace('.', '')"
                         :key="index"
                       >
-                        <div class="d-grid formgrid">
+                        <div class="d-grid formgrid" style="cursor: pointer;" @click="ActiveMessage(item)">
                           <div class="col-3 md:col-3 p-0 format-flex-center">
                             <div
                               style="display: inline-block; position: relative"
@@ -2335,10 +2411,7 @@ onMounted(() => {
                     </div>
                   </div>
                 </div>
-                <div
-                  v-else
-                  class="w-full h-full format-flex-center"
-                >
+                <div v-else class="w-full h-full format-flex-center">
                   <span class="description">Hiện chưa có dữ liệu</span>
                 </div>
               </div>
@@ -2362,11 +2435,7 @@ onMounted(() => {
     }"
     :showCloseIcon="false"
   >
-    <detailedwork
-      :isShow="showDetail"
-      :id="selectedTaskID"
-      :turn="0"
-    />
+    <detailedwork :isShow="showDetail" :id="selectedTaskID" :turn="0" />
   </Sidebar>
 
   <dialogcutrice
