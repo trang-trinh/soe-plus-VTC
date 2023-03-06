@@ -25,11 +25,11 @@ const onNodeSelect = (id) => {
 };
 emitter.on("SideBar", (obj) => {
   showDetail.value = obj;
-  loadData(true);
+  props.func();
 });
 watch(showDetail, () => {
   if (showDetail.value == false) {
-    loadData(true);
+    props.func();
   }
 });
 const PositionSideBar = ref("right");
