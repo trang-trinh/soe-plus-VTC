@@ -258,11 +258,15 @@ const TaskPersonConfig = () =>
 //hrm
 // const Interview = () =>
 //     import ("../views/hrm/category/Interview.vue");
+const HrmTool = () => import("../views/hrm/profile/tool/toollayout.vue");
+const HrmTool2 = () => import("../views/hrm/profile/tool/DocTempView.vue");
+const HrmIframe = () => import("../views/hrm/profile/tool/iframedoc.vue");
 const Hrm_Info = () => import("../views/hrm/Hrm_Info.vue");
 const HrmProfile = () => import("../views/hrm/profile/profile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
+const HrmTimekeep = () => import("../views/hrm/timekeep/timekeep.vue");
 const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
@@ -1482,6 +1486,21 @@ const router = createRouter({
       component: SQLDB_Query,
     },
     {
+      path: "/hrm/tool",
+      name: "tool",
+      component: HrmTool,
+    },
+    {
+      path: "/hrm/iframe/:id/:type",
+      name: "hrmiframe",
+      component: HrmIframe,
+    },
+    {
+      path: "/hrm/tool2",
+      name: "tool2",
+      component: HrmTool2,
+    },
+    {
       path: "/hrm/profile",
       name: "profile",
       component: HrmProfile,
@@ -1495,6 +1514,11 @@ const router = createRouter({
       path: "/hrm/contract",
       name: "contract",
       component: HrmContract,
+    },
+    {
+      path: "/hrm/timekeep",
+      name: "timekeep",
+      component: HrmTimekeep,
     },
     // CA_HRM
     {

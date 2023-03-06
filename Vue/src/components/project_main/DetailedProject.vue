@@ -43,7 +43,6 @@ const bgColor = ref([
 
 const headerAddDiscuss = ref();
 const displayDiscuss = ref(false);
-const listDiscussProjects = ref();
 const issaveDiscuss = ref(false);
 const listDropdownMembers = ref([]);
 const submitted = ref(false);
@@ -97,6 +96,7 @@ const chartData = ref();
 const listChartDate = ref();
 const listProjectMainChild = ref([]);
 const listProjectMainLogs = ref([]);
+const listProjectMainDiscuss = ref([]);
 const checkListProjectMainLogs = ref([]);
 const selectedProjectMains = ref();
 const listProjectMainFile = ref([]);
@@ -589,38 +589,79 @@ const ChangeTab = (event) => {
             // dự án con
             loadProjectMainChild();
             break;
-        case 2:
-            //giai đoạn
-            loadProjectMainChild();
-            break;
         case 3:
-            //Công việc
-            loadProjectMainChild();
+            //tài liệu
+            loadFileTaiLieu();
             break;
         case 4:
-            //Tàil iệu
-            loadFileTaiLieu();
+            //thảo luận
+            loadListDiscuss();
             break;
         case 5:
-            //Thảo luận
-            loadFileTaiLieu();
+            //lịch
+            loadListDiscuss();
             break;
         case 6:
-            //Lịch
-            loadProjectMainChild();
-            break;
-        case 7:
             //Báo cáo
             loadProjectMainChild();
             break;
-        case 8:
+        case 7:
             //hoạt động
             loadTaskLogProjetc();
             break;
     }
+    displayDiscuss.value = false;
 }
 
+const loadListDiscuss = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "project_main_get_list_discuss",
+            par: [
+                { par: "project_id", va: props.id },
+                // { par: "ob", va: opition.value.ob },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        data.forEach(function(t,i){
+          t.STT = i + 1;
+        })
+        listProjectMainDiscuss.value = data;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "LogsView.vue",
+        log_content: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+}
+
+const isAddDiscuss = ref(false);
+
 const addDiscuss = (str) => {
+  isAddDiscuss.value = true;
   submitted.value = false;
   discussProject.value = {
     discuss_project_id: null,
@@ -629,7 +670,7 @@ const addDiscuss = (str) => {
     is_public: true,
     start_date: new Date(),
     end_date: null,
-    is_order: null,
+    is_order: listProjectMainDiscuss.value.length + 1,
     members: [],
   };
   issaveDiscuss.value = false;
@@ -637,8 +678,112 @@ const addDiscuss = (str) => {
   displayDiscuss.value = true;
 }
 
+const DelDiscuss = (model) => {
+  swal
+      .fire({
+        title: "Thông báo",
+        text: "Bạn có muốn xoá thảo luận dự án này không!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      })
+      .then((result) => {
+        if (result.isConfirmed) {
+          swal.fire({
+            width: 110,
+            didOpen: () => {
+              swal.showLoading();
+            },
+          });
+          var listId = [];
+          axios
+            .delete(baseURL + "/api/ProjectMain/Delete_DiscussProjectMain", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: model != null ? [model.discuss_project_id] : listId,
+            })
+            .then((response) => {
+              swal.close();
+              if (response.data.err != "1") {
+                swal.close();
+                toast.success("Xoá thảo luận dự án thành công!");
+                loadListDiscuss();
+              } else {
+                swal.fire({
+                  title: "Thông báo!",
+                  html: response.data.ms,
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+              }
+            })
+            .catch((error) => {
+              swal.close();
+              if (error.status === 401) {
+                swal.fire({
+                  title: "Thông báo!",
+                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+              }
+            });
+        }
+      });
+}
+
+const editDiscuss = (model) => {
+  isAddDiscuss.value = false;
+  issaveDiscuss.value = false;
+      headerAddDiscuss.value = "Sửa thảo luận";
+      displayDiscuss.value = true;
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "discuss_project_get_edit",
+            par: [{ par: "discuss_project_id", va: model.discuss_project_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      discussProject.value = data[0][0];
+      discussProject.value.start_date = discussProject.value.start_date
+        ? new Date(discussProject.value.start_date)
+        : null;
+        discussProject.value.end_date = discussProject.value.end_date
+        ? new Date(discussProject.value.end_date)
+        : null;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      opition.value.loading = false;
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "LogsView.vue",
+        log_content: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+}
+
 const saveDiscussProjectMain = (isFormValid) => {
-  debugger
   submitted.value = true;
   if (!isFormValid) {
     return;
@@ -649,16 +794,16 @@ const saveDiscussProjectMain = (isFormValid) => {
   axios
       .post(
         baseURL +
-        "/api/ProjectMain/Add_DiscussProjectMain",
+        "/api/ProjectMain/" + isAddDiscuss.value ? 'Add_DiscussProjectMain' : 'Update_DiscussProjectMain',
         formData,
         config,
       )
       .then((response) => {
-        debugger
         if (response.data.err != "1") {
           swal.close();
           toast.success("Cập nhật thảo luận dự án thành công!");
-          closeDialogProjectMain();
+          loadListDiscuss();
+          displayDiscuss.value = false;
         } else {
           swal.fire({
             title: "Error!",
@@ -770,7 +915,7 @@ onMounted(() => {
                                                         display: flex;
                                                         justify-content: center;
                                                     "
-                                                    @click="GotoView('Checklist')"
+                                                    @click="ChangeTab(2)"
                                                     >
                                                     <i class="pi pi-list px-0"></i>
                                                     <span class="pl-2">{{ countTasks }}</span>
@@ -895,8 +1040,7 @@ onMounted(() => {
                                                             v-bind:label="
                                                                 value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
                                                             "
-                                                            v-bind:image="basedomainURL + value.avatar"
-                                                            style="
+                                                            v-bind:image="basedomainURL + value.avatar" style="
                                                                 background-color: #2196f3;
                                                                 color: #ffffff;
                                                                 width: 32px;
@@ -1069,7 +1213,7 @@ onMounted(() => {
                                 </DataTable>
                             </div>
                         </TabPanel>
-                        <TabPanel header="Công việc">
+                        <TabPanel :header="'Công việc (' + countTasks + ')'">
                           <TaskOrigin
                               :isShow="showDetail"
                               :id="props.id"
@@ -1172,7 +1316,7 @@ onMounted(() => {
                         </TabPanel>
                         <TabPanel header="Thảo luận">
                           <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
-                                <div class="col-6 p-0 m-0 tab-project-content-left">
+                                <div class="col-5 p-0 m-0 tab-project-content-left">
                                     <div class="row">
                                         <div class="col-12" style="border-bottom: 1px solid #aaa; font-weight: 600;padding: 10px;">
                                           <Button label="Tạo thảo luận" icon="pi pi-plus" class="mr-2" @click="addDiscuss('Thêm mới thảo luận')" />
@@ -1182,7 +1326,7 @@ onMounted(() => {
                                           id="projectmain-thaoluan"
                                           v-model:first="first"
                                           :rowHover="true"
-                                          :value="listProjectMainChild"
+                                          :value="listProjectMainDiscuss"
                                           :paginator="true"
                                           :rows="opition.PageSize"
                                           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
@@ -1206,36 +1350,87 @@ onMounted(() => {
                                           <Column field="" header="Người tạo" class="align-items-center justify-content-center text-center"
                                               headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
                                               <template #body="md">
-                                              <Avatar v-if="md.data.logo" :image="basedomainURL + md.data.logo" class="mr-2" size="large" />
+                                                <Avatar
+                                                            v-tooltip.bottom="{
+                                                                value:
+                                                                md.data.full_name +
+                                                                '<br/>' +
+                                                                (md.data.tenChucVu || '') +
+                                                                '<br/>' +
+                                                                (md.data.tenToChuc || ''),
+                                                                escape: true,
+                                                            }"
+                                                            v-bind:label="
+                                                                md.data.avatar ? '' : (md.data.last_name ?? '').substring(0, 1)
+                                                            "
+                                                            v-bind:image="basedomainURL + md.data.avatar" style="
+                                                                background-color: #2196f3;
+                                                                color: #ffffff;
+                                                                width: 32px;
+                                                                height: 32px;
+                                                                font-size: 15px !important;
+                                                                margin-left: -10px;
+                                                            "
+                                                            :style="{
+                                                                background: bgColor[index % 7] + '!important',
+                                                            }"
+                                                            class="cursor-pointer"
+                                                            size="xlarge"
+                                                            shape="circle"
+                                                            />
                                               </template>
                                           </Column>
                                           <Column field="" header="Nội dung thảo luận" headerStyle="max-width:auto;">
                                               <template #body="md">
                                               <div style="display: flex; align-items: center">
                                                   <span style="margin-left: 5px">{{
-                                                  md.data.project_name
+                                                  md.data.discuss_project_content
                                                   }}</span>
                                               </div>
                                               </template>
                                           </Column>
-                                          <Column field="status" header="" class="align-items-center justify-content-center text-center"
-                                              headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px">
-                                              <template #body="md">
-                                              <Chip :style="{
-                                                  background: md.data.status_bg_color,
-                                                  color: md.data.status_text_color,
-                                              }" v-bind:label="md.data.status_name" />
-                                              </template>
+                                          <Column
+                                            class="align-items-center justify-content-center text-center"
+                                            headerStyle="text-align:center;min-height:3.125rem;max-width:100px;"
+                                            bodyStyle="text-align:center;max-width:100px;"
+                                          >
+                                            <template #body="data">
+                                              <div
+                                                v-if="
+                                                  store.state.user.is_super == true ||
+                                                  store.state.user.user_id == data.data.created_by ||
+                                                  data.data.isEdit == true ||
+                                                  (store.state.user.role_id == 'admin' &&
+                                                    store.state.user.organization_id == data.data.organization_id)
+                                                "
+                                              >
+                                                <Button
+                                                  @click="editDiscuss(data.data)"
+                                                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                                                  type="button"
+                                                  icon="pi pi-pencil"
+                                                  v-tooltip="'Sửa'"
+                                                ></Button>
+                                                <Button
+                                                  @click="DelDiscuss(data.data)"
+                                                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                                                  type="button"
+                                                  icon="pi pi-trash"
+                                                  v-tooltip="'Xóa'"
+                                                ></Button>
+                                              </div>
+                                            </template>
                                           </Column>
                                           <template #empty>
                                               <div
-                                              class="align-items-center justify-content-center p-4 text-center m-auto" style="
+                                              class="align-items-center justify-content-center p-4 text-center m-auto" 
+                                              style="
                                                   min-height: calc(100vh - 215px);
                                                   max-height: calc(100vh - 215px);
                                                   display: flex;
                                                   flex-direction: column;
                                               "
-                                              v-if="listProjectMainChild != null"
+                                              v-if="listProjectMainDiscuss != null"
                                               >
                                               <img
                                                   src="../../assets/background/nodata.png"
@@ -1248,124 +1443,9 @@ onMounted(() => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6 p-0 m-0 tab-project-content-right">
+                                <div class="col-7 p-0 m-0 tab-project-content-right">
                                     <div class="row" style="padding: 15px; font-size: 13px;">
-                                        <div class="col-12">Tên dự án: <span style="font-weight: 600;">{{ ProjectMainDetail.project_name }}</span></div>
-                                        <div class="col-12">Tạo bởi: <span style="font-weight: 600;color:#2196F3;">{{ ProjectMainDetail.full_name }} - </span><span>{{ moment(new Date(ProjectMainDetail.created_date)).format("HH:mm DD/MM") }}</span></div>
-                                        <div class="col-12" style="display: flex; flex-direction: column;">
-                                            <span>Thành viên quản trị dự án</span>
-                                            <div style="margin: 10px 0px 0px 10px;">
-                                                <AvatarGroup>
-                                                    <div
-                                                        v-for="(value, index) in ProjectMainMembers"
-                                                        :key="index"
-                                                        >
-                                                        <div>
-                                                            <Avatar
-                                                            v-tooltip.bottom="{
-                                                                value:
-                                                                value.full_name +
-                                                                '<br/>' +
-                                                                (value.tenChucVu || '') +
-                                                                '<br/>' +
-                                                                (value.tenToChuc || ''),
-                                                                escape: true,
-                                                            }"
-                                                            v-bind:label="
-                                                                value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
-                                                            "
-                                                            v-bind:image="basedomainURL + value.avatar"
-                                                            style="
-                                                                background-color: #2196f3;
-                                                                color: #ffffff;
-                                                                width: 32px;
-                                                                height: 32px;
-                                                                font-size: 15px !important;
-                                                                margin-left: -10px;
-                                                            "
-                                                            :style="{
-                                                                background: bgColor[index % 7] + '!important',
-                                                            }"
-                                                            class="cursor-pointer"
-                                                            size="xlarge"
-                                                            shape="circle"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </AvatarGroup>
-                                            </div>
-                                        </div>
-                                        <div class="col-12" style="display: flex; flex-direction: column;">
-                                            <span>Thành viên tham gia dự án</span>
-                                            <div style="margin: 10px 0px 0px 10px;">
-                                                <AvatarGroup>
-                                                    <div
-                                                        v-for="(value, index) in ProjectMainParticipants"
-                                                        :key="index"
-                                                        >
-                                                        <div>
-                                                            <Avatar
-                                                            v-tooltip.bottom="{
-                                                                value:
-                                                                value.full_name +
-                                                                '<br/>' +
-                                                                (value.tenChucVu || '') +
-                                                                '<br/>' +
-                                                                (value.tenToChuc || ''),
-                                                                escape: true,
-                                                            }"
-                                                            v-bind:label="
-                                                                value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
-                                                            "
-                                                            v-bind:image="basedomainURL + value.avatar" style="
-                                                                background-color: #2196f3;
-                                                                color: #ffffff;
-                                                                width: 32px;
-                                                                height: 32px;
-                                                                font-size: 15px !important;
-                                                                margin-left: -10px;
-                                                            "
-                                                            :style="{
-                                                                background: bgColor[index % 7] + '!important',
-                                                            }"
-                                                            class="cursor-pointer"
-                                                            size="xlarge"
-                                                            shape="circle"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </AvatarGroup>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">Nhóm dự án: <span style="font-weight: 600;">{{ ProjectMainDetail.group_name }}</span></div>
-                                        <div class="col-12">
-                                            <div class="row flex">
-                                                <div class="col-6 flex" style="flex-direction: column;padding: 0px;font-weight: 600;line-height: 25px;">
-                                                    <span>Ngày bắt đầu</span>
-                                                    <span v-if="ProjectMainDetail.start_date">{{ moment(new Date(ProjectMainDetail.start_date)).format("DD/MM/YYYY") }}</span>
-                                                </div>
-                                                <div class="col-6 flex" style="flex-direction: column;padding: 0px;font-weight: 600;line-height: 25px;">
-                                                    <span>Ngày kết thúc</span>
-                                                    <span v-if="ProjectMainDetail.end_date">{{ moment(new Date(ProjectMainDetail.end_date)).format("DD/MM/YYYY") }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="row flex">
-                                                <div class="col-12 flex" style="flex-direction: column;padding: 0px;line-height: 25px;">
-                                                    <span>Trạng thái dự án</span>
-                                                    <span style="font-weight: 600;">{{ ProjectMainDetail.status_name }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="row flex">
-                                                <div class="col-12 flex" style="flex-direction: column;padding: 0px;line-height: 25px;">
-                                                    <span>Phòng ban tham gia</span>
-                                                    <span v-for="pb in PhongBanThamGia" style="font-weight: 600;">- {{ pb.organization_name }}  <span v-if="pb.tenToChuc" style="font-weight: 500;">({{ pb.tenToChuc }})</span></span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -1545,12 +1625,12 @@ onMounted(() => {
                                 <div class="field col-12 md:col-12" style="display: flex; align-items: center">
                                   <label class="col-3 text-left p-0">Ngày bắt đầu</label>
                                   <div class="col-9" style="display: flex; padding: 0px; align-items: center">
-                                    <Calendar :manualInput="true" :showIcon="true" class="col-5 ip36 title-lable"
+                                    <Calendar :manualInput="true" :showIcon="true" :showTime="true" class="col-5 ip36 title-lable"
                                       style="margin-top: 5px; padding: 0px" id="time1" autocomplete="on" v-model="discussProject.start_date" />
                                     <div class="col-7" style="display: flex; padding: 0px; align-items: center">
                                       <label class="col-5 text-center">Ngày kết thúc</label>
-                                      <Calendar :manualInput="true" :showIcon="true" class="col-7 ip36 title-lable"
-                                        style="margin-top: 5px; padding: 0px" id="time2" placeholder="dd/MM/yy" autocomplete="on"
+                                      <Calendar :manualInput="true" :showTime="true" :showIcon="true" class="col-7 ip36 title-lable"
+                                        style="margin-top: 5px; padding: 0px" id="time2" placeholder="dd/MM/yy HH:mm" autocomplete="on"
                                         v-model="discussProject.end_date" @date-select="CheckDate($event)" />
                                     </div>
                                   </div>
@@ -1697,9 +1777,11 @@ onMounted(() => {
   max-height: calc(100vh - 110px);
   min-height: calc(100vh - 110px);
 }
-
 </style>
 <style>
+/* .p-dialog-mask{
+  z-index: 1200;
+} */
 .p-tabview-panels .p-tabview-panel{
     height: 100%;
 }

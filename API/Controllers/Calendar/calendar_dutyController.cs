@@ -2619,6 +2619,15 @@ namespace API.Controllers.Calendar
                             Section section = document.Sections[0];
                             PageSetup pageSetup = section.PageSetup;
                             PageMargins pageMargins = pageSetup.PageMargins;
+                            if(opt.orientation == "Portrait")
+                            {
+                                section.PageSetup.Orientation = Orientation.Portrait;
+                            }
+                            else if (opt.orientation == "Landscape")
+                            {
+                                section.PageSetup.Orientation = Orientation.Landscape;
+                            }
+                            pageMargins.Top = opt.top;
                             pageMargins.Top = opt.top;
                             pageMargins.Right = opt.right;
                             pageMargins.Bottom = opt.bottom;
