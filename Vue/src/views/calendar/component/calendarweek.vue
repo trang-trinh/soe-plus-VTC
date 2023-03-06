@@ -17,9 +17,7 @@ import frameprintweek from "../component/frameprintweek.vue";
 import frameprintweek2 from "../component/frameprintweek2.vue";
 import framewordweek from "../component/framewordweek.vue";
 import framewordweek2 from "../component/framewordweek2.vue";
-import { de } from "date-fns/locale";
-import max from "date-fns/max";
-import min from "date-fns/min";
+import calendardutysunday from "../component/calendardutysunday.vue";
 
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
@@ -147,6 +145,17 @@ const locs = ref([
   { value: 2, title: "Lịch không sử dụng xe" },
 ]);
 
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if(!componentKey.value){
+    componentKey.value = { type: 0 };
+  }
+  if(!componentKey.value[type]){
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
+};
+
 //Xuất excel
 const menuButs = ref();
 const itemButs = ref([
@@ -231,7 +240,7 @@ const exportData = (method) => {
 };
 //Print
 const print = () => {
-  forceRerender();
+  forceRerender(9);
   var htmltable = "";
   if (props.group === 0) {
     htmltable = renderhtml("formprint", htmltable);
@@ -339,7 +348,7 @@ function renderhtml(id, htmltable) {
 }
 //export word
 const exportWord = (method) => {
-  forceRerender();
+  forceRerender(10);
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -608,6 +617,7 @@ const iterations = ref([
   { is_iterations: 4, name: "Lặp theo năm", short: "năm" },
 ]);
 const openAddDialog = (str) => {
+  forceRerender(1);
   files.value = [];
   isAdd.value = true;
   submitted.value = false;
@@ -1166,14 +1176,10 @@ const goMeeting = () => {
 };
 
 //Function add week
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
-};
 const headerDialogMultiple = ref();
 const displayDialogMultiple = ref(false);
 const openAddDialogMultiple = (str) => {
-  forceRerender();
+  forceRerender(2);
   files.value = [];
   isAdd.value = true;
   submitted.value = false;
@@ -1216,6 +1222,7 @@ const toggleSend = (event) => {
   menuSends.value.toggle(event);
 };
 const openAddDialogSend = (str, type) => {
+  forceRerender(3);
   files.value = [];
   submitted.value = false;
   modelsend.value = {
@@ -1274,6 +1281,7 @@ const toggleApproves = (event) => {
   menuApproves.value.toggle(event);
 };
 const openAddDialogApprove = (str, type) => {
+  forceRerender(4);
   files.value = [];
   submitted.value = false;
   modelapprove.value = {
@@ -1294,6 +1302,7 @@ const modelenact = ref({});
 const headerDialogEnact = ref(false);
 const displayDialogEnact = ref(false);
 const openAddDialogEnact = (str, type) => {
+  forceRerender(5);
   files.value = [];
   submitted.value = false;
   modelenact.value = {
@@ -1317,6 +1326,7 @@ const chartlogs = ref([]);
 const headerDialogLog = ref();
 const displayDialogLog = ref(false);
 const logItem = (item) => {
+  forceRerender(7);
   is_type_calendar.value = item.is_type_send;
   options.value.loading = true;
   swal.fire({
@@ -1464,6 +1474,7 @@ const coincide = ref([]);
 const headerDialogLogCoincide = ref();
 const displayDialogLogCoincide = ref(false);
 const openDialogCoincide = (str, id) => {
+  forceRerender(8);
   options.value.loading = true;
   swal.fire({
     width: 110,
@@ -1522,6 +1533,19 @@ const openDialogCoincide = (str, id) => {
 };
 const closeDialogCoincide = () => {
   displayDialogLogCoincide.value = false;
+};
+
+//Duty Sunday
+const duty_sunday = ref({});
+const headerDialogDutySunday= ref();
+const displayDialogDutySunday = ref(false);
+const configDutySunday = () => {
+  forceRerender(6);
+  headerDialogDutySunday.value = "Thiết lập lịch trực chủ nhật";
+  displayDialogDutySunday.value = true;
+};
+const closeDialogDutySunday = () => {
+  displayDialogDutySunday.value = false;
 };
 
 //Init
@@ -1761,6 +1785,7 @@ const initDictionary = () => {
       }
     })
     .then(() => {
+      initDutySunday();
       initData(true);
     })
     .catch((error) => {
@@ -1771,6 +1796,40 @@ const initDictionary = () => {
         confirmButtonText: "OK",
       });
       return;
+    });
+};
+const initDutySunday = () => {
+  axios
+    .post(
+      baseURL + "/api/calendar/get_datas",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "calendar_duty_sunday_getweek",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "year", va: options.value.year },
+              { par: "week", va: options.value.week },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          var tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            duty_sunday.value = tbs[0][0];
+          } else {
+            duty_sunday.value = {};
+          }
+        }
+      }
     });
 };
 const initData = (rf) => {
@@ -2086,6 +2145,15 @@ onMounted(() => {
         </OverlayPanel> -->
       </template>
       <template #end>
+        <Button
+          @click="configDutySunday"
+          icon="pi pi pi-cog"
+          label="Thiết lập"
+          class="mr-2 p-button-outlined p-button-secondary"
+          aria:haspopup="true"
+          aria-controls="overlay_send"
+          v-if="props.group === 1 && (store.getters.user.is_admin || store.getters.user.role_code === 'admin')"
+        />
         <Button
           @click="toggleSend"
           icon="pi pi pi-send"
@@ -2764,6 +2832,7 @@ onMounted(() => {
 
   <!--Model-->
   <dialogmodelweek
+    :key="componentKey['1']"
     :temp="false"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
@@ -2785,7 +2854,7 @@ onMounted(() => {
 
   <!--Multiple model-->
   <dialogmodelmultipleweek
-    :key="componentKey"
+    :key="componentKey['2']"
     :headerDialog="headerDialogMultiple"
     :displayDialog="displayDialogMultiple"
     :closeDialog="closeDialogMultiple"
@@ -2804,6 +2873,7 @@ onMounted(() => {
 
   <!--Send-->
   <dialogsend
+    :key="componentKey['3']"
     :headerDialog="headerDialogSend"
     :displayDialog="displayDialogSend"
     :closeDialog="closeDialogSend"
@@ -2817,6 +2887,7 @@ onMounted(() => {
 
   <!--Approve-->
   <dialogapprove
+    :key="componentKey['4']"
     :headerDialog="headerDialogApprove"
     :displayDialog="displayDialogApprove"
     :closeDialog="closeDialogApprove"
@@ -2830,6 +2901,7 @@ onMounted(() => {
 
   <!--enact-->
   <dialogenact
+    :key="componentKey['5']"
     :headerDialog="headerDialogEnact"
     :displayDialog="displayDialogEnact"
     :closeDialog="closeDialogEnact"
@@ -2841,8 +2913,17 @@ onMounted(() => {
     :initData="initData"
   />
 
+  <!--duty sunday-->
+  <calendardutysunday
+    :key="componentKey['6']"
+    :headerDialog="headerDialogDutySunday"
+    :displayDialog="displayDialogDutySunday"
+    :closeDialog="closeDialogDutySunday"
+  />
+
   <!--logs-->
   <dialogchart
+    :key="componentKey['7']"
     :headerDialog="headerDialogLog"
     :displayDialog="displayDialogLog"
     :closeDialog="closeDialogLog"
@@ -2855,6 +2936,7 @@ onMounted(() => {
 
   <!--Coincide-->
   <dialogcoincide
+    :key="componentKey['8']"
     :headerDialog="headerDialogLogCoincide"
     :displayDialog="displayDialogLogCoincide"
     :closeDialog="closeDialogCoincide"
@@ -2864,7 +2946,7 @@ onMounted(() => {
 
   <!--print-->
   <frameprintweek
-    :key="componentKey"
+    :key="componentKey['9']"
     :datas="datas"
     :group="options.is_group"
     :week_start_date="options.week_start_date"
@@ -2872,10 +2954,11 @@ onMounted(() => {
   />
 
   <frameprintweek2
-    :key="componentKey"
+    :key="componentKey['9']"
     :datadays="datadays"
     :holiday="holiday"
     :datachutris="datachutris"
+    :duty_sunday="duty_sunday"
     :group="options.is_group"
     :week_start_date="options.week_start_date"
     :week_end_date="options.week_end_date"
@@ -2883,7 +2966,7 @@ onMounted(() => {
 
   <!--word-->
   <framewordweek
-    :key="componentKey"
+    :key="componentKey['10']"
     :datas="datas"
     :group="options.is_group"
     :week_start_date="options.week_start_date"
@@ -2891,10 +2974,11 @@ onMounted(() => {
   />
 
   <framewordweek2
-    :key="componentKey"
+    :key="componentKey['10']"
     :datadays="datadays"
     :holiday="holiday"
     :datachutris="datachutris"
+    :duty_sunday="duty_sunday"
     :group="options.is_group"
     :week_start_date="options.week_start_date"
     :week_end_date="options.week_end_date"

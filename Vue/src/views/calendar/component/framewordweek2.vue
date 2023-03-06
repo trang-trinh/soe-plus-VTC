@@ -21,6 +21,7 @@ const props = defineProps({
   datadays: Array,
   datachutris: Array,
   holiday: Object,
+  duty_sunday: Array,
   group: Number,
   week_start_date: Date,
   week_end_date: Date,
@@ -148,7 +149,7 @@ const newDate = new Date();
             <td colspan="6">
               <div style="padding: 0.5rem 0">
                 * Trực Chủ nhật ({{ props.holiday.day_string }}): Đồng chí
-                {{ props.holiday.full_name }} - Trưởng phòng Thu-Sổ,thẻ./.
+                <span v-if="props.duty_sunday">{{ props.duty_sunday.full_name }} - {{ props.duty_sunday.note }} </span>
               </div>
             </td>
           </tr>

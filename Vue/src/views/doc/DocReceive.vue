@@ -131,6 +131,7 @@ const choiceUser = () => {
 //
 const all_users = ref([]);
 const all_users_sign_send_doc = ref([]);
+const all_users_department = ref([]);
 const loadUsers = () => {
   axios
     .post(
@@ -156,6 +157,7 @@ const loadUsers = () => {
       if (data[0]) {
         all_users.value = data[0];
         all_users_sign_send_doc.value = data[0].filter(x=>x.role_id === 'truongphong' || x.role_id === 'bangiamdoc')
+        all_users_department.value = data[0];
       }
       options.value.loading = false;
     })
@@ -178,6 +180,11 @@ const loadUsers = () => {
         store.commit("gologout");
       }
     });
+}
+const changeUserDepartment = (department_id) => {
+  if(department_id){
+    all_users_department.value = all_users.value.filter(x=>x.department_id === department_id);
+  }
 }
 // reload component
 const componentKey = ref(0);
@@ -276,15 +283,33 @@ const convertDatefromDB = (obj) => {
 }
 const autoFillDate = (model,prop_name) => {
     var ip_val = document.getElementById(prop_name).value;
-    if(ip_val.length === 2 && ip_val > 0){
-        var today = new Date();
+    var today = new Date();
         var dd = today.getDate();
         var mm = today.getMonth() + 1;
         var yyyy = today.getFullYear();
         if(dd < 10) dd = '0' + dd;
         if(mm < 10) mm = '0' + mm;
-
+    if(ip_val.length === 2 && ip_val > 0){
         model[prop_name] = ip_val + '/' + mm + '/' + yyyy;
+        ip_val = "";
+        if(!moment(model[prop_name], "DD/MM/YYYY", true).isValid()){
+          model[prop_name] = dd + '/' + mm + '/' + yyyy;
+        };
+    }
+    else if(ip_val.length === 4){
+      let d = ip_val.substring(0, 2);
+      let m = ip_val.substring(2, 4)
+        model[prop_name] = d + '/' + m + '/' + yyyy;
+        ip_val = "";
+        if(!moment(model[prop_name], "DD/MM/YYYY", true).isValid()){
+          model[prop_name] = dd + '/' + mm + '/' + yyyy;
+        };
+    }
+    else if(ip_val.length === 6){
+      let d = ip_val.substring(0, 2);
+      let m = ip_val.substring(2, 4)
+      let y = ip_val.substring(4, 6)
+        model[prop_name] =  d + '/' + m + '/' + '20' + y;
         ip_val = "";
         if(!moment(model[prop_name], "DD/MM/YYYY", true).isValid()){
           model[prop_name] = dd + '/' + mm + '/' + yyyy;
@@ -960,8 +985,9 @@ const changeIsByDepartment = () => {
   if(!displayDocDuthao.value) generateDocCode();
 }
 // fill noi nhan
-const changeReceivePlace = () => {
+const changeReceivePlace = (ev) => {
   doc.value.filter_receive_place = doc.value.receive_place;
+  fillOnlineFromReceivePlace(doc.value.receive_place, (ev.data ? ev.data : 'nottext'));
 }
 const fillReceivePlace = (ev) => {
     if(doc.value.filter_receive_place){
@@ -972,6 +998,30 @@ const fillReceivePlace = (ev) => {
     }
     doc.value.filter_receive_place += ev.value;
     doc.value.receive_place = doc.value.filter_receive_place;
+    fillOnlineFromReceivePlace(ev.value);
+}
+// fill noi nhan qua mang tu noi nhan
+const fillOnlineFromReceivePlace = (text,keycode) => {
+  if(!keycode){
+    doc.value.arr_receive_place_online.push({value: text});
+  }
+  else{
+      if(keycode.trim() === ';' || keycode.trim() === ','){
+        var fill = '';
+        if(text.indexOf(keycode.trim()) === text.lastIndexOf(keycode.trim())){
+          fill = text.substring(0,text.length-1);
+        }
+        else{
+          fill = text.substring(
+          text.indexOf(keycode.trim()) + 1, 
+          text.lastIndexOf(keycode.trim())
+        );
+        }
+        if(!doc.value.arr_receive_place_online)
+          doc.value.arr_receive_place_online = [];
+        doc.value.arr_receive_place_online.push({value: fill});
+      }
+  }
 }
 // auto fill noi nhan qua mang
 const autoFillReceivePlaceOnline = (ev,model,property_name) => {
@@ -1104,6 +1154,10 @@ const autoFocusInput = (selector) => {
         focus_ip.focus();
       }
     })
+    let focus_ip = document.querySelector(selector);
+      if(focus_ip){
+        focus_ip.focus();
+      }
 }
 const openModalSohoa = (type, data) => {
   isViewDoc.value = false;
@@ -1185,6 +1239,7 @@ const openModalSohoa = (type, data) => {
   }
   displayDocSohoa.value = true;
   submitted.value = false;
+  all_users_department.value = all_users.value;
   if(type === 1){
     autoFocusInput("#dw-issue-place > input");
   }
@@ -1253,7 +1308,7 @@ const saveDocContinued = (isFormValid) => {
   saveDoc(isFormValid);
 }
 const checkSameDoc = (isFormValid, is_continued) => {
-  debugger
+   
   swal.fire({
       width: 110,
       didOpen: () => {
@@ -1568,7 +1623,7 @@ const saveDoc = (isFormValid) => {
           swal.fire({
                         icon: 'warning',
                         type: 'warning',
-                        title: 'Thông Số của bạn là: ' + (parseInt(doc.value.dispatch_book_code) + response.data.countNum - 1),
+                        title: 'Số của bạn là: ' + (parseInt(doc.value.dispatch_book_code) + response.data.countNum - 1),
                         text: '',
                     }).then((result) => {
                         loadCategorys();
@@ -1576,6 +1631,10 @@ const saveDoc = (isFormValid) => {
                         toast.success("Cập nhật văn bản thành công!");
                         if(!doc.value.is_continued){
                           closeDialog('sohoa', 'reload');
+                        }
+                        else{
+                          reloadDoc();
+                          openModalSohoa(doc.value.nav_type);
                         }
                     });
         }
@@ -1700,7 +1759,6 @@ const saveDocDuthao = (isFormValid) => {
         toast.success("Cập nhật văn bản thành công!");
         closeDialog('duthao', 'reload');
       } else {
-        console.log(response.data.ms);
         swal.fire({
           title: "Thông báo",
           text: "Xảy ra lỗi khi cập nhật văn bản.",
@@ -1931,7 +1989,6 @@ const delDoc = () => {
               options.value.PageNo = 0;
               reloadDoc();
             } else {
-              console.log(response.data.ms);
               swal.fire({
                 title: "Thông báo",
                 text: "Xảy ra lỗi khi xóa văn bản",
@@ -2115,7 +2172,6 @@ const savePublishDoc = () => {
           // showDetailLaw(detailLaw.value);
         }
       } else {
-        console.log(response.data.ms);
         swal.fire({
           title: "Thông báo",
           text: "Xảy ra lỗi khi phân phát văn bản.",
@@ -2465,7 +2521,6 @@ const saveFollowPerson = () => {
         toast.success("Cập nhật văn bản thành công!");
         closeDialog('duyetcanhan', 'reload');
       } else {
-        console.log(response.data.ms);
         swal.fire({
           title: "Thông báo",
           text: "Xảy ra lỗi khi duyệt cá nhân văn bản.",
@@ -2912,7 +2967,6 @@ const saveTransferStamp = () => {
           // showDetailLaw(detailLaw.value);
         }
       } else {
-        console.log(response.data.ms);
         swal.fire({
           title: "Thông báo",
           text: "Xảy ra lỗi khi chuyển đóng dấu văn bản.",
@@ -3396,7 +3450,6 @@ const saveCompleted = () => {
         toast.success("Xác nhận hoàn thành văn bản thành công!");
         closeDialog('xacnhanhoanthanh', 'reload');
       } else {
-        console.log(response.data.ms);
         swal.fire({
           title: "Thông báo",
           text: "Xảy ra lỗi khi xác nhận hoàn thành văn bản.",
@@ -3478,7 +3531,6 @@ const saveReturn = () => {
           // showDetailLaw(detailLaw.value);
         }
       } else {
-        console.log(response.data.ms);
         swal.fire({
           title: "Thông báo",
           text: "Xảy ra lỗi khi trả lại văn bản.",
@@ -3697,7 +3749,6 @@ const saveApproval = () => {
         closeDialog('pheduyet', 'reload');
         isLoading.value = false;
       } else {
-        console.log(response.data.ms);
         isLoading.value = false;
         swal.fire({
           title: "Thông báo",
@@ -3789,7 +3840,6 @@ const savePublishingApproval = () => {
         isLoading.value = false;
       } else {
         isLoading.value = false;
-        console.log(response.data.ms);
         swal.fire({
           title: "Thông báo",
           text: response.data.ms ? response.data.ms : "Xảy ra lỗi khi cập nhật văn bản.",
@@ -4007,8 +4057,9 @@ emitter.on("emitData", (obj) => {
     :style="{ width: '70vw' }">
     <form>
       <div class="grid formgrid m-2">
+      <receive class="col-12 md:col-12 p-0" v-if="doc.nav_type === 1">
         <div class="field col-12 md:col-12 flex">
-          <div class="col-8 md:col-8 m-0 p-0">
+          <div class="col-12 md:col-12 m-0 p-0">
             <div v-if="doc.nav_type !== 1 && !isVT" class="col-12 md:col-12 m-0 p-0 flex">
               <label class="col-3 p-0 text-left flex" style="align-items:center;">
                 Văn bản của phòng ban
@@ -4033,7 +4084,14 @@ emitter.on("emitData", (obj) => {
               </TreeSelectCustom>
             </div>
             <div class="col-12 md:col-12 m-0 p-0 flex" :class="{'mt-3': doc.nav_type !== 1}">
-              
+              <div class="col-6 md:col-6 m-0 p-0 flex">
+                <label class="col-4 p-0 text-left flex" style="align-items:center;">
+                  {{doc.nav_type !== 1 ? 'Số vào sổ' : 'Số đến'}}
+                  <span class="redsao pl-1"> (*)</span>
+                </label>
+                <InputText @change="generateDocCode" :disabled="doc.is_auto_num" v-model="doc.dispatch_book_code" class="col-7 p-0 ip36 dispatch-input"
+                  :class="{ 'p-invalid': v$.dispatch_book_code.$invalid && submitted }" :useGrouping="false" />
+              </div>
               <div v-if="doc.nav_type === 1" class="col-6 md:col-6 m-0 p-0 flex">
                   <label class="col-4 text-left flex p-0" style="align-items:center;">
                     Ngày đến
@@ -4046,14 +4104,28 @@ emitter.on("emitData", (obj) => {
                 Ngày văn bản
                 <!-- <span class="redsao pl-1"> (*)</span> -->
               </label>
-              <Calendar @input="autoFillDate(doc, 'doc_date')" id="doc_date" :showOnFocus="false" class="col-8 p-0" v-model="doc.doc_date" :manualInput="true" :showIcon="true" />
+              <Calendar @blur="autoFillDate(doc, 'doc_date')" id="doc_date" :showOnFocus="false" class="col-8 p-0" v-model="doc.doc_date" :manualInput="true" :showIcon="true" />
             </div>
             </div>
+        <div v-if="(v$.dispatch_book_code.$invalid && submitted) || v$.dispatch_book_code.$pending.$response" class="field col-12 mt-3 md:col-12 flex">
+          <div class="col-6 md:col-6 p-0 m-0 flex"
+            v-if="(v$.dispatch_book_code.$invalid && submitted) || v$.dispatch_book_code.$pending.$response">
+            <div class="col-4 text-left flex"></div>
+            <small class="col-8 p-0">
+              <span style="color:red" class="col-12 ">{{
+                  v$.dispatch_book_code.required.$message
+                    .replace("Value", doc.nav_type !== 1 ? 'Số vào sổ' : 'Số đến')
+                    .replace("is required", "không được để trống")
+              }}</span>
+            </small>
           </div>
-          <div class="col-4 md:col-4 p-0 m-0 flex">
+          <div class="col-6 md:col-6 p-0 m-0 flex"></div>
+        </div>
+          </div>
+          <!-- <div class="col-4 md:col-4 p-0 m-0 flex">
             <button type="button" class="btn"
               style="border: none; padding-left:10px;height:100%;width:100%;background-color:#ccebff;cursor: default;font-size:1.2rem;font-weight:bold">{{ doc_type_title }}</button>
-          </div>
+          </div> -->
         </div>
         <div class="field col-12 md:col-12 flex">
           <div class="col-6 md:col-6 m-0 p-0 flex">
@@ -4066,36 +4138,30 @@ emitter.on("emitData", (obj) => {
               optionLabel="dispatch_book_name" optionValue="dispatch_book_id" :editable="false" :filter="true" />
           </div>
           <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 text-left flex" style="align-items:center;">
-              {{doc.nav_type !== 1 ? 'Số vào sổ' : 'Số đến'}}
-              <span class="redsao pl-1"> (*)</span>
+            <div class="col-4 md:col-4 m-0 p-0 flex">
+              <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
+                  Độ mật
+                </label>
+                <Dropdown :showClear="true" class="col-9 ml-3 p-0" spellcheck="false" v-model="doc.security" :options="category.security"
+              optionLabel="security_name" optionValue="security_name" :editable="false" :filter="true" />
+            </div>
+            <div class="pl-5 col-8 md:col-8 m-0 p-0 flex">
+              <label class="col-4 p-0 ml-3 text-left flex" style="align-items:center;">
+              Nhóm văn bản
             </label>
-            <InputText @change="generateDocCode" :disabled="doc.is_auto_num" v-model="doc.dispatch_book_code" class="col-8 p-0 ip36 dispatch-input"
-              :class="{ 'p-invalid': v$.dispatch_book_code.$invalid && submitted }" :useGrouping="false" />
+            <Dropdown :showClear="true" @change="changeDocGroup(); generateDocCode()" class="col-7 ml-3 p-0" spellcheck="false" v-model="doc.doc_group_id"
+              :options="category.groups" optionLabel="doc_group_name" optionValue="doc_group_id" :editable="false"
+              :filter="true" />
+            </div>
           </div>
         </div>
-        <div v-if="(v$.dispatch_book_code.$invalid && submitted) || v$.dispatch_book_code.$pending.$response" class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 p-0 m-0 flex"></div>
-          <div class="col-6 md:col-6 p-0 m-0 flex"
-            v-if="(v$.dispatch_book_code.$invalid && submitted) || v$.dispatch_book_code.$pending.$response">
-            <div class="col-4 text-left flex"></div>
-            <small class="col-8 p-0">
-              <span style="color:red" class="col-12 ">{{
-                  v$.dispatch_book_code.required.$message
-                    .replace("Value", "Số vào sổ")
-                    .replace("is required", "không được để trống")
-              }}</span>
-            </small>
-          </div>
-        </div>
-      <receive class="col-12 md:col-12 p-0" v-if="doc.nav_type === 1">
-        <div v-if="doc.nav_type === 1" class="field col-12 md:col-12 flex">
-          <div class="col-12 md:col-12 p-0 m-0 flex">
-            <label class="col-2 p-0 text-left flex" style="align-items:center;">
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-5 md:col-5 p-0 m-0 flex">
+            <label class="col-5 p-0 text-left flex" style="align-items:center; width: 40%">
               Nơi ban hành
               <span class="redsao pl-1"> (*)</span>
             </label>
-            <Dropdown id="dw-issue-place" panelClass="d-design-dropdown" @blur="autoFillIssuePlace(doc.issue_place, doc, 'issue_place')" class="col-10 p-0" spellcheck="false" v-model="doc.issue_place" :options="category.issue_places"
+            <Dropdown style="width: 56%" id="dw-issue-place" panelClass="d-design-dropdown" @blur="autoFillIssuePlace(doc.issue_place, doc, 'issue_place')" class="col-6 p-0" spellcheck="false" v-model="doc.issue_place" :options="category.issue_places"
               optionLabel="issue_place_name" optionValue="issue_place_name" :editable="true" :filter="true">
                 <template #option="slotProps">
                   <div :style="{'padding-left': slotProps.option.level > 1 ? ((slotProps.option.level-1) + 'rem') : '0'}">{{slotProps.option.issue_place_name}}</div>
@@ -4104,22 +4170,7 @@ emitter.on("emitData", (obj) => {
             <!-- <Dropdown class="col-10 p-0" spellcheck="false" v-model="doc.issue_place" :options="category.issue_places"
               optionLabel="issue_place_name" optionValue="issue_place_name" :editable="true" :filter="true" /> -->
           </div>
-        </div>
-        <div v-if="(v$.issue_place.$invalid && submitted) || v$.issue_place.$pending.$response" class="field col-12 md:col-12 flex">
-          <div class="col-12 md:col-12 p-0 m-0 flex"
-            v-if="(v$.issue_place.$invalid && submitted) || v$.issue_place.$pending.$response">
-            <div class="col-2 text-left flex"></div>
-            <small class="col-10 p-0">
-              <span style="color:red" class="col-12 ">{{
-                  v$.issue_place.required.$message
-                    .replace("Value", "Nơi ban hành")
-                    .replace("is required", "không được để trống")
-              }}</span>
-            </small>
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 m-0 p-0 flex">
+          <div class="col-3 md:col-3 p-0 m-0 flex">
             <label class="col-4 p-0 text-left flex" style="align-items:center;">
               Số/Ký hiệu
               <!-- <span class="redsao pl-1"> (*)</span> -->
@@ -4128,14 +4179,27 @@ emitter.on("emitData", (obj) => {
                     <InputText @change="cancelReservationNumber" v-model="doc.doc_code"
                      />
                     <Button tabindex="-1" @click="openModalReservationNumber" v-tooltip.right="'Lấy từ danh sách giữ số'" icon="pi pi-list"/>
-            </div>
           </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 text-left flex" style="align-items:center;">
+        </div>
+          <div class="col-4 md:col-4 p-0 m-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
               Ngày văn bản
               <!-- <span class="redsao pl-1"> (*)</span> -->
             </label>
-            <Calendar @input="autoFillDate(doc,'doc_date')" id="doc_date" :showOnFocus="false" class="col-8 p-0" v-model="doc.doc_date" :manualInput="true" :showIcon="true" />
+            <Calendar @blur="autoFillDate(doc,'doc_date')" id="doc_date" :showOnFocus="false" class="col-8 p-0" v-model="doc.doc_date" :manualInput="true" :showIcon="true" />
+          </div>
+        </div>
+        <div v-if="(v$.issue_place.$invalid && submitted) || v$.issue_place.$pending.$response" class="field col-12 md:col-12 flex">
+          <div class="col-4 md:col-4 p-0 m-0 flex"
+            v-if="(v$.issue_place.$invalid && submitted) || v$.issue_place.$pending.$response">
+            <div class="col-5 p-0 text-left flex"></div>
+            <small class="col-8 p-0">
+              <span style="color:red" class="col-12 ">{{
+                  v$.issue_place.required.$message
+                    .replace("Value", "Nơi ban hành")
+                    .replace("is required", "không được để trống")
+              }}</span>
+            </small>
           </div>
         </div>
         <div class="field col-12 md:col-12 flex">
@@ -4204,91 +4268,113 @@ emitter.on("emitData", (obj) => {
               </div>
             </div>
           </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <div class="field col-12 md:col-12 m-0 p-0 flex">
-              <div class="col-12 md:col-12 m-0 flex">
-                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
-                  Độ mật
-                </label>
-                <Dropdown :showClear="true" class="col-8 p-0" spellcheck="false" v-model="doc.security" :options="category.security"
-              optionLabel="security_name" optionValue="security_name" :editable="false" :filter="true" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Nhóm văn bản
-            </label>
-            <Dropdown :showClear="true" @change="changeDocGroup(); generateDocCode()" class="col-7 p-0" spellcheck="false" v-model="doc.doc_group_id"
-              :options="category.groups" optionLabel="doc_group_name" optionValue="doc_group_id" :editable="false"
-              :filter="true" />
-          
-          </div>
-          <div class="col-6 md:col-6 p-0 m-0 flex">
-            <label class="col-4 text-left flex" style="align-items:center;">
-                  Không gửi bản giấy
-                </label>
-                <InputSwitch v-model="doc.is_not_send_paper" class="col-8" />
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-          <label class="col-2 text-left flex p-0" style="align-items:center;">
+          <div class="col-6 md:col-6 m-0 p-0 flex" >
+            <label class="col-4 text-left flex p-0" style="align-items:center;">
               Ngày hạn xử lý
             </label>
-            <Calendar :showOnFocus="false" @input="autoFillDate(doc,'deadline_date')" id="deadline_date" class="col-10 p-0" v-model="doc.deadline_date" :manualInput="true"
+            <Calendar :showOnFocus="false" @blur="autoFillDate(doc,'deadline_date')" id="deadline_date" class="col-8 p-0" v-model="doc.deadline_date" :manualInput="true"
               :showIcon="true" />
+          </div>
         </div>
         <div v-if="isAddDoc && doc.nav_type === 1" class="field col-12 md:col-12 flex">
-          <label class="col-2 text-left flex p-0" style="align-items:center;">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 text-left flex p-0" style="align-items:center;">
               Phòng ban xử lý
             </label>
-            <Dropdown panelClass="d-design-dropdown" class="col-10 p-0" spellcheck="false" v-model="doc.main_department_id" :options="category.org_departments"
+            <Dropdown @change="changeUserDepartment(doc.main_department_id)" panelClass="d-design-dropdown" class="col-7 p-0" spellcheck="false" v-model="doc.main_department_id" :options="category.org_departments"
               optionLabel="organization_name" optionValue="organization_id" :filter="true">
                 <template #option="slotProps">
                   <div :style="{'padding-left': slotProps.option.level > 1 ? ((slotProps.option.level-1) + 'rem') : '0'}">{{slotProps.option.organization_name}}</div>
               </template>
             </Dropdown>
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Người nhận
+            </label>
+                <Dropdown :filter="true" v-model="doc.receiver" :editable="true"
+                :options="all_users_department" optionValue="full_name" optionLabel="full_name" class="col-8 mt-2 p-0"
+                >
+                <template #option="slotProps">
+                  <div class="country-item flex">
+                    <Avatar :image="
+                      slotProps.option.avatar
+                        ? basedomainURL + slotProps.option.avatar
+                        : basedomainURL + '/Portals/Image/nouser1.png'
+                    " class="mr-2 w-2rem h-2rem" size="large" shape="circle" />
+                    <div style="line-height: 1.5" class="pt-1">
+                      <div><strong>{{ slotProps.option.full_name }}</strong></div>
+                      <div style="color: #aaa; font-weight: 500">{{ slotProps.option.organization_name }}</div>
+                      <div style="color: #aaa; ">{{ slotProps.option.department_name }}</div>
+                    </div>
+                  </div>
+                </template>
+              </Dropdown>
+          </div>
         </div>
       </receive>
       <send class="col-12 md:col-12 p-0" v-if="doc.nav_type !== 1">
         <div class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 m-0 p-0 flex">
+          <div class="col-4 md:col-4 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+                  {{doc.nav_type !== 1 ? 'Số vào sổ' : 'Số đến'}}
+                  <span class="redsao pl-1"> (*)</span>
+                </label>
+                <InputText @change="generateDocCode" :disabled="doc.is_auto_num" v-model="doc.dispatch_book_code" class="col-7 p-0 ip36 dispatch-input"
+                  :class="{ 'p-invalid': v$.dispatch_book_code.$invalid && submitted }" :useGrouping="false" />
+            </div>
+          <div class="col-4 md:col-4 p-0 m-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Khối cơ quan
+            </label>
+            <Dropdown :selectOnFocus="true" class="col-7 p-0" spellcheck="false" v-model="doc.dispatch_book_id"
+            @change="generateDocCode(); changeIsAutoNum()"
+              :options="category.dispatch_books.filter(x => x.nav_type === doc.nav_type)"
+              optionLabel="dispatch_book_name" optionValue="dispatch_book_id" :editable="false" :filter="true" />
+        </div>
+          <div class="col-4 md:col-4 p-0 m-0 flex">
             <label class="col-4 p-0 text-left flex" style="align-items:center;">
               Nhóm văn bản
             </label>
-            <Dropdown id="dw-doc-group" :showClear="true" @change="changeDocGroup(); generateDocCode()" class="col-7 p-0" spellcheck="false" v-model="doc.doc_group_id"
+            <Dropdown id="dw-doc-group" :showClear="true" @change="changeDocGroup(); generateDocCode()" class="col-8 p-0" spellcheck="false" v-model="doc.doc_group_id"
               :options="category.groups" optionLabel="doc_group_name" optionValue="doc_group_id" :editable="false"
               :filter="true" />
-          
           </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Nơi soạn thảo
-            </label>
-            <TreeSelectCustom class="col-8 p-0" :removeTree="removeTreeSelect" :model="doc" property-name="composing_unit_id" :options="category.departments"
-                placeholder="Chọn nơi soạn thảo">
-              </TreeSelectCustom>
+        </div>
+        <div v-if="(v$.dispatch_book_code.$invalid && submitted) || v$.dispatch_book_code.$pending.$response" class="field col-12 mt-3 md:col-12 flex">
+          <div class="col-4 md:col-4 p-0 m-0 flex"
+            v-if="(v$.dispatch_book_code.$invalid && submitted) || v$.dispatch_book_code.$pending.$response">
+            <div class="col-4 text-left flex"></div>
+            <small class="col-8 p-0">
+              <span style="color:red" class="col-12 ">{{
+                  v$.dispatch_book_code.required.$message
+                    .replace("Value", doc.nav_type !== 1 ? 'Số vào sổ' : 'Số đến')
+                    .replace("is required", "không được để trống")
+              }}</span>
+            </small>
           </div>
         </div>
         <div class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Người soạn thảo
-            </label>
-            <InputText v-model="doc.drafter" class="col-7 ip36" />
-          </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Số/Ký hiệu
-              <!-- <span class="redsao pl-1"> (*)</span> -->
-            </label>
-            <div class="p-inputgroup col-8 ip36 p-0">
-                    <InputText tabindex="-1" @change="cancelReservationNumber" v-model="doc.doc_code"
-                     />
-                    <Button tabindex="-1" @click="openModalReservationNumber" v-tooltip.right="'Lấy từ danh sách giữ số'" icon="pi pi-list"/>
+          <div class="col-4 md:col-4 m-0 p-0 flex">
+              <label class="col-4 p-0 text-left flex" style="align-items:center;">
+                Ngày văn bản
+                <!-- <span class="redsao pl-1"> (*)</span> -->
+              </label>
+              <Calendar @blur="autoFillDate(doc, 'doc_date')" id="doc_date" :showOnFocus="false" class="col-7 p-0" v-model="doc.doc_date" :manualInput="true" :showIcon="true" />
             </div>
+          <div class="col-4 md:col-4 p-0 m-0 flex">
+            <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
+                  Độ khẩn
+                </label>
+                <Dropdown :showClear="true" class="col-7 p-0" spellcheck="false" v-model="doc.urgency" :options="category.urgency"
+              optionLabel="urgency_name" optionValue="urgency_name" :editable="false" :filter="true" />
+        </div>
+          <div class="col-4 md:col-4 p-0 m-0 flex">
+            <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
+                  Độ mật
+                </label>
+                <Dropdown :showClear="true" class="col-8 p-0" spellcheck="false" v-model="doc.security" :options="category.security"
+              optionLabel="security_name" optionValue="security_name" :editable="false" :filter="true" />
           </div>
         </div>
         <div class="field col-12 md:col-12 flex">
@@ -4299,42 +4385,6 @@ emitter.on("emitData", (obj) => {
             </label>
             <Textarea v-model="doc.compendium" spellcheck="false" class="col-10 ip36" autoResize
               :class="{ 'p-invalid': v$.compendium.$invalid && submitted }" style="padding:0.5rem;" />
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
-                  Độ khẩn
-                </label>
-                <Dropdown :showClear="true" class="col-7 p-0" spellcheck="false" v-model="doc.urgency" :options="category.urgency"
-              optionLabel="urgency_name" optionValue="urgency_name" :editable="false" :filter="true" />
-          </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Người ký
-            </label>
-                  <Dropdown v-if="doc.nav_type === 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
-              :options="category.signers" optionValue="signer_name" optionLabel="signer_name" class="col-8 mt-2 p-0"
-              >
-            </Dropdown>
-              <Dropdown v-if="doc.nav_type !== 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
-              :options="all_users_sign_send_doc" optionValue="full_name" optionLabel="full_name" class="col-8 mt-2 p-0"
-              >
-              <template #option="slotProps">
-                <div class="country-item flex">
-                  <Avatar :image="
-                    slotProps.option.avatar
-                      ? basedomainURL + slotProps.option.avatar
-                      : basedomainURL + '/Portals/Image/nouser1.png'
-                  " class="mr-2 w-2rem h-2rem" size="large" shape="circle" />
-                  <div style="line-height: 1.5" class="pt-1">
-                    <div><strong>{{ slotProps.option.full_name }}</strong></div>
-                    <div style="color: #aaa; font-weight: 500">{{ slotProps.option.organization_name }}</div>
-                    <div style="color: #aaa; ">{{ slotProps.option.department_name }}</div>
-                  </div>
-                </div>
-              </template>
-            </Dropdown>
           </div>
         </div>
         <div class="field col-12 md:col-12 flex">
@@ -4353,11 +4403,64 @@ emitter.on("emitData", (obj) => {
           </div>
           </div>
           <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
-                  Độ mật
+            <div class="col-6 md:col-6 m-0 p-0 flex" style="align-items:center;">
+              <label class="col-7 p-0 text-left flex" style="align-items:center;">
+                  Không gửi bản giấy
                 </label>
-                <Dropdown :showClear="true" class="col-8 p-0" spellcheck="false" v-model="doc.security" :options="category.security"
-              optionLabel="security_name" optionValue="security_name" :editable="false" :filter="true" />
+                <InputSwitch v-model="doc.is_not_send_paper" class="col-5" />
+            </div>
+            <div class="col-6 md:col-6 m-0 p-0 flex">
+              <label class="col-5 text-left flex p-0" style="align-items:center;">
+                Ngày hạn xử lý
+              </label>
+              <Calendar :showOnFocus="false" @blur="autoFillDate(doc,'deadline_date')" id="deadline_date" class="col-7 pl-3 p-0" v-model="doc.deadline_date" :manualInput="true"
+                :showIcon="true" />
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Người ký
+            </label>
+                  <Dropdown v-if="doc.nav_type === 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
+              :options="category.signers" optionValue="signer_name" optionLabel="signer_name" class="col-7 mt-2 p-0"
+              >
+            </Dropdown>
+              <Dropdown v-if="doc.nav_type !== 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
+              :options="all_users_sign_send_doc" optionValue="full_name" optionLabel="full_name" class="col-7 mt-2 p-0"
+              >
+              <template #option="slotProps">
+                <div class="country-item flex">
+                  <Avatar :image="
+                    slotProps.option.avatar
+                      ? basedomainURL + slotProps.option.avatar
+                      : basedomainURL + '/Portals/Image/nouser1.png'
+                  " class="mr-2 w-2rem h-2rem" size="large" shape="circle" />
+                  <div style="line-height: 1.5" class="pt-1">
+                    <div><strong>{{ slotProps.option.full_name }}</strong></div>
+                    <div style="color: #aaa; font-weight: 500">{{ slotProps.option.organization_name }}</div>
+                    <div style="color: #aaa; ">{{ slotProps.option.department_name }}</div>
+                  </div>
+                </div>
+              </template>
+            </Dropdown>
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Chức vụ
+            </label>
+            <Dropdown class="col-8 p-0" spellcheck="false" v-model="doc.position" :options="category.positions"
+              optionLabel="position_name" optionValue="position_name" :editable="true" :filter="true" />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-12 md:col-12 p-0 m-0 flex">
+            <label class="col-2 p-0 text-left flex" style="align-items:center;">
+              Nơi nhận
+            </label>
+            <Dropdown @input="changeReceivePlace" @change="fillReceivePlace" class="col-10 p-0" spellcheck="false" v-model="doc.receive_place" :options="category.receive_places"
+              optionLabel="receive_place_name" optionValue="receive_place_name" :editable="true" :filter="true" />
           </div>
         </div>
         <div class="field col-12 md:col-12 flex">
@@ -4389,141 +4492,68 @@ emitter.on("emitData", (obj) => {
             </div>
         </div>
         <div class="field col-12 md:col-12 flex">
-          <div class="col-12 md:col-12 p-0 m-0 flex">
-            <label class="col-2 p-0 text-left flex" style="align-items:center;">
-              Nơi nhận
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Nơi soạn thảo
             </label>
-            <Dropdown @input="changeReceivePlace" @change="fillReceivePlace" class="col-10 p-0" spellcheck="false" v-model="doc.receive_place" :options="category.receive_places"
-              optionLabel="receive_place_name" optionValue="receive_place_name" :editable="true" :filter="true" />
+            <Dropdown @change="changeUserDepartment(doc.composing_unit_id)" panelClass="d-design-dropdown" class="col-7 p-0" spellcheck="false" v-model="doc.composing_unit_id" :options="category.org_departments"
+              optionLabel="organization_name" optionValue="organization_id" :filter="true">
+                <template #option="slotProps">
+                  <div :style="{'padding-left': slotProps.option.level > 1 ? ((slotProps.option.level-1) + 'rem') : '0'}">{{slotProps.option.organization_name}}</div>
+              </template>
+            </Dropdown>
           </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-            <label class="col-2 text-left flex p-0" style="align-items:center;">
-              Ngày hạn xử lý
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Người soạn thảo
             </label>
-            <Calendar :showOnFocus="false" @input="autoFillDate(doc,'deadline_date')" id="deadline_date" class="col-10 p-0" v-model="doc.deadline_date" :manualInput="true"
-              :showIcon="true" />
+            <Dropdown :filter="true" v-model="doc.drafter" :editable="true"
+                :options="all_users_department" optionValue="full_name" optionLabel="full_name" class="col-8 mt-2 p-0"
+                >
+                <template #option="slotProps">
+                  <div class="country-item flex">
+                    <Avatar :image="
+                      slotProps.option.avatar
+                        ? basedomainURL + slotProps.option.avatar
+                        : basedomainURL + '/Portals/Image/nouser1.png'
+                    " class="mr-2 w-2rem h-2rem" size="large" shape="circle" />
+                    <div style="line-height: 1.5" class="pt-1">
+                      <div><strong>{{ slotProps.option.full_name }}</strong></div>
+                      <div style="color: #aaa; font-weight: 500">{{ slotProps.option.organization_name }}</div>
+                      <div style="color: #aaa; ">{{ slotProps.option.department_name }}</div>
+                    </div>
+                  </div>
+                </template>
+              </Dropdown>
+          </div>
         </div>
       </send>
         <div class="field col-12 md:col-12 flex" style="justify-content: end">
           <Button class="btn-save-continued" v-if="!isViewDoc" label="Lưu và tiếp tục" icon="pi pi-check" @click="checkSameDoc(!v$.$invalid,true)" />
         </div>
         <div v-if="doc.nav_type === 1" class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Lĩnh vực
-            </label>
-            <MultiSelect v-model="doc.key_fields" :options="category.fields" optionLabel="field_name"
-              placeholder="Lĩnh vực" :filter="true" display="chip" class="col-7 p-0 text-left" />
-          </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Sao ĐV phối hợp
-            </label>
-            <InputText v-model="doc.saodv" class="col-8 ip36" />
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-          <div v-if="doc.nav_type === 1" class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Người ký
-            </label>
-                  <Dropdown v-if="doc.nav_type === 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
-              :options="category.signers" optionValue="signer_name" optionLabel="signer_name" class="col-7 mt-2 p-0"
-              >
-            </Dropdown>
-              <Dropdown v-if="doc.nav_type !== 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
-              :options="all_users_sign_send_doc" optionValue="full_name" optionLabel="full_name" class="col-7 mt-2 p-0"
-              >
-              <template #option="slotProps">
-                <div class="country-item flex">
-                  <Avatar :image="
-                    slotProps.option.avatar
-                      ? basedomainURL + slotProps.option.avatar
-                      : basedomainURL + '/Portals/Image/nouser1.png'
-                  " class="mr-2 w-2rem h-2rem" size="large" shape="circle" />
-                  <div style="line-height: 1.5" class="pt-1">
-                    <div><strong>{{ slotProps.option.full_name }}</strong></div>
-                    <div style="color: #aaa; font-weight: 500">{{ slotProps.option.organization_name }}</div>
-                    <div style="color: #aaa; ">{{ slotProps.option.department_name }}</div>
-                  </div>
-                </div>
-              </template>
-            </Dropdown>
-            <!-- <InputText v-model="doc.signer" class="col-7 ip36" /> -->
-          </div>
-          <div v-if="doc.nav_type !== 1" class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Lãnh đạo
-            </label>
-            <InputText v-model="doc.ldt" class="col-7 ip36" />
-          </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Chức vụ người ký
-            </label>
-            <Dropdown class="col-8 p-0" spellcheck="false" v-model="doc.position" :options="category.positions"
-              optionLabel="position_name" optionValue="position_name" :editable="true" :filter="true" />
-          </div>
-        </div>
-        <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
-          <div class="col-12 md:col-12 p-0 m-0 flex">
-            <label class="col-2 p-0 text-left flex" style="align-items:center;">
-              Đơn vị liên quan
-            </label>
-            <InputText v-model="doc.related_unit" class="col-10 ip36" />
-          </div>
-        </div>
-        <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
-                  Số bản lưu
-                </label>
-                <InputNumber v-model="doc.num_of_saved" class="col-7 p-0 ip36" :useGrouping="false" />
-              </div>
-              <div class="col-6 md:col-6 m-0 p-0 pl-2 flex">
-                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
-                  Số bản PH
-                </label>
-                <InputNumber v-model="doc.num_of_issue" class="col-8 p-0 ip36" :useGrouping="false" />
-              </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Thời gian tổ chức
-            </label>
-            <Calendar :showOnFocus="false" :manualInput="true" :showIcon="true" class="col-7 p-0" v-model="doc.hold_time" :showTime="true" />
-          </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Địa điểm tổ chức
-            </label>
-            <InputText v-model="doc.hold_place" class="col-8" />
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-          <div v-if="doc.nav_type === 1" class="col-6 md:col-6 m-0 p-0 flex">
-                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
-                  Độ khẩn
-                </label>
-                <Dropdown :showClear="true" class="col-7 p-0" spellcheck="false" v-model="doc.urgency" :options="category.urgency"
-                optionLabel="urgency_name" optionValue="urgency_name" :editable="false" :filter="true" />
-          </div>
-          <div class="col-6 md:col-6 m-0 p-0 flex">
-            <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              Hình thức gửi
-            </label>
-            <Dropdown class="col-8 p-0" spellcheck="false" v-model="doc.send_way" :options="category.send_ways"
-              optionLabel="send_way_name" optionValue="send_way_name" :editable="false" :filter="true" />
-          </div>
-        </div>
-        <div class="col-5 md:col-5 m-0 mb-3 flex">
-                  <label class="col-7 p-0 text-left flex" style="align-items:center;">
-                  Vào số tự động
+                <div class="col-6 md:col-6 p-0 m-0 flex">
+                  <label class="col-4 p-0 text-left flex" style="align-items:center;">
+                    Hiện ở đâu
                   </label>
-                  <InputSwitch @change="changeIsAutoNum" v-model="doc.is_auto_num" class="col-4 mt-1" />
-        </div>
+                  <InputText v-model="doc.receive_place" spellcheck="false" class="col-7 ip36"
+                    />
+                </div>
+              <div class="col-6 md:col-6 p-0 m-0 flex">
+                  <label class="col-4 p-0 text-left flex" style="align-items:center;">
+                    Ghi chú
+                  </label>
+                  <InputText v-model="doc.notes" spellcheck="false" class="col-8 ip36"
+                   />
+                </div>
+              </div>
+              <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
+          <label class="col-2 p-0 text-left flex" style="align-items:center;">
+                    Ghi chú
+                  </label>
+                  <InputText v-model="doc.notes" spellcheck="false" class="col-10 ip36"
+                   />
+              </div>
         <div class="col-12 md:col-12">
           <div class="field col-12 md:col-12 p-0 flex">
             <label class="col-2 p-0 mt-3 text-left">Văn bản đính kèm (file số hoá)</label>
@@ -4587,6 +4617,126 @@ emitter.on("emitData", (obj) => {
               </DataView>
             </div>
           </div>
+        </div>
+        <div v-if="doc.nav_type === 1" class="field col-12 md:col-12 flex">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Lĩnh vực
+            </label>
+            <MultiSelect v-model="doc.key_fields" :options="category.fields" optionLabel="field_name"
+              placeholder="Lĩnh vực" :filter="true" display="chip" class="col-7 p-0 text-left" />
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Sao ĐV phối hợp
+            </label>
+            <InputText v-model="doc.saodv" class="col-8 ip36" />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div v-if="doc.nav_type === 1" class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Người ký
+            </label>
+                  <Dropdown v-if="doc.nav_type === 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
+              :options="category.signers" optionValue="signer_name" optionLabel="signer_name" class="col-7 mt-2 p-0"
+              >
+            </Dropdown>
+              <Dropdown v-if="doc.nav_type !== 1" @change="changeSigner" :filter="true" v-model="doc.signer" :editable="true"
+              :options="all_users_sign_send_doc" optionValue="full_name" optionLabel="full_name" class="col-7 mt-2 p-0"
+              >
+              <template #option="slotProps">
+                <div class="country-item flex">
+                  <Avatar :image="
+                    slotProps.option.avatar
+                      ? basedomainURL + slotProps.option.avatar
+                      : basedomainURL + '/Portals/Image/nouser1.png'
+                  " class="mr-2 w-2rem h-2rem" size="large" shape="circle" />
+                  <div style="line-height: 1.5" class="pt-1">
+                    <div><strong>{{ slotProps.option.full_name }}</strong></div>
+                    <div style="color: #aaa; font-weight: 500">{{ slotProps.option.organization_name }}</div>
+                    <div style="color: #aaa; ">{{ slotProps.option.department_name }}</div>
+                  </div>
+                </div>
+              </template>
+            </Dropdown>
+            <!-- <InputText v-model="doc.signer" class="col-7 ip36" /> -->
+          </div>
+          <div v-if="doc.nav_type !== 1" class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Lãnh đạo
+            </label>
+            <InputText v-model="doc.ldt" class="col-7 ip36" />
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Số/Ký hiệu
+              <!-- <span class="redsao pl-1"> (*)</span> -->
+            </label>
+            <div class="p-inputgroup col-8 ip36 p-0">
+                    <InputText tabindex="-1" @change="cancelReservationNumber" v-model="doc.doc_code"
+                     />
+                    <Button tabindex="-1" @click="openModalReservationNumber" v-tooltip.right="'Lấy từ danh sách giữ số'" icon="pi pi-list"/>
+            </div>
+          </div>
+        </div>
+        <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
+          <div class="col-12 md:col-12 p-0 m-0 flex">
+            <label class="col-2 p-0 text-left flex" style="align-items:center;">
+              Đơn vị liên quan
+            </label>
+            <InputText v-model="doc.related_unit" class="col-10 ip36" />
+          </div>
+        </div>
+        <div v-if="doc.nav_type !== 1" class="field col-12 md:col-12 flex">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
+                  Số bản lưu
+                </label>
+                <InputNumber v-model="doc.num_of_saved" class="col-7 p-0 ip36" :useGrouping="false" />
+              </div>
+              <div class="col-6 md:col-6 m-0 p-0 pl-2 flex">
+                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
+                  Số bản PH
+                </label>
+                <InputNumber v-model="doc.num_of_issue" class="col-8 p-0 ip36" :useGrouping="false" />
+              </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Thời gian tổ chức
+            </label>
+            <Calendar :showOnFocus="false" :manualInput="true" :showIcon="true" class="col-7 p-0" v-model="doc.hold_time" :showTime="true" />
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Địa điểm tổ chức
+            </label>
+            <InputText v-model="doc.hold_place" class="col-8" />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div v-if="doc.nav_type === 1" class="col-6 md:col-6 m-0 p-0 flex">
+                <label class="col-4 m-0 p-0 text-left flex" style="align-items:center;">
+                  Độ khẩn
+                </label>
+                <Dropdown :showClear="true" class="col-7 p-0" spellcheck="false" v-model="doc.urgency" :options="category.urgency"
+                optionLabel="urgency_name" optionValue="urgency_name" :editable="false" :filter="true" />
+          </div>
+          <div class="col-6 md:col-6 m-0 p-0 flex">
+            <label class="col-4 p-0 text-left flex" style="align-items:center;">
+              Hình thức gửi
+            </label>
+            <Dropdown class="col-8 p-0" spellcheck="false" v-model="doc.send_way" :options="category.send_ways"
+              optionLabel="send_way_name" optionValue="send_way_name" :editable="false" :filter="true" />
+          </div>
+        </div>
+        <div class="col-5 md:col-5 m-0 mb-3 flex">
+                  <label class="col-7 p-0 text-left flex" style="align-items:center;">
+                  Vào số tự động
+                  </label>
+                  <InputSwitch @change="changeIsAutoNum" v-model="doc.is_auto_num" class="col-4 mt-1" />
         </div>
         <div class="col-12 md:col-12">
           <Accordion :multiple="true">
@@ -4674,15 +4824,6 @@ emitter.on("emitData", (obj) => {
                     Hộp
                   </label>
                   <InputText v-model="doc.box" class="col-8 ip36" />
-                </div>
-              </div>
-              <div class="field col-12 md:col-12 flex">
-                <div class="col-12 md:col-12 p-0 m-0 flex">
-                  <label class="col-2 p-0 text-left flex" style="align-items:center;">
-                    Ghi chú
-                  </label>
-                  <Textarea v-model="doc.notes" spellcheck="false" class="col-10 ip36" autoResize autofocus
-                    style="padding:0.5rem;" />
                 </div>
               </div>
             </AccordionTab>
@@ -5889,7 +6030,7 @@ emitter.on("emitData", (obj) => {
             <label class="col-4 text-left flex p-0" style="align-items:center;">
               Ngày hạn xử lý
             </label>
-            <Calendar :showOnFocus="false" @input="autoFillDate(doc,'deadline_date')" id="deadline_date" class="col-8 p-0" v-model="doc.deadline_date" :manualInput="true"
+            <Calendar :showOnFocus="false" @blur="autoFillDate(doc,'deadline_date')" id="deadline_date" class="col-8 p-0" v-model="doc.deadline_date" :manualInput="true"
               :showIcon="true" />
           </div>
         </div>

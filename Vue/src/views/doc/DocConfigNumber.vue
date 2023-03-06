@@ -57,7 +57,7 @@ const loadOrg = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+      
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
 
@@ -128,7 +128,7 @@ const loadData = (is_clickfirst) => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
      doc_codes.value = data;
-     debugger
+      
      if(is_clickfirst){
       if(doc_codes.value.length > 0){
         doc_code.value = doc_codes.value[0];
@@ -138,7 +138,7 @@ const loadData = (is_clickfirst) => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+      
 
       options.value.loading = false;
     });
@@ -178,7 +178,7 @@ const getDocCodeByID = (ev) => {
     })
     .catch((error) => {
       swal.close();
-      console.log(error);
+      
 
       options.value.loading = false;
     });
@@ -301,7 +301,7 @@ const saveDocConfig = () => {
     })
     .catch((error) => {
       
-      console.log(error);
+      
       swal.close();
       swal.fire({
         title: "Thông báo",

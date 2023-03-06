@@ -38,7 +38,7 @@ export default defineConfig({
   //     SecretKey: JSON.stringify("1012198815021989"),
   //     isDev: true,
   // },
-  // define: {
+  // define: {s
   //     baseURL: JSON.stringify("http://192.168.100.9:8080/"),
   //     fileURL: JSON.stringify("http://192.168.100.9:8080/"),
   //     socketURL: JSON.stringify("http://192.168.100.9:3333/"),

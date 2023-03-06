@@ -111,7 +111,6 @@ const sendDocConnect = () => {
         toast.success("Gửi văn bản thành công!");
         props.closeDialog();
       } else {
-        console.log(response.data.ms);
         swal.fire({
           title: "Thông báo",
           text: "Xảy ra lỗi khi gửi văn bản.",

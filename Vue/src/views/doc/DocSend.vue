@@ -263,7 +263,7 @@ const loadUserFunctions = (docpar) => {
       let data = JSON.parse(response.data.data);
       if (isFirst.value) isFirst.value = false;
       if (data[0]) {
-        debugger
+        
         doc_functions.value = [];
         var funcs = data[0][0].res;
         if (funcs) {
