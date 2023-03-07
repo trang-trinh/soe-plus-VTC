@@ -4,11 +4,11 @@ import { encr } from "../../../util/function";
 import detailedwork from "../../../components/task_origin/DetailedWork.vue";
 import DocStatus from "../../../components/doc/DocStatus.vue";
 import dialogcutrice from "./dialogcutrice.vue";
-const cryoptojs = inject("cryptojs");
-const router = inject("router");
 import vi from "date-fns/locale/vi";
 import moment from "moment";
 import { useToast } from "vue-toastification";
+const cryoptojs = inject("cryptojs");
+const router = inject("router");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -1255,6 +1255,13 @@ const initCalendarDuty = (rf) => {
       console.log(error);
     });
 };
+const ActiveMessage = (user) => {
+  router
+    .push({ name: "chat_message/fromdashboard", params: { uid: user.user_id, typeid: 'dashboard' } || {} })
+    .then(() => {
+      router.go(0);
+    });
+};
 const initData = () => {
   initDictionaryCutRice();
   initCounts();
@@ -2286,7 +2293,7 @@ onMounted(() => {
                         v-bind:id="item.user_id.replace('.', '')"
                         :key="index"
                       >
-                        <div class="d-grid formgrid">
+                        <div class="d-grid formgrid" style="cursor: pointer;" @click="ActiveMessage(item)">
                           <div class="col-3 md:col-3 p-0 format-flex-center">
                             <div
                               style="display: inline-block; position: relative"

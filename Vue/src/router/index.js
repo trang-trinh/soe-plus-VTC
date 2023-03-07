@@ -232,6 +232,7 @@ const DeviceStatus = () => import("../views/device/DeviceStatus.vue");
 const Chat_Message = () => import("../views/chat/Chat_Message.vue");
 const Chat_Contact = () => import("../views/chat/Chat_Contact.vue");
 const Chat_Detail = () => import("../views/chat/Chat_Message.vue");
+const Chat_Dashboard = () => import("../views/chat/Chat_Message.vue");
 // Tráng
 // Nhóm dự án
 const ProjectMain = () => import("../views/project_main/ProjectMain.vue");
@@ -1193,6 +1194,11 @@ const router = createRouter({
       path: "/chat/chat_message/:id",
       name: "chat_message/detail",
       component: Chat_Detail,
+    },
+    {
+      path: "/chat/chat_message/:uid/:typeid",
+      name: "chat_message/fromdashboard",
+      component: Chat_Dashboard,
     },
     // Tài liệu
     {
