@@ -24,6 +24,8 @@ const axios = inject("axios"); // inject axios
 const swal = inject("$swal");
 const isDeveloper = ref(isDev);
 
+store.commit("setisframe", (window === window.parent) ? false : true);
+
 //init Data
 // if (localStorage.getItem("u") != null) {
 //   let u = decr(localStorage.getItem("u"), SecretKey, cryoptojs);
@@ -200,9 +202,9 @@ window.addEventListener("devtoolschange", (event) => {
     </div>
   </div>
   <div v-else class="flex flex-column flex-grow-1 h-full">
-    <HeadBar v-if="store.getters.islogin" />
+    <HeadBar v-if="store.getters.islogin && !store.getters.isframe" />
     <div class="body-layout flex flex-grow-1 w-full h-full">
-      <SideBar class="shadow-1 h-full" v-if="store.getters.islogin" />
+      <SideBar class="shadow-1 h-full" v-if="store.getters.islogin && !store.getters.isframe" />
       <RouterView v-if="store.getters.islogin" />
       <LoginView v-if="!store.getters.islogin"></LoginView>
     </div>

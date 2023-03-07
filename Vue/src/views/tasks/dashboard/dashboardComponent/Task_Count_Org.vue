@@ -138,11 +138,11 @@ const loadData = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "task_dashboar_count_by_org",
+            proc: "task_dashboar_count_by_org_bh",
             par: [
               { par: "user_id", va: user.user_id },
               { par: "type", va: props.type },
-               { par: "project_id", va: options.value.project_id },
+              { par: "project_id", va: options.value.project_id },
               { par: "group_id", va: options.value.group_id },
               { par: "fromDate", va: options.value.start_date },
               { par: "toDate", va: options.value.end_date },
@@ -161,7 +161,8 @@ const loadData = () => {
       datalists.value = [];
       let data = JSON.parse(response.data.data)[0];
       let count = JSON.parse(response.data.data)[1];
-
+      options.value.total = count[0].total;
+      options.value.progress = count[0].progress;
       Chartdata.value = data;
       if (props.type == 1) {
         data.forEach((x) => {
@@ -748,6 +749,12 @@ onMounted(() => {
               ? "Thống kê số lượng công việc theo phòng ban"
               : "Thống kê số lượng công việc theo đơn vị"
           }}
+          <span
+            v-if="options.total"
+            style="color: #2196f3"
+            >( Tổng số công việc: {{ options.total }} - Tiến độ:
+            {{ options.progress }}% )</span
+          >
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>

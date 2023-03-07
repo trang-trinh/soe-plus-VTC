@@ -122,6 +122,7 @@ const genders = ref([
 ]);
 const tdRoles = ref([]);
 const chucvus = ref([]);
+const capbacs = ref([]);
 const menuButs = ref();
 const menuButMores = ref();
 const itemButs = ref([
@@ -536,6 +537,7 @@ const initTudien = () => {
       if (data.length > 0) {
         tdRoles.value = data[0];
         chucvus.value = data[2];
+        capbacs.value = data[3];
       }
       if (data[1].length > 0) {
         let obj = renderTreeDV(
@@ -2074,7 +2076,7 @@ onMounted(() => {
           >
           <InputText
             spellcheck="false"
-            class="col-10 ip32"
+            class="col-10 ip32 text-transform"
             v-model="user.full_name"
             autocomplete="username"
             name="full_name"
@@ -2215,6 +2217,7 @@ onMounted(() => {
             optionLabel="role_name"
             optionValue="role_id"
             placeholder="Chọn nhóm"
+            :showClear="true"
           />
           <label class="col-2 text-left pl-7">Chức vụ</label>
           <Dropdown
@@ -2224,14 +2227,19 @@ onMounted(() => {
             optionLabel="position_name"
             optionValue="position_id"
             placeholder="Chọn chức vụ"
+            :showClear="true"
           />
         </div>
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Số CA</label>
-          <InputNumber
-            class="col-4 ip32 p-0"
-            v-model="user.ca_number"
-            :useGrouping="false"
+          <label class="col-2 text-left">Cấp bậc</label>
+          <Dropdown
+            class="col-4 ip32"
+            v-model="user.rank_id"
+            :options="capbacs"
+            optionLabel="rank"
+            optionValue="rank_id"
+            placeholder="Chọn cấp bậc"
+            :showClear="true"
           />
           <label class="col-2 text-left pl-7">Ngày sinh</label>
           <Calendar
@@ -2382,18 +2390,28 @@ onMounted(() => {
               <template #header>
                 <span>Quyền Module</span>
               </template>
-                      <div class="field col-12 md:col-12">
-          <label class="text-left" style="width: 20%; padding: 0.5rem"
-            >Hiển thị sinh nhật</label
-          >
-          <InputSwitch class="col-1" v-model="user.display_birthday" />
-                     <label class="col-1"></label>
-          <label class="col-2 text-right">Ban hành</label>
-          <InputSwitch class="col-1" v-model="user.calendar_enact" />
-                     <label class="col-1"></label>
-                    <label class="col-2 text-right">Tổng hợp CV</label>
-          <InputSwitch class="col-1" v-model="user.is_task" />
-        </div>
+              <div class="field col-12 md:col-12">
+                <label class="col-2 text-left">Số CA</label>
+                <InputNumber
+                  class="col-4 ip32 p-0"
+                  v-model="user.ca_number"
+                  :useGrouping="false"
+                />
+                <label class="col-2 text-left ml-7">Ban hành</label>
+                <InputSwitch class="col-1" v-model="user.calendar_enact" />
+              </div>
+                <div class="field col-12 md:col-12">
+                <label class="text-left" style="width: 20%; padding: 0.5rem"
+                  >Hiển thị sinh nhật</label
+                >
+                <InputSwitch class="col-1" v-model="user.display_birthday" />
+                  <label class="col-3"></label>
+                  <!-- <label class="col-2 text-right">Ban hành</label>
+                <InputSwitch class="col-1" v-model="user.calendar_enact" /> -->
+                  <!-- <label class="col-1"></label> -->
+                  <label class="col-2 text-left ml-7">Tổng hợp CV</label>
+                <InputSwitch class="col-1" v-model="user.is_task" />
+                </div>
               </AccordionTab>
               </Accordion>
 
