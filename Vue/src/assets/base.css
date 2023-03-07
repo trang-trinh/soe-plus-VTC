@@ -794,6 +794,7 @@ li.p-chips-token {
 
 ::-webkit-scrollbar {
     width: 20px;
+    height: 20px;
 }
 
  ::-webkit-scrollbar-track {

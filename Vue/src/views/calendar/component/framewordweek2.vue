@@ -148,8 +148,8 @@ const newDate = new Date();
           <tr>
             <td colspan="6">
               <div style="padding: 0.5rem 0">
-                * Trực Chủ nhật ({{ props.holiday.day_string }}): Đồng chí
-                <span v-if="props.duty_sunday">{{ props.duty_sunday.full_name }} - {{ props.duty_sunday.note }} </span>
+                * Trực Chủ nhật ({{ props.holiday.day_string }}): Đồng chí {{props.duty_sunday.rank }}
+                <span v-if="props.duty_sunday"> {{ props.duty_sunday.full_name }} - {{ props.duty_sunday.note }} </span>
               </div>
             </td>
           </tr>

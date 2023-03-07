@@ -55,7 +55,11 @@ const rules = {
 };
 const request_form = ref(props.dataForm);
 const v$ = useVuelidate(rules, request_form);
-
+const listTypeApproved = ref([
+	{ type: "Duyệt 1 trong nhiều", value: 0 },
+	{ type: "Duyệt lần lượt", value: 1 },
+	{ type: "Duyệt ngẫu nhiên", value: 2 },
+]);
 onMounted(() => {
 	return {};
 });
@@ -214,16 +218,9 @@ onMounted(() => {
 						v-model="request_form.request_group_id"
 						optionLabel="request_group_name"
 						optionValue="request_group_id"
-						placeholder="Chọn vị trí"
-						class="ip36"
+						placeholder="Chọn nhóm đề xuất"
+						class="col-9 ip36"
 						>
-						<template #option="slotProps">
-							<div class="country-item flex align-items-center">
-							<div class="pt-1 pl-2">
-								{{ slotProps.option.request_group_name }}
-							</div>
-							</div>
-						</template>
 					</Dropdown>
 				</div>
 
@@ -233,7 +230,7 @@ onMounted(() => {
 							Số giờ xử lý tối đa <span class="redsao pl-1"> (*)</span>
 						</div>
 						<InputNumber
-							v-model="request_form.is_order"
+							v-model="request_form.time_max_process"
 							class="col-6 ip36 p-0"
 						/>
 					</div>
@@ -252,23 +249,16 @@ onMounted(() => {
 						Kiểu duyệt
 					</div>
 					<Dropdown
-						:options="props.groups"
+						:options="listTypeApproved"
 						:filter="true"
 						:showClear="true"
 						:editable="false"
-						v-model="request_form.request_group_id"
-						optionLabel="request_group_name"
-						optionValue="request_group_id"
-						placeholder="Chọn vị trí"
-						class="ip36"
+						v-model="request_form.is_process"
+						optionLabel="type"
+						optionValue="value"
+						placeholder="Chọn kiểu duyệt"
+						class="col-9 ip36"
 						>
-						<template #option="slotProps">
-							<div class="country-item flex align-items-center">
-							<div class="pt-1 pl-2">
-								{{ slotProps.option.request_group_name }}
-							</div>
-							</div>
-						</template>
 					</Dropdown>
 				</div>
 			</div>

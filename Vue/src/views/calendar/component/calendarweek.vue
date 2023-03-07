@@ -581,6 +581,7 @@ const changeView = (view) => {
         break;
     }
   }
+  initDutySunday();
 };
 const goYear = (year) => {
   options.value.year = year;
@@ -1929,9 +1930,11 @@ const initData = (rf) => {
               let obj = {
                 user_id: item[0],
                 full_name: item[1][0].full_name,
+                is_order: item[1][0].is_order,
               };
               datachutris.value.push(obj);
             });
+            datachutris.value = datachutris.value.sort((a, b) => { b.is_order - a.is_order });
             tbs[1].forEach((item, i) => {
               if (item["contents"] != null) {
                 item["contents"] = item["contents"].replaceAll("\n", "<br/>");

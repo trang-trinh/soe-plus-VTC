@@ -16,6 +16,8 @@ using System.Data.Entity.Validation;
 using System.Threading.Tasks;
 using System.Data.Entity;
 using API.Helper;
+using Org.BouncyCastle.Crypto;
+
 namespace API.Controllers.Doc.Config
 {
     public class Doc_Role_DepartmentController : ApiController
@@ -26,7 +28,7 @@ namespace API.Controllers.Doc.Config
             return HttpContext.Current.Request.UserHostAddress;
         }
         [HttpPut]
-        public async Task<HttpResponseMessage> Update_user([System.Web.Mvc.Bind(Include = "user_id,organization_id,created_by,created_date,created_ip,created_token_id,modified_by,modified_date,modified_ip,modified_token_id,department_id")] doc_ca_role_group_department role_Groups)
+        public async Task<HttpResponseMessage> Update_user()
         {
             var identity = User.Identity as ClaimsIdentity;
             string fdlang = "";
@@ -48,37 +50,51 @@ namespace API.Controllers.Doc.Config
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var extsss = db.doc_ca_role_group_department.Where(x => x.role_group_id == null && x.department_id == role_Groups.department_id).FirstOrDefault();
-                    if (extsss != null)
-                    {
-                        int id = Convert.ToInt32(dvid);
-                        extsss.user_id = role_Groups.user_id;
-                        extsss.modified_by = uid;
-                        extsss.modified_date = DateTime.Now;
-                        extsss.modified_ip = ip;
-                        extsss.modified_token_id = tid;
-                        extsss.organization_id = id;
-                        db.Entry(extsss).State = EntityState.Modified;
-                    }
-                    else
-                    {
-                        int id = Convert.ToInt32(dvid);
-                        role_Groups.created_by = uid;
-                        role_Groups.created_date = DateTime.Now;
-                        role_Groups.created_ip = ip;
-                        role_Groups.created_token_id = tid;
-                        role_Groups.organization_id = id;
-                        db.doc_ca_role_group_department.Add(role_Groups);
-                    }
-                    await db.SaveChangesAsync();
 
-                    #region add cms_logs
-                    if (helper.wlog)
+                    if (!Request.Content.IsMimeMultipartContent())
                     {
-                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = role_Groups, }), domainurl + "Doc_Role_Department/Update_user", ip, tid, "Cập nhật người duyệt", 1, "Văn bản");
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
                     }
-                    #endregion
-                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        string tempGroup = provider.FormData.GetValues("group").SingleOrDefault();
+                        List<doc_ca_role_group_department> ca_Groups = JsonConvert.DeserializeObject<List<doc_ca_role_group_department>>(tempGroup);
+                        var dept_id = ca_Groups.FirstOrDefault();
+                        var ex = db.doc_ca_role_group_department.Where(x => x.department_id == dept_id.department_id ).ToList();
+                        db.doc_ca_role_group_department.RemoveRange(ex);
+                        db.SaveChanges();
+                        List<doc_ca_role_group_department> addCa = new List<doc_ca_role_group_department>();
+                       
+                        foreach (var da in ca_Groups)
+                        {
+                      
+                            {  da.created_date = DateTime.Now;
+                            da.created_by = uid;
+                            da.created_ip = ip;
+                            da.created_token_id = tid;
+                                addCa.Add(da);
+                            }
+                           
+                        }
+                        db.doc_ca_role_group_department.AddRange(addCa);
+                        db.SaveChanges();
+                        #region add log
+                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = "" }), domainurl + "Doc_Role_Department / Update_user", ip, tid, "Cập nhật phòng ban", 0, "Văn bản");
+                        #endregion
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
                 }
 
             }
@@ -126,7 +142,7 @@ namespace API.Controllers.Doc.Config
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var das = await db.doc_ca_role_group_department.Where(a => id.Contains(a.role_group_department_id)).ToListAsync();
+                    var das = await db.doc_ca_role_group_department.Where(a => id.Any(x => x == a.department_id)).ToListAsync();
                     List<string> paths = new List<string>();
                     if (das != null)
                     {
