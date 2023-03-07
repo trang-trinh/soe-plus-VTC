@@ -139,6 +139,22 @@ const loadDataGroupChat = (isGetRealtime) => {
           	//localStorage.setItem("chatGroupID", route.params.id);
 			cookies.set("chatGroupID", route.params.id);
         }
+		else if (route.params.uid != null && route.params.typeid == 'dashboard') {
+			let listPersonalChat = datalists.value.filter(x => x.is_group_chat != true && ((x.user_chat == route.params.uid && x.created_by == store.getters.user.user_id) || (x.created_by == route.params.uid && x.user_chat == store.getters.user.user_id)));
+			if (listPersonalChat.length == 0){
+				var userChoose = filterUser.value.filter(x => x.user_id == route.params.uid);
+				if (userChoose.length > 0) {
+					chat.value.chat_group_name = userChoose[0].full_name;
+					chat.value.is_group_chat = false;
+					chat.value.user_chat = userChoose[0].user_id;
+					chat.value.avatar_group = userChoose[0].avatar;
+					saveGroupChat();
+				}
+			}
+			else {
+				showDetailChat(listPersonalChat[0]);
+			}
+		}
 		// if (localStorage.getItem("chatGroupID") != null) {
 		// 	let chatLocal = { chat_group_id: localStorage.getItem("chatGroupID") };
 		// 	showDetailChat(chatLocal, isGetRealtime);

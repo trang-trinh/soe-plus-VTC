@@ -5,7 +5,7 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { encr, checkURL } from "../../../../util/function.js";
 import moment from "moment";
- 
+
 const cryoptojs = inject("cryptojs");
 
 const store = inject("store");
@@ -40,6 +40,16 @@ const bgColor = ref([
 ]);
 
 const rules = {
+  candidate_source: {
+    required,
+    $errors: [
+      {
+        $property: "candidate_source",
+        $validator: "required",
+        $message: "Tên ứng viên không được để trống!",
+      },
+    ],
+  },
   candidate_code: {
     required,
     $errors: [
@@ -103,6 +113,29 @@ const loadData = () => {
         if (data) {
           candidate.value = data[0];
 
+          if (candidate.value.candidate_place) {
+            onFilterPlace({ value: candidate.value.candidate_place }, 1);
+          }
+          if (candidate.value.candidate_domicile) {
+            onFilterPlace({ value: candidate.value.candidate_domicile }, 2);
+          }
+          if (candidate.value.resident_curent_address) {
+            onFilterPlace(
+              { value: candidate.value.resident_curent_address },
+              4
+            );
+          }
+          if (candidate.value.resident_address) {
+            onFilterPlace({ value: candidate.value.resident_address }, 3);
+          }
+          if (candidate.value.candidate_birthday)
+            candidate.value.candidate_birthday = new Date(
+              candidate.value.candidate_birthday
+            );
+          if (candidate.value.candidate_identity_date)
+            candidate.value.candidate_identity_date = new Date(
+              candidate.value.candidate_identity_date
+            );
           if (candidate.value.start_date)
             candidate.value.start_date = new Date(candidate.value.start_date);
           if (candidate.value.end_date)
@@ -111,47 +144,29 @@ const loadData = () => {
             candidate.value.registration_deadline = new Date(
               candidate.value.registration_deadline
             );
-          candidate.value.user_verify_fake =
-            candidate.value.user_verify.split(",");
-          candidate.value.user_follows_fake =
-            candidate.value.user_follows.split(",");
+          candidate.value.candidate_phone_fake =
+            candidate.value.candidate_phone.split(",");
+          candidate.value.candidate_email_fake =
+            candidate.value.candidate_email.split(",");
         }
-        candidate.value.organization_training_fake = {};
-        candidate.value.organization_training_fake[
-          candidate.value.organization_training
-        ] = true;
 
         data1.forEach((element) => {
-          element.data = {
-            profile_id: element.profile_id,
-            avatar: element.avatar,
-            profile_user_name: element.profile_user_name,
-            department_name: element.department_name,
-            department_id: element.department_id,
-            work_position_name: element.work_position_name,
-            position_name: element.position_name,
-            position_id: element.position_id,
-            work_position_id: element.work_position_id,
-          };
+          if (element.birthday) element.birthday = new Date(element.birthday);
           list_users_family.value.push(element);
         });
-        if (list_users_family.value.length > 0) {
-          var arr = [...listDataUsersSave.value];
-          list_users_family.value.forEach((element) => {
-            arr = arr.filter((x) => x.code.profile_id != element.profile_id);
-          });
-          listDataUsers.value = arr;
-        }
         data2.forEach((element) => {
-          if (element.date_study)
-            element.date_study = new Date(element.date_study);
-          if (element.start_time)
-            element.start_time = new Date(element.start_time);
-          if (element.end_time) element.end_time = new Date(element.end_time);
+          if (element.start_date)
+            element.start_date = new Date(element.start_date);
+          if (element.end_date) element.end_date = new Date(element.end_date);
         });
         list_academic_level.value = data2;
 
         if (data3) {
+          data3.forEach((element) => {
+          if (element.start_date)
+            element.start_date = new Date(element.start_date);
+          if (element.end_date) element.end_date = new Date(element.end_date);
+        });
           list_work_experience.value = data3;
         }
 
@@ -173,19 +188,8 @@ const saveData = (isFormValid) => {
   if (!isFormValid) {
     return;
   }
-  if (
-    candidate.value.start_date == null ||
-    candidate.value.user_verify_fake == null ||
-    candidate.value.form_training == null ||
-    candidate.value.candidate_place == null
-  ) {
-    return;
-  }
-  if (
-    list_users_family.value.filter(
-      (x) => x.profile_id == null || x.profile_id == ""
-    ).length > 0
-  ) {
+
+  if (candidate.value.candidate_source == null) {
     return;
   }
 
@@ -207,46 +211,12 @@ const saveData = (isFormValid) => {
     });
     return;
   }
-  list_academic_level.value.forEach((element) => {
-    if (element.class_schedule_name)
-      if (element.class_schedule_name.length >= 250) {
-        swal.fire({
-          title: "Error!",
-          text: "Tồn tại tên nội dung ứng viên vượt quá 250 ký tự!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      } else return;
-    if (element.phone_number)
-      if (element.phone_number.length >= 11) {
-        swal.fire({
-          title: "Error!",
-          text: "Số điện thoại giảng viên không được vượt quá 11 ký tự!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    if (element.lecturers_name)
-      if (element.lecturers_name.length >= 250) {
-        swal.fire({
-          title: "Error!",
-          text: "Tên giảng viên không được vượt quá 250 ký tự!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-  });
-  if (candidate.value.user_verify_fake.length > 0)
-    candidate.value.user_verify = candidate.value.user_verify_fake.toString();
-  if (candidate.value.user_follows_fake.length > 0)
-    candidate.value.user_follows = candidate.value.user_follows_fake.toString();
-  if (candidate.value.organization_training_fake)
-    Object.keys(candidate.value.organization_training_fake).forEach((key) => {
-      candidate.value.organization_training = Number(key);
-    });
+  if (candidate.value.candidate_phone_fake)
+    candidate.value.candidate_phone =
+      candidate.value.candidate_phone_fake.toString();
+  if (candidate.value.candidate_email_fake)
+    candidate.value.candidate_email =
+      candidate.value.candidate_email_fake.toString();
 
   let formData = new FormData();
   for (var i = 0; i < filesList.value.length; i++) {
@@ -256,15 +226,15 @@ const saveData = (isFormValid) => {
 
   formData.append("hrm_candidate", JSON.stringify(candidate.value));
   formData.append(
-    "hrm_candidate_family ",
+    "hrm_candidate_family",
     JSON.stringify(list_users_family.value)
   );
   formData.append(
-    "hrm_candidate_academic  ",
+    "hrm_candidate_academic",
     JSON.stringify(list_academic_level.value)
   );
   formData.append(
-    "hrm_candidate_family ",
+    "list_work_experience",
     JSON.stringify(list_work_experience.value)
   );
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
@@ -294,6 +264,7 @@ const saveData = (isFormValid) => {
       })
       .catch((error) => {
         swal.close();
+        console.log(error);
         swal.fire({
           title: "Error!",
           text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
@@ -409,7 +380,7 @@ const loadUser = () => {
     });
 };
 const v$ = useVuelidate(rules, candidate);
- 
+
 const listStatus = ref([
   { name: "Lên kế hoạch", code: 1 },
   { name: "Đang thực hiện", code: 2 },
@@ -473,7 +444,7 @@ const addRow_Item = (type) => {
     let obj = {
       is_order: list_users_family.value.length + 1,
       relationship_id: null,
-      candidate_id: null,
+
       full_name: null,
       birthday: null,
       major_id: null,
@@ -526,42 +497,42 @@ const treedonvis = ref();
 const listDiaDanh = ref([]);
 const listDiaDanhSave = ref([]);
 
-const onChangeCandidatePlace = (value, type) => {
-  let idPlace = null;
+// const onChangeCandidatePlace = (value, type) => {
+//   let idPlace = null;
 
-  for (const key in value) {
-    if (Object.hasOwnProperty.call(value, key)) {
-      idPlace = key;
-    }
-  }
+//   for (const key in value) {
+//     if (Object.hasOwnProperty.call(value, key)) {
+//       idPlace = key;
+//     }
+//   }
 
-  var strPlace = "";
-  var placeSelected = listDiaDanhSave.value.find(
-    (x) => x.place_id == Number(idPlace)
-  );
-  strPlace += placeSelected.name;
+//   var strPlace = "";
+//   var placeSelected = listDiaDanhSave.value.find(
+//     (x) => x.place_id == Number(idPlace)
+//   );
+//   strPlace += placeSelected.name;
 
-  if (placeSelected.parent_id) {
-    var renPP = (parent_id) => {
-      var dd = listDiaDanhSave.value.find(
-        (x) => x.place_id == Number(parent_id)
-      );
+//   if (placeSelected.parent_id) {
+//     var renPP = (parent_id) => {
+//       var dd = listDiaDanhSave.value.find(
+//         (x) => x.place_id == Number(parent_id)
+//       );
 
-      if (dd) {
-        strPlace += " - " + dd.name;
-        if (dd.parent_id) {
-          renPP(dd.parent_id);
-        }
-      }
-      return strPlace;
-    };
-    strPlace = renPP(placeSelected.parent_id);
-  }
-  if (type == 1) candidate.value.candidate_place = strPlace;
-  else if (type == 2) candidate.value.candidate_domicile = strPlace;
-  else if (type == 3) candidate.value.resident_address = strPlace;
-  else if (type == 4) candidate.value.resident_curent_address = strPlace;
-};
+//       if (dd) {
+//         strPlace += ", " + dd.name;
+//         if (dd.parent_id) {
+//           renPP(dd.parent_id);
+//         }
+//       }
+//       return strPlace;
+//     };
+//     strPlace = renPP(placeSelected.parent_id);
+//   }
+//   if (type == 1) candidate.value.candidate_place = strPlace;
+//   else if (type == 2) candidate.value.candidate_domicile = strPlace;
+//   else if (type == 3) candidate.value.resident_address = strPlace;
+//   else if (type == 4) candidate.value.resident_curent_address = strPlace;
+// };
 const renderTreePlace = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
@@ -601,7 +572,13 @@ const renderTreePlace = (data, id, name, title) => {
     });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
-const listTrainingGroups = ref([]);
+const listTrainingGroups = ref([
+  { name: "Chưa kết hôn", code: 1 },
+  { name: "Đang có vợ/chồng", code: 2 },
+  { name: "Góa", code: 3 },
+  { name: "Ly hôn/Ly thân", code: 4 },
+  { name: "Khác", code: 5 },
+]);
 const listIdentityPlace = ref([]);
 const listMarital = ref([
   { name: "Chưa kết hôn", code: 1 },
@@ -611,6 +588,11 @@ const listMarital = ref([
   { name: "Khác", code: 5 },
 ]);
 const listNationality = ref([]);
+const listGenders = ref([
+  { name: "Nam", code: 1 },
+  { name: "Nữ", code: 2 },
+  { name: "Khác", code: 3 },
+]);
 const listMilitary = ref([
   { name: "Chưa tham gia", code: 1 },
   { name: "Đã tham gia", code: 2 },
@@ -619,50 +601,214 @@ const listMilitary = ref([
   { name: "Khác", code: 5 },
 ]);
 
-const listRelationship= ref([]);
-const listSpecialization= ref([]);
-const listAcademicLevel= ref([]);
-const listLearningPlace=ref([]);
-const listFormTraining=ref([]);
-const listPositions=ref([]);
-
-const initTudien = () => {
-  
+const listRelationship = ref([]);
+const listSpecialization = ref([]);
+const listAcademicLevel = ref([]);
+const listLearningPlace = ref([]);
+const listFormTraining = ref([]);
+const listPositions = ref([]);
+const listCampaigns = ref([]);
+const listPlaceDetails = ref([]);
+const listPlaceDetails1 = ref([]);
+const listPlaceDetails2 = ref([]);
+const listPlaceDetails3 = ref([]);
+const onFilterPlace = (event, type) => {
+  var stc = event.value;
+  if (event.value == "") {
+    stc = null;
+  }
   axios
-      .post(
-        baseURL + "/api/DictionaryProc/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "doc_ca_positions_list",
-              par: [
-                { par: "pageno", va: 0},
-                { par: "pagesize", va:10000 },
-                { par: "user_id", va: store.state.user.user_id },
-              ],
-            }),
-            SecretKey,
-            cryoptojs,
-          ).toString(),
-        },
-        config,
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        listPositions.value = [];
-        
+    .post(
+      baseURL + "/api/DictionaryProc/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "ca_place_details_list",
+            par: [
+              { par: "search", va: stc },
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (type == 1) listPlaceDetails.value = [];
+      if (type == 2) listPlaceDetails1.value = [];
+      if (type == 3) listPlaceDetails2.value = [];
+      if (type == 4) listPlaceDetails3.value = [];
+      data.forEach((element, i) => {
+        if (type == 1)
+          listPlaceDetails.value.push({
+            name: element.name,
+          });
+        if (type == 2)
+          listPlaceDetails1.value.push({
+            name: element.name,
+          });
+        if (type == 3)
+          listPlaceDetails2.value.push({
+            name: element.name,
+          });
+        if (type == 4)
+          listPlaceDetails3.value.push({
+            name: element.name,
+          });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+    });
+};
+const initTudien = () => {
+  axios
+    .post(
+      baseURL + "/api/DictionaryProc/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "ca_place_details_list",
+            par: [
+              { par: "search", va: null },
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listPlaceDetails.value = [];
+      listPlaceDetails1.value = [];
+      listPlaceDetails2.value = [];
+      listPlaceDetails3.value = [];
+      data.forEach((element, i) => {
+        listPlaceDetails.value.push({
+          name: element.name,
+        });
+      });
+      listPlaceDetails1.value = [...listPlaceDetails.value];
+      listPlaceDetails2.value = [...listPlaceDetails.value];
+      listPlaceDetails3.value = [...listPlaceDetails.value];
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+    });
+
+  axios
+    .post(
+      baseURL + "/api/DictionaryProc/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_identity_place_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 10000 },
+              { par: "user_id", va: store.state.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listIdentityPlace.value = [];
+
+      data.forEach((element, i) => {
+        listIdentityPlace.value.push({
+          name: element.identity_place_name,
+          code: element.identity_place_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+    });
+
+  listCampaigns.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_campaign_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 10000 },
+              { par: "user_id", va: store.getters.user.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      data.forEach((element, i) => {
+        listCampaigns.value.push({
+          name: element.campaign_name,
+          code: element.campaign_id,
+        });
+      });
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+    });
+
+  axios
+    .post(
+      baseURL + "/api/DictionaryProc/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "doc_ca_positions_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 10000 },
+              { par: "user_id", va: store.state.user.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listPositions.value = [];
+
       data.forEach((element, i) => {
         listPositions.value.push({
           name: element.position_name,
           code: element.position_id,
         });
-      }); 
-      })
-      .catch((error) => {
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
-       
       });
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+    });
 
   axios
     .post(
@@ -687,7 +833,7 @@ const initTudien = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       listFormTraining.value = [];
-       
+
       data.forEach((element, i) => {
         listFormTraining.value.push({
           name: element.form_traning_name,
@@ -797,7 +943,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-    axios
+  axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
@@ -924,9 +1070,6 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  
-
-    
 };
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -1200,7 +1343,7 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 v-model="candidate.campaign_id"
-                :options="listTrainingGroups"
+                :options="listCampaigns"
                 optionLabel="name"
                 optionValue="code"
                 placeholder="Chọn chiến dịch ứng viên Apply"
@@ -1221,6 +1364,7 @@ onMounted(() => {
                   <InputText
                     v-model="candidate.candidate_code"
                     class="w-full"
+                    placeholder="Nhập mã ứng viên"
                     :style="
                       candidate.candidate_code
                         ? 'background-color:white !important'
@@ -1278,6 +1422,7 @@ onMounted(() => {
               }}</span>
             </small>
           </div>
+          <div class="col-6 p-0 flex" v-else></div>
           <div
             class="col-6 p-0 flex"
             v-if="candidate.candidate_source == null && submitted"
@@ -1303,6 +1448,7 @@ onMounted(() => {
                   <InputText
                     v-model="candidate.candidate_name"
                     class="w-full"
+                    placeholder="Nhập họ và tên ứng viên"
                     :style="
                       candidate.candidate_name
                         ? 'background-color:white !important'
@@ -1327,10 +1473,10 @@ onMounted(() => {
                   autocomplete="off"
                   placeholder="dd/mm/yyyy"
                   :showIcon="true"
+                  :maxDate="new Date()"
                 />
               </div>
             </div>
-
             <div class="col-5 flex p-0 align-items-center">
               <div class="w-6rem pl-3">Giới tính</div>
               <div style="width: calc(100% - 6rem)">
@@ -1338,14 +1484,11 @@ onMounted(() => {
                   <div class="p-inputgroup">
                     <Dropdown
                       v-model="candidate.candidate_gender"
-                      :options="listTrainingGroups"
+                      :options="listGenders"
                       optionLabel="name"
                       optionValue="code"
                       class="w-full"
-                      :class="{
-                        'p-invalid':
-                          candidate.candidate_gender == null && submitted,
-                      }"
+                      placeholder="Chọn giới tính"
                     />
                   </div>
                 </div>
@@ -1371,7 +1514,18 @@ onMounted(() => {
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="w-10rem">Nơi sinh</div>
           <div style="width: calc(100% - 10rem)">
-            <TreeSelect
+            <Dropdown
+              v-model="candidate.candidate_place"
+              :options="listPlaceDetails"
+              optionLabel="name"
+              optionValue="name"
+              class="w-full"
+              placeholder="Xã phường, Quận huyện, Tỉnh thành"
+              panelClass="d-design-dropdown"
+              :filter="true"
+              @filter="onFilterPlace($event, 1)"
+            />
+            <!-- <TreeSelect
               :options="listDiaDanh"
               v-model="candidate.candidate_place_fake"
               placeholder="Xã phường, Quận huyện, Tỉnh thành"
@@ -1393,13 +1547,24 @@ onMounted(() => {
                   {{ slotProps.placeholder }}
                 </span>
               </template>
-            </TreeSelect>
+            </TreeSelect> -->
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="w-10rem">Nguyên quán</div>
           <div style="width: calc(100% - 10rem)">
-            <TreeSelect
+            <Dropdown
+              v-model="candidate.candidate_domicile"
+              :options="listPlaceDetails1"
+              optionLabel="name"
+              optionValue="name"
+              class="w-full"
+              placeholder="Xã phường, Quận huyện, Tỉnh thành"
+              panelClass="d-design-dropdown"
+              :filter="true"
+              @filter="onFilterPlace($event, 2)"
+            />
+            <!-- <TreeSelect
               :options="listDiaDanh"
               v-model="candidate.candidate_domicile_fake"
               placeholder="Xã phường, Quận huyện, Tỉnh thành"
@@ -1421,7 +1586,7 @@ onMounted(() => {
                   {{ slotProps.placeholder }}
                 </span>
               </template>
-            </TreeSelect>
+            </TreeSelect> -->
           </div>
         </div>
 
@@ -1462,6 +1627,7 @@ onMounted(() => {
               optionLabel="name"
               optionValue="code"
               class="w-full"
+              placeholder="Chọn nơi cấp"
               panelClass="d-design-dropdown"
               :filter="true"
             />
@@ -1478,6 +1644,7 @@ onMounted(() => {
                 optionValue="code"
                 class="w-full"
                 panelClass="d-design-dropdown"
+                placeholder="Chọn tình trạng hôn nhân"
               />
             </div>
           </div>
@@ -1489,6 +1656,7 @@ onMounted(() => {
                 :options="listNationality"
                 optionLabel="name"
                 optionValue="code"
+                placeholder="Chọn quốc tịch"
                 class="w-full"
                 panelClass="d-design-dropdown"
               />
@@ -1528,6 +1696,7 @@ onMounted(() => {
                 optionValue="code"
                 class="w-full"
                 panelClass="d-design-dropdown"
+                placeholder="Chọn nghĩa vụ quân sự"
               />
             </div>
           </div>
@@ -1608,7 +1777,18 @@ onMounted(() => {
               <div class="col-6 p-0 flex text-left align-items-center">
                 <div class="w-10rem pl-3">Địa chỉ</div>
                 <div style="width: calc(100% - 10rem)">
-                  <TreeSelect
+                  <Dropdown
+                    v-model="candidate.resident_address"
+                    :options="listPlaceDetails2"
+                    optionLabel="name"
+                    optionValue="name"
+                    class="w-full"
+                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                    panelClass="d-design-dropdown"
+                    :filter="true"
+                    @filter="onFilterPlace($event, 3)"
+                  />
+                  <!-- <TreeSelect
                     :options="listDiaDanh"
                     v-model="candidate.resident_address_fake"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
@@ -1630,7 +1810,7 @@ onMounted(() => {
                         {{ slotProps.placeholder }}
                       </span>
                     </template>
-                  </TreeSelect>
+                  </TreeSelect> -->
                 </div>
               </div>
               <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
@@ -1648,7 +1828,18 @@ onMounted(() => {
               <div class="col-6 p-0 flex text-left align-items-center">
                 <div class="w-10rem pl-3">Địa chỉ</div>
                 <div style="width: calc(100% - 10rem)">
-                  <TreeSelect
+                  <Dropdown
+                    v-model="candidate.resident_curent_address"
+                    :options="listPlaceDetails3"
+                    optionLabel="name"
+                    optionValue="name"
+                    class="w-full"
+                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                    panelClass="d-design-dropdown"
+                    :filter="true"
+                    @filter="onFilterPlace($event, 4)"
+                  />
+                  <!-- <TreeSelect
                     :options="listDiaDanh"
                     v-model="candidate.resident_curent_address_fake"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
@@ -1670,7 +1861,7 @@ onMounted(() => {
                         {{ slotProps.placeholder }}
                       </span>
                     </template>
-                  </TreeSelect>
+                  </TreeSelect> -->
                 </div>
               </div>
               <!-- placeholder="Nhập số điện thoại, Enter để nhập nhiều" -->
@@ -1739,8 +1930,8 @@ onMounted(() => {
                   field="form"
                   header="Mối quan hệ"
                   headerStyle="text-align:center;width:250px;height:50px"
-                  bodyStyle="text-align:center;width:250px;"
-                  class="align-items-center justify-content-center text-center"
+                  bodyStyle="width:250px;"
+                  class="align-items-center justify-content-center"
                 >
                   <template #body="slotProps">
                     <div class="w-full">
@@ -1795,8 +1986,8 @@ onMounted(() => {
                   field="end_date"
                   header="Nghề nghiệp"
                   headerStyle="text-align:center;width:250px;height:50px"
-                  bodyStyle="text-align:center;width:250px;"
-                  class="align-items-center justify-content-center text-center"
+                  bodyStyle="width:250px;"
+                  class="align-items-center justify-content-center"
                 >
                   <template #body="slotProps">
                     <Dropdown
@@ -1984,8 +2175,8 @@ onMounted(() => {
                 <Column
                   header="Bằng cấp, trình độ"
                   headerStyle="text-align:center;width:200px;height:50px"
-                  bodyStyle="text-align:center;width:200px;"
-                  class="align-items-center justify-content-center text-center"
+                  bodyStyle="width:200px;"
+                  class="align-items-center justify-content-center"
                 >
                   <template #body="slotProps">
                     <Dropdown
@@ -1995,7 +2186,7 @@ onMounted(() => {
                       optionLabel="name"
                       class="w-full"
                       panelClass="d-design-dropdown"
-              v
+                      optionValue="code"
                     />
                   </template>
                 </Column>
@@ -2011,6 +2202,7 @@ onMounted(() => {
                       v-model="slotProps.data.learning_place_id"
                       :options="listLearningPlace"
                       optionLabel="name"
+                      optionValue="code"
                       class="w-full"
                       panelClass="d-design-dropdown"
                       :editable="true"
@@ -2021,18 +2213,18 @@ onMounted(() => {
                 <Column
                   field="transfer_place"
                   header="Chuyên ngành"
-                  headerStyle="text-align:center;width:250px ;height:50px"
-                  bodyStyle="text-align:center ;width:250px;"
-                  class="align-items-center justify-content-center text-center"
+                  headerStyle="text-align:center;width:250px;height:50px"
+                  bodyStyle="width:250px;"
+                  class="align-items-center justify-content-center"
                 >
                   <template #body="slotProps">
                     <Dropdown
                       v-model="slotProps.data.specialization_id"
                       :options="listSpecialization"
                       optionLabel="name"
+                      optionValue="code"
                       class="w-full"
                       panelClass="d-design-dropdown"
-                      :editable="true"
                       placeholder="Chọn chuyên nghành"
                     />
                   </template>
@@ -2213,21 +2405,20 @@ onMounted(() => {
                   field="admission_place"
                   header="Vị trí"
                   headerStyle="text-align:center;width:200px;height:50px"
-                  bodyStyle="text-align:center;width:200px;"
-                  class="align-items-center justify-content-center text-center"
+                  bodyStyle="width:200px;"
+                  class="align-items-center justify-content-center"
                 >
                   <template #body="slotProps">
                     <Dropdown
-                    v-model="slotProps.data.position_id"
+                      v-model="slotProps.data.position_id"
                       :options="listPositions"
                       optionLabel="name"
                       class="w-full"
+                      optionValue="code"
                       panelClass="d-design-dropdown"
-                     :filter="true"
+                      :filter="true"
                       placeholder="Chọn vị trí"
                     />
-                  
-                  
                   </template>
                 </Column>
                 <Column

@@ -871,7 +871,12 @@ li.p-chips-token {
     min-height: 1.5rem;
     padding-top: 0.3rem;
 }
-
+.p-dropdown-panel{
+    z-index: 1000000 !important;
+}
+.p-treeselect-panel{
+    z-index: 100000 !important;
+}
 .p-datepicker {
     z-index: 10000000;
 }
@@ -1150,7 +1155,6 @@ li.p-chips-token {
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
 }
-
 .format-center {
     display: flex;
     justify-content: center;

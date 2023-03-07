@@ -19,11 +19,11 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  training_emps_name: {
+  candidate_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
-  training_emps_code: {
+  candidate_code: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -58,8 +58,12 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_training_emps_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_candidate_count",
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "status", va: null}
+          
+          
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -88,7 +92,7 @@ const loadCount = () => {
     .catch((error) => {});
 };
 
-//Lấy dữ liệu training_emps
+//Lấy dữ liệu candidate
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -106,11 +110,12 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_training_emps_list",
+              proc: "hrm_candidate_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
+                { par: "status", va: null },
               ],
             }),
             SecretKey,
@@ -124,9 +129,7 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
-          } else element.li_user_verify = [];
+      
         });
 
         datalists.value = data;
@@ -134,6 +137,7 @@ const loadData = (rf) => {
         options.value.loading = false;
       })
       .catch((error) => {
+        console.log(error)
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
       });
@@ -156,19 +160,19 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].training_emps_id;
+      datalists.value[datalists.value.length - 1].candidate_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].training_emps_id;
+    options.value.id = datalists.value[0].candidate_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const training_emps = ref({
-  training_emps_name: "",
+const candidate = ref({
+  candidate_name: "",
   emote_file: "",
   status: true,
   is_default: false,
@@ -185,7 +189,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "training_emps_id desc ",
+  sort: "candidate_id desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -203,9 +207,9 @@ const options = ref({
 const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
-  training_emps.value = {
-    training_emps_code: null,
-    training_emps_name: null,
+  candidate.value = {
+    candidate_code: null,
+    candidate_name: null,
     form_training: 1,
     status: 1,
     training_place: null,
@@ -217,7 +221,7 @@ const openBasic = (str) => {
   };
 
   if (store.getters.user.organization_id)
-    training_emps.value.organization_training_fake[
+    candidate.value.organization_training_fake[
       store.getters.user.organization_id
     ] = true;
 
@@ -228,8 +232,8 @@ numOfKey.value+=1;
 };
 
 const closeDialog = () => {
-  training_emps.value = {
-    training_emps_name: "",
+  candidate.value = {
+    candidate_name: "",
     emote_file: "",
     status: true,
     is_default: false,
@@ -243,7 +247,7 @@ const sttStamp = ref(1);
 
 //Sửa bản ghi
 const editTem = (dataTem) => {
-  training_emps.value = dataTem;
+  
   headerDialog.value = "Sửa ứng viên";
   isSaveTem.value = false;
   displayBasic.value = true;
@@ -271,9 +275,9 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_training_emps/delete_hrm_training_emps", {
+          .delete(baseURL + "/api/hrm_candidate/delete_hrm_candidate", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.training_emps_id] : 1,
+            data: Tem != null ? [Tem.candidate_id] : 1,
           })
           .then((response) => {
             swal.close();
@@ -330,7 +334,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "training_emps_id",
+    id: "candidate_id",
     sqlS: null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -342,7 +346,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/HRM_SQL/Filter_hrm_training_emps", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_candidate", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -389,14 +393,14 @@ const loadDataSQL = () => {
 const setStatus = (value) => {
   opstatus.value.hide();
   let data = {
-    IntID: value.training_emps_id,
-    TextID: value.training_emps_id + "",
+    IntID: value.candidate_id,
+    TextID: value.candidate_id + "",
     IntTrangthai: value.status,
     BitTrangthai: false,
   };
   axios
     .put(
-      baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
+      baseURL + "/api/hrm_candidate/update_s_hrm_candidate",
       data,
       config
     )
@@ -427,7 +431,7 @@ const setStatus = (value) => {
 
 const opstatus = ref();
 const toggleStatus = (item, event) => {
-  training_emps.value = item;
+  candidate.value = item;
   opstatus.value.toggle(event);
 };
 //Tìm kiếm
@@ -499,14 +503,14 @@ const numOfKey=ref(0);
 const onCheckBox = (value, check) => {
   if (check) {
     let data = {
-      IntID: value.training_emps_id,
-      TextID: value.training_emps_id + "",
+      IntID: value.candidate_id,
+      TextID: value.candidate_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
+        baseURL + "/api/hrm_candidate/update_s_hrm_candidate",
         data,
         config
       )
@@ -536,13 +540,13 @@ const onCheckBox = (value, check) => {
       });
   } else {
     let data1 = {
-      IntID: value.training_emps_id,
-      TextID: value.training_emps_id + "",
+      IntID: value.candidate_id,
+      TextID: value.candidate_id + "",
       BitMain: value.is_default,
     };
     axios
       .put(
-        baseURL + "/api/hrm_training_emps/Update_DefaultStamp",
+        baseURL + "/api/hrm_candidate/Update_DefaultStamp",
         data1,
         config
       )
@@ -600,7 +604,7 @@ const exportData = (method) => {
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
         excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
-        proc: "hrm_training_emps_export",
+        proc: "hrm_candidate_export",
         par: [
  
           { par: "user_id", va: store.state.user.user_id },
@@ -682,19 +686,19 @@ const itemButMores = ref([
     label: "Hiệu chỉnh nội dung",
     icon: "pi pi-pencil",
     command: (event) => {
-      editTem(training_emps.value, "Chỉnh sửa hợp đồng");
+      editTem(candidate.value, "Chỉnh sửa hợp đồng");
     },
   },
   {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
-      delTem(training_emps.value);
+      delTem(candidate.value);
     },
   },
 ]);
 const toggleMores = (event, item) => {
-  training_emps.value = item;
+  candidate.value = item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -725,11 +729,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.training_emps_id);
+            listId.push(item.candidate_id);
           });
           axios
             .delete(
-              baseURL + "/api/hrm_training_emps/delete_hrm_training_emps",
+              baseURL + "/api/hrm_candidate/delete_hrm_candidate",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -1116,7 +1120,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách ứng viên
+          <i class="pi pi-users"></i> Danh sách ứng viên
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1622,7 +1626,7 @@ onMounted(() => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
             :paginator="true"
-            dataKey="training_emps_id"
+            dataKey="candidate_id"
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
             :row-hover="true"
@@ -1643,10 +1647,10 @@ onMounted(() => {
               bodyStyle="text-align:center;max-width:70px"
             ></Column>
             <Column
-              field="training_emps_code"
-              header="Mã số"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
+              field="candidate_code"
+              header="Mã ứng viên"
+              headerStyle="text-align:center;max-width:170px;height:50px"
+              bodyStyle="text-align:center;max-width:170px"
               class="align-items-center justify-content-center text-center"
               :sortable="true"
             >
@@ -1660,8 +1664,8 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="training_emps_name"
-              header="Tên khoá ứng viên"
+              field="candidate_name"
+              header="Tên ứng viên"
               :sortable="true"
               headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"
@@ -1677,7 +1681,22 @@ onMounted(() => {
             </Column>
             <Column
               field="form_training"
-              header="Hình thức"
+              header="Ngày sinh"
+              headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="data">
+                <div v-if="data.data.candidate_birthday">
+                  {{
+                    moment(new Date(data.data.candidate_birthday)).format("DD/MM/YYYY")
+                  }}
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="gender"
+              header="Giới tính"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
               class="align-items-center justify-content-center text-center"
@@ -1685,26 +1704,7 @@ onMounted(() => {
               <template #body="data">
                 <div>
                   {{
-                    data.data.form_training == 1
-                      ? "Bắt buộc"
-                      : data.data.form_training == 2
-                      ? "Đăng ký"
-                      : "Cả hai"
-                  }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="start_date"
-              header="Từ ngày"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="data.data.start_date">
-                  {{
-                    moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
+                   data.data.candidate_gender
                   }}
                 </div>
               </template>
@@ -1725,56 +1725,7 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-            <Column
-              field="li_user_verify"
-              header="Giảng viên"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  <AvatarGroup>
-                    <Avatar
-                      v-for="(item, index) in data.data.li_user_verify.slice(
-                        0,
-                        4
-                      )"
-                      v-bind:label="
-                        item.avatar
-                          ? ''
-                          : item.full_name.substring(
-                              item.full_name.lastIndexOf(' ') + 1,
-                              item.full_name.lastIndexOf(' ') + 2
-                            )
-                      "
-                      :key="index"
-                      :style="
-                        item.avatar
-                          ? 'background-color: #2196f3'
-                          : 'background:' + bgColor[item.full_name.length % 7]
-                      "
-                      :image="basedomainURL + item.avatar"
-                      class="w-3rem h-3rem"
-                      shape="circle"
-
-                      v-tooltip.top="item.full_name"
-                    />
-                    <Avatar
-                      v-if="data.data.li_user_verify.length > 4"
-                      :label="(data.data.li_user_verify.length - 4).toString()"
-                      shape="circle"
-                      class="w-3rem h-3rem"
-                      style="
-                        background-color: #9c27b0;
-                        color: #ffffff;
-                        font-size: 12pt !important;
-                      "
-                    />
-                  </AvatarGroup>
-                </div>
-              </template>
-            </Column>
+           
             <Column
               field="count_emps"
               header="Học viên"
@@ -1866,12 +1817,12 @@ onMounted(() => {
                         :filter="false"
                         :showClear="false"
                         :editable="false"
-                        v-model="training_emps.status"
+                        v-model="candidate.status"
                         optionLabel="name"
                         optionValue="code"
                         placeholder="Chọn trạng thái"
                         class="w-full"
-                        @change="setStatus(training_emps)"
+                        @change="setStatus(candidate)"
                       >
                       </Dropdown>
                     </div>
@@ -1959,7 +1910,7 @@ onMounted(() => {
       :key="numOfKey"
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
-        :candidate="training_emps"
+        :candidate="candidate"
         :checkadd="isSaveTem"
         :view="false"
         :closeDialog="closeDialog"
