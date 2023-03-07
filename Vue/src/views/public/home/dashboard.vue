@@ -1441,12 +1441,12 @@ onMounted(() => {
               </div>
               <div
                 class="card-body carousel-hidden-p-link"
-                style="height: 475px"
+                style="height: 460px"
               >
                 <div
                   v-if="datatasks.length > 0"
                   class="scroll-outer"
-                  style="overflow: auto; height: 450px"
+                  style="overflow: auto; height: 435px"
                 >
                   <div class="scroll-inner">
                     <div class="d-grid formgrid">
@@ -1588,12 +1588,12 @@ onMounted(() => {
               </div> -->
               <div
                 class="card-body carousel-hidden-p-link"
-                style="height: 475px"
+                style="height: 460px"
               >
                 <div
                   v-if="datadocs.length > 0"
                   class="scroll-outer"
-                  style="overflow: auto; height: 450px"
+                  style="overflow: auto; height: 435px"
                 >
                   <div class="scroll-inner">
                     <div class="d-grid formgrid">
@@ -1667,7 +1667,7 @@ onMounted(() => {
               </div>
               <div
                 class="card-body carousel-hidden-p-link"
-                style="height: 475px"
+                style="height: 460px"
               >
                 <Carousel
                   v-show="datanews.length > 0"
@@ -1676,7 +1676,7 @@ onMounted(() => {
                   :numScroll="3"
                   :circular="true"
                   orientation="vertical"
-                  verticalViewPortHeight="420px"
+                  verticalViewPortHeight="400px"
                 >
                   <template #item="slotProps">
                     <div
@@ -1794,7 +1794,7 @@ onMounted(() => {
               </div>
               <div
                 class="card-body carousel-hidden-p-link"
-                style="height: 475px"
+                style="height: 460px"
               >
                 <Carousel
                   v-show="datalideshows.length > 0"
@@ -1803,7 +1803,7 @@ onMounted(() => {
                   :numScroll="1"
                   :circular="true"
                   orientation="horizontal"
-                  verticalViewPortHeight="475px"
+                  verticalViewPortHeight="460px"
                 >
                   <template #item="slotProps">
                     <div
@@ -1817,7 +1817,7 @@ onMounted(() => {
                     >
                       <div class="d-grid formgrid">
                         <div class="col-12 md:col-12 p-0">
-                          <div style="height: 350px">
+                          <div style="height: 335px">
                             <img
                               :src="
                                 slotProps.data.image
@@ -2052,9 +2052,9 @@ onMounted(() => {
               >
                 <span>Trực chủ nhật ({{ holiday.day_string }})</span>
               </div>
-              <div class="card-body" style="height: 100px; overflow-y: auto;">
+              <div class="card-body" style="height: 65px; overflow-y: auto;">
                 <div v-if="duty_sunday && duty_sunday.user_id">
-                  <div class="mb-2">
+                  <div class="format-center" :style="{ justifyContent: 'left' }">
                     <Avatar
                       v-bind:label="
                         duty_sunday.avatar
@@ -2077,9 +2077,11 @@ onMounted(() => {
                       size="xlarge"
                       shape="circle"
                     />
-                    <span>{{ duty_sunday.full_name }}</span>
+                    <div class="text-left">
+                      <div><b>{{ duty_sunday.full_name }}</b></div>
+                      <div class="description">{{ duty_sunday.position_name }}</div>
+                    </div>
                   </div>
-                  <div>{{ duty_sunday.note }}</div>
                 </div>
               </div>
             </div>

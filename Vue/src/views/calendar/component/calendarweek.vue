@@ -18,6 +18,7 @@ import frameprintweek2 from "../component/frameprintweek2.vue";
 import framewordweek from "../component/framewordweek.vue";
 import framewordweek2 from "../component/framewordweek2.vue";
 import calendardutysunday from "../component/calendardutysunday.vue";
+import calendarleader from "../component/calendarleader.vue";
 
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
@@ -147,13 +148,35 @@ const locs = ref([
 
 const componentKey = ref({});
 const forceRerender = (type) => {
-  if(!componentKey.value){
+  if (!componentKey.value) {
     componentKey.value = { type: 0 };
   }
-  if(!componentKey.value[type]){
+  if (!componentKey.value[type]) {
     componentKey.value[type] = 0;
   }
   componentKey.value[type] += 1;
+};
+
+//
+const opConfig = ref();
+const itemConfigs = ref([
+  {
+    label: "Trực chủ nhật",
+    icon: "pi pi-cog",
+    command: (event) => {
+      configDutySunday();
+    },
+  },
+  {
+    label: "Lãnh đạo",
+    icon: "pi pi-cog",
+    command: (event) => {
+      configLeader();
+    },
+  },
+]);
+const toggleConfig = (event) => {
+  opConfig.value.toggle(event);
 };
 
 //Xuất excel
@@ -1538,7 +1561,7 @@ const closeDialogCoincide = () => {
 
 //Duty Sunday
 const duty_sunday = ref({});
-const headerDialogDutySunday= ref();
+const headerDialogDutySunday = ref();
 const displayDialogDutySunday = ref(false);
 const configDutySunday = () => {
   forceRerender(6);
@@ -1547,6 +1570,18 @@ const configDutySunday = () => {
 };
 const closeDialogDutySunday = () => {
   displayDialogDutySunday.value = false;
+};
+
+//Config leader
+const headerDialogLeader = ref();
+const displayDialogLeader = ref(false);
+const configLeader = () => {
+  forceRerender(11);
+  headerDialogLeader.value = "Thiết lập lãnh đạo";
+  displayDialogLeader.value = true;
+};
+const closeDialogLeader = () => {
+  displayDialogLeader.value = false;
 };
 
 //Init
@@ -1934,7 +1969,9 @@ const initData = (rf) => {
               };
               datachutris.value.push(obj);
             });
-            datachutris.value = datachutris.value.sort((a, b) => { b.is_order - a.is_order });
+            datachutris.value = datachutris.value.sort((a, b) => {
+              b.is_order - a.is_order;
+            });
             tbs[1].forEach((item, i) => {
               if (item["contents"] != null) {
                 item["contents"] = item["contents"].replaceAll("\n", "<br/>");
@@ -2148,7 +2185,7 @@ onMounted(() => {
         </OverlayPanel> -->
       </template>
       <template #end>
-        <Button
+        <!-- <Button
           @click="configDutySunday"
           icon="pi pi pi-cog"
           label="Thiết lập"
@@ -2156,6 +2193,26 @@ onMounted(() => {
           aria:haspopup="true"
           aria-controls="overlay_send"
           v-if="props.group === 1 && (store.getters.user.is_admin || store.getters.user.role_code === 'admin')"
+        /> -->
+        <Button
+          v-if="
+            props.group === 1 &&
+            (store.getters.user.is_admin ||
+              store.getters.user.role_code === 'admin')
+          "
+          @click="toggleConfig"
+          type="button"
+          class="mr-2 p-button-outlined p-button-secondary"
+          icon="pi pi pi-cog"
+          label="Thiết lập"
+          aria:haspopup="true"
+          aria-controls="overlay_config"
+        />
+        <Menu
+          :model="itemConfigs"
+          :popup="true"
+          id="overlay_config"
+          ref="opConfig"
         />
         <Button
           @click="toggleSend"
@@ -2985,6 +3042,14 @@ onMounted(() => {
     :group="options.is_group"
     :week_start_date="options.week_start_date"
     :week_end_date="options.week_end_date"
+  />
+
+  <!--duty sunday-->
+  <calendarleader
+    :key="componentKey['11']"
+    :headerDialog="headerDialogLeader"
+    :displayDialog="displayDialogLeader"
+    :closeDialog="closeDialogLeader"
   />
 </template>
 <style scoped>

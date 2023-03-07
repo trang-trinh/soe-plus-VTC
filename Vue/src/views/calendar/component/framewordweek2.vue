@@ -114,7 +114,7 @@ const newDate = new Date();
             <th
               v-for="(value, index) in props.datachutris"
               :key="index"
-              style="width: 100px"
+              style="width: 200px"
             >
               Đ/c {{ value.full_name }}
             </th>
