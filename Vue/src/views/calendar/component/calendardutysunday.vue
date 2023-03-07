@@ -265,7 +265,8 @@ onMounted(() => {
               }"
             >
               <div class="p-2">
-                <b>Tuần {{ week.week_no }}</b>
+                <div class="mb-1"><b>Tuần {{ week.week_no }}</b> </div>
+                <div :style="{ fontSize: '11px' }">Từ ({{ week.week_start_date_short }} - {{ week.week_end_date_short }})</div>
               </div>
               <div v-if="week.user_id" class="p-2 format-center">
                 <div>

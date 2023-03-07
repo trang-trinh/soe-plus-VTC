@@ -1142,7 +1142,7 @@ namespace API.Controllers.Calendar
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "calendar_week/update_calendar_duty_sunday", ip, tid, "Lỗi khi cập nhật phòng họp", 0, "calendar_week");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "calendar_week/update_calendar_duty_sunday", ip, tid, "Lỗi khi cập nhật", 0, "calendar_week");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -1152,7 +1152,99 @@ namespace API.Controllers.Calendar
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "calendar_week/update_calendar_duty_sunday", ip, tid, "Lỗi khi cập nhật phòng họp", 0, "calendar_week");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "calendar_week/update_calendar_duty_sunday", ip, tid, "Lỗi khi cập nhật", 0, "calendar_week");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_leader()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            string fdlaw = "";
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    // Params
+                    var usernow = await db.sys_users.FindAsync(uid);
+                    var us = provider.FormData.GetValues("users").SingleOrDefault();
+                    List<string> users = JsonConvert.DeserializeObject<List<string>>(us);
+
+                    var olds = await db.calendar_leader.Where(x => x.organization_id == usernow.organization_id).ToListAsync();
+                    if (olds.Count > 0)
+                    {
+                        db.calendar_leader.RemoveRange(olds);
+                    }
+                    List<calendar_leader> leaders = new List<calendar_leader>();
+                    int stt = 0;
+                    foreach (var user_id in users)
+                    {
+                        calendar_leader leader = new calendar_leader();
+                        leader.user_id = user_id;
+                        leader.is_order = stt++;
+                        leader.organization_id = usernow.organization_id;
+                        leader.created_by = uid;
+                        leader.created_date = DateTime.Now;
+                        leader.created_ip = ip;
+                        leader.created_token_id = tid;
+                        leaders.Add(leader);
+                    }
+                    if (leaders.Count > 0)
+                    {
+                        db.calendar_leader.AddRange(leaders);
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "calendar_week/update_leader", ip, tid, "Lỗi khi cập nhật", 0, "calendar_week");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "calendar_week/update_leader", ip, tid, "Lỗi khi cập nhật", 0, "calendar_week");
                 if (!helper.debug)
                 {
                     contents = "";
