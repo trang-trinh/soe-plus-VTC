@@ -53,8 +53,8 @@ export default defineConfig({
   //     isDev: true,
   // },
   define: {
-    baseURL: JSON.stringify("https://apiv2.soe.vn/"),
-    fileURL: JSON.stringify("https://apiv2.soe.vn/"),
+    baseURL: JSON.stringify("https://apivtc.soe.vn/"),
+    fileURL: JSON.stringify("https://apivtc.soe.vn/"),
     socketURL: JSON.stringify("https://socket2.soe.vn/"),
     SecretKey: JSON.stringify("1012198815021989"),
     isDev: true,
