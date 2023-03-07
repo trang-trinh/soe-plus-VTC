@@ -1120,7 +1120,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách ứng viên
+          <i class="pi pi-users"></i> Danh sách ứng viên
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1681,7 +1681,22 @@ onMounted(() => {
             </Column>
             <Column
               field="form_training"
-              header="Hình thức"
+              header="Ngày sinh"
+              headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="data">
+                <div v-if="data.data.candidate_birthday">
+                  {{
+                    moment(new Date(data.data.candidate_birthday)).format("DD/MM/YYYY")
+                  }}
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="gender"
+              header="Giới tính"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
               class="align-items-center justify-content-center text-center"
@@ -1689,26 +1704,7 @@ onMounted(() => {
               <template #body="data">
                 <div>
                   {{
-                    data.data.form_training == 1
-                      ? "Bắt buộc"
-                      : data.data.form_training == 2
-                      ? "Đăng ký"
-                      : "Cả hai"
-                  }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="start_date"
-              header="Từ ngày"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="data.data.start_date">
-                  {{
-                    moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
+                   data.data.candidate_gender
                   }}
                 </div>
               </template>

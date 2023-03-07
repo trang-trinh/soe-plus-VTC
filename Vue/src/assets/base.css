@@ -870,7 +870,12 @@ li.p-chips-token {
     min-height: 1.5rem;
     padding-top: 0.3rem;
 }
-
+.p-dropdown-panel{
+    z-index: 1000000 !important;
+}
+.p-treeselect-panel{
+    z-index: 100000 !important;
+}
 .p-datepicker {
     z-index: 10000000;
 }
