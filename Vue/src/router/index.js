@@ -272,7 +272,7 @@ const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
-
+const Hrm_rec_calendar = () => import("../views/hrm/recruitment/hrm_recCalendar.vue");
 //end
 // TV
 const ConfigScreenTV = () => import("../views/tivi/tivi_screen_config.vue");
@@ -1748,6 +1748,11 @@ const router = createRouter({
       path: "/hrm/recruitment/campaign",
       name: "Hrm_campaign",
       component: Hrm_campaign,
+    },
+    {
+      path: "/hrm/recruitment/rec_calendar",
+      name: "Hrm_rec_calendar",
+      component: Hrm_rec_calendar,
     },
     {
       path: "/hrm/hrm_paycheck",
