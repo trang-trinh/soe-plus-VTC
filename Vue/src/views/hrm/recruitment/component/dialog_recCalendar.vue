@@ -1348,14 +1348,14 @@ onMounted(() => {
         <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
         <div class="col-12 flex p-0 text-center align-items-center">
           <div class="col-12 field flex p-0 text-left align-items-center">
-            <div class="w-10rem">Chiến dịch</div>
-            <div style="width: calc(100% - 10rem)">
+            <div class="w-11rem">Chiến dịch tuyển dụng</div>
+            <div style="width: calc(100% - 11rem)">
               <Dropdown
                 v-model="candidate.campaign_id"
                 :options="listCampaigns"
                 optionLabel="name"
                 optionValue="code"
-                placeholder="Chọn chiến dịch ứng viên Apply"
+                placeholder="Chọn chiến dịch tuyển dụng"
                 class="w-full"
               />
             </div>
@@ -1363,11 +1363,11 @@ onMounted(() => {
         </div>
 
         <div class="col-12 field flex p-0 align-items-center">
-          <div class="col-6 flex p-0 align-items-center">
-            <div class="w-10rem">
-              Mã ứng viên<span class="redsao pl-1"> (*)</span>
+        
+            <div class="w-11rem">
+           Tên lịch phỏng vấn<span class="redsao pl-1"> (*)</span>
             </div>
-            <div style="width: calc(100% - 10rem)">
+            <div style="width: calc(100% - 11rem)">
               <div class="col-12 p-0">
                 <div class="p-inputgroup">
                   <InputText
@@ -1386,30 +1386,8 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-          </div>
-          <div class="col-6 flex p-0 align-items-center">
-            <div class="w-10rem pl-3">
-              Nguồn <span class="redsao pl-1"> (*)</span>
-            </div>
-            <div style="width: calc(100% - 10rem)">
-              <div class="col-12 p-0">
-                <div class="p-inputgroup">
-                  <Dropdown
-                    v-model="candidate.candidate_source"
-                    :options="listTrainingGroups"
-                    optionLabel="name"
-                    optionValue="code"
-                    placeholder="Chọn nguồn"
-                    class="w-full"
-                    :class="{
-                      'p-invalid':
-                        candidate.candidate_source == null && submitted,
-                    }"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+       
+           
         </div>
         <div
           class="col-12 p-0 field flex"
@@ -1422,8 +1400,8 @@ onMounted(() => {
             class="col-6 p-0 flex"
             v-if="v$.candidate_code.$invalid && submitted"
           >
-            <div class="w-10rem"></div>
-            <small style="width: calc(100% - 10rem)">
+            <div class="w-11rem"></div>
+            <small style="width: calc(100% - 11rem)">
               <span style="color: red" class="w-full">{{
                 v$.candidate_code.required.$message
                   .replace("Value", "Mã ứng viên")
@@ -1436,8 +1414,8 @@ onMounted(() => {
             class="col-6 p-0 flex"
             v-if="candidate.candidate_source == null && submitted"
           >
-            <div class="w-10rem"></div>
-            <small style="width: calc(100% - 10rem)">
+            <div class="w-11rem"></div>
+            <small style="width: calc(100% - 11rem)">
               <span style="color: red" class="w-full">{{
                 v$.candidate_source.required.$message
                   .replace("Value", "Nguồn")
@@ -1448,25 +1426,26 @@ onMounted(() => {
         </div>
         <div class="col-12 field flex p-0 align-items-center">
           <div class="col-6 flex p-0 align-items-center">
-            <div class="w-10rem">
-              Họ và tên<span class="redsao pl-1"> (*)</span>
+            <div class="w-11rem">
+           Ngày phỏng vấn<span class="redsao pl-1"> (*)</span>
             </div>
-            <div style="width: calc(100% - 10rem)">
+            <div style="width: calc(100% - 11rem)">
               <div class="col-12 p-0">
                 <div class="p-inputgroup">
-                  <InputText
-                    v-model="candidate.candidate_name"
-                    class="w-full"
-                    placeholder="Nhập họ và tên ứng viên"
-                    :style="
-                      candidate.candidate_name
-                        ? 'background-color:white !important'
-                        : ''
-                    "
-                    :class="{
-                      'p-invalid': v$.candidate_name.$invalid && submitted,
+
+                    <Calendar
+                  class="w-full"
+                  v-model="candidate.candidate_birthday"
+                  autocomplete="off"
+                  placeholder="dd/mm/yyyy"
+                  :showIcon="true"
+                  :maxDate="new Date()"
+                  :class="{
+                      'p-invalid': candidate.candidate_birthday==null && submitted,
                     }"
-                  />
+                />
+               
+               
                 </div>
               </div>
             </div>
@@ -1474,16 +1453,11 @@ onMounted(() => {
 
           <div class="col-6 flex p-0 align-items-center">
             <div class="col-7 flex p-0 align-items-center">
-              <div class="w-10rem pl-3">Ngày sinh</div>
-              <div style="width: calc(100% - 10rem)">
-                <Calendar
-                  class="w-full"
-                  v-model="candidate.candidate_birthday"
-                  autocomplete="off"
-                  placeholder="dd/mm/yyyy"
-                  :showIcon="true"
-                  :maxDate="new Date()"
-                />
+              <div class="w-11rem pl-3">Từ giờ</div>
+              <div style="width: calc(100% - 11rem)">
+              
+                <Calendar      v-model="candidate.candidate_birthday"
+                 :showTime="true" :timeOnly="true" hourFormat="24"  suffix="dd"  />
               </div>
             </div>
             <div class="col-5 flex p-0 align-items-center">
@@ -1510,8 +1484,8 @@ onMounted(() => {
           v-if="v$.candidate_name.$invalid && submitted"
         >
           <div class="col-6 p-0 flex">
-            <div class="w-10rem"></div>
-            <small style="width: calc(100% - 10rem)">
+            <div class="w-11rem"></div>
+            <small style="width: calc(100% - 11rem)">
               <span style="color: red" class="w-full">{{
                 v$.candidate_name.required.$message
                   .replace("Value", "Họ và tên")
@@ -1521,8 +1495,8 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Nơi sinh</div>
-          <div style="width: calc(100% - 10rem)">
+          <div class="w-11rem">Nơi sinh</div>
+          <div style="width: calc(100% - 11rem)">
             <Dropdown
               v-model="candidate.candidate_place"
               :options="listPlaceDetails"
@@ -1560,8 +1534,8 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Nguyên quán</div>
-          <div style="width: calc(100% - 10rem)">
+          <div class="w-11rem">Nguyên quán</div>
+          <div style="width: calc(100% - 11rem)">
             <Dropdown
               v-model="candidate.candidate_domicile"
               :options="listPlaceDetails1"
@@ -1601,8 +1575,8 @@ onMounted(() => {
 
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">CMT/Căn cước</div>
-            <div style="width: calc(100% - 10rem)">
+            <div class="w-11rem">CMT/Căn cước</div>
+            <div style="width: calc(100% - 11rem)">
               <InputMask
                 spellcheck="false"
                 class="w-full h-full d-design-it"
@@ -1613,8 +1587,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Ngày cấp</div>
-            <div style="width: calc(100% - 10rem)">
+            <div class="w-11rem pl-3">Ngày cấp</div>
+            <div style="width: calc(100% - 11rem)">
               <Calendar
                 class="w-full"
                 id="basic_purchase_date"
@@ -1628,8 +1602,8 @@ onMounted(() => {
         </div>
 
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Nơi cấp</div>
-          <div style="width: calc(100% - 10rem)">
+          <div class="w-11rem">Nơi cấp</div>
+          <div style="width: calc(100% - 11rem)">
             <Dropdown
               v-model="candidate.candidate_identity_place"
               :options="listIdentityPlace"
@@ -1644,8 +1618,8 @@ onMounted(() => {
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">Tình trạng hôn nhân</div>
-            <div style="width: calc(100% - 10rem)">
+            <div class="w-11rem">Tình trạng hôn nhân</div>
+            <div style="width: calc(100% - 11rem)">
               <Dropdown
                 v-model="candidate.candidate_marital"
                 :options="listMarital"
@@ -1658,8 +1632,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Quốc tịch</div>
-            <div style="width: calc(100% - 10rem)">
+            <div class="w-11rem pl-3">Quốc tịch</div>
+            <div style="width: calc(100% - 11rem)">
               <Dropdown
                 v-model="candidate.candidate_nationality"
                 :options="listNationality"
@@ -1675,8 +1649,8 @@ onMounted(() => {
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="col-6 p-0 flex text-left align-items-center">
-              <div class="w-10rem">Chiều cao</div>
-              <div style="width: calc(100% - 10rem)">
+              <div class="w-11rem">Chiều cao</div>
+              <div style="width: calc(100% - 11rem)">
                 <InputNumber
                   v-model="candidate.candidate_height"
                   class="w-full"
@@ -1685,8 +1659,8 @@ onMounted(() => {
               </div>
             </div>
             <div class="col-6 p-0 flex text-left align-items-center">
-              <div class="w-10rem format-center">Cân nặng</div>
-              <div style="width: calc(100% - 10rem)">
+              <div class="w-11rem format-center">Cân nặng</div>
+              <div style="width: calc(100% - 11rem)">
                 <InputNumber
                   v-model="candidate.candidate_weight"
                   class="w-full"
@@ -1696,8 +1670,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Nghĩa vụ quân sự</div>
-            <div style="width: calc(100% - 10rem)">
+            <div class="w-11rem pl-3">Nghĩa vụ quân sự</div>
+            <div style="width: calc(100% - 11rem)">
               <Dropdown
                 v-model="candidate.candidate_military"
                 :options="listMilitary"
@@ -1711,8 +1685,8 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Giới thiệu bản thân</div>
-          <div style="width: calc(100% - 10rem)">
+          <div class="w-11rem">Giới thiệu bản thân</div>
+          <div style="width: calc(100% - 11rem)">
             <Textarea
               :autoResize="true"
               rows="1"
@@ -1748,8 +1722,8 @@ onMounted(() => {
 
           <div class="w-full p-3" v-if="checkShow == true">
             <div class="col-12 field p-0 flex text-left align-items-center">
-              <div class="w-10rem">Điện thoại</div>
-              <div style="width: calc(100% - 10rem)">
+              <div class="w-11rem">Điện thoại</div>
+              <div style="width: calc(100% - 11rem)">
                 <Chips
                   v-model="candidate.candidate_phone_fake"
                   class="w-full d-design-chips"
@@ -1762,8 +1736,8 @@ onMounted(() => {
               </div>
             </div>
             <div class="col-12 field p-0 flex text-left align-items-center">
-              <div class="w-10rem">Email</div>
-              <div style="width: calc(100% - 10rem)">
+              <div class="w-11rem">Email</div>
+              <div style="width: calc(100% - 11rem)">
                 <Chips
                   v-model="candidate.candidate_email_fake"
                   class="w-full d-design-chips"
@@ -1778,14 +1752,14 @@ onMounted(() => {
             </div>
             <div class="col-12 field p-0 flex text-left align-items-center">
               <div class="col-6 p-0 flex text-left align-items-center">
-                <div class="w-10rem">Thường trú</div>
-                <div style="width: calc(100% - 10rem)">
+                <div class="w-11rem">Thường trú</div>
+                <div style="width: calc(100% - 11rem)">
                   <InputText v-model="candidate.resident" class="w-full" />
                 </div>
               </div>
               <div class="col-6 p-0 flex text-left align-items-center">
-                <div class="w-10rem pl-3">Địa chỉ</div>
-                <div style="width: calc(100% - 10rem)">
+                <div class="w-11rem pl-3">Địa chỉ</div>
+                <div style="width: calc(100% - 11rem)">
                   <Dropdown
                     v-model="candidate.resident_address"
                     :options="listPlaceDetails2"
@@ -1827,8 +1801,8 @@ onMounted(() => {
             </div>
             <div class="col-12 field p-0 flex text-left align-items-center">
               <div class="col-6 p-0 flex text-left align-items-center">
-                <div class="w-10rem">Chỗ ở hiện tại</div>
-                <div style="width: calc(100% - 10rem)">
+                <div class="w-11rem">Chỗ ở hiện tại</div>
+                <div style="width: calc(100% - 11rem)">
                   <InputText
                     v-model="candidate.resident_current"
                     class="w-full"
@@ -1836,8 +1810,8 @@ onMounted(() => {
                 </div>
               </div>
               <div class="col-6 p-0 flex text-left align-items-center">
-                <div class="w-10rem pl-3">Địa chỉ</div>
-                <div style="width: calc(100% - 10rem)">
+                <div class="w-11rem pl-3">Địa chỉ</div>
+                <div style="width: calc(100% - 11rem)">
                   <Dropdown
                     v-model="candidate.resident_curent_address"
                     :options="listPlaceDetails3"

@@ -45,7 +45,7 @@ emitter.on("emitData", (obj) => {
       }
       break;
       case "returnWatermark":
-      debugger
+    
       if (obj.data) {
         watermark.value = obj.data;
         saveStamp(!v$_stamp.value.$invalid);
@@ -287,7 +287,7 @@ const loadUserFunctions = (docpar) => {
       let data = JSON.parse(response.data.data);
       if (isFirst.value) isFirst.value = false;
       if (data[0]) {
-        debugger
+       
         if(data[0].find(x=>x.function === 'xoakhovanban')){
           allowDelDoc.value = true;
           doc_del.value = selectedDoc.value;
@@ -1207,7 +1207,7 @@ const getDetailDocByID = (docpar) => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      debugger
+    
       let objDoc = data[0][0];
       convertDatefromDB(objDoc);
       if (objDoc.organization_id) {

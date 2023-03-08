@@ -190,7 +190,7 @@ namespace Controllers
                         cookie.Expires = DateTimeOffset.Now.AddMinutes(helper.timeout);
                         cookie.Domain = Request.RequestUri.Host;
                         cookie.Path = "/";
-                        cookie.HttpOnly = true;
+                        //cookie.HttpOnly = true;
                         cookie.Secure = true;
                         respMessage.StatusCode = HttpStatusCode.OK;
                         respMessage.Headers.AddCookies(new CookieHeaderValue[] { cookie });

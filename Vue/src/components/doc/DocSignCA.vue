@@ -19,7 +19,6 @@ const props = defineProps({
 
 const SignFileCallBack1 = (rv) => {
             var received_msg = JSON.parse(rv);
-            console.log(received_msg);
             if (received_msg.Status == 0){
               props.File.file_path = received_msg.FileServer;
               props.returnNewPath(received_msg.FileServer);

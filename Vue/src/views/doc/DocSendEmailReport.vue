@@ -80,7 +80,7 @@ const loadDataSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-      console.log(error);
+      
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -136,7 +136,7 @@ const loadData = () => {
       options.value.loading = false;
     })
     .catch((error) => {
-      console.log(error);
+      
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
 
@@ -447,7 +447,7 @@ const loadUser = () => {
       });
     })
     .catch((error) => {
-      console.log(error);
+      
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
 

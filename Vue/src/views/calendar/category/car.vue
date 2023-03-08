@@ -109,7 +109,7 @@ const saveModel = () => {
       }
       swal.close();
       toast.success(
-        isAdd.value ? "Thêm xe thành công!" : "Cập xe họp thành công!"
+        isAdd.value ? "Thêm xe thành công!" : "Cập nhật xe họp thành công!"
       );
       initData(true);
       closeDialog();

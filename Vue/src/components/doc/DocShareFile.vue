@@ -235,7 +235,6 @@ const initDoc = (id, type) => {
       }
     })
     .catch((error) => {
-      console.log(error);
     });
 };
 const onCheckBox = (u)=>{

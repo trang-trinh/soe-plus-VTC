@@ -38,7 +38,7 @@ export default defineConfig({
   //     SecretKey: JSON.stringify("1012198815021989"),
   //     isDev: true,
   // },
-  // define: {
+  // define: {s
   //     baseURL: JSON.stringify("http://192.168.100.9:8080/"),
   //     fileURL: JSON.stringify("http://192.168.100.9:8080/"),
   //     socketURL: JSON.stringify("http://192.168.100.9:3333/"),
@@ -53,8 +53,8 @@ export default defineConfig({
   //     isDev: true,
   // },
   define: {
-    baseURL: JSON.stringify("https://apiv2.soe.vn/"),
-    fileURL: JSON.stringify("https://apiv2.soe.vn/"),
+    baseURL: JSON.stringify("https://apivtc.soe.vn/"),
+    fileURL: JSON.stringify("https://apivtc.soe.vn/"),
     socketURL: JSON.stringify("https://socket2.soe.vn/"),
     SecretKey: JSON.stringify("1012198815021989"),
     isDev: true,

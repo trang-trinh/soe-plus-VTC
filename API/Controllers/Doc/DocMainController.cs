@@ -37,15 +37,16 @@ namespace API.Controllers
         private const string const_module_key = "M3";
         public string getipaddress()
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-            return "localhost";
+            //var host = Dns.GetHostEntry(Dns.GetHostName());
+            //foreach (var ip in host.AddressList)
+            //{
+            //    if (ip.AddressFamily == AddressFamily.InterNetwork)
+            //    {
+            //        return ip.ToString();
+            //    }
+            //}
+            //return "localhost";
+            return HttpContext.Current.Request.UserHostAddress;
         }
         [HttpPut]
         public async Task<HttpResponseMessage> Update_ViewDoc([System.Web.Mvc.Bind(Include = "follow_id,doc_master_id")][FromBody] doc_follows model)
@@ -474,7 +475,7 @@ namespace API.Controllers
                         if (fileInfo.Exists)
                         {
                             fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                            fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                            fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                             // Convert to unsign
                             Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                             fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -1015,6 +1016,10 @@ namespace API.Controllers
                                     db.SaveChanges();
                                 }
                                 #endregion
+                                #region Del Sendhub
+                                var sh = db.sys_sendhub.Where(x => x.id_key == da.doc_master_guid && x.type == 3).ToList();
+                                if (sh.Count() > 0) db.sys_sendhub.RemoveRange(sh);
+                                #endregion
                             }
                             if (del.Count == 0)
                             {
@@ -1299,7 +1304,7 @@ namespace API.Controllers
                             if (fileInfo.Exists)
                             {
                                 fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                                 // Convert to unsign
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -2356,7 +2361,7 @@ namespace API.Controllers
                         if (fileInfo.Exists)
                         {
                             fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                            fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                            fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                             // Convert to unsign
                             Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                             fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -2851,7 +2856,7 @@ namespace API.Controllers
                             if (fileInfo.Exists)
                             {
                                 fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                                 // Convert to unsign
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -3369,7 +3374,7 @@ namespace API.Controllers
                             if (fileInfo.Exists)
                             {
                                 fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                                 // Convert to unsign
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -3757,7 +3762,7 @@ namespace API.Controllers
                             if (fileInfo.Exists)
                             {
                                 fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                                 // Convert to unsign
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -4714,7 +4719,7 @@ namespace API.Controllers
                         if (fileInfo.Exists)
                         {
                             fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                            fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                            fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                             // Convert to unsign
                             Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                             fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -5193,7 +5198,7 @@ namespace API.Controllers
                             if (fileInfo.Exists)
                             {
                                 fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                                 // Convert to unsign
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -5712,7 +5717,7 @@ namespace API.Controllers
                             if (fileInfo.Exists)
                             {
                                 fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                                 // Convert to unsign
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -6701,7 +6706,7 @@ namespace API.Controllers
                             if (fileInfo.Exists)
                             {
                                 fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                                 // Convert to unsign
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -7302,7 +7307,7 @@ namespace API.Controllers
                             if (fileInfo.Exists)
                             {
                                 fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (new Random().Next(0, 10000)) + fileInfo.Extension;
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
                                 // Convert to unsign
                                 Regex pattern = new Regex("[;,~`/!@#$%^*+\\\t]");
                                 fileName = pattern.Replace(helper.convertToUnSignChar(fileName.Replace("%", "percent"), "_"), "");
@@ -8951,15 +8956,15 @@ namespace API.Controllers
                                 WhereSQL += "";
                             }
                             //Default
-                            WhereSQL += @"do.organization_id = " + organization_id + @" and do.is_drafted = 0 and 
+                            WhereSQL += @"do.organization_id = " + organization_id + @" and 
                                 (" + typeCount + @" is null or " + typeCount + @" = 0 or (" + typeCount + @" is not null and " + typeCount + @"<>0 and 
 	                            ((" + typeCount + @" = 1 and nav_type = 1 and type_group is null) or (" + typeCount + @" = 2 and nav_type = 2 and type_group is null) or (" + typeCount + @" = 3 and nav_type = 3 and type_group is null) 
 	                            or (" + typeCount + @" = 4 and (select count(*) from task_linkdoc ld where ld.doc_master_id = do.doc_master_id) > 0 /*Bổ sung task lien quan sau*/) 
 	                            or (" + typeCount + @" = 5 and (select top 1 view_id from doc_views where doc_master_id = do.doc_master_id and [user_id] = " + user_key + @") is null) 
 	                            or (" + typeCount + @" = 6 and stt.is_handle = 1) 
 	                            or (" + typeCount + @" = 7 and (case when fl.deadline_date is not null then DATEDIFF(DAY,getDate(),fl.deadline_date) else null end) is not null and (case when fl.deadline_date is not null then DATEDIFF(DAY,getDate(),fl.deadline_date) else null end) < 0 and status_id not in ('hoanthanh','phanphat','dadongdau'))
-                                or (" + typeCount + @" = 8 and stt.is_handle = 0)
-                                or (" + typeCount + @" = 9 and stt.is_handle = 1)
+                                or (" + typeCount + @" = 8 and gr.type_group = 0)
+                                or (" + typeCount + @" = 9 and gr.type_group = 1)
                                 )))
                             ";
                             //serch
@@ -9130,7 +9135,7 @@ namespace API.Controllers
                             {
                                 WhereSQL += "";
                             }
-                            WhereSQL += @"do.organization_id = " + organization_id + @" and do.is_drafted = 0 ";
+                            WhereSQL += @"do.organization_id = " + organization_id + @" ";
                             //serch
                             if (!string.IsNullOrWhiteSpace(search))
                             {

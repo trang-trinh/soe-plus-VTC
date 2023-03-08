@@ -28,15 +28,16 @@ namespace API.Controllers.Doc
 
             public string getipaddress()
             {
-                var host = Dns.GetHostEntry(Dns.GetHostName());
-                foreach (var ip in host.AddressList)
-                {
-                    if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        return ip.ToString();
-                    }
-                }
-                return "localhost";
+                //var host = Dns.GetHostEntry(Dns.GetHostName());
+                //foreach (var ip in host.AddressList)
+                //{
+                //    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                //    {
+                //        return ip.ToString();
+                //    }
+                //}
+                //return "localhost";
+                return HttpContext.Current.Request.UserHostAddress;
             }
 
 

@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
-import dialogCandidate from "./component/dialog_candidate.vue";
+import dialog_recCalendar from "./component/dialog_recCalendar.vue";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -248,7 +248,7 @@ const sttStamp = ref(1);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   
-  headerDialog.value = "Sửa ứng viên";
+  headerDialog.value = "Sửa lịch phỏng vấn";
   isSaveTem.value = false;
   displayBasic.value = true;
 };
@@ -283,7 +283,7 @@ const delTem = (Tem) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá thông tin ứng viên thành công!");
+              toast.success("Xoá thông tin lịch phỏng vấn thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -517,7 +517,7 @@ const onCheckBox = (value, check) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái ứng viên thành công!");
+          toast.success("Sửa trạng thái lịch phỏng vấn thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -553,7 +553,7 @@ const onCheckBox = (value, check) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái ứng viên thành công!");
+          toast.success("Sửa trạng thái lịch phỏng vấn thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -711,7 +711,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá thông tin ứng viên này không!",
+        text: "Bạn có muốn xoá thông tin lịch phỏng vấn này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -743,7 +743,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá thông tin ứng viên thành công!");
+                toast.success("Xoá thông tin lịch phỏng vấn thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -1120,7 +1120,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-users"></i> Danh sách ứng viên
+          <i class="pi pi-id-card"></i> Danh sách lịch phỏng vấn
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1177,7 +1177,7 @@ onMounted(() => {
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <label>Nhóm ứng viên</label>
+                              <label>Nhóm lịch phỏng vấn</label>
                               <MultiSelect
                                 :options="listTrainingGroups"
                                 :filter="true"
@@ -1186,7 +1186,7 @@ onMounted(() => {
                                 v-model="options.training_groups_id"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn nhóm ứng viên"
+                                placeholder="Chọn nhóm lịch phỏng vấn"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1311,7 +1311,7 @@ onMounted(() => {
                           </div>
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <label>Hình thức ứng viên</label>
+                              <label>Hình thức lịch phỏng vấn</label>
                               <MultiSelect
                                 :options="listFormTraining"
                                 :filter="false"
@@ -1321,7 +1321,7 @@ onMounted(() => {
                                 optionLabel="name"
                                 optionValue="code"
                                 display="chip"
-                                placeholder="Chọn hình thức ứng viên"
+                                placeholder="Chọn hình thức lịch phỏng vấn"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1335,7 +1335,7 @@ onMounted(() => {
                         <div class="row">
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label>Thời gian ứng viên</label>
+                              <label>Thời gian lịch phỏng vấn</label>
                             </div>
                           </div>
                           <div class="col-12 p-0 flex">
@@ -1535,7 +1535,7 @@ onMounted(() => {
 
           <template #end>
             <Button
-              @click="openBasic('Thêm mới ứng viên')"
+              @click="openBasic('Thêm mới lịch phỏng vấn')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1648,7 +1648,7 @@ onMounted(() => {
             ></Column>
             <Column
               field="candidate_code"
-              header="Mã ứng viên"
+              header="Mã lịch phỏng vấn"
               headerStyle="text-align:center;max-width:170px;height:50px"
               bodyStyle="text-align:center;max-width:170px"
               class="align-items-center justify-content-center text-center"
@@ -1665,7 +1665,7 @@ onMounted(() => {
             </Column>
             <Column
               field="candidate_name"
-              header="Tên ứng viên"
+              header="Tên lịch phỏng vấn"
               :sortable="true"
               headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"
@@ -1908,7 +1908,7 @@ onMounted(() => {
       </div>
     </div>
     <div v-if="displayBasic">
-      <dialogCandidate
+      <dialog_recCalendar
       :key="numOfKey"
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
@@ -1948,7 +1948,7 @@ i {
 }
 .d-lang-table {
   margin: 0px;
-  height: calc(100vh - 162px);
+  height: calc(100vh - 200px);
 }
 
 .tableview-nav {
