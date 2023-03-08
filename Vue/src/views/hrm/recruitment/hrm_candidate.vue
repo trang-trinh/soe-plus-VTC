@@ -60,6 +60,7 @@ const loadCount = () => {
           JSON.stringify({
             proc: "hrm_candidate_count",
             par: [{ par: "user_id", va: store.getters.user.user_id },
+  
             { par: "status", va: null}
           
           
@@ -115,6 +116,7 @@ const loadData = (rf) => {
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
+                { par: "search", va:null },
                 { par: "status", va: null },
               ],
             }),
@@ -390,50 +392,9 @@ const loadDataSQL = () => {
     });
 };
 
-const setStatus = (value) => {
-  opstatus.value.hide();
-  let data = {
-    IntID: value.candidate_id,
-    TextID: value.candidate_id + "",
-    IntTrangthai: value.status,
-    BitTrangthai: false,
-  };
-  axios
-    .put(
-      baseURL + "/api/hrm_candidate/update_s_hrm_candidate",
-      data,
-      config
-    )
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-        toast.success("Cập nhật trạng thái thành công!");
-        loadData(true);
-      } else {
-        swal.fire({
-          title: "Error!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
-};
-
-const opstatus = ref();
-const toggleStatus = (item, event) => {
-  candidate.value = item;
-  opstatus.value.toggle(event);
-};
+ 
+ 
+ 
 //Tìm kiếm
 const searchStamp = (event) => {
   if (event.code == "Enter") {

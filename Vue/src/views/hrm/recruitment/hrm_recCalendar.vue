@@ -112,9 +112,10 @@ const loadData = (rf) => {
             JSON.stringify({
               proc: "hrm_candidate_list",
               par: [
-                { par: "pageno", va: options.value.PageNo },
+              { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
+                { par: "search", va:null },
                 { par: "status", va: null },
               ],
             }),
@@ -1912,7 +1913,7 @@ onMounted(() => {
       :key="numOfKey"
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
-        :candidate="candidate"
+        :recCalendar="candidate"
         :checkadd="isSaveTem"
         :view="false"
         :closeDialog="closeDialog"
