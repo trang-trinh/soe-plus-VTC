@@ -56,6 +56,7 @@ namespace Controllers
                 //string de_ps = Codec.DecryptString("wR3W9dh0DivQ7aEVJ/LnZQ==", strPaK);
                 sys_users u = JsonConvert.DeserializeObject<sys_users>(de_str);
                 string strInPa = u.is_psword; //u.is_psword;
+                var issuer = Request.RequestUri.GetLeftPart(UriPartial.Authority);
                 try
                 {
                     //string depass = Codec.EncryptString(strInPa, strPaK);
@@ -125,7 +126,7 @@ namespace Controllers
                         }
                         helper.saveIP(ip, Request.Headers.UserAgent.ToString(), user.user_id, user.full_name);
                         // Tạo token
-                        var issuer = Request.RequestUri.GetLeftPart(UriPartial.Authority);
+                        //var issuer = Request.RequestUri.GetLeftPart(UriPartial.Authority);
                         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(helper.tokenkey));
                         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
                         var permClaims = new List<Claim>();
@@ -216,11 +217,11 @@ namespace Controllers
                                 int? wrong_pass_count = (config.wrongAcceptPass - user.wrong_pass_count) ?? 0;
                                 if (wrong_pass_count > 0)
                                 {
-                                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên đăng nhập hoặc mật khẩu không đúng, bạn chỉ còn " + wrong_pass_count + " lần đăng nhập nữa!", err = "1" });
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên đăng nhập hoặc mật khẩu không đúng, bạn chỉ còn " + wrong_pass_count + " lần đăng nhập nữa!", issuer = issuer, err = "1" });
                                 }
                                 else
                                 {
-                                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tài khoản đã bị khoá, vui lòng liên hệ quản trị để kích hoạt!", err = "1" });
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tài khoản đã bị khoá, vui lòng liên hệ quản trị để kích hoạt!", issuer = issuer, err = "1" });
                                 }
                             }
                             else
@@ -253,7 +254,7 @@ namespace Controllers
                             }
                         }
                     }
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên đăng nhập hoặc mật khẩu không đúng!", err = "1" });
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Tên đăng nhập hoặc mật khẩu không đúng!", issuer = issuer, err = "1" });
                 }
                 catch (DbEntityValidationException e)
                 {
