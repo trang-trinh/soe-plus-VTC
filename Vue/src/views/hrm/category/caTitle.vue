@@ -101,7 +101,12 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          if(element.title_des){
+            element.title_des=element.title_des.replaceAll("\n", "<br/>")
+          }
+          
         });
+         
         datalists.value = data;
 
         options.value.loading = false;
@@ -297,6 +302,10 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
+  if(dataTem.title_des){
+    dataTem.title_des=dataTem.title_des.replaceAll("<br/>","\n")
+          }
+          
   title.value = dataTem;
   if (title.value.countryside)
     title.value.countryside_fake = title.value.countryside;
@@ -308,7 +317,6 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa chức danh";
   isSaveTem.value = true;
   displayBasic.value = true;
- 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -868,8 +876,8 @@ onMounted(() => {
         field="title_name"
         header="Tên chức danh"
         :sortable="true"
-        headerStyle="text-align:left;height:50px"
-        bodyStyle="text-align:left"
+        headerStyle=" ;height:50px"
+        bodyStyle="text-align:left"         headerClass="align-items-center justify-content-center "
       >
         <template #filter="{ filterModel }">
           <InputText
@@ -880,7 +888,17 @@ onMounted(() => {
           />
         </template>
       </Column>
-
+      <Column
+        field="status"
+        header="Mô tả"
+        headerStyle="text-align:center  ;max-width:400px;height:50px"
+        bodyStyle=" max-width:400px"
+        headerClass="align-items-center justify-content-center "
+      >
+        <template #body="data">
+        <div v-html=" data.data.title_des"></div>  
+            </template
+      ></Column>
       <Column
         field="status"
         header="Trạng thái"
@@ -951,13 +969,7 @@ onMounted(() => {
       </Column>
       <template #empty>
         <div
-          class="
-            align-items-center
-            justify-content-center
-            p-4
-            text-center
-            m-auto
-          "
+          class="align-items-center justify-content-center p-4 text-center m-auto"
           v-if="!isFirst"
         >
           <img src="../../../assets/background/nodata.png" height="144" />
@@ -970,7 +982,7 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '40vw' }"
     :closable="true"
     :modal="true"
   >
@@ -989,13 +1001,13 @@ onMounted(() => {
             }"
           />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-3 text-left"></div>
-          <small
-            v-if="
+        <div   v-if="
               (v$.title_name.$invalid && submitted) ||
               v$.title_name.$pending.$response
-            "
+            " style="display: flex" class="field col-12 md:col-12">
+          <div class="col-3 text-left"></div>
+          <small
+          
             class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
@@ -1005,7 +1017,16 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-
+        <div class="field flex col-12 md:col-12 align-items-center">
+          <div class="col-3 text-left p-0">Mô tả</div>
+          <Textarea
+            :autoResize="true"
+            rows="3"
+            cols="30"
+            v-model="title.title_des"
+            class="w-full"
+          />
+        </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-6 text-left p-0">STT</div>
