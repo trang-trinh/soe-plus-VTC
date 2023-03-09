@@ -442,6 +442,17 @@ onMounted(() => {
               />
             </div>
             <div class="field col-12 md:col-12">
+              <label
+                class="col-4 text-left"
+                style="vertical-align: middle"
+                >Thời gian nhận Email(phút)</label
+              >
+              <InputNumber
+                class="col-8 ip36 p-0"
+                v-model="config.timemail"
+              />
+            </div>
+            <div class="field col-12 md:col-12">
               <label class="col-4 text-left">Thông báo lỗi </label>
               <InputText
                 spellcheck="false"
