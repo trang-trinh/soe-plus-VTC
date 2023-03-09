@@ -305,7 +305,7 @@ function renderhtml(id, htmltable) {
     #formprint, #formword  {
       background: #fff !important;
     }
-    #formprint *, #formword * {
+    #formprint *, #formword *, #formprint_2 *, #formword_2 *{
       font-family: "Times New Roman", Times, serif !important;
       font-size: 13pt;
     }
@@ -1970,7 +1970,7 @@ const initData = (rf) => {
               datachutris.value.push(obj);
             });
             datachutris.value = datachutris.value.sort((a, b) => {
-              b.is_order - a.is_order;
+              return a.is_order - b.is_order;
             });
             tbs[1].forEach((item, i) => {
               if (item["contents"] != null) {

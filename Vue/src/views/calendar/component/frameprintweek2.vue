@@ -70,7 +70,7 @@ const newDate = new Date();
           </tr>
           <tr>
             <td class="text-center" colspan="2">
-              <div style="padding: 1rem 0">Số:_____</div>
+              <div style="padding: 1rem 0">Số:_____/CTr-BHXH</div>
             </td>
             <td class="text-center" colspan="4">
               <div style="padding: 1rem 0">

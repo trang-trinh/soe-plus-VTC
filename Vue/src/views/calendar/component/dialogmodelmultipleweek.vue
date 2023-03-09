@@ -295,6 +295,7 @@ const addModelTemp = (item) => {
 
   if (props.group === 1 && leaders.value && leaders.value.length > 0) {
     leaders.value.forEach((leader) => {
+      md.calendar_id = CreateGuid(),
       md.chutris = [{ user_id: leader.user_id, full_name: leader.full_name, last_name: leader.last_name, avatar: leader.avatar, is_order: leader.is_order }];
       var it = Object.assign({}, md);
       datas.value.push(it);

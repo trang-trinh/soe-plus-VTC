@@ -244,6 +244,7 @@ const copyItem = (item) => {
     )
     .forEach((day, i) => {
       var it = Object.assign({}, item);
+      it.calendar_duty_id = CreateGuid(),
       it.date_timelot = day;
       it.day = day;
       it.day_name = getDayDate(day)
@@ -426,7 +427,7 @@ const saveModelMultiple = () => {
     },
   });
   let formData = new FormData();
-  var multiple = [...datas.value];
+  var multiple = JSON.parse(JSON.stringify(datas.value));
   var members = [];
   var departments = [];
   if (multiple != null && multiple.length > 0) {
