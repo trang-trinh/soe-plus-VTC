@@ -1126,7 +1126,6 @@ namespace API.Controllers.Calendar
                         exists.modify_date = DateTime.Now;
                         exists.modify_ip = ip;
                         exists.modify_token_id = tid;
-                        db.Entry(model).State = EntityState.Modified;
                     }
                     else
                     {
