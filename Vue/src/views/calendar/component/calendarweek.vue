@@ -19,6 +19,7 @@ import framewordweek from "../component/framewordweek.vue";
 import framewordweek2 from "../component/framewordweek2.vue";
 import calendardutysunday from "../component/calendardutysunday.vue";
 import calendarleader from "../component/calendarleader.vue";
+import lodash from 'lodash';
 
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
@@ -810,6 +811,7 @@ const selectFile = (event) => {
   });
 };
 const editItem = (item) => {
+  forceRerender(1);
   files.value = [];
   submitted.value = false;
   options.value.loading = true;
@@ -1958,7 +1960,7 @@ const initData = (rf) => {
             });
           }
           if (tbs[1] != null && tbs[1].length > 0) {
-            var data1 = JSON.parse(JSON.stringify(tbs[1]));
+            var data1 = lodash.cloneDeep(tbs[1]);
             let obj = groupBy(data1, "user_id");
             var result = Object.entries(obj);
             result.forEach((item) => {
@@ -1996,6 +1998,7 @@ const initData = (rf) => {
                   day: day,
                   day_name: getDayDate(day),
                   day_string: moment(day).format("DD/MM/YYYY"),
+                  day_string_short: moment(day).format("DD/MM"),
                   is_holiday: day.getDay() == 0,
                 });
               });
@@ -2014,6 +2017,7 @@ const initData = (rf) => {
                   day: day,
                   day_name: getDayDate(day),
                   day_string: moment(day).format("DD/MM/YYYY"),
+                  day_string_short: moment(day).format("DD/MM"),
                   is_holiday: day.getDay() == 0,
                 });
               });
@@ -2027,12 +2031,13 @@ const initData = (rf) => {
             datas.value = [];
           }
           if (tbs[1] != null && tbs[1].length > 0) {
-            var data1 = JSON.parse(JSON.stringify(tbs[1]));
+            var data1 = lodash.cloneDeep(tbs[1]);
             let obj = groupBy(data1, "day_string");
             var result = Object.entries(obj);
             result.forEach((item) => {
               let obj = {
                 day_string: item[0],
+                day_string_short: item[1][0].day_string_short,
                 day: item[1][0].day,
                 day_name: item[1][0].day_name,
                 is_holiday: item[1][0].is_holiday,

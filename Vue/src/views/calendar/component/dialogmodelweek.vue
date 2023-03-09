@@ -63,6 +63,7 @@ const iterations = ref([
   { is_iterations: 4, name: "Lặp theo năm", short: "năm" },
 ]);
 const submitted = ref(props.submitted);
+
 //Function
 function isValidDate(d) {
   return d instanceof Date && !isNaN(d);
@@ -139,6 +140,10 @@ const changeEndTime = () => {
 };
 const saveModel = (is_continue) => {
   submitted.value = true;
+  let contents = document.getElementById("contents");
+  if (contents) {
+    props.model.contents = contents.innerHTML;
+  }
   if (
     !props.model.contents ||
     (props.group === 0 && !props.model.boardroom_id) ||
@@ -260,6 +265,10 @@ const saveModel = (is_continue) => {
 };
 const saveTemp = () => {
   submitted.value = true;
+  let contents = document.getElementById("contents");
+  if (contents) {
+    props.model.contents = contents.innerHTML;
+  }
   if (
     !props.model.contents ||
     (props.group === 0 && !props.model.boardroom_id) ||
@@ -517,6 +526,26 @@ const removeMember = (user, arr) => {
     }
   }
 };
+
+onMounted(() => {
+  setTimeout(() => {
+    if (document.getElementById("bold_button")) {
+      document.getElementById("bold_button").onclick = () => {
+        document.execCommand("bold");
+      };
+    }
+    if (document.getElementById("italic_button")) {
+      document.getElementById("italic_button").onclick = () => {
+        document.execCommand("italic");
+      };
+    }
+    if (document.getElementById("underline_button")) {
+      document.getElementById("underline_button").onclick = () => {
+        document.execCommand("underline");
+      };
+    }
+  }, 500);
+});
 </script>
 <template>
   <Dialog
@@ -532,16 +561,52 @@ const removeMember = (user, arr) => {
       <div class="grid formgrid m-2">
         <div class="col-12 md:col-12">
           <div class="form-group">
-            <label>Nội dung <span class="redsao">(*)</span></label>
-            <Textarea
-              v-model="props.model.contents"
-              :autoResize="true"
+            <div class="format-center justify-content-between">
+              <label>Nội dung <span class="redsao">(*)</span></label>
+              <ul class="p-0 flex" :style="{ listStyle: 'none' }">
+                <li class="mr-1">
+                  <Button
+                    id="bold_button"
+                    class="p-button-outlined"
+                    :style="{ width: '35px', textAlign: 'center' }"
+                    ><b>B</b></Button
+                  >
+                </li>
+                <li class="mr-1">
+                  <Button
+                    id="italic_button"
+                    class="p-button-outlined"
+                    :style="{ width: '35px', textAlign: 'center' }"
+                    ><i>I</i></Button
+                  >
+                </li>
+                <li class="mr-1">
+                  <Button
+                    id="underline_button"
+                    class="p-button-outlined"
+                    :style="{ width: '35px', textAlign: 'center' }"
+                    >U</Button
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <div
+              contentEditable="true"
+              id="contents"
+              class="box-contents w-full"
+              v-html="props.model.contents"
               :class="{
                 'p-invalid': !props.model.contents && submitted,
               }"
-              rows="5"
-              cols="30"
-            />
+              :style="{
+                minHeight: '100px',
+                border: 'solid 1px #ced4da',
+                borderRadius: '3px',
+                padding: '0.5rem',
+                backgroundColor: '#fff',
+              }"
+            ></div>
             <div v-if="!props.model.contents && submitted">
               <small class="p-error">
                 <span class="col-12 p-0"
