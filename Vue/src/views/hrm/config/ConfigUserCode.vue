@@ -350,55 +350,13 @@ const saveDeConfig = () => {
 
 }
 
-const organization = ref();
-const loadOrg = () => {
-  axios
-    .post(
-      baseURL + "/api/DocProc/CallProc",
-      {
-        str:
-          encr(JSON.stringify(
-            {
-              proc: "doc_organization_get",
-              par: [
-                { par: "user_id", va: store.getters.user.user_id },
-              ],
-            }
-          ),
-            SecretKey, cryoptojs)
-            .toString()
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (data.length > 0) {
-        organization.value = data[0];
-      }
-
-      options.value.loading = false;
-    })
-    .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-const dataF = ref([{ is_order: 1 }]);
+ 
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
   }
 
-  loadOrg();
+   
   loadUser();
   return {
     isFirst,
@@ -408,17 +366,15 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="d-container   " style="margin: 0 15%;">
-    <div class="d-lang-table surface-0">
-      <div class=" w-full  p-4 style-vb-1  text-center text-3xl">
+  <div class="d-container  p-0 "  >
+    <div class=" p-0 surface-0">
+      <!-- <div class=" w-full p-0  style-vb-1  text-center text-2xl">
         BẢNG THIẾT LẬP MÃ NHÂN SỰ
       </div>
-      <div class="w-full p-0 style-vb-2 text-center text-xl" v-if="organization">
-        {{ organization.organization_name }}
-      </div>
+      -->
 
 
-      <div class="grid mt-6 ">
+      <div class="grid mt-0 p-0 m-0 ">
 
 
         <div class="col-12 field   p-0">
@@ -593,10 +549,7 @@ onMounted(() => {
   </div>
 </template>
 <style scoped>
-.d-lang-table {
-  margin: 16px;
-  height: calc(100vh - 50px);
-}
+ 
 
 .check-scroll {
   max-height: 40rem;

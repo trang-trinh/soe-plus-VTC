@@ -353,7 +353,7 @@ const caEnectingGroup = () =>
 
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
-const HRM_ConfigUser = () => import("../views/hrm/config/ConfigUserCode.vue");
+const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
 // Request
 const Request_Dashboard = () =>
   import("../views/request/request_dashboard.vue");

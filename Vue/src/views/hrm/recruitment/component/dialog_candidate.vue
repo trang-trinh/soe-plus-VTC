@@ -1345,229 +1345,249 @@ onMounted(() => {
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
-        <div class="col-12 flex p-0 text-center align-items-center">
-          <div class="col-3 field md:col-3 format-center">
-            <div class="form-group">
-              <div class="inputanh2 relative mb-2">
-                <img
-                  v-tooltip.top="'Chọn ảnh đại diện'"
-                  @click="props.chooseImage('imgAvatar')"
-                  id="avatar"
-                  v-bind:src="
-                    candidate.avatar
-                      ? basedomainURL + candidate.avatar
-                      : basedomainURL + '/Portals/Image/noimg.jpg'
-                  "
-                />
-                <Button
-                  v-if="candidate.avatar"
-                  style="width: 2rem; height: 2rem"
-                  icon="pi pi-times"
-                  @click="props.deleteImage('avatar')"
-                  class="p-button-rounded absolute top-0 right-0 cursor-pointer"
-                />
-                <input
-                  id="imgAvatar"
-                  type="file"
-                  accept="image/*"
-                  @change="handleFileAvtUpload($event, 'avatar')"
-                  style="display: none"
-                />
-              </div>
+      
+        <div class="col-12 p-0 border-1 border-300 border-solid">
+          <div
+            class="w-full surface-100 flex border-bottom-1 border-200 cursor-pointer"
+            @click="showHidePanel(1)"
+          >
+            <div class="font-bold flex align-items-center w-full p-3">
+              <i
+                class="pi pi-angle-right"
+                v-if="checkShow == false"
+                style="font-size: 1.25rem"
+              ></i>
+              <i
+                class="pi pi-angle-down"
+                v-if="checkShow == true"
+                style="font-size: 1.25rem"
+              ></i>
+              <div class="pl-2">Thông tin chung</div>
             </div>
           </div>
-          <div class="col-9 field p-0 text-left align-items-center">
-            <div class="col-12 field flex p-0 align-items-center">
-              <div class="w-10rem">Chiến dịch</div>
-              <div style="width: calc(100% - 10rem)">
-                <Dropdown
-                  v-model="candidate.campaign_id"
-                  :options="listCampaigns"
-                  optionLabel="name"
-                  optionValue="code"
-                  placeholder="Chọn chiến dịch ứng viên Apply"
-                  class="w-full"
-                />
-              </div>
-            </div>
-            <div class="col-12 field flex p-0 align-items-center">
-              <div class="col-6 flex p-0 align-items-center">
-                <div class="w-10rem">
-                  Mã ứng viên<span class="redsao pl-1"> (*)</span>
-                </div>
-                <div style="width: calc(100% - 10rem)">
-                  <div class="col-12 p-0">
-                    <div class="p-inputgroup">
-                      <InputText
-                        v-model="candidate.candidate_code"
-                        class="w-full"
-                        placeholder="Nhập mã ứng viên"
-                        :style="
-                          candidate.candidate_code
-                            ? 'background-color:white !important'
-                            : ''
-                        "
-                        :class="{
-                          'p-invalid': v$.candidate_code.$invalid && submitted,
-                        }"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 flex p-0 align-items-center">
-                <div class="w-10rem pl-3">
-                  Nguồn <span class="redsao pl-1"> (*)</span>
-                </div>
-                <div style="width: calc(100% - 10rem)">
-                  <div class="col-12 p-0">
-                    <div class="p-inputgroup">
-                      <Dropdown
-                        v-model="candidate.candidate_source"
-                        :options="listTrainingGroups"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Chọn nguồn"
-                        class="w-full"
-                        :class="{
-                          'p-invalid':
-                            candidate.candidate_source == null && submitted,
-                        }"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              class="col-12 p-0 field flex"
-              v-if="
-                (v$.candidate_code.$invalid && submitted) ||
-                (candidate.candidate_source == null && submitted)
-              "
-            >
-              <div
-                class="col-6 p-0 flex"
-                v-if="v$.candidate_code.$invalid && submitted"
-              >
-                <div class="w-10rem"></div>
-                <small style="width: calc(100% - 10rem)">
-                  <span style="color: red" class="w-full">{{
-                    v$.candidate_code.required.$message
-                      .replace("Value", "Mã ứng viên")
-                      .replace("is required", "không được để trống!")
-                  }}</span>
-                </small>
-              </div>
-              <div class="col-6 p-0 flex" v-else></div>
-              <div
-                class="col-6 p-0 flex"
-                v-if="candidate.candidate_source == null && submitted"
-              >
-                <div class="w-10rem"></div>
-                <small style="width: calc(100% - 10rem)">
-                  <span style="color: red" class="w-full">{{
-                    v$.candidate_source.required.$message
-                      .replace("Value", "Nguồn")
-                      .replace("is required", "không được để trống!")
-                  }}</span>
-                </small>
-              </div>
-            </div>
-            <div class="col-12 field flex p-0 align-items-center">
-              <div class="col-6 flex p-0 align-items-center">
-                <div class="w-10rem">
-                  Họ và tên<span class="redsao pl-1"> (*)</span>
-                </div>
-                <div style="width: calc(100% - 10rem)">
-                  <div class="col-12 p-0">
-                    <div class="p-inputgroup">
-                      <InputText
-                        v-model="candidate.candidate_name"
-                        class="w-full"
-                        placeholder="Nhập họ và tên ứng viên"
-                        :style="
-                          candidate.candidate_name
-                            ? 'background-color:white !important'
-                            : ''
-                        "
-                        :class="{
-                          'p-invalid': v$.candidate_name.$invalid && submitted,
-                        }"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <div class="col-6 flex p-0 align-items-center">
-                <div class="col-7 flex p-0 align-items-center">
-                  <div class="w-10rem pl-3">Ngày sinh</div>
+          <div class="col-12 flex p-0 text-center align-items-center px-3 pt-3">
+            <div class="col-3 field md:col-3 format-center">
+              <div class="form-group">
+                <div class="inputanh2 relative mb-2">
+                  <img
+                    v-tooltip.top="'Chọn ảnh đại diện'"
+                    @click="props.chooseImage('imgAvatar')"
+                    id="avatar"
+                    v-bind:src="
+                      candidate.avatar
+                        ? basedomainURL + candidate.avatar
+                        : basedomainURL + '/Portals/Image/noimg.jpg'
+                    "
+                  />
+                  <Button
+                    v-if="candidate.avatar"
+                    style="width: 2rem; height: 2rem"
+                    icon="pi pi-times"
+                    @click="props.deleteImage('avatar')"
+                    class="p-button-rounded absolute top-0 right-0 cursor-pointer"
+                  />
+                  <input
+                    id="imgAvatar"
+                    type="file"
+                    accept="image/*"
+                    @change="handleFileAvtUpload($event, 'avatar')"
+                    style="display: none"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="col-9 field p-0 text-left align-items-center">
+              <div class="col-12 field flex p-0 align-items-center">
+                <div class="w-10rem">Chiến dịch</div>
+                <div style="width: calc(100% - 10rem)">
+                  <Dropdown
+                    v-model="candidate.campaign_id"
+                    :options="listCampaigns"
+                    optionLabel="name"
+                    optionValue="code"
+                    placeholder="Chọn chiến dịch ứng viên Apply"
+                    class="w-full"
+                  />
+                </div>
+              </div>
+              <div class="col-12 field flex p-0 align-items-center">
+                <div class="col-6 flex p-0 align-items-center">
+                  <div class="w-10rem">
+                    Mã ứng viên<span class="redsao pl-1"> (*)</span>
+                  </div>
                   <div style="width: calc(100% - 10rem)">
-                    <Calendar
-                      class="w-full"
-                      v-model="candidate.candidate_birthday"
-                      autocomplete="off"
-                      placeholder="dd/mm/yyyy"
-                      :showIcon="true"
-                      :maxDate="new Date()"
-                    />
+                    <div class="col-12 p-0">
+                      <div class="p-inputgroup">
+                        <InputText
+                          v-model="candidate.candidate_code"
+                          class="w-full"
+                          placeholder="Nhập mã ứng viên"
+                          :style="
+                            candidate.candidate_code
+                              ? 'background-color:white !important'
+                              : ''
+                          "
+                          :class="{
+                            'p-invalid':
+                              v$.candidate_code.$invalid && submitted,
+                          }"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="col-5 flex p-0 align-items-center">
-                  <div class="w-6rem pl-3">Giới tính</div>
-                  <div style="width: calc(100% - 6rem)">
+                <div class="col-6 flex p-0 align-items-center">
+                  <div class="w-7rem pl-3">
+                    Nguồn <span class="redsao pl-1"> (*)</span>
+                  </div>
+                  <div style="width: calc(100% - 7rem)">
                     <div class="col-12 p-0">
                       <div class="p-inputgroup">
                         <Dropdown
-                          v-model="candidate.candidate_gender"
-                          :options="listGenders"
+                          v-model="candidate.candidate_source"
+                          :options="listTrainingGroups"
                           optionLabel="name"
                           optionValue="code"
+                          placeholder="Chọn nguồn"
                           class="w-full"
-                          placeholder="Chọn giới tính"
+                          :class="{
+                            'p-invalid':
+                              candidate.candidate_source == null && submitted,
+                          }"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div
-          class="col-12 p-0 field flex"
-          v-if="v$.candidate_name.$invalid && submitted"
-        >
-          <div class="col-6 p-0 flex">
-            <div class="w-10rem"></div>
-            <small style="width: calc(100% - 10rem)">
-              <span style="color: red" class="w-full">{{
-                v$.candidate_name.required.$message
-                  .replace("Value", "Họ và tên")
-                  .replace("is required", "không được để trống!")
-              }}</span>
-            </small>
-          </div>
-        </div>
-          </div>
-        </div>
+              <div
+                class="col-12 p-0 field flex"
+                v-if="
+                  (v$.candidate_code.$invalid && submitted) ||
+                  (candidate.candidate_source == null && submitted)
+                "
+              >
+                <div
+                  class="col-6 p-0 flex"
+                  v-if="v$.candidate_code.$invalid && submitted"
+                >
+                  <div class="w-7rem"></div>
+                  <small style="width: calc(100% - 7rem)">
+                    <span style="color: red" class="w-full">{{
+                      v$.candidate_code.required.$message
+                        .replace("Value", "Mã ứng viên")
+                        .replace("is required", "không được để trống!")
+                    }}</span>
+                  </small>
+                </div>
+                <div class="col-6 p-0 flex" v-else></div>
+                <div
+                  class="col-6 p-0 flex"
+                  v-if="candidate.candidate_source == null && submitted"
+                >
+                  <div class="w-10rem"></div>
+                  <small style="width: calc(100% - 10rem)">
+                    <span style="color: red" class="w-full">{{
+                      v$.candidate_source.required.$message
+                        .replace("Value", "Nguồn")
+                        .replace("is required", "không được để trống!")
+                    }}</span>
+                  </small>
+                </div>
+              </div>
+              <div class="col-12 field flex p-0 align-items-center">
+                <div class="col-6 flex p-0 align-items-center">
+                  <div class="w-10rem">
+                    Họ và tên<span class="redsao pl-1"> (*)</span>
+                  </div>
+                  <div style="width: calc(100% - 10rem)">
+                    <div class="col-12 p-0">
+                      <div class="p-inputgroup">
+                        <InputText
+                          v-model="candidate.candidate_name"
+                          class="w-full"
+                          placeholder="Nhập họ và tên ứng viên"
+                          :style="
+                            candidate.candidate_name
+                              ? 'background-color:white !important'
+                              : ''
+                          "
+                          :class="{
+                            'p-invalid':
+                              v$.candidate_name.$invalid && submitted,
+                          }"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-      
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Nơi sinh</div>
-          <div style="width: calc(100% - 10rem)">
-            <Dropdown
-              v-model="candidate.candidate_place"
-              :options="listPlaceDetails"
-              optionLabel="name"
-              optionValue="name"
-              class="w-full"
-              placeholder="Xã phường, Quận huyện, Tỉnh thành"
-              panelClass="d-design-dropdown"
-              :filter="true"
-              @filter="onFilterPlace($event, 1)"
-            />
-            <!-- <TreeSelect
+                <div class="col-6 flex p-0 align-items-center">
+                  <div class="col-7 flex p-0 align-items-center">
+                    <div class="w-7rem pl-3">Ngày sinh</div>
+                    <div style="width: calc(100% - 7rem)">
+                      <Calendar
+                        class="w-full"
+                        v-model="candidate.candidate_birthday"
+                        autocomplete="off"
+                        placeholder="dd/mm/yyyy"
+                        :showIcon="true"
+                        :maxDate="new Date()"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-5 flex p-0 align-items-center">
+                    <div class="w-6rem pl-3">Giới tính</div>
+                    <div style="width: calc(100% - 6rem)">
+                      <div class="col-12 p-0">
+                        <div class="p-inputgroup">
+                          <Dropdown
+                            v-model="candidate.candidate_gender"
+                            :options="listGenders"
+                            optionLabel="name"
+                            optionValue="code"
+                            class="w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="col-12 p-0 field flex"
+                v-if="v$.candidate_name.$invalid && submitted"
+              >
+                <div class="col-6 p-0 flex">
+                  <div class="w-10rem"></div>
+                  <small style="width: calc(100% - 10rem)">
+                    <span style="color: red" class="w-full">{{
+                      v$.candidate_name.required.$message
+                        .replace("Value", "Họ và tên")
+                        .replace("is required", "không được để trống!")
+                    }}</span>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 field p-0 flex text-left align-items-center px-3">
+            <div class="w-10rem">Nơi sinh</div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                v-model="candidate.candidate_place"
+                :options="listPlaceDetails"
+                optionLabel="name"
+                optionValue="name"
+                class="w-full"
+                placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                panelClass="d-design-dropdown"
+                :filter="true"
+                @filter="onFilterPlace($event, 1)"
+              />
+              <!-- <TreeSelect
               :options="listDiaDanh"
               v-model="candidate.candidate_place_fake"
               placeholder="Xã phường, Quận huyện, Tỉnh thành"
@@ -1590,23 +1610,23 @@ onMounted(() => {
                 </span>
               </template>
             </TreeSelect> -->
+            </div>
           </div>
-        </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Nguyên quán</div>
-          <div style="width: calc(100% - 10rem)">
-            <Dropdown
-              v-model="candidate.candidate_domicile"
-              :options="listPlaceDetails1"
-              optionLabel="name"
-              optionValue="name"
-              class="w-full"
-              placeholder="Xã phường, Quận huyện, Tỉnh thành"
-              panelClass="d-design-dropdown"
-              :filter="true"
-              @filter="onFilterPlace($event, 2)"
-            />
-            <!-- <TreeSelect
+          <div class="col-12 field p-0 flex text-left align-items-center px-3">
+            <div class="w-10rem">Nguyên quán</div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                v-model="candidate.candidate_domicile"
+                :options="listPlaceDetails1"
+                optionLabel="name"
+                optionValue="name"
+                class="w-full"
+                placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                panelClass="d-design-dropdown"
+                :filter="true"
+                @filter="onFilterPlace($event, 2)"
+              />
+              <!-- <TreeSelect
               :options="listDiaDanh"
               v-model="candidate.candidate_domicile_fake"
               placeholder="Xã phường, Quận huyện, Tỉnh thành"
@@ -1629,135 +1649,135 @@ onMounted(() => {
                 </span>
               </template>
             </TreeSelect> -->
+            </div>
           </div>
-        </div>
 
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">CMT/Căn cước</div>
-            <div style="width: calc(100% - 10rem)">
-              <InputMask
-                spellcheck="false"
-                class="w-full h-full d-design-it"
-                v-model="candidate.candidate_identity"
-                mask="9999-9999-9999"
-                placeholder="0202-XXXX-XXXX"
-              />
-            </div>
-          </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Ngày cấp</div>
-            <div style="width: calc(100% - 10rem)">
-              <Calendar
-                class="w-full"
-                id="basic_purchase_date"
-                v-model="candidate.candidate_identity_date"
-                autocomplete="off"
-                placeholder="dd/mm/yyyy"
-                :showIcon="true"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Nơi cấp</div>
-          <div style="width: calc(100% - 10rem)">
-            <Dropdown
-              v-model="candidate.candidate_identity_place"
-              :options="listIdentityPlace"
-              optionLabel="name"
-              optionValue="code"
-              class="w-full"
-              placeholder="Chọn nơi cấp"
-              panelClass="d-design-dropdown"
-              :filter="true"
-            />
-          </div>
-        </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">Tình trạng hôn nhân</div>
-            <div style="width: calc(100% - 10rem)">
-              <Dropdown
-                v-model="candidate.candidate_marital"
-                :options="listMarital"
-                optionLabel="name"
-                optionValue="code"
-                class="w-full"
-                panelClass="d-design-dropdown"
-                placeholder="Chọn tình trạng hôn nhân"
-              />
-            </div>
-          </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Quốc tịch</div>
-            <div style="width: calc(100% - 10rem)">
-              <Dropdown
-                v-model="candidate.candidate_nationality"
-                :options="listNationality"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="Chọn quốc tịch"
-                class="w-full"
-                panelClass="d-design-dropdown"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 p-0 flex text-left align-items-center">
+          <div class="col-12 field p-0 flex text-left align-items-center px-3">
             <div class="col-6 p-0 flex text-left align-items-center">
-              <div class="w-10rem">Chiều cao</div>
+              <div class="w-10rem">CMT/Căn cước</div>
               <div style="width: calc(100% - 10rem)">
-                <InputNumber
-                  v-model="candidate.candidate_height"
-                  class="w-full"
-                  suffix=" Cm"
+                <InputMask
+                  spellcheck="false"
+                  class="w-full h-full d-design-it"
+                  v-model="candidate.candidate_identity"
+                  mask="9999-9999-9999"
+                  placeholder="0202-XXXX-XXXX"
                 />
               </div>
             </div>
             <div class="col-6 p-0 flex text-left align-items-center">
-              <div class="w-10rem format-center">Cân nặng</div>
+              <div class="w-10rem pl-3">Ngày cấp</div>
               <div style="width: calc(100% - 10rem)">
-                <InputNumber
-                  v-model="candidate.candidate_weight"
+                <Calendar
                   class="w-full"
-                  suffix=" Kg"
+                  id="basic_purchase_date"
+                  v-model="candidate.candidate_identity_date"
+                  autocomplete="off"
+                  placeholder="dd/mm/yyyy"
+                  :showIcon="true"
                 />
               </div>
             </div>
           </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Nghĩa vụ quân sự</div>
+
+          <div class="col-12 field p-0 flex text-left align-items-center px-3">
+            <div class="w-10rem">Nơi cấp</div>
             <div style="width: calc(100% - 10rem)">
               <Dropdown
-                v-model="candidate.candidate_military"
-                :options="listMilitary"
+                v-model="candidate.candidate_identity_place"
+                :options="listIdentityPlace"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
+                placeholder="Chọn nơi cấp"
                 panelClass="d-design-dropdown"
-                placeholder="Chọn nghĩa vụ quân sự"
+                :filter="true"
+              />
+            </div>
+          </div>
+          <div class="col-12 field p-0 flex text-left align-items-center px-3">
+            <div class="col-6 p-0 flex text-left align-items-center">
+              <div class="w-10rem">Tình trạng hôn nhân</div>
+              <div style="width: calc(100% - 10rem)">
+                <Dropdown
+                  v-model="candidate.candidate_marital"
+                  :options="listMarital"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                  placeholder="Chọn tình trạng hôn nhân"
+                />
+              </div>
+            </div>
+            <div class="col-6 p-0 flex text-left align-items-center">
+              <div class="w-10rem pl-3">Quốc tịch</div>
+              <div style="width: calc(100% - 10rem)">
+                <Dropdown
+                  v-model="candidate.candidate_nationality"
+                  :options="listNationality"
+                  optionLabel="name"
+                  optionValue="code"
+                  placeholder="Chọn quốc tịch"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-12 field p-0 flex text-left align-items-center px-3">
+            <div class="col-6 p-0 flex text-left align-items-center">
+              <div class="col-6 p-0 flex text-left align-items-center">
+                <div class="w-10rem">Chiều cao</div>
+                <div style="width: calc(100% - 10rem)">
+                  <InputNumber
+                    v-model="candidate.candidate_height"
+                    class="w-full"
+                    suffix=" Cm"
+                  />
+                </div>
+              </div>
+              <div class="col-6 p-0 flex text-left align-items-center">
+                <div class="w-10rem format-center">Cân nặng</div>
+                <div style="width: calc(100% - 10rem)">
+                  <InputNumber
+                    v-model="candidate.candidate_weight"
+                    class="w-full"
+                    suffix=" Kg"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="col-6 p-0 flex text-left align-items-center">
+              <div class="w-10rem pl-3">Nghĩa vụ quân sự</div>
+              <div style="width: calc(100% - 10rem)">
+                <Dropdown
+                  v-model="candidate.candidate_military"
+                  :options="listMilitary"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                  placeholder="Chọn nghĩa vụ quân sự"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-12 field p-0 flex text-left align-items-center px-3">
+            <div class="w-10rem">Giới thiệu bản thân</div>
+            <div style="width: calc(100% - 10rem)">
+              <Textarea
+                :autoResize="true"
+                rows="1"
+                cols="30"
+                v-model="candidate.candidate_introduce"
+                placeholder="Sở thích, điểm mạnh, điểm yếu"
+                class="w-full"
+                panelClass="d-design-dropdown"
               />
             </div>
           </div>
         </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="w-10rem">Giới thiệu bản thân</div>
-          <div style="width: calc(100% - 10rem)">
-            <Textarea
-              :autoResize="true"
-              rows="1"
-              cols="30"
-              v-model="candidate.candidate_introduce"
-              placeholder="Sở thích, điểm mạnh, điểm yếu"
-              class="w-full"
-              panelClass="d-design-dropdown"
-            />
-          </div>
-        </div>
-
         <div class="col-12 p-0 border-1 border-300 border-solid">
           <div
             class="w-full surface-100 flex border-bottom-1 border-200 cursor-pointer"

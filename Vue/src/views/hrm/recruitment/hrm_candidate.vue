@@ -213,7 +213,7 @@ const openBasic = (str) => {
     candidate_code: null,
     candidate_name: null,
     form_training: 1,
-    status: 1,
+    status: 0,
     training_place: null,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
@@ -453,11 +453,10 @@ const onFilter = (event) => {
 };
 const tabs = ref([
   { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
-  { id: 1, title: "Lên kế hoạch", icon: "", total: 0 },
-  { id: 2, title: "Đang thực hiện", icon: "", total: 0 },
-  { id: 3, title: "Đã hoàn thành", icon: "", total: 0 },
-  { id: 4, title: "Tạm dừng", icon: "", total: 0 },
-  { id: 5, title: "Đã hủy", icon: "", total: 0 },
+  { id: 1, title: "Ứng tuyển", icon: "", total: 0 },
+  { id: 2, title: "Trúng tuyển", icon: "", total: 0 },
+  { id: 3, title: "Không trúng tuyển", icon: "", total: 0 },
+  { id: 4, title: "Đã chuyển HSNS", icon: "", total: 0 }
 ]);
 const numOfKey=ref(0);
 //Checkbox
@@ -1531,7 +1530,7 @@ onMounted(() => {
           </template>
         </Toolbar>
       </div>
-      <!-- <div class="tabview">
+      <div class="tabview">
         <div class="tableview-nav-content">
           <ul class="tableview-nav">
             <li
@@ -1562,7 +1561,7 @@ onMounted(() => {
             </li>
           </ul>
         </div>
-      </div> -->
+      </div>
       <div class="d-container mt-3">
         <div class="d-lang-table">
           <DataTable
@@ -1909,7 +1908,7 @@ i {
 }
 .d-lang-table {
   margin: 0px;
-  height: calc(100vh - 162px);
+  height: calc(100vh - 215px);
 }
 
 .tableview-nav {
