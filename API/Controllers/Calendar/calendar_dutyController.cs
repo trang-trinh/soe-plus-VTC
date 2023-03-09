@@ -2603,6 +2603,7 @@ namespace API.Controllers.Calendar
                             ComponentInfo.SetLicense("DTZX-HTZ5-B7Q6-2GA6");
                             var htmlLoadOptions = new HtmlLoadOptions();
                             var document = DocumentModel.Load(htmlStream, htmlLoadOptions);
+                            document.DefaultCharacterFormat.Size = 13;
                             var opt = model.opition;
                             if (opt == null || (opt.left == 0 && opt.top == 0 && opt.right == 0 && opt.bottom == 0))
                             {
