@@ -3,6 +3,7 @@ import { useCookies } from "vue3-cookies";
 const { cookies } = useCookies();
 export const store = createStore({
     state: {
+        isframe: false,
         islogin: false,
         darkTheme: localStorage.getItem("darkTheme") == "true",
         background: localStorage.getItem("background") ||
@@ -17,6 +18,7 @@ export const store = createStore({
 
     },
     getters: {
+        isframe: (state) => state.isframe,
         islogin: (state) => state.islogin,
         darkTheme: (state) => state.darkTheme,
         user: (state) => state.user,
@@ -30,6 +32,9 @@ export const store = createStore({
 
     },
     mutations: {
+        setisframe(state, vl) {
+            state.isframe = vl;
+        },
         setislogin(state, vl) {
             state.islogin = vl;
         },

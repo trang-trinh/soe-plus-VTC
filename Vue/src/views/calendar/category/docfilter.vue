@@ -409,7 +409,7 @@ const initDataSQL = () => {
       }
     })
     .catch((error) => {
-      debugger;
+ 
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
       addLog({
@@ -976,7 +976,7 @@ onMounted(() => {
                     </div>
                     <div class="col-12 md:col-12 p-0">
                       <div class="form-group">
-                        <label>Sổ công văn</label>
+                        <label>Khối cơ quan</label>
                         <MultiSelect
                           :options="dispatch_books"
                           :filter="true"

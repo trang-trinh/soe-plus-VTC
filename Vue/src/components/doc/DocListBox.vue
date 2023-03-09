@@ -130,19 +130,24 @@ onMounted(() => {
     <div @click="passDocToDetail(DocItem)" class="col-12">
         <div @mouseover="DocItem.hover = true" @mouseleave="DocItem.hover = false" class="doc-list-item">
           <div class="doc-list-left">
-            <div class="doc-avatar">
+            <div v-if="props.Type !== 'store'" class="doc-avatar">
                  <Avatar v-show="DocItem.avatar && !DocItem.hover && !DocItem.checked" class="avatar-image" :image="basedomainURL + (DocItem.avatar != null ? DocItem.avatar : '/Portals/Image/nouser1.png')" shape="circle" size="large"/>
                  <Avatar class="ava-text" v-show="!DocItem.avatar && !DocItem.hover && !DocItem.checked" :label="DocItem.avatar_char" shape="circle" size="large"/>
                  <Checkbox @change="checkDocBeforeChecked($event);" :binary="true" v-show="DocItem.hover || DocItem.checked" class="checkbox-radio" style="margin-right: 1.45rem" v-model="DocItem.checked" />
             </div>
           </div>
             <div class="doc-list-detail">
-                <div class="doc-name">{{ DocItem.display_name }}</div>
+                <div v-if="props.Type !== 'store'" class="doc-name">{{ DocItem.display_name }}</div>
                 <div class="doc-description" :class="classStyleDoc">{{ DocItem.pre_info }} {{ DocItem.compendium }}</div>
                 <div class="doc-info">
                     Số ký hiệu: <b>{{ DocItem.doc_code }}</b>
                     | 
                     Ngày văn bản: <b >{{DocItem.doc_date}}</b>
+                </div>
+                <div class="doc-info">
+                    {{DocItem.dispatch_book_code ? 'Số' + (DocItem.nav_type === 1 ? ' đến: ' : ' vào sổ: ') : ''}} 
+                    <span v-if="DocItem.dispatch_book_code" v-html="'<b>' + DocItem.dispatch_book_code + '</b>'"></span>
+                    <span v-if="DocItem.issue_place" v-html="' | Nơi ban hành: <b>' + DocItem.issue_place + '</b>'"></span>
                 </div>
                 <div v-if="props.Type === 'receive' && DocItem.date_deadline < 0 && (DocItem.status_id !== 'dadongdau' && DocItem.status_id !== 'phanphat' && DocItem.status_id !== 'hoanthanh')" class="count-deadline">
                   <Chip v-bind:label="'Quá hạn xử lý ' + DocItem.abs_date_deadline + ' ngày'" style="background-color: red; color: #fff; border-radius: 5px; font-size: 11px;" />

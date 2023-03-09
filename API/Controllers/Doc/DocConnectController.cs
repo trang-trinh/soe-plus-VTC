@@ -25,15 +25,16 @@ namespace API.Controllers.Doc
     {
         public string getipaddress()
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-            return "localhost";
+            //var host = Dns.GetHostEntry(Dns.GetHostName());
+            //foreach (var ip in host.AddressList)
+            //{
+            //    if (ip.AddressFamily == AddressFamily.InterNetwork)
+            //    {
+            //        return ip.ToString();
+            //    }
+            //}
+            //return "localhost";
+            return HttpContext.Current.Request.UserHostAddress;
         }
         [HttpPost]
         private void saveXML(string root, List<string> column_names, List<int> doc_master_ids, string save_dir_path)

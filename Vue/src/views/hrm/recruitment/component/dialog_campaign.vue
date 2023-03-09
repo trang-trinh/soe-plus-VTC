@@ -37,7 +37,6 @@ const bgColor = ref([
 ]);
 
 const rules = {
- 
   campaign_name: {
     required,
     $errors: [
@@ -61,37 +60,35 @@ const rules = {
 };
 const listFilesS = ref([]);
 const campaign = ref({
-  campaign_name:null,
-  is_recruitment_proposal:null,
-  user_verify:null,
-  user_follows:null,
-  num_vacancies:null,
-  expected_cost:null,
-  start_date:null,
-  end_date:null,
-  rec_vacancies:null,
-  rec_position_id:null,
-  rec_formality_id:null,
-  rec_salary_from:null,
-  rec_workplace:null,
-  rec_salary_to:null,
-  rec_recruitment_deadline:null,
-  rec_number_vacancies:null,
-  rec_candidate_sheet_id:null,
-  can_academic_level_id:null,
-  can_specialization_id:null,
-  can_experience_id:null,
-  can_language_level_id:null,
-  can_age_from:null,
-  can_age_to:null,
-  can_gender:1,
-  can_height_from:null,
-  can_height_to:null,
-  can_weight_to:null,
-  can_weight_from:null,
-  job_description:null
-
-
+  campaign_name: null,
+  is_recruitment_proposal: null,
+  user_verify: null,
+  user_follows: null,
+  num_vacancies: null,
+  expected_cost: null,
+  start_date: null,
+  end_date: null,
+  rec_vacancies: null,
+  rec_position_id: null,
+  rec_formality_id: null,
+  rec_salary_from: null,
+  rec_workplace: null,
+  rec_salary_to: null,
+  rec_recruitment_deadline: null,
+  rec_number_vacancies: null,
+  rec_candidate_sheet_id: null,
+  can_academic_level_id: null,
+  can_specialization_id: null,
+  can_experience_id: null,
+  can_language_level_id: null,
+  can_age_from: null,
+  can_age_to: null,
+  can_gender: 1,
+  can_height_from: null,
+  can_height_to: null,
+  can_weight_to: null,
+  can_weight_from: null,
+  job_description: null,
 });
 const submitted = ref(false);
 const list_users_training = ref([]);
@@ -129,13 +126,9 @@ const loadData = () => {
           campaign.value = data[0];
 
           if (campaign.value.start_date)
-            campaign.value.start_date = new Date(
-              campaign.value.start_date
-            );
+            campaign.value.start_date = new Date(campaign.value.start_date);
           if (campaign.value.end_date)
-            campaign.value.end_date = new Date(
-              campaign.value.end_date
-            );
+            campaign.value.end_date = new Date(campaign.value.end_date);
           if (campaign.value.rec_recruitment_deadline)
             campaign.value.rec_recruitment_deadline = new Date(
               campaign.value.rec_recruitment_deadline
@@ -145,13 +138,12 @@ const loadData = () => {
           campaign.value.user_follows_fake =
             campaign.value.user_follows.split(",");
         }
-        debugger
+        debugger;
         if (data1) {
           listFilesS.value = data1;
         }
-      
       })
-      .catch((error) => { });
+      .catch((error) => {});
   }
 };
 const saveData = (isFormValid) => {
@@ -162,12 +154,10 @@ const saveData = (isFormValid) => {
   if (
     campaign.value.rec_vacancies == null ||
     campaign.value.user_verify_fake == null ||
-   
     campaign.value.rec_recruitment_deadline == null
   ) {
     return;
   }
-   
 
   if (campaign.value.campaign_name.length > 250) {
     swal.fire({
@@ -178,14 +168,12 @@ const saveData = (isFormValid) => {
     });
     return;
   }
-  
+
   if (campaign.value.user_verify_fake.length > 0)
-    campaign.value.user_verify =
-      campaign.value.user_verify_fake.toString();
+    campaign.value.user_verify = campaign.value.user_verify_fake.toString();
   if (campaign.value.user_follows_fake.length > 0)
-    campaign.value.user_follows =
-      campaign.value.user_follows_fake.toString();
- 
+    campaign.value.user_follows = campaign.value.user_follows_fake.toString();
+
   let formData = new FormData();
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
@@ -202,11 +190,7 @@ const saveData = (isFormValid) => {
   });
   if (props.checkadd) {
     axios
-      .post(
-        baseURL + "/api/hrm_campaign/add_hrm_campaign",
-        formData,
-        config
-      )
+      .post(baseURL + "/api/hrm_campaign/add_hrm_campaign", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -233,11 +217,7 @@ const saveData = (isFormValid) => {
       });
   } else {
     axios
-      .put(
-        baseURL + "/api/hrm_campaign/update_hrm_campaign",
-        formData,
-        config
-      )
+      .put(baseURL + "/api/hrm_campaign/update_hrm_campaign", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -339,21 +319,14 @@ const loadUser = () => {
     });
 };
 const v$ = useVuelidate(rules, campaign);
-const listVacancies = ref([
-   
-]);
-const listPosition = ref([
-   
-]);
-const listFormality = ref([
-   
-]);
+const listVacancies = ref([]);
+const listPosition = ref([]);
+const listFormality = ref([]);
 
-const listAcademic_level =ref([]);
-const listSpecialization =ref([]);
-const listExperience =ref([]);
-const listLanguage_level =ref([]);
-
+const listAcademic_level = ref([]);
+const listSpecialization = ref([]);
+const listExperience = ref([]);
+const listLanguage_level = ref([]);
 
 const listStatus = ref([
   { name: "Lên kế hoạch", code: 1 },
@@ -395,7 +368,7 @@ const showHidePanel = (type) => {
     }
   }
 };
- 
+
 const addRow_Item = (type) => {
   //relative
   if (type == 1) {
@@ -474,7 +447,7 @@ const initTudien = () => {
         treedonvis.value = obj.arrtreeChils;
       }
     })
-    .catch((error) => { });
+    .catch((error) => {});
 
   axios
     .post(
@@ -520,7 +493,6 @@ const initTudien = () => {
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
-             
             ],
           }),
           SecretKey,
@@ -543,7 +515,7 @@ const initTudien = () => {
       console.log(error);
     });
 
-    axios
+  axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
@@ -576,7 +548,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-    axios
+  axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
@@ -609,7 +581,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-    axios
+  axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
@@ -643,7 +615,7 @@ const initTudien = () => {
       console.log(error);
     });
 
-    axios
+  axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
@@ -676,7 +648,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-    axios
+  axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
@@ -709,7 +681,6 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-    
 };
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -961,12 +932,19 @@ onMounted(() => {
 });
 </script>
 <template>
-  <Dialog :header="props.headerDialog" v-model:visible="props.displayBasic" :style="{ width: '55vw' }" :maximizable="true"
-    :modal="true" :closable="false">
+  <Dialog
+    :header="props.headerDialog"
+    v-model:visible="props.displayBasic"
+    :style="{ width: '55vw' }"
+    :maximizable="true"
+    :modal="true"
+    :closable="false"
+  >
     <form>
       <div class="grid formgrid m-2">
-        <div class="col-12 field p-0 text-lg font-bold">Thông tin chiến dịch</div>
-
+        <div class="col-12 field p-0 text-lg font-bold">
+          Thông tin chiến dịch
+        </div>
 
         <div class="col-12 field flex p-0 align-items-center">
           <div class="w-10rem">
@@ -975,21 +953,32 @@ onMounted(() => {
           <div style="width: calc(100% - 10rem)">
             <div class="col-12 p-0">
               <div class="p-inputgroup">
-                <Textarea :autoResize="true" rows="1" cols="30" v-model="campaign.campaign_name" class="w-full" :style="
-                  campaign.campaign_name
-                    ? 'background-color:white !important'
-                    : ''
-                " :class="{
-  'p-invalid': v$.campaign_name.$invalid && submitted,
-}" />
+                <Textarea
+                  :autoResize="true"
+                  rows="1"
+                  cols="30"
+                  v-model="campaign.campaign_name"
+                  class="w-full"
+                  :style="
+                    campaign.campaign_name
+                      ? 'background-color:white !important'
+                      : ''
+                  "
+                  :class="{
+                    'p-invalid': v$.campaign_name.$invalid && submitted,
+                  }"
+                />
               </div>
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 field flex" v-if="
-          (v$.campaign_name.$invalid && submitted) ||
-          v$.campaign_name.$pending.$response
-        ">
+        <div
+          class="col-12 p-0 field flex"
+          v-if="
+            (v$.campaign_name.$invalid && submitted) ||
+            v$.campaign_name.$pending.$response
+          "
+        >
           <div class="p-0 col-12">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
@@ -1009,49 +998,58 @@ onMounted(() => {
               Người phụ trách <span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
-              <MultiSelect v-model="campaign.user_verify_fake" :options="listDropdownUserGive" optionLabel="name"
-                optionValue="code" placeholder="-------- Chọn người phụ trách --------" panelClass="d-design-dropdown"
-                class="w-full p-0 d-tree-input" :class="{
-                  'p-invalid':
-                    campaign.user_verify_fake == null && submitted,
-                }" display="chip">
+              <MultiSelect
+                v-model="campaign.user_verify_fake"
+                :options="listDropdownUserGive"
+                optionLabel="name"
+                optionValue="code"
+                placeholder="-------- Chọn người phụ trách --------"
+                panelClass="d-design-dropdown"
+                class="w-full p-0 d-tree-input"
+                :class="{
+                  'p-invalid': campaign.user_verify_fake == null && submitted,
+                }"
+                display="chip"
+              >
                 <template #option="slotProps">
                   <div class="country-item flex align-items-center">
                     <div class="grid w-full p-0">
-                      <div class="
-                            field
-                            p-0
-                            py-1
-                            col-12
-                            flex
-                            m-0
-                            cursor-pointer
-                            align-items-center
-                          ">
+                      <div
+                        class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
+                      >
                         <div class="col-1 mx-2 p-0 align-items-center">
-                          <Avatar v-bind:label="
-                            slotProps.option.avatar
-                              ? ''
-                              : slotProps.option.name.substring(
-                                slotProps.option.name.lastIndexOf(' ') + 1,
-                                slotProps.option.name.lastIndexOf(' ') + 2
-                              )
-                          " :image="basedomainURL + slotProps.option.avatar" size="small" :style="
-  slotProps.option.avatar
-    ? 'background-color: #2196f3'
-    : 'background:' +
-    bgColor[slotProps.option.name.length % 7]
-" shape="circle" @error="
-  $event.target.src =
-  basedomainURL + '/Portals/Image/nouser1.png'
-" />
+                          <Avatar
+                            v-bind:label="
+                              slotProps.option.avatar
+                                ? ''
+                                : slotProps.option.name.substring(
+                                    slotProps.option.name.lastIndexOf(' ') + 1,
+                                    slotProps.option.name.lastIndexOf(' ') + 2
+                                  )
+                            "
+                            :image="basedomainURL + slotProps.option.avatar"
+                            size="small"
+                            :style="
+                              slotProps.option.avatar
+                                ? 'background-color: #2196f3'
+                                : 'background:' +
+                                  bgColor[slotProps.option.name.length % 7]
+                            "
+                            shape="circle"
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
+                          />
                         </div>
                         <div class="col-11 p-0 ml-3 align-items-center">
                           <div class="pt-2">
                             <div class="font-bold">
                               {{ slotProps.option.name }}
                             </div>
-                            <div class="flex w-full text-sm font-italic text-500">
+                            <div
+                              class="flex w-full text-sm font-italic text-500"
+                            >
                               <div>{{ slotProps.option.position_name }}</div>
                             </div>
                           </div>
@@ -1066,46 +1064,55 @@ onMounted(() => {
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Người theo dõi</div>
             <div style="width: calc(100% - 10rem)">
-              <MultiSelect v-model="campaign.user_follows_fake" :options="listDropdownUserGive" optionLabel="name"
-                optionValue="code" placeholder="-------- Chọn người theo dõi --------" panelClass="d-design-dropdown"
-                class="w-full p-0 d-tree-input" display="chip">
+              <MultiSelect
+                v-model="campaign.user_follows_fake"
+                :options="listDropdownUserGive"
+                optionLabel="name"
+                optionValue="code"
+                placeholder="-------- Chọn người theo dõi --------"
+                panelClass="d-design-dropdown"
+                class="w-full p-0 d-tree-input"
+                display="chip"
+              >
                 <template #option="slotProps">
                   <div class="country-item flex align-items-center">
                     <div class="grid w-full p-0">
-                      <div class="
-                            field
-                            p-0
-                            py-1
-                            col-12
-                            flex
-                            m-0
-                            cursor-pointer
-                            align-items-center
-                          ">
+                      <div
+                        class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
+                      >
                         <div class="col-1 mx-2 p-0 align-items-center">
-                          <Avatar v-bind:label="
-                            slotProps.option.avatar
-                              ? ''
-                              : slotProps.option.name.substring(
-                                slotProps.option.name.lastIndexOf(' ') + 1,
-                                slotProps.option.name.lastIndexOf(' ') + 2
-                              )
-                          " :image="basedomainURL + slotProps.option.avatar" size="small" :style="
-  slotProps.option.avatar
-    ? 'background-color: #2196f3'
-    : 'background:' +
-    bgColor[slotProps.option.name.length % 7]
-" shape="circle" @error="
-  $event.target.src =
-  basedomainURL + '/Portals/Image/nouser1.png'
-" />
+                          <Avatar
+                            v-bind:label="
+                              slotProps.option.avatar
+                                ? ''
+                                : slotProps.option.name.substring(
+                                    slotProps.option.name.lastIndexOf(' ') + 1,
+                                    slotProps.option.name.lastIndexOf(' ') + 2
+                                  )
+                            "
+                            :image="basedomainURL + slotProps.option.avatar"
+                            size="small"
+                            :style="
+                              slotProps.option.avatar
+                                ? 'background-color: #2196f3'
+                                : 'background:' +
+                                  bgColor[slotProps.option.name.length % 7]
+                            "
+                            shape="circle"
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
+                          />
                         </div>
                         <div class="col-11 p-0 ml-3 align-items-center">
                           <div class="pt-2">
                             <div class="font-bold">
                               {{ slotProps.option.name }}
                             </div>
-                            <div class="flex w-full text-sm font-italic text-500">
+                            <div
+                              class="flex w-full text-sm font-italic text-500"
+                            >
                               <div>{{ slotProps.option.position_name }}</div>
                             </div>
                           </div>
@@ -1118,12 +1125,17 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 field flex" v-if="campaign.user_verify_fake == null && submitted">
+        <div
+          class="col-12 p-0 field flex"
+          v-if="campaign.user_verify_fake == null && submitted"
+        >
           <div class="p-0 col-6">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full">Người phụ trách không được để trống!</span>
+                <span style="color: red" class="w-full"
+                  >Người phụ trách không được để trống!</span
+                >
               </small>
             </div>
           </div>
@@ -1134,28 +1146,37 @@ onMounted(() => {
               Số lượng tuyển<span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
-              <InputNumber class="w-full" suffix=" Người" v-model="campaign.num_vacancies"
-              :class="{
-                  'p-invalid':
-                    campaign.num_vacancies == null && submitted,
-                }" 
+              <InputNumber
+                class="w-full"
+                suffix=" Người"
+                v-model="campaign.num_vacancies"
+                :class="{
+                  'p-invalid': campaign.num_vacancies == null && submitted,
+                }"
               />
-
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Chi phí dự kiến</div>
             <div style="width: calc(100% - 10rem)">
-              <InputNumber v-model="campaign.expected_cost" class="w-full" suffix=" VND" />
+              <InputNumber
+                v-model="campaign.expected_cost"
+                class="w-full"
+                suffix=" VND"
+              />
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 field flex" v-if="campaign.num_vacancies == null && submitted">
+        <div
+          class="col-12 p-0 field flex"
+          v-if="campaign.num_vacancies == null && submitted"
+        >
           <div class="p-0 col-6">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full">Số lượng tuyển không được để trống!
+                <span style="color: red" class="w-full"
+                  >Số lượng tuyển không được để trống!
                 </span>
               </small>
             </div>
@@ -1164,56 +1185,87 @@ onMounted(() => {
 
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">
-              Ngày bắt đầu
-            </div>
+            <div class="w-10rem">Ngày bắt đầu</div>
             <div style="width: calc(100% - 10rem)">
-              <Calendar class="w-full" id="basic_purchase_date" v-model="campaign.start_date" autocomplete="on"
-                :showIcon="true" placeholder="dd/mm/yyyy" />
+              <Calendar
+                class="w-full"
+                id="basic_purchase_date"
+                v-model="campaign.start_date"
+                autocomplete="on"
+                :showIcon="true"
+                placeholder="dd/mm/yyyy"
+              />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Ngày kết thúc</div>
             <div style="width: calc(100% - 10rem)">
-              <Calendar class="w-full" placeholder="dd/mm/yyyy" id="basic_purchase_date" v-model="campaign.end_date"
-                autocomplete="on" :minDate="
-                  campaign.start_date
-                    ? new Date(campaign.start_date)
-                    : null
-                " :showIcon="true" />
+              <Calendar
+                class="w-full"
+                placeholder="dd/mm/yyyy"
+                id="basic_purchase_date"
+                v-model="campaign.end_date"
+                autocomplete="on"
+                :minDate="
+                  campaign.start_date ? new Date(campaign.start_date) : null
+                "
+                :showIcon="true"
+              />
             </div>
           </div>
         </div>
-       
-        <div class="col-12 field p-0 text-lg font-bold">Thông tin vị trí tuyển</div>
+
+        <div class="col-12 field p-0 text-lg font-bold">
+          Thông tin vị trí tuyển
+        </div>
 
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem ">Vị trí<span class="redsao pl-1"> (*)</span></div>
+            <div class="w-10rem">
+              Vị trí<span class="redsao pl-1"> (*)</span>
+            </div>
             <div style="width: calc(100% - 10rem)">
-              <Dropdown :filter="true" v-model="campaign.rec_vacancies" :options="listVacancies" optionLabel="name" optionValue="code"
-                class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn vị trí"
+              <Dropdown
+                :filter="true"
+                v-model="campaign.rec_vacancies"
+                :options="listVacancies"
+                optionLabel="name"
+                optionValue="code"
+                class="w-full"
+                panelClass="d-design-dropdown"
+                placeholder="Chọn vị trí"
                 :class="{
-                  'p-invalid':
-                    campaign.rec_vacancies == null && submitted,
-                }" 
-                />
+                  'p-invalid': campaign.rec_vacancies == null && submitted,
+                }"
+              />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Chức vụ</div>
             <div style="width: calc(100% - 10rem)">
-              <Dropdown  :filter="true"  v-model="campaign.rec_position_id" :options="listPosition" optionLabel="name" optionValue="code"
-                class=" w-full" placeholder="Chọn chức vụ" panelClass="d-design-dropdown" />
+              <Dropdown
+                :filter="true"
+                v-model="campaign.rec_position_id"
+                :options="listPosition"
+                optionLabel="name"
+                optionValue="code"
+                class="w-full"
+                placeholder="Chọn chức vụ"
+                panelClass="d-design-dropdown"
+              />
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 field flex" v-if="campaign.rec_vacancies == null && submitted">
+        <div
+          class="col-12 p-0 field flex"
+          v-if="campaign.rec_vacancies == null && submitted"
+        >
           <div class="p-0 col-6">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full">Vị trí không được để trống!
+                <span style="color: red" class="w-full"
+                  >Vị trí không được để trống!
                 </span>
               </small>
             </div>
@@ -1223,20 +1275,23 @@ onMounted(() => {
         <div class="col-12 flex p-0">
           <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-                Hình thức làm việc
-              </div>
+              <div class="w-10rem">Hình thức làm việc</div>
               <div style="width: calc(100% - 10rem)">
-                <Dropdown v-model="campaign.rec_formality_id" :options="listFormality" optionLabel="name" optionValue="code"
-                  class=" w-full" panelClass="d-design-dropdown" placeholder="Chọn hình thức làm việc" />
+                <Dropdown
+                  v-model="campaign.rec_formality_id"
+                  :options="listFormality"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                  placeholder="Chọn hình thức làm việc"
+                />
               </div>
             </div>
           </div>
           <div class="col-6 flex p-0 text-center align-items-center">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-                Nơi làm việc
-              </div>
+              <div class="w-10rem pl-3">Nơi làm việc</div>
               <div style="width: calc(100% - 10rem)">
                 <InputText v-model="campaign.rec_workplace" class="w-full" />
               </div>
@@ -1247,27 +1302,33 @@ onMounted(() => {
         <div class="col-12 flex p-0">
           <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-                Mức lương (từ)
-              </div>
-              <div style="width: calc(100% - 10rem)"> 
-                <InputNumber v-model="campaign.rec_salary_from" :min="0" class="w-full d-input-design-number" suffix=" VND"
-                  placeholder="Từ" />
+              <div class="w-10rem">Mức lương (từ)</div>
+              <div style="width: calc(100% - 10rem)">
+                <InputNumber
+                  v-model="campaign.rec_salary_from"
+                  :min="0"
+                  class="w-full d-input-design-number"
+                  suffix=" VND"
+                  placeholder="Từ"
+                />
               </div>
             </div>
           </div>
           <div class="col-6 flex p-0 text-center align-items-center">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-                Mức lương (đến)
-              </div>
+              <div class="w-10rem pl-3">Mức lương (đến)</div>
               <div style="width: calc(100% - 10rem)">
-                <InputNumber v-model="campaign.rec_salary_to" :min="
-                  campaign.rec_salary_from
-                    ? campaign.rec_salary_from+1
-                    : null
-                "  class="w-full d-input-design-number" suffix=" VND"
-                  placeholder="Đến" />
+                <InputNumber
+                  v-model="campaign.rec_salary_to"
+                  :min="
+                    campaign.rec_salary_from
+                      ? campaign.rec_salary_from + 1
+                      : null
+                  "
+                  class="w-full d-input-design-number"
+                  suffix=" VND"
+                  placeholder="Đến"
+                />
               </div>
             </div>
           </div>
@@ -1279,38 +1340,48 @@ onMounted(() => {
                 Hạn tuyển<span class="redsao pl-1"> (*)</span>
               </div>
               <div style="width: calc(100% - 10rem)">
-                <Calendar class="w-full" placeholder="dd/mm/yyyy" v-model="campaign.rec_recruitment_deadline" autocomplete="on"
-                  :showIcon="true" :class="{
-                  'p-invalid':
-                    campaign.rec_recruitment_deadline == null && submitted,
-                }" 
-                :minDate="
-                  campaign.start_date
-                    ? new Date(campaign.start_date)
-                    : null
-                "
+                <Calendar
+                  class="w-full"
+                  placeholder="dd/mm/yyyy"
+                  v-model="campaign.rec_recruitment_deadline"
+                  autocomplete="on"
+                  :showIcon="true"
+                  :class="{
+                    'p-invalid':
+                      campaign.rec_recruitment_deadline == null && submitted,
+                  }"
+                  :minDate="
+                    campaign.start_date ? new Date(campaign.start_date) : null
+                  "
                 />
               </div>
             </div>
           </div>
           <div class="col-6 flex p-0 text-center align-items-center">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-                Số lượng
-              </div>
+              <div class="w-10rem pl-3">Số lượng</div>
               <div style="width: calc(100% - 10rem)">
-                <InputNumber v-model="campaign.rec_number_vacancies" :min="0" class="w-full d-input-design-number" suffix=" Người"
-                  placeholder="Số lượng" />
+                <InputNumber
+                  v-model="campaign.rec_number_vacancies"
+                  :min="0"
+                  class="w-full d-input-design-number"
+                  suffix=" Người"
+                  placeholder="Số lượng"
+                />
               </div>
             </div>
           </div>
         </div>
-        <div class="col-12 p-0 field flex" v-if="campaign.rec_recruitment_deadline == null && submitted">
+        <div
+          class="col-12 p-0 field flex"
+          v-if="campaign.rec_recruitment_deadline == null && submitted"
+        >
           <div class="p-0 col-6">
             <div class="col-12 p-0 flex">
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full">Ngày bắt đầu không được để trống!
+                <span style="color: red" class="w-full"
+                  >Ngày bắt đầu không được để trống!
                 </span>
               </small>
             </div>
@@ -1341,43 +1412,65 @@ onMounted(() => {
 
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem ">Trình độ</div>
+            <div class="w-10rem">Trình độ</div>
             <div style="width: calc(100% - 10rem)">
-              <Dropdown v-model="campaign.can_academic_level_id" :options="listAcademic_level" optionLabel="name" optionValue="code"
-                class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn trình độ" />
+              <Dropdown
+                v-model="campaign.can_academic_level_id"
+                :options="listAcademic_level"
+                optionLabel="name"
+                optionValue="code"
+                class="w-full"
+                panelClass="d-design-dropdown"
+                placeholder="Chọn trình độ"
+              />
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Chuyên ngành</div>
             <div style="width: calc(100% - 10rem)">
-              <Dropdown v-model="campaign.can_specialization_id" :options="listSpecialization" optionLabel="name" optionValue="code"
-                class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn chuyên ngành" />
+              <Dropdown
+                v-model="campaign.can_specialization_id"
+                :options="listSpecialization"
+                optionLabel="name"
+                optionValue="code"
+                class="w-full"
+                panelClass="d-design-dropdown"
+                placeholder="Chọn chuyên ngành"
+              />
             </div>
           </div>
         </div>
 
-
         <div class="col-12 flex p-0">
           <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-                Kinh nghiệm
-              </div>
+              <div class="w-10rem">Kinh nghiệm</div>
               <div style="width: calc(100% - 10rem)">
-                <Dropdown v-model="campaign.can_experience_id" :options="listExperience" optionLabel="name" optionValue="code"
-                  class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn kinh nghiệm" />
+                <Dropdown
+                  v-model="campaign.can_experience_id"
+                  :options="listExperience"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                  placeholder="Chọn kinh nghiệm"
+                />
               </div>
             </div>
           </div>
           <div class="col-6 flex p-0 text-center align-items-center">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-                Ngoại ngữ
-              </div>
+              <div class="w-10rem pl-3">Ngoại ngữ</div>
               <div style="width: calc(100% - 10rem)">
-                <Dropdown v-model="campaign.can_language_level_id" :options="listLanguage_level" optionLabel="name" optionValue="code"
-                  class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn trình độ ngoại ngữ" />
-            
+                <Dropdown
+                  v-model="campaign.can_language_level_id"
+                  :options="listLanguage_level"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                  placeholder="Chọn trình độ ngoại ngữ"
+                />
               </div>
             </div>
           </div>
@@ -1386,27 +1479,44 @@ onMounted(() => {
         <div class="col-12 flex p-0">
           <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-                Tuổi
-              </div>
+              <div class="w-10rem">Tuổi</div>
               <div style="width: calc(100% - 10rem)" class="flex">
                 <div class="w-full mr-2">
-                  <InputNumber v-model="campaign.can_age_from" class="w-full  " :min="0" suffix=" Tuổi" placeholder="Từ" />
+                  <InputNumber
+                    v-model="campaign.can_age_from"
+                    class="w-full"
+                    :min="0"
+                    suffix=" Tuổi"
+                    placeholder="Từ"
+                  />
                 </div>
                 <div class="w-full">
-                  <InputNumber v-model="campaign.can_age_to" class="w-full " :min="campaign.can_age_from?campaign.can_age_from+1: null" suffix=" Tuổi" placeholder="Đến" />
+                  <InputNumber
+                    v-model="campaign.can_age_to"
+                    class="w-full"
+                    :min="
+                      campaign.can_age_from ? campaign.can_age_from + 1 : null
+                    "
+                    suffix=" Tuổi"
+                    placeholder="Đến"
+                  />
                 </div>
               </div>
             </div>
           </div>
           <div class="col-6 flex p-0 text-center align-items-center">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-                Giới tính
-              </div>
+              <div class="w-10rem pl-3">Giới tính</div>
               <div style="width: calc(100% - 10rem)">
-                <Dropdown v-model="campaign.can_gender" :options="listGender" optionLabel="name" optionValue="code"
-                  class="  w-full" panelClass="d-design-dropdown" placeholder="Chọn giới tính" />
+                <Dropdown
+                  v-model="campaign.can_gender"
+                  :options="listGender"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                  placeholder="Chọn giới tính"
+                />
               </div>
             </div>
           </div>
@@ -1414,96 +1524,149 @@ onMounted(() => {
         <div class="col-12 flex p-0">
           <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem">
-                Chiều cao
-              </div>
+              <div class="w-10rem">Chiều cao</div>
               <div style="width: calc(100% - 10rem)" class="flex">
                 <div class="w-full mr-2">
-                  <InputNumber v-model="campaign.can_height_from"
-                :min="0"
-                  class="w-full  " suffix=" Cm" placeholder="Từ" />
+                  <InputNumber
+                    v-model="campaign.can_height_from"
+                    :min="0"
+                    class="w-full"
+                    suffix=" Cm"
+                    placeholder="Từ"
+                  />
                 </div>
                 <div class="w-full">
-                  <InputNumber v-model="campaign.can_height_to"
-                  :min="campaign.can_height_from?campaign.can_height_from+1: null"
-                  class="w-full " suffix=" Cm" placeholder="Đến" />
+                  <InputNumber
+                    v-model="campaign.can_height_to"
+                    :min="
+                      campaign.can_height_from
+                        ? campaign.can_height_from + 1
+                        : null
+                    "
+                    class="w-full"
+                    suffix=" Cm"
+                    placeholder="Đến"
+                  />
                 </div>
               </div>
             </div>
           </div>
           <div class="col-6 p-0">
             <div class="col-12 field flex p-0 text-left align-items-center">
-              <div class="w-10rem pl-3">
-                Cân nặng
-              </div>
+              <div class="w-10rem pl-3">Cân nặng</div>
               <div style="width: calc(100% - 10rem)" class="flex">
                 <div class="w-full mr-2">
-                  <InputNumber v-model="campaign.can_weight_from"
-                  :min="0"
-                  class="w-full  " suffix=" Kg" placeholder="Từ" />
+                  <InputNumber
+                    v-model="campaign.can_weight_from"
+                    :min="0"
+                    class="w-full"
+                    suffix=" Kg"
+                    placeholder="Từ"
+                  />
                 </div>
                 <div class="w-full">
-                  <InputNumber v-model="campaign.can_weight_to"
-                  :min="campaign.can_weight_from?campaign.can_weight_from+1: null"
-                  class="w-full " suffix=" Kg" placeholder="Đến" />
+                  <InputNumber
+                    v-model="campaign.can_weight_to"
+                    :min="
+                      campaign.can_weight_from
+                        ? campaign.can_weight_from + 1
+                        : null
+                    "
+                    class="w-full"
+                    suffix=" Kg"
+                    placeholder="Đến"
+                  />
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-12 field flex p-0 text-left align-items-center">
-          <div class="w-10rem ">
-            Mô tả công việc
-          </div>
+          <div class="w-10rem">Mô tả công việc</div>
           <div style="width: calc(100% - 10rem)" class="flex">
-            <Textarea :autoResize="true" rows="1" cols="40" v-model="campaign.job_description" class="w-full" />
+            <Textarea
+              :autoResize="true"
+              rows="1"
+              cols="40"
+              v-model="campaign.job_description"
+              class="w-full"
+            />
           </div>
         </div>
 
         <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
         <div class="w-full col-12 field p-0">
-          <FileUpload chooseLabel="Chọn File" :showUploadButton="false" :showCancelButton="false" :multiple="false"
-            :maxFileSize="524288000" @select="onUploadFile" @remove="removeFile"
-            :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'">
+          <FileUpload
+            chooseLabel="Chọn File"
+            :showUploadButton="false"
+            :showCancelButton="false"
+            :multiple="false"
+            :maxFileSize="524288000"
+            @select="onUploadFile"
+            @remove="removeFile"
+            :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
+          >
             <template #empty>
               <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
             </template>
           </FileUpload>
 
           <div class="col-12 p-0">
-            <div class="p-0 w-full flex" v-for="(item, index) in listFilesS" :key="index">
-              <div class="p-0 surface-50" style="width: 100%; border-radius: 10px">
+            <div
+              class="p-0 w-full flex"
+              v-for="(item, index) in listFilesS"
+              :key="index"
+            >
+              <div
+                class="p-0 surface-50"
+                style="width: 100%; border-radius: 10px"
+              >
                 <Toolbar class="w-full py-3">
                   <template #start>
                     <div class="flex">
                       <div v-if="item.is_image" class="align-items-center flex">
-                        <Image :src="basedomainURL + item.file_path" :alt="item.file_name" width="70" height="50" style="
-                                object-fit: contain;
-                                border: 1px solid #ccc;
-                                width: 70px;
-                                height: 50px;
-                              " preview class="pr-2" />
+                        <Image
+                          :src="basedomainURL + item.file_path"
+                          :alt="item.file_name"
+                          width="70"
+                          height="50"
+                          style="
+                            object-fit: contain;
+                            border: 1px solid #ccc;
+                            width: 70px;
+                            height: 50px;
+                          "
+                          preview
+                          class="pr-2"
+                        />
                         <div class="ml-2">
                           {{ item.file_name }}
-
                         </div>
                       </div>
                       <div v-else>
-                        <a :href="basedomainURL + item.file_path" download class="w-full no-underline cursor-pointer">
+                        <a
+                          :href="basedomainURL + item.file_path"
+                          download
+                          class="w-full no-underline cursor-pointer"
+                        >
                           <div class="align-items-center flex">
                             <div>
-                              <img :src="
-                                basedomainURL +
-                                '/Portals/Image/file/' +
-                                item.file_path.substring(
-                                  item.file_path.lastIndexOf('.') + 1
-                                ) +
-                                '.png'
-                              " style="
-                                      width: 70px;
-                                      height: 50px;
-                                      object-fit: contain;
-                                    " :alt="item.file_name" />
+                              <img
+                                :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  item.file_path.substring(
+                                    item.file_path.lastIndexOf('.') + 1
+                                  ) +
+                                  '.png'
+                                "
+                                style="
+                                  width: 70px;
+                                  height: 50px;
+                                  object-fit: contain;
+                                "
+                                :alt="item.file_name"
+                              />
                             </div>
                             <div class="ml-2">
                               {{ item.file_name }}
@@ -1514,7 +1677,11 @@ onMounted(() => {
                     </div>
                   </template>
                   <template #end>
-                    <Button icon="pi pi-times" class="p-button-rounded p-button-danger" @click="deleteFileH(item)" />
+                    <Button
+                      icon="pi pi-times"
+                      class="p-button-rounded p-button-danger"
+                      @click="deleteFileH(item)"
+                    />
                   </template>
                 </Toolbar>
               </div>
@@ -1525,9 +1692,19 @@ onMounted(() => {
     </form>
     <template #footer>
       <div class="pt-3" v-if="!view">
-        <Button label="Hủy" icon="pi pi-times" @click="props.closeDialog" class="p-button-outlined" />
+        <Button
+          label="Hủy"
+          icon="pi pi-times"
+          @click="props.closeDialog"
+          class="p-button-outlined"
+        />
 
-        <Button label="Lưu" icon="pi pi-check" @click="saveData(!v$.$invalid)" autofocus />
+        <Button
+          label="Lưu"
+          icon="pi pi-check"
+          @click="saveData(!v$.$invalid)"
+          autofocus
+        />
       </div>
     </template>
   </Dialog>

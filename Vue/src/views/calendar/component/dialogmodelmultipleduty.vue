@@ -221,6 +221,38 @@ const addModelTemp = (item) => {
   datas.value.push(md);
   initWeek();
 };
+const copyItem = (item) => {
+  if (datas.value && datas.value.length > 0) {
+    var start_date = new Date(currentweek.value["week_start_date"]);
+    var end_date = new Date(currentweek.value["week_end_date"]);
+    temps.value = datas.value.filter(
+      (item) =>
+        item["date_timelot"] >= start_date &&
+        item["date_timelot"] <= end_date.setDate(end_date.getDate() + 1)
+    );
+  }
+  let dateinweeks = bindDateBetweenFirstAndLast(
+    new Date(currentweek.value["week_start_date"]),
+    new Date(currentweek.value["week_end_date"])
+  );
+  dateinweeks
+    .filter(
+      (a) =>
+        temps.value.findIndex(
+          (b) => b["day_string"] === moment(a).format("DD/MM/YYYY")
+        ) === -1
+    )
+    .forEach((day, i) => {
+      var it = Object.assign({}, item);
+      it.date_timelot = day;
+      it.day = day;
+      it.day_name = getDayDate(day)
+      it.day_string = moment(day).format("DD/MM/YYYY"),
+      it.is_holiday = day.getDay() == 0;
+      datas.value.push(it);
+    });
+  initWeek();
+};
 const closeDialogWeek = () => {
   model.value = {
     status: 0,
@@ -335,36 +367,20 @@ const openEditDialogWeek = (md) => {
   displayDialogWeek.value = true;
 };
 const deleteItem = (md) => {
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá lịch trực ban này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-        var idx = datas.value.findIndex(
-          (x) => x["calendar_duty_id"] === md["calendar_duty_id"]
-        );
-        if (idx !== -1) {
-          datas.value.splice(idx, 1);
-        }
-        initWeek();
-        swal.close();
-        toast.success("Xoá lịch trực ban thành công!");
-      }
-    });
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  var idx = datas.value.findIndex(
+    (x) => x["calendar_duty_id"] === md["calendar_duty_id"]
+  );
+  if (idx !== -1) {
+    datas.value.splice(idx, 1);
+  }
+  initWeek();
+  swal.close();
 };
 const saveModelMultiple = () => {
   if (datas.value == null || datas.value.length === 0) {
@@ -762,11 +778,7 @@ onMounted(() => {
                     header=""
                     headerStyle="text-align:center;width:50px;height:50px;"
                     bodyStyle="text-align:center;width:50px;max-height:60px"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <div class="format-center">
@@ -775,12 +787,7 @@ onMounted(() => {
                             //openAddDialogWeek('Thêm mới lịch trực ban',slotProps.data)
                             addModelTemp(slotProps.data)
                           "
-                          class="
-                            p-button-rounded
-                            p-button-secondary
-                            p-button-outlined
-                            mx-1
-                          "
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                           type="button"
                           icon="pi pi-plus-circle"
                           v-tooltip.top="'Thêm lịch trực ban'"
@@ -793,11 +800,7 @@ onMounted(() => {
                     header="Thứ/ngày"
                     headerStyle="text-align:center;width:100px;height:50px;"
                     bodyStyle="text-align:center;width:100px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <div
@@ -867,11 +870,7 @@ onMounted(() => {
                     field="trucbans"
                     headerStyle="text-align:center;width:150px;height:50px"
                     bodyStyle="text-align:center;width:150px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #header>
                       <div><b>Trực ban </b><span class="redsao">(*)</span></div>
@@ -988,11 +987,7 @@ onMounted(() => {
                     header="Chỉ huy"
                     headerStyle="text-align:center;width:150px;height:50px"
                     bodyStyle="text-align:center;width:150px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <Dropdown
@@ -1105,11 +1100,7 @@ onMounted(() => {
                     header="Địa điểm"
                     headerStyle="text-align:center;width:150px;height:50px"
                     bodyStyle="text-align:center;width:150px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <Dropdown
@@ -1136,11 +1127,7 @@ onMounted(() => {
                   </Column>
                   <Column
                     header="Chức năng"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                     headerStyle="text-align:center;width:100px;height:50px"
                     bodyStyle="text-align:center;max-width:100px;max-height:60px"
                   >
@@ -1149,13 +1136,7 @@ onMounted(() => {
                         <Button
                           v-if="slotProps.data.calendar_duty_id != null"
                           @click="openEditDialogWeek(slotProps.data)"
-                          class="
-                            p-button-rounded
-                            p-button-secondary
-                            p-button-outlined
-                            mx-1
-                            mb-2
-                          "
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                           type="button"
                           icon="pi pi-pencil"
                           v-tooltip.top="'Sửa'"
@@ -1163,13 +1144,7 @@ onMounted(() => {
                         <Button
                           v-if="slotProps.data.calendar_duty_id != null"
                           @click="deleteItem(slotProps.data)"
-                          class="
-                            p-button-rounded
-                            p-button-secondary
-                            p-button-outlined
-                            mx-1
-                            mb-2
-                          "
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                           type="button"
                           v-tooltip.top="'Xóa'"
                           icon="pi pi-trash"
@@ -1179,13 +1154,7 @@ onMounted(() => {
                   </Column>
                   <template #empty>
                     <div
-                      class="
-                        align-items-center
-                        justify-content-center
-                        p-4
-                        text-center
-                        m-auto
-                      "
+                      class="align-items-center justify-content-center p-4 text-center m-auto"
                       v-if="!isFirst || options.total == 0"
                       style="display: flex; height: calc(100vh - 225px)"
                     ></div>
@@ -1214,11 +1183,7 @@ onMounted(() => {
                     header=""
                     headerStyle="text-align:center;width:50px;height:50px;"
                     bodyStyle="text-align:center;width:50px;max-height:60px"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <div class="format-center">
@@ -1227,12 +1192,7 @@ onMounted(() => {
                             //openAddDialogWeek('Thêm mới lịch trực ban',slotProps.data)
                             addModelTemp(slotProps.data)
                           "
-                          class="
-                            p-button-rounded
-                            p-button-secondary
-                            p-button-outlined
-                            mx-1
-                          "
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                           type="button"
                           icon="pi pi-plus-circle"
                           v-tooltip.top="'Thêm lịch trực ban'"
@@ -1244,11 +1204,7 @@ onMounted(() => {
                     field="trucbans"
                     headerStyle="text-align:center;width:180px;height:50px"
                     bodyStyle="text-align:center;width:180px;max-height:60px"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #header>
                       <div>
@@ -1370,11 +1326,7 @@ onMounted(() => {
                     header="Cấp bậc, chức vụ"
                     headerStyle="height:50px;max-width:auto;min-width:150px;"
                     bodyStyle="max-height:60px;"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <div
@@ -1427,11 +1379,7 @@ onMounted(() => {
                     header="Thời gian"
                     headerStyle="text-align:center;width:100px;height:50px;"
                     bodyStyle="text-align:center;width:100px;max-height:60px"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <div
@@ -1450,11 +1398,7 @@ onMounted(() => {
                     header="Thứ"
                     headerStyle="text-align:center;width:100px;height:50px;"
                     bodyStyle="text-align:center;width:100px;max-height:60px"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <div
@@ -1473,11 +1417,7 @@ onMounted(() => {
                     header="Trực chỉ huy"
                     headerStyle="text-align:center;width:180px;height:50px"
                     bodyStyle="text-align:center;width:15180px0px;max-height:60px"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
+                    class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <Dropdown
@@ -1587,26 +1527,26 @@ onMounted(() => {
                   </Column>
                   <Column
                     header="Chức năng"
-                    class="
-                      align-items-center
-                      justify-content-center
-                      text-center
-                    "
-                    headerStyle="text-align:center;width:100px;height:50px"
-                    bodyStyle="text-align:center;max-width:100px;max-height:60px"
+                    class="align-items-center justify-content-center text-center"
+                    headerStyle="text-align:center;width:150px;height:50px"
+                    bodyStyle="text-align:center;max-width:150px;max-height:60px"
                   >
                     <template #body="slotProps">
                       <div>
                         <Button
                           v-if="slotProps.data.calendar_duty_id != null"
-                          @click="openEditDialogWeek(slotProps.data)"
-                          class="
-                            p-button-rounded
-                            p-button-secondary
-                            p-button-outlined
-                            mx-1
-                            mb-2
+                          @click="copyItem(slotProps.data)"
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
+                          type="button"
+                          icon="pi pi-copy"
+                          v-tooltip.top="
+                            'Nhân bản lịch tất các ngày còn lại trong tuần'
                           "
+                        ></Button>
+                        <Button
+                          v-if="slotProps.data.calendar_duty_id != null"
+                          @click="openEditDialogWeek(slotProps.data)"
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                           type="button"
                           icon="pi pi-pencil"
                           v-tooltip.top="'Sửa'"
@@ -1614,13 +1554,7 @@ onMounted(() => {
                         <Button
                           v-if="slotProps.data.calendar_duty_id != null"
                           @click="deleteItem(slotProps.data)"
-                          class="
-                            p-button-rounded
-                            p-button-secondary
-                            p-button-outlined
-                            mx-1
-                            mb-2
-                          "
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                           type="button"
                           v-tooltip.top="'Xóa'"
                           icon="pi pi-trash"
@@ -1630,13 +1564,7 @@ onMounted(() => {
                   </Column>
                   <template #empty>
                     <div
-                      class="
-                        align-items-center
-                        justify-content-center
-                        p-4
-                        text-center
-                        m-auto
-                      "
+                      class="align-items-center justify-content-center p-4 text-center m-auto"
                       v-if="
                         !options.loading && (!isFirst || options.total == 0)
                       "

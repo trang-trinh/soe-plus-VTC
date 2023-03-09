@@ -2603,6 +2603,7 @@ namespace API.Controllers.Calendar
                             ComponentInfo.SetLicense("DTZX-HTZ5-B7Q6-2GA6");
                             var htmlLoadOptions = new HtmlLoadOptions();
                             var document = DocumentModel.Load(htmlStream, htmlLoadOptions);
+                            document.DefaultCharacterFormat.Size = 13;
                             var opt = model.opition;
                             if (opt == null || (opt.left == 0 && opt.top == 0 && opt.right == 0 && opt.bottom == 0))
                             {
@@ -2619,6 +2620,15 @@ namespace API.Controllers.Calendar
                             Section section = document.Sections[0];
                             PageSetup pageSetup = section.PageSetup;
                             PageMargins pageMargins = pageSetup.PageMargins;
+                            if(opt.orientation == "Portrait")
+                            {
+                                section.PageSetup.Orientation = Orientation.Portrait;
+                            }
+                            else if (opt.orientation == "Landscape")
+                            {
+                                section.PageSetup.Orientation = Orientation.Landscape;
+                            }
+                            pageMargins.Top = opt.top;
                             pageMargins.Top = opt.top;
                             pageMargins.Right = opt.right;
                             pageMargins.Bottom = opt.bottom;

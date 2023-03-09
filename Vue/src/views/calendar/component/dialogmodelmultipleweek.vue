@@ -1,5 +1,6 @@
 <script setup>
 import { ref, inject, onMounted } from "vue";
+import { encr } from "../../../util/function";
 import moment from "moment";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
@@ -7,6 +8,8 @@ import { useVuelidate } from "@vuelidate/core";
 import { de } from "date-fns/locale";
 import dialogmodelweek from "../component/dialogmodelweek.vue";
 import treeuser from "../../../components/user/treeuser.vue";
+
+const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -138,8 +141,8 @@ const bindDateBetweenFirstAndLast = (
 };
 function CreateGuid() {
   function _p8(s) {
-    var p = (Math.random().toString(16) + "000000000").substr(2, 8);
-    return s ? "-" + p.substr(0, 4) + "-" + p.substr(4, 4) : p;
+    var p = (Math.random().toString(16) + "000000000").substring(2, 8);
+    return s ? "-" + p.substring(0, 4) + "-" + p.substring(4, 4) : p;
   }
   return _p8() + _p8(true) + _p8(true) + _p8();
 }
@@ -289,7 +292,16 @@ const addModelTemp = (item) => {
     departments: [],
     files: [],
   };
-  datas.value.push(md);
+
+  if (props.group === 1 && leaders.value && leaders.value.length > 0) {
+    leaders.value.forEach((leader) => {
+      md.chutris = [{ user_id: leader.user_id, full_name: leader.full_name, last_name: leader.last_name, avatar: leader.avatar, is_order: leader.is_order }];
+      var it = Object.assign({}, md);
+      datas.value.push(it);
+    });
+  } else {
+    datas.value.push(md);
+  }
   initWeek();
 };
 const closeDialogWeek = () => {
@@ -386,36 +398,20 @@ const openEditDialogWeek = (md) => {
   displayDialogWeek.value = true;
 };
 const deleteItem = (md) => {
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá lịch họp này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-        var idx = datas.value.findIndex(
-          (x) => x["calendar_id"] === md["calendar_id"]
-        );
-        if (idx !== -1) {
-          datas.value.splice(idx, 1);
-        }
-        initWeek();
-        swal.close();
-        toast.success("Xoá lịch họp thành công!");
-      }
-    });
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  var idx = datas.value.findIndex(
+    (x) => x["calendar_id"] === md["calendar_id"]
+  );
+  if (idx !== -1) {
+    datas.value.splice(idx, 1);
+  }
+  initWeek();
+  swal.close();
 };
 const saveModelMultiple = () => {
   if (datas.value == null || datas.value.length === 0) {
@@ -679,8 +675,49 @@ if (width > 1400) {
 page.value = Math.floor(numScroll.value * (currentweek.value.week_no / 52));
 
 //init week
+const leaders = ref([]);
+const initLeader = () => {
+  axios
+    .post(
+      baseURL + "/api/calendar/get_datas",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "calendar_leader_get",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            leaders.value = tbs[0];
+          } else {
+            leaders.value = [];
+          }
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
 const initWeek = (rf) => {
-  //debugger
   if (rf) {
     options.value.loading = true;
     swal.fire({
@@ -731,6 +768,7 @@ const initWeek = (rf) => {
   }, 100);
 };
 onMounted(() => {
+  initLeader();
   initWeek(true);
   window.addEventListener("resize", (event) => {
     var width = window.screen.width;
@@ -916,10 +954,7 @@ onMounted(() => {
                           //openAddDialogWeek('Thêm mới lịch họp', slotProps.data)
                           addModelTemp(slotProps.data)
                         "
-                        class="
-                          p-button-rounded p-button-secondary p-button-outlined
-                          mx-1
-                        "
+                        class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                         type="button"
                         icon="pi pi-plus-circle"
                         v-tooltip.top="'Thêm lịch họp'"
@@ -1027,12 +1062,7 @@ onMounted(() => {
                       >
                         <Button
                           @click="showModalUser(slotProps.data, true, 0)"
-                          class="
-                            p-button-rounded
-                            p-button-secondary
-                            p-button-outlined
-                            mx-1
-                          "
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                           type="button"
                           icon="pi pi-plus-circle"
                           v-tooltip.top="'Thêm người chủ trì'"
@@ -1101,12 +1131,7 @@ onMounted(() => {
                       >
                         <Button
                           @click="showModalUser(slotProps.data, false, 1)"
-                          class="
-                            p-button-rounded
-                            p-button-secondary
-                            p-button-outlined
-                            mx-1
-                          "
+                          class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                           type="button"
                           icon="pi pi-plus-circle"
                           v-tooltip.top="'Thêm người tham gia'"
@@ -1273,11 +1298,7 @@ onMounted(() => {
                       <Button
                         v-if="slotProps.data.calendar_id != null"
                         @click="openEditDialogWeek(slotProps.data)"
-                        class="
-                          p-button-rounded p-button-secondary p-button-outlined
-                          mx-1
-                          mb-2
-                        "
+                        class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                         type="button"
                         icon="pi pi-pencil"
                         v-tooltip.top="'Sửa'"
@@ -1285,11 +1306,7 @@ onMounted(() => {
                       <Button
                         v-if="slotProps.data.calendar_id != null"
                         @click="deleteItem(slotProps.data)"
-                        class="
-                          p-button-rounded p-button-secondary p-button-outlined
-                          mx-1
-                          mb-2
-                        "
+                        class="p-button-rounded p-button-secondary p-button-outlined mx-1 mb-2"
                         type="button"
                         v-tooltip.top="'Xóa'"
                         icon="pi pi-trash"
@@ -1300,18 +1317,9 @@ onMounted(() => {
                 <template #empty>
                   <div
                     v-if="!options.loading && (!isFirst || options.total == 0)"
-                    class="
-                      flex
-                      align-items-center
-                      justify-content-center
-                      p-4
-                      text-center
-                      m-auto
-                    "
+                    class="flex align-items-center justify-content-center p-4 text-center m-auto"
                   >
-                    <div style="height: calc(100vh)">
-                      
-                    </div>
+                    <div style="height: calc(100vh)"></div>
                   </div>
                 </template>
               </DataTable>

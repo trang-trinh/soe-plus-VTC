@@ -24,7 +24,7 @@ const options = ref({
 const treeorgs = ref({});
 const raw_organizations = ref([]);
 const loadOrgs = () => {
-    debugger
+  
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -326,7 +326,7 @@ const validateDocCode = () => {
 }
 // save
 const saveReservationNumber = () => {
-  debugger
+  
   if(reservation_item.value.is_same){
     swal.fire({
         title: "Error!",
@@ -433,7 +433,7 @@ const loadReservationCode = () => {
     .then((response) => {
       swal.close();
       let data = JSON.parse(response.data.data);
-      debugger
+    
       if (data[0]) {
         tab_view_number.value[0].data = data[0].filter(x=>x.nav_type === 1);
         tab_view_number.value[1].data = data[0].filter(x=>x.nav_type === 2);

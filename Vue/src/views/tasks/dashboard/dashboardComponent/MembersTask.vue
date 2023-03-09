@@ -6,13 +6,14 @@ import moment from "moment";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import DetailedWork from "../../../../components/task_origin/DetailedWork.vue";
 import TaskChart from "./Chart/TaskChart.vue";
-
+import FilterTask from "./filterTask.vue";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 
 const filters1 = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   full_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  user_id: { value: [], matchMode: FilterMatchMode.IN },
 });
 const filters2 = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -60,11 +61,17 @@ const listStatus = ref([
   { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
   { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
 ]);
-const listUser = ref();
+const listUser = ref([]);
 const Chartdata = ref();
 const loadData = (rf) => {
   if (rf) {
     options.value.loading = true;
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
   }
   axios
     .post(
@@ -74,7 +81,15 @@ const loadData = (rf) => {
         str: encr(
           JSON.stringify({
             proc: "task_dashboard_by_member",
-            par: [{ par: "user_id", va: user.user_id }],
+            par: [
+              { par: "user_id", va: user.user_id },
+              { par: "project_id", va: options.value.project_id },
+              { par: "group_id", va: options.value.group_id },
+              { par: "fromDate", va: options.value.start_date },
+              { par: "toDate", va: options.value.end_date },
+              { par: "search", va: options.value.searchText },
+              { par: "filterDateType", va: options.value.filterDateType },
+            ],
           }),
           // eslint-disable-next-line no-undef
           SecretKey,
@@ -85,16 +100,18 @@ const loadData = (rf) => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      data.forEach((x) => {
+      let user = JSON.parse(response.data.data)[1];
+      user.forEach((x) => {
         let kk = {};
         kk.user_key = x.user_key;
         kk.user_id = x.user_id;
         kk.full_name = x.full_name;
         kk.avatar = x.avatar;
         kk.position_name = x.position_name;
-        kk.department_name = x.department_name;
-        kk.organization_name = x.organization_name;
+        kk.department_name = x.organization_name;
         listUser.value.push(kk);
+      });
+      data.forEach((x) => {
         x.task_info = JSON.parse(x.task_info);
         x.progress =
           x.total > 0 ? Math.floor((x.finished / x.total) * 100) : 100;
@@ -121,9 +138,8 @@ const loadData = (rf) => {
           });
       });
       Chartdata.value = data;
-      datalists.value = data;
+      datalists.value = [];
       if (options.value.display_type != 1) {
-        datalists.value = [];
         let data2 = JSON.parse(JSON.stringify(data));
         data = data2.filter((x) => x.task_info != null && x.task_info != []);
         let listprojectname = [];
@@ -177,8 +193,9 @@ const loadData = (rf) => {
           });
         });
         datalists.value = listproject;
-      }
+      } else datalists.value = data;
       options.value.loading = false;
+      swal.close();
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!" + error);
@@ -453,23 +470,219 @@ const listButton = ref([
   { label: "Hoàn thành", value: 2, is_active: false },
   { label: "Quá hạn", value: 3, is_active: false },
 ]);
+const initFilter = () => {
+  filters1.value = {
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    full_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    user_id: { value: [], matchMode: FilterMatchMode.IN },
+  };
+  filters2.value = {
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  };
+};
+initFilter();
 const refresh = () => {
+  removeFilter();
+  initFilter();
+  styleObj.value = "";
+  options.value.PageSize = 20;
+  options.value.PageNo = 0;
+  options.value.loading = true;
+  options.value.totalRecords = 0;
+  options.value.filterDateType = null;
+  options.value.project_id = null;
+  options.value.group_id = null;
+  options.value.start_date = null;
+  options.value.end_date = null;
+  options.value.searchText = null;
+  options.value.loading = true;
   options.value.SearchText = "";
+
   loadData(true);
 };
-
 const size = ref(75);
+const props = defineProps({
+  typeView: Intl,
+});
+watch(props, () => {
+  if (props.typeView != null) {
+    options.value.display_type = props.typeView;
+    loadData(true);
+  } else {
+    options.value.display_type = 1;
+    loadData(true);
+  }
+});
+const op = ref();
+const toggle = (event) => {
+  op.value.toggle(event);
+};
+const styleObj = ref();
+const style = ref({
+  "background-color": "#2196F3 !important",
+  color: "#fff !important",
+  " border": "1px solid #5ca7e3 !important",
+});
 
-onMounted(() => {
+const filterChange = () => {
+  styleObj.value = style.value;
+};
+const removeFilter = () => {
+  styleObj.value = {};
+};
+const load = () => {
   loadData(true);
-  options.value.display_type = 1;
+};
+const SearchFieldChange = (event) => {};
+onMounted(() => {
+  if (props.typeView != null) {
+    options.value.display_type = props.typeView;
+  } else options.value.display_type = 1;
+  loadData(true);
 });
 </script>
 
 <template>
   <div class="main-layout main-h true flex-grow-1 pb-3">
+    <Toolbar class="p-4 bg-white w-full custoolbar">
+      <template #start>
+        <div class="flex col-12">
+          <div class="col py-0 px-1">
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText
+                v-if="options.display_type == 1"
+                v-model="filters1['global'].value"
+                type="text"
+                spellcheck="false"
+                placeholder="Tìm kiếm"
+                @input="SearchFieldChange($event)"
+              />
+              <InputText
+                v-else
+                v-model="filters2['global'].value"
+                type="text"
+                spellcheck="false"
+                placeholder="Tìm kiếm"
+                @input="SearchFieldChange($event)"
+              />
+            </span>
+          </div>
+
+          <div v-if="options.display_type == 1">
+            <MultiSelect
+              :filter="true"
+              v-model="filters1['user_id'].value"
+              :options="listUser"
+              optionValue="user_id"
+              optionLabel="full_name"
+              placeholder="Chọn thành viên"
+              display="chip"
+              :filterFields="[
+                'user_id',
+                'full_name',
+                'department_name',
+                'position_name',
+              ]"
+              style="width: 40vh"
+            >
+              <template #option="slotProps">
+                <div
+                  class="country-item flex"
+                  style="align-items: center; margin-left: 10px"
+                >
+                  <Avatar
+                    v-bind:label="
+                      slotProps.option.avatar
+                        ? ''
+                        : (slotProps.option.name ?? '').substring(0, 1)
+                    "
+                    v-bind:image="basedomainURL + slotProps.option.avatar"
+                    style="
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 32px;
+                      height: 32px;
+                      font-size: 15px !important;
+                      margin-left: -10px;
+                    "
+                    :style="{
+                      background: bgColor[slotProps.index % 7] + '!important',
+                    }"
+                    class="cursor-pointer"
+                    size="xlarge"
+                    shape="circle"
+                  />
+                  <div
+                    class="pt-1"
+                    style="padding-left: 10px"
+                  >
+                    <b>{{ slotProps.option.full_name }}</b>
+                    <br />
+                    {{ slotProps.option.position_name }}
+                    <br />
+                    {{ slotProps.option.department_name }}
+                  </div>
+                </div>
+              </template>
+            </MultiSelect>
+          </div>
+        </div>
+      </template>
+
+      <template #end>
+        <Button
+          class="mx-2 p-button-outlined p-button-secondary"
+          label=""
+          icon="pi pi-filter"
+          v-tooltip="'Lọc'"
+          type="button"
+          @click="toggle"
+          aria:haspopup="true"
+          aria-controls="overlay_panel"
+          :style="[styleObj]"
+        ></Button>
+        <OverlayPanel
+          ref="op"
+          appendTo="body"
+          class="p-0 m-0"
+          :showCloseIcon="false"
+          id="overlay_panel"
+          style="width: 45vw; z-index: 1000"
+        >
+          <FilterTask
+            class="w-full"
+            :func="load"
+            :data="options"
+            :refs="refresh"
+            :filterChange="filterChange"
+          >
+          </FilterTask>
+        </OverlayPanel>
+        <Button
+          @click="refresh()"
+          class="mr-2 p-button-outlined p-button-secondary"
+          icon="pi pi-refresh"
+          v-tooltip="'Tải lại'"
+        />
+        <Button
+          label="Tiện ích"
+          icon="pi pi-file-excel"
+          class="mr-2 p-button-outlined p-button-secondary"
+          @click="toggleExport"
+          aria-haspopup="true"
+          aria-controls="overlay_Export"
+        />
+        <Menu
+          id="overlay_Export"
+          ref="menuButs"
+          :model="itemButs"
+          :popup="true"
+        />
+      </template>
+    </Toolbar>
     <DataTable
-      v-if="options.display_type == 1"
+      v-if="options.display_type == 1 && options.loading == false"
       :value="datalists"
       responsiveLayout="scroll"
       :scrollable="true"
@@ -482,44 +695,6 @@ onMounted(() => {
       v-model:expandedRows="expandedRows"
       :globalFilterFields="['full_name', 'user_id']"
     >
-      <template #header>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="filters1['global'].value"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />
-            </span>
-          </template>
-
-          <template #end>
-            <Button
-              @click="refresh()"
-              class="mr-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              v-tooltip="'Tải lại'"
-            />
-            <Button
-              label="Tiện ích"
-              icon="pi pi-file-excel"
-              class="mr-2 p-button-outlined p-button-secondary"
-              @click="toggleExport"
-              aria-haspopup="true"
-              aria-controls="overlay_Export"
-            />
-            <Menu
-              id="overlay_Export"
-              ref="menuButs"
-              :model="itemButs"
-              :popup="true"
-            />
-          </template>
-        </Toolbar>
-      </template>
       <Column
         :expander="true"
         class="max-w-3rem"
@@ -532,28 +707,6 @@ onMounted(() => {
         :showFilterMatchModes="false"
         :filterMenuStyle="{ width: '14rem' }"
       >
-        <template #filter="{ filterModel }">
-          <div class="mb-3 font-bold">Agent Picker</div>
-          <MultiSelect
-            v-model="filterModel.value"
-            :options="listUser"
-            optionLabel="full_name"
-            placeholder="Chọn"
-            class="p-column-filter"
-          >
-            <template #option="slotProps">
-              <div class="p-multiselect-representative-option">
-                <img
-                  :alt="slotProps.option.full_name"
-                  :src="basedomainURL + avatar"
-                  width="32"
-                  style="vertical-align: middle"
-                />
-                <span class="image-text">{{ slotProps.option.full_name }}</span>
-              </div>
-            </template>
-          </MultiSelect>
-        </template>
         <template #body="data">
           <div class="col-12 flex p-0">
             <div class="col p-0 flex justify-content-center align-items-center">
@@ -933,7 +1086,7 @@ onMounted(() => {
       </template>
     </DataTable>
     <DataTable
-      v-else
+      v-if="options.loading == false && options.display_type == 2"
       :value="datalists"
       responsiveLayout="scroll"
       :scrollable="true"
@@ -946,44 +1099,6 @@ onMounted(() => {
       v-model:expandedRows="expandedRows"
       :globalFilterFields="['project_name']"
     >
-      <template #header>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="filters2['global'].value"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />
-            </span>
-          </template>
-
-          <template #end>
-            <Button
-              @click="refresh()"
-              class="mr-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              v-tooltip="'Tải lại'"
-            />
-            <Button
-              label="Tiện ích"
-              icon="pi pi-file-excel"
-              class="mr-2 p-button-outlined p-button-secondary"
-              @click="toggleExport"
-              aria-haspopup="true"
-              aria-controls="overlay_Export"
-            />
-            <Menu
-              id="overlay_Export"
-              ref="menuButs"
-              :model="itemButs"
-              :popup="true"
-            />
-          </template>
-        </Toolbar>
-      </template>
       <Column
         :expander="true"
         class="max-w-3rem"
