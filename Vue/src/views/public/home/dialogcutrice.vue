@@ -14,6 +14,7 @@ const config = {
   },
 };
 const toast = useToast();
+const basedomainURL = baseURL;
 
 //Get arguments
 const props = defineProps({

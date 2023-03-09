@@ -37,6 +37,7 @@ const options = ref({
   start_date: null,
   end_date: null,
   filter_organization_id: null,
+  departments: [],
 });
 const isFirst = ref(true);
 const checkedAll = ref(false);
@@ -45,6 +46,7 @@ const datas = ref([]);
 
 //Declare dictionary
 const dictionarys = ref([]);
+const department = ref([]);
 const days = ref([]);
 const weeks = ref([]);
 const months = ref([
@@ -66,7 +68,24 @@ const years = ref([]);
 //filter
 const search = () => {
   options.value.pageNo = 1;
+  bindDepartment();
   initData(true);
+};
+const opfilter = ref();
+const toggleFilter = (event) => {
+  opfilter.value.toggle(event);
+};
+const bindDepartment = () => {
+  department.value = JSON.parse(JSON.stringify(dictionarys.value[3]));
+  var temp2 = [];
+  addToArray(
+    temp2,
+    department.value,
+    options.value.filter_organization_id,
+    0,
+    "is_order"
+  );
+  department.value = temp2;
 };
 const changeView = (view) => {
   if (view) {
@@ -256,6 +275,257 @@ const addToArray = (temp, array, id, lv, od) => {
   }
 };
 
+//function selection
+const selectNode = (user, day) => {
+  if (isFunction.value) {
+    day["selected"] = !(day["selected"] || false);
+    var workday_string = moment(new Date(day["day"])).format("YYYY/MM/DD");
+    if (day["selected"]) {
+      selectedNodes.value.push({
+        user_id: user["user_id"],
+        workday: workday_string,
+      });
+    } else {
+      var idx = selectedNodes.value.findIndex(
+        (x) =>
+          x["user_id"] === user["user_id"] && x["workday"] === workday_string
+      );
+      if (idx != -1) {
+        selectedNodes.value.splice(idx, 1);
+      }
+    }
+  }
+};
+const removeSelectedNodes = () => {
+  checkedAll.value = false;
+  selectedNodes.value = [];
+  if (datas.value != null && datas.value.length > 0) {
+    datas.value
+      .filter((a) => a["list_days"].filter((b) => b["selected"]).length > 0)
+      .forEach((user) => {
+        if (user["list_days"] != null && user["list_days"].length > 0) {
+          user["checked"] = false;
+          user["list_days"].forEach((day) => {
+            day["selected"] = false;
+          });
+        }
+      });
+  }
+};
+
+//add model
+const isAdd = ref(false);
+const submitted = ref(false);
+const model = ref({});
+const headerDialog = ref();
+const displayDialog = ref(false);
+const openUpdateDialog = (str) => {
+  forceRerender();
+  isAdd.value = true;
+  model.value = {};
+  headerDialog.value = str;
+  displayDialog.value = true;
+};
+const closeDialog = () => {
+  displayDialog.value = false;
+};
+const saveTimekeep = () => {
+  submitted.value = true;
+  if (!model.value.symbol && Object.entries(model.value.symbol).length > 0) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  if (model.value) {
+  }
+  var obj = JSON.parse(JSON.stringify(model.value));
+  if (obj.symbol) {
+    obj.symbol_id = obj.symbol.symbol_id;
+  }
+  let formData = new FormData();
+  formData.append("model", JSON.stringify(obj));
+  formData.append("selected", JSON.stringify(selectedNodes.value));
+  axios
+    .put(baseURL + "/api/hrm_timekeep/update_timekeep", formData, config)
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+      swal.close();
+      toast.success("Cập nhật thành công!");
+      closeDialog();
+      initData(true);
+    })
+    .catch((error) => {
+      swal.close();
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+  if (submitted.value) submitted.value = true;
+};
+const deleteTimekeep = (item) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá mục chấm công đã chọn không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        submitted.value = true;
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+        let formData = new FormData();
+        formData.append("selected", JSON.stringify(selectedNodes.value));
+        axios
+          .put(baseURL + "/api/hrm_timekeep/delete_timekeep", formData, config)
+          .then((response) => {
+            if (response.data.err === "1") {
+              swal.fire({
+                title: "Thông báo!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+              return;
+            }
+            swal.close();
+            toast.success("Xóa thành công!");
+            initDictionary();
+          })
+          .catch((error) => {
+            swal.close();
+            if (error && error.status === 401) {
+              swal.fire({
+                title: "Thông báo!",
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+              store.commit("gologout");
+              return;
+            } else {
+              swal.fire({
+                title: "Thông báo!",
+                text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+              return;
+            }
+          });
+        if (submitted.value) submitted.value = true;
+      }
+    });
+};
+
+//function export
+const exportExcel = () => {
+  excel(
+    "table-timekeep",
+    "bangchamcong_" +
+      moment(options.value["start_date"]).format("DDMMYYYY") +
+      "_" +
+      moment(options.value["end_date"]).format("DDMMYYYY")
+  );
+};
+const excel = (id, name) => {
+  var html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+  html += "<head><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>";
+  html += "<x:Name>Sheet1</x:Name>";
+  html +=
+    "<x:WorksheetOptions><x:Panes></x:Panes></x:WorksheetOptions></x:ExcelWorksheet>";
+  html += "</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>";
+  html +=
+    "<style>.cstd{font-family: Times New Roman; font-size: 21px; font-weight: 700; text-align: center; vertical-align: center;}</style><table><td colspan='" +
+    (days.value.length + 3) +
+    "' class='cstd'>BẢNG CHECKIN CHẤM CÔNG THÁNG '" +
+    options.value.month +
+    "'</td>";
+  html += "</table>";
+  html +=
+    "<style>.cstd{font-family: Times New Roman; font-size: 16px; font-weight: 700; text-align: center; vertical-align: center;}</style><table><td colspan='" +
+    (days.value.length + 3) +
+    "' class='cstd'>Từ " +
+    moment(options.value["start_date"]).format("DD/MM/YYYY") +
+    " đến " +
+    moment(options.value["end_date"]).format("DD/MM/YYYY") +
+    "</td>";
+  html += "</table>";
+  html +=
+    "<style>.cstd{font-family: Times New Roman; font-size: 21px; font-weight: 700; text-align: left; vertical-align: center;}</style>";
+  html +=
+    "<style>th,table,tr{font-family: Times New Roman; font-size: 18px; vertical-align: middle; text-align: left;}</style><table border='1'>";
+
+  var htmltable = document.getElementById(id);
+  html += htmltable.innerHTML;
+  html += "</table></body></html>";
+  var data_type = "data:application/vnd.ms-excel";
+  var ua = window.navigator.userAgent;
+  var msie = ua.indexOf("MSIE ");
+  var fileName = name + ".xls";
+  if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+    if (window.navigator.msSaveBlob) {
+      var blob = new Blob([html], {
+        type: "application/csv;charset=utf-8;",
+      });
+      navigator.msSaveBlob(blob, fileName);
+    }
+  } else {
+    var blob2 = new Blob([html], {
+      type: "application/csv;charset=utf-8;",
+    });
+    var filename = fileName;
+    var elem = window.document.createElement("a");
+    elem.href = window.URL.createObjectURL(blob2);
+    elem.download = filename;
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+  }
+};
+
 //init
 const initDictionary = () => {
   axios
@@ -287,9 +557,22 @@ const initDictionary = () => {
             weeks.value = [];
           }
           if (tbs[1] != null && tbs[1].length > 0) {
-            var temp = [];
-            addToArray(temp, tbs[1], null, 0, "is_order");
-            tbs[1] = temp;
+            var temp1 = [];
+            addToArray(temp1, tbs[1], null, 0, "is_order");
+            tbs[1] = temp1;
+          }
+          tbs[1].unshift({ organization_id: null, newname: "Tất cả" });
+          if (tbs[3] != null && tbs[3].length > 0) {
+            department.value = JSON.parse(JSON.stringify(tbs[3]));
+            var temp2 = [];
+            addToArray(
+              temp2,
+              department.value,
+              options.value.filter_organization_id,
+              0,
+              "is_order"
+            );
+            department.value = temp2;
           }
           dictionarys.value = tbs;
           changeView(options.value.view);
@@ -344,6 +627,10 @@ const initData = (ref) => {
       },
     });
   }
+  var departments = "";
+  if (options.value.departments && options.value.departments.length > 0) {
+    departments = options.value.departments.map((x) => x.organization_id).join(",");
+  }
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -359,6 +646,10 @@ const initData = (ref) => {
               {
                 par: "filter_organization_id",
                 va: options.value.filter_organization_id,
+              },
+              {
+                par: "departments",
+                va: departments,
               },
             ],
           }),
@@ -389,24 +680,18 @@ const initData = (ref) => {
               user["list_days"] = JSON.parse(JSON.stringify(days.value));
               user["list_days"].forEach((d) => {
                 d["status_name"] = "";
-                d["status_class"] = "";
                 if (new Date(d["day"]).getTime() < new Date().getTime()) {
-                  d["status_name"] = "✕";
-                  d["status_class"] = "style-3"; //Vắng
+                  d["status_name"] = "";
                 }
                 var filterDays = user["days"].filter(
                   (x) => x["workday_string"] === d["day_string"]
                 );
                 filterDays.forEach((day) => {
-                  if (day["status"] == "0") {
-                    d["status_name"] = "✓";
-                    d["status_class"] = "style-0"; //Đúng giờ
-                  } else if (day["status"] == "1") {
-                    d["status_name"] = "Muộn";
-                    d["status_class"] = "style-1"; //Muộn
-                  } else if (day["status"] == "2") {
-                    d["status_name"] = "Ko hợp lệ";
-                    d["status_class"] = "style-2"; //Không hợp lệ
+                  var idx = dictionarys.value[2].findIndex(
+                    (s) => s["symbol_id"] === parseInt(day["symbol_id"])
+                  );
+                  if (idx !== -1) {
+                    d["status_name"] = dictionarys.value[2][idx]["symbol_code"];
                   }
                 });
               });
@@ -445,25 +730,8 @@ const initData = (ref) => {
     });
 };
 const refresh = () => {
-  options.value = {
-    loading: true,
-    user_id: store.getters.user.user_id,
-    search: "",
-    pageNo: 1,
-    pageSize: 25,
-    total: 0,
-    sort: "created_date desc",
-    orderBy: "desc",
-    view: 2,
-    tempyear: newDate,
-    year: newDate.getFullYear(),
-    month: newDate.getMonth() + 1,
-    week: 0,
-    day: newDate.getDate(),
-    start_date: null,
-    end_date: null,
-    filter_organization_id: null,
-  };
+  selectedNodes.value = [];
+  initData(true);
 };
 onMounted(() => {
   if (
@@ -483,23 +751,24 @@ onMounted(() => {
       <template #start>
         <div>
           <h3 class="module-title m-0">
-            <i class="pi pi-check"></i> Bảng chấn công nhân sự
+            <i class="pi pi-check"></i> Bảng chấm công nhân sự (từ ngày
+            <span v-if="options.start_date">{{
+              moment(options.start_date).format("DD/MM/YYYY")
+            }}</span>
+            đến
+            <span v-if="options.end_date">{{
+              moment(options.end_date).format("DD/MM/YYYY")
+            }}</span
+            >)
           </h3>
         </div>
       </template>
       <template #end>
         <Button
-          v-if="isCheckin"
-          @click="checkin()"
-          class="mr-2"
-          icon="pi pi-check"
-          label="Checkin"
-        />
-        <Button
           v-if="selectedNodes.length > 0"
-          @click="openUpdateDialog('Chọn thời gian Checkin')"
-          label="Chọn thời gian Checkin"
-          icon="pi pi-clock"
+          @click="openUpdateDialog('Chọn loại chấm công')"
+          label="Chọn loại chấm công"
+          icon="pi pi-check"
           class="mr-2"
         />
         <Button
@@ -511,10 +780,10 @@ onMounted(() => {
         />
         <Button
           v-if="selectedNodes.length > 0"
-          label="Xóa Checkin"
+          label="Xóa chấm công"
           icon="pi pi-trash"
           class="mr-2 p-button-outlined p-button-danger"
-          @click="deleteItem()"
+          @click="deleteTimekeep()"
         />
         <Button
           @click="exportExcel()"
@@ -543,19 +812,131 @@ onMounted(() => {
             class="ip36 input-search"
           />
         </span>
-        <div class="form-group m-0">
-          <Dropdown
-            :options="dictionarys[1]"
-            :filter="true"
-            :showClear="true"
-            :editable="false"
-            v-model="options.filter_organization_id"
-            optionLabel="newname"
-            optionValue="organization_id"
-            placeholder="Chọn đơn vị, phòng ban"
-            :style="{ minWidth: '200px', minHeight: '36px' }"
-          />
-        </div>
+        <Button
+          @click="toggleFilter($event)"
+          type="button"
+          class="p-button-outlined p-button-secondary ip36"
+          aria:haspopup="true"
+          aria-controls="overlay_panel"
+        >
+          <div>
+            <span class="mr-2"><i class="pi pi-filter"></i></span>
+            <span class="mr-2">Lọc dữ liệu</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
+        <OverlayPanel
+          :showCloseIcon="false"
+          ref="opfilter"
+          appendTo="body"
+          class="p-0 m-0"
+          id="overlay_panel"
+          :style="{ width: '400px' }"
+        >
+          <div class="grid formgrid m-0">
+            <div
+              class="col-12 md:col-12 p-0"
+              :style="{
+                minHeight: 'unset',
+                maxHeight: 'calc(100vh - 300px)',
+                overflow: 'auto',
+              }"
+            >
+              <div class="row">
+                <div class="col-12 md:col-12">
+                  <div class="form-group">
+                    <label>Đơn vị</label>
+                    <Dropdown
+                      :options="dictionarys[1]"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      v-model="options.filter_organization_id"
+                      @change="search()"
+                      optionLabel="newname"
+                      optionValue="organization_id"
+                      placeholder="Chọn đơn vị"
+                      class="ip36"
+                      :style="{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }"
+                    />
+                  </div>
+                </div>
+                <div class="col-12 md:col-12">
+                  <div class="form-group">
+                    <label>Phòng ban</label>
+                    <MultiSelect
+                      :disabled="options.filter_organization_id == null"
+                      :options="department"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      v-model="options.departments"
+                      @change="search()"
+                      optionLabel="newname"
+                      placeholder="Chọn phòng ban"
+                      class="w-full limit-width"
+                      panelClass="d-design-dropdown"
+                      :style="{ width: '200px', minHeight: '36px' }"
+                    >
+                      <template #value="slotProps">
+                        <ul
+                          class="p-ulchip"
+                          v-if="slotProps.value && slotProps.value.length > 0"
+                        >
+                          <li
+                            class="p-lichip"
+                            v-for="(value, index) in slotProps.value"
+                            :key="index"
+                          >
+                            <Chip class="mr-2 mb-2 px-3 py-2">
+                              <div class="flex">
+                                <div>
+                                  <span>{{ value.newname }}</span>
+                                </div>
+                                <span
+                                  tabindex="0"
+                                  class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                  @click="
+                                    removeFilter(index, options.departments);
+                                    $event.stopPropagation();
+                                  "
+                                  v-tooltip.top="'Xóa'"
+                                ></span>
+                              </div>
+                            </Chip>
+                          </li>
+                        </ul>
+                        <span v-else>
+                          {{ slotProps.placeholder }}
+                        </span>
+                      </template>
+                    </MultiSelect>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 md:col-12 p-0">
+              <Toolbar
+                class="border-none surface-0 outline-none px-0 pb-0 w-full"
+              >
+                <template #start>
+                  <Button
+                    @click="resetFilter()"
+                    class="p-button-outlined"
+                    label="Bỏ chọn"
+                  ></Button>
+                </template>
+                <template #end>
+                  <Button @click="filter($event)" label="Lọc"></Button>
+                </template>
+              </Toolbar>
+            </div>
+          </div>
+        </OverlayPanel>
       </template>
       <template #end>
         <div class="form-group m-0 mr-2" v-if="options.view !== 0">
@@ -692,7 +1073,7 @@ onMounted(() => {
       </template>
     </Toolbar>
     <div class="box-table gridline-custom scrollable-both-custom">
-      <table id="table-checkin" class="table-custom">
+      <table id="table-timekeep" class="table-custom">
         <thead class="thead-custom">
           <tr>
             <th
@@ -767,23 +1148,105 @@ onMounted(() => {
               {{ user.full_name }}
             </td>
             <td
-              v-for="(day, index) in days"
-              :key="index"
+              v-for="(day, day_key) in user.list_days"
+              :key="day_key"
               @click="selectNode(user, day)"
               :class="{
                 isHoliday: day.is_holiday,
                 'btn-hover-true': isFunction,
                 'btn-selected': day.selected,
               }"
-              v-bind:class="day.status_class"
               class="relative"
-            ></td>
-            <td></td>
+              :style="{
+                textAlign: 'center',
+                backgroundColor: day.is_holiday ? '#f1948a' : '',
+              }"
+            >
+              <div v-if="!day.selected">{{ day.status_name }}</div>
+              <div v-if="day.selected" class="icon-selected">
+                <i class="pi pi-check-circle"></i>
+              </div>
+            </td>
+            <td :style="{ textAlign: 'center' }">{{ user.total_p }}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+
+  <!--Dialog-->
+  <Dialog
+    :header="headerDialog"
+    v-model:visible="displayDialog"
+    :style="{ width: '30vw' }"
+    :maximizable="true"
+    :closable="false"
+    style="z-index: 9000"
+  >
+    <form @submit.prevent="" name="submitform">
+      <div class="grid formgrid m-2">
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Loại chấm công <span class="redsao">(*)</span></label>
+            <Dropdown
+              :options="dictionarys[2]"
+              :filter="true"
+              :showClear="false"
+              :editable="false"
+              v-model="model.symbol"
+              optionLabel="symbol_name"
+              placeholder="Chọn loại chấm công"
+              class="ip36"
+              :class="{
+                'p-invalid': !model.symbol && submitted,
+              }"
+            >
+              <template #value="slotProps">
+                <div
+                  class="country-item country-item-value"
+                  v-if="slotProps.value"
+                >
+                  <span
+                    >{{ slotProps.value.symbol_name }} ({{
+                      slotProps.value.symbol_code
+                    }})</span
+                  >
+                </div>
+                <span v-else>
+                  {{ slotProps.placeholder }}
+                </span>
+              </template>
+              <template #option="slotProps">
+                <div class="country-item">
+                  <span class="mr-2"
+                    >{{ slotProps.option.symbol_name }} ({{
+                      slotProps.option.symbol_code
+                    }})</span
+                  >
+                </div>
+              </template>
+            </Dropdown>
+            <div v-if="!model.symbol && submitted">
+              <small class="p-error">
+                <span class="col-12 p-0"
+                  >Loại chấm công không được để trống</span
+                >
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialog()"
+        class="p-button-text"
+      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveTimekeep()" />
+    </template>
+  </Dialog>
 </template>
 <style scoped>
 .box-table {
@@ -904,6 +1367,35 @@ th.isHoliday {
   background-color: #f1948a;
   color: #fff;
 }
+
+.form-group {
+  display: grid;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.form-group > label {
+  margin-bottom: 0.5rem;
+}
+
+.form-group .p-multiselect .p-multiselect-label,
+.form-group .p-dropdown .p-dropdown-label,
+.form-group .p-treeselect .p-treeselect-label {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.p-ulchip {
+  margin: 0;
+  margin-top: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.p-lichip {
+  float: left;
+  white-space: normal;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.d-lang-table) {
@@ -924,6 +1416,7 @@ th.isHoliday {
 ::v-deep(.form-group) {
   .p-multiselect .p-multiselect-label,
   .p-dropdown .p-dropdown-label {
+    height: 100%;
     display: flex;
     align-items: center;
   }

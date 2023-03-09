@@ -2080,8 +2080,8 @@ onMounted(() => {
                       shape="circle"
                     />
                     <div class="text-left">
-                      <div><b>{{ duty_sunday.full_name }}</b></div>
-                      <div class="description">{{ duty_sunday.position_name }}</div>
+                      <div>Đồng chí {{ duty_sunday.rank }} <b>{{ duty_sunday.full_name }}</b></div>
+                      <div>{{ duty_sunday.position_name }} {{ duty_sunday.department_name }}</div>
                     </div>
                   </div>
                 </div>

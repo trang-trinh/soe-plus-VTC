@@ -1,17 +1,22 @@
 <script setup>
 import { inject, onMounted, ref } from "vue";
+import { required, email } from "@vuelidate/validators";
 import { encr, decr } from "../util/function";
 import { socketMethod } from "../util/methodSocket";
 import { useCookies } from "vue3-cookies";
+import { useToast } from "vue-toastification";
+import { useVuelidate } from "@vuelidate/core";
 const { cookies } = useCookies();
 
 const socket = inject("socket");
 const axios = inject("axios"); // inject axios
 const user = ref({ user_id: "", is_psword: "" });
 const errors = ref({ user_id: "", is_psword: "" });
+const toast = useToast();
 const store = inject("store");
 const swal = inject("$swal");
 const router = inject("router");
+const dialogForgetPass = ref(false);
 const cryoptojs = inject("cryptojs");
 const basedomainURL = fileURL;
 const checkForm = () => {
@@ -97,7 +102,7 @@ const login = () => {
                         id: store.getters.user.user_id,
                         subscrition: subscrition,
                       })
-                      .then((res) => {});
+                      .then((res) => { });
                   });
               } else {
                 //console.log("The service worker doesn't support push");
@@ -126,6 +131,114 @@ const login = () => {
       });
     });
 };
+// forget pass
+const rules = {
+  email: {
+    email,
+  },
+};
+const mailInfo = ref();
+const topmail = ref();
+const bottommail = ref();
+const isSendEmail = ref(false);
+const submitted = ref(false);
+const v$ = useVuelidate(rules, mailInfo);
+const showDialogForgetPss = () => {
+  submitted.value = false;
+  mailInfo.value = {
+    to: "",
+    email: "",
+    display_name: "SOE+ - Smart Office Enterprise +",
+    subject: "Quên mật khẩu",
+    body: "",
+    top: "",
+    bottom: "",
+    isBodyHtml: true,
+  };
+  getConfigMail();
+  isSendEmail.value = false
+  dialogForgetPass.value = true;
+}
+const configMail = ref();
+const getConfigMail = () => {
+  axios
+    .get(baseURL + "/api/Login/GetConfigMail", {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    })
+    .then((response) => {
+      if (response.data.err != "1") {
+        configMail.value = JSON.parse(response.data.data);
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
+
+const sendMail = (isFormValid) => {
+  submitted.value = true;
+  if (!isFormValid) {
+    return;
+  }
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  let time_email = decr(configMail ? configMail.value.timemail : '5', SecretKey, cryoptojs);
+  topmail.value = "<div style='font-size:15px'><div style='margin-top:16px;margin-bottom:20px'>Xin chào,</div>"
+  topmail.value += " <div>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu của bạn.</div>";
+  topmail.value += "   <div> Vui lòng <a href='"
+  //topmail.value +=  "https://project.soe.vn//forgetpass";
+  bottommail.value = "'>Click vào đây để đặt lại mật khẩu mới</a></div>";
+  bottommail.value += "<div>(Bạn có " + (time_email || 5) + " phút để nhập lại mật khẩu mới kể từ khi nhận thư này)</div></div>";
+  mailInfo.value.top += topmail.value.toString();
+  mailInfo.value.bottom = bottommail.value.toString();
+  let formData = new FormData();
+  formData.append(
+    "pwMail",
+    configMail.value.kpmail != null
+      ? decr(configMail.value.kpmail, SecretKey, cryoptojs).toString()
+      : null,
+  );
+  formData.append("mailinfo", JSON.stringify(mailInfo.value));
+  axios({
+    method: "post",
+    url: baseURL + `/api/Login/${"sendEMail"}`,
+    data: formData,
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
+  })
+    .then((response) => {
+      if (response.data.err == "-1") {
+        swal.fire({
+          title: "Thông báo",
+          text: response.data.ms,
+          icon: "warning",
+          confirmButtonText: "OK",
+        });
+      } else {
+        isSendEmail.value = true;
+        swal.close();
+      };
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
 onMounted(() => {
   return {
     checkForm,
@@ -138,32 +251,25 @@ onMounted(() => {
 <template>
   <div class="login-container">
     <div class="login-bg">
-      <img
-        :src="
-          basedomainURL + store.getters.user.background_image ||
-          '../assets/background/bg.png'
-        "
-      />
+      <img :src="
+        basedomainURL + store.getters.user.background_image ||
+        '../assets/background/bg.png'
+      " />
     </div>
     <div class="login-org">
-      <img
-        class="org-logo"
-        :src="
-          basedomainURL + store.getters.user.logo || '/Portals/Image/noimg.jpg'
-        "
-      />
+      <img class="org-logo" :src="
+        basedomainURL + store.getters.user.logo || '/Portals/Image/noimg.jpg'
+      " />
       <h3 class="org-name">
         {{ store.getters.user.organization_name }}
       </h3>
     </div>
     <div class="login-product-container">
       <div class="login-product">
-        <h3
-          class="
-            product-name
-            animate__animated animate__fadeInDown animate__delay-1s
-          "
-        >
+        <h3 class="
+                product-name
+                animate__animated animate__fadeInDown animate__delay-1s
+              ">
           {{ store.getters.user.product_name }}
         </h3>
       </div>
@@ -172,60 +278,78 @@ onMounted(() => {
       <div class="login-form">
         <form name="frlogin" @submit.prevent="login">
           <div class="login-ava">
-            <Avatar
-              :image="
-                basedomainURL +
-                (store.getters.user.avatar != null
-                  ? store.getters.user.avatar
-                  : '/Portals/Image/nouser1.png')
-              "
-              shape="circle"
-              size="xlarge"
-            />
+            <Avatar :image="
+              basedomainURL +
+              (store.getters.user.avatar != null
+                ? store.getters.user.avatar
+                : '/Portals/Image/nouser1.png')
+            " shape="circle" size="xlarge" />
           </div>
           <div class="mb-3 mt-6">
             <h1>Đăng nhập</h1>
           </div>
           <div class="field">
             <label for="user_id">Tên đăng nhập</label>
-            <InputText
-              id="user_id"
-              type="text"
-              v-model="user.user_id"
-              @input="checkForm"
-              v-bind:class="errors.user_id != '' ? 'invalid' : ''"
-              autocomplete="off"
-              required
-            />
+            <InputText id="user_id" type="text" v-model="user.user_id" @input="checkForm"
+              v-bind:class="errors.user_id != '' ? 'invalid' : ''" autocomplete="off" required />
             <InlineMessage severity="error" v-if="errors.user_id != ''">{{
               errors.user_id
             }}</InlineMessage>
           </div>
           <div class="field">
             <label for="is_psword">Mật khẩu</label>
-            <Password
-              id="is_psword"
-              v-model="user.is_psword"
-              @input="checkForm"
-              v-bind:class="
-                errors.is_psword != 'w-full' ? 'w-full invalid' : ''
-              "
-              autocomplete="off"
-              required
-              toggleMask
-              :feedback="false"
-              v-on:keyup.enter="login"
-            >
+            <Password id="is_psword" v-model="user.is_psword" @input="checkForm" v-bind:class="
+              errors.is_psword != 'w-full' ? 'w-full invalid' : ''
+            " autocomplete="off" required toggleMask :feedback="false" v-on:keyup.enter="login">
             </Password>
             <InlineMessage severity="error" v-if="errors.is_psword != ''">{{
               errors.is_psword
             }}</InlineMessage>
           </div>
+          <div class="mt-3 font-bold" style="text-align: end;"><label class="forget-pass"
+              @click="showDialogForgetPss()">Quên mật khẩu?</label></div>
+
           <Button label="Đăng nhập" @click="login()" />
         </form>
       </div>
     </div>
   </div>
+  <Dialog header="Quên mật khẩu?" v-model:visible="dialogForgetPass" :style="{ width: '38vw', zIndex: 2 }"
+    :maximizable="true" :autoZIndex="false">
+    <form @submit.prevent="sendMail(!v$.$invalid)">
+      <div class="grid formgrid m-2" v-if="!isSendEmail">
+        <div class="field col-12 md:col-12">
+          <label>Vui lòng nhập tên tài khoản đăng nhập và địa chỉ email để tìm kiếm tài khoản của bạn.</label>
+        </div>
+        <div class="field col-12">
+          <label class="col-3 text-left">Tên đăng nhập</label>
+          <InputText spellcheck="false" class="col-9 ip36" v-model="mailInfo.to" />
+        </div>
+        <div class="field col-12">
+          <label class="col-3 text-left">Email</label>
+          <InputText spellcheck="false" class="col-9 ip36" v-model="mailInfo.email" />
+        </div>
+        <small v-if="v$.email.email.$invalid && submitted && mailInfo.email != null" class="p-error field col-12 mb-3">
+          <label class="col-3 text-left"></label>
+          <span class="col-9">
+            Email không hợp lệ</span>
+        </small>
+      </div>
+      <div class="grid formgrid m-2" v-else>
+        <div class="waiting-email format-center col-12">
+          <img :src="basedomainURL + '/Portals/file/waiting-mail.jpg'" height="250" />
+        </div>
+        <div class="format-center col-12 font-bold text-lg">
+          Vui lòng kiểm tra trong hộp thư email của bạn để đổi mật khẩu!
+        </div>
+      </div>
+    </form>
+    <template #footer v-if="!isSendEmail">
+      <Button label="Huỷ" icon="pi pi-times" @click="dialogForgetPass = false"
+        class="p-button-raised p-button-secondary" />
+      <Button label="Gửi thông tin" icon="pi pi-check" @click="sendMail(!v$.$invalid)" />
+    </template>
+  </Dialog>
 </template>
 <style lang="scss" scoped>
 ::v-deep(.p-password) {
@@ -235,6 +359,16 @@ onMounted(() => {
 }
 </style>
 <style scoped>
+.forget-pass {
+  color: #551a8b;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.forget-pass:active {
+  color: -webkit-activelink;
+}
+
 .invalid {
   color: red;
   margin: 5px 0;
@@ -257,7 +391,7 @@ input.invalid {
   background-color: #70c5c3;
 }
 
-.login-bg > img {
+.login-bg>img {
   object-fit: cover;
   width: 100%;
   height: 100%;
@@ -282,7 +416,7 @@ input.invalid {
   margin-top: calc(50vh - 242px);
 }
 
-.login-form > button {
+.login-form>button {
   width: 100%;
   margin-top: 20px;
 }
@@ -291,32 +425,40 @@ input.invalid {
   font-size: 20pt;
   margin-bottom: 20px;
 }
-.field * {
+
+.box-login .field * {
   display: block;
 }
-.field label {
+
+.box-login .field label {
   margin: 1rem 0;
   font-weight: bold;
 }
+
 .p-button {
   padding: 0.9rem;
 }
+
 .p-avatar {
   border: 1px solid #c9c9c9;
 }
-.p-inputtext {
+
+.box-login .p-inputtext {
   display: block;
   margin-bottom: 0.5rem;
   width: 100%;
   padding: 0.9rem;
 }
-.p-inputtext:last-child {
+
+.box-login .p-inputtext:last-child {
   margin-bottom: 0;
 }
+
 .login-form button {
   width: 100%;
   margin-top: 2rem;
 }
+
 .login-org {
   min-width: calc(100vw - 480px);
   background-color: #ddddddcf;
@@ -362,6 +504,7 @@ input.invalid {
   padding: 1.2rem;
   color: #005a9e;
 }
+
 .login-ava {
   display: flex;
   justify-content: center;

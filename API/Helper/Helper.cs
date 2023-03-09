@@ -41,6 +41,7 @@ namespace Helper
         public static string logCongtent = "Có lỗi xảy ra, vui lòng thử lại!";
         public static bool wlog = true;
         public static int milisec = 1000;
+        public static int timemail = 5;// phut
         public static int timeout = 60 * 24 * 30;//phút
         public static string publictoken = null;//phút
         public const int ImageMinimumBytes = 512;

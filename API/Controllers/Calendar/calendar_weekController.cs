@@ -1118,7 +1118,16 @@ namespace API.Controllers.Calendar
                     var usernow = await db.sys_users.FindAsync(uid);
                     var md = provider.FormData.GetValues("model").SingleOrDefault();
                     calendar_duty_sunday model = JsonConvert.DeserializeObject<calendar_duty_sunday>(md);
-                    if (string.IsNullOrEmpty(model.key_id.ToString()) || model.key_id != 0 || model.key_id != -1)
+                    var exists = await db.calendar_duty_sunday.FirstOrDefaultAsync(x => x.year == model.year && x.week == model.week && x.organization_id == usernow.organization_id);
+                    if (exists != null)
+                    {
+                        exists.user_id = model.user_id;
+                        exists.modify_by = uid;
+                        exists.modify_date = DateTime.Now;
+                        exists.modify_ip = ip;
+                        exists.modify_token_id = tid;
+                    }
+                    else
                     {
                         model.organization_id = usernow.organization_id;
                         model.created_by = uid;
@@ -1126,14 +1135,6 @@ namespace API.Controllers.Calendar
                         model.created_ip = ip;
                         model.created_token_id = tid;
                         db.calendar_duty_sunday.Add(model);
-                    }
-                    else
-                    {
-                        model.modify_by = uid;
-                        model.modify_date = DateTime.Now;
-                        model.modify_ip = ip;
-                        model.modify_token_id = tid;
-                        db.Entry(model).State = EntityState.Modified;
                     }
                     await db.SaveChangesAsync();
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });

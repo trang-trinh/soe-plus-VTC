@@ -7,7 +7,7 @@ import TaskReport from "./dashboardComponent/TaskReport.vue";
 import TaskReview from "./dashboardComponent/TaskReview.vue";
 import TaskExtendDashboard from "./dashboardComponent/TaskExtendDashboard.vue";
 import DepartmentTask from "./dashboardComponent/DepartmentTask.vue";
-import FilterTask from "./dashboardComponent/filterTask.vue";
+
 const emitter = inject("emitter");
 emitter.on("count", (obj) => {
   ListButtonLabel.value[5].badgeCount = obj.data[0].report;
@@ -22,13 +22,21 @@ emitter.on("listDropdown", (obj) => {
   listDropdownGroup.value = temp2;
 });
 const ListButtonLabel = ref([
-  { label: "Cá nhân", icon: "pi pi-user", code: "0", count: "", status: false },
+  {
+    label: "Cá nhân",
+    icon: "pi pi-user",
+    code: "0",
+    count: "",
+    status: false,
+    is_drd: false,
+  },
   {
     label: "Thành viên",
     icon: "pi pi-users",
     code: "1",
     count: "",
     status: false,
+    is_drd: true,
   },
   {
     label: "Phòng ban",
@@ -36,6 +44,7 @@ const ListButtonLabel = ref([
     code: "2",
     count: "",
     status: false,
+    is_drd: false,
   },
   {
     label: "Công ty",
@@ -43,6 +52,7 @@ const ListButtonLabel = ref([
     code: "3",
     count: "",
     status: false,
+    is_drd: false,
   },
   {
     label: "Báo cáo công việc",
@@ -50,6 +60,7 @@ const ListButtonLabel = ref([
     code: "4",
     count: "",
     status: false,
+    is_drd: false,
   },
   {
     label: "Đánh giá công việc",
@@ -58,6 +69,7 @@ const ListButtonLabel = ref([
     count: "",
     status: false,
     badgeCount: null,
+    is_drd: false,
   },
   {
     label: "Gia hạn công việc",
@@ -66,6 +78,7 @@ const ListButtonLabel = ref([
     count: "",
     status: false,
     badgeCount: null,
+    is_drd: false,
   },
   // {
   //   label: "Filter",
@@ -85,6 +98,25 @@ const ChangeView = (value) => {
     }
   });
 };
+const selectedViewType = ref();
+const item2s2 = ref([
+  {
+    label: "Xem theo thành viên",
+    icon: "pi pi-users",
+    command: () => {
+      selectedViewType.value = 1;
+      ChangeView(1);
+    },
+  },
+  {
+    label: "Xem theo dự án",
+    icon: "pi pi-briefcase",
+    command: () => {
+      selectedViewType.value = 2;
+      ChangeView(1);
+    },
+  },
+]);
 onMounted(() => {
   ChangeView(0);
   return;
@@ -99,6 +131,7 @@ onMounted(() => {
         :key="item.label"
       >
         <Button
+          v-if="item.is_drd == false"
           :label="item.label"
           :icon="item.icon"
           class="font-bold m-px"
@@ -106,12 +139,24 @@ onMounted(() => {
           @click="ChangeView(item.code)"
           :badge="item.badgeCount"
           badgeClass="p-badge-danger"
-        ></Button>
+        >
+        </Button>
+        <SplitButton
+          v-if="item.is_drd == true"
+          :label="item.label"
+          :icon="item.icon"
+          @click="ChangeView(item.code)"
+          :model="item2s2"
+          :class="{ 'p-splitbutton-item': item.status == true }"
+        ></SplitButton>
       </span>
     </div>
     <div class="div-info bg-white">
       <MyTaskInfo v-if="ListButtonLabel[0].status == true"></MyTaskInfo>
-      <MembersTask v-if="ListButtonLabel[1].status == true"></MembersTask>
+      <MembersTask
+        v-if="ListButtonLabel[1].status == true"
+        :typeView="selectedViewType"
+      ></MembersTask>
       <DepartmentTask v-if="ListButtonLabel[2].status == true"></DepartmentTask>
       <OrganizationTasks
         v-if="ListButtonLabel[3].status == true"
@@ -161,5 +206,19 @@ onMounted(() => {
 }*/
 .active {
   background-color: #f18636;
+}
+
+::v-deep(.p-splitbutton-item) {
+  .p-button:enabled {
+    background: #f18636;
+    color: #ffffff;
+    border-color: #0b7ad1;
+    font-weight: 700;
+  }
+}
+::v-deep(.p-splitbutton) {
+  .p-button {
+    font-weight: 700;
+  }
 }
 </style>
