@@ -268,6 +268,7 @@ namespace Controllers
                     helper.logCongtent = cog.logCongtent;
                     helper.milisec = cog.milisec;
                     helper.timeout = cog.timeout;
+                    helper.timemail = cog.timemail;
                     string depass = Codec.EncryptString(cog.publictoken, helper.psKey);
                     helper.publictoken = depass;
                     cog.publictoken = depass;
