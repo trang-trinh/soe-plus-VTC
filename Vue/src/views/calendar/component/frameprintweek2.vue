@@ -114,15 +114,20 @@ const trustAsHtml = (html) => {
                   >
                 </div>
                 <div class="">
-                  <i>
-                    (Từ ngày
-                    {{ moment(props.week_start_date).format("DD/MM/YYYY") }} đến
-                    ngày {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
-                  </i>
+                  <b>
+                    <i>
+                      (Từ ngày
+                      {{ moment(props.week_start_date).format("DD/MM/YYYY") }}
+                      đến ngày
+                      {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
+                    </i>
+                  </b>
                 </div>
                 <div style="padding-top: 1rem">
-                  Trực Chỉ huy: Đồng chí ______________________________ - Phó
-                  Giám đốc
+                  <b>
+                    Trực Chỉ huy: Đồng chí ______________________________ - Phó
+                    Giám đốc
+                  </b>
                 </div>
               </div>
             </td>

@@ -448,6 +448,10 @@ const saveModelMultiple = () => {
         item["boardroom_name"] = item["place_name"];
         item["boardroom_id"] = null;
       }
+      var contents = document.getElementById("contents" + item["calendar_id"]);
+      if (contents) {
+        item["contents"] = contents.innerHTML;
+      }
       if (
         item["contents"] == null ||
         (item["boardroom_id"] == null && item["place_name"] == null)
