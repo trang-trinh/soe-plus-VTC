@@ -83,7 +83,18 @@ const passModuleToSidebar = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (data[1].length > 0) {
-        if (data[1].filter(x => x.is_link == router.fullPath).length == 0)
+        let root_path =  router.fullPath;
+        let arr_params = Object.values(router.params);
+        //check router from notify (contain params id, type,....)
+        if (arr_params.length > 0) {
+          arr_params.forEach((item)=>{
+            let idx = root_path.lastIndexOf("/"+item);
+            if(idx != -1) {
+              root_path = root_path.splice(0,idx);
+            }
+          })
+        } 
+        if (data[1].filter(x => x.is_link == root_path).length == 0)
           route.push({ path: "/" });
         else if (data[0].length > 0) {
           cookies.set("max_length_file", data[0][0].max_length_file);
