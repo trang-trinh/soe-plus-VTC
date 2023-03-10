@@ -1221,23 +1221,23 @@ const delRow_Item = (item, type) => {
   }
 };
 //Thêm bản ghi
-
+const displayBasic=ref(false);
 onMounted(() => {
   loadData();
   initTudien();
   loadUser();
-
+  displayBasic.value=props.displayBasic;
   return {};
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayBasic"
+    v-model:visible=" displayBasic"
     :style="{ width: '40vw' }"
     :maximizable="true"
     :modal="true"
-    :closable="false"
+    :closable="true"
   >
     <form>
       <div class="grid formgrid m-2">

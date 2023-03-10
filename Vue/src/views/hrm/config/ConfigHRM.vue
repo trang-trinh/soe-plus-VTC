@@ -94,8 +94,13 @@ const loadOrg = () => {
       }
     });
 };
+const onTabOpen=(event)=>{
 
-const activeIndex=ref(2);
+
+  activeIndex.value=event.index;
+ 
+}
+const activeIndex=ref();
 onMounted(() => {
   loadOrg();
   return {};
@@ -114,14 +119,14 @@ onMounted(() => {
         {{ organization.organization_name }}
       </div>
       <div style="margin: 0 15%">
-        <Accordion :multiple="false" :activeIndex="activeIndex" >
+        <Accordion :multiple="false" :activeIndex="activeIndex"  @tab-open="onTabOpen($event)">
           <AccordionTab  >
             <template #header>
                 <div class="text-xl">
                     Mã nhân sự
                 </div>
             </template>
-            <div  ><configUsers /></div>
+            <div  v-if="activeIndex==0" ><configUsers /></div>
           </AccordionTab>
           <AccordionTab  >
             <template #header>
@@ -129,7 +134,7 @@ onMounted(() => {
                     Số hợp đồng lao động
                 </div>
             </template>
-            <div   class="check-scroll"><config-contract /></div>
+            <div   v-if="activeIndex==1"  class="check-scroll"><config-contract /></div>
           </AccordionTab>
           <AccordionTab  >
             <template #header>
@@ -137,7 +142,7 @@ onMounted(() => {
                   Tính số ngày phép trong năm
                 </div>
             </template>
-            <div   >
+            <div class="check-scroll-1"   v-if="activeIndex==2">
               <ConfigHolidays />
               </div>
           </AccordionTab>
@@ -155,9 +160,13 @@ onMounted(() => {
 .check-scroll {
   max-height: 50rem;
   overflow-y: scroll;
-  overflow-x: none;
+  overflow-x:hidden;
 }
-
+.check-scroll-1 {
+  max-height: 45rem;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
 @media only screen and (max-height: 768px) {
   .style-vb-1 {
     font-size: large !important;

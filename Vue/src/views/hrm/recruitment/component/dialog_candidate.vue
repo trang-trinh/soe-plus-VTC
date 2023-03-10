@@ -223,7 +223,9 @@ const saveData = (isFormValid) => {
     let file = filesList.value[i];
     formData.append("image", file);
   }
-
+ debugger
+  formData.append("candidate_avatar", files);
+  
   formData.append("hrm_candidate", JSON.stringify(candidate.value));
   formData.append(
     "hrm_candidate_family",
@@ -572,11 +574,11 @@ const renderTreePlace = (data, id, name, title) => {
     });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
-const listTrainingGroups = ref([
-  { name: "Chưa kết hôn", code: 1 },
-  { name: "Đang có vợ/chồng", code: 2 },
-  { name: "Góa", code: 3 },
-  { name: "Ly hôn/Ly thân", code: 4 },
+const listSources = ref([
+  { name: "Nguồn 1", code: 1 },
+  { name: "Nguồn 2", code: 2 },
+  { name: "Nguồn 3", code: 3 },
+  { name: "Nguồn 4", code: 4 },
   { name: "Khác", code: 5 },
 ]);
 const listIdentityPlace = ref([]);
@@ -1178,20 +1180,7 @@ const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
 
-const listLimit = ref([
-  {
-    name: "Nội bộ",
-    code: 1,
-  },
-  {
-    name: "Bên ngoài",
-    code: 2,
-  },
-]);
-const checkImg = (src) => {
-  let allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
-  return allowedExtensions.exec(src);
-};
+ 
 const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
@@ -1259,48 +1248,7 @@ const loadUserProfiles = () => {
       }
     });
 };
-const changeLecturers = (value, index) => {
-  if (value) {
-    var arf = listDropdownUserGive.value.find((x) => x.code == value);
-    list_academic_level.value[index - 1].phone_number = arf.phone_number;
-    list_academic_level.value[index - 1].avatar = arf.avatar;
-    list_academic_level.value[index - 1].lecturers_name = arf.name;
-  } else {
-    list_academic_level.value[index - 1].phone_number = null;
-    list_academic_level.value[index - 1].avatar = null;
-    list_academic_level.value[index - 1].lecturers_name = null;
-  }
-};
-const changeUserTrainding = (data, index) => {
-  if (data && list_users_family.value[index]) {
-    list_users_family.value[index].is_order = index + 1;
-    list_users_family.value[index].profile_id = data.profile_id;
-    list_users_family.value[index].profile_user_name = data.profile_user_name;
-    list_users_family.value[index].work_position_id = data.work_position_id;
-    list_users_family.value[index].work_position_name = data.work_position_name;
-    list_users_family.value[index].position_name = data.position_name;
-    list_users_family.value[index].position_id = data.position_id;
-    list_users_family.value[index].department_id = data.department_id;
-    list_users_family.value[index].department_name = data.department_name;
-  } else {
-    list_users_family.value[index].profile_id = null;
-    list_users_family.value[index].profile_user_name = null;
-    list_users_family.value[index].work_position_id = null;
-    list_users_family.value[index].work_position_name = null;
-    list_users_family.value[index].position_name = null;
-    list_users_family.value[index].position_id = null;
-    list_users_family.value[index].department_id = null;
-    list_users_family.value[index].department_name = null;
-  }
-  if (list_users_family.value.length > 0) {
-    var arr = [...listDataUsersSave.value];
-    list_users_family.value.forEach((element) => {
-      arr = arr.filter((x) => x.code.profile_id != element.profile_id);
-    });
-    listDataUsers.value = arr;
-  }
-};
-const listClasroom = ref([]);
+  
 
 const delRow_Item = (item, type) => {
   if (type == 1) {
@@ -1324,24 +1272,44 @@ const delRow_Item = (item, type) => {
   }
 };
 //Thêm bản ghi
+const chooseImage = (id) => {
+  document.getElementById(id).click();
+};
+let files = [];
+const handleFileUpload = (event) => {
+  files = event.target.files[0];
+  var output = document.getElementById("logoTem");
+  output.src = URL.createObjectURL(event.target.files[0]);
+  output.onload = function () {
+    URL.revokeObjectURL(output.src); // free memory
+  };
+};
+const deleteImage = () => {
+  files = [];
+  candidate.value.candidate_avatar = null;
+  files = "";
+};
+//Thêm bản ghi
+const displayBasic=ref(false);
 
 onMounted(() => {
   loadData();
   initTudien();
   loadUser();
   loadUserProfiles();
-
+  displayBasic.value=props.displayBasic;
   return {};
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayBasic"
+    v-model:visible="displayBasic"
     :style="{ width: '60vw' }"
     :maximizable="true"
     :modal="true"
-    :closable="false"
+    :closable="true"
+    @hide="props.closeDialog"
   >
     <form>
       <div class="grid formgrid m-2">
@@ -1369,29 +1337,28 @@ onMounted(() => {
           <div class="col-12 flex p-0 text-center align-items-center px-3 pt-3">
             <div class="col-3 field md:col-3 format-center">
               <div class="form-group">
-                <div class="inputanh2 relative mb-2">
+                <div class="inputanh2 relative mb-2  ">
                   <img
-                    v-tooltip.top="'Chọn ảnh đại diện'"
-                    @click="props.chooseImage('imgAvatar')"
-                    id="avatar"
+                    @click=" chooseImage('imgAvatar')"
+                    id="logoTem"
                     v-bind:src="
-                      candidate.avatar
-                        ? basedomainURL + candidate.avatar
+                      candidate.candidate_avatar
+                        ? basedomainURL + candidate.candidate_avatar
                         : basedomainURL + '/Portals/Image/noimg.jpg'
                     "
                   />
                   <Button
-                    v-if="candidate.avatar"
+                    v-if="candidate.candidate_avatar"
                     style="width: 2rem; height: 2rem"
                     icon="pi pi-times"
-                    @click="props.deleteImage('avatar')"
+                    @click=" deleteImage( )"
                     class="p-button-rounded absolute top-0 right-0 cursor-pointer"
                   />
                   <input
                     id="imgAvatar"
                     type="file"
                     accept="image/*"
-                    @change="handleFileAvtUpload($event, 'avatar')"
+                    @change="handleFileUpload($event)"
                     style="display: none"
                   />
                 </div>
@@ -1446,7 +1413,7 @@ onMounted(() => {
                       <div class="p-inputgroup">
                         <Dropdown
                           v-model="candidate.candidate_source"
-                          :options="listTrainingGroups"
+                          :options="listSources"
                           optionLabel="name"
                           optionValue="code"
                           placeholder="Chọn nguồn"

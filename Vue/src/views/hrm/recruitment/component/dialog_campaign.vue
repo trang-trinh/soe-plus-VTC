@@ -920,6 +920,7 @@ const delRow_Item = (item, type) => {
     list_schedule.value.splice(list_schedule.value.lastIndexOf(item), 1);
   }
 };
+const   displayBasic=ref(false);
 //Thêm bản ghi
 const listTrainingGroups = ref([]);
 onMounted(() => {
@@ -927,18 +928,18 @@ onMounted(() => {
   initTudien();
   loadUser();
   loadUserProfiles();
-
+  displayBasic.value=props.displayBasic;
   return {};
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayBasic"
+    v-model:visible=" displayBasic"
     :style="{ width: '55vw' }"
     :maximizable="true"
     :modal="true"
-    :closable="false"
+    :closable="true"
   >
     <form>
       <div class="grid formgrid m-2">

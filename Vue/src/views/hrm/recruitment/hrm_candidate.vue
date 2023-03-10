@@ -23,10 +23,6 @@ const filters = ref({
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
-  candidate_code: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
 });
 const bgColor = ref([
   "#F8E69A",
@@ -39,11 +35,10 @@ const bgColor = ref([
 ]);
 
 const listStatus = ref([
-  { name: "Lên kế hoạch", code: 1 },
-  { name: "Đang thực hiện", code: 2 },
-  { name: "Đã hoàn thành", code: 3 },
-  { name: "Tạm dừng", code: 4 },
-  { name: "Đã hủy", code: 5 },
+  { name: "Trúng tuyển", code: 1 },
+  { name: "Không trúng tuyển", code: 2 },
+  { name: "Đã chuyển HSNS", code: 3 },
+  { name: "Ứng tuyển", code: 0 },
 ]);
 const listFormTraining = ref([
   { name: "Bắt buộc", code: 1 },
@@ -59,12 +54,11 @@ const loadCount = () => {
         str: encr(
           JSON.stringify({
             proc: "hrm_candidate_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id },
-  
-            { par: "status", va: null}
-          
-          
-          ],
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+
+              { par: "status", va: null },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -78,14 +72,13 @@ const loadCount = () => {
       let data2 = JSON.parse(response.data.data)[2];
       let data3 = JSON.parse(response.data.data)[3];
       let data4 = JSON.parse(response.data.data)[4];
-      let data5 = JSON.parse(response.data.data)[5];
+
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
         options.value.totalRecords1 = data1[0].totalRecords1;
         options.value.totalRecords2 = data2[0].totalRecords2;
         options.value.totalRecords3 = data3[0].totalRecords3;
         options.value.totalRecords4 = data4[0].totalRecord4;
-        options.value.totalRecords5 = data5[0].totalRecords5;
 
         sttStamp.value = data[0].totalRecords + 1;
       }
@@ -116,7 +109,7 @@ const loadData = (rf) => {
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
-                { par: "search", va:null },
+                { par: "search", va: null },
                 { par: "status", va: null },
               ],
             }),
@@ -131,7 +124,6 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-      
         });
 
         datalists.value = data;
@@ -139,7 +131,7 @@ const loadData = (rf) => {
         options.value.loading = false;
       })
       .catch((error) => {
-        console.log(error)
+        console.log(error);
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
       });
@@ -161,8 +153,7 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].candidate_id;
+    options.value.id = datalists.value[datalists.value.length - 1].candidate_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
@@ -176,7 +167,7 @@ const onPage = (event) => {
 const candidate = ref({
   candidate_name: "",
   emote_file: "",
-  status: true,
+  status: 0,
   is_default: false,
   is_order: 1,
 });
@@ -191,7 +182,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "candidate_id desc ",
+  sort: "hcal.candidate_id desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -202,7 +193,6 @@ const options = ref({
   totalRecords2: 0,
   totalRecords3: 0,
   totalRecords4: 0,
-  totalRecords5: 0,
 });
 
 //Hiển thị dialog
@@ -229,7 +219,7 @@ const openBasic = (str) => {
 
   isSaveTem.value = true;
   headerDialog.value = str;
-numOfKey.value+=1;
+  numOfKey.value += 1;
   displayBasic.value = true;
 };
 
@@ -249,7 +239,6 @@ const sttStamp = ref(1);
 
 //Sửa bản ghi
 const editTem = (dataTem) => {
-  
   headerDialog.value = "Sửa ứng viên";
   isSaveTem.value = false;
   displayBasic.value = true;
@@ -373,7 +362,6 @@ const loadDataSQL = () => {
         options.value.totalRecords2 = dt[3][0].totalRecords2;
         options.value.totalRecords3 = dt[4][0].totalRecords3;
         options.value.totalRecords4 = dt[5][0].totalRecords4;
-        options.value.totalRecords5 = dt[6][0].totalRecords5;
       }
     })
     .catch((error) => {
@@ -392,9 +380,6 @@ const loadDataSQL = () => {
     });
 };
 
- 
- 
- 
 //Tìm kiếm
 const searchStamp = (event) => {
   if (event.code == "Enter") {
@@ -456,9 +441,9 @@ const tabs = ref([
   { id: 1, title: "Ứng tuyển", icon: "", total: 0 },
   { id: 2, title: "Trúng tuyển", icon: "", total: 0 },
   { id: 3, title: "Không trúng tuyển", icon: "", total: 0 },
-  { id: 4, title: "Đã chuyển HSNS", icon: "", total: 0 }
+  { id: 4, title: "Đã chuyển HSNS", icon: "", total: 0 },
 ]);
-const numOfKey=ref(0);
+const numOfKey = ref(0);
 //Checkbox
 const onCheckBox = (value, check) => {
   if (check) {
@@ -469,11 +454,7 @@ const onCheckBox = (value, check) => {
       BitTrangthai: value.status,
     };
     axios
-      .put(
-        baseURL + "/api/hrm_candidate/update_s_hrm_candidate",
-        data,
-        config
-      )
+      .put(baseURL + "/api/hrm_candidate/update_s_hrm_candidate", data, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -505,11 +486,7 @@ const onCheckBox = (value, check) => {
       BitMain: value.is_default,
     };
     axios
-      .put(
-        baseURL + "/api/hrm_candidate/Update_DefaultStamp",
-        data1,
-        config
-      )
+      .put(baseURL + "/api/hrm_candidate/Update_DefaultStamp", data1, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -547,7 +524,6 @@ const itemButs = ref([
       exportData("ExportExcel");
     },
   },
- 
 ]);
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
@@ -566,17 +542,16 @@ const exportData = (method) => {
         excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
         proc: "hrm_candidate_export",
         par: [
- 
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "training_groups", va:  options.value.training_groups_id  },
-          { par: "user_verify", va:  options.value.user_verify  },
-          { par: "user_follows", va: options.value.user_follows},
-           { par: "form_training", va: options.value.type_formtraining},
-          { par: "status ", va: options.value.status_filter},
+          { par: "training_groups", va: options.value.campaign_id },
+          { par: "user_verify", va: options.value.user_verify },
+          { par: "user_follows", va: options.value.user_follows },
+          { par: "form_training", va: options.value.type_formtraining },
+          { par: "status ", va: options.value.status_filter },
           { par: "start_date", va: options.value.start_date },
           { par: "end_date", va: options.value.end_date },
-             { par: "sort", va: options.value.sort },
+          { par: "sort", va: options.value.sort },
           { par: "pageno", va: options.value.PageNo },
           { par: "pagesize", va: options.value.PageSize },
         ],
@@ -589,7 +564,7 @@ const exportData = (method) => {
         swal.close();
 
         toast.success("Kết xuất Data thành công!");
-        debugger
+        debugger;
         if (response.data.path != null) {
           let pathReplace = response.data.path
             .replace(/\\+/g, "/")
@@ -692,13 +667,10 @@ const deleteList = () => {
             listId.push(item.candidate_id);
           });
           axios
-            .delete(
-              baseURL + "/api/hrm_candidate/delete_hrm_candidate",
-              {
-                headers: { Authorization: `Bearer ${store.getters.token}` },
-                data: listId != null ? listId : 1,
-              }
-            )
+            .delete(baseURL + "/api/hrm_candidate/delete_hrm_candidate", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: listId != null ? listId : 1,
+            })
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
@@ -735,10 +707,10 @@ const deleteList = () => {
 //Filter
 const reFilter = () => {
   options.value.user_follows = null;
-  options.value.training_groups_id = null;
+  options.value.campaign_id = null;
   options.value.user_verify = null;
-options.value.start_date=null;
-options.value.end_date=null
+  options.value.start_date = null;
+  options.value.end_date = null;
   options.value.type_formtraining = null;
 
   options.value.status_filter = null;
@@ -771,44 +743,15 @@ const filterFileds = () => {
       filterSQL.value.push(filterS1);
     }
   }
-  if (options.value.type_formtraining) {
-    let filterS2 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "form_training",
-    };
-    if (options.value.type_formtraining.length > 0) {
-      options.value.type_formtraining.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS2.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS2);
-    }
-  }
-  if (options.value.user_follows) {
-    let filterS3 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "user_follows",
-    };
-    if (options.value.user_follows.length > 0) {
-      options.value.user_follows.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS3.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS3);
-    }
-  }
-  if (options.value.training_groups_id) {
+   
+  if (options.value.campaign_id) {
     let filterS4 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "training_groups_id",
+      key: "campaign_id",
     };
-    if (options.value.training_groups_id.length > 0) {
-      options.value.training_groups_id.forEach((element) => {
+    if (options.value.campaign_id.length > 0) {
+      options.value.campaign_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS4.filterconstraints.push(addr);
       });
@@ -816,19 +759,19 @@ const filterFileds = () => {
       filterSQL.value.push(filterS4);
     }
   }
-  if (options.value.user_verify) {
-    let filterS5 = {
+  if (options.value.candidate_source) {
+    let filterS4 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "user_verify",
+      key: "candidate_source",
     };
-    if (options.value.user_verify.length > 0) {
-      options.value.user_verify.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS5.filterconstraints.push(addr);
+    if (options.value.candidate_source.length > 0) {
+      options.value.candidate_source.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS4.filterconstraints.push(addr);
       });
 
-      filterSQL.value.push(filterS5);
+      filterSQL.value.push(filterS4);
     }
   }
 
@@ -837,69 +780,81 @@ const filterFileds = () => {
   op.value.hide();
 };
 
-
 const onDayClick = () => {
-  if (options.value.start_date != null)  
-  {
- 
-    if (!options.value.end_date)
-      options.value.end_date = options.value.start_date;
-    
-    if (
-      options.value.start_date &&
-      options.value.start_date != options.value.end_date
-    ) {
-      let sDate = new Date(options.value.start_date);
-      sDate.setDate(sDate.getDate() - 1);
-      options.value.start_date = sDate;
-      let filterS = {
+  if (options.value.start_date != null &&options.value.end_date != null) {
+    let sDate = new Date(options.value.start_date);
+    let eDate = new Date(options.value.end_date);
+    let filterS = {
         filterconstraints: [
-          { value: options.value.start_date, matchMode: "dateAfter" },
+          { value:sDate, matchMode: "dateAfterIs" },    { value:eDate, matchMode: "dateBefore" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "candidate_birthday",
       };
       filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.end_date &&
-      options.value.start_date != options.value.end_date
-    ) {
-      let eDate = new Date(options.value.end_date);
-      eDate.setDate(eDate.getDate() + 1);
-      options.value.end_date = eDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.end_date, matchMode: "dateBefore" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.start_date &&
-      options.value.start_date == options.value.end_date
-    ) {
-      let filterS1 = {
-        filterconstraints: [
-          { value: options.value.start_date, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "start_date",
-      };
-      filterSQL.value.push(filterS1);
-        let filterS2 = {
-        filterconstraints: [
-          { value: options.value.end_date, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS2);
-    }
   }
-   
+
+
+
+
+  // if (options.value.start_date != null) {
+  //   if (!options.value.end_date)
+  //     options.value.end_date = options.value.start_date;
+
+  //   if (
+  //     options.value.start_date &&
+  //     options.value.start_date != options.value.end_date
+  //   ) {
+  //     let sDate = new Date(options.value.start_date);
+  //     sDate.setDate(sDate.getDate() - 1);
+  //     options.value.start_date = sDate;
+  //     let filterS = {
+  //       filterconstraints: [
+  //         { value: options.value.start_date, matchMode: "dateAfter" },
+  //       ],
+  //       filteroperator: "and",
+  //       key: "candidate_birthday",
+  //     };
+  //     filterSQL.value.push(filterS);
+  //   }
+  //   if (
+  //     options.value.end_date &&
+  //     options.value.start_date != options.value.end_date
+  //   ) {
+  //     let eDate = new Date(options.value.end_date);
+  //     eDate.setDate(eDate.getDate() + 1);
+  //     options.value.end_date = eDate;
+  //     let filterS = {
+  //       filterconstraints: [
+  //         { value: options.value.end_date, matchMode: "dateBefore" },
+  //       ],
+  //       filteroperator: "and",
+  //       key: "end_date",
+  //     };
+  //     filterSQL.value.push(filterS);
+  //   }
+  //   if (
+  //     options.value.start_date &&
+  //     options.value.start_date == options.value.end_date
+  //   ) {
+  //     let filterS1 = {
+  //       filterconstraints: [
+  //         { value: options.value.start_date, matchMode: "dateIs" },
+  //       ],
+  //       filteroperator: "and",
+  //       key: "start_date",
+  //     };
+  //     filterSQL.value.push(filterS1);
+  //     let filterS2 = {
+  //       filterconstraints: [
+  //         { value: options.value.end_date, matchMode: "dateIs" },
+  //       ],
+  //       filteroperator: "and",
+  //       key: "end_date",
+  //     };
+  //     filterSQL.value.push(filterS2);
+  //   }
+  // }
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -913,86 +868,31 @@ const toggle = (event) => {
   op.value.toggle(event);
 };
 
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
+ 
+ 
+const listCampaigns = ref([]);
+ 
 
-const loadUser = () => {
-  listDropdownUser.value = [];
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          role_name: element.role_name,
-          position_name: element.position_name,
-        });
-      });
-
-      listDropdownUserCheck.value = [...listDropdownUser.value];
-    })
-    .catch((error) => {
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-
-const listTrainingGroups = ref([]);
-const listClasroom = ref([]);
-
+const listSources = ref([
+  { name: "Nguồn 1", code: 1 },
+  { name: "Nguồn 2", code: 2 },
+  { name: "Nguồn 3", code: 3 },
+  { name: "Nguồn 4", code: 4 },
+  { name: "Khác", code: 5 },
+]);
 const initTudien = () => {
+  listCampaigns.value = [];
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_enecting_group_list",
+            proc: "hrm_campaign_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
             ],
           }),
           SecretKey,
@@ -1003,51 +903,18 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listTrainingGroups.value = [];
-      data.forEach((element) => {
-        listTrainingGroups.value.push({
-          name: element.enecting_group_name,
-          code: element.enecting_group_id,
+
+      data.forEach((element, i) => {
+        listCampaigns.value.push({
+          name: element.campaign_name,
+          code: element.campaign_id,
         });
       });
     })
     .catch((error) => {
-      console.log(error);
-    });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_classroom_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listClasroom.value = [];
-      data.forEach((element) => {
-        listClasroom.value.push({
-          name: element.classroom_name,
-          code: element.classroom_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  loadUser();
+      toast.error("Tải dữ liệu không thành công!");
+    });  
+ 
 };
 
 onMounted(() => {
@@ -1137,165 +1004,52 @@ onMounted(() => {
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <label>Nhóm ứng viên</label>
+                              <div class="pb-2">Chiến dịch</div>
                               <MultiSelect
-                                :options="listTrainingGroups"
+                                :options="listCampaigns"
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.training_groups_id"
+                                v-model="options.campaign_id"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn nhóm ứng viên"
+                                placeholder="Chọn chiến dịch tuyển dụng"
                                 class="w-full limit-width"
-                                style="min-height: 36px"
+                            
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
                             </div>
                           </div>
                           <div class="col-12 md:col-12 p-0">
-                                <div class="col-12 p-0 ">
-                              <label>Người phụ trách</label>
-                                </div>
-                              <MultiSelect
-                                :options="listDropdownUser"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                v-model="options.user_verify"
-                                optionLabel="name"
-                                placeholder="Chọn người phụ trách"
-                                                   panelClass="d-design-dropdown  d-tree-input"
-         class="col-12 my-2   "
-                                
-                                style="min-height: 36px"
-                              
-                              >
-                                <template #option="slotProps">
-                                  <div
-                                    class="country-item flex align-items-center"
-                                  >
-                                    <div class="grid w-full p-0">
-                                      <div
-                                        class="
-                                          field
-                                          p-0
-                                          py-1
-                                          col-12
-                                          flex
-                                          m-0
-                                          cursor-pointer
-                                          align-items-center
-                                        "
-                                      >
-                                        <div
-                                          class="
-                                            col-1
-                                            mx-2
-                                            p-0
-                                            align-items-center
-                                          "
-                                        >
-                                          <Avatar
-                                            v-bind:label="
-                                              slotProps.option.avatar
-                                                ? ''
-                                                : slotProps.option.name.substring(
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 1,
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 2
-                                                  )
-                                            "
-                                            :image="
-                                              basedomainURL +
-                                              slotProps.option.avatar
-                                            "
-                                            size="small"
-                                            :style="
-                                              slotProps.option.avatar
-                                                ? 'background-color: #2196f3'
-                                                : 'background:' +
-                                                  bgColor[
-                                                    slotProps.option.name
-                                                      .length % 7
-                                                  ]
-                                            "
-                                            shape="circle"
-                                            @error="
-                                              $event.target.src =
-                                                basedomainURL +
-                                                '/Portals/Image/nouser1.png'
-                                            "
-                                          />
-                                        </div>
-                                        <div
-                                          class="
-                                            col-11
-                                            p-0
-                                            ml-3
-                                            align-items-center
-                                          "
-                                        >
-                                          <div class="pt-2">
-                                            <div class="font-bold">
-                                              {{ slotProps.option.name }}
-                                            </div>
-                                            <div
-                                              class="
-                                                flex
-                                                w-full
-                                                text-sm
-                                                font-italic
-                                                text-500
-                                              "
-                                            >
-                                              <div>
-                                                {{
-                                                  slotProps.option.position_name
-                                                }}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </template>
-                              </MultiSelect>
+                            <div class="col-12 p-0 pb-2">
+                              <div class="pt-2">Nguồn</div>
+                            </div>
+                            <MultiSelect
+                              :options="listSources"
+                              :filter="true"
+                              :showClear="true"
+                              :editable="false"
+                              display="chip"
+                              v-model="options.candidate_source"
+                              optionLabel="name"
+                              optionValue="code"
+                              placeholder="Chọn nguồn"
+                              panelClass="d-design-dropdown  d-tree-input"
+                              class="col-12 p-0"
+                        
+                            >
+                               
+                            </MultiSelect>
+                          </div>
                           
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <label>Hình thức ứng viên</label>
-                              <MultiSelect
-                                :options="listFormTraining"
-                                :filter="false"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.type_formtraining"
-                                optionLabel="name"
-                                optionValue="code"
-                                display="chip"
-                                placeholder="Chọn hình thức ứng viên"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="row">
                           <div class="col-12 md:col-12">
-                            <div class="form-group m-0">
-                              <label>Thời gian ứng viên</label>
+                            <div class="form-group m-0 pb-2">
+                              <label>Ngày sinh</label>
                             </div>
                           </div>
                           <div class="col-12 p-0 flex">
@@ -1303,7 +1057,7 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
+                                 
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.start_date"
@@ -1315,7 +1069,7 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
+                                
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.end_date"
@@ -1324,126 +1078,16 @@ onMounted(() => {
                               </div>
                             </div>
                           </div>
-                          <div class="col-12 md:col-12">
-                           
-                             <div class="col-12 p-0 ">
-                               <label>Người theo dõi</label>
-                             </div>
-                             <MultiSelect
-                                :options="listDropdownUser"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                v-model="options.user_follows"
-                                optionLabel="name"
-                                placeholder="Chọn người theo dõi"
-                               
-                                style="min-height: 36px"
-                                    panelClass="d-design-dropdown  d-tree-input"
-         class="col-12 my-2   "
-                                
-                              >
-                                <template #option="slotProps">
-                                  <div
-                                    class="country-item flex align-items-center"
-                                  >
-                                    <div class="grid w-full p-0">
-                                      <div
-                                        class="
-                                          field
-                                          p-0
-                                          py-1
-                                          col-12
-                                          flex
-                                          m-0
-                                          cursor-pointer
-                                          align-items-center
-                                        "
-                                      >
-                                        <div
-                                          class="
-                                            col-1
-                                            mx-2
-                                            p-0
-                                            align-items-center
-                                          "
-                                        >
-                                          <Avatar
-                                            v-bind:label="
-                                              slotProps.option.avatar
-                                                ? ''
-                                                : slotProps.option.name.substring(
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 1,
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 2
-                                                  )
-                                            "
-                                            :image="
-                                              basedomainURL +
-                                              slotProps.option.avatar
-                                            "
-                                            size="small"
-                                            :style="
-                                              slotProps.option.avatar
-                                                ? 'background-color: #2196f3'
-                                                : 'background:' +
-                                                  bgColor[
-                                                    slotProps.option.name
-                                                      .length % 7
-                                                  ]
-                                            "
-                                            shape="circle"
-                                            @error="
-                                              $event.target.src =
-                                                basedomainURL +
-                                                '/Portals/Image/nouser1.png'
-                                            "
-                                          />
-                                        </div>
-                                        <div
-                                          class="
-                                            col-11
-                                            p-0
-                                            ml-3
-                                            align-items-center
-                                          "
-                                        >
-                                          <div class="pt-2">
-                                            <div class="font-bold">
-                                              {{ slotProps.option.name }}
-                                            </div>
-                                            <div
-                                              class="
-                                                flex
-                                                w-full
-                                                text-sm
-                                                font-italic
-                                                text-500
-                                              "
-                                            >
-                                              <div>
-                                                {{
-                                                  slotProps.option.position_name
-                                                }}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </template>
-                              </MultiSelect>
-                          
-                          </div>
+                      
 
                           <div class="col-12 md:col-12">
-                            <div class="form-group">
+                            <div class="col-12 p-0 md:col-12">
+                            <div class="form-group m-0 py-2">
                               <label>Trạng thái</label>
+                            </div>
+                          </div>
+                            <div class="form-group">
+                          
                               <MultiSelect
                                 :options="listStatus"
                                 v-model="options.status_filter"
@@ -1452,10 +1096,11 @@ onMounted(() => {
                                 :editable="false"
                                 display="chip"
                                 optionLabel="name"
+
                                 optionValue="code"
                                 placeholder="Chọn trạng thái"
                                 class="w-full limit-width"
-                                style="min-height: 36px"
+                            
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
@@ -1467,14 +1112,7 @@ onMounted(() => {
                   </div>
                   <div class="col-12 md:col-12 p-0">
                     <Toolbar
-                      class="
-                        border-none
-                        surface-0
-                        outline-none
-                        px-0
-                        pb-0
-                        w-full
-                      "
+                      class="border-none surface-0 outline-none pl-2 pr-3 pb-0 w-full"
                     >
                       <template #start>
                         <Button
@@ -1514,19 +1152,19 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-                label="Tiện ích"
-                icon="pi pi-file-excel"
-                class="mr-2 p-button-outlined p-button-secondary"
-                @click="toggleExport"
-                aria-haspopup="true"
-                aria-controls="overlay_Export"
-              />
-              <Menu
-                id="overlay_Export"
-                ref="menuButs"
-                :model="itemButs"
-                :popup="true"
-              />
+              label="Tiện ích"
+              icon="pi pi-file-excel"
+              class="mr-2 p-button-outlined p-button-secondary"
+              @click="toggleExport"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            />
+            <Menu
+              id="overlay_Export"
+              ref="menuButs"
+              :model="itemButs"
+              :popup="true"
+            />
           </template>
         </Toolbar>
       </div>
@@ -1552,8 +1190,6 @@ onMounted(() => {
                       ? options.totalRecords3
                       : tab.id == 4
                       ? options.totalRecords4
-                      : tab.id == 5
-                      ? options.totalRecords5
                       : options.totalRecords
                   }})</span
                 >
@@ -1562,7 +1198,7 @@ onMounted(() => {
           </ul>
         </div>
       </div>
-      <div class="d-container mt-3">
+      <div class="d-container">
         <div class="d-lang-table">
           <DataTable
             @page="onPage($event)"
@@ -1591,13 +1227,13 @@ onMounted(() => {
             v-model:selection="selectedStamps"
             :row-hover="true"
           >
-            <Column
+            <!-- <Column
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
               selectionMode="multiple"
             >
-            </Column>
+            </Column> -->
 
             <Column
               field="STT"
@@ -1607,6 +1243,42 @@ onMounted(() => {
               bodyStyle="text-align:center;max-width:70px"
             ></Column>
             <Column
+              field="candidate_code"
+              header="Ảnh"
+              headerStyle="text-align:center;max-width:70px;height:50px"
+              bodyStyle="text-align:center;max-width:70px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <div>
+                  <Avatar
+                    v-bind:label="
+                      slotProps.data.candidate_avatar
+                        ? ''
+                        : slotProps.data.candidate_name.substring(
+                            slotProps.data.candidate_name.lastIndexOf(' ') + 1,
+                            slotProps.data.candidate_name.lastIndexOf(' ') + 2
+                          )
+                    "
+                    :image="basedomainURL + slotProps.data.candidate_avatar"
+                    class="w-3rem"
+                    size="large"
+                    :style="
+                      slotProps.data.avatar
+                        ? 'background-color: #2196f3'
+                        : 'background:' +
+                          bgColor[slotProps.data.candidate_name.length % 7]
+                    "
+                    shape="circle"
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
+                  />
+                </div>
+              </template>
+            </Column>
+            <!-- <Column
               field="candidate_code"
               header="Mã ứng viên"
               headerStyle="text-align:center;max-width:170px;height:50px"
@@ -1622,13 +1294,14 @@ onMounted(() => {
                   placeholder="Từ khoá"
                 />
               </template>
-            </Column>
+            </Column> -->
             <Column
               field="candidate_name"
-              header="Tên ứng viên"
+              header="Họ và tên"
               :sortable="true"
-              headerStyle="text-align:left;height:50px"
+              headerStyle=" height:50px"
               bodyStyle="text-align:left"
+              headerClass="align-items-center justify-content-center text-center"
             >
               <template #filter="{ filterModel }">
                 <InputText
@@ -1640,85 +1313,6 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="form_training"
-              header="Ngày sinh"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="data.data.candidate_birthday">
-                  {{
-                    moment(new Date(data.data.candidate_birthday)).format("DD/MM/YYYY")
-                  }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="gender"
-              header="Giới tính"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="    data.data.candidate_gender">
-                  {{
-                   data.data.candidate_gender==1?"Nam":data.data.candidate_gender==2?"Nữ":"Khác"
-                  }}
-                </div>
-              </template>
-            </Column>
-
-            <Column
-              field="end_date"
-              header="Số điện thoại"
-              headerStyle="text-align:center;max-width:200px;height:50px"
-              bodyStyle="text-align:center;max-width:200px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="data.data.candidate_phone">
-            
-   {{ data.data.candidate_phone }}
-         
-                </div>
-              </template>
-            </Column>
-           
-            <Column
-              field="count_emps"
-              header="Email"
-              headerStyle="text-align:center;max-width:200px;height:50px"
-              bodyStyle="text-align:center;max-width:200px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="data.data.candidate_email">
-            
-            {{ data.data.candidate_email }}
-                  
-                         </div>
-              </template>
-            </Column>
-            <Column
-              field="created_date"
-              header="Ngày tạo"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{
-                    moment(new Date(data.data.created_date)).format(
-                      "DD/MM/YYYY"
-                    )
-                  }}
-                </div>
-              </template>
-            </Column>
-            <!-- <Column
               field="status"
               header="Trạng thái"
               headerStyle="text-align:center;max-width:11rem;height:50px"
@@ -1728,42 +1322,34 @@ onMounted(() => {
               <template #body="slotProps">
                 <div
                   class="m-2"
-                  @click="
-                    toggleStatus(slotProps.data, $event);
-                    $event.stopPropagation();
-                  "
                   aria:haspopup="true"
                   aria-controls="overlay_panel_status"
                 >
                   <Button
                     :label="
                       slotProps.data.status == 1
-                        ? 'Lên kế hoạch'
+                        ? 'Trúng tuyển'
                         : slotProps.data.status == 2
-                        ? 'Đang thực hiện'
+                        ? 'Không trúng tuyển'
                         : slotProps.data.status == 3
-                        ? 'Đã hoàn thành'
-                        : slotProps.data.status == 4
-                        ? 'Tạm dừng'
-                        : 'Đã hủy'
+                        ? 'Đã chuyển HSNS'
+                        : 'Ứng tuyển'
                     "
                     :class="
                       slotProps.data.status == 1
-                        ? 'bg-blue-500'
-                        : slotProps.data.status == 2
-                        ? 'bg-yellow-500'
-                        : slotProps.data.status == 3
                         ? 'bg-green-500'
-                        : slotProps.data.status == 4
-                        ? 'bg-orange-500'
-                        : 'bg-pink-500'
+                        : slotProps.data.status == 2
+                        ? 'bg-pink-500'
+                        : slotProps.data.status == 3
+                        ? 'bg-blue-500'
+                        : 'bg-yellow-500'
                     "
-                    icon="pi pi-chevron-down"
-                    iconPos="right"
-                    class="px-2 w-10rem"
+                    class="px-2 w-10rem cursor-auto"
                   />
+                  <!-- icon="pi pi-chevron-down"
+                    iconPos="right" -->
                 </div>
-                <OverlayPanel
+                <!-- <OverlayPanel
                   :showCloseIcon="false"
                   ref="opstatus"
                   appendTo="body"
@@ -1789,13 +1375,68 @@ onMounted(() => {
                       </Dropdown>
                     </div>
                   </div>
-                </OverlayPanel>
+                </OverlayPanel> -->
               </template>
-            </Column> -->
+            </Column>
+
+            <Column
+              field="end_date"
+              header="Số điện thoại"
+              headerStyle="text-align:center;max-width:200px;height:50px"
+              bodyStyle="text-align:center;max-width:200px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="data">
+                <div v-if="data.data.candidate_phone">
+                  {{ data.data.candidate_phone }}
+                </div>
+              </template>
+            </Column>
+
+            <Column
+              field="count_emps"
+              header="Email"
+              headerStyle="text-align:center;max-width:200px;height:50px"
+              bodyStyle="text-align:center;max-width:200px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="data">
+                <div v-if="data.data.candidate_email">
+                  {{ data.data.candidate_email }}
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="form_training"
+              header="Ngày sinh"
+              headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="data">
+                <div v-if="data.data.candidate_birthday">
+                  {{
+                    moment(new Date(data.data.candidate_birthday)).format(
+                      "DD/MM/YYYY"
+                    )
+                  }}
+                </div>
+              </template>
+            </Column>
+
+            <Column
+              field="campaign_name"
+              header="Chiến dịch"
+              headerStyle="text-align:center;max-width:300px;height:50px"
+              bodyStyle=" max-width:300px"
+              headerClass="align-items-center justify-content-center text-center"
+            >
+            </Column>
+
             <Column
               header=""
-              headerStyle="text-align:center;max-width:50px"
-              bodyStyle="text-align:center;max-width:50px"
+              headerStyle="text-align:center;max-width:70px"
+              bodyStyle="text-align:center;max-width:70px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -1850,13 +1491,7 @@ onMounted(() => {
             </Column> -->
             <template #empty>
               <div
-                class="
-                  align-items-center
-                  justify-content-center
-                  p-4
-                  text-center
-                  m-auto
-                "
+                class="align-items-center justify-content-center p-4 text-center m-auto"
                 v-if="!isFirst"
               >
                 <img src="../../../assets/background/nodata.png" height="144" />
@@ -1869,7 +1504,7 @@ onMounted(() => {
     </div>
     <div v-if="displayBasic">
       <dialogCandidate
-      :key="numOfKey"
+        :key="numOfKey"
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
         :candidate="candidate"
@@ -1908,7 +1543,7 @@ i {
 }
 .d-lang-table {
   margin: 0px;
-  height: calc(100vh - 215px);
+  height: calc(100vh - 200px);
 }
 
 .tableview-nav {

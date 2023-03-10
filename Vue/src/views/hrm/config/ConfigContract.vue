@@ -327,7 +327,7 @@ onMounted(() => {
                   <div class="w-full">
                     <Button
                       class="w-full h-full text-center surface-200 border-1 border-400 text-900 cursor-auto"
-                      :label="data.data.STT"
+                      :label="data.data.STT.toString()"
                     ></Button>
                   </div>
                 </template>

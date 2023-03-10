@@ -36,9 +36,9 @@ const options = ref({
   sortDM: "card_id DESC",
   search: "",
   pageno: 0,
-  pagesize: 10,
+  pagesize: 20,
   pagenoDM: 0,
-  pagesizeDM: 10,
+  pagesizeDM: 20,
   loading: true,
   totalRecords: null,
   totalRecordsDM: null,
@@ -98,7 +98,9 @@ const loadData = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
 
-      if (data) {
+      if (data) {  data.forEach((element, i) => {
+          element.STT = i + 1;
+        });
         listdatas.value = data;
       }
     })
@@ -494,7 +496,7 @@ onMounted(() => {
       <div class="grid mt-3">
         <div class="col-12 field p-0 font-bold">
           <div class="col-12 p-0 format-center text-xl">
-            Phép thưởng theo chức danh
+            Phép hưởng theo chức danh
           </div>
         </div>
         <div class="col-12 field format-center p-0 font-bold">
@@ -527,7 +529,7 @@ onMounted(() => {
                   <div class="w-full">
                     <Button
                       class="w-full h-full text-center surface-200 border-1 border-400 text-900 cursor-auto"
-                      :label="data.data.is_order.toString()"
+                      :label="data.data.STT.toString()"
                     ></Button>
                   </div>
                 </template>
@@ -549,7 +551,7 @@ onMounted(() => {
               ></Column>
               <Column
                 field="separator"
-                header="Số ngày thưởng"
+                header="Số ngày hưởng"
                 class="align-items-center justify-content-center text-center font-bold"
                 headerStyle="text-align:center;max-width:150px"
                 bodyStyle="text-align:center;max-width:150px"
