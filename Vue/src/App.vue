@@ -82,7 +82,6 @@ const passModuleToSidebar = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      if (data[1].length > 0) {
         let root_path =  router.fullPath;
         let arr_params = Object.values(router.params);
         //check router from notify (contain params id, type,....)
@@ -94,13 +93,14 @@ const passModuleToSidebar = () => {
             }
           })
         } 
-        if (data[1].filter(x => x.is_link == root_path).length == 0)
+        let path_system = ['/options'];
+        if (data[1].filter(x => x.is_link == root_path).length == 0 && !path_system.includes(root_path))
           route.push({ path: "/" });
-        else if (data[0].length > 0) {
+        else 
+        if (data[0].length > 0) {
           cookies.set("max_length_file", data[0][0].max_length_file);
           emitter.emit("emitData", { type: "moduleFromUrl", data: data[0][0] });
         }
-      }
 
     });
 };
@@ -196,7 +196,7 @@ const data_props = ref({})
 const currentLink = ref(window.location.href);
 if (currentLink.value.includes("/forgetpss/")) {
   is_forgetpass.value = true;
-  let str = window.location.href.substring(window.location.href.lastIndexOf("/forgetpss/") + 11);
+  let str = window.location.href.substring(window.location.href.lastIndexOf("/forgetpss/") + 11).replaceAll("tun", "+");
   data_props.value = JSON.parse(decr(str, SecretKey, cryoptojs).replaceAll("\"", "").replaceAll("'", "\""));
 }
 </script>
