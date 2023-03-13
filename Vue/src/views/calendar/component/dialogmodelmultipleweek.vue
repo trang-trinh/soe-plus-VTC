@@ -488,6 +488,7 @@ const saveModelMultiple = () => {
   var members = [];
   var departments = [];
   multiple.forEach((item) => {
+    changeContents(item);
     //Date
     if (item["start_date"] != null) {
       item["start_date"] = moment(item["start_date"]).format(
@@ -757,6 +758,9 @@ const initWeek = (rf) => {
       },
     });
   }
+  datas.value.forEach((item) => {
+    changeContents(item);
+  });
   temps.value = [];
   setTimeout(() => {
     if (datas.value && datas.value.length > 0) {
@@ -1027,7 +1031,6 @@ onMounted(() => {
                       :id="'contents' + slotProps.data.calendar_id"
                       class="box-contents w-full"
                       v-html="slotProps.data.contents"
-                      @input="changeContents(slotProps.data)"
                       :class="{
                         'p-invalid': !slotProps.data.contents && submitted,
                       }"
