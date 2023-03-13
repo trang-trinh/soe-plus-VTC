@@ -127,7 +127,7 @@ const trustAsHtml = (html) => {
                     </i></b
                   >
                 </div>
-                <div style="padding-top: 1rem">
+                <div>
                   <b>
                     Trực Chỉ huy: Đồng chí ______________________________ - Phó
                     Giám đốc
