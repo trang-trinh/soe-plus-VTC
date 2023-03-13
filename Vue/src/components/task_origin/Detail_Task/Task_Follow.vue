@@ -355,6 +355,17 @@ onMounted(() => {
       :reorderableColumns="true"
       @rowReorder="onRowReorder"
     >
+      <template #header>
+        <Toolbar class="w-full custoolbar">
+          <template #end>
+            <Button
+              icon="pi pi-plus"
+              label="Thêm bước"
+              @click="openDialog()"
+            ></Button>
+          </template>
+        </Toolbar>
+      </template>
       <Column
         rowReorder
         headerStyle="width: 3rem"
@@ -392,6 +403,7 @@ onMounted(() => {
               type="button"
               icon="pi pi-pencil"
               v-tooltip="'Sửa'"
+              @click="OpenEditDialog(data.data)"
             >
             </Button>
             <Button
