@@ -69,6 +69,7 @@ const options = ref({
   sort: "created_date desc",
   orderBy: "desc",
 });
+const dictionarys = ref([]);
 
 //Function
 
@@ -319,11 +320,15 @@ const saveMission = (type) => {
       swal.showLoading();
     },
   });
-  1;
+  var sign_id = null;
+  if (datas_mission.value.sign != null) {
+    sign_id = datas_mission.value.sign.user_id;
+  }
   let formData = new FormData();
   formData.append("type", type);
   formData.append("mission", datas_mission.value["mission"] || "");
   formData.append("address", datas_mission.value["address"] || "");
+  formData.append("sign_id", sign_id);
   formData.append("model", JSON.stringify(datas_mission.value));
   for (var i = 0; i < files.length; i++) {
     let file = files[i];
@@ -534,7 +539,45 @@ const deleteImage = (id) => {
   }
   saveMission(3);
 };
+
+//Nguuời ký
+
 //Init
+const initDictionary = () => {
+  axios
+    .post(
+      baseURL + "/api/calendar/get_datas",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "calendar_ca_position_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        let tbs = JSON.parse(data);
+        dictionarys.value = tbs;
+      }
+    })
+    .catch((error) => {
+      if (options.value.loading) options.value.loading = false;
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
 const onRefresh = (type) => {
   initData(true);
 };
@@ -593,6 +636,14 @@ const initData = (rf) => {
         }
         if (tbs[1] != null && tbs[1].length > 0) {
           datas_mission.value = tbs[1][0];
+          if (datas_mission.value.sign_id != null) {
+            datas_mission.value.sign = {
+              user_id: datas_mission.value.sign_id,
+              full_name: datas_mission.value.full_name,
+              last_name: datas_mission.value.last_name,
+              avatar: datas_mission.value.avatar,
+            };
+          }
         }
       }
       swal.close();
@@ -613,6 +664,7 @@ const initData = (rf) => {
 };
 
 onMounted(() => {
+  initDictionary();
   initData(true);
 });
 </script>
@@ -781,10 +833,7 @@ onMounted(() => {
               >
                 <Button
                   @click="deleteItem(0, data.data)"
-                  class="
-                    p-button-rounded p-button-secondary p-button-outlined
-                    mx-1
-                  "
+                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                   type="button"
                   v-tooltip="'Xóa'"
                   icon="pi pi-trash"
@@ -794,13 +843,7 @@ onMounted(() => {
           </Column>
           <template #empty>
             <div
-              class="
-                align-items-center
-                justify-content-center
-                p-4
-                text-center
-                m-auto
-              "
+              class="align-items-center justify-content-center p-4 text-center m-auto"
               v-if="!isFirst || options.total == 0"
               style="display: flex"
             >
@@ -974,10 +1017,7 @@ onMounted(() => {
               >
                 <Button
                   @click="deleteItem(1, data.data)"
-                  class="
-                    p-button-rounded p-button-secondary p-button-outlined
-                    mx-1
-                  "
+                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                   type="button"
                   v-tooltip="'Xóa'"
                   icon="pi pi-trash"
@@ -987,13 +1027,7 @@ onMounted(() => {
           </Column>
           <template #empty>
             <div
-              class="
-                align-items-center
-                justify-content-center
-                p-4
-                text-center
-                m-auto
-              "
+              class="align-items-center justify-content-center p-4 text-center m-auto"
               v-if="!isFirst || options.total == 0"
               style="display: flex"
             >
@@ -1187,6 +1221,109 @@ onMounted(() => {
             </div>
           </div>
         </div>
+        <div
+          class="col-6 md:col-6 p-0"
+          style="padding-right: 0.5rem !important"
+        >
+          <Toolbar class="outline-none surface-0 border-none">
+            <template #start>
+              <h3 class="module-title m-0">7. Người ký</h3>
+            </template>
+          </Toolbar>
+          <div class="d-lang-table mb-3">
+            <div class="format-center" style="background-color: white">
+              <div class="col-6 md:col-6">
+                <div class="form-group">
+                  <Dropdown
+                    :options="dictionarys[0]"
+                    :filter="true"
+                    :showClear="true"
+                    v-model="datas_mission.sign"
+                    optionLabel="full_name"
+                    placeholder="Chọn người ký"
+                    class="ip36"
+                    @change="saveMission(4)"
+                    style="height: auto; min-height: 36px; min-width: 120px"
+                  >
+                    <template #value="slotProps">
+                      <div class="mt-2" v-if="slotProps.value">
+                        <Chip
+                          :image="slotProps.value.avatar"
+                          :label="slotProps.value.full_name"
+                          class="mr-2 mb-2 pl-0"
+                        >
+                          <div class="flex">
+                            <div class="format-flex-center">
+                              <Avatar
+                                v-bind:label="
+                                  slotProps.value.avatar
+                                    ? ''
+                                    : (
+                                        slotProps.value.last_name ?? ''
+                                      ).substring(0, 1)
+                                "
+                                v-bind:image="
+                                  basedomainURL + slotProps.value.avatar
+                                "
+                                :style="{
+                                  background:
+                                    bgColor[slotProps.value.is_order % 7],
+                                  color: '#fff',
+                                  width: '3rem',
+                                  height: '3rem',
+                                }"
+                                class="mr-2 text-avatar"
+                                size="xlarge"
+                                shape="circle"
+                              />
+                            </div>
+                            <div class="format-center">
+                              <span>{{ slotProps.value.full_name }}</span>
+                            </div>
+                          </div>
+                        </Chip>
+                      </div>
+                      <span v-else> {{ slotProps.placeholder }} </span>
+                    </template>
+                    <template #option="slotProps">
+                      <div v-if="slotProps.option" class="flex">
+                        <div class="format-center">
+                          <Avatar
+                            v-bind:label="
+                              slotProps.option.avatar
+                                ? ''
+                                : slotProps.option.last_name.substring(0, 1)
+                            "
+                            v-bind:image="
+                              basedomainURL + slotProps.option.avatar
+                            "
+                            style="
+                              background-color: #2196f3;
+                              color: #ffffff;
+                              width: 3rem;
+                              height: 3rem;
+                              font-size: 1.4rem !important;
+                            "
+                            :style="{
+                              background: bgColor[slotProps.index % 7],
+                            }"
+                            class="text-avatar"
+                            size="xlarge"
+                            shape="circle"
+                          />
+                        </div>
+                        <div class="format-center ml-3">
+                          <span>{{ slotProps.option.full_name }}</span>
+                        </div>
+                      </div>
+                      <span v-else> Chưa có dữ liệu tuần </span>
+                    </template>
+                  </Dropdown>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1242,6 +1379,12 @@ onMounted(() => {
   <!--Dialog-->
 </template>
 <style scoped>
+.form-group {
+  display: grid;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
 .d-lang-table {
   /* height: calc(100vh - 160px); */
   min-height: unset;
@@ -1283,6 +1426,21 @@ onMounted(() => {
   .ql-editor p {
     padding: 0 !important;
     margin: 0 !important;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label {
+    display: flex;
+    align-items: center;
+  }
+  .p-chip img {
+    margin: 0;
+    width: 3rem;
+    height: 3rem;
+  }
+  .p-avatar-text {
+    font-size: 1rem;
   }
 }
 </style>

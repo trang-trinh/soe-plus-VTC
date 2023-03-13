@@ -68,11 +68,11 @@ const trustAsHtml = (html) => {
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>BẢO HIỂM XÃ HỘI</b>
-                <div
+                <b style="text-decoration: underline">ĐƠN VỊ ...</b>
+                <!-- <div
                   class="text-center"
                   style="border-top: 1.5px solid #000; margin: 0px 100px"
-                ></div>
+                ></div> -->
               </div>
             </td>
             <td
@@ -83,11 +83,15 @@ const trustAsHtml = (html) => {
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
-              <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
-              <div
+              <div>
+                <b style="text-decoration: underline"
+                  >Độc lập - Tự do - Hạnh phúc</b
+                >
+              </div>
+              <!-- <div
                 class="text-center"
                 style="border-top: 1.5px solid #000; margin: 0px 100px"
-              ></div>
+              ></div> -->
             </td>
           </tr>
           <tr>

@@ -2,12 +2,13 @@
 import { ref, inject, onMounted } from "vue";
 import { encr } from "../../../util/function";
 import { socketMethod } from "../../../util/methodSocket";
-const cryoptojs = inject("cryptojs");
 import moment from "moment";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { de } from "date-fns/locale";
+
+const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
