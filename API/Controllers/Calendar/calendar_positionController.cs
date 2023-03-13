@@ -600,6 +600,7 @@ namespace API.Controllers.Calendar
                     int type = int.Parse(provider.FormData.GetValues("type").SingleOrDefault());
                     string mission = provider.FormData.GetValues("mission").SingleOrDefault();
                     string address = provider.FormData.GetValues("address").SingleOrDefault();
+                    string sign_id = provider.FormData.GetValues("sign_id").SingleOrDefault();
                     var md = provider.FormData.GetValues("model").SingleOrDefault();
                     calendar_ca_mission model = JsonConvert.DeserializeObject<calendar_ca_mission>(md);
                     
@@ -619,6 +620,10 @@ namespace API.Controllers.Calendar
                         {
                             model.address = address;
                         }
+                        else if (type == 4)
+                        {
+                            model.sign_id = sign_id;
+                        }
                         db.calendar_ca_mission.Add(model);
                     }
                     else
@@ -630,6 +635,10 @@ namespace API.Controllers.Calendar
                         else if (type == 1)
                         {
                             model.address = address;
+                        }
+                        else if (type == 4)
+                        {
+                            model.sign_id = sign_id;
                         }
                         model.modified_by = uid;
                         model.modified_date = DateTime.Now;
