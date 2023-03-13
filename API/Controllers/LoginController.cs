@@ -422,7 +422,7 @@ namespace Controllers
                             string code = "{'uid':'" + email.user_id + "','code':'" + email.reset_pass_code + "'}";
                             string JSONresult = Codec.EncryptString(JsonConvert.SerializeObject(code), ConfigurationManager.AppSettings["EncriptKey"]);
                             //var body = "http://localhost:3000/forgetpss/" + JSONresult;
-                            var body = ConfigurationManager.AppSettings["ValidIssuer"] + "/forgetpss/" + JSONresult;
+                            var body = ConfigurationManager.AppSettings["ValidIssuer"] + "/forgetpss/" + JSONresult.Replace("+", "tun");
                             Thread T1 = new Thread(delegate ()
                             {
                                 var message = new MailMessage();
