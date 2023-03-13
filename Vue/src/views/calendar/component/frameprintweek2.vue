@@ -68,7 +68,7 @@ const trustAsHtml = (html) => {
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>ĐƠN VỊ ...</b>
+                <b style="text-decoration: underline">BẢO HIỂM XÃ HỘI</b>
                 <!-- <div
                   class="text-center"
                   style="border-top: 1.5px solid #000; margin: 0px 150px"
@@ -83,7 +83,11 @@ const trustAsHtml = (html) => {
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
-              <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
+              <div>
+                <b style="text-decoration: underline"
+                  >Độc lập - Tự do - Hạnh phúc</b
+                >
+              </div>
               <!-- <div
                 class="text-center"
                 style="border-top: 1.5px solid #000; margin: 0px 220px"
@@ -138,7 +142,7 @@ const trustAsHtml = (html) => {
       <table style="width: 100%">
         <thead class="boder">
           <tr>
-            <th style="width: 100px">Thứ / Ngày</th>
+            <th style="width: 80px">Thứ / Ngày</th>
             <th v-for="(value, index) in props.datachutris" :key="index">
               Đ/c {{ value.full_name }}
             </th>
@@ -222,7 +226,7 @@ const trustAsHtml = (html) => {
 .boder tr th,
 .boder tr td {
   border: 1px solid #999999 !important;
-  padding: 0.5rem;
+  padding: 0.2rem !important;
 }
 table {
   min-width: 100% !important;

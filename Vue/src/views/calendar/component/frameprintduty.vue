@@ -23,9 +23,10 @@ const props = defineProps({
   week_start_date: Date,
   week_end_date: Date,
 });
+const newDate = new Date();
 </script>
 <template>
-  <Dialog :visible="true" :closable="false" style="display: none">
+  <Dialog :visible="true" :closable="false" style="display: block">
     <div id="formprint">
       <table>
         <thead>
@@ -37,11 +38,7 @@ const props = defineProps({
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>ĐƠN VỊ ...</b>
-                <!-- <div
-                  class="text-center"
-                  style="border-top: 1.5px solid #000; margin: 0px 35%"
-                ></div> -->
+                <b style="text-decoration: underline">BẢO HIỂM XÃ HỘI</b>
               </div>
             </td>
             <td
@@ -53,12 +50,10 @@ const props = defineProps({
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
               <div>
-                <b>Độc lập - Tự do - Hạnh phúc</b>
+                <b style="text-decoration: underline"
+                  >Độc lập - Tự do - Hạnh phúc</b
+                >
               </div>
-              <!-- <div
-                class="text-center"
-                style="border-top: 1.5px solid #000; margin: 0px 35%"
-              ></div> -->
             </td>
           </tr>
           <tr>
@@ -67,7 +62,11 @@ const props = defineProps({
             </td>
             <td class="text-center" colspan="4">
               <div style="padding: 1rem 0">
-                <i>Hà Nội, ngày_____, tháng_____, năm_____</i>
+                <i
+                  >Hà Nội, ngày {{ newDate.getDate() }}, tháng
+                  {{ newDate.getMonth() + 1 }}, năm
+                  {{ newDate.getFullYear() }}</i
+                >
               </div>
             </td>
           </tr>
@@ -90,7 +89,7 @@ const props = defineProps({
           </tr>
         </thead>
       </table>
-      <table>
+      <table style="border: 3px double #999999 !important">
         <thead class="boder">
           <tr>
             <th style="width: 30px">TT</th>
@@ -196,7 +195,10 @@ const props = defineProps({
                       style="width: 100%; height: 100%; object-fit: contain"
                     />
                   </div>
-                  <div v-if="props.mission.sign_id" :style="{ marginTop: '30px' }">
+                  <div
+                    v-if="props.mission.sign_id"
+                    :style="{ marginTop: '100px' }"
+                  >
                     <b>{{ props.mission.full_name }}</b>
                   </div>
                 </div>

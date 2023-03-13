@@ -23,6 +23,7 @@ const props = defineProps({
   week_start_date: Date,
   week_end_date: Date,
 });
+const newDate = new Date();
 </script>
 <template>
   <Dialog :visible="true" :closable="false" style="display: none">
@@ -37,11 +38,7 @@ const props = defineProps({
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>BẢO HIỂM XÃ HỘI</b>
-                <div
-                  class="text-center"
-                  style="border-top: 1.5px solid #000; margin: 0px 100px"
-                ></div>
+                <b style="text-decoration: underline">BẢO HIỂM XÃ HỘI</b>
               </div>
             </td>
             <td
@@ -52,11 +49,11 @@ const props = defineProps({
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
-              <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
-              <div
-                class="text-center"
-                style="border-top: 1.5px solid #000; margin: 0px 100px"
-              ></div>
+              <div>
+                <b style="text-decoration: underline"
+                  >Độc lập - Tự do - Hạnh phúc</b
+                >
+              </div>
             </td>
           </tr>
           <tr>
@@ -65,7 +62,11 @@ const props = defineProps({
             </td>
             <td class="text-center" colspan="4">
               <div style="padding: 1rem 0">
-                <i>Hà Nội, ngày_____, tháng_____, năm_____</i>
+                <i
+                  >Hà Nội, ngày {{ newDate.getDate() }}, tháng
+                  {{ newDate.getMonth() + 1 }}, năm
+                  {{ newDate.getFullYear() }}</i
+                >
               </div>
             </td>
           </tr>
@@ -109,23 +110,16 @@ const props = defineProps({
               <div>{{ value.day_name }} <br />{{ value.day_string }}</div>
             </td>
             <td>
-                <div v-html="value.contents"></div>
-                <div v-if="props.group === 0">
+              <div v-html="value.contents"></div>
+              <div v-if="props.group === 0">
                 <div v-if="value.day_space < 1">
-                  (<span>{{
-                    moment(value.start_date).format("HH:mm")
-                  }}</span>
+                  (<span>{{ moment(value.start_date).format("HH:mm") }}</span>
                   <span
-                    v-if="
-                      value.start_date != null &&
-                      value.end_date != null
-                    "
+                    v-if="value.start_date != null && value.end_date != null"
                   >
                     -
                   </span>
-                  <span>{{
-                    moment(value.end_date).format("HH:mm")
-                  }}</span
+                  <span>{{ moment(value.end_date).format("HH:mm") }}</span
                   >)
                 </div>
                 <div v-if="value.day_space > 0">
@@ -133,10 +127,7 @@ const props = defineProps({
                     moment(value.start_date).format("DD/MM/YYYY")
                   }}</span>
                   <span
-                    v-if="
-                      value.start_date != null &&
-                      value.end_date != null
-                    "
+                    v-if="value.start_date != null && value.end_date != null"
                   >
                     - </span
                   ><span>{{
@@ -175,7 +166,7 @@ const props = defineProps({
               </div>
             </td>
             <td>
-                {{value.boardroom_name}}
+              {{ value.boardroom_name }}
             </td>
           </tr>
         </tbody>
