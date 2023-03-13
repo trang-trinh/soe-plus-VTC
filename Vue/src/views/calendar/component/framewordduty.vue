@@ -25,9 +25,14 @@ const props = defineProps({
 });
 </script>
 <template>
-  <Dialog :visible="true" :closable="false" :style="{ width: '50vw' }" style="display: none">
+  <Dialog
+    :visible="true"
+    :closable="false"
+    :style="{ width: '50vw' }"
+    style="display: none"
+  >
     <div id="formword">
-      <table style="width: 100%;">
+      <table style="width: 100%">
         <thead>
           <tr>
             <td
@@ -35,13 +40,13 @@ const props = defineProps({
               colspan="2"
               style="width: 40%; vertical-align: bottom"
             >
-            <div>BỘ QUỐC PHÒNG</div>
+              <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>BẢO HIỂM XÃ HỘI</b>
-                <div
+                <b>ĐƠN VỊ ...</b>
+                <!-- <div
                   class="text-center"
-                  style="border-top: 1.5px solid #000; margin: 0px 100px"
-                ></div>
+                  style="border-top: 1.5px solid #000; margin: 0px 35%"
+                ></div> -->
               </div>
             </td>
             <td
@@ -52,16 +57,18 @@ const props = defineProps({
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
-              <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
-              <div
+              <div>
+                <b>Độc lập - Tự do - Hạnh phúc</b>
+              </div>
+              <!-- <div
                 class="text-center"
-                style="border-top: 1.5px solid #000; margin: 0px 100px"
-              ></div>
+                style="border-top: 1.5px solid #000; margin: 0px 35%"
+              ></div> -->
             </td>
           </tr>
           <tr>
             <td class="text-center" colspan="2">
-              <div style="padding: 1rem 0">Số:_____</div>
+              <div style="padding: 1rem 0">Số:_____/LT-BHXH</div>
             </td>
             <td class="text-center" colspan="4">
               <div style="padding: 1rem 0">
@@ -74,28 +81,31 @@ const props = defineProps({
               <div style="padding: 1rem 0">
                 <div class="title2"><b>LỊCH TRỰC BAN CƠ QUAN</b></div>
                 <div class="">
-                  <i>
-                    (Từ ngày
-                    {{ moment(props.week_start_date).format("DD/MM/YYYY") }} đến ngày
-                    {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
-                  </i>
+                  <b>
+                    <i>
+                      (Từ ngày
+                      {{ moment(props.week_start_date).format("DD/MM") }}
+                      đến ngày
+                      {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
+                    </i>
+                  </b>
                 </div>
               </div>
             </td>
           </tr>
         </thead>
       </table>
-      <br/>
-      <table style="width: 100%;">
+      <br />
+      <table style="width: 100%">
         <thead class="boder">
           <tr>
-            <th style="width: 50px">TT</th>
-            <th style="width: 180px">Họ và tên</th>
-            <th style="width: 150px">Cấp bậc, chức vụ</th>
+            <th style="width: 50px"><b>TT</b></th>
+            <th style="width: 180px"><b>HỌ VÀ TÊN</b></th>
+            <th style="width: 150px"><b>Cấp bậc, chức vụ</b></th>
             <!-- <th style="width: 80px">Ca trực</th> -->
-            <th style="width: 110px">Thời gian</th>
-            <th style="width: 100px">Thứ</th>
-            <th style="width: 180px">Trực chỉ huy</th>
+            <th style="width: 110px"><b>Thời gian</b></th>
+            <th style="width: 100px"><b>Thứ</b></th>
+            <th style="width: 180px"><b>Trực chỉ huy</b></th>
           </tr>
         </thead>
         <tbody class="boder">
@@ -127,18 +137,18 @@ const props = defineProps({
             <td align="center">
               <div>{{ value.day_string }}</div>
             </td>
-            <td align="center">
+            <td align="left">
               <div>{{ value.day_name }}</div>
             </td>
-            <td>
+            <td align="center">
               <div v-if="value.chihuys && value.chihuys.length > 0">
-                {{ value.chihuys[0].full_name }}
+                <b>{{ value.chihuys[0].full_name }}</b>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
-      <br/>
+      <br />
       <table style="width: 100%">
         <tbody>
           <tr>
@@ -150,7 +160,7 @@ const props = defineProps({
             </td>
           </tr>
           <tr>
-            <td colspan="4" style="vertical-align: top">
+            <td colspan="4" style="vertical-align: top; padding-top: 10px">
               <div style="padding: 0.5rem 0; text-decoration: underline">
                 <b><i>Nơi nhận:</i></b>
               </div>
@@ -160,7 +170,11 @@ const props = defineProps({
               <div style="padding-top: 1rem; min-height: 150px">
                 <div><b>KT.GIÁM ĐỐC</b></div>
                 <div><b>PHÓ GIÁM ĐỐC</b></div>
-                <div style="height: 170px; position: relative"></div>
+                <div style="height: 170px; position: relative">
+                  <div v-if="props.mission.sign_id" :style="{ marginTop: '30px' }">
+                    <b>{{ props.mission.full_name }}</b>
+                  </div>
+                </div>
               </div>
             </td>
           </tr>
