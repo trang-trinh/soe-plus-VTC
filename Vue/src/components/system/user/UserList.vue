@@ -32,7 +32,7 @@ const rules = {
   is_psword: {
     required,
     minLength: minLength(8),
-    maxLength: maxLength(25),
+    maxLength: maxLength(100),
   },
   email: {
     email,
