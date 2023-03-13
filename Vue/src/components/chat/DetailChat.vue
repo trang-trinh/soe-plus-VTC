@@ -9,6 +9,7 @@ import { VuemojiPicker } from "vuemoji-picker";
 //import { forEach } from "jszip";
 //import DetailBoxChat from "../../components/chat/BoxChat.vue";
 import { encr, change_unsigned } from "../../util/function.js";
+import treeuser from "../../components/user/treeuser.vue";
 const cryoptojs = inject("cryptojs");
 //const emitter = inject("emitter"); 
 const toast = useToast();
@@ -902,7 +903,41 @@ const Out_GroupChat = (gr, type, user_leave_id, user_remove_id) => {
 		}
 	});
 };
-
+// Modal Tree User
+const selectedUser = ref([]);
+const is_one = ref(false);
+const is_type = ref();
+const headerDialogUser = ref();
+const displayDialogUser = ref(false);
+const closeDialogUser = () => {
+  	displayDialogUser.value = false;
+};
+const showModalUser = (one, type) => {
+	selectedUser.value = [];
+	headerDialogUser.value = "Chọn người dùng";
+	selectedUser.value = [...props.listMember];
+	is_one.value = one;
+	is_type.value = type;
+	displayDialogUser.value = true;
+};
+const choiceUser = () => {
+	switch (is_type.value) {
+		case 0:
+			var notexist = selectedUser.value.filter((a) => props.listMember.findIndex((b) => b["user_join"] === a["user_id"]) === -1);
+			if (notexist.length > 0) {
+        		notexist.forEach((e) => {
+					e.user_join = e.user_id;
+          			props.listMember.push(e);
+				});
+				//props.listMember = props.listMember.concat(notexist);
+			}
+			break;
+		default:
+			break;
+	}
+	closeDialogUser();
+};
+//
 const Active_Notify = (chatDetail) => {
 	let data = { ...chatDetail };
 	axios
@@ -2968,7 +3003,8 @@ onMounted(() => {
 								Danh sách người dùng
 								<a v-if="chat.is_captain" 
 									class="ml-1"
-									@click="showusersModal(false,2)">
+									style="cursor:pointer;color:rgb(33, 150, 243);"
+									@click="showModalUser(false,0)">
 									<i class="pi pi-user-plus font-bold" v-tooltip.top="'Chọn thành viên'"></i>
 								</a>
 							</label>
@@ -3457,6 +3493,16 @@ onMounted(() => {
 			</div>
 		</div>
 	</Dialog>
+	<!-- Tree user -->
+	<treeuser
+		v-if="displayDialogUser === true"
+		:headerDialog="headerDialogUser"
+		:displayDialog="displayDialogUser"
+		:closeDialog="closeDialogUser"
+		:one="is_one"
+		:selected="selectedUser"
+		:choiceUser="choiceUser"
+	/>
 </template>
 <style scoped>
 	@import url(./stylechat.css);
