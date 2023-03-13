@@ -411,7 +411,7 @@ namespace Controllers
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { err = "-1", ms = "Thông tin email chưa chính xác." });
                         }
-                        else if ((DateTime.Now - email.reset_pass_time).Value.TotalMinutes >= helper.timemail)
+                        else if (email.reset_pass_time == null || ((DateTime.Now - email.reset_pass_time).Value.TotalMinutes >= helper.timemail))
                         {
 
                             email.reset_pass_time = DateTime.Now;
@@ -422,7 +422,7 @@ namespace Controllers
                             string code = "{'uid':'" + email.user_id + "','code':'" + email.reset_pass_code + "'}";
                             string JSONresult = Codec.EncryptString(JsonConvert.SerializeObject(code), ConfigurationManager.AppSettings["EncriptKey"]);
                             //var body = "http://localhost:3000/forgetpss/" + JSONresult;
-                            var body = ConfigurationManager.AppSettings["ValidIssuer"] + "/forgetpss/" + JSONresult;
+                            var body = ConfigurationManager.AppSettings["ValidIssuer"] + "/forgetpss/" + JSONresult.Replace("+", "tun");
                             Thread T1 = new Thread(delegate ()
                             {
                                 var message = new MailMessage();
@@ -538,7 +538,7 @@ namespace Controllers
                     if (user != null && user.reset_pass_time != null)
                     {
 
-                        if ((DateTime.Now - user.reset_pass_time).Value.TotalMinutes < 5)
+                        if (user.reset_pass_time == null || (DateTime.Now - user.reset_pass_time).Value.TotalMinutes < helper.timemail)
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Chưa quá 5 phút", err = "0" });
                         }
