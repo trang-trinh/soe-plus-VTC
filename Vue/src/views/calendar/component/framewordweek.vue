@@ -23,6 +23,7 @@ const props = defineProps({
   week_start_date: Date,
   week_end_date: Date,
 });
+const newDate = new Date();
 </script>
 <template>
   <Dialog
@@ -38,30 +39,26 @@ const props = defineProps({
             <td
               class="text-center"
               colspan="2"
-              style="width: 40%; vertical-align: bottom"
+              style="width: 80px; vertical-align: bottom"
             >
-            <div>BỘ QUỐC PHÒNG</div>
+              <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>BẢO HIỂM XÃ HỘI</b>
-                <div
-                  class="text-center"
-                  style="border-top: 1.5px solid #000; margin: 0px 100px"
-                ></div>
+                <b style="text-decoration: underline">BẢO HIỂM XÃ HỘI</b>
               </div>
             </td>
             <td
               class="text-center"
               colspan="4"
-              style="min-width: 40%; vertical-align: bottom"
+              style="min-width: 200px; vertical-align: bottom"
             >
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
-              <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
-              <div
-                class="text-center"
-                style="border-top: 1.5px solid #000; margin: 0px 100px"
-              ></div>
+              <div>
+                <b style="text-decoration: underline"
+                  >Độc lập - Tự do - Hạnh phúc</b
+                >
+              </div>
             </td>
           </tr>
           <tr>
@@ -70,7 +67,11 @@ const props = defineProps({
             </td>
             <td class="text-center" colspan="4">
               <div style="padding: 1rem 0">
-                <i>Hà Nội, ngày_____, tháng_____, năm_____</i>
+                <i
+                  >Hà Nội, ngày {{ newDate.getDate() }}, tháng
+                  {{ newDate.getMonth() + 1 }}, năm
+                  {{ newDate.getFullYear() }}</i
+                >
               </div>
             </td>
           </tr>
@@ -217,7 +218,7 @@ const props = defineProps({
 .boder tr th,
 .boder tr td {
   border: 1px solid #999999 !important;
-  padding: 0.5rem;
+  padding: 0.2rem !important;
 }
 table {
   min-width: 100% !important;

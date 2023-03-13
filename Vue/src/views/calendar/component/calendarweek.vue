@@ -325,7 +325,7 @@ function renderhtml(id, htmltable) {
     .boder tr th,
     .boder tr td {
       border: 1px solid #999999 !important;
-      padding: 0.5rem;
+      padding: 0.2rem !important;
     }
     table {
       min-width: 100% !important;
