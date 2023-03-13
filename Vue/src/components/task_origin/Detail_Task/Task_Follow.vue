@@ -4,9 +4,9 @@ import { required } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
+import TaskFollowDetailVue from "./follow/TaskFollowDetail.vue";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import useVuelidate from "@vuelidate/core";
-
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 const axios = inject("axios");
@@ -286,6 +286,58 @@ const loadData = () => {
       }
     });
 };
+const round = ref();
+const componentKey = ref(0);
+const forceRerender = () => {
+  componentKey.value += 1;
+};
+const openDetail = (data) => {
+  round.value = null;
+  forceRerender();
+  round.value = data;
+};
+const onRowReorder = (event) => {
+  let formData = new FormData();
+  formData.append("task_follow", JSON.stringify(event.value));
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios({
+    method: "put",
+    url: baseURL + "/api/task_follow/ReOdersFollow",
+    data: formData,
+    headers: {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    },
+  })
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+        loadData();
+        toast.success("Sửa thứ tự thực hiện quy trình thành công");
+      } else {
+        let ms = response.data.ms;
+        swal.fire({
+          title: "Thông báo!",
+          html: ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!" + error,
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
 onMounted(() => {
   loadData();
   if (props.listChild != null) {
@@ -297,10 +349,30 @@ onMounted(() => {
   <div class="h-custom">
     <DataTable
       :value="datalists"
-      showGridlines="true"
+      showGridlines
       scrollable
       scrollHeight="flex"
+      :reorderableColumns="true"
+      @rowReorder="onRowReorder"
     >
+      <template #header>
+        <Toolbar class="w-full custoolbar">
+          <template #end>
+            <Button
+              icon="pi pi-plus"
+              label="Thêm bước"
+              @click="openDialog()"
+            ></Button>
+          </template>
+        </Toolbar>
+      </template>
+      <Column
+        rowReorder
+        headerStyle="width: 3rem"
+        :reorderableColumn="false"
+        class="justify-content-center align-items-center text-center"
+        v-tooltip="'Kéo và thả để sắp xếp các bước'"
+      />
       <Column
         header="Bước"
         field="is_step"
@@ -323,6 +395,7 @@ onMounted(() => {
               type="button"
               icon="pi pi-info"
               v-tooltip="'Chi tiết'"
+              @click="openDetail(data.data)"
             >
             </Button>
             <Button
@@ -330,6 +403,7 @@ onMounted(() => {
               type="button"
               icon="pi pi-pencil"
               v-tooltip="'Sửa'"
+              @click="OpenEditDialog(data.data)"
             >
             </Button>
             <Button
@@ -343,6 +417,10 @@ onMounted(() => {
         </template>
       </Column>
     </DataTable>
+    <TaskFollowDetailVue
+      :componentKey="componentKey"
+      :data="round"
+    ></TaskFollowDetailVue>
   </div>
   <Dialog
     v-model:visible="DialogVisible"

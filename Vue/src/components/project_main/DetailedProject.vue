@@ -550,7 +550,10 @@ const loadFileTaiLieu = () => {
       }
     });
 }
-
+ const active1=ref(0);
+ const ChangeTab = (e) => {
+  active1.value = e;
+ }
 onMounted(() => {
     loadData(false);
     loadProjectMainChild();
@@ -625,7 +628,7 @@ onMounted(() => {
                             />
                         </AvatarGroup>
                     </div>
-                    <TabView ref="tabview1" style="height: 100%;">
+                    <TabView ref="tabviewduan" @tab-change="ChangeTab($event.index)" style="height: 100%;" v-model:activeIndex="active1">
                         <TabPanel header="Thông tin chung">
                             <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
                                 <div class="col-6 p-0 m-0 tab-project-content-left">
@@ -1045,9 +1048,7 @@ onMounted(() => {
                         </TabPanel>
                         <TabPanel header="Thảo luận">
                             <Discuss
-                              :isShow="showDetail"
                               :id="props.id"
-                              :turn="0"
                             >
                             </Discuss>
                         </TabPanel>
