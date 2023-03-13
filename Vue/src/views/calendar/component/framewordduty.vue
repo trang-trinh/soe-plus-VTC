@@ -39,7 +39,7 @@ const newDate = new Date();
             <td
               class="text-center"
               colspan="2"
-              style="width: 40%; vertical-align: bottom"
+              style="width: 80px; vertical-align: bottom"
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
@@ -49,7 +49,7 @@ const newDate = new Date();
             <td
               class="text-center"
               colspan="4"
-              style="min-width: 40%; vertical-align: bottom"
+              style="min-width: 200px; vertical-align: bottom"
             >
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
