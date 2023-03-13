@@ -164,8 +164,9 @@ const LoadMember = (type) => {
         element.STTTD = null;
         element.tooltip =
           element.full_name +
-          "<br/>" +
-          element.positions +
+          ("<br/>" + (element.positions ?? "") != "<br/>"
+            ? "<br/>" + (element.positions ?? "")
+            : "") +
           "<br/>" +
           (element.department_name != null
             ? element.department_name
