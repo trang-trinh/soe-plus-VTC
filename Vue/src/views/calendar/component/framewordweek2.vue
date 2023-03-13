@@ -68,11 +68,11 @@ const trustAsHtml = (html) => {
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>BẢO HIỂM XÃ HỘI</b>
-                <div
+                <b style="text-decoration: underline">ĐƠN VỊ ...</b>
+                <!-- <div
                   class="text-center"
                   style="border-top: 1.5px solid #000; margin: 0px 100px"
-                ></div>
+                ></div> -->
               </div>
             </td>
             <td
@@ -83,11 +83,15 @@ const trustAsHtml = (html) => {
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
-              <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
-              <div
+              <div>
+                <b style="text-decoration: underline"
+                  >Độc lập - Tự do - Hạnh phúc</b
+                >
+              </div>
+              <!-- <div
                 class="text-center"
                 style="border-top: 1.5px solid #000; margin: 0px 100px"
-              ></div>
+              ></div> -->
             </td>
           </tr>
           <tr>
@@ -98,7 +102,8 @@ const trustAsHtml = (html) => {
               <div style="padding: 1rem 0">
                 <i
                   >Hà Nội, ngày {{ newDate.getDate() }}, tháng
-                  {{ newDate.getMonth() + 1 }}, năm {{ newDate.getFullYear() }}</i
+                  {{ newDate.getMonth() + 1 }}, năm
+                  {{ newDate.getFullYear() }}</i
                 >
               </div>
             </td>
@@ -113,15 +118,20 @@ const trustAsHtml = (html) => {
                   >
                 </div>
                 <div class="">
-                  <i>
-                    (Từ ngày
-                    {{ moment(props.week_start_date).format("DD/MM/YYYY") }} đến
-                    ngày {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
-                  </i>
+                  <b
+                    ><i>
+                      (Từ ngày
+                      {{ moment(props.week_start_date).format("DD/MM/YYYY") }}
+                      đến ngày
+                      {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
+                    </i></b
+                  >
                 </div>
                 <div style="padding-top: 1rem">
-                  Trực Chỉ huy: Đồng chí ______________________________ - Phó
-                  Giám đốc
+                  <b>
+                    Trực Chỉ huy: Đồng chí ______________________________ - Phó
+                    Giám đốc
+                  </b>
                 </div>
               </div>
             </td>
@@ -136,7 +146,7 @@ const trustAsHtml = (html) => {
             <th
               v-for="(value, index) in props.datachutris"
               :key="index"
-              style="width: 220px"
+              style="width: 230px"
             >
               Đ/c {{ value.full_name }}
             </th>
@@ -170,7 +180,10 @@ const trustAsHtml = (html) => {
           <tr>
             <td colspan="6">
               <div style="padding: 0.5rem 0">
-                * Trực Chủ nhật ({{ props.holiday.day_string }}): Đồng chí {{props.duty_sunday.rank }} {{ props.duty_sunday.full_name }} - {{ props.duty_sunday.position_name }} {{ props.duty_sunday.department_name }}
+                * Trực Chủ nhật ({{ props.holiday.day_string }}): Đồng chí
+                {{ props.duty_sunday.rank }} {{ props.duty_sunday.full_name }} -
+                {{ props.duty_sunday.position_name }}
+                {{ props.duty_sunday.department_name }}
               </div>
             </td>
           </tr>

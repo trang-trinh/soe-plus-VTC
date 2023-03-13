@@ -309,9 +309,15 @@ const addModelTemp = (item) => {
       datas.value.push(it);
     });
   } else {
-    datas.value.push(md);
+    datas.value.ptestush(md);
   }
   initWeek();
+};
+const changeContents = (md) => {
+  let contents = document.getElementById("contents" + md.calendar_id);
+  if (contents) {
+    md.contents = contents.innerHTML;
+  }
 };
 const closeDialogWeek = () => {
   model.value = {
@@ -447,6 +453,10 @@ const saveModelMultiple = () => {
         item["place_name"] = item["boardroom_id"] || "";
         item["boardroom_name"] = item["place_name"];
         item["boardroom_id"] = null;
+      }
+      var contents = document.getElementById("contents" + item["calendar_id"]);
+      if (contents) {
+        item["contents"] = contents.innerHTML;
       }
       if (
         item["contents"] == null ||
@@ -1017,6 +1027,7 @@ onMounted(() => {
                       :id="'contents' + slotProps.data.calendar_id"
                       class="box-contents w-full"
                       v-html="slotProps.data.contents"
+                      @input="changeContents(slotProps.data)"
                       :class="{
                         'p-invalid': !slotProps.data.contents && submitted,
                       }"

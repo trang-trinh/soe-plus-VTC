@@ -5,6 +5,7 @@ import { RouterView } from "vue-router";
 import HeadBar from "./components/base/HeadBar.vue";
 import SideBar from "./components/base/SideBar.vue";
 import LoginView from "./views/LoginView.vue";
+import ForgetView from "./views/login/ForgetPass.vue"
 import { watch, inject, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { decr, encr } from "./util/function";
@@ -19,6 +20,7 @@ const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const router = useRoute();
+const route = inject("router");
 const emitter = inject("emitter");
 const axios = inject("axios"); // inject axios
 const swal = inject("$swal");
@@ -64,8 +66,11 @@ const passModuleToSidebar = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_modules_getmodulefromlink",
-            par: [{ par: "link", va: module_name }],
+            proc: "sys_modules_getmodulefromlink_1",
+            par: [
+              { par: "link", va: module_name },
+              { par: "user_id", va: store.getters.user.user_id },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -77,10 +82,26 @@ const passModuleToSidebar = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      if (data[0].length > 0) {
-        cookies.set("max_length_file", data[0][0].max_length_file);
-        emitter.emit("emitData", { type: "moduleFromUrl", data: data[0][0] });
-      }
+        let root_path =  router.fullPath;
+        let arr_params = Object.values(router.params);
+        //check router from notify (contain params id, type,....)
+        if (arr_params.length > 0) {
+          arr_params.forEach((item)=>{
+            let idx = root_path.lastIndexOf("/"+item);
+            if(idx != -1) {
+              root_path = root_path.splice(0,idx);
+            }
+          })
+        } 
+        let path_system = ['/options'];
+        if (data[1].filter(x => x.is_link == root_path).length == 0 && !path_system.includes(root_path))
+          route.push({ path: "/" });
+        else 
+        if (data[0].length > 0) {
+          cookies.set("max_length_file", data[0][0].max_length_file);
+          emitter.emit("emitData", { type: "moduleFromUrl", data: data[0][0] });
+        }
+
     });
 };
 //Vue App
@@ -170,7 +191,14 @@ window.addEventListener("devtoolschange", (event) => {
   // console.log("DevTools orientation:", event.detail.orientation);
 });
  
- 
+const is_forgetpass = ref(false);
+const data_props = ref({})
+const currentLink = ref(window.location.href);
+if (currentLink.value.includes("/forgetpss/")) {
+  is_forgetpass.value = true;
+  let str = window.location.href.substring(window.location.href.lastIndexOf("/forgetpss/") + 11).replaceAll("tun", "+");
+  data_props.value = JSON.parse(decr(str, SecretKey, cryoptojs).replaceAll("\"", "").replaceAll("'", "\""));
+}
 </script>
 
 <template>
@@ -202,11 +230,12 @@ window.addEventListener("devtoolschange", (event) => {
     </div>
   </div>
   <div v-else class="flex flex-column flex-grow-1 h-full">
-    <HeadBar v-if="store.getters.islogin && !store.getters.isframe" />
+    <HeadBar v-if="store.getters.islogin && !store.getters.isframe && !is_forgetpass" />
     <div class="body-layout flex flex-grow-1 w-full h-full">
-      <SideBar class="shadow-1 h-full" v-if="store.getters.islogin && !store.getters.isframe" />
-      <RouterView v-if="store.getters.islogin" />
-      <LoginView v-if="!store.getters.islogin"></LoginView>
+      <SideBar class="shadow-1 h-full" v-if="store.getters.islogin && !store.getters.isframe && !is_forgetpass" />
+      <RouterView v-if="store.getters.islogin && !is_forgetpass" />
+      <LoginView v-if="!store.getters.islogin && !is_forgetpass"></LoginView>
+      <ForgetView v-if="is_forgetpass" :uid="data_props.uid" :code="data_props.code"></ForgetView>
     </div>
   </div>
 </template>

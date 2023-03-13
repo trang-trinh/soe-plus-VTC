@@ -2,6 +2,8 @@
 //Import
 import { inject, onMounted, ref } from "vue";
 import { encr } from "../../util/function.js";
+import { useRouter, useRoute } from "vue-router";
+
 const cryoptojs = inject("cryptojs");
 //Khai báo biến
 const basedomainURL = fileURL;
@@ -37,6 +39,7 @@ const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const router = inject("router");
+const route = useRoute();
 const appconfig = ref({ version: "1.0" });
 const initModule = () => {
   // data memu left o trang chu
@@ -53,7 +56,7 @@ const initModule = () => {
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       data_menus = dt[0];
-
+      
       //  if(store.getters.listModule.length==0){
 
       //    store.commit("setlistModule",data_menus);
@@ -68,6 +71,8 @@ const initModule = () => {
         },
       ];
       if (data_menus.length > 0) {
+        // if(data_menus.filter(x => x.is_link == route.fullPath).length == 0)
+        //   router.push({ path: "/" });
         data_menus
           .filter(
             (x) => x.parent_id == null, //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
@@ -174,7 +179,7 @@ const loadModulesMenu = (module) => {
           .filter(
             (x) =>
               x.lv == 2 &&
-              data_menus.map((x) => x.module_id).includes(x.module_id), //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
+              data_menus.map((x) => x.module_id).includes(x.module_id) //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
           )
           .forEach((md) => {
             let obj = {
@@ -186,7 +191,7 @@ const loadModulesMenu = (module) => {
             let childs = data.filter(
               (x) =>
                 x.parent_id == md.module_id &&
-                data_menus.map((x) => x.module_id).includes(x.module_id), //&&(x.IsVitri == null || x.IsVitri.includes("Menu"))
+                data_menus.map((x) => x.module_id).includes(x.module_id) //&&(x.IsVitri == null || x.IsVitri.includes("Menu"))
             );
             if (childs.length > 0) {
               obj.child = [];

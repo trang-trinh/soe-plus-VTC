@@ -68,11 +68,11 @@ const trustAsHtml = (html) => {
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>BẢO HIỂM XÃ HỘI</b>
-                <div
+                <b>ĐƠN VỊ ...</b>
+                <!-- <div
                   class="text-center"
                   style="border-top: 1.5px solid #000; margin: 0px 150px"
-                ></div>
+                ></div> -->
               </div>
             </td>
             <td
@@ -84,10 +84,10 @@ const trustAsHtml = (html) => {
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
               <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
-              <div
+              <!-- <div
                 class="text-center"
                 style="border-top: 1.5px solid #000; margin: 0px 220px"
-              ></div>
+              ></div> -->
             </td>
           </tr>
           <tr>
@@ -114,15 +114,20 @@ const trustAsHtml = (html) => {
                   >
                 </div>
                 <div class="">
-                  <i>
-                    (Từ ngày
-                    {{ moment(props.week_start_date).format("DD/MM/YYYY") }} đến
-                    ngày {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
-                  </i>
+                  <b>
+                    <i>
+                      (Từ ngày
+                      {{ moment(props.week_start_date).format("DD/MM/YYYY") }}
+                      đến ngày
+                      {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
+                    </i>
+                  </b>
                 </div>
                 <div style="padding-top: 1rem">
-                  Trực Chỉ huy: Đồng chí ______________________________ - Phó
-                  Giám đốc
+                  <b>
+                    Trực Chỉ huy: Đồng chí ______________________________ - Phó
+                    Giám đốc
+                  </b>
                 </div>
               </div>
             </td>

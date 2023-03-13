@@ -1992,8 +1992,8 @@ onMounted(() => {
                   <Column
                     field="trucbans"
                     header="Ban giám đốc"
-                    headerStyle="height:50px;max-width:auto;min-width:120px;"
-                    bodyStyle="max-height:60px;"
+                    headerStyle="text-align:center;width:150px;height:50px"
+                    bodyStyle="text-align:center;width:150px;max-height:60px"
                     class="align-items-center justify-content-center text-left"
                   >
                     <template #body="slotProps">
@@ -2012,8 +2012,7 @@ onMounted(() => {
                   <Column
                     field="contents"
                     header="Nội dung"
-                    headerStyle="text-align:center;width:150px;height:50px"
-                    bodyStyle="text-align:center;width:150px;max-height:60px"
+                    headerStyle="height:50px;max-width:auto;min-width:120px;"
                     class="align-items-center justify-content-center text-left"
                   >
                     <template #body="slotProps">
