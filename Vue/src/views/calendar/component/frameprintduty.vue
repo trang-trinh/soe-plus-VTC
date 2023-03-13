@@ -23,6 +23,7 @@ const props = defineProps({
   week_start_date: Date,
   week_end_date: Date,
 });
+const newDate = new Date();
 </script>
 <template>
   <Dialog :visible="true" :closable="false" style="display: none">
@@ -37,11 +38,7 @@ const props = defineProps({
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>BẢO HIỂM XÃ HỘI</b>
-                <div
-                  class="text-center"
-                  style="border-top: 1.5px solid #000; margin: 0px 100px"
-                ></div>
+                <b style="text-decoration: underline">BẢO HIỂM XÃ HỘI</b>
               </div>
             </td>
             <td
@@ -52,20 +49,24 @@ const props = defineProps({
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
-              <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
-              <div
-                class="text-center"
-                style="border-top: 1.5px solid #000; margin: 0px 100px"
-              ></div>
+              <div>
+                <b style="text-decoration: underline"
+                  >Độc lập - Tự do - Hạnh phúc</b
+                >
+              </div>
             </td>
           </tr>
           <tr>
             <td class="text-center" colspan="2">
-              <div style="padding: 1rem 0">Số:_____</div>
+              <div style="padding: 1rem 0">Số:_____/LT-BHXH</div>
             </td>
             <td class="text-center" colspan="4">
               <div style="padding: 1rem 0">
-                <i>Hà Nội, ngày_____, tháng_____, năm_____</i>
+                <i
+                  >Hà Nội, ngày {{ newDate.getDate() }}, tháng
+                  {{ newDate.getMonth() + 1 }}, năm
+                  {{ newDate.getFullYear() }}</i
+                >
               </div>
             </td>
           </tr>
@@ -74,18 +75,21 @@ const props = defineProps({
               <div style="padding: 1rem 0">
                 <div class="title2"><b>LỊCH TRỰC BAN CƠ QUAN</b></div>
                 <div class="">
-                  <i>
-                    (Từ ngày
-                    {{ moment(props.week_start_date).format("DD/MM") }} đến ngày
-                    {{ moment(props.week_end_date).format("DD/MM") }})
-                  </i>
+                  <b>
+                    <i>
+                      (Từ ngày
+                      {{ moment(props.week_start_date).format("DD/MM") }} đến
+                      ngày
+                      {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
+                    </i>
+                  </b>
                 </div>
               </div>
             </td>
           </tr>
         </thead>
       </table>
-      <table>
+      <table style="border: 3px double #999999 !important">
         <thead class="boder">
           <tr>
             <th style="width: 30px">TT</th>
@@ -126,10 +130,10 @@ const props = defineProps({
             <td align="center">
               <div>{{ value.day_string }}</div>
             </td>
-            <td align="center">
+            <td align="left">
               <div>{{ value.day_name }}</div>
             </td>
-            <td>
+            <td align="center">
               <div v-if="value.chihuys && value.chihuys.length > 0">
                 {{ value.chihuys[0].full_name }}
               </div>
@@ -154,15 +158,11 @@ const props = defineProps({
               </div>
               <div class="html" v-html="props.mission.address"></div>
             </td>
-            <td
-              align="center"
-              colspan="2"
-              style="vertical-align: top"
-            >
+            <td align="center" colspan="2" style="vertical-align: top">
               <div style="padding-top: 1rem; min-height: 150px">
                 <div><b>KT.GIÁM ĐỐC</b></div>
                 <div><b>PHÓ GIÁM ĐỐC</b></div>
-                <div style="height: 170px; position: relative;">
+                <div style="height: 170px; position: relative">
                   <div
                     v-if="props.mission.path_signature"
                     style="
@@ -176,7 +176,7 @@ const props = defineProps({
                   >
                     <img
                       :src="basedomainURL + props.mission.path_signature"
-                      style="width: 100%; height: 100%; object-fit: contain;"
+                      style="width: 100%; height: 100%; object-fit: contain"
                     />
                   </div>
                   <div
@@ -192,8 +192,14 @@ const props = defineProps({
                   >
                     <img
                       :src="basedomainURL + props.mission.path_stamp"
-                      style="width: 100%; height: 100%;object-fit: contain"
+                      style="width: 100%; height: 100%; object-fit: contain"
                     />
+                  </div>
+                  <div
+                    v-if="props.mission.sign_id"
+                    :style="{ marginTop: '100px' }"
+                  >
+                    <b>{{ props.mission.full_name }}</b>
                   </div>
                 </div>
               </div>

@@ -10,6 +10,7 @@ import { useCookies } from "vue3-cookies";
 import chatMessage from "../../components/chat/DetailChat.vue";
 import { encr, change_unsigned, checkURL } from "../../util/function.js";
 import { socketMethod } from "../../util/methodSocket";
+import treeuser from "../../components/user/treeuser.vue";
 const cryoptojs = inject("cryptojs");
 //Khai báo
 const route = useRoute();
@@ -672,6 +673,40 @@ const removeUser = (us, idx) => {
 const Out_GroupChat = () => {
 
 };
+// Modal Tree User
+const selectedUser = ref([]);
+const is_one = ref(false);
+const is_type = ref();
+const headerDialogUser = ref();
+const displayDialogUser = ref(false);
+const closeDialogUser = () => {
+  	displayDialogUser.value = false;
+};
+const showModalUser = (one, type) => {
+	selectedUser.value = [];
+	headerDialogUser.value = "Chọn người dùng";
+	selectedUser.value = [...listMember.value];
+	is_one.value = one;
+	is_type.value = type;
+	displayDialogUser.value = true;
+};
+const choiceUser = () => {
+	switch (is_type.value) {
+		case 0:
+			var notexist = selectedUser.value.filter((a) => listMember.value.findIndex((b) => b["user_join"] === a["user_id"]) === -1);
+			if (notexist.length > 0) {
+				notexist.forEach((e) => {
+					e.user_join = e.user_id;
+				});
+				listMember.value = listMember.value.concat(notexist);
+			}
+			break;
+		default:
+			break;
+	}
+	closeDialogUser();
+};
+//
 const dataListSearch = () => {
 	if (datalists.value.length > 0){
 		if (options.value.SearchText != null && options.value.SearchText.trim() != '' && datalists.value.length > 0){
@@ -1180,7 +1215,8 @@ onMounted(() => {
 								Danh sách người dùng
 								<a v-if="chat.is_captain" 
 									class="ml-1"
-									@click="showusersModal(false,2)">
+									style="cursor:pointer;color:rgb(33, 150, 243);"
+									@click="showModalUser(false,0)">
 									<i class="pi pi-user-plus font-bold" v-tooltip.top="'Chọn thành viên'"></i>
 								</a>
 							</label>
@@ -1259,6 +1295,16 @@ onMounted(() => {
 			<Button v-if="typeGroupChat == 1" label="Lưu" icon="pi pi-check" @click="saveGroupChat(!(v$.chat_group_name.required.$invalid && v$.chat_group_name.required.$invalid))" />
 		</template>
 	</Dialog>
+	<!-- Tree user -->
+	<treeuser
+		v-if="displayDialogUser === true"
+		:headerDialog="headerDialogUser"
+		:displayDialog="displayDialogUser"
+		:closeDialog="closeDialogUser"
+		:one="is_one"
+		:selected="selectedUser"
+		:choiceUser="choiceUser"
+	/>
 </template>
 
 <style scoped>

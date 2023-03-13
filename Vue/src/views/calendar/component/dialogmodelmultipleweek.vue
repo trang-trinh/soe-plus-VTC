@@ -295,14 +295,29 @@ const addModelTemp = (item) => {
 
   if (props.group === 1 && leaders.value && leaders.value.length > 0) {
     leaders.value.forEach((leader) => {
-      md.chutris = [{ user_id: leader.user_id, full_name: leader.full_name, last_name: leader.last_name, avatar: leader.avatar, is_order: leader.is_order }];
+      (md.calendar_id = CreateGuid()),
+        (md.chutris = [
+          {
+            user_id: leader.user_id,
+            full_name: leader.full_name,
+            last_name: leader.last_name,
+            avatar: leader.avatar,
+            is_order: leader.is_order,
+          },
+        ]);
       var it = Object.assign({}, md);
       datas.value.push(it);
     });
   } else {
-    datas.value.push(md);
+    datas.value.ptestush(md);
   }
   initWeek();
+};
+const changeContents = (md) => {
+  let contents = document.getElementById("contents" + md.calendar_id);
+  if (contents) {
+    md.contents = contents.innerHTML;
+  }
 };
 const closeDialogWeek = () => {
   model.value = {
@@ -380,6 +395,7 @@ const saveTemp = (md) => {
   initWeek();
 };
 const openEditDialogWeek = (md) => {
+  forceRerender(2);
   files.value = [];
   submitted.value = false;
   swal.fire({
@@ -389,6 +405,10 @@ const openEditDialogWeek = (md) => {
     },
   });
   isAdd.value = false;
+  var contents = document.getElementById("contents" + md.calendar_id);
+  if (contents) {
+    md.contents = contents.innerHTML;
+  }
   if (md["boardroom_id"] == null && md["place_name"] != null) {
     md["boardroom_id"] = md["place_name"];
   }
@@ -434,6 +454,10 @@ const saveModelMultiple = () => {
         item["boardroom_name"] = item["place_name"];
         item["boardroom_id"] = null;
       }
+      var contents = document.getElementById("contents" + item["calendar_id"]);
+      if (contents) {
+        item["contents"] = contents.innerHTML;
+      }
       if (
         item["contents"] == null ||
         (item["boardroom_id"] == null && item["place_name"] == null)
@@ -464,6 +488,7 @@ const saveModelMultiple = () => {
   var members = [];
   var departments = [];
   multiple.forEach((item) => {
+    changeContents(item);
     //Date
     if (item["start_date"] != null) {
       item["start_date"] = moment(item["start_date"]).format(
@@ -559,9 +584,15 @@ const saveModelMultiple = () => {
 //Function choice user
 // reload component
 var calendar_id_public = null;
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value) {
+    componentKey.value = { type: 0 };
+  }
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
 const selectedUser = ref([]);
 const is_one = ref(false);
@@ -588,7 +619,7 @@ const showModalUser = (model, one, type) => {
   is_one.value = one;
   is_type.value = type;
   displayDialogUser.value = true;
-  forceRerender();
+  forceRerender(1);
 };
 const closeDialogUser = () => {
   displayDialogUser.value = false;
@@ -727,6 +758,9 @@ const initWeek = (rf) => {
       },
     });
   }
+  datas.value.forEach((item) => {
+    changeContents(item);
+  });
   temps.value = [];
   setTimeout(() => {
     if (datas.value && datas.value.length > 0) {
@@ -991,23 +1025,30 @@ onMounted(() => {
                     <div><b>Nội dung </b><span class="redsao">(*)</span></div>
                   </template>
                   <template #body="slotProps">
-                    <Textarea
+                    <div
                       v-if="slotProps.data.calendar_id != null"
-                      v-model="slotProps.data.contents"
-                      :autoResize="true"
+                      contentEditable="true"
+                      :id="'contents' + slotProps.data.calendar_id"
+                      class="box-contents w-full"
+                      v-html="slotProps.data.contents"
                       :class="{
                         'p-invalid': !slotProps.data.contents && submitted,
                       }"
-                      rows="2"
-                      style="width: 100%"
-                    />
+                      :style="{
+                        minHeight: '50px',
+                        border: 'solid 1px #ced4da',
+                        borderRadius: '3px',
+                        padding: '0.5rem',
+                        backgroundColor: '#fff',
+                      }"
+                    ></div>
                   </template>
                 </Column>
                 <Column
                   field="chutris"
                   header="Chủ trì"
-                  headerStyle="text-align:center;width:100px;height:50px"
-                  bodyStyle="text-align:center;width:100px;max-height:60px"
+                  headerStyle="text-align:center;width:80px;height:50px"
+                  bodyStyle="text-align:center;width:80px;max-height:60px"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
@@ -1171,8 +1212,8 @@ onMounted(() => {
                   v-if="props.group === 1"
                   field="car_name"
                   header="Xe sử dụng"
-                  headerStyle="text-align:center;width:200px;height:50px"
-                  bodyStyle="text-align:center;width:200px;;max-height:60px"
+                  headerStyle="text-align:center;width:100px;height:50px"
+                  bodyStyle="text-align:center;width:100px;max-height:60px"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
@@ -1206,8 +1247,8 @@ onMounted(() => {
                 </Column>
                 <Column
                   field="boardroom_name"
-                  headerStyle="text-align:center;width:200px;height:50px"
-                  bodyStyle="text-align:center;width:200px;;max-height:60px"
+                  headerStyle="text-align:center;width:150px;height:50px"
+                  bodyStyle="text-align:center;width:150px;max-height:60px"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #header>
@@ -1341,6 +1382,7 @@ onMounted(() => {
 
   <!--Model-->
   <dialogmodelweek
+    :key="componentKey[2]"
     :temp="true"
     :headerDialog="headerDialogWeek"
     :displayDialog="displayDialogWeek"
@@ -1362,7 +1404,7 @@ onMounted(() => {
 
   <!--treeuser-->
   <treeuser
-    :key="componentKey"
+    :key="componentKey[1]"
     :headerDialog="headerDialogUser"
     :displayDialog="displayDialogUser"
     :closeDialog="closeDialogUser"

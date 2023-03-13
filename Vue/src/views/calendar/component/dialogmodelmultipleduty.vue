@@ -244,11 +244,11 @@ const copyItem = (item) => {
     )
     .forEach((day, i) => {
       var it = Object.assign({}, item);
-      it.date_timelot = day;
+      (it.calendar_duty_id = CreateGuid()), (it.date_timelot = day);
       it.day = day;
-      it.day_name = getDayDate(day)
-      it.day_string = moment(day).format("DD/MM/YYYY"),
-      it.is_holiday = day.getDay() == 0;
+      it.day_name = getDayDate(day);
+      (it.day_string = moment(day).format("DD/MM/YYYY")),
+        (it.is_holiday = day.getDay() == 0);
       datas.value.push(it);
     });
   initWeek();
@@ -426,7 +426,7 @@ const saveModelMultiple = () => {
     },
   });
   let formData = new FormData();
-  var multiple = [...datas.value];
+  var multiple = JSON.parse(JSON.stringify(datas.value));
   var members = [];
   var departments = [];
   if (multiple != null && multiple.length > 0) {
@@ -1335,6 +1335,14 @@ onMounted(() => {
                           slotProps.data.trucbans.length > 0
                         "
                       >
+                        {{ slotProps.data.trucbans[0].rank }}
+                        <span
+                          v-if="
+                            slotProps.data.trucbans[0].rank &&
+                            slotProps.data.trucbans[0].position_name
+                          "
+                          >,
+                        </span>
                         {{ slotProps.data.trucbans[0].position_name }}
                       </div>
                     </template>

@@ -287,7 +287,117 @@ namespace Controllers
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
+        #region coppy 
+        [HttpPost]
+        public async Task<HttpResponseMessage> Coppy_Role()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string md = "";
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
 
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string strPath = root + "/Users";
+                    bool exists = Directory.Exists(strPath);
+                    if (!exists)
+                        Directory.CreateDirectory(strPath);
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        md = provider.FormData.GetValues("model").SingleOrDefault();
+                        var id_coppy = provider.FormData.GetValues("id_coppy").SingleOrDefault();
+                        sys_roles model = JsonConvert.DeserializeObject<sys_roles>(md);
+                        if (db.sys_roles.Count(a => a.role_id == model.role_id) > 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã có mã nhóm người dùng này trong hệ thống rồi!", err = "1" });
+                        }
+                        model.is_order = db.sys_roles.Count() + 1;
+                        model.status = true;
+                        model.created_date = DateTime.Now;
+                        model.created_by = uid;
+                        model.created_token_id = tid;
+                        model.created_ip = ip;
+                        db.sys_roles.Add(model);
+                        #region add role module
+                        List<sys_role_modules> list_item = db.sys_role_modules.Where(a => a.role_id == id_coppy && a.user_id == null).ToList();
+                        if (list_item.Count > 0)
+                        {
+                            foreach (var item in list_item)
+                            {
+                                sys_role_modules role = new sys_role_modules();
+                                role = item;
+                                role.role_id = model.role_id;
+                                role.user_id = null;
+                                role.created_date = DateTime.Now;
+                                role.created_by = uid;
+                                role.created_token_id = tid;
+                                role.created_ip = ip;
+                                role.modified_by = uid;
+                                role.modified_date = DateTime.Now;
+                                role.modified_ip = ip;
+                                role.modified_token_id = tid;
+                                db.sys_role_modules.Add(role);
+                            }
+                        }
+                        #endregion
+                        db.SaveChanges();
+                        #region  add Log
+                        // helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdmodel, contents = "" }), domainurl + "Users/Add_Users", ip, tid, "Thêm mới User " + model.user_id, 1, "Users");
+                        #endregion
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = md, contents }), domainurl + "Roles/Coppy_Role", ip, tid, "Lỗi khi thêm Role", 0, "Role");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = md, contents }), domainurl + "Roles/Coppy_Role", ip, tid, "Lỗi khi thêm Role", 0, "Role");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+        #endregion
         [HttpDelete]
         public async Task<HttpResponseMessage> Del_Roles([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> ids)
         {
@@ -318,7 +428,7 @@ namespace Controllers
                             {
                                 del.Add(da);
                                 #region  add Log
-                              //  helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = da, contents = "" }), domainurl + "Roles/Del_Roles", ip, tid, "Xoá Role (role_name)", 1, "Role");
+                                //  helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = da, contents = "" }), domainurl + "Roles/Del_Roles", ip, tid, "Xoá Role (role_name)", 1, "Role");
                                 #endregion
                             }
                         }

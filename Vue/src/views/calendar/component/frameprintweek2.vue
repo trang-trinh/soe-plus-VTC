@@ -27,6 +27,28 @@ const props = defineProps({
   week_end_date: Date,
 });
 const newDate = new Date();
+
+//function
+function urlify(string) {
+  var urlRegex = string.match(
+    /((((ftp|https?):\/\/)|(w{3}\.))[\-\w@:%_\+.~#?,&\/\/=]+)/g
+  );
+  if (urlRegex) {
+    urlRegex.forEach(function (url) {
+      string = string.replace(
+        url,
+        '<a target="_blank" href="' + url + '">' + url + "</a>"
+      );
+    });
+  }
+  return string.replace("(", "<br/>(");
+}
+const trustAsHtml = (html) => {
+  if (!html) {
+    return "";
+  }
+  return urlify(html).replace(/\n/g, "<br/>");
+};
 </script>
 <template>
   <Dialog
@@ -46,11 +68,11 @@ const newDate = new Date();
             >
               <div>BỘ QUỐC PHÒNG</div>
               <div>
-                <b>BẢO HIỂM XÃ HỘI</b>
-                <div
+                <b style="text-decoration: underline">BẢO HIỂM XÃ HỘI</b>
+                <!-- <div
                   class="text-center"
-                  style="border-top: 1.5px solid #000; margin: 0px 100px"
-                ></div>
+                  style="border-top: 1.5px solid #000; margin: 0px 150px"
+                ></div> -->
               </div>
             </td>
             <td
@@ -61,22 +83,27 @@ const newDate = new Date();
               <div>
                 <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>
               </div>
-              <div><b>Độc lập - Tự do - Hạnh phúc</b></div>
-              <div
+              <div>
+                <b style="text-decoration: underline"
+                  >Độc lập - Tự do - Hạnh phúc</b
+                >
+              </div>
+              <!-- <div
                 class="text-center"
-                style="border-top: 1.5px solid #000; margin: 0px 100px"
-              ></div>
+                style="border-top: 1.5px solid #000; margin: 0px 220px"
+              ></div> -->
             </td>
           </tr>
           <tr>
             <td class="text-center" colspan="2">
-              <div style="padding: 1rem 0">Số:_____</div>
+              <div style="padding: 1rem 0">Số:_____/CTr-BHXH</div>
             </td>
             <td class="text-center" colspan="4">
               <div style="padding: 1rem 0">
                 <i
                   >Hà Nội, ngày {{ newDate.getDate() }}, tháng
-                  {{ newDate.getMonth() + 1 }}, năm {{ newDate.getFullYear() }}</i
+                  {{ newDate.getMonth() + 1 }}, năm
+                  {{ newDate.getFullYear() }}</i
                 >
               </div>
             </td>
@@ -91,15 +118,20 @@ const newDate = new Date();
                   >
                 </div>
                 <div class="">
-                  <i>
-                    (Từ ngày
-                    {{ moment(props.week_start_date).format("DD/MM/YYYY") }} đến
-                    ngày {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
-                  </i>
+                  <b>
+                    <i>
+                      (Từ ngày
+                      {{ moment(props.week_start_date).format("DD/MM/YYYY") }}
+                      đến ngày
+                      {{ moment(props.week_end_date).format("DD/MM/YYYY") }})
+                    </i>
+                  </b>
                 </div>
                 <div style="padding-top: 1rem">
-                  Trực Chỉ huy: Đồng chí ______________________________ - Phó
-                  Giám đốc
+                  <b>
+                    Trực Chỉ huy: Đồng chí ______________________________ - Phó
+                    Giám đốc
+                  </b>
                 </div>
               </div>
             </td>
@@ -110,11 +142,8 @@ const newDate = new Date();
       <table style="width: 100%">
         <thead class="boder">
           <tr>
-            <th style="width: 100px">Thứ / Ngày</th>
-            <th
-              v-for="(value, index) in props.datachutris"
-              :key="index"
-            >
+            <th style="width: 80px">Thứ / Ngày</th>
+            <th v-for="(value, index) in props.datachutris" :key="index">
               Đ/c {{ value.full_name }}
             </th>
           </tr>
@@ -122,7 +151,7 @@ const newDate = new Date();
         <tbody class="boder">
           <tr v-for="(day, dayindex) in props.datadays" :key="dayindex">
             <td align="center">
-              <div>{{ day.day_name }} <br />{{ day.day_string }}</div>
+              <div>{{ day.day_name }} <br />{{ day.day_string_short }}</div>
             </td>
             <td
               v-for="(chutri, chutriindex) in props.datachutris"
@@ -134,7 +163,7 @@ const newDate = new Date();
               >
                 <div
                   v-if="content.user_id === chutri.user_id"
-                  v-html="content.contents"
+                  v-html="trustAsHtml(content.contents)"
                 ></div>
               </template>
             </td>
@@ -147,8 +176,11 @@ const newDate = new Date();
           <tr>
             <td colspan="6">
               <div style="padding: 0.5rem 0">
-                * Trực Chủ nhật ({{ props.holiday.day_string }}): Đồng chí {{ props.duty_sunday.rank }}
-                <span v-if="props.duty_sunday"> {{ props.duty_sunday.full_name }} - {{ props.duty_sunday.note }} </span>
+                * Trực Chủ nhật ({{ props.holiday.day_string }}): Đồng chí
+                {{ props.duty_sunday.rank }}
+                <b>{{ props.duty_sunday.full_name }}</b> -
+                {{ props.duty_sunday.position_name }}
+                {{ props.duty_sunday.department_name }}
               </div>
             </td>
           </tr>
@@ -194,7 +226,7 @@ const newDate = new Date();
 .boder tr th,
 .boder tr td {
   border: 1px solid #999999 !important;
-  padding: 0.5rem;
+  padding: 0.2rem !important;
 }
 table {
   min-width: 100% !important;

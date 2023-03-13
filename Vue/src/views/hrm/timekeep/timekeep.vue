@@ -37,6 +37,7 @@ const options = ref({
   start_date: null,
   end_date: null,
   filter_organization_id: null,
+  departments: [],
 });
 const isFirst = ref(true);
 const checkedAll = ref(false);
@@ -45,6 +46,7 @@ const datas = ref([]);
 
 //Declare dictionary
 const dictionarys = ref([]);
+const department = ref([]);
 const days = ref([]);
 const weeks = ref([]);
 const months = ref([
@@ -66,7 +68,24 @@ const years = ref([]);
 //filter
 const search = () => {
   options.value.pageNo = 1;
+  bindDepartment();
   initData(true);
+};
+const opfilter = ref();
+const toggleFilter = (event) => {
+  opfilter.value.toggle(event);
+};
+const bindDepartment = () => {
+  department.value = JSON.parse(JSON.stringify(dictionarys.value[3]));
+  var temp2 = [];
+  addToArray(
+    temp2,
+    department.value,
+    options.value.filter_organization_id,
+    0,
+    "is_order"
+  );
+  department.value = temp2;
 };
 const changeView = (view) => {
   if (view) {
@@ -538,11 +557,23 @@ const initDictionary = () => {
             weeks.value = [];
           }
           if (tbs[1] != null && tbs[1].length > 0) {
-            var temp = [];
-            addToArray(temp, tbs[1], null, 0, "is_order");
-            tbs[1] = temp;
+            var temp1 = [];
+            addToArray(temp1, tbs[1], null, 0, "is_order");
+            tbs[1] = temp1;
           }
           tbs[1].unshift({ organization_id: null, newname: "Tất cả" });
+          if (tbs[3] != null && tbs[3].length > 0) {
+            department.value = JSON.parse(JSON.stringify(tbs[3]));
+            var temp2 = [];
+            addToArray(
+              temp2,
+              department.value,
+              options.value.filter_organization_id,
+              0,
+              "is_order"
+            );
+            department.value = temp2;
+          }
           dictionarys.value = tbs;
           changeView(options.value.view);
         }
@@ -596,6 +627,10 @@ const initData = (ref) => {
       },
     });
   }
+  var departments = "";
+  if (options.value.departments && options.value.departments.length > 0) {
+    departments = options.value.departments.map((x) => x.organization_id).join(",");
+  }
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -611,6 +646,10 @@ const initData = (ref) => {
               {
                 par: "filter_organization_id",
                 va: options.value.filter_organization_id,
+              },
+              {
+                par: "departments",
+                va: departments,
               },
             ],
           }),
@@ -773,20 +812,131 @@ onMounted(() => {
             class="ip36 input-search"
           />
         </span>
-        <div class="form-group m-0">
-          <Dropdown
-            :options="dictionarys[1]"
-            :filter="true"
-            :showClear="true"
-            :editable="false"
-            v-model="options.filter_organization_id"
-            @change="search()"
-            optionLabel="newname"
-            optionValue="organization_id"
-            placeholder="Chọn đơn vị, phòng ban"
-            :style="{ minWidth: '200px', minHeight: '36px' }"
-          />
-        </div>
+        <Button
+          @click="toggleFilter($event)"
+          type="button"
+          class="p-button-outlined p-button-secondary ip36"
+          aria:haspopup="true"
+          aria-controls="overlay_panel"
+        >
+          <div>
+            <span class="mr-2"><i class="pi pi-filter"></i></span>
+            <span class="mr-2">Lọc dữ liệu</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
+        <OverlayPanel
+          :showCloseIcon="false"
+          ref="opfilter"
+          appendTo="body"
+          class="p-0 m-0"
+          id="overlay_panel"
+          :style="{ width: '400px' }"
+        >
+          <div class="grid formgrid m-0">
+            <div
+              class="col-12 md:col-12 p-0"
+              :style="{
+                minHeight: 'unset',
+                maxHeight: 'calc(100vh - 300px)',
+                overflow: 'auto',
+              }"
+            >
+              <div class="row">
+                <div class="col-12 md:col-12">
+                  <div class="form-group">
+                    <label>Đơn vị</label>
+                    <Dropdown
+                      :options="dictionarys[1]"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      v-model="options.filter_organization_id"
+                      @change="search()"
+                      optionLabel="newname"
+                      optionValue="organization_id"
+                      placeholder="Chọn đơn vị"
+                      class="ip36"
+                      :style="{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }"
+                    />
+                  </div>
+                </div>
+                <div class="col-12 md:col-12">
+                  <div class="form-group">
+                    <label>Phòng ban</label>
+                    <MultiSelect
+                      :disabled="options.filter_organization_id == null"
+                      :options="department"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      v-model="options.departments"
+                      @change="search()"
+                      optionLabel="newname"
+                      placeholder="Chọn phòng ban"
+                      class="w-full limit-width"
+                      panelClass="d-design-dropdown"
+                      :style="{ width: '200px', minHeight: '36px' }"
+                    >
+                      <template #value="slotProps">
+                        <ul
+                          class="p-ulchip"
+                          v-if="slotProps.value && slotProps.value.length > 0"
+                        >
+                          <li
+                            class="p-lichip"
+                            v-for="(value, index) in slotProps.value"
+                            :key="index"
+                          >
+                            <Chip class="mr-2 mb-2 px-3 py-2">
+                              <div class="flex">
+                                <div>
+                                  <span>{{ value.newname }}</span>
+                                </div>
+                                <span
+                                  tabindex="0"
+                                  class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                  @click="
+                                    removeFilter(index, options.departments);
+                                    $event.stopPropagation();
+                                  "
+                                  v-tooltip.top="'Xóa'"
+                                ></span>
+                              </div>
+                            </Chip>
+                          </li>
+                        </ul>
+                        <span v-else>
+                          {{ slotProps.placeholder }}
+                        </span>
+                      </template>
+                    </MultiSelect>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 md:col-12 p-0">
+              <Toolbar
+                class="border-none surface-0 outline-none px-0 pb-0 w-full"
+              >
+                <template #start>
+                  <Button
+                    @click="resetFilter()"
+                    class="p-button-outlined"
+                    label="Bỏ chọn"
+                  ></Button>
+                </template>
+                <template #end>
+                  <Button @click="filter($event)" label="Lọc"></Button>
+                </template>
+              </Toolbar>
+            </div>
+          </div>
+        </OverlayPanel>
       </template>
       <template #end>
         <div class="form-group m-0 mr-2" v-if="options.view !== 0">
@@ -1007,7 +1157,10 @@ onMounted(() => {
                 'btn-selected': day.selected,
               }"
               class="relative"
-              :style="{ textAlign: 'center', backgroundColor: day.is_holiday ? '#f1948a' : '' }"
+              :style="{
+                textAlign: 'center',
+                backgroundColor: day.is_holiday ? '#f1948a' : '',
+              }"
             >
               <div v-if="!day.selected">{{ day.status_name }}</div>
               <div v-if="day.selected" class="icon-selected">
@@ -1232,6 +1385,17 @@ th.isHoliday {
   display: flex;
   align-items: center;
 }
+.p-ulchip {
+  margin: 0;
+  margin-top: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.p-lichip {
+  float: left;
+  white-space: normal;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.d-lang-table) {
@@ -1252,6 +1416,7 @@ th.isHoliday {
 ::v-deep(.form-group) {
   .p-multiselect .p-multiselect-label,
   .p-dropdown .p-dropdown-label {
+    height: 100%;
     display: flex;
     align-items: center;
   }
