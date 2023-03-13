@@ -100,7 +100,7 @@ const onTabOpen=(event)=>{
   activeIndex.value=event.index;
  
 }
-const activeIndex=ref();
+const activeIndex=ref(0);
 onMounted(() => {
   loadOrg();
   return {};
@@ -134,7 +134,7 @@ onMounted(() => {
                     Số hợp đồng lao động
                 </div>
             </template>
-            <div   v-if="activeIndex==1"  class="check-scroll"><config-contract /></div>
+            <div   v-if="activeIndex==1"  class="check-scroll-1"><config-contract /></div>
           </AccordionTab>
           <AccordionTab  >
             <template #header>
@@ -142,10 +142,12 @@ onMounted(() => {
                   Tính số ngày phép trong năm
                 </div>
             </template>
-            <div class="check-scroll-1"   v-if="activeIndex==2">
+            <div class="check-scroll-2"   v-if="activeIndex==2">
               <ConfigHolidays />
               </div>
           </AccordionTab>
+
+          
         </Accordion>
       </div>
     </div>
@@ -164,6 +166,11 @@ onMounted(() => {
 }
 .check-scroll-1 {
   max-height: 45rem;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+.check-scroll-2 {
+  max-height: 41rem;
   overflow-y: scroll;
   overflow-x: hidden;
 }

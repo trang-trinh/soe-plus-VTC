@@ -496,7 +496,7 @@ onMounted(() => {
       <div class="grid mt-3">
         <div class="col-12 field p-0 font-bold">
           <div class="col-12 p-0 format-center text-xl">
-            Phép hưởng theo chức danh
+            Phép thưởng theo chức danh
           </div>
         </div>
         <div class="col-12 field format-center p-0 font-bold">
@@ -551,7 +551,7 @@ onMounted(() => {
               ></Column>
               <Column
                 field="separator"
-                header="Số ngày hưởng"
+                header="Số ngày thưởng"
                 class="align-items-center justify-content-center text-center font-bold"
                 headerStyle="text-align:center;max-width:150px"
                 bodyStyle="text-align:center;max-width:150px"
@@ -575,9 +575,9 @@ onMounted(() => {
               >
                 <template #body="data">
                   <Button
-                    icon="pi pi-minus"
+                    icon="pi pi-times"
                     @click="delTem(data.data)"
-                    class="p-button-danger"
+                  class="p-button-outlined d-designbtn-c"
                     aria-label="Submit"
                   /> </template
               ></Column>
@@ -603,7 +603,7 @@ onMounted(() => {
   </div>
   <Dialog
     :maximizable="true"
-    :header="'Thêm chức danh nghỉ phép hưởng'"
+    :header="'Thêm chức danh nghỉ phép thưởng'"
     v-model:visible="displayBasic"
     :modal="true"
     :style="{ width: '40vw' }"
@@ -745,6 +745,10 @@ onMounted(() => {
   </Dialog>
 </template>
 <style scoped>
+.d-designbtn-c:hover{
+  background-color:#2196F3 !important ;
+  color: white !important;
+}
 .check-scroll {
   max-height: 40rem;
   overflow: scroll;

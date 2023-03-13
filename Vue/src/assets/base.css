@@ -880,6 +880,9 @@ li.p-chips-token {
 .p-datepicker {
     z-index: 10000000;
 }
+.p-button.d-design-left{
+    text-align: left !important;
+}
 .d-design-calendar.p-calendar .p-inputtext{
 text-align: center !important;
 }

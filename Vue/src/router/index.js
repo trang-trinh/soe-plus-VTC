@@ -272,6 +272,7 @@ const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
+const Hrm_paycheck_form = () => import("../views/hrm/declare/hrm_paycheck_form.vue");
 const Hrm_rec_calendar = () => import("../views/hrm/recruitment/hrm_recCalendar.vue");
 //end
 // TV
@@ -1759,6 +1760,12 @@ const router = createRouter({
       name: "Hrm_paycheck",
       component: Hrm_paycheck,
     },
+    {
+      path: "/hrm/paycheckform",
+      name: "Hrm_paycheck_form",
+      component: Hrm_paycheck_form,
+    },
+    
     // Request
     {
       path: "/request/dashboard",

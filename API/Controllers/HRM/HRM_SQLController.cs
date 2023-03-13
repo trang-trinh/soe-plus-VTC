@@ -397,18 +397,8 @@ namespace API.Controllers.HRM
             string sqlCount = "  select count(*) as totalRecords from hrm_candidate  hcal ";
             try
             {
-
-
-
-
-
-
-
-
-
-
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + " hcal.*,hc.campaign_name from hrm_candidate      hcal      LEFT JOIN hrm_campaign hc ON hcal.campaign_id = hc.campaign_id" ;
+                sql = selectStr + " hcal.*,hc.campaign_name,su.full_name,su.avatar from hrm_candidate      hcal      LEFT JOIN hrm_campaign hc ON hcal.campaign_id = hc.campaign_id LEFT JOIN sys_users su ON hcal.created_by = su.user_id ";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
@@ -470,7 +460,7 @@ namespace API.Controllers.HRM
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateBefore":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <= CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateAfter":
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) >= CAST('" + m.value + "' as date)";
@@ -552,10 +542,10 @@ namespace API.Controllers.HRM
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
 
                     sqlCount += " WHERE  " + checkOrgz;
-                    sqlCount += " select count(hcal.training_emps_id) as totalRecords1 from hrm_candidate  hcal WHERE hcal.status=0 and " + checkOrgz;
-                    sqlCount += " select count(hcal.training_emps_id) as totalRecords2 from hrm_candidate  hcal WHERE hcal.status=1 and " + checkOrgz;
-                    sqlCount += " select count(hcal.training_emps_id) as totalRecords3 from hrm_candidate  hcal WHERE hcal.status=2 and " + checkOrgz;
-                    sqlCount += " select count(hcal.training_emps_id) as totalRecords4 from hrm_candidate  hcal WHERE hcal.status=3 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords1 from hrm_candidate  hcal WHERE hcal.status=0 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords2 from hrm_candidate  hcal WHERE hcal.status=1 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords3 from hrm_candidate  hcal WHERE hcal.status=2 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords4 from hrm_candidate  hcal WHERE hcal.status=3 and " + checkOrgz;
               
 
                 }

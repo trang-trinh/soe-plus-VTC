@@ -57,6 +57,16 @@ const rules = {
       },
     ],
   },
+  campaign_code: {
+    required,
+    $errors: [
+      {
+        $property: "campaign_code",
+        $validator: "required",
+        $message: "Số lượng tuyển không được để trống!",
+      },
+    ],
+  },
 };
 const listFilesS = ref([]);
 const campaign = ref({
@@ -858,71 +868,10 @@ const loadUserProfiles = () => {
       }
     });
 };
-const changeLecturers = (value, index) => {
-  if (value) {
-    var arf = listDropdownUserGive.value.find((x) => x.code == value);
-    list_schedule.value[index - 1].phone_number = arf.phone_number;
-    list_schedule.value[index - 1].avatar = arf.avatar;
-    list_schedule.value[index - 1].lecturers_name = arf.name;
-  } else {
-    list_schedule.value[index - 1].phone_number = null;
-    list_schedule.value[index - 1].avatar = null;
-    list_schedule.value[index - 1].lecturers_name = null;
-  }
-};
-const changeUserTrainding = (data, index) => {
-  if (data && list_users_training.value[index]) {
-    list_users_training.value[index].is_order = index + 1;
-    list_users_training.value[index].profile_id = data.profile_id;
-    list_users_training.value[index].profile_user_name = data.profile_user_name;
-    list_users_training.value[index].work_position_id = data.work_position_id;
-    list_users_training.value[index].work_position_name =
-      data.work_position_name;
-    list_users_training.value[index].position_name = data.position_name;
-    list_users_training.value[index].position_id = data.position_id;
-    list_users_training.value[index].department_id = data.department_id;
-    list_users_training.value[index].department_name = data.department_name;
-  } else {
-    list_users_training.value[index].profile_id = null;
-    list_users_training.value[index].profile_user_name = null;
-    list_users_training.value[index].work_position_id = null;
-    list_users_training.value[index].work_position_name = null;
-    list_users_training.value[index].position_name = null;
-    list_users_training.value[index].position_id = null;
-    list_users_training.value[index].department_id = null;
-    list_users_training.value[index].department_name = null;
-  }
-  if (list_users_training.value.length > 0) {
-    var arr = [...listDataUsersSave.value];
-    list_users_training.value.forEach((element) => {
-      arr = arr.filter((x) => x.code.profile_id != element.profile_id);
-    });
-    listDataUsers.value = arr;
-  }
-};
-const listClasroom = ref([]);
-
-const delRow_Item = (item, type) => {
-  if (type == 1) {
-    list_users_training.value.splice(
-      list_users_training.value.lastIndexOf(item),
-      1
-    );
-    if (list_users_training.value.length > 0) {
-      var arr = [...listDataUsersSave.value];
-      list_users_training.value.forEach((element) => {
-        arr = arr.filter((x) => x.code.profile_id != element.profile_id);
-      });
-      listDataUsers.value = arr;
-    }
-  }
-  if (type == 2) {
-    list_schedule.value.splice(list_schedule.value.lastIndexOf(item), 1);
-  }
-};
+ 
 const   displayBasic=ref(false);
 //Thêm bản ghi
-const listTrainingGroups = ref([]);
+ 
 onMounted(() => {
   loadData();
   initTudien();
@@ -946,7 +895,51 @@ onMounted(() => {
         <div class="col-12 field p-0 text-lg font-bold">
           Thông tin chiến dịch
         </div>
-
+        <div class="col-12 field flex p-0 align-items-center">
+          <div class="w-10rem">
+            Mã chiến dịch<span class="redsao pl-1"> (*)</span>
+          </div>
+          <div style="width: calc(100% - 10rem)">
+            <div class="col-12 p-0">
+              <div class="p-inputgroup">
+                <InputText
+                
+              placeholder="Nhập mã chiến dịch"
+                  v-model="campaign.campaign_code"
+                  class="w-full"
+                  :style="
+                    campaign.campaign_code
+                      ? 'background-color:white !important'
+                      : ''
+                  "
+                  :class="{
+                    'p-invalid': v$.campaign_code.$invalid && submitted,
+                  }"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="col-12 p-0 field flex"
+          v-if="
+            (v$.campaign_code.$invalid && submitted) ||
+            v$.campaign_code.$pending.$response
+          "
+        >
+          <div class="p-0 col-12">
+            <div class="col-12 p-0 flex">
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full">{{
+                  v$.campaign_code.required.$message
+                    .replace("Value", "Mã chiến dịch")
+                    .replace("is required", "không được để trống!")
+                }}</span>
+              </small>
+            </div>
+          </div>
+        </div>
         <div class="col-12 field flex p-0 align-items-center">
           <div class="w-10rem">
             Tên chiến dịch<span class="redsao pl-1"> (*)</span>
@@ -956,7 +949,7 @@ onMounted(() => {
               <div class="p-inputgroup">
                 <Textarea
                   :autoResize="true"
-                  rows="1"
+                  rows="1" placeholder="Nhập tên chiến dịch"
                   cols="30"
                   v-model="campaign.campaign_name"
                   class="w-full"
@@ -1149,7 +1142,7 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <InputNumber
                 class="w-full"
-                suffix=" Người"
+                suffix=" Người" placeholder="Nhập số lượng tuyển"
                 v-model="campaign.num_vacancies"
                 :class="{
                   'p-invalid': campaign.num_vacancies == null && submitted,
@@ -1164,6 +1157,7 @@ onMounted(() => {
                 v-model="campaign.expected_cost"
                 class="w-full"
                 suffix=" VND"
+                placeholder="Nhập chi phí dự kiến"
               />
             </div>
           </div>
@@ -1294,7 +1288,10 @@ onMounted(() => {
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem pl-3">Nơi làm việc</div>
               <div style="width: calc(100% - 10rem)">
-                <InputText v-model="campaign.rec_workplace" class="w-full" />
+                <InputText v-model="campaign.rec_workplace" class="w-full" 
+                
+                placeholder="Nhập nơi làm việc"
+                />
               </div>
             </div>
           </div>

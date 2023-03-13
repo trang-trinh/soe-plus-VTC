@@ -223,7 +223,7 @@ const saveData = (isFormValid) => {
     let file = filesList.value[i];
     formData.append("image", file);
   }
- debugger
+  
   formData.append("candidate_avatar", files);
   
   formData.append("hrm_candidate", JSON.stringify(candidate.value));
@@ -306,81 +306,8 @@ const saveData = (isFormValid) => {
         });
       });
   }
-};
-const listDropdownUserGive = ref();
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
-const listUsers = ref([]);
-const loadUser = () => {
-  listUsers.value = [];
-  listDropdownUser.value = [];
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-
-          avatar: element.avatar,
-          department_name: element.department_name,
-          department_id: element.department_id,
-          role_name: element.role_name,
-          position_name: element.position_name,
-          phone_number: element.phone,
-          organization_id: element.organization_id,
-        });
-        listUsers.value.push({ data: element, active: false });
-      });
-      listUsers.value = data;
-      listDropdownUserGive.value = listDropdownUser.value;
-      listDropdownUserCheck.value = listDropdownUser.value.filter(
-        (x) => x.code != store.getters.user.user_id
-      );
-    })
-    .catch((error) => {
-      console.log(error);
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
+}; 
+const listUsers = ref([]); 
 const v$ = useVuelidate(rules, candidate);
 
 const listStatus = ref([
@@ -1295,7 +1222,7 @@ const displayBasic=ref(false);
 onMounted(() => {
   loadData();
   initTudien();
-  loadUser();
+ 
   loadUserProfiles();
   displayBasic.value=props.displayBasic;
   return {};
@@ -2633,7 +2560,7 @@ onMounted(() => {
                                     height: 50px;
                                     object-fit: contain;
                                   "
-                                  :alt="item.file_name"
+                                  :alt="item.file_name" 
                                 />
                               </div>
                               <div class="ml-2">

@@ -38,12 +38,13 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 
+ 
 const listStatus = ref([
-  { name: "Lên kế hoạch", code: 1 },
+  { name: "Hoàn thành", code: 1 },
   { name: "Đang thực hiện", code: 2 },
-  { name: "Đã hoàn thành", code: 3 },
-  { name: "Tạm dừng", code: 4 },
-  { name: "Đã hủy", code: 5 },
+  { name: "Qúa hạn", code: 3 },
+  { name: "Lập kế hoạch", code: 0 },
+  
 ]);
 const listFormTraining = ref([
   { name: "Bắt buộc", code: 1 },
@@ -231,7 +232,6 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   campaign.value = {
- 
     campaign_name: null,
     form_training: 1,
     status: 1,
@@ -239,8 +239,7 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     user_follows_fake: [],
-    user_verify_fake: [],
- 
+    user_verify_fake: null,
   };
 
  
@@ -1476,32 +1475,26 @@ onMounted(() => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="campaign_id"
             responsiveLayout="scroll" v-model:selection="selectedStamps" :row-hover="true">
-            <Column class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px" bodyStyle="text-align:center;max-width:70px"
-              selectionMode="multiple">
-            </Column>
+          
 
             <Column field="STT" header="STT" class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px" bodyStyle="text-align:center;max-width:70px">
+              headerStyle="text-align:center;max-width:55px;height:50px" bodyStyle="text-align:center;max-width:55px">
             </Column>
-           
+            <Column field="campaign_code" header="Mã chiến dịch" headerClass="align-items-center justify-content-center text-center"  :sortable="true"
+              headerStyle="text-align:center;max-width:170px;height:50px" bodyStyle=" ;max-width:170px">
+              <template #filter="{ filterModel }">
+                <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
+              </template>
+            </Column>
             <Column field="campaign_name" header="Tên chiến dịch" :sortable="true"
               headerStyle="text-align:left;height:50px" bodyStyle="text-align:left">
               <template #filter="{ filterModel }">
                 <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
               </template>
             </Column>
-            <Column field="num_vacancies" header="Số lượng tuyển" headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
-             
-            </Column>
-            <Column field="expected_cost" header="Chi phí dự kiến" headerStyle="text-align:center;max-width:150px;height:50px"
+            <Column field="vacancy_name" header="Vị trí" headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center">
-              <template #body="data">
-                  <div>
-                    {{ data.data.expected_cost?data.data.expected_cost.toLocaleString():'' }} VND
-                  </div>
-                </template>
+             
             </Column>
             <Column field="start_date" header="Ngày bắt đầu" headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
@@ -1513,8 +1506,7 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-
-            <Column field="end_date" header="Ngày kết thúc" headerStyle="text-align:center;max-width:100px;height:50px"
+            <Column field="start_date" header="Ngày kết thúc" headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <div v-if="data.data.end_date">
@@ -1524,74 +1516,155 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-            <!-- <Column field="li_user_verify" header="Giảng viên" headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center">
+            <Column field="num_vacancies" header="Số lượng tuyển" headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
              
             </Column>
-            <Column field="count_emps" header="Học viên" headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px" class="align-items-center justify-content-center text-center">
+            <Column field="expected_cost" header="Tổng số CV" headerStyle="text-align:center;max-width:80px;height:50px"
+              bodyStyle="text-align:center;max-width:80px" class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <div>
-                  {{ data.data.count_emps ? data.data.count_emps : "0" }}
-                </div>
-              </template>
-            </Column> -->
-            <Column field="created_date" header="Ngày tạo" headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center">
+                  <div>
+                    {{ data.data.slTuyen}}  
+                  </div>
+                </template>
+            </Column>
+            <Column field="expected_cost" header="Trúng tuyển" headerStyle="text-align:center;max-width:80px;height:50px"
+              bodyStyle="text-align:center;max-width:80px" class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <div>
+                  <div>
+                    {{ data.data.trungTuyen}}  
+                  </div>
+                </template>
+            </Column>
+            <Column field="expected_cost" header="Còn lại" headerStyle="text-align:center;max-width:80px;height:50px"
+              bodyStyle="text-align:center;max-width:80px" class="align-items-center justify-content-center text-center">
+              <template #body="data">
+                  <div>
+                    {{ data.data.num_vacancies  - data.data.trungTuyen}}  
+                  </div>
+                </template>
+            </Column>
+        
+    
+           
+            <Column
+              field="created_date"
+              header="Ngày/Người lập"
+              headerStyle="text-align:center;max-width:120px;height:50px"
+              bodyStyle="text-align:center;max-width:120px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <span class="mr-2">
                   {{
-                    moment(new Date(data.data.created_date)).format(
+                    moment(new Date(slotProps.data.created_date)).format(
                       "DD/MM/YYYY"
                     )
-                  }}
+                  }}</span
+                >
+                <div>
+                  <Avatar
+                    v-bind:label="
+                      slotProps.data.avatar
+                        ? ''
+                        : slotProps.data.full_name.substring(0, 1)
+                    "
+                    v-bind:image="
+                      slotProps.data.avatar
+                        ? basedomainURL + slotProps.data.avatar
+                        : basedomainURL + '/Portals/Image/noimg.jpg'
+                    "
+                    style="
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 2rem;
+                      height: 2rem;
+                      font-size: 1rem !important;
+                    "
+                    :style="{
+                      background: bgColor[slotProps.data.created_is_order % 7],
+                    }"
+                    class="text-avatar"
+                    size="xlarge"
+                    shape="circle"
+                    v-tooltip.top="slotProps.data.full_name"
+                  />
                 </div>
               </template>
             </Column>
-            <!-- <Column field="status" header="Trạng thái" headerStyle="text-align:center;max-width:11rem;height:50px"
-              bodyStyle="text-align:center;max-width:11rem" class="align-items-center justify-content-center text-center">
+            <Column
+              field="status"
+              header="Trạng thái"
+              headerStyle="text-align:center;max-width:11rem;height:50px"
+              bodyStyle="text-align:center;max-width:11rem"
+              class="align-items-center justify-content-center text-center"
+            >
               <template #body="slotProps">
-                <div class="m-2" @click="
-                  toggleStatus(slotProps.data, $event);
-                $event.stopPropagation();
-                                                                                                                              "
-                  aria:haspopup="true" aria-controls="overlay_panel_status">
-                  <Button :label="
-                    slotProps.data.status == 1
-                      ? 'Lên kế hoạch'
-                      : slotProps.data.status == 2
+                <div
+                  class="m-2 w-full"
+                  aria:haspopup="true"
+                  aria-controls="overlay_panel_status"
+                >
+                  <Button
+                    :label="
+                      slotProps.data.status == 1
                         ? 'Đang thực hiện'
+                        : slotProps.data.status == 2
+                        ? 'Đã hoàn thành'
                         : slotProps.data.status == 3
-                          ? 'Đã hoàn thành'
-                          : slotProps.data.status == 4
-                            ? 'Tạm dừng'
-                            : 'Đã hủy'
-                  " :class="
-  slotProps.data.status == 1
-    ? 'bg-blue-500'
-    : slotProps.data.status == 2
-      ? 'bg-yellow-500'
-      : slotProps.data.status == 3
-        ? 'bg-green-500'
-        : slotProps.data.status == 4
-          ? 'bg-orange-500'
-          : 'bg-pink-500'
-" icon="pi pi-chevron-down" iconPos="right" class="px-2 w-10rem" />
+                        ? 'Tạm dừng'
+                        : slotProps.data.status == 4
+                        ? 'Đã hủy'
+                    
+                        : 'Lập kế hoạch'
+                    "
+                    :class="
+                      slotProps.data.status == 1
+                        ? 'bg-blue-500'
+                        : slotProps.data.status == 2
+                        ? 'bg-green-500'
+                        : slotProps.data.status == 3
+                        ? 'bg-yellow-500'
+                        : slotProps.data.status == 4
+                        ? 'bg-pink-500'
+                        
+                        : ' surface-500'
+                    "
+                    icon="pi pi-chevron-down"
+                    iconPos="right"
+                    class="px-2 w-10rem d-design-left"
+                  />
                 </div>
-                <OverlayPanel :showCloseIcon="false" ref="opstatus" appendTo="body" class="p-0 m-0"
-                  id="overlay_panel_status" style="width: 200px">
+                <!-- <OverlayPanel
+                  :showCloseIcon="false"
+                  ref="opstatus"
+                  appendTo="body"
+                  class="p-0 m-0"
+                  id="overlay_panel_status"
+                  style="width: 200px"
+                >
                   <div class="form-group">
                     <div class="col-12 p-0 field">Chọn trạng thái</div>
                     <div class="col-12 p-0">
-                      <Dropdown :options="listStatus" :filter="false" :showClear="false" :editable="false"
-                        v-model="campaign.status" optionLabel="name" optionValue="code" placeholder="Chọn trạng thái"
-                        class="w-full" @change="setStatus(campaign)">
+                      <Dropdown
+                        :options="listStatus"
+                        :filter="false"
+                        :showClear="false"
+                        :editable="false"
+                        v-model="candidate.status"
+                        optionLabel="name"
+                        optionValue="code"
+                        placeholder="Chọn trạng thái"
+                        class="w-full"
+                        @change="setStatus(candidate)"
+                      >
                       </Dropdown>
                     </div>
                   </div>
-                </OverlayPanel>
+                </OverlayPanel> -->
               </template>
-            </Column> -->
+            </Column>
+           
             <Column header="" headerStyle="text-align:center;max-width:50px" bodyStyle="text-align:center;max-width:50px"
               class="align-items-center justify-content-center text-center">
               <template #body="slotProps">
@@ -1600,45 +1673,7 @@ onMounted(() => {
                   v-tooltip.top="'Tác vụ'" />
               </template>
             </Column>
-            <!-- <Column
-                          header="Chức năng"
-                          class="align-items-center justify-content-center text-center"
-                          headerStyle="text-align:center;max-width:150px;height:50px"
-                          bodyStyle="text-align:center;max-width:150px"
-                        >
-                          <template #body="Tem">
-                            <div
-                              v-if="
-                                store.state.user.is_super == true ||
-                                store.state.user.user_id == Tem.data.created_by ||
-                                (store.state.user.role_id == 'admin' &&
-                                  store.state.user.organization_id ==
-                                    Tem.data.organization_id)
-                              "
-                            >
-                              <Button
-                                @click="editTem(Tem.data)"
-                                class="
-                                  p-button-rounded p-button-secondary p-button-outlined
-                                  mx-1
-                                "
-                                type="button"
-                                icon="pi pi-pencil"
-                                v-tooltip.top="'Sửa'"
-                              ></Button>
-                              <Button
-                                class="
-                                  p-button-rounded p-button-secondary p-button-outlined
-                                  mx-1
-                                "
-                                type="button"
-                                icon="pi pi-trash"
-                                @click="delTem(Tem.data)"
-                                v-tooltip.top="'Xóa'"
-                              ></Button>
-                            </div>
-                          </template>
-                        </Column> -->
+          
             <template #empty>
               <div class="
                               align-items-center

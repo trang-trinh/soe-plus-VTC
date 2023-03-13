@@ -40,11 +40,7 @@ const listStatus = ref([
   { name: "Đã chuyển HSNS", code: 3 },
   { name: "Ứng tuyển", code: 0 },
 ]);
-const listFormTraining = ref([
-  { name: "Bắt buộc", code: 1 },
-  { name: "Đăng ký", code: 2 },
-  { name: "Cả hai", code: 3 },
-]);
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -93,11 +89,11 @@ const loadData = (rf) => {
       loadDataSQL();
       return false;
     }
-    if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
+
+    if (options.value.PageNo == 0) {
+      loadCount();
     }
+
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
@@ -182,7 +178,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "hcal.candidate_id desc ",
+  sort: "hcal.created_date desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -743,7 +739,7 @@ const filterFileds = () => {
       filterSQL.value.push(filterS1);
     }
   }
-   
+
   if (options.value.campaign_id) {
     let filterS4 = {
       filterconstraints: [],
@@ -781,80 +777,39 @@ const filterFileds = () => {
 };
 
 const onDayClick = () => {
-  if (options.value.start_date != null &&options.value.end_date != null) {
+  if (options.value.start_date != null && options.value.end_date != null) {
     let sDate = new Date(options.value.start_date);
     let eDate = new Date(options.value.end_date);
     let filterS = {
-        filterconstraints: [
-          { value:sDate, matchMode: "dateAfterIs" },    { value:eDate, matchMode: "dateBefore" },
-        ],
-        filteroperator: "and",
-        key: "candidate_birthday",
-      };
-      filterSQL.value.push(filterS);
+      filterconstraints: [
+        { value: sDate, matchMode: "dateAfter" },
+        { value: eDate, matchMode: "dateBefore" },
+      ],
+      filteroperator: "and",
+      key: "candidate_birthday",
+    };
+    filterSQL.value.push(filterS);
   }
+  if (options.value.start_date != null && options.value.end_date == null) {
+    let sDate = new Date(options.value.start_date);
 
+    let filterS = {
+      filterconstraints: [{ value: sDate, matchMode: "dateIs" }],
+      filteroperator: "and",
+      key: "candidate_birthday",
+    };
+    filterSQL.value.push(filterS);
+  }
+  if (options.value.start_date == null && options.value.end_date != null) {
+    let eDate = new Date(options.value.end_date);
 
-
-
-  // if (options.value.start_date != null) {
-  //   if (!options.value.end_date)
-  //     options.value.end_date = options.value.start_date;
-
-  //   if (
-  //     options.value.start_date &&
-  //     options.value.start_date != options.value.end_date
-  //   ) {
-  //     let sDate = new Date(options.value.start_date);
-  //     sDate.setDate(sDate.getDate() - 1);
-  //     options.value.start_date = sDate;
-  //     let filterS = {
-  //       filterconstraints: [
-  //         { value: options.value.start_date, matchMode: "dateAfter" },
-  //       ],
-  //       filteroperator: "and",
-  //       key: "candidate_birthday",
-  //     };
-  //     filterSQL.value.push(filterS);
-  //   }
-  //   if (
-  //     options.value.end_date &&
-  //     options.value.start_date != options.value.end_date
-  //   ) {
-  //     let eDate = new Date(options.value.end_date);
-  //     eDate.setDate(eDate.getDate() + 1);
-  //     options.value.end_date = eDate;
-  //     let filterS = {
-  //       filterconstraints: [
-  //         { value: options.value.end_date, matchMode: "dateBefore" },
-  //       ],
-  //       filteroperator: "and",
-  //       key: "end_date",
-  //     };
-  //     filterSQL.value.push(filterS);
-  //   }
-  //   if (
-  //     options.value.start_date &&
-  //     options.value.start_date == options.value.end_date
-  //   ) {
-  //     let filterS1 = {
-  //       filterconstraints: [
-  //         { value: options.value.start_date, matchMode: "dateIs" },
-  //       ],
-  //       filteroperator: "and",
-  //       key: "start_date",
-  //     };
-  //     filterSQL.value.push(filterS1);
-  //     let filterS2 = {
-  //       filterconstraints: [
-  //         { value: options.value.end_date, matchMode: "dateIs" },
-  //       ],
-  //       filteroperator: "and",
-  //       key: "end_date",
-  //     };
-  //     filterSQL.value.push(filterS2);
-  //   }
-  // }
+    let filterS = {
+      filterconstraints: [{ value: eDate, matchMode: "dateIs" }],
+      filteroperator: "and",
+      key: "candidate_birthday",
+    };
+    filterSQL.value.push(filterS);
+  }
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -868,10 +823,7 @@ const toggle = (event) => {
   op.value.toggle(event);
 };
 
- 
- 
 const listCampaigns = ref([]);
- 
 
 const listSources = ref([
   { name: "Nguồn 1", code: 1 },
@@ -913,8 +865,7 @@ const initTudien = () => {
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
-    });  
- 
+    });
 };
 
 onMounted(() => {
@@ -988,7 +939,7 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width: 700px"
+                style="width: 350px"
               >
                 <div class="grid formgrid m-0">
                   <div
@@ -999,8 +950,8 @@ onMounted(() => {
                       overflow: auto;
                     "
                   >
-                    <div class="flex">
-                      <div class="col-6 md:col-6">
+                    <div class=" ">
+                      <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
@@ -1015,7 +966,6 @@ onMounted(() => {
                                 optionValue="code"
                                 placeholder="Chọn chiến dịch tuyển dụng"
                                 class="w-full limit-width"
-                            
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
@@ -1037,18 +987,15 @@ onMounted(() => {
                               placeholder="Chọn nguồn"
                               panelClass="d-design-dropdown  d-tree-input"
                               class="col-12 p-0"
-                        
                             >
-                               
                             </MultiSelect>
                           </div>
-                          
                         </div>
                       </div>
-                      <div class="col-6 md:col-6">
+                      <div class="col-12 md:col-12 field p-0">
                         <div class="row">
                           <div class="col-12 md:col-12">
-                            <div class="form-group m-0 pb-2">
+                            <div class="form-group m-0 py-2">
                               <label>Ngày sinh</label>
                             </div>
                           </div>
@@ -1057,7 +1004,6 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                 
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.start_date"
@@ -1069,7 +1015,6 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.end_date"
@@ -1078,16 +1023,14 @@ onMounted(() => {
                               </div>
                             </div>
                           </div>
-                      
 
                           <div class="col-12 md:col-12">
                             <div class="col-12 p-0 md:col-12">
-                            <div class="form-group m-0 py-2">
-                              <label>Trạng thái</label>
+                              <div class="form-group m-0 py-2">
+                                <label>Trạng thái</label>
+                              </div>
                             </div>
-                          </div>
                             <div class="form-group">
-                          
                               <MultiSelect
                                 :options="listStatus"
                                 v-model="options.status_filter"
@@ -1096,11 +1039,9 @@ onMounted(() => {
                                 :editable="false"
                                 display="chip"
                                 optionLabel="name"
-
                                 optionValue="code"
                                 placeholder="Chọn trạng thái"
                                 class="w-full limit-width"
-                            
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
@@ -1312,72 +1253,6 @@ onMounted(() => {
                 />
               </template>
             </Column>
-            <Column
-              field="status"
-              header="Trạng thái"
-              headerStyle="text-align:center;max-width:11rem;height:50px"
-              bodyStyle="text-align:center;max-width:11rem"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div
-                  class="m-2"
-                  aria:haspopup="true"
-                  aria-controls="overlay_panel_status"
-                >
-                  <Button
-                    :label="
-                      slotProps.data.status == 1
-                        ? 'Trúng tuyển'
-                        : slotProps.data.status == 2
-                        ? 'Không trúng tuyển'
-                        : slotProps.data.status == 3
-                        ? 'Đã chuyển HSNS'
-                        : 'Ứng tuyển'
-                    "
-                    :class="
-                      slotProps.data.status == 1
-                        ? 'bg-green-500'
-                        : slotProps.data.status == 2
-                        ? 'bg-pink-500'
-                        : slotProps.data.status == 3
-                        ? 'bg-blue-500'
-                        : 'bg-yellow-500'
-                    "
-                    class="px-2 w-10rem cursor-auto"
-                  />
-                  <!-- icon="pi pi-chevron-down"
-                    iconPos="right" -->
-                </div>
-                <!-- <OverlayPanel
-                  :showCloseIcon="false"
-                  ref="opstatus"
-                  appendTo="body"
-                  class="p-0 m-0"
-                  id="overlay_panel_status"
-                  style="width: 200px"
-                >
-                  <div class="form-group">
-                    <div class="col-12 p-0 field">Chọn trạng thái</div>
-                    <div class="col-12 p-0">
-                      <Dropdown
-                        :options="listStatus"
-                        :filter="false"
-                        :showClear="false"
-                        :editable="false"
-                        v-model="candidate.status"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Chọn trạng thái"
-                        class="w-full"
-                        @change="setStatus(candidate)"
-                      >
-                      </Dropdown>
-                    </div>
-                  </div>
-                </OverlayPanel> -->
-              </template>
-            </Column>
 
             <Column
               field="end_date"
@@ -1432,7 +1307,117 @@ onMounted(() => {
               headerClass="align-items-center justify-content-center text-center"
             >
             </Column>
-
+            <Column
+              field="created_date"
+              header="Ngày/Người lập"
+              headerStyle="text-align:center;max-width:120px;height:50px"
+              bodyStyle="text-align:center;max-width:120px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <span class="mr-2">
+                  {{
+                    moment(new Date(slotProps.data.created_date)).format(
+                      "DD/MM/YYYY"
+                    )
+                  }}</span
+                >
+                <div>
+                  <Avatar
+                    v-bind:label="
+                      slotProps.data.avatar
+                        ? ''
+                        : slotProps.data.full_name.substring(0, 1)
+                    "
+                    v-bind:image="
+                      slotProps.data.avatar
+                        ? basedomainURL + slotProps.data.avatar
+                        : basedomainURL + '/Portals/Image/noimg.jpg'
+                    "
+                    style="
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 2rem;
+                      height: 2rem;
+                      font-size: 1rem !important;
+                    "
+                    :style="{
+                      background: bgColor[slotProps.data.created_is_order % 7],
+                    }"
+                    class="text-avatar"
+                    size="xlarge"
+                    shape="circle"
+                    v-tooltip.top="slotProps.data.full_name"
+                  />
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="status"
+              header="Trạng thái"
+              headerStyle="text-align:center;max-width:12rem;height:50px"
+              bodyStyle="text-align:center;max-width:12rem"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <div
+                  class="m-2 w-full"
+                  aria:haspopup="true"
+                  aria-controls="overlay_panel_status"
+                >
+                  <Button
+                    :label="
+                      slotProps.data.status == 1
+                        ? 'Trúng tuyển'
+                        : slotProps.data.status == 2
+                        ? 'Không trúng tuyển'
+                        : slotProps.data.status == 3
+                        ? 'Đã chuyển HSNS'
+                        : 'Ứng tuyển'
+                    "
+                    :class="
+                      slotProps.data.status == 1
+                        ? 'bg-green-500'
+                        : slotProps.data.status == 2
+                        ? 'bg-pink-500'
+                        : slotProps.data.status == 3
+                        ? 'bg-blue-500'
+                        : 'bg-yellow-500'
+                    "
+                    icon="pi pi-chevron-down"
+                    iconPos="right"
+                    class="px-2 w-11rem d-design-left"
+                  />
+                </div>
+                <!-- <OverlayPanel
+                  :showCloseIcon="false"
+                  ref="opstatus"
+                  appendTo="body"
+                  class="p-0 m-0"
+                  id="overlay_panel_status"
+                  style="width: 200px"
+                >
+                  <div class="form-group">
+                    <div class="col-12 p-0 field">Chọn trạng thái</div>
+                    <div class="col-12 p-0">
+                      <Dropdown
+                        :options="listStatus"
+                        :filter="false"
+                        :showClear="false"
+                        :editable="false"
+                        v-model="candidate.status"
+                        optionLabel="name"
+                        optionValue="code"
+                        placeholder="Chọn trạng thái"
+                        class="w-full"
+                        @change="setStatus(candidate)"
+                      >
+                      </Dropdown>
+                    </div>
+                  </div>
+                </OverlayPanel> -->
+              </template>
+            </Column>
             <Column
               header=""
               headerStyle="text-align:center;max-width:70px"
