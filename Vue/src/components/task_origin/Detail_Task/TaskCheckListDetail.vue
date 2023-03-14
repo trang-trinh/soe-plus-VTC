@@ -1345,6 +1345,10 @@ onMounted(() => {
           >
             <div class="col-2 format-center">
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-bind:label="
                   user.avatar
                     ? ''
@@ -1587,6 +1591,10 @@ onMounted(() => {
                     "
                   >
                     <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-tooltip.right="{
                         value: slotProps.data.creator_tooltip,
                         escape: true,
@@ -1635,6 +1643,10 @@ onMounted(() => {
                     "
                   >
                     <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-tooltip.right="{
                         value: slotProps.data.actor_tooltip,
                         escape: true,

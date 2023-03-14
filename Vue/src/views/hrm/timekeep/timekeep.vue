@@ -3,6 +3,7 @@ import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
+import { groupBy } from "lodash";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -36,7 +37,7 @@ const options = ref({
   day: newDate.getDate(),
   start_date: null,
   end_date: null,
-  filter_organization_id: null,
+  filter_organization_id: store.getters.user.organization_id,
   departments: [],
 });
 const isFirst = ref(true);
@@ -68,12 +69,25 @@ const years = ref([]);
 //filter
 const search = () => {
   options.value.pageNo = 1;
-  bindDepartment();
   initData(true);
 };
 const opfilter = ref();
 const toggleFilter = (event) => {
   opfilter.value.toggle(event);
+};
+const filter = (event) => {
+  opfilter.value.toggle(event);
+  search();
+};
+const resetFilter = () => {
+  options.value.filter_organization_id = null;
+  options.value.departments = [];
+};
+const changeOrganization = () => {
+  bindDepartment();
+};
+const removeFilter = (idx, arr) => {
+  arr.splice(idx, 1);
 };
 const bindDepartment = () => {
   department.value = JSON.parse(JSON.stringify(dictionarys.value[3]));
@@ -275,6 +289,16 @@ const addToArray = (temp, array, id, lv, od) => {
   }
 };
 
+const headerDialogInfo = ref();
+const displayDialogInfo = ref(false);
+const openDialogInfo = () => {
+  headerDialogInfo.value = "Mục ký hiệu";
+  displayDialogInfo.value = true;
+};
+const closeDialogInfo = () => {
+  displayDialogInfo.value = false;
+};
+
 //function selection
 const selectNode = (user, day) => {
   if (isFunction.value) {
@@ -310,6 +334,40 @@ const removeSelectedNodes = () => {
           });
         }
       });
+  }
+};
+const selectDay = (day) => {
+  if (isFunction.value) {
+    datas.value.forEach((group) => {
+      group.users.forEach((user) => {
+        var idx = user.list_days.findIndex(
+          (d) => d.day_string === day.day_string
+        );
+        if (idx !== -1) {
+          user.list_days[idx].selected = !(
+            user.list_days[idx].selected || false
+          );
+          var workday_string = moment(new Date(day["day"])).format(
+            "YYYY/MM/DD"
+          );
+          if (user.list_days[idx].selected) {
+            selectedNodes.value.push({
+              user_id: user["user_id"],
+              workday: workday_string,
+            });
+          } else {
+            var idx = selectedNodes.value.findIndex(
+              (x) =>
+                x["user_id"] === user["user_id"] &&
+                x["workday"] === workday_string
+            );
+            if (idx != -1) {
+              selectedNodes.value.splice(idx, 1);
+            }
+          }
+        }
+      });
+    });
   }
 };
 
@@ -579,9 +637,6 @@ const initDictionary = () => {
         }
       }
     })
-    .then(() => {
-      initData(true);
-    })
     .catch((error) => {
       swal.fire({
         title: "Thông báo!",
@@ -629,7 +684,9 @@ const initData = (ref) => {
   }
   var departments = "";
   if (options.value.departments && options.value.departments.length > 0) {
-    departments = options.value.departments.map((x) => x.organization_id).join(",");
+    departments = options.value.departments
+      .map((x) => x.organization_id)
+      .join(",");
   }
   axios
     .post(
@@ -696,7 +753,15 @@ const initData = (ref) => {
                 });
               });
             });
-            datas.value = data[0];
+            var group = groupBy(data[0], "department_id");
+            for (var k in group) {
+              let obj = {
+                department_id: k,
+                department_name: group[k][0].department_name,
+                users: group[k],
+              };
+              datas.value.push(obj);
+            }
           } else {
             datas.value = [];
           }
@@ -741,7 +806,6 @@ onMounted(() => {
   ) {
     isFunction.value = true;
   }
-  isFunction.value = true;
   initDictionary();
 });
 </script>
@@ -852,7 +916,7 @@ onMounted(() => {
                       :showClear="true"
                       :editable="false"
                       v-model="options.filter_organization_id"
-                      @change="search()"
+                      @change="changeOrganization()"
                       optionLabel="newname"
                       optionValue="organization_id"
                       placeholder="Chọn đơn vị"
@@ -875,7 +939,6 @@ onMounted(() => {
                       :showClear="true"
                       :editable="false"
                       v-model="options.departments"
-                      @change="search()"
                       optionLabel="newname"
                       placeholder="Chọn phòng ban"
                       class="w-full limit-width"
@@ -1070,6 +1133,16 @@ onMounted(() => {
             placeholder="Đến ngày"
           />
         </div>
+        <div class="ml-2">
+          <Button
+            @click="openDialogInfo()"
+            icon="pi pi-info-circle"
+            aria-label="Info"
+            class="p-button-outlined p-button-secondary ip36"
+            :style="{ width: '36px' }"
+            v-tooltip.top="'Mô tả'"
+          />
+        </div>
       </template>
     </Toolbar>
     <div class="box-table gridline-custom scrollable-both-custom">
@@ -1097,17 +1170,32 @@ onMounted(() => {
             >
               NGÀY CÔNG TRONG THÁNG
             </th>
-            <th rowspan="3" class="text-center" :style="{ width: '100px' }">
+            <th
+              rowspan="3"
+              class="sticky text-center"
+              :style="{ width: '100px', right: '100px' }"
+            >
               NGHỈ PHÉP
+            </th>
+            <th
+              rowspan="3"
+              class="sticky text-center"
+              :style="{ width: '100px', right: '0' }"
+            >
+              TÔNG CỘNG
             </th>
           </tr>
           <tr>
             <th
               class="text-center"
               v-for="(day, index) in days"
+              @click="selectDay(day)"
               :key="index"
               :style="{ width: '50px' }"
-              :class="{ isHoliday: day.is_holiday }"
+              :class="{
+                isHoliday: day.is_holiday,
+                'btn-hover-true': isFunction,
+              }"
             >
               {{ day.day_name_short }}
             </th>
@@ -1116,16 +1204,38 @@ onMounted(() => {
             <th
               class="text-center"
               v-for="(day, index) in days"
+              @click="selectDay(day)"
               :key="index"
               :style="{ width: '50px' }"
-              :class="{ isHoliday: day.is_holiday }"
+              :class="{
+                isHoliday: day.is_holiday,
+                'btn-hover-true': isFunction,
+              }"
             >
               {{ day.day_string_date }}
             </th>
           </tr>
         </thead>
-        <tbody class="tbody-custom">
-          <tr v-for="(user, user_key) in datas" :key="user_key">
+        <tbody class="tbody-custom" v-for="(group, group_key) in datas">
+          <tr>
+            <td
+              colspan="10"
+              class="sticky"
+              :style="{
+                left: 0,
+                background: 'antiquewhite',
+              }"
+            >
+              {{ group.department_name }}
+            </td>
+            <td
+              :colspan="days.length"
+              :style="{
+                background: 'antiquewhite',
+              }"
+            ></td>
+          </tr>
+          <tr v-for="(user, user_key) in group.users" :key="user_key">
             <td
               class="sticky"
               :style="{
@@ -1142,10 +1252,10 @@ onMounted(() => {
               :style="{
                 left: '50px',
                 width: '200px',
-                background: 'antiquewhite',
+                backgroundColor: '#fff',
               }"
             >
-              {{ user.full_name }}
+              <b>{{ user.full_name }}</b>
             </td>
             <td
               v-for="(day, day_key) in user.list_days"
@@ -1167,7 +1277,26 @@ onMounted(() => {
                 <i class="pi pi-check-circle"></i>
               </div>
             </td>
-            <td :style="{ textAlign: 'center' }">{{ user.total_p }}</td>
+            <td
+              class="sticky"
+              :style="{
+                right: '100px',
+                background: '#f8f9fa',
+                textAlign: 'center',
+              }"
+            >
+              {{ user.total_p }}
+            </td>
+            <td
+              class="sticky"
+              :style="{
+                right: '0',
+                background: '#f8f9fa',
+                textAlign: 'center',
+              }"
+            >
+              {{ user.total_c }}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -1245,6 +1374,43 @@ onMounted(() => {
         class="p-button-text"
       />
       <Button label="Lưu" icon="pi pi-check" @click="saveTimekeep()" />
+    </template>
+  </Dialog>
+  <Dialog
+    :header="headerDialogInfo"
+    v-model:visible="displayDialogInfo"
+    :style="{ width: '30vw' }"
+    :maximizable="true"
+    :closable="false"
+    style="z-index: 9000"
+  >
+    <form @submit.prevent="" name="submitform">
+      <div class="grid formgrid m-2">
+        <div class="col-12 md:col-12">
+          <table class="w-full table border">
+            <thead>
+              <tr>
+                <th>Ký hiệu</th>
+                <th>Mô tả</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(value, index) in dictionarys[2]">
+                <td align="center" width="100">{{ value.symbol_code }}</td>
+                <td align="left">{{ value.symbol_name }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialogInfo()"
+        class="p-button-text"
+      />
     </template>
   </Dialog>
 </template>
@@ -1425,6 +1591,21 @@ th.isHoliday {
   }
   .p-avatar-text {
     font-size: 1rem;
+  }
+}
+::v-deep(.table) {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  tr th{
+    background-color: #f8f9fa;
+  }
+}
+::v-deep(.border) {
+  tr th,
+  tr td {
+    border: solid 1px rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
   }
 }
 </style>

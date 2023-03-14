@@ -665,7 +665,7 @@ onMounted(() => {
         headerStyle="text-align:center;max-width:120px"
         bodyStyle="text-align:center;max-width:120px"
       ></Column>
-      <Column field="title" header="Tiêu đề" class="align-items-center">
+      <Column field="title" header="Tiêu đề" class="align-items-center" bodyStyle="word-break:break-word">
         <template #filter="{ filterModel }">
           <InputText
             type="text"

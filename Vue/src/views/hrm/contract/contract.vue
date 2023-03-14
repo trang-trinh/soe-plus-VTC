@@ -1866,6 +1866,7 @@ onMounted(() => {
                   color: slotProps.data.text_color,
                 }"
               />
+              {{ slotProps.data.bg_color }}
             </div>
             <OverlayPanel
               :showCloseIcon="false"

@@ -309,7 +309,7 @@ const addModelTemp = (item) => {
       datas.value.push(it);
     });
   } else {
-    datas.value.ptestush(md);
+    datas.value.push(md);
   }
   initWeek();
 };
@@ -846,6 +846,12 @@ onMounted(() => {
   });
   return {};
 });
+const handlePaste = (event) => {
+  event.preventDefault();
+  var text = event.clipboardData.getData("text/plain");
+  //text = text.replace(/[^a-z0-9]/gi, "");
+  document.execCommand("insertText", false, text);
+};
 </script>
 <template>
   <Dialog
@@ -1028,6 +1034,7 @@ onMounted(() => {
                     <div
                       v-if="slotProps.data.calendar_id != null"
                       contentEditable="true"
+                      @paste="handlePaste($event)"
                       :id="'contents' + slotProps.data.calendar_id"
                       class="box-contents w-full"
                       v-html="slotProps.data.contents"
@@ -1420,6 +1427,9 @@ onMounted(() => {
 ::v-deep(.lang-table) {
   .p-datatable-thead .justify-content-center .p-column-header-content {
     justify-content: center !important;
+  }
+  .p-datatable .p-datatable-tbody > tr:nth-child(even){
+    background-color: #f2f2f2;
   }
 }
 ::v-deep(.form-group) {

@@ -185,6 +185,10 @@ onMounted(() => {
               "
             >
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-bind:label="
                   x.receiver_info_display.avatar
                     ? ''
@@ -244,6 +248,10 @@ onMounted(() => {
                   style="margin-left: 10px"
                 >
                   <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     v-bind:label="
                       slotProps.value.avatar
                         ? ''
@@ -283,6 +291,10 @@ onMounted(() => {
                 style="align-items: center; margin-left: 10px"
               >
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''

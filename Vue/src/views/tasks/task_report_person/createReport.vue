@@ -1421,6 +1421,10 @@ onMounted(() => {
               </div>
               <div class="col-9 p-0 format-center">
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-tooltip.bottom="{
                     value:
                       'Người tạo công việc: <br/>' +
@@ -1505,6 +1509,10 @@ onMounted(() => {
                       >
                         <div>
                           <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-tooltip.bottom="{
                               value:
                                 value.type_name +
@@ -1540,6 +1548,10 @@ onMounted(() => {
                         </div>
                       </div>
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="
                           data.item.Thanhviens.length -
                             data.item.ThanhvienShows.length >
@@ -1801,6 +1813,10 @@ onMounted(() => {
           >
             <template #body="value">
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-tooltip.bottom="{
                   value:
                     'Người tạo: <br/>' +
@@ -1900,6 +1916,10 @@ onMounted(() => {
                 >
                   <div>
                     <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-tooltip.bottom="{
                         value:
                           value.type_name +
@@ -1933,6 +1953,10 @@ onMounted(() => {
                   </div>
                 </div>
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-if="
                     data.data.Thanhviens.length -
                       data.data.ThanhvienShows.length >
@@ -2138,6 +2162,10 @@ onMounted(() => {
                 style="margin-left: 10px"
               >
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.value.avatar
                       ? ''
@@ -2177,6 +2205,10 @@ onMounted(() => {
               style="align-items: center; margin-left: 10px"
             >
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-bind:label="
                   slotProps.option.avatar
                     ? ''
@@ -2248,6 +2280,10 @@ onMounted(() => {
                   >
                     <div>
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="index <= 2"
                         v-tooltip.bottom="{
                           value:
@@ -2282,6 +2318,10 @@ onMounted(() => {
                     </div>
                   </div>
                   <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     v-if="slotProps.value.user_info.length - 3 > 0"
                     :label="'+' + (slotProps.value.user_info.length - 3) + ''"
                     v-tooltip.bottom="{
@@ -2323,6 +2363,10 @@ onMounted(() => {
                   >
                     <div>
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="index <= 2"
                         v-tooltip.bottom="{
                           value:
@@ -2357,6 +2401,10 @@ onMounted(() => {
                     </div>
                   </div>
                   <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     v-if="slotProps.option.user_info.length - 3 > 0"
                     :label="'+' + (slotProps.option.user_info.length - 3) + ''"
                     v-tooltip.bottom="{

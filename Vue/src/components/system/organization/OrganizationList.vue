@@ -1,6 +1,6 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
-import { required, maxLength, minLength ,email } from "@vuelidate/validators";
+import { required, maxLength, minLength, email } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import arrIcons from "../../../assets/json/icons.json";
@@ -40,8 +40,8 @@ const rules = {
     required,
     maxLength: maxLength(500),
   },
-  mail :{
-    email ,
+  mail: {
+    email,
   },
 };
 const v$ = useVuelidate(rules, donvi);
@@ -103,7 +103,7 @@ const onNodeSelect = (node) => {
 const onNodeUnselect = (node) => {
   selectedNodes.value.splice(
     selectedNodes.value.indexOf(node.data.organization_id),
-    1
+    1,
   );
 };
 const handleFileUpload = (event, ia) => {
@@ -121,16 +121,19 @@ const onChangeParent = (item) => {
   const organization_id = parseInt(Object.keys(item)[0]);
   axios
     .post(
-        baseURL + "/api/Phongban/GetDataProc",
-        {
-          str: encr(JSON.stringify({
+      baseURL + "/api/Phongban/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
             proc: "sys_organization_get_order",
-        par: [{ par: "organization_id", va: organization_id }],
-          }), SecretKey, cryoptojs
-          ).toString()
-        },
-        config
-      )
+            par: [{ par: "organization_id", va: organization_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
@@ -178,7 +181,7 @@ const delNen = () => {
 //Thêm sửa xoá
 const onRefersh = () => {
   opition.value.search = "";
-  selectedKey.value ={};
+  selectedKey.value = {};
   selectedNodes.value = [];
   loadDonvi(true);
 };
@@ -199,7 +202,7 @@ const renderTree = (data, id, name, title) => {
         if (dts.length > 0) {
           if (!mm.children) mm.children = [];
           dts.forEach((em, index) => {
-            em.label_order = mm.data.label_order + "." + (index +1);
+            em.label_order = mm.data.label_order + "." + (index + 1);
             let om1 = { key: em[id], data: em };
             rechildren(om1, em[id]);
             mm.children.push(om1);
@@ -242,22 +245,25 @@ const loadDonvi = (rf) => {
   }
   axios
     .post(
-        baseURL + "/api/Phongban/GetDataProc",
-        {
-          str: encr(JSON.stringify({
+      baseURL + "/api/Phongban/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
             proc: "sys_organization_list_main",
-        par: [
-          { par: "pageno", va: opition.value.PageNo },
-          { par: "pagesize", va: opition.value.PageSize },
-          { par: "search", va: opition.value.search },
-          { par: "organization_type", va: opition.value.organization_type },
-          { par: "user_id", va: opition.value.user_id },
-        ],
-          }), SecretKey, cryoptojs
-          ).toString()
-        },
-        config
-      )
+            par: [
+              { par: "pageno", va: opition.value.PageNo },
+              { par: "pagesize", va: opition.value.PageSize },
+              { par: "search", va: opition.value.search },
+              { par: "organization_type", va: opition.value.organization_type },
+              { par: "user_id", va: opition.value.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
@@ -265,7 +271,7 @@ const loadDonvi = (rf) => {
           data[0],
           "organization_id",
           "organization_name",
-          "đơn vị"
+          "đơn vị",
         );
         donvis.value = obj.arrChils;
         treedonvis.value = obj.arrtreeChils;
@@ -298,16 +304,19 @@ const editDonvi = (md) => {
   displayAddDonvi.value = true;
   axios
     .post(
-        baseURL + "/api/Phongban/GetDataProc",
-        {
-          str: encr(JSON.stringify({
+      baseURL + "/api/Phongban/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
             proc: "sys_organization_get",
-        par: [{ par: "organization_id", va: md.organization_id }],
-          }), SecretKey, cryoptojs
-          ).toString()
-        },
-        config
-      )
+            par: [{ par: "organization_id", va: md.organization_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
     .then((response) => {
       swal.close();
       let data = JSON.parse(response.data.data);
@@ -569,7 +578,7 @@ const exportDonvi = (method) => {
         proc: "Sys_Donvi_ListExport",
         par: par,
       },
-      config
+      config,
     )
     .then((response) => {
       swal.close();
@@ -577,18 +586,20 @@ const exportDonvi = (method) => {
         swal.close();
         toast.success("Kết xuất Data thành công!");
         if (response.data.path != null) {
-            let pathReplace = response.data.path.replace(/\\+/g, '/').replace(/\/+/g, '/').replace(/^\//g, '');
-            var listPath = pathReplace.split('/');
-            var pathFile = "";
-            listPath.forEach(item => {
-              if (item.trim() != "")
-              {
-                  pathFile += "/" + item;
-              }
-            });
-            //window.open(baseURL + response.data.path);
-            window.open(baseURL + pathFile);
-          }
+          let pathReplace = response.data.path
+            .replace(/\\+/g, "/")
+            .replace(/\/+/g, "/")
+            .replace(/^\//g, "");
+          var listPath = pathReplace.split("/");
+          var pathFile = "";
+          listPath.forEach((item) => {
+            if (item.trim() != "") {
+              pathFile += "/" + item;
+            }
+          });
+          //window.open(baseURL + response.data.path);
+          window.open(baseURL + pathFile);
+        }
       } else {
         swal.fire({
           title: "Error!",
@@ -630,19 +641,19 @@ const rowClass = (data) => {
 const rowClassStatus = (data) => {
   return data.status ? "" : "error";
 };
-const showPhongban = ()=>{
-    emitter.emit("emitData", {
+const showPhongban = () => {
+  emitter.emit("emitData", {
     type: "change_type",
     data: {
-        isViewList: false,
-        isViewTree: true,
+      isViewList: false,
+      isViewTree: true,
     },
   });
-//   router.push({ name: "organization_new", params:  {} })
-//         .then(() => {
-//           router.go(0);
-//         });
-}
+  //   router.push({ name: "organization_new", params:  {} })
+  //         .then(() => {
+  //           router.go(0);
+  //         });
+};
 onMounted(() => {
   //init
   loadDonvi(true);
@@ -696,7 +707,7 @@ onMounted(() => {
               class="mr-2"
               @click="showModalAddDonvi"
             />
-                        <Button
+            <Button
               icon="pi pi-list"
               v-tooltip.left="'Hiển thị phòng ban'"
               class="mr-2"
@@ -764,7 +775,7 @@ onMounted(() => {
           />
         </template>
       </Column>
-            <Column
+      <Column
         field="organization_id"
         header="Mã đơn vị"
         class="align-items-center justify-content-center text-center"
@@ -772,7 +783,7 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:130px"
       >
         <template #body="md">
-           <span
+          <span
             :class="'donvi' + md.node.data.organization_type"
             :style="[
               md.node.data.parent_id ? '' : 'font-weight:bold',
@@ -868,16 +879,13 @@ onMounted(() => {
       </Column>
       <template #empty>
         <div
-          class="
-            m-auto
-            align-items-center
-            justify-content-center
-            p-4
-            text-center
-          "
+          class="m-auto align-items-center justify-content-center p-4 text-center"
           v-if="!isFirst"
         >
-          <img src="../../assets/background/nodata.png" height="144" />
+          <img
+            src="../../../assets/background/nodata.png"
+            height="144"
+          />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -886,7 +894,7 @@ onMounted(() => {
   <Dialog
     header="Cập nhật Đơn vị/ Phòng ban"
     v-model:visible="displayAddDonvi"
-    :style="{width: '860px',zIndex: 2}"
+    :style="{ width: '860px', zIndex: 2 }"
     :maximizable="true"
     :autoZIndex="false"
   >
@@ -913,40 +921,50 @@ onMounted(() => {
         >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
-            <span class="col-10 pl-3" v-if="donvi.organization_type == 0">{{
-              v$.organization_name.required.$message
-                .replace("Value", "Tên đơn vị")
-                .replace("is required", "không được để trống")
-            }}</span>
-             <span class="col-10 pl-3"  v-if="donvi.organization_type == 1">{{
-              v$.organization_name.required.$message
-                .replace("Value", "Tên phòng ban")
-                .replace("is required", "không được để trống")
-            }}</span>
+            <span
+              class="col-10 pl-3"
+              v-if="donvi.organization_type == 0"
+              >{{
+                v$.organization_name.required.$message
+                  .replace("Value", "Tên đơn vị")
+                  .replace("is required", "không được để trống")
+              }}</span
+            >
+            <span
+              class="col-10 pl-3"
+              v-if="donvi.organization_type == 1"
+              >{{
+                v$.organization_name.required.$message
+                  .replace("Value", "Tên phòng ban")
+                  .replace("is required", "không được để trống")
+              }}</span
+            >
           </div></small
         >
-         <small
-          v-if="
-            (v$.organization_name.maxLength.$invalid && submitted) 
-          "
+        <small
+          v-if="v$.organization_name.maxLength.$invalid && submitted"
           class="col-10 p-error"
         >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
-            <span class="col-10 pl-3"  v-if="donvi.organization_type == 0"
+            <span
+              class="col-10 pl-3"
+              v-if="donvi.organization_type == 0"
               >{{
                 v$.organization_name.maxLength.$message.replace(
                   "The maximum length allowed is",
-                  "Tên đơn vị không được vượt quá"
+                  "Tên đơn vị không được vượt quá",
                 )
               }}
               ký tự</span
             >
-            <span class="col-10 pl-3"  v-if="donvi.organization_type == 1"
+            <span
+              class="col-10 pl-3"
+              v-if="donvi.organization_type == 1"
               >{{
                 v$.organization_name.maxLength.$message.replace(
                   "The maximum length allowed is",
-                  "Tên phòng ban không được vượt quá"
+                  "Tên phòng ban không được vượt quá",
                 )
               }}
               ký tự</span
@@ -977,7 +995,10 @@ onMounted(() => {
             optionValue="value"
           />
         </div>
-        <div class="field col-12 md:col-12" v-if="donvi.organization_type == 0">
+        <div
+          class="field col-12 md:col-12"
+          v-if="donvi.organization_type == 0"
+        >
           <label class="col-2 text-left">Tên phần mềm</label>
           <InputText
             spellcheck="false"
@@ -985,7 +1006,10 @@ onMounted(() => {
             v-model="donvi.product_name"
           />
         </div>
-        <div class="field col-12 md:col-12" v-if="donvi.organization_type == 1">
+        <div
+          class="field col-12 md:col-12"
+          v-if="donvi.organization_type == 1"
+        >
           <label class="col-2 text-left">Ký hiệu văn bản</label>
           <InputText
             spellcheck="false"
@@ -993,7 +1017,10 @@ onMounted(() => {
             v-model="donvi.department_doc_code"
           />
         </div>
-        <div class="field col-12 md:col-12" v-if="donvi.organization_type ==0" >
+        <div
+          class="field col-12 md:col-12"
+          v-if="donvi.organization_type == 0"
+        >
           <label class="col-2 text-left">SĐT</label>
           <InputText
             spellcheck="false"
@@ -1007,20 +1034,23 @@ onMounted(() => {
             v-model="donvi.mail"
           />
         </div>
-          <small
-          v-if="
-            (v$.mail.email.$invalid && submitted && donvi.mail != null)"
+        <small
+          v-if="v$.mail.email.$invalid && submitted && donvi.mail != null"
           class="p-error field col-12 md:col-12 mb-3 flex"
         >
-        <div class="col-6"></div>
-            <label class="col-2 text-left"></label>
-            <span class="">{{
-              v$.mail.email.$message
-                .replace("Value is not a valid email address", "Email không hợp lệ")
-            }}</span>
-         </small
+          <div class="col-6"></div>
+          <label class="col-2 text-left"></label>
+          <span class="">{{
+            v$.mail.email.$message.replace(
+              "Value is not a valid email address",
+              "Email không hợp lệ",
+            )
+          }}</span>
+        </small>
+        <div
+          class="field col-12 md:col-12"
+          v-if="donvi.organization_type == 0"
         >
-        <div class="field col-12 md:col-12" v-if="donvi.organization_type ==0">
           <label class="col-2 text-left">Website</label>
           <InputText
             spellcheck="false"
@@ -1034,7 +1064,10 @@ onMounted(() => {
             v-model="donvi.fax"
           />
         </div>
-        <div class="field col-12 md:col-12" v-if="donvi.organization_type==0">
+        <div
+          class="field col-12 md:col-12"
+          v-if="donvi.organization_type == 0"
+        >
           <label class="col-2 text-left">Địa chỉ</label>
           <InputText
             spellcheck="false"
@@ -1048,7 +1081,10 @@ onMounted(() => {
             v-model="donvi.short_name"
           />
         </div>
-        <div class="field col-12 md:col-12 flex" v-if="donvi.organization_type==0">
+        <div
+          class="field col-12 md:col-12 flex"
+          v-if="donvi.organization_type == 0"
+        >
           <label class="col-2">Logo</label>
           <div class="col-4 p-0">
             <div class="inputanh relative">
@@ -1148,7 +1184,10 @@ onMounted(() => {
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">STT</label>
-          <InputNumber class="col-2 ip36 p-0" v-model="donvi.is_order" />
+          <InputNumber
+            class="col-2 ip36 p-0"
+            v-model="donvi.is_order"
+          />
           <label class="col-2 text-right">Trạng thái</label>
           <InputSwitch v-model="donvi.status" />
         </div>
@@ -1216,6 +1255,9 @@ span.donvitrue {
   object-fit: cover;
   width: 100%;
   height: 100%;
+}
+.donvi0 {
+  font-weight: bold !important;
 }
 </style>
 <style lang="scss" scoped>

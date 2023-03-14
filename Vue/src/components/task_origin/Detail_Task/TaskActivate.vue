@@ -159,15 +159,22 @@ onMounted(() => {
             "
             >{{ groupName }}</span
           >
-          <ul class="task-active-list" style="margin: 0px; padding: 0px">
+          <ul
+            class="task-active-list"
+            style="margin: 0px; padding: 0px"
+          >
             <li
               style="list-style: none; padding: 5px 10px"
-              v-for="value in group"
+              v-for="(value, index) in group"
+              :key="index"
             >
               <div style="display: flex">
                 <div style="display: flex; flex: 1">
                   <Avatar
-                    :key="index"
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     v-tooltip.bottom="{
                       value:
                         value.full_name +

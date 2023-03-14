@@ -764,7 +764,7 @@ onMounted(() => {
 		<div class="w-full">
 			<Splitter class="w-full">
 				<SplitterPanel :size="20">
-					<div class="m-3 flex">
+					<div class="m-3 flex" style="align-items: center;">
 						<div>
 							<img
 								:src="
@@ -775,7 +775,6 @@ onMounted(() => {
 								alt=""
 								class="p-0 pr-2"
 								width="45"
-								height="40"
 							/>
 						</div>
 						<Dropdown
@@ -786,6 +785,7 @@ onMounted(() => {
 							placeholder="Chọn database"
 							class="w-full"
 							@change="loadTable"
+							style="height: 34px;"
 						>
 						</Dropdown>
 						<Button
@@ -795,7 +795,7 @@ onMounted(() => {
 								p-button-outlined p-button-secondary
 							"
 							icon="pi pi-refresh"
-							style="border-color: #ced4da !important"
+							style="border-color: #ced4da !important;height: 34px;"
 							@click="refeshTable"
 						/>
 					</div>

@@ -44,8 +44,8 @@ namespace CMS
                     AuthenticationMode = AuthenticationMode.Active,
                     TokenValidationParameters = new TokenValidationParameters()
                     {
-                        ValidateIssuer = ConfigurationManager.AppSettings["ValidateIssuer"].ToString() == "false" ? false : true,
-                        ValidateAudience = ConfigurationManager.AppSettings["ValidateAudience"].ToString() == "false" ? false : true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = ConfigurationManager.AppSettings["ValidIssuer"], //some string, normally web url,
                         ValidAudience = ConfigurationManager.AppSettings["ValidAudience"],

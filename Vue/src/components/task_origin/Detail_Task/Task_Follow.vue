@@ -291,10 +291,15 @@ const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
+const isOpen = ref(false);
 const openDetail = (data) => {
   round.value = null;
   forceRerender();
+  isOpen.value = true;
   round.value = data;
+};
+const closeDialogDetail = () => {
+  isOpen.value = false;
 };
 const onRowReorder = (event) => {
   let formData = new FormData();
@@ -330,9 +335,10 @@ const onRowReorder = (event) => {
     })
     .catch((error) => {
       swal.close();
+
       swal.fire({
         title: "Thông báo",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!" + error,
+        html: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
         icon: "error",
         confirmButtonText: "OK",
       });
@@ -370,7 +376,7 @@ onMounted(() => {
         rowReorder
         headerStyle="width: 3rem"
         :reorderableColumn="false"
-        class="justify-content-center align-items-center text-center"
+        class="justify-content-center align-items-center text-center max-w-1rem"
         v-tooltip="'Kéo và thả để sắp xếp các bước'"
       />
       <Column
@@ -386,7 +392,7 @@ onMounted(() => {
       <Column
         header="Chức năng"
         field=""
-        headerClass="justify-content-center align-items-center max-w-20rem"
+        headerClass="justify-content-center align-items-center max-w-10rem"
       >
         <template #body="data">
           <div class="flex">
@@ -420,6 +426,8 @@ onMounted(() => {
     <TaskFollowDetailVue
       :componentKey="componentKey"
       :data="round"
+      :isOpen="isOpen"
+      :closeDialogDetail="closeDialogDetail"
     ></TaskFollowDetailVue>
   </div>
   <Dialog
@@ -595,6 +603,10 @@ onMounted(() => {
                       :key="index"
                     >
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="user.is_type == 0 && user.STTGV == 0"
                         v-tooltip.right="{
                           value: user.tooltip,
@@ -616,6 +628,10 @@ onMounted(() => {
                         shape="circle"
                       />
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="user.is_type == 1 && user.STTTH == 0"
                         v-tooltip.right="{
                           value: user.tooltip,
@@ -637,6 +653,10 @@ onMounted(() => {
                         shape="circle"
                       />
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="user.is_type == 2 && user.STTDTH == 0"
                         v-tooltip.right="{
                           value: user.tooltip,
@@ -658,6 +678,10 @@ onMounted(() => {
                         shape="circle"
                       />
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="user.is_type == 3 && user.STTTD == 0"
                         v-tooltip.right="{
                           value: user.tooltip,
@@ -680,6 +704,10 @@ onMounted(() => {
                       />
                     </div>
                     <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-if="slotProps.option.users.length > 4"
                       v-tooltip.right="{
                         value:
