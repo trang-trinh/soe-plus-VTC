@@ -846,6 +846,12 @@ onMounted(() => {
   });
   return {};
 });
+const handlePaste = (event) => {
+  event.preventDefault();
+  var text = event.clipboardData.getData("text/plain");
+  //text = text.replace(/[^a-z0-9]/gi, "");
+  document.execCommand("insertText", false, text);
+};
 </script>
 <template>
   <Dialog
@@ -1028,6 +1034,7 @@ onMounted(() => {
                     <div
                       v-if="slotProps.data.calendar_id != null"
                       contentEditable="true"
+                      @paste="handlePaste($event)"
                       :id="'contents' + slotProps.data.calendar_id"
                       class="box-contents w-full"
                       v-html="slotProps.data.contents"

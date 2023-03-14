@@ -526,7 +526,6 @@ const removeMember = (user, arr) => {
     }
   }
 };
-
 onMounted(() => {
   setTimeout(() => {
     if (document.getElementById("bold_button")) {
@@ -546,6 +545,12 @@ onMounted(() => {
     }
   }, 500);
 });
+const handlePaste = (event) => {
+  event.preventDefault();
+  var text = event.clipboardData.getData("text/plain");
+  //text = text.replace(/[^a-z0-9]/gi, "");
+  document.execCommand("insertText", false, text);
+};
 </script>
 <template>
   <Dialog
@@ -592,7 +597,8 @@ onMounted(() => {
             </div>
 
             <div
-              contentEditable="true"
+              contenteditable="true"
+              @paste="handlePaste($event)"
               id="contents"
               class="box-contents w-full"
               v-html="props.model.contents"
