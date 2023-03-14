@@ -3683,9 +3683,11 @@ const is_viewSecurityTask = ref(true);
                               v-for="(m, index) in members"
                               :key="m"
                             >
-                              <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                              <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-if="m.is_type == 3 && m.STTTD < 4"
                                 v-tooltip.right="{
                                   value: m.tooltip,
@@ -3710,9 +3712,11 @@ const is_viewSecurityTask = ref(true);
                                 shape="circle"
                               />
                             </div>
-                            <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
                               v-if="ntd > 4"
                               v-tooltip.right="{
                                 value:
@@ -3759,9 +3763,11 @@ const is_viewSecurityTask = ref(true);
                               v-for="(m, index) in members"
                               :key="m"
                             >
-                              <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                              <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-if="m.is_type == 1 && m.STTTH < 4"
                                 v-tooltip.right="{
                                   value: m.tooltip,
@@ -3787,9 +3793,11 @@ const is_viewSecurityTask = ref(true);
                                 shape="circle"
                               />
                             </div>
-                            <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
                               v-if="nth > 4"
                               v-tooltip.right="{
                                 value:
@@ -3831,10 +3839,11 @@ const is_viewSecurityTask = ref(true);
                               v-for="(m, index) in members"
                               :key="m"
                             >
-                              <Avatar 
-                              @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                              <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-if="m.is_type == 2 && m.STTDTH < 4"
                                 v-tooltip.right="{
                                   value: m.tooltip,
@@ -3859,9 +3868,11 @@ const is_viewSecurityTask = ref(true);
                                 shape="circle"
                               />
                             </div>
-                            <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
                               v-if="ndth > 4"
                               v-tooltip.right="{
                                 value:
@@ -4309,9 +4320,12 @@ const is_viewSecurityTask = ref(true);
                                     </span>
                                   </div>
                                   <div class="format-center col-2 p-0 m-0">
-                                    <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                                    <Avatar
+                                      @error="
+                                        $event.target.src =
+                                          basedomainURL +
+                                          '/Portals/Image/nouser1.png'
+                                      "
                                       v-tooltip.right="{
                                         value: t.creator_tooltip,
                                         escape: true,
@@ -4337,9 +4351,12 @@ const is_viewSecurityTask = ref(true);
                                       size=""
                                       shape="circle"
                                     />
-                                    <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                                    <Avatar
+                                      @error="
+                                        $event.target.src =
+                                          basedomainURL +
+                                          '/Portals/Image/nouser1.png'
+                                      "
                                       v-if="t.close_by != null"
                                       v-tooltip.right="{
                                         value: t.actor_tooltip,
@@ -4768,9 +4785,11 @@ const is_viewSecurityTask = ref(true);
                           v-for="(user, index) in ch.users"
                           :key="index"
                         >
-                          <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                          <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-if="user.is_type == 0 && user.STTGV == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
@@ -4794,9 +4813,11 @@ const is_viewSecurityTask = ref(true);
                             size="normal"
                             shape="circle"
                           />
-                          <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                          <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-if="user.is_type == 1 && user.STTTH == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
@@ -4820,9 +4841,11 @@ const is_viewSecurityTask = ref(true);
                             size="normal"
                             shape="circle"
                           />
-                          <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                          <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-if="user.is_type == 2 && user.STTDTH == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
@@ -4846,9 +4869,11 @@ const is_viewSecurityTask = ref(true);
                             size="normal"
                             shape="circle"
                           />
-                          <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                          <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-if="user.is_type == 3 && user.STTTD == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
@@ -4873,9 +4898,11 @@ const is_viewSecurityTask = ref(true);
                             shape="circle"
                           />
                         </div>
-                        <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="ch.users.length > 4"
                           v-tooltip.right="{
                             value:
@@ -5010,9 +5037,11 @@ const is_viewSecurityTask = ref(true);
                       }}
                     </div>
                     <div class="col-1 format-center">
-                      <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                      <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-tooltip.right="{
                           value: slotProps.creator_tooltip,
                           escape: true,
@@ -5155,9 +5184,11 @@ const is_viewSecurityTask = ref(true);
                       }}
                     </div>
                     <div class="col-1 format-center">
-                      <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                      <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-tooltip.right="{
                           value: slotProps.creator_tooltip,
                           escape: true,
@@ -5267,9 +5298,11 @@ const is_viewSecurityTask = ref(true);
                       <!-- delete-button-hover -->
                       <div class="col-12 flex">
                         <div class="format-center">
-                          <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                          <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-tooltip="{
                               value: cmt.tooltip,
                               escape: true,
@@ -5334,9 +5367,12 @@ const is_viewSecurityTask = ref(true);
                               <!-- delete-button-hover -->
                               <div class="col-12 flex p-0 m-0">
                                 <div class="format-center">
-                                  <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                                  <Avatar
+                                    @error="
+                                      $event.target.src =
+                                        basedomainURL +
+                                        '/Portals/Image/nouser1.png'
+                                    "
                                     v-tooltip="{
                                       value: cmt.parent.tooltip,
                                       escape: true,
@@ -5591,9 +5627,11 @@ const is_viewSecurityTask = ref(true);
                         <div class="col-12 p-0 m-0 pb-2">
                           <div class="col-12 flex p-0 m-0 pt-1">
                             <div class="format-center">
-                              <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                              <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-tooltip="{
                                   value: cmt.tooltip,
                                   escape: true,
@@ -5998,9 +6036,11 @@ const is_viewSecurityTask = ref(true);
                         v-for="(user, index) in ch.users"
                         :key="index"
                       >
-                        <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="user.is_type == 0"
                           v-tooltip.right="{
                             value: user.tooltip,
@@ -6021,9 +6061,11 @@ const is_viewSecurityTask = ref(true);
                           size="normal"
                           shape="circle"
                         />
-                        <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="user.is_type == 1"
                           v-tooltip.right="{
                             value: user.tooltip,
@@ -6044,9 +6086,11 @@ const is_viewSecurityTask = ref(true);
                           size="normal"
                           shape="circle"
                         />
-                        <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="user.is_type == 2"
                           v-tooltip.right="{
                             value: user.tooltip,
@@ -6067,9 +6111,11 @@ const is_viewSecurityTask = ref(true);
                           size="normal"
                           shape="circle"
                         />
-                        <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="user.is_type == 3"
                           v-tooltip.right="{
                             value: user.tooltip,
@@ -6091,9 +6137,11 @@ const is_viewSecurityTask = ref(true);
                           shape="circle"
                         />
                       </div>
-                      <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                      <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="ch.users.length > 4"
                         v-tooltip.right="{
                           value:
@@ -6139,9 +6187,11 @@ const is_viewSecurityTask = ref(true);
               v-for="(user, index) in members"
               :key="index"
             >
-              <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+              <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-if="user.is_type == 0 && user.STTGV == 0"
                 v-tooltip="{
                   value: user.tooltip,
@@ -6162,9 +6212,11 @@ const is_viewSecurityTask = ref(true);
                 size="large"
                 shape="circle"
               />
-              <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+              <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-if="user.is_type == 1 && user.STTTH == 0"
                 v-tooltip="{
                   value: user.tooltip,
@@ -6185,9 +6237,11 @@ const is_viewSecurityTask = ref(true);
                 size="large"
                 shape="circle"
               />
-              <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+              <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-if="user.is_type == 2 && user.STTDTH == 0"
                 v-tooltip="{
                   value: user.tooltip,
@@ -6208,9 +6262,11 @@ const is_viewSecurityTask = ref(true);
                 size="large"
                 shape="circle"
               />
-              <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+              <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-if="user.is_type == 3 && user.STTTD == 0"
                 v-tooltip="{
                   value: user.tooltip,
@@ -6232,7 +6288,8 @@ const is_viewSecurityTask = ref(true);
                 shape="circle"
               />
             </div>
-            <Avatar @error="
+            <Avatar
+              @error="
                 $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
               "
               v-if="countAllMember > 4"
@@ -6963,9 +7020,11 @@ const is_viewSecurityTask = ref(true);
                 class="country-item flex"
                 style="align-items: center; margin-left: 10px"
               >
-                <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
@@ -7027,9 +7086,11 @@ const is_viewSecurityTask = ref(true);
                 class="country-item flex"
                 style="align-items: center; margin-left: 10px"
               >
-                <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
@@ -7106,9 +7167,11 @@ const is_viewSecurityTask = ref(true);
                 class="country-item flex"
                 style="align-items: center; padding-left: 10px"
               >
-                <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
@@ -7165,9 +7228,11 @@ const is_viewSecurityTask = ref(true);
                 class="country-item flex"
                 style="align-items: center; padding-left: 10px"
               >
-                <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
@@ -7414,9 +7479,11 @@ const is_viewSecurityTask = ref(true);
                       class="country-item flex"
                       style="align-items: center; margin-left: 10px"
                     >
-                      <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                      <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
@@ -7474,9 +7541,11 @@ const is_viewSecurityTask = ref(true);
                       class="country-item flex"
                       style="align-items: center; padding-left: 10px"
                     >
-                      <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                      <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
@@ -7534,9 +7603,11 @@ const is_viewSecurityTask = ref(true);
                       class="country-item flex"
                       style="align-items: center; padding-left: 10px"
                     >
-                      <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                      <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
@@ -7980,9 +8051,11 @@ const is_viewSecurityTask = ref(true);
                 class="align-items-center justify-content-center text-center"
               >
                 <template #body="value">
-                  <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                  <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     :key="index"
                     v-tooltip.bottom="{
                       value:
@@ -8087,9 +8160,11 @@ const is_viewSecurityTask = ref(true);
                       :key="index"
                     >
                       <div>
-                        <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           :key="index"
                           v-tooltip.bottom="{
                             value:
@@ -8125,9 +8200,11 @@ const is_viewSecurityTask = ref(true);
                         />
                       </div>
                     </div>
-                    <Avatar @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
+                    <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-if="
                         data.data.Thanhviens.length -
                           data.data.ThanhvienShows.length >
