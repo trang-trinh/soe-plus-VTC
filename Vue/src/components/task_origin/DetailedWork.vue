@@ -709,6 +709,12 @@ const loadChildTaskOrigin = (type) => {
       DoingChild.value = count4[0].Doing;
       listChild.forEach((c) => {
         c.users = [];
+        let sttus = listDropdownStatus.value.filter((a) => a.value == c.status);
+        c.status_display = {
+          text: sttus[0].text,
+          bg_color: sttus[0].bg_color,
+          text_color: sttus[0].text_color,
+        };
         let sttgv = 0;
         let sttth = 0;
         let sttdth = 0;
