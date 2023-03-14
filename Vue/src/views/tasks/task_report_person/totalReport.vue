@@ -1097,6 +1097,10 @@ onMounted(() => {
                           style="margin-left: 10px"
                         >
                           <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-bind:label="
                               slotProps.value.avatar
                                 ? ''
@@ -1138,6 +1142,10 @@ onMounted(() => {
                         style="align-items: center; margin-left: 10px"
                       >
                         <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-bind:label="
                             slotProps.option.avatar
                               ? ''
@@ -1277,6 +1285,9 @@ onMounted(() => {
       >
         <template #body="data">
           <Avatar
+            @error="
+              $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+            "
             v-tooltip.bottom="{
               value:
                 'Người tạo báo cáo: <br/>' +
@@ -1505,6 +1516,10 @@ onMounted(() => {
               </div>
               <div class="col-9 p-0 format-center">
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-tooltip.bottom="{
                     value:
                       'Người tạo công việc: <br/>' +
@@ -1589,6 +1604,10 @@ onMounted(() => {
                       >
                         <div>
                           <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-tooltip.bottom="{
                               value:
                                 value.type_name +
@@ -1624,6 +1643,10 @@ onMounted(() => {
                         </div>
                       </div>
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="
                           data.item.Thanhviens.length -
                             data.item.ThanhvienShows.length >

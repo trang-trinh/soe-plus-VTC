@@ -930,7 +930,9 @@ onMounted(() => {
       >
         <template #body="data">
           {{ data.node.data.fullname }}
-          <!-- <Avatar
+          <!-- <Avatar @error="
+                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+              "
             v-bind:label="
               data.node.data.avt
                 ? ''

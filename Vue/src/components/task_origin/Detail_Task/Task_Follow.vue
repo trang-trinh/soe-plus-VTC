@@ -595,6 +595,10 @@ onMounted(() => {
                       :key="index"
                     >
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="user.is_type == 0 && user.STTGV == 0"
                         v-tooltip.right="{
                           value: user.tooltip,
@@ -616,6 +620,10 @@ onMounted(() => {
                         shape="circle"
                       />
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="user.is_type == 1 && user.STTTH == 0"
                         v-tooltip.right="{
                           value: user.tooltip,
@@ -637,6 +645,10 @@ onMounted(() => {
                         shape="circle"
                       />
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="user.is_type == 2 && user.STTDTH == 0"
                         v-tooltip.right="{
                           value: user.tooltip,
@@ -658,6 +670,10 @@ onMounted(() => {
                         shape="circle"
                       />
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="user.is_type == 3 && user.STTTD == 0"
                         v-tooltip.right="{
                           value: user.tooltip,
@@ -680,6 +696,10 @@ onMounted(() => {
                       />
                     </div>
                     <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-if="slotProps.option.users.length > 4"
                       v-tooltip.right="{
                         value:

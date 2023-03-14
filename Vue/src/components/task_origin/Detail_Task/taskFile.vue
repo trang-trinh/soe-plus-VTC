@@ -422,6 +422,9 @@ onMounted(() => {
           </div>
           <div class="col-1 format-center">
             <Avatar
+              @error="
+                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+              "
               v-tooltip.right="{
                 value: slotProps.creator_tooltip,
                 escape: true,

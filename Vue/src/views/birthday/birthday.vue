@@ -236,6 +236,13 @@ const ChucMung = (m) => {
       path: "/birthday/send",
     });
 };
+const ActiveMessage = (user) => {
+  router
+    .push({ name: "chat_message/fromdashboard", params: { uid: user.user_id, typeid: 'dashboard' } || {} })
+    .then(() => {
+      router.go(0);
+    });
+};
 onMounted(() => {
   bgColor;
   Get_BirthdayUserRecently();
@@ -634,6 +641,7 @@ onMounted(() => {
                           "
                           @mouseover="ShowInForUser(m)"
                           @mouseleave="HidenInForUser(m)"
+                          @click="ActiveMessage(m)"
                           class="row-users flex"
                         >
                           <div

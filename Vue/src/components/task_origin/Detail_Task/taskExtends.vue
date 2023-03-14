@@ -386,6 +386,10 @@ onMounted(() => {
                 <div class="col-12 p-0 format-left flex">
                   <div class="flex p-0 col-1 format-center">
                     <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-tooltip="{
                         value: rp.creator_tooltip,
                         escape: true,
@@ -526,6 +530,10 @@ onMounted(() => {
                     <div class="flex col-12 p-0 m-0">
                       <div class="flex m-1 p-0 col-1 format-center">
                         <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-tooltip="{
                             value: rp.acept_user_info_tooltip,
                             escape: true,

@@ -622,6 +622,9 @@ onMounted(() => {
       >
         <template #body="data">
           <Avatar
+            @error="
+              $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+            "
             v-tooltip.right="{
               value: data.data.creator.tooltip,
               escape: true,
@@ -883,6 +886,9 @@ onMounted(() => {
       >
         <template #body="data">
           <Avatar
+            @error="
+              $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+            "
             v-tooltip.right="{
               value: data.data.creator.tooltip,
               escape: true,

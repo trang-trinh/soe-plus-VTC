@@ -1072,6 +1072,10 @@ onMounted(() => {
               >
                 <template #body="data">
                   <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     v-tooltip.bottom="{
                       value: data.data.creator_tooltip,
                       escape: true,
