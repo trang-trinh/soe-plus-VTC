@@ -898,7 +898,7 @@ onMounted(() => {
                                 <Column field="Logo" header="Logo" class="align-items-center justify-content-center text-center"
                                     headerStyle="text-align:center;max-width:80px" bodyStyle="text-align:center;max-width:80px">
                                     <template #body="md">
-                                    <Avatar v-if="md.data.logo" :image="basedomainURL + md.data.logo" class="mr-2" size="large" />
+                                    <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-if="md.data.logo" :image="basedomainURL + md.data.logo" class="mr-2" size="large" />
                                     </template>
                                 </Column>
                                 <Column field="project_name" header="Tên dự án" headerStyle="max-width:auto;">
