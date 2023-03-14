@@ -289,6 +289,16 @@ const addToArray = (temp, array, id, lv, od) => {
   }
 };
 
+const headerDialogInfo = ref();
+const displayDialogInfo = ref(false);
+const openDialogInfo = () => {
+  headerDialogInfo.value = "Mục ký hiệu";
+  displayDialogInfo.value = true;
+};
+const closeDialogInfo = () => {
+  displayDialogInfo.value = false;
+};
+
 //function selection
 const selectNode = (user, day) => {
   if (isFunction.value) {
@@ -796,7 +806,6 @@ onMounted(() => {
   ) {
     isFunction.value = true;
   }
-  isFunction.value = true;
   initDictionary();
 });
 </script>
@@ -1124,6 +1133,16 @@ onMounted(() => {
             placeholder="Đến ngày"
           />
         </div>
+        <div class="ml-2">
+          <Button
+            @click="openDialogInfo()"
+            icon="pi pi-info-circle"
+            aria-label="Info"
+            class="p-button-outlined p-button-secondary ip36"
+            :style="{ width: '36px' }"
+            v-tooltip.top="'Mô tả'"
+          />
+        </div>
       </template>
     </Toolbar>
     <div class="box-table gridline-custom scrollable-both-custom">
@@ -1154,9 +1173,16 @@ onMounted(() => {
             <th
               rowspan="3"
               class="sticky text-center"
-              :style="{ width: '100px', right: '0' }"
+              :style="{ width: '100px', right: '100px' }"
             >
               NGHỈ PHÉP
+            </th>
+            <th
+              rowspan="3"
+              class="sticky text-center"
+              :style="{ width: '100px', right: '0' }"
+            >
+              TÔNG CỘNG
             </th>
           </tr>
           <tr>
@@ -1254,12 +1280,22 @@ onMounted(() => {
             <td
               class="sticky"
               :style="{
-                right: '0',
+                right: '100px',
                 background: '#f8f9fa',
                 textAlign: 'center',
               }"
             >
               {{ user.total_p }}
+            </td>
+            <td
+              class="sticky"
+              :style="{
+                right: '0',
+                background: '#f8f9fa',
+                textAlign: 'center',
+              }"
+            >
+              {{ user.total_c }}
             </td>
           </tr>
         </tbody>
@@ -1338,6 +1374,43 @@ onMounted(() => {
         class="p-button-text"
       />
       <Button label="Lưu" icon="pi pi-check" @click="saveTimekeep()" />
+    </template>
+  </Dialog>
+  <Dialog
+    :header="headerDialogInfo"
+    v-model:visible="displayDialogInfo"
+    :style="{ width: '30vw' }"
+    :maximizable="true"
+    :closable="false"
+    style="z-index: 9000"
+  >
+    <form @submit.prevent="" name="submitform">
+      <div class="grid formgrid m-2">
+        <div class="col-12 md:col-12">
+          <table class="w-full table border">
+            <thead>
+              <tr>
+                <th>Ký hiệu</th>
+                <th>Mô tả</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(value, index) in dictionarys[2]">
+                <td align="center" width="100">{{ value.symbol_code }}</td>
+                <td align="left">{{ value.symbol_name }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialogInfo()"
+        class="p-button-text"
+      />
     </template>
   </Dialog>
 </template>
@@ -1518,6 +1591,21 @@ th.isHoliday {
   }
   .p-avatar-text {
     font-size: 1rem;
+  }
+}
+::v-deep(.table) {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  tr th{
+    background-color: #f8f9fa;
+  }
+}
+::v-deep(.border) {
+  tr th,
+  tr td {
+    border: solid 1px rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
   }
 }
 </style>
