@@ -1375,19 +1375,22 @@ onMounted(() => {
                         ? 'Đã chuyển HSNS'
                         : 'Ứng tuyển'
                     "
-                    :class="
+                    :style="
                       slotProps.data.status == 1
-                        ? 'bg-green-500'
+                        ? 'backgroundColor:var(--green-500)'
                         : slotProps.data.status == 2
-                        ? 'bg-pink-500'
+                        ? 'backgroundColor:red'
                         : slotProps.data.status == 3
-                        ? 'bg-blue-500'
-                        : 'bg-yellow-500'
+                        ? 'backgroundColor:#2196f3'
+                        : 'backgroundColor:#bbbbbb'
                     "
+               
                     icon="pi pi-chevron-down"
                     iconPos="right"
                     class="px-2 w-11rem d-design-left"
                   />
+
+
                 </div>
                 <!-- <OverlayPanel
                   :showCloseIcon="false"

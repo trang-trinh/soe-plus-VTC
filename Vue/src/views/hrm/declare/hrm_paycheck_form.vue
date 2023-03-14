@@ -922,6 +922,7 @@ const displayPaycheck=ref(false);
 const openDetails=(data)=>{
 
   paycheck_form.value=data;
+ 
   displayPaycheck.value=true;
 }
 onMounted(() => {
@@ -1183,7 +1184,7 @@ onMounted(() => {
                 <div v-if="data.data.paycheck_form_date">
                   {{
                     moment(new Date(data.data.paycheck_form_date)).format(
-                      "DD/MM/YYYY"
+                      "MM/YYYY"
                     )
                   }}
                 </div>
@@ -1261,6 +1262,10 @@ onMounted(() => {
         </div>
       </template>
     </DataTable>
+    <div v-if="displayPaycheck">
+    <paycheck_form_dialog     :paycheck_form="paycheck_form" :displayPaycheck="displayPaycheck" :closeDialogDialog="closeDialogDialog" />
+  </div>
+ 
   </div>
 
   <Dialog
@@ -1531,10 +1536,7 @@ onMounted(() => {
       />
     </template>
   </Dialog> 
-  <div v-if="displayPaycheck">
-    <paycheck_form_dialog :paycheck_form="paycheck_form" :displayPaycheck="displayPaycheck" :closeDialogDialog="closeDialogDialog" />
-  </div>
- 
+  
 
 
 

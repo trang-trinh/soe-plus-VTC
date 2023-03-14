@@ -148,7 +148,7 @@ const loadData = () => {
           campaign.value.user_follows_fake =
             campaign.value.user_follows.split(",");
         }
-        debugger;
+     
         if (data1) {
           listFilesS.value = data1;
         }
@@ -889,6 +889,7 @@ onMounted(() => {
     :maximizable="true"
     :modal="true"
     :closable="true"
+    @hide="props.closeDialog"
   >
     <form>
       <div class="grid formgrid m-2">
