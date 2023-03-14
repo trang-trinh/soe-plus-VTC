@@ -92,13 +92,13 @@ const newDate = new Date();
       <table style="border: 3px double #999999 !important">
         <thead class="boder">
           <tr>
-            <th style="width: 30px">TT</th>
+            <th style="width: 50px">TT</th>
             <th style="width: 180px">Họ và tên</th>
             <th style="min-width: 100px">Cấp bậc, chức vụ</th>
             <!-- <th style="width: 80px">Ca trực</th> -->
-            <th style="width: 110px">Thời gian</th>
-            <th style="width: 100px">Thứ</th>
-            <th style="width: 180px">Trực chỉ huy</th>
+            <th style="width: 100px">Thời gian</th>
+            <th style="width: 80px">Thứ</th>
+            <th style="width: 160px">Trực chỉ huy</th>
           </tr>
         </thead>
         <tbody class="boder">
@@ -135,7 +135,7 @@ const newDate = new Date();
             </td>
             <td align="center">
               <div v-if="value.chihuys && value.chihuys.length > 0">
-                {{ value.chihuys[0].full_name }}
+                <b>{{ value.chihuys[0].full_name }}</b>
               </div>
             </td>
           </tr>

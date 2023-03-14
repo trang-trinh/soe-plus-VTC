@@ -127,7 +127,7 @@ const trustAsHtml = (html) => {
                     </i>
                   </b>
                 </div>
-                <div style="padding-top: 1rem">
+                <div>
                   <b>
                     Trực Chỉ huy: Đồng chí ______________________________ - Phó
                     Giám đốc
@@ -163,7 +163,7 @@ const trustAsHtml = (html) => {
               >
                 <div
                   v-if="content.user_id === chutri.user_id"
-                  v-html="trustAsHtml(content.contents)"
+                  v-html="content.contents"
                 ></div>
               </template>
             </td>
