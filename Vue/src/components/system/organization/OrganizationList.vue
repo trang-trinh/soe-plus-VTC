@@ -1217,6 +1217,9 @@ span.donvitrue {
   width: 100%;
   height: 100%;
 }
+.donvi0{
+  font-weight: bold !important;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.col-12) {
