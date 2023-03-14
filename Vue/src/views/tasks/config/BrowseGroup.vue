@@ -1017,7 +1017,6 @@ onMounted(() => {
               v-bind:image="basedomainURL + slotProps.item.avatar"
               :key="slotProps.item.user_id"
               style="border: 2px solid white; color: white"
-              @error="basedomainURL + '/Portals/Image/noimg.jpg'"
               size="large"
               shape="circle"
               class="cursor-pointer bg-blue-200"
