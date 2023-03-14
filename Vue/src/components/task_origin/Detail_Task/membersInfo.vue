@@ -164,8 +164,9 @@ const LoadMember = (type) => {
         element.STTTD = null;
         element.tooltip =
           element.full_name +
-          "<br/>" +
-          element.positions +
+          ("<br/>" + (element.positions ?? "") != "<br/>"
+            ? "<br/>" + (element.positions ?? "")
+            : "") +
           "<br/>" +
           (element.department_name != null
             ? element.department_name
@@ -466,6 +467,10 @@ onMounted(() => {
             >
               <div class="col-2 format-center">
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   :label="
                     slotProps.item.avatar
                       ? slotProps.item.avatar
@@ -516,6 +521,10 @@ onMounted(() => {
           >
             <div class="col-2 format-center p-0 m-0">
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-tooltip.right="{
                   value: m.tooltip,
                   escape: true,

@@ -10,6 +10,7 @@ import { useCookies } from "vue3-cookies";
 import chatMessage from "../../components/chat/DetailChat.vue";
 import { encr, change_unsigned, checkURL } from "../../util/function.js";
 import { socketMethod } from "../../util/methodSocket";
+import treeuser from "../../components/user/treeuser.vue";
 const cryoptojs = inject("cryptojs");
 //Khai báo
 const route = useRoute();
@@ -112,8 +113,8 @@ const loadDataGroupChat = (isGetRealtime) => {
 						{ par: "search", va: null },
 						{ par: "type_chat", va: options.value.TypeChat },
 						{ par: "sort", va: options.value.sort },
-						//{ par: "chat_id_active", va: localStorage.getItem("chatGroupID") },
-						{ par: "chat_id_active", va: cookies.get("chatGroupID") },
+						//{ par: "chat_id_active", va: localStorage.getItem("ck_cgi") },
+						{ par: "chat_id_active", va: cookies.get("ck_cgi") },
 					],
 				}), SecretKey, cryoptojs
 			).toString()
@@ -136,8 +137,8 @@ const loadDataGroupChat = (isGetRealtime) => {
 		//options.value.loading = false;
 		if(route.params.id != null){
           	//nhan thong bao tu notify
-          	//localStorage.setItem("chatGroupID", route.params.id);
-			cookies.set("chatGroupID", route.params.id);
+          	//localStorage.setItem("ck_cgi", route.params.id);
+			cookies.set("ck_cgi", route.params.id);
         }
 		else if (route.params.uid != null && route.params.typeid == 'dashboard') {
 			let listPersonalChat = datalists.value.filter(x => x.is_group_chat != true && ((x.user_chat == route.params.uid && x.created_by == store.getters.user.user_id) || (x.created_by == route.params.uid && x.user_chat == store.getters.user.user_id)));
@@ -148,19 +149,23 @@ const loadDataGroupChat = (isGetRealtime) => {
 					chat.value.is_group_chat = false;
 					chat.value.user_chat = userChoose[0].user_id;
 					chat.value.avatar_group = userChoose[0].avatar;
+					typeGroupChat.value = 0;
 					saveGroupChat();
 				}
 			}
 			else {
+				if (cookies.get("ck_cgi") != null) {
+					cookies.remove("ck_cgi");
+				}
 				showDetailChat(listPersonalChat[0]);
 			}
 		}
-		// if (localStorage.getItem("chatGroupID") != null) {
-		// 	let chatLocal = { chat_group_id: localStorage.getItem("chatGroupID") };
+		// if (localStorage.getItem("ck_cgi") != null) {
+		// 	let chatLocal = { chat_group_id: localStorage.getItem("ck_cgi") };
 		// 	showDetailChat(chatLocal, isGetRealtime);
 		// }
-		if (cookies.get("chatGroupID") != null) {
-			let chatLocal = { chat_group_id: cookies.get("chatGroupID") };
+		if (cookies.get("ck_cgi") != null) {
+			let chatLocal = { chat_group_id: cookies.get("ck_cgi") };
 			showDetailChat(chatLocal, isGetRealtime);
 		}
 		else {
@@ -227,8 +232,8 @@ const showDetailChat = (chatShow, isGetRealtime) => {
 				str: encr(JSON.stringify({
 						proc: "chat_group_detail",
 						par: [
-							//{ par: "chat_group_id", va: chatShow.chat_group_id || localStorage.getItem("chatGroupID") },
-							{ par: "chat_group_id", va: chatShow.chat_group_id || cookies.get("chatGroupID") },
+							//{ par: "chat_group_id", va: chatShow.chat_group_id || localStorage.getItem("ck_cgi") },
+							{ par: "chat_group_id", va: chatShow.chat_group_id || cookies.get("ck_cgi") },
 							{ par: "user_id", va: store.getters.user.user_id },
 							{ par: "organization_id", va: store.getters.user.organization_id },
 						],
@@ -241,8 +246,8 @@ const showDetailChat = (chatShow, isGetRealtime) => {
 			let data = JSON.parse(response.data.data);
 			if (data.length > 0) {
 				if (showInfoChat.value != null) {
-					//data[0][0].IsInfoChat = localStorage.getItem("viewTabChatID") != null ? localStorage.getItem("viewTabChatID") == 'true': showInfoChat.value;
-					data[0][0].IsInfoChat = cookies.get("viewTabChatID") != null ? cookies.get("viewTabChatID") == 'true': showInfoChat.value;
+					//data[0][0].IsInfoChat = localStorage.getItem("ck_tabchat") != null ? localStorage.getItem("ck_tabchat") == 'true': showInfoChat.value;
+					data[0][0].IsInfoChat = cookies.get("ck_tabchat") != null ? cookies.get("ck_tabchat") == 'true': showInfoChat.value;
 				}
 				detailChat.value = data[0][0];
 				if (detailChat.value.is_group_chat != true) {
@@ -275,12 +280,12 @@ const showDetailChat = (chatShow, isGetRealtime) => {
 				if (chatShow != null && chatShow.number_ms_unread > 0) {
 					chatShow.number_ms_unread = 0;
 				}
-				//if (localStorage.getItem("chatGroupID") != detailChat.value.chat_group_id) {
-				if (cookies.get("chatGroupID") != detailChat.value.chat_group_id) {
+				//if (localStorage.getItem("ck_cgi") != detailChat.value.chat_group_id) {
+				if (cookies.get("ck_cgi") != detailChat.value.chat_group_id) {
 					forceRerender();
 				}
-				//localStorage.setItem("chatGroupID", detailChat.value.chat_group_id);
-				cookies.set("chatGroupID", detailChat.value.chat_group_id);
+				//localStorage.setItem("ck_cgi", detailChat.value.chat_group_id);
+				cookies.set("ck_cgi", detailChat.value.chat_group_id);
 			}
 		})
 		.catch((error) => {
@@ -307,8 +312,8 @@ const reloadDataChat = () => {
 				str: encr(JSON.stringify({
 						proc: "chat_group_detail",
 						par: [
-							//{ par: "chat_group_id", va: localStorage.getItem("chatGroupID") },
-							{ par: "chat_group_id", va: cookies.get("chatGroupID") },
+							//{ par: "chat_group_id", va: localStorage.getItem("ck_cgi") },
+							{ par: "chat_group_id", va: cookies.get("ck_cgi") },
 							{ par: "user_id", va: store.getters.user.user_id },
 							{ par: "organization_id", va: store.getters.user.organization_id },
 						],
@@ -321,12 +326,12 @@ const reloadDataChat = () => {
 			let data = JSON.parse(response.data.data);
 			if (data.length > 0) {
 				if (showInfoChat.value != null) {
-					//data[0][0].IsInfoChat = localStorage.getItem("viewTabChatID") != null ? localStorage.getItem("viewTabChatID") == 'true': showInfoChat.value;
-					data[0][0].IsInfoChat = cookies.get("viewTabChatID") != null ? cookies.get("viewTabChatID") == 'true': showInfoChat.value;
+					//data[0][0].IsInfoChat = localStorage.getItem("ck_tabchat") != null ? localStorage.getItem("ck_tabchat") == 'true': showInfoChat.value;
+					data[0][0].IsInfoChat = cookies.get("ck_tabchat") != null ? cookies.get("ck_tabchat") == 'true': showInfoChat.value;
 				}
 				detailChat.value = data[0][0];
-				//localStorage.setItem("chatGroupID", detailChat.value.chat_group_id);
-				cookies.set("chatGroupID", detailChat.value.chat_group_id);
+				//localStorage.setItem("ck_cgi", detailChat.value.chat_group_id);
+				cookies.set("ck_cgi", detailChat.value.chat_group_id);
 				if (data[1].length > 0){
 					data[1].forEach((el, idx) => {
 						if (el.user_chat_name != null && el.user_chat_name.trim() != '') {
@@ -477,8 +482,8 @@ const saveGroupChat = (isFormValid) => {
 			//toast.success("Cập nhật cuộc trò chuyện thành công!");
 			displayChat.value = false;
 			if (response.data.chatGroupID) {
-				//localStorage.setItem("chatGroupID", response.data.chatGroupID);
-				cookies.set("chatGroupID", response.data.chatGroupID);
+				//localStorage.setItem("ck_cgi", response.data.chatGroupID);
+				cookies.set("ck_cgi", response.data.chatGroupID);
 			}
 			loadDataGroupChat();
 		} else {
@@ -672,6 +677,40 @@ const removeUser = (us, idx) => {
 const Out_GroupChat = () => {
 
 };
+// Modal Tree User
+const selectedUser = ref([]);
+const is_one = ref(false);
+const is_type = ref();
+const headerDialogUser = ref();
+const displayDialogUser = ref(false);
+const closeDialogUser = () => {
+  	displayDialogUser.value = false;
+};
+const showModalUser = (one, type) => {
+	selectedUser.value = [];
+	headerDialogUser.value = "Chọn người dùng";
+	selectedUser.value = [...listMember.value];
+	is_one.value = one;
+	is_type.value = type;
+	displayDialogUser.value = true;
+};
+const choiceUser = () => {
+	switch (is_type.value) {
+		case 0:
+			var notexist = selectedUser.value.filter((a) => listMember.value.findIndex((b) => b["user_join"] === a["user_id"]) === -1);
+			if (notexist.length > 0) {
+				notexist.forEach((e) => {
+					e.user_join = e.user_id;
+				});
+				listMember.value = listMember.value.concat(notexist);
+			}
+			break;
+		default:
+			break;
+	}
+	closeDialogUser();
+};
+//
 const dataListSearch = () => {
 	if (datalists.value.length > 0){
 		if (options.value.SearchText != null && options.value.SearchText.trim() != '' && datalists.value.length > 0){
@@ -1180,7 +1219,8 @@ onMounted(() => {
 								Danh sách người dùng
 								<a v-if="chat.is_captain" 
 									class="ml-1"
-									@click="showusersModal(false,2)">
+									style="cursor:pointer;color:rgb(33, 150, 243);"
+									@click="showModalUser(false,0)">
 									<i class="pi pi-user-plus font-bold" v-tooltip.top="'Chọn thành viên'"></i>
 								</a>
 							</label>
@@ -1259,6 +1299,16 @@ onMounted(() => {
 			<Button v-if="typeGroupChat == 1" label="Lưu" icon="pi pi-check" @click="saveGroupChat(!(v$.chat_group_name.required.$invalid && v$.chat_group_name.required.$invalid))" />
 		</template>
 	</Dialog>
+	<!-- Tree user -->
+	<treeuser
+		v-if="displayDialogUser === true"
+		:headerDialog="headerDialogUser"
+		:displayDialog="displayDialogUser"
+		:closeDialog="closeDialogUser"
+		:one="is_one"
+		:selected="selectedUser"
+		:choiceUser="choiceUser"
+	/>
 </template>
 
 <style scoped>

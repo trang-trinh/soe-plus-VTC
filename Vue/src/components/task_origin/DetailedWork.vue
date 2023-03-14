@@ -12,6 +12,7 @@ import taskActiveVue from "./Detail_Task/TaskActivate.vue";
 import reviewTaskVue from "./Detail_Task/reviewTask.vue";
 import taskExtendsVue from "./Detail_Task/taskExtends.vue";
 import FileInfoVue from "./Detail_Task/FileInfo.vue";
+import Task_FollowVue from "./Detail_Task/Task_Follow.vue";
 import TaskCheckListDetailVue from "./Detail_Task/TaskCheckListDetail.vue";
 import { encr } from "../../util/function.js";
 import moment from "moment";
@@ -728,7 +729,7 @@ const loadChildTaskOrigin = (type) => {
               "<br/>" +
               u.full_name +
               "<br/>" +
-              u.positions +
+              (u.positions ?? "") +
               "<br/>" +
               (u.department_name != null
                 ? u.department_name
@@ -1937,7 +1938,7 @@ const EditTask = (task) => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      debugger
+      debugger;
       if (data.length > 0) {
         data[0].forEach((element, i) => {
           element.Thanhviens = element.Thanhviens
@@ -2012,7 +2013,7 @@ const HoatDong = ref(false);
 const NguoiDaXem = ref(false);
 const PhanQuyen = ref(false);
 const ThongKe = ref(false);
-
+const QuyTrinh = ref(false);
 const Switch = (e) => {
   switch (e) {
     case "1":
@@ -2028,6 +2029,7 @@ const Switch = (e) => {
       ThongKe.value = false;
       loadData(true);
       displayTask.value = false;
+      QuyTrinh.value = false;
       break;
     case "2":
       ThongTinChung.value = false;
@@ -2041,6 +2043,7 @@ const Switch = (e) => {
       PhanQuyen.value = false;
       displayTask.value = false;
       ThongKe.value = false;
+      QuyTrinh.value = false;
       break;
     case "3":
       ThongTinChung.value = false;
@@ -2054,6 +2057,7 @@ const Switch = (e) => {
       displayTask.value = false;
       PhanQuyen.value = false;
       ThongKe.value = false;
+      QuyTrinh.value = false;
 
       break;
     case "4":
@@ -2068,6 +2072,7 @@ const Switch = (e) => {
       displayTask.value = false;
       PhanQuyen.value = false;
       ThongKe.value = false;
+      QuyTrinh.value = false;
 
       break;
     case "5":
@@ -2082,6 +2087,7 @@ const Switch = (e) => {
       PhanQuyen.value = false;
       displayTask.value = false;
       ThongKe.value = false;
+      QuyTrinh.value = false;
 
       break;
     case "6":
@@ -2096,6 +2102,7 @@ const Switch = (e) => {
       displayTask.value = false;
       PhanQuyen.value = false;
       ThongKe.value = false;
+      QuyTrinh.value = false;
 
       break;
     case "7":
@@ -2110,6 +2117,7 @@ const Switch = (e) => {
       PhanQuyen.value = false;
       displayTask.value = false;
       ThongKe.value = false;
+      QuyTrinh.value = false;
 
       break;
     case "8":
@@ -2124,6 +2132,7 @@ const Switch = (e) => {
       PhanQuyen.value = false;
       displayTask.value = false;
       ThongKe.value = false;
+      QuyTrinh.value = false;
 
       break;
     case "9":
@@ -2138,6 +2147,7 @@ const Switch = (e) => {
       PhanQuyen.value = true;
       displayTask.value = false;
       ThongKe.value = false;
+      QuyTrinh.value = false;
       break;
     case "10":
       ThongTinChung.value = false;
@@ -2151,6 +2161,23 @@ const Switch = (e) => {
       PhanQuyen.value = false;
       displayTask.value = false;
       ThongKe.value = true;
+      QuyTrinh.value = false;
+      break;
+    case "11":
+      ThongTinChung.value = false;
+      DanhGiaCongViec.value = false;
+      GiaHanXuLy.value = false;
+      CongViecCon.value = false;
+      QuanLyThanhVien.value = false;
+      QuanLyTaiLieu.value = false;
+      HoatDong.value = false;
+      NguoiDaXem.value = false;
+      PhanQuyen.value = false;
+      displayTask.value = false;
+      ThongKe.value = false;
+      QuyTrinh.value = true;
+      forceRerender();
+      loadChildTaskOrigin(0);
       break;
   }
 };
@@ -3657,6 +3684,10 @@ const is_viewSecurityTask = ref(true);
                               :key="m"
                             >
                               <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-if="m.is_type == 3 && m.STTTD < 4"
                                 v-tooltip.right="{
                                   value: m.tooltip,
@@ -3682,6 +3713,10 @@ const is_viewSecurityTask = ref(true);
                               />
                             </div>
                             <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
                               v-if="ntd > 4"
                               v-tooltip.right="{
                                 value:
@@ -3729,6 +3764,10 @@ const is_viewSecurityTask = ref(true);
                               :key="m"
                             >
                               <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-if="m.is_type == 1 && m.STTTH < 4"
                                 v-tooltip.right="{
                                   value: m.tooltip,
@@ -3755,6 +3794,10 @@ const is_viewSecurityTask = ref(true);
                               />
                             </div>
                             <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
                               v-if="nth > 4"
                               v-tooltip.right="{
                                 value:
@@ -3797,6 +3840,10 @@ const is_viewSecurityTask = ref(true);
                               :key="m"
                             >
                               <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-if="m.is_type == 2 && m.STTDTH < 4"
                                 v-tooltip.right="{
                                   value: m.tooltip,
@@ -3822,6 +3869,10 @@ const is_viewSecurityTask = ref(true);
                               />
                             </div>
                             <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
                               v-if="ndth > 4"
                               v-tooltip.right="{
                                 value:
@@ -4270,6 +4321,11 @@ const is_viewSecurityTask = ref(true);
                                   </div>
                                   <div class="format-center col-2 p-0 m-0">
                                     <Avatar
+                                      @error="
+                                        $event.target.src =
+                                          basedomainURL +
+                                          '/Portals/Image/nouser1.png'
+                                      "
                                       v-tooltip.right="{
                                         value: t.creator_tooltip,
                                         escape: true,
@@ -4296,6 +4352,11 @@ const is_viewSecurityTask = ref(true);
                                       shape="circle"
                                     />
                                     <Avatar
+                                      @error="
+                                        $event.target.src =
+                                          basedomainURL +
+                                          '/Portals/Image/nouser1.png'
+                                      "
                                       v-if="t.close_by != null"
                                       v-tooltip.right="{
                                         value: t.actor_tooltip,
@@ -4725,6 +4786,10 @@ const is_viewSecurityTask = ref(true);
                           :key="index"
                         >
                           <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-if="user.is_type == 0 && user.STTGV == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
@@ -4749,6 +4814,10 @@ const is_viewSecurityTask = ref(true);
                             shape="circle"
                           />
                           <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-if="user.is_type == 1 && user.STTTH == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
@@ -4773,6 +4842,10 @@ const is_viewSecurityTask = ref(true);
                             shape="circle"
                           />
                           <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-if="user.is_type == 2 && user.STTDTH == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
@@ -4797,6 +4870,10 @@ const is_viewSecurityTask = ref(true);
                             shape="circle"
                           />
                           <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-if="user.is_type == 3 && user.STTTD == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
@@ -4822,6 +4899,10 @@ const is_viewSecurityTask = ref(true);
                           />
                         </div>
                         <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="ch.users.length > 4"
                           v-tooltip.right="{
                             value:
@@ -4957,6 +5038,10 @@ const is_viewSecurityTask = ref(true);
                     </div>
                     <div class="col-1 format-center">
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-tooltip.right="{
                           value: slotProps.creator_tooltip,
                           escape: true,
@@ -5100,6 +5185,10 @@ const is_viewSecurityTask = ref(true);
                     </div>
                     <div class="col-1 format-center">
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-tooltip.right="{
                           value: slotProps.creator_tooltip,
                           escape: true,
@@ -5210,6 +5299,10 @@ const is_viewSecurityTask = ref(true);
                       <div class="col-12 flex">
                         <div class="format-center">
                           <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
                             v-tooltip="{
                               value: cmt.tooltip,
                               escape: true,
@@ -5275,6 +5368,11 @@ const is_viewSecurityTask = ref(true);
                               <div class="col-12 flex p-0 m-0">
                                 <div class="format-center">
                                   <Avatar
+                                    @error="
+                                      $event.target.src =
+                                        basedomainURL +
+                                        '/Portals/Image/nouser1.png'
+                                    "
                                     v-tooltip="{
                                       value: cmt.parent.tooltip,
                                       escape: true,
@@ -5514,7 +5612,8 @@ const is_viewSecurityTask = ref(true);
                           style="top: 0 !important; right: 0 !important"
                           @click="closeReplyOrEditCmt()"
                           v-tooltip="{ value: 'Hủy' }"
-                        ></Button>
+                        >
+                        </Button>
                       </div>
                     </div>
                     <div
@@ -5530,6 +5629,10 @@ const is_viewSecurityTask = ref(true);
                           <div class="col-12 flex p-0 m-0 pt-1">
                             <div class="format-center">
                               <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-tooltip="{
                                   value: cmt.tooltip,
                                   escape: true,
@@ -5835,6 +5938,14 @@ const is_viewSecurityTask = ref(true);
       <div v-if="NguoiDaXem == true">
         <viewedMemberVue :id="props.id"></viewedMemberVue>
       </div>
+      <div v-if="QuyTrinh == true">
+        <Task_FollowVue
+          :componentKey="componentKey"
+          :id="props.id"
+          :pj_id="datalists.project_id"
+          :listChild="ListChildTask"
+        ></Task_FollowVue>
+      </div>
       <div v-if="CongViecCon == true">
         <div class="row col-12">
           <div class="col-12 p-0 m-0">
@@ -5927,6 +6038,10 @@ const is_viewSecurityTask = ref(true);
                         :key="index"
                       >
                         <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="user.is_type == 0"
                           v-tooltip.right="{
                             value: user.tooltip,
@@ -5948,6 +6063,10 @@ const is_viewSecurityTask = ref(true);
                           shape="circle"
                         />
                         <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="user.is_type == 1"
                           v-tooltip.right="{
                             value: user.tooltip,
@@ -5969,6 +6088,10 @@ const is_viewSecurityTask = ref(true);
                           shape="circle"
                         />
                         <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="user.is_type == 2"
                           v-tooltip.right="{
                             value: user.tooltip,
@@ -5990,6 +6113,10 @@ const is_viewSecurityTask = ref(true);
                           shape="circle"
                         />
                         <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-if="user.is_type == 3"
                           v-tooltip.right="{
                             value: user.tooltip,
@@ -6012,6 +6139,10 @@ const is_viewSecurityTask = ref(true);
                         />
                       </div>
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="ch.users.length > 4"
                         v-tooltip.right="{
                           value:
@@ -6058,6 +6189,10 @@ const is_viewSecurityTask = ref(true);
               :key="index"
             >
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-if="user.is_type == 0 && user.STTGV == 0"
                 v-tooltip="{
                   value: user.tooltip,
@@ -6079,6 +6214,10 @@ const is_viewSecurityTask = ref(true);
                 shape="circle"
               />
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-if="user.is_type == 1 && user.STTTH == 0"
                 v-tooltip="{
                   value: user.tooltip,
@@ -6100,6 +6239,10 @@ const is_viewSecurityTask = ref(true);
                 shape="circle"
               />
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-if="user.is_type == 2 && user.STTDTH == 0"
                 v-tooltip="{
                   value: user.tooltip,
@@ -6121,6 +6264,10 @@ const is_viewSecurityTask = ref(true);
                 shape="circle"
               />
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-if="user.is_type == 3 && user.STTTD == 0"
                 v-tooltip="{
                   value: user.tooltip,
@@ -6143,6 +6290,9 @@ const is_viewSecurityTask = ref(true);
               />
             </div>
             <Avatar
+              @error="
+                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+              "
               v-if="countAllMember > 4"
               v-tooltip="{
                 value: 'và ' + (members.length - 4) + ' người khác tham gia',
@@ -6391,6 +6541,20 @@ const is_viewSecurityTask = ref(true);
               "
               >{{ ListChildTask.length }}</span
             >
+          </div>
+        </div>
+        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+          <div
+            class="col-12 p-0 m-0"
+            style="position: relative"
+          >
+            <Button
+              icon="p-custom pi pi-spin pi-sync"
+              label="Thiết lập quy trình"
+              class="p-button-raised p-button-text w-full py-3 text-left"
+              @click="Switch('11')"
+              :class="QuyTrinh == true ? 'activated' : ''"
+            />
           </div>
         </div>
         <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
@@ -6858,6 +7022,10 @@ const is_viewSecurityTask = ref(true);
                 style="align-items: center; margin-left: 10px"
               >
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
@@ -6920,6 +7088,10 @@ const is_viewSecurityTask = ref(true);
                 style="align-items: center; margin-left: 10px"
               >
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
@@ -6997,6 +7169,10 @@ const is_viewSecurityTask = ref(true);
                 style="align-items: center; padding-left: 10px"
               >
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
@@ -7054,6 +7230,10 @@ const is_viewSecurityTask = ref(true);
                 style="align-items: center; padding-left: 10px"
               >
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
@@ -7255,17 +7435,21 @@ const is_viewSecurityTask = ref(true);
             </template>
           </Dropdown>
         </div>
-        <div class="field col-12 md:col-12" style="
-                display: flex;
-                /* padding: 0px; */
-                align-items: center;
-                position: relative;">
+        <div
+          class="field col-12 md:col-12"
+          style="
+            display: flex;
+            /* padding: 0px; */
+            align-items: center;
+            position: relative;
+          "
+        >
           <label class="col-3 text-left p-0">Xuất XML</label>
           <InputSwitch
-                class="col-9"
-                style="position: absolute; top: 0px; left: 160px"
-                v-model="Task.is_XML"
-              />
+            class="col-9"
+            style="position: absolute; top: 0px; left: 160px"
+            v-model="Task.is_XML"
+          />
         </div>
         <div class="field col-12 md:col-12">
           <Accordion :multiple="true">
@@ -7297,6 +7481,10 @@ const is_viewSecurityTask = ref(true);
                       style="align-items: center; margin-left: 10px"
                     >
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
@@ -7355,6 +7543,10 @@ const is_viewSecurityTask = ref(true);
                       style="align-items: center; padding-left: 10px"
                     >
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
@@ -7413,6 +7605,10 @@ const is_viewSecurityTask = ref(true);
                       style="align-items: center; padding-left: 10px"
                     >
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
@@ -7857,6 +8053,10 @@ const is_viewSecurityTask = ref(true);
               >
                 <template #body="value">
                   <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     :key="index"
                     v-tooltip.bottom="{
                       value:
@@ -7962,6 +8162,10 @@ const is_viewSecurityTask = ref(true);
                     >
                       <div>
                         <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           :key="index"
                           v-tooltip.bottom="{
                             value:
@@ -7998,6 +8202,10 @@ const is_viewSecurityTask = ref(true);
                       </div>
                     </div>
                     <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-if="
                         data.data.Thanhviens.length -
                           data.data.ThanhvienShows.length >

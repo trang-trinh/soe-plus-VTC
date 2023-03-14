@@ -1634,6 +1634,10 @@ onMounted(() => {
             <div class="flex row col-12 p-0 m-0">
               <div class="flex col-3 p-0 m-0 format-center">
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-bind:label="
                     data.data.avt
                       ? ''
@@ -1916,6 +1920,10 @@ onMounted(() => {
                 </div>
                 <div class="flex col-4 p-0 m-0 format-center">
                   <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     v-bind:label="
                       p.avatar
                         ? ''

@@ -626,6 +626,13 @@ const saveProjectMain = (isFormValid) => {
       });
   }
 };
+const emitter = inject("emitter");
+emitter.on("SideBar", (obj) => {
+  showDetail.value = false;
+  selectedDiscussProjectID.value = null;
+  loadData(false);
+});
+
 const RenderData = (response) => {
   opition.value.allRecord = null;
   let list1 = [];

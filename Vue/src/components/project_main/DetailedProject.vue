@@ -550,7 +550,10 @@ const loadFileTaiLieu = () => {
       }
     });
 }
-
+ const active1=ref(0);
+ const ChangeTab = (e) => {
+  active1.value = e;
+ }
 onMounted(() => {
     loadData(false);
     loadProjectMainChild();
@@ -625,7 +628,7 @@ onMounted(() => {
                             />
                         </AvatarGroup>
                     </div>
-                    <TabView ref="tabview1" style="height: 100%;">
+                    <TabView ref="tabviewduan" @tab-change="ChangeTab($event.index)" style="height: 100%;" v-model:activeIndex="active1">
                         <TabPanel header="Thông tin chung">
                             <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
                                 <div class="col-6 p-0 m-0 tab-project-content-left">
@@ -895,7 +898,7 @@ onMounted(() => {
                                 <Column field="Logo" header="Logo" class="align-items-center justify-content-center text-center"
                                     headerStyle="text-align:center;max-width:80px" bodyStyle="text-align:center;max-width:80px">
                                     <template #body="md">
-                                    <Avatar v-if="md.data.logo" :image="basedomainURL + md.data.logo" class="mr-2" size="large" />
+                                    <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-if="md.data.logo" :image="basedomainURL + md.data.logo" class="mr-2" size="large" />
                                     </template>
                                 </Column>
                                 <Column field="project_name" header="Tên dự án" headerStyle="max-width:auto;">
@@ -1045,9 +1048,7 @@ onMounted(() => {
                         </TabPanel>
                         <TabPanel header="Thảo luận">
                             <Discuss
-                              :isShow="showDetail"
                               :id="props.id"
-                              :turn="0"
                             >
                             </Discuss>
                         </TabPanel>

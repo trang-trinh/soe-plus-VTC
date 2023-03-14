@@ -89,8 +89,8 @@ const loadDataGroupChat = (isGetRealtime) => {
 						{ par: "search", va: null },
 						{ par: "type_chat", va: options.value.TypeChat },
 						{ par: "sort", va: options.value.sort },
-						//{ par: "chat_id_active", va: localStorage.getItem("chatGroupID") },
-						{ par: "chat_id_active", va: cookies.get("chatGroupID") },
+						//{ par: "chat_id_active", va: localStorage.getItem("ck_cgi") },
+						{ par: "chat_id_active", va: cookies.get("ck_cgi") },
 					],
 				}), SecretKey, cryoptojs
 			).toString()
@@ -104,10 +104,10 @@ const loadDataGroupChat = (isGetRealtime) => {
 		});
 		datalists.value = data[0];
 		options.value.loading = false;
-		// if (localStorage.getItem("chatGroupID") != null){
+		// if (localStorage.getItem("ck_cgi") != null){
 		// 	reloadDataChat(null, isGetRealtime);
 		// }
-		if (cookies.get("chatGroupID") != null){
+		if (cookies.get("ck_cgi") != null){
 			reloadDataChat(null, isGetRealtime);
 		}
 		else {
@@ -149,8 +149,8 @@ const reloadDataChat = (dataChat, isGetRealtime) => {
 				str: encr(JSON.stringify({
 						proc: "chat_group_detail",
 						par: [
-							//{ par: "chat_group_id", va: dataChat != null ? dataChat.chat_group_id : localStorage.getItem("chatGroupID") },
-							{ par: "chat_group_id", va: dataChat != null ? dataChat.chat_group_id : cookies.get("chatGroupID") },
+							//{ par: "chat_group_id", va: dataChat != null ? dataChat.chat_group_id : localStorage.getItem("ck_cgi") },
+							{ par: "chat_group_id", va: dataChat != null ? dataChat.chat_group_id : cookies.get("ck_cgi") },
 							{ par: "user_id", va: store.getters.user.user_id },
 							{ par: "organization_id", va: store.getters.user.organization_id },
 						],
@@ -163,8 +163,8 @@ const reloadDataChat = (dataChat, isGetRealtime) => {
 			let data = JSON.parse(response.data.data);
 			if (data.length > 0) {
 				if (showInfoChat.value != null) {
-					//data[0][0].IsInfoChat = localStorage.getItem("viewTabChatID") != null ? localStorage.getItem("viewTabChatID") == 'true': showInfoChat.value;
-					data[0][0].IsInfoChat = cookies.get("viewTabChatID") != null ? cookies.get("viewTabChatID") == 'true': showInfoChat.value;
+					//data[0][0].IsInfoChat = localStorage.getItem("ck_tabchat") != null ? localStorage.getItem("ck_tabchat") == 'true': showInfoChat.value;
+					data[0][0].IsInfoChat = cookies.get("ck_tabchat") != null ? cookies.get("ck_tabchat") == 'true': showInfoChat.value;
 				}
 				detailChat.value = data[0][0];
 				if (data[1].length > 0){
@@ -189,11 +189,11 @@ const reloadDataChat = (dataChat, isGetRealtime) => {
 				if (dataChat != null && dataChat.number_ms_unread > 0) {
 					dataChat.number_ms_unread = 0;
 				}
-				if (cookies.get("chatGroupID") != detailChat.value.chat_group_id) {
+				if (cookies.get("ck_cgi") != detailChat.value.chat_group_id) {
 					forceRerender();
 				}
-				//localStorage.setItem("chatGroupID", detailChat.value.chat_group_id);
-				cookies.set("chatGroupID", detailChat.value.chat_group_id);
+				//localStorage.setItem("ck_cgi", detailChat.value.chat_group_id);
+				cookies.set("ck_cgi", detailChat.value.chat_group_id);
 			}
 		})
 		.catch((error) => {
@@ -367,8 +367,8 @@ const saveGroupChat = (isFormValid) => {
 		savingChat.value = false;
 		if (response.data.err != "1") {
 			swal.close();
-			//localStorage.setItem("chatGroupID", response.data.chatGroupID);
-			cookies.set("chatGroupID", response.data.chatGroupID);
+			//localStorage.setItem("ck_cgi", response.data.chatGroupID);
+			cookies.set("ck_cgi", response.data.chatGroupID);
 			loadDataGroupChat();
 		} else {
 			swal.fire({

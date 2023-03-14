@@ -9,6 +9,7 @@ import { VuemojiPicker } from "vuemoji-picker";
 //import { forEach } from "jszip";
 //import DetailBoxChat from "../../components/chat/BoxChat.vue";
 import { encr, change_unsigned } from "../../util/function.js";
+import treeuser from "../../components/user/treeuser.vue";
 const cryoptojs = inject("cryptojs");
 //const emitter = inject("emitter"); 
 const toast = useToast();
@@ -450,8 +451,8 @@ const Edit_GroupChat = (gr) => {
 				let data = JSON.parse(response.data.data);
 				chat.value = data[0][0];
 				chat.value.active = true;
-				//chat.value.IsInfoChat = localStorage.getItem("viewTabChatID") != null ? localStorage.getItem("viewTabChatID") == 'true': props.detailChat.IsInfoChat;
-				chat.value.IsInfoChat = cookies.get("viewTabChatID") != null ? cookies.get("viewTabChatID") == 'true': props.detailChat.IsInfoChat;
+				//chat.value.IsInfoChat = localStorage.getItem("ck_tabchat") != null ? localStorage.getItem("ck_tabchat") == 'true': props.detailChat.IsInfoChat;
+				chat.value.IsInfoChat = cookies.get("ck_tabchat") != null ? cookies.get("ck_tabchat") == 'true': props.detailChat.IsInfoChat;
 				/*
 				chat.value.members = [];
 				chat.value.countmb = 0;
@@ -749,12 +750,12 @@ const Del_GroupChat = (gr) => {
 				.then((response) => {
 					if (response.data.err == "0") {
 						toast.success("Xóa dữ liệu thành công!");						
-						//localStorage.removeItem("chatGroupID");						
-						if (cookies.get("chatGroupID") != null) {
-							cookies.remove("chatGroupID");
+						//localStorage.removeItem("ck_cgi");						
+						if (cookies.get("ck_cgi") != null) {
+							cookies.remove("ck_cgi");
 						}
-						if (cookies.get("viewTabChatID") != null) {
-							cookies.remove("viewTabChatID");
+						if (cookies.get("ck_tabchat") != null) {
+							cookies.remove("ck_tabchat");
 						}
 						// emitter.emit("emitData", {
 						// 	type: "loadListChatGroup",
@@ -826,16 +827,16 @@ const Out_GroupChat = (gr, type, user_leave_id, user_remove_id) => {
 					config
 				)
 				.then((response) => {
-					//var groupID_Out = localStorage.setItem("chatGroupID", props.detailChat.chat_group_id);
-					cookies.set("chatGroupID", props.detailChat.chat_group_id);
+					//var groupID_Out = localStorage.setItem("ck_cgi", props.detailChat.chat_group_id);
+					cookies.set("ck_cgi", props.detailChat.chat_group_id);
 					var groupID_Out = props.detailChat.chat_group_id;
 					if (type == 1 || type == 2) {
-						//localStorage.removeItem("chatGroupID");						
-						if (cookies.get("chatGroupID") != null) {
-							cookies.remove("chatGroupID");
+						//localStorage.removeItem("ck_cgi");						
+						if (cookies.get("ck_cgi") != null) {
+							cookies.remove("ck_cgi");
 						}
-						if (cookies.get("viewTabChatID") != null) {
-							cookies.remove("viewTabChatID");
+						if (cookies.get("ck_tabchat") != null) {
+							cookies.remove("ck_tabchat");
 						}
 						// emitter.emit("emitData", {
 						// 	type: "loadListChatGroup",
@@ -902,7 +903,41 @@ const Out_GroupChat = (gr, type, user_leave_id, user_remove_id) => {
 		}
 	});
 };
-
+// Modal Tree User
+const selectedUser = ref([]);
+const is_one = ref(false);
+const is_type = ref();
+const headerDialogUser = ref();
+const displayDialogUser = ref(false);
+const closeDialogUser = () => {
+  	displayDialogUser.value = false;
+};
+const showModalUser = (one, type) => {
+	selectedUser.value = [];
+	headerDialogUser.value = "Chọn người dùng";
+	selectedUser.value = [...props.listMember];
+	is_one.value = one;
+	is_type.value = type;
+	displayDialogUser.value = true;
+};
+const choiceUser = () => {
+	switch (is_type.value) {
+		case 0:
+			var notexist = selectedUser.value.filter((a) => props.listMember.findIndex((b) => b["user_join"] === a["user_id"]) === -1);
+			if (notexist.length > 0) {
+        		notexist.forEach((e) => {
+					e.user_join = e.user_id;
+          			props.listMember.push(e);
+				});
+				//props.listMember = props.listMember.concat(notexist);
+			}
+			break;
+		default:
+			break;
+	}
+	closeDialogUser();
+};
+//
 const Active_Notify = (chatDetail) => {
 	let data = { ...chatDetail };
 	axios
@@ -1430,8 +1465,8 @@ const loadDataGroupChat = () => {
 						{ par: "search", va: "" },
 						{ par: "type_chat", va: -1 },
 						{ par: "sort", va: 'modified_date' },
-						//{ par: "chat_id_active", va: localStorage.getItem("chatGroupID") },
-						{ par: "chat_id_active", va: cookies.get("chatGroupID") },
+						//{ par: "chat_id_active", va: localStorage.getItem("ck_cgi") },
+						{ par: "chat_id_active", va: cookies.get("ck_cgi") },
 					],
 				}), SecretKey, cryoptojs
 			).toString()
@@ -1631,8 +1666,8 @@ const shareMesChat = () => {
 const listActiveTabInfoChat = ref([4]);
 const showTabInfoChat = () => {
 	props.detailChat.IsInfoChat = !(props.detailChat.IsInfoChat || false);
-	//localStorage.setItem("viewTabChatID", props.detailChat.IsInfoChat);
-	cookies.set("viewTabChatID", props.detailChat.IsInfoChat);
+	//localStorage.setItem("ck_tabchat", props.detailChat.IsInfoChat);
+	cookies.set("ck_tabchat", props.detailChat.IsInfoChat);
 };
 const SeenMess = (MessageID, User_ID) => {
 	if (props.listMessage && props.listMessage.length > 0) {
@@ -2968,7 +3003,8 @@ onMounted(() => {
 								Danh sách người dùng
 								<a v-if="chat.is_captain" 
 									class="ml-1"
-									@click="showusersModal(false,2)">
+									style="cursor:pointer;color:rgb(33, 150, 243);"
+									@click="showModalUser(false,0)">
 									<i class="pi pi-user-plus font-bold" v-tooltip.top="'Chọn thành viên'"></i>
 								</a>
 							</label>
@@ -3457,6 +3493,16 @@ onMounted(() => {
 			</div>
 		</div>
 	</Dialog>
+	<!-- Tree user -->
+	<treeuser
+		v-if="displayDialogUser === true"
+		:headerDialog="headerDialogUser"
+		:displayDialog="displayDialogUser"
+		:closeDialog="closeDialogUser"
+		:one="is_one"
+		:selected="selectedUser"
+		:choiceUser="choiceUser"
+	/>
 </template>
 <style scoped>
 	@import url(./stylechat.css);

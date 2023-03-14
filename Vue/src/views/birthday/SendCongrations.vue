@@ -700,6 +700,11 @@ onMounted(() => {
                                               uib-tooltip-html="m.full_name+' ('+(m.birthday | date:'dd/MM')+')'+'<br/>'+m.tenChucVu+'<br/>'+m.tenToChuc"
                                             >
                                               <Avatar
+                                                @error="
+                                                  $event.target.src =
+                                                    basedomainURL +
+                                                    '/Portals/Image/nouser1.png'
+                                                "
                                                 v-bind:label="
                                                   m.avatar
                                                     ? ''
@@ -834,6 +839,11 @@ onMounted(() => {
                                                       class="p-col-2 lg:p-col-3 pl-4 m-0 flex format-center"
                                                     >
                                                       <Avatar
+                                                        @error="
+                                                          $event.target.src =
+                                                            basedomainURL +
+                                                            '/Portals/Image/nouser1.png'
+                                                        "
                                                         v-bind:label="
                                                           item.AvtNguoiGui
                                                             ? ''
@@ -878,6 +888,11 @@ onMounted(() => {
                                                       class="p-col-2 lg:p-col-3 p-0 px-0 m-0 flex align-items-center"
                                                     >
                                                       <Avatar
+                                                        @error="
+                                                          $event.target.src =
+                                                            basedomainURL +
+                                                            '/Portals/Image/nouser1.png'
+                                                        "
                                                         v-bind:label="
                                                           item.AvtNguoiNhan
                                                             ? ''
@@ -1027,6 +1042,11 @@ onMounted(() => {
 
                                             <div class="pl-2">
                                               <Avatar
+                                                @error="
+                                                  $event.target.src =
+                                                    basedomainURL +
+                                                    '/Portals/Image/nouser1.png'
+                                                "
                                                 v-bind:label="
                                                   store.state.birthDay.avatar
                                                     ? ''
@@ -1276,6 +1296,10 @@ onMounted(() => {
                               style="float: left; margin: 5px"
                             >
                               <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-tooltip.top="{
                                   value:
                                     u.full_name +
@@ -1350,6 +1374,10 @@ onMounted(() => {
                             style="display: inline-block; position: relative"
                           >
                             <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
                               v-bind:label="
                                 m.avatar ? '' : m.last_name.substring(0, 1)
                               "
@@ -1412,6 +1440,10 @@ onMounted(() => {
                               "
                             >
                               <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
                                 v-bind:label="
                                   m.avatar ? '' : m.last_name.substring(0, 1)
                                 "

@@ -313,6 +313,12 @@ const addModelTemp = (item) => {
   }
   initWeek();
 };
+const changeContents = (md) => {
+  let contents = document.getElementById("contents" + md.calendar_id);
+  if (contents) {
+    md.contents = contents.innerHTML;
+  }
+};
 const closeDialogWeek = () => {
   model.value = {
     status: 0,
@@ -482,6 +488,7 @@ const saveModelMultiple = () => {
   var members = [];
   var departments = [];
   multiple.forEach((item) => {
+    changeContents(item);
     //Date
     if (item["start_date"] != null) {
       item["start_date"] = moment(item["start_date"]).format(
@@ -751,6 +758,9 @@ const initWeek = (rf) => {
       },
     });
   }
+  datas.value.forEach((item) => {
+    changeContents(item);
+  });
   temps.value = [];
   setTimeout(() => {
     if (datas.value && datas.value.length > 0) {
