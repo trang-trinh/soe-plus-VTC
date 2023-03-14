@@ -1421,6 +1421,9 @@ onMounted(() => {
   .p-datatable-thead .justify-content-center .p-column-header-content {
     justify-content: center !important;
   }
+  .p-datatable .p-datatable-tbody > tr:nth-child(even){
+    background-color: #f2f2f2;
+  }
 }
 ::v-deep(.form-group) {
   .p-multiselect .p-multiselect-label,
