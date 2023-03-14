@@ -2038,10 +2038,6 @@ onMounted(() => {
                           v-if="slotProps.value"
                         >
                           <Avatar
-                            @error="
-                              $event.target.src =
-                                basedomainURL + '/Portals/Image/nouser1.png'
-                            "
                             v-bind:label="
                               listDropdownUser.filter(
                                 (x) => x.code == slotProps.value,
@@ -2103,10 +2099,6 @@ onMounted(() => {
                       <template #option="slotProps">
                         <div class="country-item flex align-items-center">
                           <Avatar
-                            @error="
-                              $event.target.src =
-                                basedomainURL + '/Portals/Image/nouser1.png'
-                            "
                             v-bind:label="
                               slotProps.option.avatar
                                 ? ''
