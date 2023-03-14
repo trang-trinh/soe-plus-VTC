@@ -1670,13 +1670,10 @@ namespace API.Controllers
             List<string> del = new List<string>();
             using (DBEntities db = new DBEntities())
             {
-
                 var das = db.discusses.Where(a => id.Contains(a.discuss_id)).ToArray();
 
                 if (das != null)
                 {
-
-
                     foreach (var da in das)
                     {
                         var arrC = db.discusses.Where(a => a.parent_id != null).ToArray();
@@ -1694,15 +1691,8 @@ namespace API.Controllers
                                 }
                             }
                         }
-
-
-
                     }
-
-
                 }
-
-
             }
             return del;
         }
@@ -1726,7 +1716,7 @@ namespace API.Controllers
                 using (DBEntities db = new DBEntities())
                 {
 
-                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string root = HttpContext.Current.Server.MapPath("~/");
                     var arrC = deleteChild(id);
                     var das = await db.discusses.Where(a=>arrC.Contains(a.discuss_id)).ToListAsync();
 
@@ -1745,14 +1735,15 @@ namespace API.Controllers
                             {
                                 del.Add(da);
                                 
-                                var file = db.discuss_file.Where(x => x.discuss_id == da.discuss_id).FirstOrDefault();
-
-                                if (file != null)
+                                var files = db.discuss_file.Where(x => x.discuss_id == da.discuss_id).ToList();
+                                if (files.Count > 0)
                                 {
-                                    paths.Add(file.file_path);
-                                    delFile.Add(file);
+                                    foreach(var f in files)
+                                    {
+                                        paths.Add(f.file_path);
+                                        delFile.Add(f);
+                                    }
                                 }
-
                             }
                             //#region add cms_logs
                             //if (helper.wlog)
@@ -1793,32 +1784,37 @@ namespace API.Controllers
                         }
                         db.discusses.RemoveRange(del);
                         db.discuss_file.RemoveRange(delFile);
-                    }
-                    await db.SaveChangesAsync();
-                    foreach (string strPath in paths)
-                    {
-                        //bool exists = File.Exists(strPath);
-                        //if (exists)
-                        //{ 
-                        //    File.Delete(strPath); 
+                        //foreach (var f in paths)
+                        //{
+                        //    bool exists = File.Exists(f);
+                        //    if (exists)
+                        //        System.IO.File.Delete(f);
                         //}
-                        var strPathFormat = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/");
-                        var listStrPath = strPathFormat.Split('/');
-                        var strPathConfig = "";
-                        foreach (var item in listStrPath)
+                        foreach (string strPath in paths)
                         {
-                            if (item.Trim() != "")
+                            //bool exists = File.Exists(strPath);
+                            //if (exists)
+                            //{ 
+                            //    File.Delete(strPath); 
+                            //}
+                            var strPathFormat = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/");
+                            var listStrPath = strPathFormat.Split('/');
+                            var strPathConfig = "";
+                            foreach (var item in listStrPath)
                             {
-                                strPathConfig += "/" + Path.GetFileName(item);
+                                if (item.Trim() != "")
+                                {
+                                    strPathConfig += "/" + Path.GetFileName(item);
+                                }
+                            }
+                            bool ex = System.IO.File.Exists(root + strPathConfig);
+                            if (ex)
+                            {
+                                System.IO.File.Delete(root + strPathConfig);
                             }
                         }
-                        bool ex = System.IO.File.Exists(root + strPathConfig);
-                        if (ex)
-                        {
-                            System.IO.File.Delete(root + strPathConfig);
-                        }
                     }
-
+                    await db.SaveChangesAsync();
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
             }

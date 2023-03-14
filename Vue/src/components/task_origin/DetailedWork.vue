@@ -709,6 +709,12 @@ const loadChildTaskOrigin = (type) => {
       DoingChild.value = count4[0].Doing;
       listChild.forEach((c) => {
         c.users = [];
+        let sttus = listDropdownStatus.value.filter((a) => a.value == c.status);
+        c.status_display = {
+          text: sttus[0].text,
+          bg_color: sttus[0].bg_color,
+          text_color: sttus[0].text_color,
+        };
         let sttgv = 0;
         let sttth = 0;
         let sttdth = 0;
@@ -3167,7 +3173,7 @@ const ChecklistType = ref();
 const OpenViewTaskChecklists = (number) => {
   ViewTaskChecklists.value = true;
   ChecklistType.value = number;
-};
+};              
 //LINk Doc
 const countDocMaster = ref();
 const ListDocMaster = ref();
@@ -3216,7 +3222,7 @@ const loadTaskDoc = () => {
         store.commit("gologout");
       }
     });
-};
+}; 
 const TaskLinkDOC = ref({
   organization_id: null,
   task_id: null,
