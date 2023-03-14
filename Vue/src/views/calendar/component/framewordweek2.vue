@@ -167,7 +167,7 @@ const trustAsHtml = (html) => {
               >
                 <div
                   v-if="content.user_id === chutri.user_id"
-                  v-html="trustAsHtml(content.contents)"
+                  v-html="content.contents"
                 ></div>
               </template>
             </td>

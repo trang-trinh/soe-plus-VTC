@@ -223,7 +223,7 @@ onMounted(() => {
                         bodyStyle="text-align:center;width:10rem;"
                         class="align-items-center justify-content-center text-center">
                         <template #body="value">
-                            <Avatar v-tooltip.bottom="{
+                            <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-tooltip.bottom="{
                                 value:
                                     value.data.name +
                                     '<br/>' +
