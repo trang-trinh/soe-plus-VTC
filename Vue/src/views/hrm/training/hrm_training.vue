@@ -1755,7 +1755,7 @@ onMounted(() => {
                           : 'background:' + bgColor[item.full_name.length % 7]
                       "
                       :image="basedomainURL + item.avatar"
-                      class="w-3rem h-3rem"
+                      class="w-3rem h-3rem text-lg"
                       shape="circle"
 
                       v-tooltip.top="item.full_name"

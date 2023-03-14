@@ -23,7 +23,7 @@ const filters = ref({
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
-  candidate_code: {
+  rec_calendar_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -58,7 +58,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_candidate_count",
+            proc: "hrm_rec_calendar_count",
             par: [{ par: "user_id", va: store.getters.user.user_id },
             { par: "status", va: null}
           
@@ -73,18 +73,10 @@ const loadCount = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-      let data2 = JSON.parse(response.data.data)[2];
-      let data3 = JSON.parse(response.data.data)[3];
-      let data4 = JSON.parse(response.data.data)[4];
-      let data5 = JSON.parse(response.data.data)[5];
+    
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
-        options.value.totalRecords1 = data1[0].totalRecords1;
-        options.value.totalRecords2 = data2[0].totalRecords2;
-        options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
-        options.value.totalRecords5 = data5[0].totalRecords5;
+       
 
         sttStamp.value = data[0].totalRecords + 1;
       }
@@ -110,12 +102,12 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_candidate_list",
+              proc: "hrm_rec_calendar_list",
               par: [
               { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
-                { par: "search", va:null },
+          
                 { par: "status", va: null },
               ],
             }),
@@ -130,7 +122,9 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-      
+      if(element.listUserRecs){
+        element.listUserRecs=JSON.parse(element.listUserRecs) ;
+      }
         });
 
         datalists.value = data;
@@ -161,11 +155,11 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].candidate_id;
+      datalists.value[datalists.value.length - 1].rec_calendar_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].candidate_id;
+    options.value.id = datalists.value[0].rec_calendar_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
@@ -190,7 +184,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "candidate_id desc ",
+  sort: "rec_calendar_id desc ",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -209,23 +203,16 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   candidate.value = {
-    candidate_code: null,
-    candidate_name: null,
+    
     form_training: 1,
     status: 1,
-    training_place: null,
+ 
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-    user_follows_fake: [],
-    user_verify_fake: [],
-    organization_training_fake: {},
+  
   };
 
-  if (store.getters.user.organization_id)
-    candidate.value.organization_training_fake[
-      store.getters.user.organization_id
-    ] = true;
-
+   
   isSaveTem.value = true;
   headerDialog.value = str;
 numOfKey.value+=1;
@@ -276,9 +263,9 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_candidate/delete_hrm_candidate", {
+          .delete(baseURL + "/api/hrm_rec_calendar/delete_hrm_rec_calendar", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.candidate_id] : 1,
+            data: Tem != null ? [Tem.rec_calendar_id] : 1,
           })
           .then((response) => {
             swal.close();
@@ -335,7 +322,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "candidate_id",
+    id: "rec_calendar_id",
     sqlS: null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -347,16 +334,17 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/HRM_SQL/Filter_hrm_candidate", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_rec_calendar", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
-          }
+          if(element.listUserRecs){
+        element.listUserRecs=JSON.parse(element.listUserRecs) ;
+      }
+       
         });
 
         datalists.value = data;
@@ -368,11 +356,7 @@ const loadDataSQL = () => {
       //Show Count nếu có
       if (dt.length >= 2 && checkLoadCount.value == true) {
         options.value.totalRecords = dt[1][0].totalRecords;
-        options.value.totalRecords1 = dt[2][0].totalRecords1;
-        options.value.totalRecords2 = dt[3][0].totalRecords2;
-        options.value.totalRecords3 = dt[4][0].totalRecords3;
-        options.value.totalRecords4 = dt[5][0].totalRecords4;
-        options.value.totalRecords5 = dt[6][0].totalRecords5;
+       
       }
     })
     .catch((error) => {
@@ -390,18 +374,18 @@ const loadDataSQL = () => {
       }
     });
 };
-
+const listCampaigns = ref([]);
 const setStatus = (value) => {
   opstatus.value.hide();
   let data = {
-    IntID: value.candidate_id,
-    TextID: value.candidate_id + "",
+    IntID: value.rec_calendar_id,
+    TextID: value.rec_calendar_id + "",
     IntTrangthai: value.status,
     BitTrangthai: false,
   };
   axios
     .put(
-      baseURL + "/api/hrm_candidate/update_s_hrm_candidate",
+      baseURL + "/api/hrm_rec_calendar/update_s_hrm_rec_calendar",
       data,
       config
     )
@@ -501,82 +485,7 @@ const tabs = ref([
 ]);
 const numOfKey=ref(0);
 //Checkbox
-const onCheckBox = (value, check) => {
-  if (check) {
-    let data = {
-      IntID: value.candidate_id,
-      TextID: value.candidate_id + "",
-      IntTrangthai: 1,
-      BitTrangthai: value.status,
-    };
-    axios
-      .put(
-        baseURL + "/api/hrm_candidate/update_s_hrm_candidate",
-        data,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái lịch phỏng vấn thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  } else {
-    let data1 = {
-      IntID: value.candidate_id,
-      TextID: value.candidate_id + "",
-      BitMain: value.is_default,
-    };
-    axios
-      .put(
-        baseURL + "/api/hrm_candidate/Update_DefaultStamp",
-        data1,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái lịch phỏng vấn thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
-};
+ 
 
 //Xuất excel
 const menuButs = ref();
@@ -605,13 +514,13 @@ const exportData = (method) => {
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
         excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
-        proc: "hrm_candidate_export",
+        proc: "hrm_rec_calendar_export",
         par: [
  
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
           { par: "training_groups", va:  options.value.training_groups_id  },
-          { par: "user_verify", va:  options.value.user_verify  },
+          { par: "interviewers", va:  options.value.interviewers  },
           { par: "user_follows", va: options.value.user_follows},
            { par: "form_training", va: options.value.type_formtraining},
           { par: "status ", va: options.value.status_filter},
@@ -730,11 +639,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.candidate_id);
+            listId.push(item.rec_calendar_id);
           });
-          axios
+          axios  
             .delete(
-              baseURL + "/api/hrm_candidate/delete_hrm_candidate",
+              baseURL + "/api/hrm_rec_calendar/delete_hrm_rec_calendar",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -775,12 +684,12 @@ const deleteList = () => {
 
 //Filter
 const reFilter = () => {
-  options.value.user_follows = null;
-  options.value.training_groups_id = null;
-  options.value.user_verify = null;
+  options.value.campaign_id = null;
+ 
+  options.value.interviewers = null;
 options.value.start_date=null;
 options.value.end_date=null
-  options.value.type_formtraining = null;
+ 
 
   options.value.status_filter = null;
   checkLoadCount.value = true;
@@ -812,44 +721,16 @@ const filterFileds = () => {
       filterSQL.value.push(filterS1);
     }
   }
-  if (options.value.type_formtraining) {
-    let filterS2 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "form_training",
-    };
-    if (options.value.type_formtraining.length > 0) {
-      options.value.type_formtraining.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS2.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS2);
-    }
-  }
-  if (options.value.user_follows) {
-    let filterS3 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "user_follows",
-    };
-    if (options.value.user_follows.length > 0) {
-      options.value.user_follows.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS3.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS3);
-    }
-  }
-  if (options.value.training_groups_id) {
+   
+  
+  if (options.value.campaign_id) {
     let filterS4 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "training_groups_id",
+      key: "campaign_id",
     };
-    if (options.value.training_groups_id.length > 0) {
-      options.value.training_groups_id.forEach((element) => {
+    if (options.value.campaign_id.length > 0) {
+      options.value.campaign_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS4.filterconstraints.push(addr);
       });
@@ -857,14 +738,14 @@ const filterFileds = () => {
       filterSQL.value.push(filterS4);
     }
   }
-  if (options.value.user_verify) {
+  if (options.value.interviewers) {
     let filterS5 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "user_verify",
+      key: "interviewers",
     };
-    if (options.value.user_verify.length > 0) {
-      options.value.user_verify.forEach((element) => {
+    if (options.value.interviewers.length > 0) {
+      options.value.interviewers.forEach((element) => {
         var addr = { value: element.code, matchMode: "contains" };
         filterS5.filterconstraints.push(addr);
       });
@@ -891,14 +772,14 @@ const onDayClick = () => {
       options.value.start_date != options.value.end_date
     ) {
       let sDate = new Date(options.value.start_date);
-      sDate.setDate(sDate.getDate() - 1);
+     
       options.value.start_date = sDate;
       let filterS = {
         filterconstraints: [
           { value: options.value.start_date, matchMode: "dateAfter" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "rec_calendar_date",
       };
       filterSQL.value.push(filterS);
     }
@@ -907,14 +788,14 @@ const onDayClick = () => {
       options.value.start_date != options.value.end_date
     ) {
       let eDate = new Date(options.value.end_date);
-      eDate.setDate(eDate.getDate() + 1);
+      
       options.value.end_date = eDate;
       let filterS = {
         filterconstraints: [
           { value: options.value.end_date, matchMode: "dateBefore" },
         ],
         filteroperator: "and",
-        key: "end_date",
+        key: "rec_calendar_date",
       };
       filterSQL.value.push(filterS);
     }
@@ -927,7 +808,7 @@ const onDayClick = () => {
           { value: options.value.start_date, matchMode: "dateIs" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "rec_calendar_date",
       };
       filterSQL.value.push(filterS1);
         let filterS2 = {
@@ -935,7 +816,7 @@ const onDayClick = () => {
           { value: options.value.end_date, matchMode: "dateIs" },
         ],
         filteroperator: "and",
-        key: "end_date",
+        key: "rec_calendar_date",
       };
       filterSQL.value.push(filterS2);
     }
@@ -1022,18 +903,20 @@ const listTrainingGroups = ref([]);
 const listClasroom = ref([]);
 
 const initTudien = () => {
+
+
+  listCampaigns.value = [];
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_enecting_group_list",
+            proc: "hrm_campaign_list",
             par: [
               { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
+              { par: "pagesize", va: 10000 },
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
             ],
           }),
           SecretKey,
@@ -1044,17 +927,17 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listTrainingGroups.value = [];
-      data.forEach((element) => {
-        listTrainingGroups.value.push({
-          name: element.enecting_group_name,
-          code: element.enecting_group_id,
+
+      data.forEach((element, i) => {
+        listCampaigns.value.push({
+          name: element.campaign_name,
+          code: element.campaign_id,
         });
       });
     })
     .catch((error) => {
-      console.log(error);
-    });
+      toast.error("Tải dữ liệu không thành công!");
+    }); 
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -1110,7 +993,7 @@ onMounted(() => {
 
     isFirst,
     searchStamp,
-    onCheckBox,
+    
     selectedStamps,
     deleteList,
   };
@@ -1121,7 +1004,9 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-id-card"></i> Danh sách lịch phỏng vấn
+          <i class="pi pi-id-card"></i> Danh sách lịch phỏng vấn ({{
+            options.totalRecords
+          }})
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1162,7 +1047,7 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width: 700px"
+                style="width: 350px"
               >
                 <div class="grid formgrid m-0">
                   <div
@@ -1173,170 +1058,35 @@ onMounted(() => {
                       overflow: auto;
                     "
                   >
-                    <div class="flex">
-                      <div class="col-6 md:col-6">
+                    <div class=" ">
+                      <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <label>Nhóm lịch phỏng vấn</label>
+                              <div class="pb-2">Chiến dịch</div>
                               <MultiSelect
-                                :options="listTrainingGroups"
+                                :options="listCampaigns"
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.training_groups_id"
+                                v-model="options.campaign_id"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn nhóm lịch phỏng vấn"
+                                placeholder="Chọn chiến dịch tuyển dụng"
                                 class="w-full limit-width"
-                                style="min-height: 36px"
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
                             </div>
                           </div>
-                          <div class="col-12 md:col-12 p-0">
-                                <div class="col-12 p-0 ">
-                              <label>Người phụ trách</label>
-                                </div>
-                              <MultiSelect
-                                :options="listDropdownUser"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                v-model="options.user_verify"
-                                optionLabel="name"
-                                placeholder="Chọn người phụ trách"
-                                                   panelClass="d-design-dropdown  d-tree-input"
-         class="col-12 my-2   "
-                                
-                                style="min-height: 36px"
-                              
-                              >
-                                <template #option="slotProps">
-                                  <div
-                                    class="country-item flex align-items-center"
-                                  >
-                                    <div class="grid w-full p-0">
-                                      <div
-                                        class="
-                                          field
-                                          p-0
-                                          py-1
-                                          col-12
-                                          flex
-                                          m-0
-                                          cursor-pointer
-                                          align-items-center
-                                        "
-                                      >
-                                        <div
-                                          class="
-                                            col-1
-                                            mx-2
-                                            p-0
-                                            align-items-center
-                                          "
-                                        >
-                                          <Avatar
-                                            v-bind:label="
-                                              slotProps.option.avatar
-                                                ? ''
-                                                : slotProps.option.name.substring(
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 1,
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 2
-                                                  )
-                                            "
-                                            :image="
-                                              basedomainURL +
-                                              slotProps.option.avatar
-                                            "
-                                            size="small"
-                                            :style="
-                                              slotProps.option.avatar
-                                                ? 'background-color: #2196f3'
-                                                : 'background:' +
-                                                  bgColor[
-                                                    slotProps.option.name
-                                                      .length % 7
-                                                  ]
-                                            "
-                                            shape="circle"
-                                            @error="
-                                              $event.target.src =
-                                                basedomainURL +
-                                                '/Portals/Image/nouser1.png'
-                                            "
-                                          />
-                                        </div>
-                                        <div
-                                          class="
-                                            col-11
-                                            p-0
-                                            ml-3
-                                            align-items-center
-                                          "
-                                        >
-                                          <div class="pt-2">
-                                            <div class="font-bold">
-                                              {{ slotProps.option.name }}
-                                            </div>
-                                            <div
-                                              class="
-                                                flex
-                                                w-full
-                                                text-sm
-                                                font-italic
-                                                text-500
-                                              "
-                                            >
-                                              <div>
-                                                {{
-                                                  slotProps.option.position_name
-                                                }}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </template>
-                              </MultiSelect>
-                          
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <label>Hình thức lịch phỏng vấn</label>
-                              <MultiSelect
-                                :options="listFormTraining"
-                                :filter="false"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.type_formtraining"
-                                optionLabel="name"
-                                optionValue="code"
-                                display="chip"
-                                placeholder="Chọn hình thức lịch phỏng vấn"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
+                         
                         </div>
                       </div>
-                      <div class="col-6 md:col-6">
+                      <div class="col-12 md:col-12 field p-0">
                         <div class="row">
                           <div class="col-12 md:col-12">
-                            <div class="form-group m-0">
-                              <label>Thời gian lịch phỏng vấn</label>
+                            <div class="form-group m-0 py-2">
+                              <label>Ngày phỏng vấn</label>
                             </div>
                           </div>
                           <div class="col-12 p-0 flex">
@@ -1344,7 +1094,6 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.start_date"
@@ -1356,7 +1105,6 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.end_date"
@@ -1365,141 +1113,96 @@ onMounted(() => {
                               </div>
                             </div>
                           </div>
+
                           <div class="col-12 md:col-12">
-                           
-                             <div class="col-12 p-0 ">
-                               <label>Người theo dõi</label>
-                             </div>
-                             <MultiSelect
-                                :options="listDropdownUser"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                v-model="options.user_follows"
-                                optionLabel="name"
-                                placeholder="Chọn người theo dõi"
-                               
-                                style="min-height: 36px"
-                                    panelClass="d-design-dropdown  d-tree-input"
-         class="col-12 my-2   "
-                                
-                              >
-                                <template #option="slotProps">
-                                  <div
-                                    class="country-item flex align-items-center"
-                                  >
-                                    <div class="grid w-full p-0">
+                            <div class="col-12 p-0 md:col-12">
+                              <div class="form-group m-0 py-2">
+                                <label>Người phỏng vấn</label>
+                              </div>
+                            </div>
+                            <div class="form-group">
+                               <MultiSelect
+                              :options="listDropdownUser"
+                              :filter="true"
+                              :showClear="true"
+                              :editable="false"
+                              display="chip"
+                              v-model="options.interviewers"
+                              optionLabel="name"
+                              placeholder="Chọn người phụ trách"
+                              panelClass="d-design-dropdown  d-tree-input"
+                              class="col-12 p-0"
+                              style="min-height: 36px"
+                            >
+                              <template #option="slotProps">
+                                <div
+                                  class="country-item flex align-items-center"
+                                >
+                                  <div class="grid w-full p-0">
+                                    <div
+                                      class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
+                                    >
                                       <div
-                                        class="
-                                          field
-                                          p-0
-                                          py-1
-                                          col-12
-                                          flex
-                                          m-0
-                                          cursor-pointer
-                                          align-items-center
-                                        "
+                                        class="col-1 mx-2 p-0 align-items-center"
                                       >
-                                        <div
-                                          class="
-                                            col-1
-                                            mx-2
-                                            p-0
-                                            align-items-center
+                                        <Avatar   style="color:#fff"
+                                          v-bind:label="
+                                            slotProps.option.avatar
+                                              ? ''
+                                              : slotProps.option.name.substring(
+                                                  slotProps.option.name.lastIndexOf(
+                                                    ' '
+                                                  ) + 1,
+                                                  slotProps.option.name.lastIndexOf(
+                                                    ' '
+                                                  ) + 2
+                                                )
                                           "
-                                        >
-                                          <Avatar
-                                            v-bind:label="
-                                              slotProps.option.avatar
-                                                ? ''
-                                                : slotProps.option.name.substring(
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 1,
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 2
-                                                  )
-                                            "
-                                            :image="
+                                          :image="
+                                            basedomainURL +
+                                            slotProps.option.avatar
+                                          "
+                                          size="small"
+                                          :style="
+                                            slotProps.option.avatar
+                                              ? 'background-color: #2196f3'
+                                              : 'background:' +
+                                                bgColor[
+                                                  slotProps.option.name.length %
+                                                    7
+                                                ]
+                                          "
+                                          shape="circle"
+                                          @error="
+                                            $event.target.src =
                                               basedomainURL +
-                                              slotProps.option.avatar
-                                            "
-                                            size="small"
-                                            :style="
-                                              slotProps.option.avatar
-                                                ? 'background-color: #2196f3'
-                                                : 'background:' +
-                                                  bgColor[
-                                                    slotProps.option.name
-                                                      .length % 7
-                                                  ]
-                                            "
-                                            shape="circle"
-                                            @error="
-                                              $event.target.src =
-                                                basedomainURL +
-                                                '/Portals/Image/nouser1.png'
-                                            "
-                                          />
-                                        </div>
-                                        <div
-                                          class="
-                                            col-11
-                                            p-0
-                                            ml-3
-                                            align-items-center
+                                              '/Portals/Image/nouser1.png'
                                           "
-                                        >
-                                          <div class="pt-2">
-                                            <div class="font-bold">
-                                              {{ slotProps.option.name }}
-                                            </div>
-                                            <div
-                                              class="
-                                                flex
-                                                w-full
-                                                text-sm
-                                                font-italic
-                                                text-500
-                                              "
-                                            >
-                                              <div>
-                                                {{
-                                                  slotProps.option.position_name
-                                                }}
-                                              </div>
+                                        />
+                                      </div>
+                                      <div
+                                        class="col-11 p-0 ml-3 align-items-center"
+                                      >
+                                        <div class="pt-2">
+                                          <div class="font-bold">
+                                            {{ slotProps.option.name }}
+                                          </div>
+                                          <div
+                                            class="flex w-full text-sm font-italic text-500"
+                                          >
+                                            <div>
+                                              {{
+                                                slotProps.option.position_name
+                                              }}
                                             </div>
                                           </div>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
-                                </template>
-                              </MultiSelect>
-                          
-                          </div>
-
-                          <div class="col-12 md:col-12">
-                            <div class="form-group">
-                              <label>Trạng thái</label>
-                              <MultiSelect
-                                :options="listStatus"
-                                v-model="options.status_filter"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn trạng thái"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
+                                </div>
+                              </template>
+                            </MultiSelect>
                             </div>
                           </div>
                         </div>
@@ -1508,14 +1211,7 @@ onMounted(() => {
                   </div>
                   <div class="col-12 md:col-12 p-0">
                     <Toolbar
-                      class="
-                        border-none
-                        surface-0
-                        outline-none
-                        px-0
-                        pb-0
-                        w-full
-                      "
+                      class="border-none surface-0 outline-none pl-2 pr-3 pb-0 w-full"
                     >
                       <template #start>
                         <Button
@@ -1627,49 +1323,34 @@ onMounted(() => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
             :paginator="true"
-            dataKey="candidate_id"
+            dataKey="rec_calendar_id"
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
             :row-hover="true"
           >
-            <Column
+            <!-- <Column
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
               selectionMode="multiple"
             >
-            </Column>
+            </Column> -->
 
             <Column
               field="STT"
               header="STT"
               class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px"
-              bodyStyle="text-align:center;max-width:70px"
+              headerStyle="text-align:center;max-width:55px;height:50px"
+              bodyStyle="text-align:center;max-width:55px"
             ></Column>
+       
             <Column
-              field="candidate_code"
-              header="Mã lịch phỏng vấn"
-              headerStyle="text-align:center;max-width:170px;height:50px"
-              bodyStyle="text-align:center;max-width:170px"
-              class="align-items-center justify-content-center text-center"
-              :sortable="true"
-            >
-              <template #filter="{ filterModel }">
-                <InputText
-                  type="text"
-                  v-model="filterModel.value"
-                  class="p-column-filter"
-                  placeholder="Từ khoá"
-                />
-              </template>
-            </Column>
-            <Column
-              field="candidate_name"
+              field="rec_calendar_name"
               header="Tên lịch phỏng vấn"
               :sortable="true"
               headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"
+              headerClass="align-items-center justify-content-center text-center"
             >
               <template #filter="{ filterModel }">
                 <InputText
@@ -1682,30 +1363,33 @@ onMounted(() => {
             </Column>
             <Column
               field="form_training"
-              header="Ngày sinh"
+              header="Thời gian"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div v-if="data.data.candidate_birthday">
+                <div v-if="data.data.rec_time_start">
                   {{
-                    moment(new Date(data.data.candidate_birthday)).format("DD/MM/YYYY")
+                    moment(new Date(data.data.rec_time_start)).format("HH:mm")
+                  }} -
+                   {{
+                    moment(new Date(data.data.rec_time_end)).format("HH:mm")
                   }}
                 </div>
               </template>
             </Column>
             <Column
-              field="gender"
-              header="Giới tính"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
+              field="rec_calendar_date"
+              header="Ngày phỏng vấn"
+              headerStyle="text-align:center;max-width:150px;height:50px"
+              bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div v-if="    data.data.candidate_gender">
+                <div v-if="    data.data.rec_calendar_date">
                   {{
-                   data.data.candidate_gender==1?"Nam":data.data.candidate_gender==2?"Nữ":"Khác"
+                    moment(new Date(data.data.rec_calendar_date)).format("DD/MM/YYYY")
                   }}
                 </div>
               </template>
@@ -1713,15 +1397,15 @@ onMounted(() => {
 
             <Column
               field="end_date"
-              header="Số điện thoại"
-              headerStyle="text-align:center;max-width:200px;height:50px"
-              bodyStyle="text-align:center;max-width:200px"
-              class="align-items-center justify-content-center text-center"
+              header="Chiến dịch tuyển dụng"
+              headerStyle="text-align:center;max-width:450px;height:50px"
+              bodyStyle=" max-width:450px"
+              headerClass="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div v-if="data.data.candidate_phone">
+                <div v-if="data.data.campaign_name">
             
-   {{ data.data.candidate_phone }}
+   {{ data.data.campaign_name }}
          
                 </div>
               </template>
@@ -1729,110 +1413,120 @@ onMounted(() => {
            
             <Column
               field="count_emps"
-              header="Email"
-              headerStyle="text-align:center;max-width:200px;height:50px"
-              bodyStyle="text-align:center;max-width:200px"
+              header="Ứng viên"
+              headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div v-if="data.data.candidate_email">
+                <div v-if="data.data.countUser">
             
-            {{ data.data.candidate_email }}
+            {{ data.data.countUser }}
+                  
+                         </div>
+              </template>
+            </Column>
+
+            <Column
+              field="count_emps"
+              header="Người phỏng vấn"
+              headerStyle="text-align:center;max-width:150px;height:50px"
+              bodyStyle="text-align:center;max-width:150px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="data">
+                <div v-if="data.data.listUserRecs">
+             
+                  <AvatarGroup>
+                    <Avatar
+                      v-for="(item, index) in data.data.listUserRecs.slice(
+                        0,
+                        4
+                      )"
+                      v-bind:label="
+                        item.avatar
+                          ? ''
+                          : item.full_name.substring(
+                              item.full_name.lastIndexOf(' ') + 1,
+                              item.full_name.lastIndexOf(' ') + 2
+                            )
+                      "   style="color:#fff"
+                      :key="index"
+                      :style="
+                        item.avatar
+                          ? 'background-color: #2196f3'
+                          : 'background:' + bgColor[item.full_name.length % 7]
+                      "
+                      :image="basedomainURL + item.avatar"
+                      class="w-3rem h-3rem text-lg"
+                      shape="circle"
+
+                      v-tooltip.top="item.full_name"
+                    />
+                    <Avatar
+                      v-if="data.data.listUserRecs.length > 4"
+                      :label="(data.data.listUserRecs.length - 4).toString()"
+                      shape="circle"
+                      class="w-3rem h-3rem"
+                      style="
+                        background-color: #9c27b0;
+                        color: #fff;
+                        font-size: 12pt !important;
+                      "
+                    />
+                  </AvatarGroup>
+             
+               
                   
                          </div>
               </template>
             </Column>
             <Column
               field="created_date"
-              header="Ngày tạo"
+              header="Ngày/Người lập"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
             >
-              <template #body="data">
-                <div>
+            <template #body="slotProps">
+                <span class="mr-2">
                   {{
-                    moment(new Date(data.data.created_date)).format(
+                    moment(new Date(slotProps.data.created_date)).format(
                       "DD/MM/YYYY"
                     )
-                  }}
+                  }}</span
+                >
+                <div>
+                  <Avatar
+                    v-bind:label="
+                      slotProps.data.created_avatar
+                        ? ''
+                        : slotProps.data.created_name.substring(0, 1)
+                    "
+                    v-bind:image="
+                      slotProps.data.created_avatar
+                        ? basedomainURL + slotProps.data.created_avatar
+                        : basedomainURL + '/Portals/Image/noimg.jpg'
+                    "
+                    style="
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 2rem;
+                      height: 2rem;
+                      font-size: 1rem !important;
+                    "
+                    :style="{
+                      background: bgColor[slotProps.data.created_name % 7],
+                    }"
+                    class="text-avatar"
+                    size="xlarge"
+                    shape="circle"
+                    v-tooltip.top="slotProps.data.created_name"
+                  />
                 </div>
               </template>
             </Column>
-            <!-- <Column
-              field="status"
-              header="Trạng thái"
-              headerStyle="text-align:center;max-width:11rem;height:50px"
-              bodyStyle="text-align:center;max-width:11rem"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div
-                  class="m-2"
-                  @click="
-                    toggleStatus(slotProps.data, $event);
-                    $event.stopPropagation();
-                  "
-                  aria:haspopup="true"
-                  aria-controls="overlay_panel_status"
-                >
-                  <Button
-                    :label="
-                      slotProps.data.status == 1
-                        ? 'Lên kế hoạch'
-                        : slotProps.data.status == 2
-                        ? 'Đang thực hiện'
-                        : slotProps.data.status == 3
-                        ? 'Đã hoàn thành'
-                        : slotProps.data.status == 4
-                        ? 'Tạm dừng'
-                        : 'Đã hủy'
-                    "
-                    :class="
-                      slotProps.data.status == 1
-                        ? 'bg-blue-500'
-                        : slotProps.data.status == 2
-                        ? 'bg-yellow-500'
-                        : slotProps.data.status == 3
-                        ? 'bg-green-500'
-                        : slotProps.data.status == 4
-                        ? 'bg-orange-500'
-                        : 'bg-pink-500'
-                    "
-                    icon="pi pi-chevron-down"
-                    iconPos="right"
-                    class="px-2 w-10rem"
-                  />
-                </div>
-                <OverlayPanel
-                  :showCloseIcon="false"
-                  ref="opstatus"
-                  appendTo="body"
-                  class="p-0 m-0"
-                  id="overlay_panel_status"
-                  style="width: 200px"
-                >
-                  <div class="form-group">
-                    <div class="col-12 p-0 field">Chọn trạng thái</div>
-                    <div class="col-12 p-0">
-                      <Dropdown
-                        :options="listStatus"
-                        :filter="false"
-                        :showClear="false"
-                        :editable="false"
-                        v-model="candidate.status"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Chọn trạng thái"
-                        class="w-full"
-                        @change="setStatus(candidate)"
-                      >
-                      </Dropdown>
-                    </div>
-                  </div>
-                </OverlayPanel>
-              </template>
-            </Column> -->
+           
             <Column
               header=""
               headerStyle="text-align:center;max-width:50px"
@@ -1949,7 +1643,7 @@ i {
 }
 .d-lang-table {
   margin: 0px;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 160px);
 }
 
 .tableview-nav {

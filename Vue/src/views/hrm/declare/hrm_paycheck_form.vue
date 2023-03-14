@@ -1146,6 +1146,7 @@ onMounted(() => {
                     "
                     :image="basedomainURL + data.data.avatar"
                     size="small"
+                    style="color:#fff"
                     :style="
                       data.data.avatar
                         ? 'background-color: #2196f3'
@@ -1295,7 +1296,7 @@ onMounted(() => {
             <template #value="slotProps">
               <div class=" " v-if="slotProps.value">
                 <div class="flex w-full align-items-center pr-2">
-                  <Avatar
+                  <Avatar   style="color:#fff"
                     v-bind:label="
                       slotProps.value.avatar
                         ? ''
@@ -1330,7 +1331,7 @@ onMounted(() => {
             <template #option="slotProps">
               <div v-if="slotProps.option" class="flex">
                 <div class="format-center">
-                  <Avatar
+                  <Avatar   style="color:#fff"
                     v-bind:label="
                       slotProps.option.avatar
                         ? ''
