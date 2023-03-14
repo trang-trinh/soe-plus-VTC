@@ -2879,6 +2879,10 @@ onMounted(() => {
     position: absolute;
   }
 
+  .p-datatable .p-datatable-tbody > tr:nth-child(even){
+    background-color: #f2f2f2;
+  }
+
   .p-datatable-thead {
     position: sticky;
     top: 0;
