@@ -451,8 +451,8 @@ const Edit_GroupChat = (gr) => {
 				let data = JSON.parse(response.data.data);
 				chat.value = data[0][0];
 				chat.value.active = true;
-				//chat.value.IsInfoChat = localStorage.getItem("viewTabChatID") != null ? localStorage.getItem("viewTabChatID") == 'true': props.detailChat.IsInfoChat;
-				chat.value.IsInfoChat = cookies.get("viewTabChatID") != null ? cookies.get("viewTabChatID") == 'true': props.detailChat.IsInfoChat;
+				//chat.value.IsInfoChat = localStorage.getItem("ck_tabchat") != null ? localStorage.getItem("ck_tabchat") == 'true': props.detailChat.IsInfoChat;
+				chat.value.IsInfoChat = cookies.get("ck_tabchat") != null ? cookies.get("ck_tabchat") == 'true': props.detailChat.IsInfoChat;
 				/*
 				chat.value.members = [];
 				chat.value.countmb = 0;
@@ -750,12 +750,12 @@ const Del_GroupChat = (gr) => {
 				.then((response) => {
 					if (response.data.err == "0") {
 						toast.success("Xóa dữ liệu thành công!");						
-						//localStorage.removeItem("chatGroupID");						
-						if (cookies.get("chatGroupID") != null) {
-							cookies.remove("chatGroupID");
+						//localStorage.removeItem("ck_cgi");						
+						if (cookies.get("ck_cgi") != null) {
+							cookies.remove("ck_cgi");
 						}
-						if (cookies.get("viewTabChatID") != null) {
-							cookies.remove("viewTabChatID");
+						if (cookies.get("ck_tabchat") != null) {
+							cookies.remove("ck_tabchat");
 						}
 						// emitter.emit("emitData", {
 						// 	type: "loadListChatGroup",
@@ -827,16 +827,16 @@ const Out_GroupChat = (gr, type, user_leave_id, user_remove_id) => {
 					config
 				)
 				.then((response) => {
-					//var groupID_Out = localStorage.setItem("chatGroupID", props.detailChat.chat_group_id);
-					cookies.set("chatGroupID", props.detailChat.chat_group_id);
+					//var groupID_Out = localStorage.setItem("ck_cgi", props.detailChat.chat_group_id);
+					cookies.set("ck_cgi", props.detailChat.chat_group_id);
 					var groupID_Out = props.detailChat.chat_group_id;
 					if (type == 1 || type == 2) {
-						//localStorage.removeItem("chatGroupID");						
-						if (cookies.get("chatGroupID") != null) {
-							cookies.remove("chatGroupID");
+						//localStorage.removeItem("ck_cgi");						
+						if (cookies.get("ck_cgi") != null) {
+							cookies.remove("ck_cgi");
 						}
-						if (cookies.get("viewTabChatID") != null) {
-							cookies.remove("viewTabChatID");
+						if (cookies.get("ck_tabchat") != null) {
+							cookies.remove("ck_tabchat");
 						}
 						// emitter.emit("emitData", {
 						// 	type: "loadListChatGroup",
@@ -1465,8 +1465,8 @@ const loadDataGroupChat = () => {
 						{ par: "search", va: "" },
 						{ par: "type_chat", va: -1 },
 						{ par: "sort", va: 'modified_date' },
-						//{ par: "chat_id_active", va: localStorage.getItem("chatGroupID") },
-						{ par: "chat_id_active", va: cookies.get("chatGroupID") },
+						//{ par: "chat_id_active", va: localStorage.getItem("ck_cgi") },
+						{ par: "chat_id_active", va: cookies.get("ck_cgi") },
 					],
 				}), SecretKey, cryoptojs
 			).toString()
@@ -1666,8 +1666,8 @@ const shareMesChat = () => {
 const listActiveTabInfoChat = ref([4]);
 const showTabInfoChat = () => {
 	props.detailChat.IsInfoChat = !(props.detailChat.IsInfoChat || false);
-	//localStorage.setItem("viewTabChatID", props.detailChat.IsInfoChat);
-	cookies.set("viewTabChatID", props.detailChat.IsInfoChat);
+	//localStorage.setItem("ck_tabchat", props.detailChat.IsInfoChat);
+	cookies.set("ck_tabchat", props.detailChat.IsInfoChat);
 };
 const SeenMess = (MessageID, User_ID) => {
 	if (props.listMessage && props.listMessage.length > 0) {

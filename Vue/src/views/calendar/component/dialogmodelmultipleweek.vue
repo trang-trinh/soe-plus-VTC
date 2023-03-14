@@ -309,7 +309,7 @@ const addModelTemp = (item) => {
       datas.value.push(it);
     });
   } else {
-    datas.value.ptestush(md);
+    datas.value.push(md);
   }
   initWeek();
 };
