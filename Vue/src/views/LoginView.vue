@@ -239,7 +239,13 @@ const sendMail = (isFormValid) => {
       });
     });
 };
-onMounted(() => {
+onMounted(() => {  
+  if (cookies.get("ck_cgi") != null) {
+    cookies.remove("ck_cgi");
+  }
+  if (cookies.get("ck_tabchat") != null) {
+    cookies.remove("ck_tabchat");
+  }
   return {
     checkForm,
     login,
