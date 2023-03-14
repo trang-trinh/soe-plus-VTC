@@ -66,17 +66,17 @@ const login = () => {
           decr(response.data.data, SecretKey, cryoptojs)
         );
         store.commit("setislogin", true);
-        // if (localStorage.getItem("chatGroupID") != null) {
-        //   localStorage.removeItem("chatGroupID");
+        // if (localStorage.getItem("ck_cgi") != null) {
+        //   localStorage.removeItem("ck_cgi");
         // }
-        // if (localStorage.getItem("viewTabChatID") != null) {
-        //   localStorage.removeItem("viewTabChatID");
+        // if (localStorage.getItem("ck_tabchat") != null) {
+        //   localStorage.removeItem("ck_tabchat");
         // }
-        if (cookies.get("chatGroupID") != null) {
-          cookies.remove("chatGroupID");
+        if (cookies.get("ck_cgi") != null) {
+          cookies.remove("ck_cgi");
         }
-        if (cookies.get("viewTabChatID") != null) {
-          cookies.remove("viewTabChatID");
+        if (cookies.get("ck_tabchat") != null) {
+          cookies.remove("ck_tabchat");
         }
         router.push({ path: "/" });
         swal.close();
