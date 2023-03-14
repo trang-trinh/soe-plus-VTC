@@ -178,29 +178,40 @@ namespace API.Controllers.HRM.Campaign
                                 File.Move(ffileData.LocalFileName, newFileName);
 
                             }
-                            hrm_file hrm_File = new hrm_file();
-                            hrm_File.file_name = Path.GetFileName(newFileName);
-                            hrm_File.key_id = candidate.candidate_id.ToString();
-                            hrm_File.file_path = "/Portals/" + dvid + "/Candidate/" + fileName;
-                            hrm_File.file_type = helper.GetFileExtension(fileName);
-                            var file_info = new FileInfo(strPath + "/" + fileName);
-                            hrm_File.file_size = file_info.Length;
-                            if (helper.IsImageFileName(newFileName))
+
+
+                            if (fileData.Headers.ContentDisposition.Name == "\"candidate_avatar\"")
                             {
-                                hrm_File.is_image = true;
+                                candidate.candidate_avatar = "/Portals/" + dvid + "/Candidate/" + fileName; ;
+                               
                             }
                             else
                             {
-                                hrm_File.is_image = false;
+                                hrm_file hrm_File = new hrm_file();
+                                hrm_File.file_name = Path.GetFileName(newFileName);
+                                hrm_File.key_id = candidate.candidate_id.ToString();
+                                hrm_File.file_path = "/Portals/" + dvid + "/Candidate/" + fileName;
+                                hrm_File.file_type = helper.GetFileExtension(fileName);
+                                var file_info = new FileInfo(strPath + "/" + fileName);
+                                hrm_File.file_size = file_info.Length;
+                                if (helper.IsImageFileName(newFileName))
+                                {
+                                    hrm_File.is_image = true;
+                                }
+                                else
+                                {
+                                    hrm_File.is_image = false;
+                                }
+                                hrm_File.is_type = 4;
+                                hrm_File.status = true;
+                                hrm_File.created_by = uid;
+                                hrm_File.created_date = DateTime.Now;
+                                hrm_File.organization_id = int.Parse(dvid);
+                                hrm_File.created_ip = ip;
+                                hrm_File.created_token_id = tid;
+                                db.hrm_file.Add(hrm_File);
+
                             }
-                            hrm_File.is_type = 4;
-                            hrm_File.status = true;
-                            hrm_File.created_by = uid;
-                            hrm_File.created_date = DateTime.Now;
-                            hrm_File.organization_id = int.Parse(dvid);
-                            hrm_File.created_ip = ip;
-                            hrm_File.created_token_id = tid;
-                            db.hrm_file.Add(hrm_File);
 
                         }
 
@@ -314,7 +325,14 @@ namespace API.Controllers.HRM.Campaign
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã số đã tồn tại! Vui lòng nhập lại", err = "1" });
                         }
-
+                        var hrm_candidate_old = db.hrm_candidate.AsNoTracking()
+                        .Where(s => s.candidate_id == candidate.candidate_id).FirstOrDefault<hrm_candidate>();
+                        if(hrm_candidate_old.candidate_avatar!=null&& candidate.candidate_avatar == null)
+                        {
+                            bool Fexists = File.Exists(root + "/" + dvid + "/Candidate/" + Path.GetFileName(hrm_candidate_old.candidate_avatar));
+                            if (Fexists)
+                                System.IO.File.Delete(root + "/" + dvid + "/Candidate/" + Path.GetFileName(hrm_candidate_old.candidate_avatar));
+                        }
 
                         candidate.modified_by = uid;
                         candidate.modified_date = DateTime.Now;
@@ -454,29 +472,40 @@ namespace API.Controllers.HRM.Campaign
                                 File.Move(ffileData.LocalFileName, newFileName);
 
                             }
-
-                            hrm_file hrm_File = new hrm_file();
-                            hrm_File.key_id = candidate.candidate_id.ToString();
-                            hrm_File.file_name = Path.GetFileName(newFileName);
-                            hrm_File.file_path = "/Portals/" + dvid + "/Candidate/" + fileName;
-                            hrm_File.file_type = helper.GetFileExtension(fileName);
-                            var file_info = new FileInfo(strPath + "/" + fileName);
-                            hrm_File.file_size = file_info.Length;
-                            if (helper.IsImageFileName(newFileName))
+                            if (fileData.Headers.ContentDisposition.Name == "\"candidate_avatar\"")
                             {
-                                hrm_File.is_image = true;
+                                if(candidate.candidate_avatar!=null && candidate.candidate_avatar!="")
+                                paths.Add(candidate.candidate_avatar);
+                                candidate.candidate_avatar = "/Portals/" + dvid + "/Candidate/" + fileName; ;
+
                             }
                             else
                             {
-                                hrm_File.is_image = false;
+                                hrm_file hrm_File = new hrm_file();
+                                hrm_File.key_id = candidate.candidate_id.ToString();
+                                hrm_File.file_name = Path.GetFileName(newFileName);
+                                hrm_File.file_path = "/Portals/" + dvid + "/Candidate/" + fileName;
+                                hrm_File.file_type = helper.GetFileExtension(fileName);
+                                var file_info = new FileInfo(strPath + "/" + fileName);
+                                hrm_File.file_size = file_info.Length;
+                                if (helper.IsImageFileName(newFileName))
+                                {
+                                    hrm_File.is_image = true;
+                                }
+                                else
+                                {
+                                    hrm_File.is_image = false;
+                                }
+                                hrm_File.is_type = 4;
+                                hrm_File.status = true;
+                                hrm_File.created_by = uid;
+                                hrm_File.created_date = DateTime.Now;
+                                hrm_File.created_ip = ip; hrm_File.organization_id = int.Parse(dvid);
+                                hrm_File.created_token_id = tid;
+                                db.hrm_file.Add(hrm_File);
+
                             }
-                            hrm_File.is_type = 4;
-                            hrm_File.status = true;
-                            hrm_File.created_by = uid;
-                            hrm_File.created_date = DateTime.Now;
-                            hrm_File.created_ip = ip; hrm_File.organization_id = int.Parse(dvid);
-                            hrm_File.created_token_id = tid;
-                            db.hrm_file.Add(hrm_File);
+                       
 
                         }
 
@@ -571,6 +600,8 @@ namespace API.Controllers.HRM.Campaign
                             {
                                 del.Add(da);
 
+                                if (da.candidate_avatar != null && da.candidate_avatar != "")
+                                    paths.Add(da.candidate_avatar);
                                 var das1 = await db.hrm_candidate_family.Where(a => id.Contains(a.candidate_id)).ToListAsync();
                                 db.hrm_candidate_family.RemoveRange(das1);
                                 var das2 = await db.hrm_candidate_academic.Where(a => id.Contains(a.candidate_id)).ToListAsync();

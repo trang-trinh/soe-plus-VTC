@@ -880,7 +880,23 @@ li.p-chips-token {
 .p-datepicker {
     z-index: 10000000;
 }
-
+.design-paycheck .p-inputnumber-input:focus{
+    background-color: #f5ebc1 !important;
+   
+  }
+  .design-paycheck .p-inputnumber-input{
+  
+    text-align: right;
+  }
+.p-button.d-design-left{
+    text-align: left !important;
+}
+.d-design-calendar.p-calendar .p-inputtext{
+text-align: center !important;
+}
+.d-design-inputnumber.p-inputnumber .p-inputtext{
+    text-align: center !important;
+}
 .module-button {
     margin-top: 0.4rem !important;
     margin-right: 1rem !important;

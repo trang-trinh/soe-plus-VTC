@@ -1192,7 +1192,7 @@ const loadCountDetails = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
- 
+  
       if (data.length > 0) {
         options.value.totalRecordsP = data[0].totalRecords;
       }
@@ -1661,10 +1661,11 @@ onMounted(() => {
             </div>
       
             </div>
-            <div class="col-12 field md:col-12 flex align-items-center" v-if="paycheck.paycheck_type==2">
+            <!-- v-if="paycheck.paycheck_type==2" -->
+            <div class="col-12 field md:col-12 flex align-items-center" >
               
             <div class="col-3 text-left p-0 ">Đơn vị tính </div>
-            <InputText v-model="paycheck.paycheck_unit" class="col-9 ip36 p-0 px-2" />
+            <InputText v-model="paycheck.paycheck_unit" class="col-9 ip36 p-0 px-2"  autocomplete="true"/>
  
        
               </div>
