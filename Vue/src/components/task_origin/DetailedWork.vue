@@ -5612,7 +5612,8 @@ const is_viewSecurityTask = ref(true);
                           style="top: 0 !important; right: 0 !important"
                           @click="closeReplyOrEditCmt()"
                           v-tooltip="{ value: 'Hủy' }"
-                        ></Button>
+                        >
+                        </Button>
                       </div>
                     </div>
                     <div
