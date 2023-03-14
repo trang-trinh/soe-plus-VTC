@@ -3167,7 +3167,7 @@ const ChecklistType = ref();
 const OpenViewTaskChecklists = (number) => {
   ViewTaskChecklists.value = true;
   ChecklistType.value = number;
-};
+};              
 //LINk Doc
 const countDocMaster = ref();
 const ListDocMaster = ref();
@@ -3216,7 +3216,7 @@ const loadTaskDoc = () => {
         store.commit("gologout");
       }
     });
-};
+}; 
 const TaskLinkDOC = ref({
   organization_id: null,
   task_id: null,
