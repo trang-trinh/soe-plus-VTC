@@ -22,6 +22,7 @@ using Newtonsoft.Json.Linq;
 
 namespace API.Controllers.HRM.Category
 {
+    [Authorize(Roles = "login")]
     public class hrm_ca_classroomController : ApiController
     {
         public string getipaddress()
