@@ -843,6 +843,9 @@ onMounted(() => {
           <div class="col-2 format-center p-0 m-0">{{ index + 1 }}</div>
           <div class="col-2 format-center p-0 m-0">
             <Avatar
+              @error="
+                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+              "
               v-bind:label="
                 m.avatar ? '' : m.full_name.split(' ').at(-1).substring(0, 1)
               "
@@ -1003,6 +1006,9 @@ onMounted(() => {
           </div>
           <div class="image-container pl-3 pr-2">
             <Avatar
+              @error="
+                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+              "
               v-bind:label="
                 slotProps.item.avatar
                   ? ''

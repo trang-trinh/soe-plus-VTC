@@ -495,6 +495,10 @@ onMounted(() => {
               >
                 <div class="co-2">
                   <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     v-tooltip.right="{
                       value: item.creator.tooltip,
                       escape: true,
@@ -640,6 +644,10 @@ onMounted(() => {
                       :key="m"
                     >
                       <Avatar
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
                         v-if="m.stt < 2"
                         v-tooltip.right="{
                           value: m.tooltip,
@@ -656,12 +664,16 @@ onMounted(() => {
                           background: bgColor[index % 7],
                           border: '1px solid' + bgColor[index % 7],
                         }"
-                        class="flex p-0 m-0"
+                        class="flex myclass"
                         size="normal"
                         shape="circle"
                       />
                     </div>
                     <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
                       v-if="item.members.length > 2"
                       v-tooltip.right="{
                         value:
