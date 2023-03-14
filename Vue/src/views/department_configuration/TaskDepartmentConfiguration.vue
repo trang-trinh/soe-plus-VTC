@@ -322,7 +322,7 @@ onMounted(() => {
                     <AvatarGroup>
                         <div v-for="(value, index) in data.node.data.Thanhviens" :key="index">
                             <div>
-                                <Avatar v-tooltip.bottom="{
+                                <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-tooltip.bottom="{
                                     value:
                                         value.type_name +
                                         ': ' +

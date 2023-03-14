@@ -592,6 +592,10 @@ onMounted(() => {
                   style="align-items: center; margin-left: 10px"
                 >
                   <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
                     v-bind:label="
                       slotProps.option.avatar
                         ? ''
@@ -711,6 +715,10 @@ onMounted(() => {
           <div class="col-12 flex p-0">
             <div class="col p-0 flex justify-content-center align-items-center">
               <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
                 v-bind:label="
                   data.data.avatar
                     ? ''
@@ -966,6 +974,10 @@ onMounted(() => {
             >
               <template #body="data">
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-tooltip.bottom="{
                     value: data.data.creator_tooltip,
                     escape: true,
@@ -1243,6 +1255,10 @@ onMounted(() => {
             >
               <template #body="data">
                 <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                   v-tooltip.bottom="{
                     value: data.data.woker_tooltip,
                     escape: true,
