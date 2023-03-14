@@ -151,7 +151,7 @@ const showPhongban = () => {
       isViewList: true,
       isViewTree: false,
     },
-  })
+  });
 };
 const item = "/Portals/Mau Excel/Mẫu Excel Người Dùng.xlsx";
 const displayImport = ref(false);
@@ -327,10 +327,10 @@ const initModuleFunctions = () => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -340,7 +340,7 @@ const initModuleFunctions = () => {
         function_modules.value = [];
       }
     })
-    .catch((error) => { });
+    .catch((error) => {});
 };
 const changeModuleFunctions = (md) => {
   if (md.children) {
@@ -538,10 +538,10 @@ const initTudien = () => {
             par: [{ par: "user_id", va: opition.value.user_id }],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -555,7 +555,7 @@ const initTudien = () => {
           data_organization,
           "organization_id",
           "organization_name",
-          "phòng ban"
+          "phòng ban",
         );
         //  donvis.value = obj.arrChils;
         treedonvis.value = obj.arrtreeChils;
@@ -569,7 +569,7 @@ const initTudien = () => {
       // data[4] = data[4].filter((x) => x.items.length > 0);
       //tudiens.value = data;
     })
-    .catch((error) => { });
+    .catch((error) => {});
 };
 const loadPhongban = (rf) => {
   axios
@@ -587,17 +587,22 @@ const loadPhongban = (rf) => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
 
     .then((response) => {
-      debugger
+      debugger;
       let data = JSON.parse(response.data.data)[0];
       if (isFirst.value) isFirst.value = false;
-      let obj = renderTree(data, "organization_id", "organization_name", "đơn vị");
+      let obj = renderTree(
+        data,
+        "organization_id",
+        "organization_name",
+        "đơn vị",
+      );
       donvis.value = obj.arrChils;
       opition.value.loading = false;
 
@@ -638,10 +643,10 @@ const loadCount = (id) => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -656,7 +661,7 @@ const loadCount = (id) => {
         //   : (isPaginator.value = false);
       }
     })
-    .catch((error) => { });
+    .catch((error) => {});
 };
 const onPage = (event) => {
   isPaginator.value = true;
@@ -743,12 +748,12 @@ const resetopition = () => {
   }
   if (opition.value.organization_id && !opition.value.organization_name) {
     opition.value.organization_name = users.value.find(
-      (x) => x.organization_id == opition.value.organization_id
+      (x) => x.organization_id == opition.value.organization_id,
     ).organization_name;
   }
   if (opition.value.status && !opition.value.tenstatus) {
     opition.value.tenstatus = tdstatuss.value.find(
-      (x) => x.status == opition.value.status
+      (x) => x.status == opition.value.status,
     ).tenstatus;
   }
 };
@@ -757,17 +762,17 @@ const loadUser = (rf, id, name) => {
   organization_id_label.value = id;
   if (opition.value.role_id != null)
     opition.value.role_name = tdRoles.value.filter(
-      (x) => x.role_id == opition.value.role_id
+      (x) => x.role_id == opition.value.role_id,
     )[0].role_name;
   else opition.value.role_name = null;
   if (opition.value.status != null)
     opition.value.tenstatus = tdstatuss.value.filter(
-      (x) => x.value == opition.value.status
+      (x) => x.value == opition.value.status,
     )[0].text;
   else opition.value.tenstatus = null;
   if (opition.value.position_id != null)
     opition.value.position_name = chucvus.value.filter(
-      (x) => x.position_id == opition.value.position_id
+      (x) => x.position_id == opition.value.position_id,
     )[0].position_name;
   else opition.value.position_name = null;
   //resetopition();
@@ -776,7 +781,7 @@ const loadUser = (rf, id, name) => {
   }
   if (opition.value.check_quyen != null)
     opition.value.check_quyen_label = tdCheckquyens.value.filter(
-      (x) => x.value == opition.value.check_quyen
+      (x) => x.value == opition.value.check_quyen,
     )[0].text;
   else opition.value.check_quyen_label = null;
   if (rf) {
@@ -811,10 +816,10 @@ const loadUser = (rf, id, name) => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -871,10 +876,10 @@ const editUser = (md) => {
             par: [{ par: "user_id", va: md.user_id }],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       swal.close();
@@ -886,12 +891,17 @@ const editUser = (md) => {
           user.value.birthday = new Date(
             dt.getFullYear(),
             dt.getMonth(),
-            dt.getDate()
+            dt.getDate(),
           );
         }
         getInfoPass(user.value);
         selectCapcha.value = {};
-        selectCapcha.value[user.value.department_id || user.value.organization_child_id || user.value.organization_id || "-1"] = true;
+        selectCapcha.value[
+          user.value.department_id ||
+            user.value.organization_child_id ||
+            user.value.organization_id ||
+            "-1"
+        ] = true;
       }
     })
     .catch((error) => {
@@ -958,21 +968,23 @@ const handleSubmit = (isFormValid) => {
     user.value.department_id = null;
     user.value.organization_id = null;
     user.value.organization_child_id = null;
-  }
-  else {
+  } else {
     //get organization_parent and child
-    let obj = data_organization.filter(x => x.organization_id == id_key);
+    let obj = data_organization.filter((x) => x.organization_id == id_key);
     if (obj.length > 0) {
-      let list_id = obj[0].listparent_id.slice(0, -1).split("/").map(item => parseInt(item) ? parseInt(item) : item);
+      let list_id = obj[0].listparent_id
+        .slice(0, -1)
+        .split("/")
+        .map((item) => (parseInt(item) ? parseInt(item) : item));
       user.value.organization_id = list_id[0];
       user.value.department_id = list_id[list_id.length - 1];
       list_id.forEach((id) => {
-        let org = data_organization.filter(x => x.organization_id == id);
+        let org = data_organization.filter((x) => x.organization_id == id);
         if (org.length > 0 && org[0].organization_type == 0) {
           user.value.organization_child_id = id;
         }
-      })
-      //check 
+      });
+      //check
       if (user.value.department_id == user.value.organization_child_id) {
         user.value.department_id = null;
       }
@@ -983,7 +995,8 @@ const handleSubmit = (isFormValid) => {
       if (user.value.organization_id == user.value.organization_child_id) {
         user.value.organization_child_id = null;
       }
-      if (user.value.is_admin && user.value.organization_child_id !== null) user.value.is_admin_child = true;
+      if (user.value.is_admin && user.value.organization_child_id !== null)
+        user.value.is_admin_child = true;
     }
   }
   // user.value.department_id = keys[0];
@@ -1194,7 +1207,7 @@ const exportUser = (method) => {
           { par: "status", va: opition.value.status },
         ],
       },
-      config
+      config,
     )
     .then((response) => {
       swal.close();
@@ -1376,16 +1389,16 @@ const configRole = (md) => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
-      config
+      config,
     )
     .then((response) => {
       opition.value.moduleloading = false;
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
-      debugger
+      debugger;
       if (data1.length > 0) {
         is_role.value = data1[0].is_role;
         role_name.value = data1[0].role_name;
@@ -1496,7 +1509,9 @@ const addConfigRole = () => {
           ec.children.forEach((ec2) => {
             mdmodules.push({
               role_module_id: ec2.data.role_module_id || -1,
-              role_id: is_coppy_module.value ? role_temp.value : ec2.data.role_id,
+              role_id: is_coppy_module.value
+                ? role_temp.value
+                : ec2.data.role_id,
               user_id: is_coppy_module.value ? id_temp.value : ec2.data.user_id,
               module_id: ec2.data.module_id,
               is_grade: ec2.data.is_grade,
@@ -1581,7 +1596,7 @@ const initUserPhongban = () => {
         let getString = dv.data.organization_name.substring(idx1, idx2);
         dv.data.organization_name = dv.data.organization_name.replace(
           getString,
-          " (" + us.length + ")"
+          " (" + us.length + ")",
         );
       }
       //dv.users = us;
@@ -1596,7 +1611,7 @@ const initUserPhongban = () => {
         let getString = dv.data.organization_name.substring(idx1, idx2);
         dv.data.organization_name = dv.data.organization_name.replace(
           getString,
-          " (" + us.length + ")"
+          " (" + us.length + ")",
         );
       }
     }
@@ -1633,7 +1648,7 @@ function removeVietnameseTones(str) {
   // Bỏ dấu câu, kí tự đặc biệt
   str = str.replace(
     /!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'|\"|\&|\#|\[|\]|~|\$|_|`|-|{|}|\||\\/g,
-    " "
+    " ",
   );
   return str;
 }
@@ -1667,58 +1682,127 @@ onMounted(() => {
 
       </div> -->
       <div>
-        <Splitter class=" h-full w-full pb-0 pr-0">
-          <SplitterPanel :size="35" class=" ">
+        <Splitter class="h-full w-full pb-0 pr-0">
+          <SplitterPanel
+            :size="35"
+            class=" "
+          >
             <div class="pr-3">
               <div>
                 <Toolbar>
                   <template #start>
                     <span class="p-input-icon-left">
                       <i class="pi pi-search" />
-                      <InputText v-model="filters['global']" type="text" spellcheck="false"
-                        placeholder="Tìm kiếm đơn vị" />
+                      <InputText
+                        v-model="filters['global']"
+                        type="text"
+                        spellcheck="false"
+                        placeholder="Tìm kiếm đơn vị"
+                      />
                     </span>
                   </template>
                   <template #end>
-                    <Button v-if="store.getters.user.is_super" @click="showModalAddDonvi(0)" label="Thêm đơn vị"
-                      icon="pi pi-plus" class="mr-2" />
-
+                    <Button
+                      v-if="store.getters.user.is_super"
+                      @click="showModalAddDonvi(0)"
+                      label="Thêm đơn vị"
+                      icon="pi pi-plus"
+                      class="mr-2"
+                    />
                   </template>
                 </Toolbar>
               </div>
-              <div style="border-top:2px solid #dee2e6">
-
+              <div style="border-top: 2px solid #dee2e6">
                 <div class="w-full d-lang-table">
-                  <TreeTable :value="donvis" v-model:selectionKeys="selectedKey" :paginator="true"
-                    @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" :filters="filters" :showGridlines="true"
-                    filterMode="strict" class="p-treetable-sm" :rows="20" :rowHover="true" responsiveLayout="scroll"
-                    :scrollable="true" scrollHeight="flex">
-                    <Column field="Logo" header="Logo" class="align-items-center justify-content-center text-center"
-                      headerStyle="text-align:center;max-width:80px" bodyStyle="text-align:center;max-width:80px">
+                  <TreeTable
+                    :value="donvis"
+                    v-model:selectionKeys="selectedKey"
+                    :paginator="true"
+                    @nodeSelect="onNodeSelect"
+                    @nodeUnselect="onNodeUnselect"
+                    :filters="filters"
+                    :showGridlines="true"
+                    filterMode="strict"
+                    class="p-treetable-sm"
+                    :rows="20"
+                    :rowHover="true"
+                    responsiveLayout="scroll"
+                    :scrollable="true"
+                    scrollHeight="flex"
+                  >
+                    <Column
+                      field="Logo"
+                      header="Logo"
+                      class="align-items-center justify-content-center text-center"
+                      headerStyle="text-align:center;max-width:80px"
+                      bodyStyle="text-align:center;max-width:80px"
+                    >
                       <template #body="md">
-                        <div :class="md.node.data.organization_id === organization_id_label? 'row-active': ''" @click="loadUser(true,md.node.data.organization_id, md.node.data.organization_name)">
-                          <Avatar v-if="md.node.data.logo" :image="basedomainURL + md.node.data.logo" class="mr-2"
-                            size="large" />
+                        <div
+                          :class="
+                            md.node.data.organization_id ===
+                            organization_id_label
+                              ? 'row-active'
+                              : ''
+                          "
+                          @click="
+                            loadUser(
+                              true,
+                              md.node.data.organization_id,
+                              md.node.data.organization_name,
+                            )
+                          "
+                        >
+                          <Avatar
+                            v-if="md.node.data.logo"
+                            :image="basedomainURL + md.node.data.logo"
+                            class="mr-2"
+                            size="large"
+                          />
                         </div>
                       </template>
                     </Column>
-                    <Column field="organization_name" header="Tên đơn vị" :expander="true">
+                    <Column
+                      field="organization_name"
+                      header="Tên đơn vị"
+                      :expander="true"
+                    >
                       <template #body="md">
-                        <div :class="md.node.data.organization_id === organization_id_label? 'row-active': ''" @click="loadUser(true,md.node.data.organization_id, md.node.data.organization_name)">
-                          <span :class="'donvi' + md.node.data.organization_type" :style="[
-                            md.node.data ? 'font-weight:bold' : '',
-                            md.node.data.status ? '' : 'color:red !important',
-                          ]">{{ md.node.data.organization_name }}</span>
+                        <div
+                          :class="
+                            md.node.data.organization_id ===
+                            organization_id_label
+                              ? 'row-active'
+                              : ''
+                          "
+                          @click="
+                            loadUser(
+                              true,
+                              md.node.data.organization_id,
+                              md.node.data.organization_name,
+                            )
+                          "
+                        >
+                          <span
+                            :class="'donvi' + md.node.data.organization_type"
+                            :style="[
+                              md.node.data ? 'font-weight:bold' : '',
+                              md.node.data.status ? '' : 'color:red !important',
+                            ]"
+                            >{{ md.node.data.organization_name }}</span
+                          >
                         </div>
                       </template>
                     </Column>
                     <template #empty>
-                      <div class="m-auto align-items-center
-                                                          justify-content-center
-                                                          p-4
-                                                          text-center
-                         " v-if="!isFirst">
-                        <img src="../../assets/background/nodata.png" height="144" />
+                      <div
+                        class="m-auto align-items-center justify-content-center p-4 text-center"
+                        v-if="!isFirst"
+                      >
+                        <img
+                          src="../../../assets/background/nodata.png"
+                          height="144"
+                        />
                         <h3 class="m-1">Không có dữ liệu</h3>
                       </div>
                     </template>
@@ -1729,178 +1813,363 @@ onMounted(() => {
           </SplitterPanel>
           <SplitterPanel :size="65">
             <div class="w-full d-lang-table-r">
-              <DataView class="w-full h-full flex flex-column" :lazy="true" :value="users" :layout="layout"
-              :loading="opition.loading" :paginator="isPaginator" :rows="opition.PageSize"
-              :totalRecords="opition.totalrecords" :pageLinkSize="opition.PageSize" @page="onPage($event)"
-              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-              :rowsPerPageOptions="[20, 30, 50, 100, 200]" currentPageReportTemplate="" responsiveLayout="scroll"
-              :scrollable="true">
-              <template #header>
-                <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
-                  <i class="pi pi-users"></i> {{organization_name_label}}
-                  <span v-if="opition.totalrecords > 0">({{ opition.totalrecords }})</span>
-                  <Chip class="custom-chip ml-2 mr-1" @remove="goRole()" v-if="opition.role_name"
-                    :label="opition.role_name" :style="{
-                      background: opition.background_color,
-                      color: opition.text_color,
-                    }" removable />
-                  <Chip class="custom-chip ml-2 mr-1" @remove="goChucvu()" v-if="opition.position_name"
-                    :label="opition.position_name" removable />
-                  <Chip class="custom-chip chippb ml-2 mr-1" @remove="goDonvi()"
-                    v-if="opition.department_id || opition.organization_id" :label="opition.organization_name"
-                    removable />
-                  <Chip class="custom-chip ml-2 mr-1" v-bind:class="
-                    'chip-' +
-                    (opition.status == 0
-                      ? 'danger'
-                      : opition.status == 1
-                        ? 'success'
-                        : 'warning')
-                  " @remove="gostatus()" v-if="opition.tenstatus" :label="opition.tenstatus" removable />
-                  <Chip class="custom-chip chippb ml-2 mr-1" @remove="goQuyen()" v-if="opition.check_quyen_label"
-                    :label="opition.check_quyen_label" removable />
-                </h3>
-                <Toolbar class="w-full custoolbar">
-                  <template #start>
-                    <div class="p-input-icon-left">
-                      <i class="pi pi-search" />
-                      <InputText type="text" spellcheck="false" v-model="opition.search" placeholder="Tìm kiếm"
-                        v-on:keyup.enter="onSearch" />
-                    </div>
-                    <Button :class="
-                      checkFilter
-                        ? 'ml-2'
-                        : 'ml-2 p-button-secondary p-button-outlined'
-                    " icon="pi pi-filter" @click="toggleFilter" aria-haspopup="true" aria-controls="overlay_panelS" />
-                    <OverlayPanel ref="filterButs" appendTo="body" :showCloseIcon="false" id="overlay_panelS"
-                      style="width: 350px" :breakpoints="{ '960px': '20vw' }">
-                      <div class="grid formgrid m-2">
-                        <div class="field col-12 md:col-12 flex align-items-center">
-                          <div class="col-4 p-0">Đơn vị/Phòng ban:</div>
-                          <TreeSelect class="col-8 p-0" v-model="selectCap" :options="treedonvis" :showClear="true"
-                            :max-height="200" placeholder="Chọn phòng ban" optionLabel="organization_name"
-                            optionValue="organization_id">
-                          </TreeSelect>
-                        </div>
-                        <div class="field col-12 md:col-12 flex align-items-center">
-                          <div class="col-4 p-0">Chức vụ:</div>
-                          <Dropdown :showClear="true" v-model="opition.position_id" :options="chucvus"
-                            optionLabel="position_name" optionValue="position_id" placeholder="Chọn chức vụ"
-                            class="p-dropdown-sm col-8 p-0" />
-                        </div>
-                        <div class="field col-12 md:col-12 flex align-items-center">
-                          <div class="col-4 p-0">Nhóm người dùng:</div>
-                          <Dropdown :showClear="true" v-model="opition.role_id" :options="tdRoles" optionLabel="role_name"
-                            optionValue="role_id" placeholder="Chọn nhóm người dùng" class="p-dropdown-sm col-8 p-0" />
-                        </div>
-                        <div class="field col-12 md:col-12 flex align-items-center">
-                          <div class="col-4 p-0">Trạng thái:</div>
-                          <Dropdown :showClear="true" v-model="opition.status" :options="tdstatuss" optionLabel="text"
-                            optionValue="value" placeholder="Chọn trạng thái" class="p-dropdown-sm col-8 p-0" />
-                        </div>
-                        <div class="field col-12 md:col-12 flex align-items-center">
-                          <div class="col-4 p-0">Quyền Module:</div>
-                          <Dropdown :showClear="true" v-model="opition.check_quyen" :options="tdCheckquyens"
-                            optionLabel="text" optionValue="value" placeholder="Chọn loại quyền"
-                            class="p-dropdown-sm col-8 p-0" />
-                        </div>
-                        <div class="col-12 field p-0">
-                          <Toolbar class="toolbar-filter">
-                            <template #start>
-                              <Button @click="reFilterUser" class="p-button-outlined" label="Xóa"></Button>
-                            </template>
-                            <template #end>
-                              <Button @click="filterUser" label="Lọc"></Button>
-                            </template>
-                          </Toolbar>
-                        </div>
+              <DataView
+                class="w-full h-full flex flex-column"
+                :lazy="true"
+                :value="users"
+                :layout="layout"
+                :loading="opition.loading"
+                :paginator="isPaginator"
+                :rows="opition.PageSize"
+                :totalRecords="opition.totalrecords"
+                :pageLinkSize="opition.PageSize"
+                @page="onPage($event)"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+                currentPageReportTemplate=""
+                responsiveLayout="scroll"
+                :scrollable="true"
+              >
+                <template #header>
+                  <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
+                    <i class="pi pi-users"></i> {{ organization_name_label }}
+                    <span v-if="opition.totalrecords > 0"
+                      >({{ opition.totalrecords }})</span
+                    >
+                    <Chip
+                      class="custom-chip ml-2 mr-1"
+                      @remove="goRole()"
+                      v-if="opition.role_name"
+                      :label="opition.role_name"
+                      :style="{
+                        background: opition.background_color,
+                        color: opition.text_color,
+                      }"
+                      removable
+                    />
+                    <Chip
+                      class="custom-chip ml-2 mr-1"
+                      @remove="goChucvu()"
+                      v-if="opition.position_name"
+                      :label="opition.position_name"
+                      removable
+                    />
+                    <Chip
+                      class="custom-chip chippb ml-2 mr-1"
+                      @remove="goDonvi()"
+                      v-if="opition.department_id || opition.organization_id"
+                      :label="opition.organization_name"
+                      removable
+                    />
+                    <Chip
+                      class="custom-chip ml-2 mr-1"
+                      v-bind:class="
+                        'chip-' +
+                        (opition.status == 0
+                          ? 'danger'
+                          : opition.status == 1
+                          ? 'success'
+                          : 'warning')
+                      "
+                      @remove="gostatus()"
+                      v-if="opition.tenstatus"
+                      :label="opition.tenstatus"
+                      removable
+                    />
+                    <Chip
+                      class="custom-chip chippb ml-2 mr-1"
+                      @remove="goQuyen()"
+                      v-if="opition.check_quyen_label"
+                      :label="opition.check_quyen_label"
+                      removable
+                    />
+                  </h3>
+                  <Toolbar class="w-full custoolbar">
+                    <template #start>
+                      <div class="p-input-icon-left">
+                        <i class="pi pi-search" />
+                        <InputText
+                          type="text"
+                          spellcheck="false"
+                          v-model="opition.search"
+                          placeholder="Tìm kiếm"
+                          v-on:keyup.enter="onSearch"
+                        />
                       </div>
-                    </OverlayPanel>
-                  </template>
-
-                  <template #end>
-                    <Button label="Thêm người dùng" icon="pi pi-plus" class="mr-2" @click="showModalAddUser" />
-                    <DataViewLayoutOptions v-model="layout" />
-                    <Button icon="pi pi-list" v-tooltip.left="'Hiển thị phòng ban'" v-bind:class="
-                      'ml-2 p-button p-button-' +
-                      (displayPhongban ? 'primary' : 'secondary')
-                    " @click="showPhongban" />
-                    <Button class="mr-2 ml-2 p-button p-button-outlined p-button-secondary" icon="pi pi-refresh"
-                      @click="onRefersh" />
-                    <Button label="Xoá" icon="pi pi-trash" class="mr-2 p-button-danger" v-if="isShowBtnDel"
-                      @click="delListUsers" />
-                    <Button label="Tiện ích" icon="pi pi-file-excel"
-                      class="mr-2 p-button p-button-outlined p-button-secondary" @click="toggleExport"
-                      aria-haspopup="true" aria-controls="overlay_Export" />
-                    <Menu id="overlay_Export" ref="menuButs" :model="itemButs" :popup="true" />
-                  </template>
-                </Toolbar>
-              </template>
-              <template #grid="slotProps">
-                <div class="md:col-4 p-2 card-content">
-                  <Card class="no-paddcontent">
-                    <template #title>
-                      <div style="position: relative">
-                        <div class="align-items-center justify-content-center text-center" style="position: relative">
-                          <Avatar v-bind:label="
-                            slotProps.data.avatar
-                              ? ''
-                              : slotProps.data.lastName.substring(0, 1).toUpperCase()
-                          " v-bind:image="basedomainURL + slotProps.data.avatar" style="
-                        background-color: #2196f3;
-                        color: #ffffff;
-                        width: 8rem;
-                        height: 8rem;
-                      " :style="{
-                        background: bgColor[slotProps.data.stt % 7],
-                      }" class="mr-2" size="xlarge" shape="circle" />
-                          <Button @click="gostatus(slotProps.data)" v-bind:class="
-                            'p-button p-button-' +
-                            (slotProps.data.status == 0
-                              ? 'danger'
-                              : slotProps.data.status == 1
-                                ? 'success'
-                                : 'warning') +
-                            ' p-button-rounded dot-status'
-                          " />
-                          <Button @click="gostatus(slotProps.data)" v-bind:class="
-                            'p-button p-button-' +
-                            (slotProps.data.status == 0
-                              ? 'danger'
-                              : slotProps.data.status == 1
-                                ? 'success'
-                                : 'warning') +
-                            ' p-button-rounded dot-status'
-                          " />
-                          <i @click="goQuyen(slotProps.data)" v-if="slotProps.data.check_quyen == 1"
-                            v-tooltip.top="slotProps.data.check_quyen_label" class="pi pi-star-fill icon-quyen"></i>
+                      <Button
+                        :class="
+                          checkFilter
+                            ? 'ml-2'
+                            : 'ml-2 p-button-secondary p-button-outlined'
+                        "
+                        icon="pi pi-filter"
+                        @click="toggleFilter"
+                        aria-haspopup="true"
+                        aria-controls="overlay_panelS"
+                      />
+                      <OverlayPanel
+                        ref="filterButs"
+                        appendTo="body"
+                        :showCloseIcon="false"
+                        id="overlay_panelS"
+                        style="width: 350px"
+                        :breakpoints="{ '960px': '20vw' }"
+                      >
+                        <div class="grid formgrid m-2">
+                          <div
+                            class="field col-12 md:col-12 flex align-items-center"
+                          >
+                            <div class="col-4 p-0">Đơn vị/Phòng ban:</div>
+                            <TreeSelect
+                              class="col-8 p-0"
+                              v-model="selectCap"
+                              :options="treedonvis"
+                              :showClear="true"
+                              :max-height="200"
+                              placeholder="Chọn phòng ban"
+                              optionLabel="organization_name"
+                              optionValue="organization_id"
+                            >
+                            </TreeSelect>
+                          </div>
+                          <div
+                            class="field col-12 md:col-12 flex align-items-center"
+                          >
+                            <div class="col-4 p-0">Chức vụ:</div>
+                            <Dropdown
+                              :showClear="true"
+                              v-model="opition.position_id"
+                              :options="chucvus"
+                              optionLabel="position_name"
+                              optionValue="position_id"
+                              placeholder="Chọn chức vụ"
+                              class="p-dropdown-sm col-8 p-0"
+                            />
+                          </div>
+                          <div
+                            class="field col-12 md:col-12 flex align-items-center"
+                          >
+                            <div class="col-4 p-0">Nhóm người dùng:</div>
+                            <Dropdown
+                              :showClear="true"
+                              v-model="opition.role_id"
+                              :options="tdRoles"
+                              optionLabel="role_name"
+                              optionValue="role_id"
+                              placeholder="Chọn nhóm người dùng"
+                              class="p-dropdown-sm col-8 p-0"
+                            />
+                          </div>
+                          <div
+                            class="field col-12 md:col-12 flex align-items-center"
+                          >
+                            <div class="col-4 p-0">Trạng thái:</div>
+                            <Dropdown
+                              :showClear="true"
+                              v-model="opition.status"
+                              :options="tdstatuss"
+                              optionLabel="text"
+                              optionValue="value"
+                              placeholder="Chọn trạng thái"
+                              class="p-dropdown-sm col-8 p-0"
+                            />
+                          </div>
+                          <div
+                            class="field col-12 md:col-12 flex align-items-center"
+                          >
+                            <div class="col-4 p-0">Quyền Module:</div>
+                            <Dropdown
+                              :showClear="true"
+                              v-model="opition.check_quyen"
+                              :options="tdCheckquyens"
+                              optionLabel="text"
+                              optionValue="value"
+                              placeholder="Chọn loại quyền"
+                              class="p-dropdown-sm col-8 p-0"
+                            />
+                          </div>
+                          <div class="col-12 field p-0">
+                            <Toolbar class="toolbar-filter">
+                              <template #start>
+                                <Button
+                                  @click="reFilterUser"
+                                  class="p-button-outlined"
+                                  label="Xóa"
+                                ></Button>
+                              </template>
+                              <template #end>
+                                <Button
+                                  @click="filterUser"
+                                  label="Lọc"
+                                ></Button>
+                              </template>
+                            </Toolbar>
+                          </div>
                         </div>
-                        <Button style="position: absolute; right: 0px; top: 0px" icon="pi pi-ellipsis-h"
-                          class="p-button-rounded p-button-text ml-2" @click="toggleMores($event, slotProps.data)"
-                          aria-haspopup="true" aria-controls="overlay_More" />
-                      </div>
+                      </OverlayPanel>
                     </template>
-                    <template #content>
-                      <div class="text-center">
-                        <Button class="p-button-text m-auto block" style="color: inherit"
-                          @click="editUser(slotProps.data)">
-                          <h3 class="m-0">
-                            {{ slotProps.data.full_name }}
-                          </h3>
-                        </Button>
-                        <Chip @click="goDonvi(slotProps.data)" class="m-1 chippb p-ripple" v-ripple
-                          :label="slotProps.data.organization_name"></Chip>
-                        <div class="mb-1" v-if="slotProps.data.position_name">
-                          <Chip @click="goChucvu(slotProps.data)" v-ripple class="p-ripple chip2"
-                            v-bind:label="slotProps.data.position_name" />
+
+                    <template #end>
+                      <Button
+                        label="Thêm người dùng"
+                        icon="pi pi-plus"
+                        class="mr-2"
+                        @click="showModalAddUser"
+                      />
+                      <DataViewLayoutOptions v-model="layout" />
+                      <Button
+                        icon="pi pi-list"
+                        v-tooltip.left="'Hiển thị phòng ban'"
+                        v-bind:class="
+                          'ml-2 p-button p-button-' +
+                          (displayPhongban ? 'primary' : 'secondary')
+                        "
+                        @click="showPhongban"
+                      />
+                      <Button
+                        class="mr-2 ml-2 p-button p-button-outlined p-button-secondary"
+                        icon="pi pi-refresh"
+                        @click="onRefersh"
+                      />
+                      <Button
+                        label="Xoá"
+                        icon="pi pi-trash"
+                        class="mr-2 p-button-danger"
+                        v-if="isShowBtnDel"
+                        @click="delListUsers"
+                      />
+                      <Button
+                        label="Tiện ích"
+                        icon="pi pi-file-excel"
+                        class="mr-2 p-button p-button-outlined p-button-secondary"
+                        @click="toggleExport"
+                        aria-haspopup="true"
+                        aria-controls="overlay_Export"
+                      />
+                      <Menu
+                        id="overlay_Export"
+                        ref="menuButs"
+                        :model="itemButs"
+                        :popup="true"
+                      />
+                    </template>
+                  </Toolbar>
+                </template>
+                <template #grid="slotProps">
+                  <div class="md:col-4 p-2 card-content">
+                    <Card class="no-paddcontent">
+                      <template #title>
+                        <div style="position: relative">
+                          <div
+                            class="align-items-center justify-content-center text-center"
+                            style="position: relative"
+                          >
+                            <Avatar
+                              v-bind:label="
+                                slotProps.data.avatar
+                                  ? ''
+                                  : slotProps.data.lastName
+                                      .substring(0, 1)
+                                      .toUpperCase()
+                              "
+                              v-bind:image="
+                                basedomainURL + slotProps.data.avatar
+                              "
+                              style="
+                                background-color: #2196f3;
+                                color: #ffffff;
+                                width: 8rem;
+                                height: 8rem;
+                              "
+                              :style="{
+                                background: bgColor[slotProps.data.stt % 7],
+                              }"
+                              class="mr-2"
+                              size="xlarge"
+                              shape="circle"
+                            />
+                            <Button
+                              @click="gostatus(slotProps.data)"
+                              v-bind:class="
+                                'p-button p-button-' +
+                                (slotProps.data.status == 0
+                                  ? 'danger'
+                                  : slotProps.data.status == 1
+                                  ? 'success'
+                                  : 'warning') +
+                                ' p-button-rounded dot-status'
+                              "
+                            />
+                            <Button
+                              @click="gostatus(slotProps.data)"
+                              v-bind:class="
+                                'p-button p-button-' +
+                                (slotProps.data.status == 0
+                                  ? 'danger'
+                                  : slotProps.data.status == 1
+                                  ? 'success'
+                                  : 'warning') +
+                                ' p-button-rounded dot-status'
+                              "
+                            />
+                            <i
+                              @click="goQuyen(slotProps.data)"
+                              v-if="slotProps.data.check_quyen == 1"
+                              v-tooltip.top="slotProps.data.check_quyen_label"
+                              class="pi pi-star-fill icon-quyen"
+                            ></i>
+                          </div>
+                          <Button
+                            style="position: absolute; right: 0px; top: 0px"
+                            icon="pi pi-ellipsis-h"
+                            class="p-button-rounded p-button-text ml-2"
+                            @click="toggleMores($event, slotProps.data)"
+                            aria-haspopup="true"
+                            aria-controls="overlay_More"
+                          />
                         </div>
-                        <div class="mb-1">
-                          <Chip @click="goRole(slotProps.data)" v-ripple class="p-ripple" :style="{
-                            background: slotProps.data.background_color,
-                            color: slotProps.data.text_color,
-                          }" v-bind:label="slotProps.data.role_name" />
-                        </div>
-                        <!-- <div class="mb-1" v-if="slotProps.data.check_quyen != null">
+                      </template>
+                      <template #content>
+                        <div class="text-center">
+                          <Button
+                            class="p-button-text m-auto block"
+                            style="color: inherit"
+                            @click="editUser(slotProps.data)"
+                          >
+                            <h3 class="m-0">
+                              {{ slotProps.data.full_name }}
+                            </h3>
+                          </Button>
+                          <Chip
+                            @click="goDonvi(slotProps.data)"
+                            class="m-1 chippb p-ripple"
+                            v-ripple
+                            :label="slotProps.data.organization_name"
+                          ></Chip>
+                          <div
+                            class="mb-1"
+                            v-if="slotProps.data.position_name"
+                          >
+                            <Chip
+                              @click="goChucvu(slotProps.data)"
+                              v-ripple
+                              class="p-ripple chip2"
+                              v-bind:label="slotProps.data.position_name"
+                            />
+                          </div>
+                          <div class="mb-1">
+                            <Chip
+                              @click="goRole(slotProps.data)"
+                              v-ripple
+                              class="p-ripple"
+                              :style="{
+                                background: slotProps.data.background_color,
+                                color: slotProps.data.text_color,
+                              }"
+                              v-bind:label="slotProps.data.role_name"
+                            />
+                          </div>
+                          <!-- <div class="mb-1" v-if="slotProps.data.check_quyen != null">
                     <Chip
                       @click="goQuyen(slotProps.data)"
                       v-ripple
@@ -1908,97 +2177,174 @@ onMounted(() => {
                       v-bind:label="slotProps.data.check_quyen_label"
                     />
                   </div> -->
-                      </div>
-                    </template>
-                  </Card>
-                </div>
-              </template>
-              <template #list="slotProps">
-                <div class="p-2 w-full" style="background-color: #fff">
-                  <div class="flex align-items-center justify-content-center">
-                    <div class="mx-2">
-                      <Checkbox id="IsIdentity" v-model="slotProps.data.chon" :binary="true" @change="clickDelUser" />
-                    </div>
-                    <Avatar v-bind:label="
-                      slotProps.data.avatar
-                        ? ''
-                        : slotProps.data.lastName.substring(0, 1).toUpperCase()
-                    " v-bind:image="basedomainURL + slotProps.data.avatar" style="background-color: #2196f3; color: #ffffff"
-                      :style="{
-                        background: bgColor[slotProps.data.stt % 7],
-                      }" class="mr-2" size="xlarge" shape="circle" />
-                    <div class="flex flex-column flex-grow-1">
-                      <Button class="p-button-text p-0" style="color: inherit; padding: 0 !important"
-                        @click="editUser(slotProps.data)">
-                        <h3 class="mb-1 mt-0">
-                          {{ slotProps.data.full_name }}
-                        </h3>
-                      </Button>
-                      <i style="font-size: 10pt; color: #999">{{ slotProps.data.user_id }}
-                        {{ slotProps.data.phone ? "| " + slotProps.data.phone : "" }}</i>
-                      <i style="font-size: 10pt; color: #999">{{
-                        slotProps.data.email
-                      }}</i>
-                    </div>
-                    <Chip @click="goDonvi(slotProps.data)" class="ml-2 mr-2 chippb"
-                      :label="slotProps.data.organization_name">
-                    </Chip>
-                    <Chip v-if="slotProps.data.position_name" @click="goChucvu(slotProps.data)" class="ml-2 mr-2 chip2"
-                      v-bind:label="slotProps.data.position_name" />
-                    <Chip @click="goRole(slotProps.data)" class="ml-2 mr-2" :style="{
-                      background: slotProps.data.background_color,
-                      color: slotProps.data.text_color,
-                    }" v-bind:label="slotProps.data.role_name" />
-                    <div v-bind:class="'rolefalse'" style="background-color: #eee; font-size: 10pt">
-                      {{
-                        moment(new Date(slotProps.data.created_date)).format(
-                          "DD/MM/YYYY"
-                        )
-                      }}
-                    </div>
-                    <Button @click="gostatus(slotProps.data)" v-bind:label="slotProps.data.tenstatus" v-bind:class="
-                      'ml-2 mr-2 p-button p-button-' +
-                      (slotProps.data.status == 0
-                        ? 'danger'
-                        : slotProps.data.status == 1
-                          ? 'success'
-                          : 'warning') +
-                      ' p-button-rounded'
-                    " />
-                    <Button icon="pi pi-ellipsis-h" class="p-button-outlined p-button-secondary ml-2"
-                      @click="toggleMores($event, slotProps.data)" aria-haspopup="true" aria-controls="overlay_More" />
+                        </div>
+                      </template>
+                    </Card>
                   </div>
-                </div>
-              </template>
-              <template #empty>
-                <div class="align-items-center justify-content-center p-4 text-center" v-if="!isFirst">
-                  <img src="../../assets/background/nodata.png" height="144" />
-                  <h3 class="m-1">Không có dữ liệu</h3>
-                </div>
-              </template>
-            </DataView>
+                </template>
+                <template #list="slotProps">
+                  <div
+                    class="p-2 w-full"
+                    style="background-color: #fff"
+                  >
+                    <div class="flex align-items-center justify-content-center">
+                      <div class="mx-2">
+                        <Checkbox
+                          id="IsIdentity"
+                          v-model="slotProps.data.chon"
+                          :binary="true"
+                          @change="clickDelUser"
+                        />
+                      </div>
+                      <Avatar
+                        v-bind:label="
+                          slotProps.data.avatar
+                            ? ''
+                            : slotProps.data.lastName
+                                .substring(0, 1)
+                                .toUpperCase()
+                        "
+                        v-bind:image="basedomainURL + slotProps.data.avatar"
+                        style="background-color: #2196f3; color: #ffffff"
+                        :style="{
+                          background: bgColor[slotProps.data.stt % 7],
+                        }"
+                        class="mr-2"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                      <div class="flex flex-column flex-grow-1">
+                        <Button
+                          class="p-button-text p-0"
+                          style="color: inherit; padding: 0 !important"
+                          @click="editUser(slotProps.data)"
+                        >
+                          <h3 class="mb-1 mt-0">
+                            {{ slotProps.data.full_name }}
+                          </h3>
+                        </Button>
+                        <i style="font-size: 10pt; color: #999"
+                          >{{ slotProps.data.user_id }}
+                          {{
+                            slotProps.data.phone
+                              ? "| " + slotProps.data.phone
+                              : ""
+                          }}</i
+                        >
+                        <i style="font-size: 10pt; color: #999">{{
+                          slotProps.data.email
+                        }}</i>
+                      </div>
+                      <Chip
+                        @click="goDonvi(slotProps.data)"
+                        class="ml-2 mr-2 chippb"
+                        :label="slotProps.data.organization_name"
+                      >
+                      </Chip>
+                      <Chip
+                        v-if="slotProps.data.position_name"
+                        @click="goChucvu(slotProps.data)"
+                        class="ml-2 mr-2 chip2"
+                        v-bind:label="slotProps.data.position_name"
+                      />
+                      <Chip
+                        @click="goRole(slotProps.data)"
+                        class="ml-2 mr-2"
+                        :style="{
+                          background: slotProps.data.background_color,
+                          color: slotProps.data.text_color,
+                        }"
+                        v-bind:label="slotProps.data.role_name"
+                      />
+                      <div
+                        v-bind:class="'rolefalse'"
+                        style="background-color: #eee; font-size: 10pt"
+                      >
+                        {{
+                          moment(new Date(slotProps.data.created_date)).format(
+                            "DD/MM/YYYY",
+                          )
+                        }}
+                      </div>
+                      <Button
+                        @click="gostatus(slotProps.data)"
+                        v-bind:label="slotProps.data.tenstatus"
+                        v-bind:class="
+                          'ml-2 mr-2 p-button p-button-' +
+                          (slotProps.data.status == 0
+                            ? 'danger'
+                            : slotProps.data.status == 1
+                            ? 'success'
+                            : 'warning') +
+                          ' p-button-rounded'
+                        "
+                      />
+                      <Button
+                        icon="pi pi-ellipsis-h"
+                        class="p-button-outlined p-button-secondary ml-2"
+                        @click="toggleMores($event, slotProps.data)"
+                        aria-haspopup="true"
+                        aria-controls="overlay_More"
+                      />
+                    </div>
+                  </div>
+                </template>
+                <template #empty>
+                  <div
+                    class="align-items-center justify-content-center p-4 text-center"
+                    v-if="!isFirst"
+                  >
+                    <img
+                      src="../../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
+                  </div>
+                </template>
+              </DataView>
             </div>
           </SplitterPanel>
         </Splitter>
       </div>
-
     </div>
-
   </div>
-  <Menu id="overlay_More" ref="menuButMores" :model="itemButMores" :popup="true" />
-  <Dialog header="Cập nhật người dùng" v-model:visible="displayAddUser" :style="{ width: '55vw' }" :maximizable="true"
-    :closable="true">
-    <form @submit.prevent="handleSubmit(!v$.$invalid)" name="submitform">
+  <Menu
+    id="overlay_More"
+    ref="menuButMores"
+    :model="itemButMores"
+    :popup="true"
+  />
+  <Dialog
+    header="Cập nhật người dùng"
+    v-model:visible="displayAddUser"
+    :style="{ width: '55vw' }"
+    :maximizable="true"
+    :closable="true"
+  >
+    <form
+      @submit.prevent="handleSubmit(!v$.$invalid)"
+      name="submitform"
+    >
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Tên đăng nhập <span class="redsao">(*)</span></label>
-          <InputText spellcheck="false" v-bind:disabled="!isAdd" class="col-10 ip32" v-model="user.user_id"
-            :class="{ 'p-invalid': v$.user_id.$invalid && submitted }" />
+          <label class="col-2 text-left"
+            >Tên đăng nhập <span class="redsao">(*)</span></label
+          >
+          <InputText
+            spellcheck="false"
+            v-bind:disabled="!isAdd"
+            class="col-10 ip32"
+            v-model="user.user_id"
+            :class="{ 'p-invalid': v$.user_id.$invalid && submitted }"
+          />
         </div>
-        <small v-if="
-          (v$.user_id.required.$invalid && submitted) ||
-          v$.user_id.required.$pending.$response
-        " class="col-10 p-error">
+        <small
+          v-if="
+            (v$.user_id.required.$invalid && submitted) ||
+            v$.user_id.required.$pending.$response
+          "
+          class="col-10 p-error"
+        >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
             <span class="col-10 pl-3">{{
@@ -2008,30 +2354,46 @@ onMounted(() => {
             }}</span>
           </div>
         </small>
-        <small v-if="
-          (v$.user_id.maxLength.$invalid && submitted) ||
-          v$.user_id.maxLength.$pending.$response
-        " class="col-10 p-error">
+        <small
+          v-if="
+            (v$.user_id.maxLength.$invalid && submitted) ||
+            v$.user_id.maxLength.$pending.$response
+          "
+          class="col-10 p-error"
+        >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
-            <span class="col-10 pl-3">{{
-              v$.user_id.maxLength.$message.replace(
-                "The maximum length allowed is",
-                "Tên đăng nhập không được vượt quá"
-              )
-            }}
-              ký tự</span>
+            <span class="col-10 pl-3"
+              >{{
+                v$.user_id.maxLength.$message.replace(
+                  "The maximum length allowed is",
+                  "Tên đăng nhập không được vượt quá",
+                )
+              }}
+              ký tự</span
+            >
           </div>
         </small>
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Họ tên <span class="redsao">(*)</span></label>
-          <InputText spellcheck="false" class="col-10 ip32 text-transform" v-model="user.full_name"
-            autocomplete="username" name="full_name" :class="{ 'p-invalid': v$.full_name.$invalid && submitted }" />
+          <label class="col-2 text-left"
+            >Họ tên <span class="redsao">(*)</span></label
+          >
+          <InputText
+            spellcheck="false"
+            class="col-10 ip32 text-transform"
+            v-model="user.full_name"
+            autocomplete="username"
+            name="full_name"
+            :class="{ 'p-invalid': v$.full_name.$invalid && submitted }"
+          />
         </div>
-        <small v-if="
-          (v$.full_name.required.$invalid && submitted) ||
-          v$.full_name.required.$pending.$response
-        " class="col-10 p-error">
+        <small
+          v-if="
+            (v$.full_name.required.$invalid && submitted) ||
+            v$.full_name.required.$pending.$response
+          "
+          class="col-10 p-error"
+        >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
             <span class="col-10 pl-3">{{
@@ -2041,25 +2403,37 @@ onMounted(() => {
             }}</span>
           </div>
         </small>
-        <small v-if="
-          (v$.full_name.maxLength.$invalid && submitted) ||
-          v$.full_name.maxLength.$pending.$response
-        " class="col-10 p-error">
+        <small
+          v-if="
+            (v$.full_name.maxLength.$invalid && submitted) ||
+            v$.full_name.maxLength.$pending.$response
+          "
+          class="col-10 p-error"
+        >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
-            <span class="col-10 pl-3">{{
-              v$.full_name.maxLength.$message.replace(
-                "The maximum length allowed is",
-                "Tên người dùng không được vượt quá"
-              )
-            }}
-              ký tự</span>
+            <span class="col-10 pl-3"
+              >{{
+                v$.full_name.maxLength.$message.replace(
+                  "The maximum length allowed is",
+                  "Tên người dùng không được vượt quá",
+                )
+              }}
+              ký tự</span
+            >
           </div>
         </small>
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Mật khẩu <span class="redsao">(*)</span></label>
-          <Password style="cursor: pointer; width: 33.33%" v-model="user.is_psword" autocomplete="new-password"
-            class="ip32" toggleMask>
+          <label class="col-2 text-left"
+            >Mật khẩu <span class="redsao">(*)</span></label
+          >
+          <Password
+            style="cursor: pointer; width: 33.33%"
+            v-model="user.is_psword"
+            autocomplete="new-password"
+            class="ip32"
+            toggleMask
+          >
             <template #header>
               <h6>Chọn mật khẩu</h6>
             </template>
@@ -2067,7 +2441,10 @@ onMounted(() => {
               {{ sp.level }}
               <Divider />
               <p class="mt-2">Gợi ý</p>
-              <ul class="pl-2 ml-2 mt-0" style="line-height: 1.5">
+              <ul
+                class="pl-2 ml-2 mt-0"
+                style="line-height: 1.5"
+              >
                 <li>Có ít nhất 1 chữ thường</li>
                 <li>Có ít nhất 1 chữ hoa</li>
                 <li>Có ít nhất 1 ký tự số</li>
@@ -2076,10 +2453,13 @@ onMounted(() => {
             </template>
           </Password>
         </div>
-        <small v-if="
-          (v$.is_psword.required.$invalid && submitted) ||
-          v$.is_psword.required.$pending.$response
-        " class="col-10 p-error">
+        <small
+          v-if="
+            (v$.is_psword.required.$invalid && submitted) ||
+            v$.is_psword.required.$pending.$response
+          "
+          class="col-10 p-error"
+        >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
             <span class="col-10 pl-3">{{
@@ -2089,123 +2469,247 @@ onMounted(() => {
             }}</span>
           </div>
         </small>
-        <small v-if="v$.is_psword.minLength.$invalid && submitted" class="col-10 p-error">
+        <small
+          v-if="v$.is_psword.minLength.$invalid && submitted"
+          class="col-10 p-error"
+        >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
             <span class="col-10 pl-3">{{
               v$.is_psword.minLength.$message
                 .replace(
                   "This field should be at least",
-                  "Mật khẩu không được ít hơn"
+                  "Mật khẩu không được ít hơn",
                 )
                 .replace("long", "ký tự")
             }}</span>
           </div>
         </small>
-        <small v-if="v$.is_psword.maxLength.$invalid && submitted" class="col-10 p-error">
+        <small
+          v-if="v$.is_psword.maxLength.$invalid && submitted"
+          class="col-10 p-error"
+        >
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
-            <span class="col-10 pl-3">{{
-              v$.is_psword.maxLength.$message.replace(
-                "The maximum length allowed is",
-                "Mật khẩu không được vượt quá"
-              )
-            }}
-              ký tự</span>
+            <span class="col-10 pl-3"
+              >{{
+                v$.is_psword.maxLength.$message.replace(
+                  "The maximum length allowed is",
+                  "Mật khẩu không được vượt quá",
+                )
+              }}
+              ký tự</span
+            >
           </div>
         </small>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Đơn vị</label>
-          <TreeSelect class="col-10 ip32" v-model="selectCapcha" :options="treedonvis" :showClear="true" :max-height="200"
-            placeholder="" optionLabel="data.organization_name" optionValue="data.department_id">
+          <TreeSelect
+            class="col-10 ip32"
+            v-model="selectCapcha"
+            :options="treedonvis"
+            :showClear="true"
+            :max-height="200"
+            placeholder=""
+            optionLabel="data.organization_name"
+            optionValue="data.department_id"
+          >
           </TreeSelect>
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Nhóm</label>
-          <Dropdown class="col-4 ip32" v-model="user.role_id" :options="tdRoles" optionLabel="role_name"
-            optionValue="role_id" placeholder="Chọn nhóm" />
+          <Dropdown
+            class="col-4 ip32"
+            v-model="user.role_id"
+            :options="tdRoles"
+            optionLabel="role_name"
+            optionValue="role_id"
+            placeholder="Chọn nhóm"
+          />
           <label class="col-2 text-left pl-7">Chức vụ</label>
-          <Dropdown class="col-4 ip32" v-model="user.position_id" :options="chucvus" optionLabel="position_name"
-            optionValue="position_id" placeholder="Chọn chức vụ" />
+          <Dropdown
+            class="col-4 ip32"
+            v-model="user.position_id"
+            :options="chucvus"
+            optionLabel="position_name"
+            optionValue="position_id"
+            placeholder="Chọn chức vụ"
+          />
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Số CA</label>
-          <InputNumber class="col-4 ip32 p-0" v-model="user.ca_number" :useGrouping="false" />
+          <InputNumber
+            class="col-4 ip32 p-0"
+            v-model="user.ca_number"
+            :useGrouping="false"
+          />
           <label class="col-2 text-left pl-7">Ngày sinh</label>
-          <Calendar class="col-4 ip32" id="icon" v-model="user.birthday" :showIcon="true" />
+          <Calendar
+            class="col-4 ip32"
+            id="icon"
+            v-model="user.birthday"
+            :showIcon="true"
+          />
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Điện thoại</label>
-          <InputText class="col-4 ip32" spellcheck="false" v-model="user.phone" />
+          <InputText
+            class="col-4 ip32"
+            spellcheck="false"
+            v-model="user.phone"
+          />
           <label class="col-2 text-left pl-7">Email</label>
-          <InputText class="col-4 ip32" spellcheck="false" v-model="user.email" />
+          <InputText
+            class="col-4 ip32"
+            spellcheck="false"
+            v-model="user.email"
+          />
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Trạng thái</label>
-          <Dropdown class="col-4 ip32" v-model="user.status" :options="tdstatuss" optionLabel="text" optionValue="value"
-            placeholder="Chọn trạng thái" />
+          <Dropdown
+            class="col-4 ip32"
+            v-model="user.status"
+            :options="tdstatuss"
+            optionLabel="text"
+            optionValue="value"
+            placeholder="Chọn trạng thái"
+          />
           <label class="col-2 text-left pl-7">Giới tính</label>
-          <Dropdown class="col-4 ip32" v-model="user.gender" :options="genders" optionLabel="text" optionValue="value"
-            placeholder="Chọn giới tính" />
+          <Dropdown
+            class="col-4 ip32"
+            v-model="user.gender"
+            :options="genders"
+            optionLabel="text"
+            optionValue="value"
+            placeholder="Chọn giới tính"
+          />
         </div>
         <label class="col-2"></label>
         <div class="col-3">
           <div class="field">
             <label class="col-12 text-center">Ảnh đại diện</label>
-            <div class="inputanh relative" style="margin: 0 auto">
-              <img @click="chonanh('AnhUser')" id="Anhdaidien" v-bind:src="
-                user.avatar
-                  ? basedomainURL + user.avatar
-                  : basedomainURL + '/Portals/Image/noimg.jpg'
-              " />
-              <Button v-if="user.avatar || isDisplayAvt" style="width: 1.5rem; height: 1.5rem" icon="pi pi-times"
-                @click="delImg('Anhdaidien')" class="p-button-rounded absolute top-0 right-0 cursor-pointer" />
-              <input class="ipnone" id="AnhUser" type="file" accept="image/*"
-                @change="handleFileUpload($event, 'Anhdaidien')" />
+            <div
+              class="inputanh relative"
+              style="margin: 0 auto"
+            >
+              <img
+                @click="chonanh('AnhUser')"
+                id="Anhdaidien"
+                v-bind:src="
+                  user.avatar
+                    ? basedomainURL + user.avatar
+                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                "
+              />
+              <Button
+                v-if="user.avatar || isDisplayAvt"
+                style="width: 1.5rem; height: 1.5rem"
+                icon="pi pi-times"
+                @click="delImg('Anhdaidien')"
+                class="p-button-rounded absolute top-0 right-0 cursor-pointer"
+              />
+              <input
+                class="ipnone"
+                id="AnhUser"
+                type="file"
+                accept="image/*"
+                @change="handleFileUpload($event, 'Anhdaidien')"
+              />
             </div>
           </div>
         </div>
         <div class="col-3">
           <div class="field">
             <label class="col-12 text-center">Chữ ký</label>
-            <div class="inputanh relative" style="margin: 0 auto">
-              <img @click="chonanh('UserChuky')" id="Chuky" v-bind:src="
-                user.signature
-                  ? basedomainURL + user.signature
-                  : basedomainURL + '/Portals/Image/noimg.jpg'
-              " />
-              <Button v-if="user.signature || isChuky" style="width: 1.5rem; height: 1.5rem" icon="pi pi-times"
-                @click="delImg('Chuky')" class="p-button-rounded absolute top-0 right-0 cursor-pointer" />
-              <input class="ipnone" id="UserChuky" type="file" accept="image/*"
-                @change="handleFileUpload($event, 'Chuky')" />
+            <div
+              class="inputanh relative"
+              style="margin: 0 auto"
+            >
+              <img
+                @click="chonanh('UserChuky')"
+                id="Chuky"
+                v-bind:src="
+                  user.signature
+                    ? basedomainURL + user.signature
+                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                "
+              />
+              <Button
+                v-if="user.signature || isChuky"
+                style="width: 1.5rem; height: 1.5rem"
+                icon="pi pi-times"
+                @click="delImg('Chuky')"
+                class="p-button-rounded absolute top-0 right-0 cursor-pointer"
+              />
+              <input
+                class="ipnone"
+                id="UserChuky"
+                type="file"
+                accept="image/*"
+                @change="handleFileUpload($event, 'Chuky')"
+              />
             </div>
           </div>
         </div>
         <div class="col-3">
           <div class="field">
             <label class="col-12 text-center">Chữ ký nháy</label>
-            <div class="inputanh relative" style="margin: 0 auto">
-              <img @click="chonanh('UserKynhay')" id="Kynhay" v-bind:src="
-                user.flash_signature
-                  ? basedomainURL + user.flash_signature
-                  : basedomainURL + '/Portals/Image/noimg.jpg'
-              " />
-              <Button v-if="user.flash_signature || isKynhay" style="width: 1.5rem; height: 1.5rem" icon="pi pi-times"
-                @click="delImg('Kynhay')" class="p-button-rounded absolute top-0 right-0 cursor-pointer" />
-              <input class="ipnone" id="UserKynhay" type="file" accept="image/*"
-                @change="handleFileUpload($event, 'Kynhay')" />
+            <div
+              class="inputanh relative"
+              style="margin: 0 auto"
+            >
+              <img
+                @click="chonanh('UserKynhay')"
+                id="Kynhay"
+                v-bind:src="
+                  user.flash_signature
+                    ? basedomainURL + user.flash_signature
+                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                "
+              />
+              <Button
+                v-if="user.flash_signature || isKynhay"
+                style="width: 1.5rem; height: 1.5rem"
+                icon="pi pi-times"
+                @click="delImg('Kynhay')"
+                class="p-button-rounded absolute top-0 right-0 cursor-pointer"
+              />
+              <input
+                class="ipnone"
+                id="UserKynhay"
+                type="file"
+                accept="image/*"
+                @change="handleFileUpload($event, 'Kynhay')"
+              />
             </div>
           </div>
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">STT</label>
-          <InputNumber class="col-1 ip32 p-0" v-model="user.is_order" />
+          <InputNumber
+            class="col-1 ip32 p-0"
+            v-model="user.is_order"
+          />
           <label class="col-1"></label>
           <label class="col-2 text-right">Admin</label>
-          <InputSwitch class="col-1" v-model="user.is_admin" />
-          <label class="col-1" v-if="user.is_super"></label>
-          <label class="col-2 text-right" v-if="user.is_super">Is Super</label>
-          <InputSwitch v-model="user.is_super" v-if="user.is_super" />
+          <InputSwitch
+            class="col-1"
+            v-model="user.is_admin"
+          />
+          <label
+            class="col-1"
+            v-if="user.is_super"
+          ></label>
+          <label
+            class="col-2 text-right"
+            v-if="user.is_super"
+            >Is Super</label
+          >
+          <InputSwitch
+            v-model="user.is_super"
+            v-if="user.is_super"
+          />
         </div>
         <Accordion class="w-full p-2">
           <!-- 1. Thông tin chung -->
@@ -2214,115 +2718,245 @@ onMounted(() => {
               <span>Quyền Module</span>
             </template>
             <div class="field col-12 md:col-12">
-              <label class="text-left" style="width: 20%; padding: 0.5rem">Hiển thị sinh nhật</label>
-              <InputSwitch class="col-1" v-model="user.display_birthday" />
+              <label
+                class="text-left"
+                style="width: 20%; padding: 0.5rem"
+                >Hiển thị sinh nhật</label
+              >
+              <InputSwitch
+                class="col-1"
+                v-model="user.display_birthday"
+              />
               <label class="col-1"></label>
               <label class="col-2 text-right">Ban hành</label>
-              <InputSwitch class="col-1" v-model="user.calendar_enact" />
+              <InputSwitch
+                class="col-1"
+                v-model="user.calendar_enact"
+              />
               <label class="col-1"></label>
               <label class="col-2 text-right">Tổng hợp CV</label>
-              <InputSwitch class="col-1" v-model="user.is_task" />
+              <InputSwitch
+                class="col-1"
+                v-model="user.is_task"
+              />
             </div>
           </AccordionTab>
         </Accordion>
-
       </div>
     </form>
     <template #footer>
-      <Button label="Huỷ" icon="pi pi-times" @click="closedisplayAddUser" class="p-button-raised p-button-secondary" />
-      <Button label="Cập nhật" icon="pi pi-save" @click="handleSubmit(!v$.$invalid)" />
+      <Button
+        label="Huỷ"
+        icon="pi pi-times"
+        @click="closedisplayAddUser"
+        class="p-button-raised p-button-secondary"
+      />
+      <Button
+        label="Cập nhật"
+        icon="pi pi-save"
+        @click="handleSubmit(!v$.$invalid)"
+      />
     </template>
   </Dialog>
 
-  <Dialog header="Phân quyền cho người dùng" v-model:visible="displayConfigRole" :style="{ width: '1150px' }"
-    :maximizable="true" :autoZIndex="true">
-    <TreeTable :value="modules" :loading="opition.moduleloading" :showGridlines="true" filterMode="lenient"
-      class="p-treetable-sm e-sm" :paginator="modules && modules.length > 20" :rows="20" :scrollable="true"
-      scrollHeight="flex" :rowHover="true">
+  <Dialog
+    header="Phân quyền cho người dùng"
+    v-model:visible="displayConfigRole"
+    :style="{ width: '1150px' }"
+    :maximizable="true"
+    :autoZIndex="true"
+  >
+    <TreeTable
+      :value="modules"
+      :loading="opition.moduleloading"
+      :showGridlines="true"
+      filterMode="lenient"
+      class="p-treetable-sm e-sm"
+      :paginator="modules && modules.length > 20"
+      :rows="20"
+      :scrollable="true"
+      scrollHeight="flex"
+      :rowHover="true"
+    >
       <template #header>
-
         <Toolbar class="w-full custoolbar">
           <template #start>
             <h3 class="module-title mt-0 ml-1 mb-2">
               <i class="pi pi-microsoft"></i> Module chức năng
-              <span class="text-base font-normal" style="color: #495057">(Module đang được phân theo
-                <span class="font-bold" v-if="!is_role">cá nhân</span>
-                <span v-else>nhóm người dùng
-                  <span class="font-bold"> {{ role_name }}</span></span>
+              <span
+                class="text-base font-normal"
+                style="color: #495057"
+                >(Module đang được phân theo
+                <span
+                  class="font-bold"
+                  v-if="!is_role"
+                  >cá nhân</span
+                >
+                <span v-else
+                  >nhóm người dùng
+                  <span class="font-bold"> {{ role_name }}</span></span
+                >
                 )
               </span>
             </h3>
           </template>
           <template #end>
-            <Button v-if="!check_role" label="Phân theo nhóm người dùng" icon="pi pi-cloud-download"
-              class="p-button-raised p-button-secondary mr-2" @click="changePermission"
-              style="font-size: 1rem !important; height: 100% !important" />
-            <Button v-if="!different_module_move" class="mr-2 p-button-outlined p-button-secondary" label="Sao chép"
-              icon="pi pi-copy" @click="coppyModule()" :disabled="is_coppy_module ? true : false" />
-            <Button v-if="is_coppy_module && different_module_move" label="Dán" icon="pi pi-copy" class=""
-              @click="pasteModule()" />
+            <Button
+              v-if="!check_role"
+              label="Phân theo nhóm người dùng"
+              icon="pi pi-cloud-download"
+              class="p-button-raised p-button-secondary mr-2"
+              @click="changePermission"
+              style="font-size: 1rem !important; height: 100% !important"
+            />
+            <Button
+              v-if="!different_module_move"
+              class="mr-2 p-button-outlined p-button-secondary"
+              label="Sao chép"
+              icon="pi pi-copy"
+              @click="coppyModule()"
+              :disabled="is_coppy_module ? true : false"
+            />
+            <Button
+              v-if="is_coppy_module && different_module_move"
+              label="Dán"
+              icon="pi pi-copy"
+              class=""
+              @click="pasteModule()"
+            />
           </template>
         </Toolbar>
       </template>
-      <Column field="Icon" header="" class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
+      <Column
+        field="Icon"
+        header=""
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:100px"
+        bodyStyle="text-align:center;max-width:100px"
+      >
         <template #body="md">
           <i v-bind:class="md.node.data.Icon"></i>
         </template>
       </Column>
-      <Column field="module_name" header="Tên Menu" :sortable="true" :expander="true">
+      <Column
+        field="module_name"
+        header="Tên Menu"
+        :sortable="true"
+        :expander="true"
+      >
       </Column>
-      <Column field="module_id" header="Mã Quyền" class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px" bodyStyle="max-width:150px">
+      <Column
+        field="module_id"
+        header="Mã Quyền"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:150px"
+        bodyStyle="max-width:150px"
+      >
         <!-- <template #body="md">
             <b v-if="md.node.data.is_permission">{{
               md.node.data.is_permission.join("")
             }}</b>
           </template> -->
       </Column>
-      <Column headerClass="align-items-center justify-content-center text-center" header="Quyền"
-        headerStyle="text-align:center;width:250px" bodyStyle="text-align:center;width:250px">
+      <Column
+        headerClass="align-items-center justify-content-center text-center"
+        header="Quyền"
+        headerStyle="text-align:center;width:250px"
+        bodyStyle="text-align:center;width:250px"
+      >
         <template #body="md">
-          <MultiSelect v-model="md.node.data.is_permission" @change="changeQuyen(md.node)" :style="{ width: '250px' }"
-            id="overlay_Quyen" ref="menuQuyen" :popup="true" :options="tdQuyens" optionLabel="text" optionValue="value"
-            placeholder="Chọn quyền" />
+          <MultiSelect
+            v-model="md.node.data.is_permission"
+            @change="changeQuyen(md.node)"
+            :style="{ width: '250px' }"
+            id="overlay_Quyen"
+            ref="menuQuyen"
+            :popup="true"
+            :options="tdQuyens"
+            optionLabel="text"
+            optionValue="value"
+            placeholder="Chọn quyền"
+          />
         </template>
       </Column>
-      <Column headerClass="align-items-center justify-content-center text-center" header="Quyền Module"
-        headerStyle="text-align:center;width:250px" bodyStyle="text-align:center;width:250px">
+      <Column
+        headerClass="align-items-center justify-content-center text-center"
+        header="Quyền Module"
+        headerStyle="text-align:center;width:250px"
+        bodyStyle="text-align:center;width:250px"
+      >
         <template #body="md">
-          <MultiSelect v-if="md.node.data.module_key" v-model="md.node.data.module_functions"
-            @change="changeModuleFunctions(md.node)" :style="{ width: '250px' }" :popup="true" :options="
+          <MultiSelect
+            v-if="md.node.data.module_key"
+            v-model="md.node.data.module_functions"
+            @change="changeModuleFunctions(md.node)"
+            :style="{ width: '250px' }"
+            :popup="true"
+            :options="
               function_modules.filter(
-                (x) => x.module_key === md.node.data.module_key
+                (x) => x.module_key === md.node.data.module_key,
               )
-            " optionLabel="function_name" optionValue="function_id" placeholder="Chọn quyền module" :filter="true" />
+            "
+            optionLabel="function_name"
+            optionValue="function_id"
+            placeholder="Chọn quyền module"
+            :filter="true"
+          />
         </template>
       </Column>
     </TreeTable>
     <template #footer>
-      <Button label="Huỷ" icon="pi pi-times" @click="closedisplayConfigRole" class="p-button-raised p-button-secondary" />
-      <Button label="Cập nhật" icon="pi pi-save" @click="addConfigRole" />
+      <Button
+        label="Huỷ"
+        icon="pi pi-times"
+        @click="closedisplayConfigRole"
+        class="p-button-raised p-button-secondary"
+      />
+      <Button
+        label="Cập nhật"
+        icon="pi pi-save"
+        @click="addConfigRole"
+      />
     </template>
   </Dialog>
-  <Dialog header="Tải lên file Excel" v-model:visible="displayImport" :style="{ width: '40vw' }" :closable="true">
+  <Dialog
+    header="Tải lên file Excel"
+    v-model:visible="displayImport"
+    :style="{ width: '40vw' }"
+    :closable="true"
+  >
     <h3>
       <label>
-        <a :href="basedomainURL + item" download>Nhấn vào đây</a>
+        <a
+          :href="basedomainURL + item"
+          download
+          >Nhấn vào đây</a
+        >
         để tải xuống tệp mẫu.
       </label>
     </h3>
     <form>
-      <FileUpload accept=".xls,.xlsx" @remove="removeFile" @select="selectFile" :show-upload-button="false"
-        choose-label="Chọn tệp" cancel-label="Hủy" :fileLimit="1"
-        :invalidFileTypeMessage="'Chỉ chấp nhận file dạng .xsl,.xlsx,.slsm,.csv'">
+      <FileUpload
+        accept=".xls,.xlsx"
+        @remove="removeFile"
+        @select="selectFile"
+        :show-upload-button="false"
+        choose-label="Chọn tệp"
+        cancel-label="Hủy"
+        :fileLimit="1"
+        :invalidFileTypeMessage="'Chỉ chấp nhận file dạng .xsl,.xlsx,.slsm,.csv'"
+      >
         <template #empty>
           <p>Kéo và thả tệp vào đây để tải lên.</p>
         </template>
       </FileUpload>
     </form>
     <template #footer>
-      <Button label="Lưu" icon="pi pi-check" @click="Upload" />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="Upload"
+      />
     </template>
   </Dialog>
 </template>
@@ -2439,7 +3073,7 @@ onMounted(() => {
   font-size: 0.875rem;
 }
 
-.card-content>.no-paddcontent {
+.card-content > .no-paddcontent {
   height: 100% !important;
 }
 
@@ -2454,12 +3088,12 @@ onMounted(() => {
   padding-bottom: 0px;
 }
 .d-lang-table {
-    margin: 0px;
-    height: calc(100vh - 125px);
+  margin: 0px;
+  height: calc(100vh - 125px);
 }
 .d-lang-table-r {
-    margin: 0px;
-    height: calc(100vh - 64px);
+  margin: 0px;
+  height: calc(100vh - 64px);
 }
 </style>
 <style lang="scss" scoped>
