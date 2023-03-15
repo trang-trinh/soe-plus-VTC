@@ -433,7 +433,7 @@ onMounted(() => {
   <Dialog
     v-model:visible="DialogVisible"
     :style="'width:40vw;'"
-    :showCloseIcon="true"
+    :closable="false"
     :header="headerDialog"
   >
     <form action="">

@@ -74,6 +74,8 @@ onMounted(() => {});
     :showCloseIcon="true"
     :header="'Chi tiết quy trình'"
     @update:visible="closeDialogDetail"
+    maximizable
+    modal
   >
     <div
       class="col-12"
@@ -91,8 +93,13 @@ onMounted(() => {});
           </h2>
         </h3>
         <Accordion :activeIndex="0">
-          <AccordionTab header="Header I">
-            <span v-html="props.data.description"></span>
+          <AccordionTab header="Mô tả quy trình">
+            <div
+              class="max-h-15rem"
+              style="overflow-y: auto"
+            >
+              <span v-html="props.data.description"></span>
+            </div>
           </AccordionTab>
         </Accordion>
       </div>
