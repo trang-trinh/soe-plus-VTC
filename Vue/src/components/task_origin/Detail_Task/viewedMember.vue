@@ -249,88 +249,98 @@ onMounted(() => {
 <template>
   <div>
     <div class="grid">
-      <div class="row p-0 col-12 format-left">
-        <TabView @tab-change="changeTab($event.index)">
+      <div class="row p-0 col-12">
+        <TabView
+          @tab-change="changeTab($event.index)"
+          class="w-full"
+        >
           <TabPanel
             v-for="(item, index) in tabs"
             :key="index"
             :header="item.header"
           >
+            <div
+              class="row col-12 p-0"
+              v-if="isHaveData == true"
+            >
+              <ScrollPanel
+                :style="
+                  height1 < 1000
+                    ? 'height: calc(85vh) !important'
+                    : 'height: calc(87vh) !important'
+                "
+                v-if="isHaveData == true"
+              >
+                <div
+                  class="row col-12 flex p-0 m-0 my-div"
+                  v-for="(m, index) in members"
+                  :key="m"
+                  style="border-bottom: 1px solid #ccc"
+                >
+                  <div class="col-2 format-center p-0 m-0">
+                    <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
+                      v-tooltip.right="{
+                        value: m.tooltip,
+                        escape: true,
+                      }"
+                      v-bind:label="
+                        m.avt
+                          ? ''
+                          : m.full_name.split(' ').at(-1).substring(0, 1)
+                      "
+                      v-bind:image="basedomainURL + m.avt"
+                      style="color: #ffffff; cursor: pointer"
+                      :style="{
+                        background: bgColor[index % 7],
+                        border: '2px solid' + bgColor[index % 7],
+                      }"
+                      class="col-2 p-0 m-0"
+                      size="large"
+                      shape="circle"
+                    />
+                  </div>
+                  <div class="col-9">
+                    <div class="col-12">
+                      <span class="font-bold text-xl text-indigo-700">{{
+                        m.full_name
+                      }}</span>
+                      <span class="text-500 font-300">
+                        {{
+                          " " +
+                          moment(new Date(m.view_date)).format(
+                            "HH:mm DD/MM/YYYY",
+                          )
+                        }}
+                      </span>
+                    </div>
+                    <div class="col-12 pt-0">{{ m.positions }}</div>
+                    <div class="col-12 pt-0">
+                      {{
+                        m.department_name
+                          ? m.department_name
+                          : m.organiztion_name
+                      }}
+                    </div>
+                  </div>
+                </div>
+              </ScrollPanel>
+            </div>
+            <div
+              class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
+              v-else
+            >
+              <img
+                src="../../../assets/background/nodata.png"
+                height="144"
+              />
+              <h3 class="m-1">Không có dữ liệu</h3>
+            </div>
           </TabPanel>
         </TabView>
-      </div>
-
-      <div
-        class="row col-12 p-0"
-        v-if="isHaveData == true"
-      >
-        <ScrollPanel
-          :style="
-            height1 < 1000
-              ? 'height: calc(85vh) !important'
-              : 'height: calc(87vh) !important'
-          "
-          v-if="isHaveData == true"
-        >
-          <div
-            class="row col-12 flex p-0 m-0 my-div"
-            v-for="(m, index) in members"
-            :key="m"
-            style="border-bottom: 1px solid #ccc"
-          >
-            <div class="col-2 format-center p-0 m-0">
-              <Avatar
-                @error="
-                  $event.target.src =
-                    basedomainURL + '/Portals/Image/nouser1.png'
-                "
-                v-tooltip.right="{
-                  value: m.tooltip,
-                  escape: true,
-                }"
-                v-bind:label="
-                  m.avt ? '' : m.full_name.split(' ').at(-1).substring(0, 1)
-                "
-                v-bind:image="basedomainURL + m.avt"
-                style="color: #ffffff; cursor: pointer"
-                :style="{
-                  background: bgColor[index % 7],
-                  border: '2px solid' + bgColor[index % 7],
-                }"
-                class="col-2 p-0 m-0"
-                size="large"
-                shape="circle"
-              />
-            </div>
-            <div class="col-9">
-              <div class="col-12">
-                <span class="font-bold text-xl text-indigo-700">{{
-                  m.full_name
-                }}</span>
-                <span class="text-500 font-300">
-                  {{
-                    " " +
-                    moment(new Date(m.view_date)).format("HH:mm DD/MM/YYYY")
-                  }}
-                </span>
-              </div>
-              <div class="col-12 pt-0">{{ m.positions }}</div>
-              <div class="col-12 pt-0">
-                {{ m.department_name ? m.department_name : m.organiztion_name }}
-              </div>
-            </div>
-          </div>
-        </ScrollPanel>
-      </div>
-      <div
-        class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
-        v-else
-      >
-        <img
-          src="../../../assets/background/nodata.png"
-          height="144"
-        />
-        <h3 class="m-1">Không có dữ liệu</h3>
       </div>
     </div>
   </div>

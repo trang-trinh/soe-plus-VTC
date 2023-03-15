@@ -18,6 +18,7 @@ using API.Helper;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using Spire.Doc.Fields;
 
 namespace API.Controllers
 {
@@ -370,21 +371,8 @@ namespace API.Controllers
                                 }
                                 #endregion
                             }
-                            if (das1.Count > 0)
-                            {
-                                string ssid = das1[0].task_id;
-
-                                var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
-                                string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
-                                listuser.Remove(uid);
-
-                                foreach (var l in listuser)
-                                {
-                                    helper.saveNotify(uid, l, null, "Công việc", "Xóa checklist công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
-                                        null, 2, -1, false, module_key, ssid, null, null, tid, ip);
-                                }
-                            }
-                            #region add cms_logs
+                           
+                            #region add logs
                             if (helper.wlog)
                             {
 
@@ -405,14 +393,30 @@ namespace API.Controllers
 
 
                     }
+                    if (das.Count > 0)
+                    {
+                        string ssid = das[0].task_id;
 
+                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                        listuser.Remove(uid);
+
+                        foreach (var l in listuser)
+                        {
+                            helper.saveNotify(uid, l, null, "Công việc", "Xóa quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                        }
+                    }
                     if (del.Count == 0)
                     {
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
                     }
-                    if (delTask.Count > 0)
+                    if (del.Count > 0)
                     {
-                        db.task_follow_detail.RemoveRange(delTask);
+                        if (delTask.Count > 0)
+                        {
+                            db.task_follow_detail.RemoveRange(delTask);
+                        }
                         db.task_follow.RemoveRange(del);
                     }
                     await db.SaveChangesAsync();
