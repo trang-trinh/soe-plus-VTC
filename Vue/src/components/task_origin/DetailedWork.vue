@@ -5950,6 +5950,9 @@ const is_viewSecurityTask = ref(true);
           :id="props.id"
           :pj_id="datalists.project_id"
           :listChild="ListChildTask"
+          :member="members"
+          :data="datalists"
+          :isClose="isClose"
         ></Task_FollowVue>
       </div>
       <div v-if="CongViecCon == true">

@@ -99,6 +99,33 @@ namespace API.Controllers
                             }
                             db.task_follow_detail.AddRange(task_Follow_Details);
                         }
+                       //Noti
+                        string ssid = task_Follow.task_id;
+                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                        listuser.Remove(uid);
+
+                        foreach (var l in listuser)
+                        {
+                            helper.saveNotify(uid, l, null, "Công việc", "Thêm quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                        }
+                        //Logs
+                        if (helper.wlog)
+                        {
+
+                            task_logs log = new task_logs();
+                            log.log_id = helper.GenKey();
+                            log.task_id = ssid;
+                            log.project_id = null;
+                            log.description = "Thêm quy trình công việc";
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.task_logs.Add(log);
+                            db.SaveChanges();
+                        }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -109,7 +136,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "Checklists/addChecklists", ip, tid, "Lỗi khi thêm Checklists", 0, "Checklists");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addFollows", ip, tid, "Lỗi khi thêm task_follow", 0, "Công việc");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -120,7 +147,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "Checklists/addChecklists", ip, tid, "Lỗi khi thêm Checklists", 0, "Checklists");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addFollows", ip, tid, "Lỗi khi thêm task_follow", 0, "Công việc");
                 {
                     contents = "";
                 }
@@ -201,6 +228,34 @@ namespace API.Controllers
                                 task_Follow_Details.Add(de);
                             }
                             db.task_follow_detail.AddRange(task_Follow_Details);
+
+                        }
+                        //Noti
+                        string ssid = task_Follow.task_id;
+                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                        listuser.Remove(uid);
+
+                        foreach (var l in listuser)
+                        {
+                            helper.saveNotify(uid, l, null, "Công việc", "Cập nhật quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                        }
+                        //Logs
+                        if (helper.wlog)
+                        {
+
+                            task_logs log = new task_logs();
+                            log.log_id = helper.GenKey();
+                            log.task_id = ssid;
+                            log.project_id = null;
+                            log.description = "Cập nhật quy trình công việc";
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.task_logs.Add(log);
+                            db.SaveChanges();
                         }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -212,7 +267,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "Checklists/addChecklists", ip, tid, "Lỗi khi thêm Checklists", 0, "Checklists");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi thêm task_follow", 0, "task_follow");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -223,7 +278,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "Checklists/addChecklists", ip, tid, "Lỗi khi thêm Checklists", 0, "Checklists");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi thêm task_follow", 0, "task_follow");
                 {
                     contents = "";
                 }
@@ -286,6 +341,33 @@ namespace API.Controllers
                             db.Entry(item).State = EntityState.Modified;
                             index++;
                         }
+                        //Noti
+                        string ssid = task_Follow[0].task_id;
+                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                        listuser.Remove(uid);
+
+                        foreach (var l in listuser)
+                        {
+                            helper.saveNotify(uid, l, null, "Công việc", "Cập nhật thứ tự quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                        }
+                        //Logs
+                        if (helper.wlog)
+                        {
+
+                            task_logs log = new task_logs();
+                            log.log_id = helper.GenKey();
+                            log.task_id = ssid;
+                            log.project_id = null;
+                            log.description = "Cập nhật thứ tự quy trình công việc";
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.task_logs.Add(log);
+                            db.SaveChanges();
+                        }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -296,7 +378,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "Checklists/addChecklists", ip, tid, "Lỗi khi thêm Checklists", 0, "Checklists");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi thêm task_follow", 0, "Công việc");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -307,7 +389,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "Checklists/addChecklists", ip, tid, "Lỗi khi thêm Checklists", 0, "Checklists");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi thêm task_follow", 0, "Công việc");
                 {
                     contents = "";
                 }
@@ -352,24 +434,6 @@ namespace API.Controllers
                             foreach (var de in das1)
                             {
                                 delTask.Add(de);
-
-                                #region add logs
-                                if (helper.wlog)
-                                {
-
-                                    task_logs log = new task_logs();
-                                    log.log_id = helper.GenKey();
-                                    log.task_id = de.task_id;
-                                    log.project_id = null;
-                                    log.description = "xóa quy trình";
-                                    log.created_date = DateTime.Now;
-                                    log.created_by = uid;
-                                    log.created_token_id = tid;
-                                    log.created_ip = ip;
-                                    db.task_logs.Add(log);
-                                    db.SaveChanges();
-                                }
-                                #endregion
                             }
                            
                             #region add logs
@@ -380,7 +444,7 @@ namespace API.Controllers
                                 log.log_id = helper.GenKey();
                                 log.task_id = da.task_id;
                                 log.project_id = null;
-                                log.description = "xóa checklist công việc";
+                                log.description = "xóa quy trình công việc";
                                 log.created_date = DateTime.Now;
                                 log.created_by = uid;
                                 log.created_token_id = tid;
@@ -390,8 +454,6 @@ namespace API.Controllers
                             }
                             #endregion
                         }
-
-
                     }
                     if (das.Count > 0)
                     {
@@ -426,7 +488,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Checklists/deleteChecklists", ip, tid, "Lỗi khi xoá Checklists", 0, "Checklists");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "task_follow/deletetask_follow", ip, tid, "Lỗi khi xoá task_follow", 0, "Công việc");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -437,7 +499,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Checklists/deleteChecklists", ip, tid, "Lỗi khi xoá Checklists", 0, "Checklists");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "task_follow/deletetask_follow", ip, tid, "Lỗi khi xoá task_follow", 0, "Công việc");
                 if (!helper.debug)
                 {
                     contents = "";

@@ -65,6 +65,9 @@ const props = defineProps({
   id: String,
   pj_id: String,
   listChild: Array,
+  member: Array,
+  data: Object,
+  isClose: Boolean,
 });
 const listChildTask = ref([]);
 const DialogVisible = ref();
@@ -405,22 +408,45 @@ const DeleteItem = (vl) => {
       }
     });
 };
+// 0: tạo/giao 1,2: làm, 3:theo dõi
+const TypeMember = ref();
+
 onMounted(() => {
   loadData();
   if (props.listChild != null) {
     listChildTask.value = JSON.parse(JSON.stringify(props.listChild));
+  }
+  let type = [];
+  props.member.forEach((x) => {
+    if (x.user_id == user.user_id) {
+      type.push(x.is_type);
+    }
+  });
+  if (
+    props.data.created_by == user.user_id ||
+    type.filter((x) => x == 0) != null
+  ) {
+    TypeMember.value = 0;
+  } else if (type.filter((x) => x == 1) != null) {
+    TypeMember.value = 1;
+  } else if (type.filter((x) => x == 2) != null) {
+    TypeMember.value = 1;
+  } else if (type.filter((x) => x == 3) != null) {
+    TypeMember.value = 3;
+  } else {
+    TypeMember.value = 4;
   }
 });
 </script>
 <template>
   <div class="h-custom">
     <Toolbar class="w-full custoolbar">
-      {{ datalists }}
       <template #end>
         <Button
           icon="pi pi-plus"
           label="Thêm bước"
           @click="openDialog()"
+          v-if="user.is_admin == true || TypeMember == 0"
         ></Button>
       </template>
     </Toolbar>
@@ -429,13 +455,11 @@ onMounted(() => {
       :value="datalists"
       scrollable
       scrollHeight="flex"
-      :reorderableColumns="true"
       @rowReorder="onRowReorder"
     >
       <Column
         rowReorder
         headerStyle="width: 3rem"
-        :reorderableColumn="false"
         class="justify-content-center align-items-center text-center w-1rem"
         v-tooltip="'Kéo và thả để sắp xếp các bước'"
       />
@@ -470,6 +494,7 @@ onMounted(() => {
               icon="pi pi-pencil"
               v-tooltip="'Sửa'"
               @click="OpenEditDialog(data.data)"
+              v-if="user.is_admin == true || TypeMember == 0"
             >
             </Button>
             <Button
@@ -478,6 +503,7 @@ onMounted(() => {
               type="button"
               v-tooltip="'Xóa'"
               icon="pi pi-trash"
+              v-if="user.is_admin == true || TypeMember == 0"
             ></Button>
           </div>
         </template>
