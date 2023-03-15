@@ -344,6 +344,61 @@ const onRowReorder = (event) => {
       });
     });
 };
+const DeleteItem = (vl) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá nhóm công việc này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+
+        axios
+          .delete(baseURL + "/api/task_follow/DeleteFollow", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: vl != null ? [vl.group_id] : 1,
+          })
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá quy trình thành công!");
+              loadData();
+            } else {
+              swal.fire({
+                title: "Thông báo",
+                html: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                title: "Thông báo",
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+};
 onMounted(() => {
   loadData();
   if (props.listChild != null) {
@@ -413,12 +468,12 @@ onMounted(() => {
             >
             </Button>
             <Button
+              @click="DeleteItem(data.node.data, true)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
-              icon="pi pi-trash"
               v-tooltip="'Xóa'"
-            >
-            </Button>
+              icon="pi pi-trash"
+            ></Button>
           </div>
         </template>
       </Column>
