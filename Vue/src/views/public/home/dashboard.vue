@@ -1431,117 +1431,83 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-          </div>
-          <div class="col-6 md:col-6 p-0">
+          </div>  <div class="col-6 md:col-6 p-0">
             <div class="card m-1">
               <div
                 class="card-header"
-                @click="goRouter('taskmain')"
+                @click="goRouter('/news/direct')"
                 style="cursor: pointer"
               >
-                <span>Công việc</span>
+                <span>Chỉ đạo điều hành</span>
               </div>
               <div
                 class="card-body carousel-hidden-p-link"
                 style="height: 460px"
               >
-                <div
-                  v-if="datatasks.length > 0"
-                  class="scroll-outer"
-                  style="overflow: auto; height: 435px"
+                <Carousel
+                  v-show="datanews.length > 0"
+                  :value="datanews"
+                  :numVisible="3"
+                  :numScroll="3"
+                  :circular="true"
+                  orientation="vertical"
+                  verticalViewPortHeight="400px"
                 >
-                  <div class="scroll-inner">
-                    <div class="d-grid formgrid">
-                      <div
-                        class="col-12 md:col-12 p-0 row-item"
-                        v-for="(item, index) in datatasks"
-                        v-bind:id="item.task_id"
-                        :key="index"
-                        @click="onRowSelect(item.task_id)"
-                      >
-                        <div class="flex">
-                          <div style="flex: 1">
-                            <div
-                              style="
-                                display: flex;
-                                flex-direction: column;
-                                padding: 5px;
-                              "
-                            >
-                              <div style="line-height: 20px; display: flex">
-                                <span
-                                  v-tooltip="'Ưu tiên'"
-                                  v-if="item.is_prioritize"
-                                  style="margin-right: 5px"
-                                  ><i
-                                    style="color: orange"
-                                    class="pi pi-star-fill"
-                                  ></i
-                                ></span>
-                                <span
-                                  style="
-                                    font-weight: bold;
-                                    overflow: hidden;
-                                    text-overflow: ellipsis;
-                                    width: 100%;
-                                    display: -webkit-box;
-                                    -webkit-line-clamp: 2;
-                                    -webkit-box-orient: vertical;
-                                  "
-                                  >{{ item.task_name }}</span
-                                >
-                              </div>
-                              <div class="description mt-1">
-                                <span v-if="item.start_date || item.end_date"
-                                  >{{ item.start_date }}
-                                  <span v-if="item.start_date && item.end_date"
-                                    >-</span
-                                  >
-                                  {{ item.end_date }}</span
-                                >
+                  <template #item="slotProps">
+                    <div
+                      class="grid-item carousel-item"
+                      @click="
+                        goRouter('/news/direct/details', {
+                          name: '-orient-' + slotProps.data.news_id,
+                        })
+                      "
+                    >
+                      <div class="d-grid formgrid">
+                        <div class="col-3 md:col-3 p-0">
+                          <img
+                            :src="
+                              slotProps.data.image
+                                ? basedomainURL + slotProps.data.image
+                                : basedomainURL + '/Portals/Image/noimg.jpg'
+                            "
+                            :alt="slotProps.data.title"
+                            style="
+                              width: 100%;
+                              object-fit: contain;
+                              border-radius: 3px;
+                            "
+                          />
+                        </div>
+                        <div class="col-9 md:col-9 p-0 pl-3">
+                          <div class="d-grid formgrid">
+                            <div class="col-12 md:col-12 p-0 pb-2">
+                              <span class="limit-line">{{
+                                slotProps.data.title
+                              }}</span>
+                            </div>
+                            <div class="col-12 md:col-12 p-0">
+                              <div class="description">
+                                <i class="pi pi-clock"></i>
+                                <span class="ml-2">{{
+                                  slotProps.data.approved_date
+                                }}</span>
                               </div>
                             </div>
                           </div>
-                          <div
-                            v-if="item.title_time"
-                            class="format-center mr-2"
-                          >
-                            <span
-                              style="
-                                font-size: 10px;
-                                font-weight: bold;
-                                padding: 5px;
-                                border-radius: 5px;
-                              "
-                              :style="{
-                                background: item.time_bg,
-                                color: item.status_text_color,
-                              }"
-                              >{{ item.title_time }}</span
-                            >
-                          </div>
-                          <div class="format-center">
-                            <span
-                              style="
-                                font-size: 10px;
-                                font-weight: bold;
-                                padding: 5px;
-                                border-radius: 5px;
-                              "
-                              :style="{
-                                background: item.status_bg_color,
-                                color: item.status_text_color,
-                              }"
-                              >{{ item.status_name }}</span
-                            >
+                        </div>
+                        <div class="col-12 md:col-12 p-0 pt-2">
+                          <div class="description">
+                            <span class="limit-line">{{
+                              slotProps.data.des
+                            }}</span>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </template>
+                </Carousel>
                 <div
-                  v-show="datatasks == null || datatasks.length == 0"
+                  v-show="datanews == null || datanews.length == 0"
                   class="w-full h-full format-flex-center"
                 >
                   <span class="description">Hiện chưa có dữ liệu</span>
@@ -1549,6 +1515,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
+       
           <div class="col-6 md:col-6 p-0">
             <div class="card m-1">
               <div
@@ -1662,79 +1629,112 @@ onMounted(() => {
             <div class="card m-1">
               <div
                 class="card-header"
-                @click="goRouter('/news/direct')"
+                @click="goRouter('taskmain')"
                 style="cursor: pointer"
               >
-                <span>Chỉ đạo điều hành</span>
+                <span>Công việc</span>
               </div>
               <div
                 class="card-body carousel-hidden-p-link"
                 style="height: 460px"
               >
-                <Carousel
-                  v-show="datanews.length > 0"
-                  :value="datanews"
-                  :numVisible="3"
-                  :numScroll="3"
-                  :circular="true"
-                  orientation="vertical"
-                  verticalViewPortHeight="400px"
+                <div
+                  v-if="datatasks.length > 0"
+                  class="scroll-outer"
+                  style="overflow: auto; height: 435px"
                 >
-                  <template #item="slotProps">
-                    <div
-                      class="grid-item carousel-item"
-                      @click="
-                        goRouter('/news/direct/details', {
-                          name: '-orient-' + slotProps.data.news_id,
-                        })
-                      "
-                    >
-                      <div class="d-grid formgrid">
-                        <div class="col-3 md:col-3 p-0">
-                          <img
-                            :src="
-                              slotProps.data.image
-                                ? basedomainURL + slotProps.data.image
-                                : basedomainURL + '/Portals/Image/noimg.jpg'
-                            "
-                            :alt="slotProps.data.title"
-                            style="
-                              width: 100%;
-                              object-fit: contain;
-                              border-radius: 3px;
-                            "
-                          />
-                        </div>
-                        <div class="col-9 md:col-9 p-0 pl-3">
-                          <div class="d-grid formgrid">
-                            <div class="col-12 md:col-12 p-0 pb-2">
-                              <span class="limit-line">{{
-                                slotProps.data.title
-                              }}</span>
-                            </div>
-                            <div class="col-12 md:col-12 p-0">
-                              <div class="description">
-                                <i class="pi pi-clock"></i>
-                                <span class="ml-2">{{
-                                  slotProps.data.approved_date
-                                }}</span>
+                  <div class="scroll-inner">
+                    <div class="d-grid formgrid">
+                      <div
+                        class="col-12 md:col-12 p-0 row-item"
+                        v-for="(item, index) in datatasks"
+                        v-bind:id="item.task_id"
+                        :key="index"
+                        @click="onRowSelect(item.task_id)"
+                      >
+                        <div class="flex">
+                          <div style="flex: 1">
+                            <div
+                              style="
+                                display: flex;
+                                flex-direction: column;
+                                padding: 5px;
+                              "
+                            >
+                              <div style="line-height: 20px; display: flex">
+                                <span
+                                  v-tooltip="'Ưu tiên'"
+                                  v-if="item.is_prioritize"
+                                  style="margin-right: 5px"
+                                  ><i
+                                    style="color: orange"
+                                    class="pi pi-star-fill"
+                                  ></i
+                                ></span>
+                                <span
+                                  style="
+                                    font-weight: bold;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                    width: 100%;
+                                    display: -webkit-box;
+                                    -webkit-line-clamp: 2;
+                                    -webkit-box-orient: vertical;
+                                  "
+                                  >{{ item.task_name }}</span
+                                >
+                              </div>
+                              <div class="description mt-1">
+                                <span v-if="item.start_date || item.end_date"
+                                  >{{ item.start_date }}
+                                  <span v-if="item.start_date && item.end_date"
+                                    >-</span
+                                  >
+                                  {{ item.end_date }}</span
+                                >
                               </div>
                             </div>
                           </div>
-                        </div>
-                        <div class="col-12 md:col-12 p-0 pt-2">
-                          <div class="description">
-                            <span class="limit-line">{{
-                              slotProps.data.des
-                            }}</span>
+                          <div
+                            v-if="item.title_time"
+                            class="format-center mr-2"
+                          >
+                            <span
+                              style="
+                                font-size: 10px;
+                                font-weight: bold;
+                                padding: 5px;
+                                border-radius: 5px;
+                              "
+                              :style="{
+                                background: item.time_bg,
+                                color: item.status_text_color,
+                              }"
+                              >{{ item.title_time }}</span
+                            >
+                          </div>
+                          <div class="format-center">
+                            <span
+                              style="
+                                font-size: 10px;
+                                font-weight: bold;
+                                padding: 5px;
+                                border-radius: 5px;
+                              "
+                              :style="{
+                                background: item.status_bg_color,
+                                color: item.status_text_color,
+                              }"
+                              >{{ item.status_name }}</span
+                            >
                           </div>
                         </div>
                       </div>
                     </div>
-                  </template>
-                </Carousel>
+                  </div>
+                </div>
                 <div
-                  v-show="datanews == null || datanews.length == 0"
+                  v-show="datatasks == null || datatasks.length == 0"
                   class="w-full h-full format-flex-center"
                 >
                   <span class="description">Hiện chưa có dữ liệu</span>
