@@ -1388,7 +1388,7 @@ onMounted(() => {
                                       <div
                                         class="col-1 mx-2 p-0 align-items-center"
                                       >
-                                        <Avatar
+                                        <Avatar   style="color:#fff"
                                           v-bind:label="
                                             slotProps.option.avatar
                                               ? ''
@@ -1550,8 +1550,8 @@ onMounted(() => {
                                       <div
                                         class="col-1 mx-2 p-0 align-items-center"
                                       >
-                                        <Avatar
-                                          v-bind:label="
+                                        <Avatar   style="color:#fff"
+                                          v-bind:label=" 
                                             slotProps.option.avatar
                                               ? ''
                                               : slotProps.option.name.substring(
@@ -1899,7 +1899,7 @@ onMounted(() => {
                   }}</span
                 >
                 <div>
-                  <Avatar
+                  <Avatar 
                     v-bind:label="
                       slotProps.data.avatar
                         ? ''
@@ -1912,7 +1912,7 @@ onMounted(() => {
                     "
                     style="
                       background-color: #2196f3;
-                      color: #ffffff;
+                      color: #fff;
                       width: 2rem;
                       height: 2rem;
                       font-size: 1rem !important;

@@ -1177,6 +1177,9 @@ text-align: center !important;
     align-items: center;
     text-align: center;
 }
+.p-datatable.d-datatable-design .p-column-header-content{
+    display: block;
+}
 .d-design-chips.p-chips.p-component .p-inputtext .p-chips-token{
     margin-bottom: 0px !important;
 }

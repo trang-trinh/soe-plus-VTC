@@ -1180,8 +1180,8 @@ onMounted(() => {
               field="STT"
               header="STT"
               class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px"
-              bodyStyle="text-align:center;max-width:70px"
+              headerStyle="text-align:center;max-width:55px;height:50px"
+              bodyStyle="text-align:center;max-width:55px"
             ></Column>
             <Column
               field="candidate_code"
@@ -1192,7 +1192,7 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <div>
-                  <Avatar
+                  <Avatar   style="color:#fff"
                     v-bind:label="
                       slotProps.data.candidate_avatar
                         ? ''
@@ -1336,7 +1336,7 @@ onMounted(() => {
                     "
                     style="
                       background-color: #2196f3;
-                      color: #ffffff;
+                      color: #fff;
                       width: 2rem;
                       height: 2rem;
                       font-size: 1rem !important;

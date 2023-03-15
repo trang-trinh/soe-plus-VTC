@@ -74,6 +74,8 @@ onMounted(() => {});
     :showCloseIcon="true"
     :header="'Chi tiết quy trình'"
     @update:visible="closeDialogDetail"
+    maximizable
+    modal
   >
     <div
       class="col-12"
@@ -91,8 +93,17 @@ onMounted(() => {});
           </h2>
         </h3>
         <Accordion :activeIndex="0">
-          <AccordionTab header="Header I">
-            <span v-html="props.data.description"></span>
+          <AccordionTab header="Mô tả quy trình">
+            <div
+              class="max-h-15rem"
+              style="overflow-y: auto"
+            >
+              <span
+                v-html="props.data.description"
+                v-if="props.data.description != null"
+              ></span>
+              <b v-else>Không có mô tả cho quy trình này!</b>
+            </div>
           </AccordionTab>
         </Accordion>
       </div>
@@ -432,6 +443,17 @@ onMounted(() => {});
             />
           </template>
         </Column>
+        <template #empty>
+          <div
+            class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
+          >
+            <img
+              src="../../../../assets/background/nodata.png"
+              height="144"
+            />
+            <h3 class="m-1">Không có dữ liệu</h3>
+          </div>
+        </template>
       </DataTable>
     </div>
   </Dialog>

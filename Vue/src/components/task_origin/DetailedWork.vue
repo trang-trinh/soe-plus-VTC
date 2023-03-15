@@ -3173,7 +3173,7 @@ const ChecklistType = ref();
 const OpenViewTaskChecklists = (number) => {
   ViewTaskChecklists.value = true;
   ChecklistType.value = number;
-};              
+};
 //LINk Doc
 const countDocMaster = ref();
 const ListDocMaster = ref();
@@ -3222,7 +3222,7 @@ const loadTaskDoc = () => {
         store.commit("gologout");
       }
     });
-}; 
+};
 const TaskLinkDOC = ref({
   organization_id: null,
   task_id: null,
@@ -3418,13 +3418,13 @@ const is_viewSecurityTask = ref(true);
             v-tooltip="{ value: 'Đóng' }"
             @click="closeSildeBar()"
           />
-          <Button
+          <!-- <Button
             icon="pi pi-window-maximize"
             class="p-button-rounded p-button-text"
             v-tooltip="{ value: 'Phóng to' }"
             @click="MaxMin('full')"
             v-if="PositionSideBar == 'right'"
-          />
+          /> -->
 
           <Button
             icon="pi pi-window-minimize"
@@ -5950,6 +5950,9 @@ const is_viewSecurityTask = ref(true);
           :id="props.id"
           :pj_id="datalists.project_id"
           :listChild="ListChildTask"
+          :member="members"
+          :data="datalists"
+          :isClose="isClose"
         ></Task_FollowVue>
       </div>
       <div v-if="CongViecCon == true">

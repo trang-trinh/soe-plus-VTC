@@ -91,9 +91,9 @@ export default {
   font-size: 1rem;
 }
 
-.p-avatar.p-avatar-image {
+/*.p-avatar.p-avatar-image {
   background-color: transparent;
-}
+}*/
 
 .p-avatar.p-avatar-circle {
   border-radius: 50%;
