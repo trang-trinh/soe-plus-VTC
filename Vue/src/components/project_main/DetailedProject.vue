@@ -888,7 +888,6 @@ onMounted(() => {
                                 @page="onPage($event)"
                                 @sort="onSort($event)"
                                 @filter="onFilter($event)"
-                                :lazy="true"
                                 selectionMode="single"
                                 >
                                 <Column field="STT" header="STT"
