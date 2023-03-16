@@ -59,7 +59,7 @@ export default {
   },
   methods: {
     onError(e) {
-      e.target.src = "https://apivtc.soe.vn/Portals/Image/nouser1.png";
+      e.target.src = fileURL + "Portals/Image/nouser1.png";
     },
   },
   computed: {
