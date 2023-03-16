@@ -667,7 +667,7 @@ onMounted(() => {
             optionLabel="task_name"
             optionValue="task_id"
             :filterFields="['task_name', 'task_name_en']"
-            class="d-design-dropdown max-w-full"
+            class="d-design-dropdown w-full"
           >
             <template #option="slotProps">
               <div class="row col-12 flex">
