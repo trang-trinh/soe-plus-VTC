@@ -65,6 +65,9 @@ const props = defineProps({
   id: String,
   pj_id: String,
   listChild: Array,
+  member: Array,
+  data: Object,
+  isClose: Boolean,
 });
 const listChildTask = ref([]);
 const DialogVisible = ref();
@@ -156,8 +159,9 @@ const openDialog = () => {
     status: 0,
     is_step: 1,
   };
+  console.log(datalists.value);
   taskfollow.value.is_step =
-    datalists.value != null && datalists.value != []
+    datalists.value.length > 0
       ? datalists.value[datalists.value.length - 1].is_step + 1
       : 1;
   DialogVisible.value = true;
@@ -249,7 +253,7 @@ const loadData = () => {
         str: encr(
           JSON.stringify({
             proc: "task_follow_list",
-            par: [{ par: "user_id", va: props.id }],
+            par: [{ par: "task_id", va: props.id }],
           }),
           SecretKey,
           cryoptojs,
@@ -258,22 +262,25 @@ const loadData = () => {
       config,
     )
     .then((response) => {
+      datalists.value = [];
       let data = JSON.parse(response.data.data)[0];
       data.forEach((edit) => {
-        edit.task_follow_detail_task_id = JSON.parse(
-          edit.task_follow_detail_task_id,
-        );
-        if (edit.task_follow_detail_task_id != null) edit.childTask = [];
-        edit.task_follow_detail_task_id.forEach((z) => {
-          let finde = listChildTask.value.filter(
-            (x) => x.task_id == z.follow_task_id,
+        if (edit.task_follow_detail_task_id != null) {
+          edit.task_follow_detail_task_id = JSON.parse(
+            edit.task_follow_detail_task_id,
           );
-          if (finde != null) {
-            edit.childTask = edit.childTask.concat(finde);
-          }
-        });
+          edit.childTask = [];
+          edit.task_follow_detail_task_id.forEach((z) => {
+            let finde = listChildTask.value.filter(
+              (x) => x.task_id == z.follow_task_id,
+            );
+            if (finde != null) {
+              edit.childTask = edit.childTask.concat(finde);
+            }
+          });
+        }
       });
-      datalists.value = data;
+      if (data.length > 0) datalists.value = data;
     })
     .catch((error) => {
       options.value.loading = false;
@@ -291,10 +298,15 @@ const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
+const isOpen = ref(false);
 const openDetail = (data) => {
   round.value = null;
   forceRerender();
+  isOpen.value = true;
   round.value = data;
+};
+const closeDialogDetail = () => {
+  isOpen.value = false;
 };
 const onRowReorder = (event) => {
   let formData = new FormData();
@@ -330,47 +342,124 @@ const onRowReorder = (event) => {
     })
     .catch((error) => {
       swal.close();
+
       swal.fire({
         title: "Thông báo",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!" + error,
+        html: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
         icon: "error",
         confirmButtonText: "OK",
       });
     });
 };
+const DeleteItem = (vl) => {
+  console.log(vl);
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá quy trình này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+        let id = [];
+        id.push(vl.follow_id);
+        axios
+          .delete(baseURL + "/api/task_follow/DeleteFollow", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: vl != null ? id : 1,
+          })
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá quy trình thành công!");
+              loadData();
+            } else {
+              swal.fire({
+                title: "Thông báo",
+                html: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                title: "Thông báo",
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+};
+// 0: tạo/giao 1,2: làm, 3:theo dõi
+const TypeMember = ref();
+
 onMounted(() => {
   loadData();
   if (props.listChild != null) {
     listChildTask.value = JSON.parse(JSON.stringify(props.listChild));
   }
+  let type = [];
+  props.member.forEach((x) => {
+    if (x.user_id == user.user_id) {
+      type.push(x.is_type);
+    }
+  });
+  if (
+    props.data.created_by == user.user_id ||
+    type.filter((x) => x == 0) != null
+  ) {
+    TypeMember.value = 0;
+  } else if (type.filter((x) => x == 1) != null) {
+    TypeMember.value = 1;
+  } else if (type.filter((x) => x == 2) != null) {
+    TypeMember.value = 1;
+  } else if (type.filter((x) => x == 3) != null) {
+    TypeMember.value = 3;
+  } else {
+    TypeMember.value = 4;
+  }
 });
 </script>
 <template>
   <div class="h-custom">
+    <Toolbar class="w-full custoolbar">
+      <template #end>
+        <Button
+          icon="pi pi-plus"
+          label="Thêm bước"
+          @click="openDialog()"
+          v-if="user.is_admin == true || TypeMember == 0"
+        ></Button>
+      </template>
+    </Toolbar>
+
     <DataTable
       :value="datalists"
-      showGridlines
       scrollable
       scrollHeight="flex"
-      :reorderableColumns="true"
       @rowReorder="onRowReorder"
     >
-      <template #header>
-        <Toolbar class="w-full custoolbar">
-          <template #end>
-            <Button
-              icon="pi pi-plus"
-              label="Thêm bước"
-              @click="openDialog()"
-            ></Button>
-          </template>
-        </Toolbar>
-      </template>
       <Column
         rowReorder
-        headerStyle="width: 3rem"
-        :reorderableColumn="false"
-        class="justify-content-center align-items-center text-center"
+        class="justify-content-center align-items-center text-center max-w-1rem"
         v-tooltip="'Kéo và thả để sắp xếp các bước'"
       />
       <Column
@@ -381,12 +470,12 @@ onMounted(() => {
       <Column
         header="Tên quy trình"
         field="follow_name"
-        class="justify-content-center align-items-center text-center"
+        header-class="justify-content-center align-items-center text-center"
       ></Column>
       <Column
         header="Chức năng"
         field=""
-        headerClass="justify-content-center align-items-center max-w-20rem"
+        class="justify-content-center align-items-center max-w-10rem"
       >
         <template #body="data">
           <div class="flex">
@@ -404,28 +493,43 @@ onMounted(() => {
               icon="pi pi-pencil"
               v-tooltip="'Sửa'"
               @click="OpenEditDialog(data.data)"
+              v-if="user.is_admin == true || TypeMember == 0"
             >
             </Button>
             <Button
+              @click="DeleteItem(data.data, true)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
-              icon="pi pi-trash"
               v-tooltip="'Xóa'"
-            >
-            </Button>
+              icon="pi pi-trash"
+              v-if="user.is_admin == true || TypeMember == 0"
+            ></Button>
           </div>
         </template>
       </Column>
+      <template #empty>
+        <div
+          class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
+        >
+          <img
+            src="../../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
+      </template>
     </DataTable>
     <TaskFollowDetailVue
       :componentKey="componentKey"
       :data="round"
+      :isOpen="isOpen"
+      :closeDialogDetail="closeDialogDetail"
     ></TaskFollowDetailVue>
   </div>
   <Dialog
     v-model:visible="DialogVisible"
     :style="'width:40vw;'"
-    :showCloseIcon="true"
+    :closable="false"
     :header="headerDialog"
   >
     <form action="">

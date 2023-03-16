@@ -431,137 +431,25 @@ onMounted(() => {
 <template>
   <div>
     <div class="grid">
-      <TabView @tab-change="changeTab($event.index)">
+      <TabView
+        @tab-change="changeTab($event.index)"
+        class="w-full"
+      >
         <TabPanel
           v-for="(item, index) in tabs"
           :key="index"
           :header="item.header"
         >
-        </TabPanel>
-      </TabView>
-
-      <div class="row col-12">
-        <AutoComplete
-          v-model="selectedUser"
-          :suggestions="filteredItems"
-          @complete="searchItems"
-          class="row w-full col-12"
-          placeholder="@ để thêm người"
-          :panelClass="'my-panel'"
-          :dropdown="true"
-          @item-select="addMember($event)"
-          v-if="
-            props.isClose == false &&
-            !TatCa &&
-            !NguoiQuanLy &&
-            (memberType == 0 ||
-              memberType1 == 0 ||
-              memberType2 == 0 ||
-              memberType3 == 0)
-          "
-        >
-          <template #item="slotProps">
-            <div
-              class="col-12 flex align-items-center"
-              style="border-bottom: 1px solid #ccc"
-            >
-              <div class="col-2 format-center">
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  :label="
-                    slotProps.item.avatar
-                      ? slotProps.item.avatar
-                      : slotProps.item.fnema.split(' ').at(-1).substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.item.avatar"
-                  style="color: #ffffff; cursor: pointer"
-                  :style="{
-                    background: bgColor[Math.floor(Math.random() * 10) % 7],
-                    border: '2px solid' + bgColor[(Math.random() * 11) % 7],
-                  }"
-                  class="col-2 p-0 m-0"
-                  size="large"
-                  shape="circle"
-                />
-              </div>
-              <div class="col-9">
-                <div class="col-12">
-                  <span class="font-bold text-xl text-indigo-700">{{
-                    slotProps.item.fnema
-                  }}</span>
-                </div>
-                <div class="col-12 pt-0">{{ slotProps.item.tenChucVu }}</div>
-                <div class="col-12 pt-0">
-                  {{
-                    slotProps.item.department_name
-                      ? slotProps.item.department_name
-                      : slotProps.item.organiztion_name
-                  }}
-                </div>
-              </div>
-            </div>
-          </template>
-        </AutoComplete>
-        <ScrollPanel
-          :style="
-            height1 < 1000
-              ? 'height: calc(85vh) !important'
-              : 'height: calc(87vh) !important'
-          "
-          v-if="isHaveData == true"
-        >
-          <div
-            class="row col-12 flex p-0 m-0 my-div"
-            v-for="(m, index) in members"
-            :key="m"
-            style="border-bottom: 1px solid #ccc"
-          >
-            <div class="col-2 format-center p-0 m-0">
-              <Avatar
-                @error="
-                  $event.target.src =
-                    basedomainURL + '/Portals/Image/nouser1.png'
-                "
-                v-tooltip.right="{
-                  value: m.tooltip,
-                  escape: true,
-                }"
-                v-bind:label="
-                  m.avt ? '' : m.full_name.split(' ').at(-1).substring(0, 1)
-                "
-                v-bind:image="basedomainURL + m.avt"
-                style="color: #ffffff; cursor: pointer"
-                :style="{
-                  background: bgColor[index % 7],
-                  border: '2px solid' + bgColor[index % 7],
-                }"
-                class="col-2 p-0 m-0"
-                size="large"
-                shape="circle"
-              />
-            </div>
-            <div class="col-9">
-              <div class="col-12">
-                <span class="font-bold text-xl text-indigo-700">{{
-                  m.full_name
-                }}</span>
-                <span class="text-500 font-300">
-                  {{
-                    " " +
-                    moment(new Date(m.created_date)).format("HH:mm DD/MM/YYYY")
-                  }}
-                </span>
-              </div>
-              <div class="col-12 pt-0">{{ m.positions }}</div>
-              <div class="col-12 pt-0">
-                {{ m.department_name ? m.department_name : m.organiztion_name }}
-              </div>
-            </div>
-            <div
-              class="col-1 format-center"
+          <div class="row col-12">
+            <AutoComplete
+              v-model="selectedUser"
+              :suggestions="filteredItems"
+              @complete="searchItems"
+              class="row w-full col-12"
+              placeholder="@ để thêm người"
+              :panelClass="'my-panel'"
+              :dropdown="true"
+              @item-select="addMember($event)"
               v-if="
                 props.isClose == false &&
                 !TatCa &&
@@ -572,25 +460,148 @@ onMounted(() => {
                   memberType3 == 0)
               "
             >
-              <Button
-                icon="p-custom pi pi-trash"
-                class="p-button-raised p-button-text p-custom"
-                @click="delMember(m)"
+              <template #item="slotProps">
+                <div
+                  class="col-12 flex align-items-center"
+                  style="border-bottom: 1px solid #ccc"
+                >
+                  <div class="col-2 format-center">
+                    <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
+                      :label="
+                        slotProps.item.avatar
+                          ? ''
+                          : slotProps.item.fnema
+                              .split(' ')
+                              .at(-1)
+                              .substring(0, 1)
+                      "
+                      v-bind:image="basedomainURL + slotProps.item.avatar"
+                      style="color: #ffffff; cursor: pointer"
+                      :style="{
+                        background: bgColor[Math.floor(Math.random() * 10) % 7],
+                        border: '2px solid' + bgColor[(Math.random() * 11) % 7],
+                      }"
+                      class="col-2 p-0 m-0"
+                      size="large"
+                      shape="circle"
+                    />
+                  </div>
+                  <div class="col-9">
+                    <div class="col-12">
+                      <span class="font-bold text-xl text-indigo-700">
+                        {{ slotProps.item.fnema }}
+                      </span>
+                    </div>
+                    <div class="col-12 pt-0">
+                      {{ slotProps.item.tenChucVu }}
+                    </div>
+                    <div class="col-12 pt-0">
+                      {{
+                        slotProps.item.department_name
+                          ? slotProps.item.department_name
+                          : slotProps.item.organiztion_name
+                      }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </AutoComplete>
+            <ScrollPanel
+              :style="
+                height1 < 1000
+                  ? 'height: calc(85vh) !important'
+                  : 'height: calc(87vh) !important'
+              "
+              v-if="isHaveData == true"
+            >
+              <div
+                class="row col-12 flex p-0 m-0 my-div"
+                v-for="(m, index) in members"
+                :key="m"
+                style="border-bottom: 1px solid #ccc"
+              >
+                <div class="col-2 format-center p-0 m-0">
+                  <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
+                    v-tooltip.right="{
+                      value: m.tooltip,
+                      escape: true,
+                    }"
+                    v-bind:label="
+                      m.avt ? '' : m.full_name.split(' ').at(-1).substring(0, 1)
+                    "
+                    v-bind:image="basedomainURL + m.avt"
+                    style="color: #ffffff; cursor: pointer"
+                    :style="{
+                      background: bgColor[index % 7],
+                      border: '2px solid' + bgColor[index % 7],
+                    }"
+                    class="col-2 p-0 m-0"
+                    size="large"
+                    shape="circle"
+                  />
+                </div>
+                <div class="col-9">
+                  <div class="col-12">
+                    <span class="font-bold text-xl text-indigo-700">{{
+                      m.full_name
+                    }}</span>
+                    <span class="text-500 font-300">
+                      {{
+                        " " +
+                        moment(new Date(m.created_date)).format(
+                          "HH:mm DD/MM/YYYY",
+                        )
+                      }}
+                    </span>
+                  </div>
+                  <div class="col-12 pt-0">{{ m.positions }}</div>
+                  <div class="col-12 pt-0">
+                    {{
+                      m.department_name ? m.department_name : m.organiztion_name
+                    }}
+                  </div>
+                </div>
+                <div
+                  class="col-1 format-center"
+                  v-if="
+                    props.isClose == false &&
+                    !TatCa &&
+                    !NguoiQuanLy &&
+                    (memberType == 0 ||
+                      memberType1 == 0 ||
+                      memberType2 == 0 ||
+                      memberType3 == 0)
+                  "
+                >
+                  <Button
+                    icon="p-custom pi pi-trash"
+                    class="p-button-raised p-button-text p-custom"
+                    @click="delMember(m)"
+                  />
+                </div>
+              </div>
+            </ScrollPanel>
+            <div
+              class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
+              v-else
+            >
+              <img
+                src="../../../assets/background/nodata.png"
+                height="144"
               />
+              <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </div>
-        </ScrollPanel>
-        <div
-          class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
-          v-else
-        >
-          <img
-            src="../../../assets/background/nodata.png"
-            height="144"
-          />
-          <h3 class="m-1">Không có dữ liệu</h3>
-        </div>
-      </div>
+        </TabPanel>
+      </TabView>
     </div>
   </div>
 </template>

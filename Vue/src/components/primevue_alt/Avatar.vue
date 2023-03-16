@@ -25,6 +25,7 @@
 </template>
 
 <script>
+import img from "../../assets/image/nouser1.png";
 export default {
   name: "Avatar",
   props: {
@@ -59,7 +60,7 @@ export default {
   },
   methods: {
     onError(e) {
-      e.target.src = "https://apivtc.soe.vn/Portals/Image/nouser1.png";
+      e.target.src = img;
     },
   },
   computed: {
@@ -91,9 +92,9 @@ export default {
   font-size: 1rem;
 }
 
-.p-avatar.p-avatar-image {
+/*.p-avatar.p-avatar-image {
   background-color: transparent;
-}
+}*/
 
 .p-avatar.p-avatar-circle {
   border-radius: 50%;

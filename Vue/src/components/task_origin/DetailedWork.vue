@@ -709,6 +709,12 @@ const loadChildTaskOrigin = (type) => {
       DoingChild.value = count4[0].Doing;
       listChild.forEach((c) => {
         c.users = [];
+        let sttus = listDropdownStatus.value.filter((a) => a.value == c.status);
+        c.status_display = {
+          text: sttus[0].text,
+          bg_color: sttus[0].bg_color,
+          text_color: sttus[0].text_color,
+        };
         let sttgv = 0;
         let sttth = 0;
         let sttdth = 0;
@@ -3412,13 +3418,13 @@ const is_viewSecurityTask = ref(true);
             v-tooltip="{ value: 'Đóng' }"
             @click="closeSildeBar()"
           />
-          <Button
+          <!-- <Button
             icon="pi pi-window-maximize"
             class="p-button-rounded p-button-text"
             v-tooltip="{ value: 'Phóng to' }"
             @click="MaxMin('full')"
             v-if="PositionSideBar == 'right'"
-          />
+          /> -->
 
           <Button
             icon="pi pi-window-minimize"
@@ -5944,6 +5950,9 @@ const is_viewSecurityTask = ref(true);
           :id="props.id"
           :pj_id="datalists.project_id"
           :listChild="ListChildTask"
+          :member="members"
+          :data="datalists"
+          :isClose="isClose"
         ></Task_FollowVue>
       </div>
       <div v-if="CongViecCon == true">

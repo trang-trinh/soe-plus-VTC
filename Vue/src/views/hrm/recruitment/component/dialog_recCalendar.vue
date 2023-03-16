@@ -39,33 +39,13 @@ const bgColor = ref([
 ]);
 
 const rules = {
-  candidate_source: {
-    required,
-    $errors: [
-      {
-        $property: "candidate_source",
-        $validator: "required",
-        $message: "Tên ứng viên không được để trống!",
-      },
-    ],
-  },
   rec_calendar_name: {
     required,
     $errors: [
       {
         $property: "rec_calendar_name",
         $validator: "required",
-        $message: "Tên ứng viên không được để trống!",
-      },
-    ],
-  },
-  candidate_name: {
-    required,
-    $errors: [
-      {
-        $property: "rec_calendar_name",
-        $validator: "required",
-        $message: "Tên ứng viên không được để trống!",
+        $message: "Tên lịch phỏng vấn không được để trống!",
       },
     ],
   },
@@ -74,13 +54,11 @@ const listFilesS = ref([]);
 const recCalendar = ref({});
 const submitted = ref(false);
 const list_users_recCalendar = ref([]);
-const list_academic_level = ref([]);
-const list_work_experience = ref([]);
+
 const loadData = () => {
   if (props.checkadd == true) {
     list_users_recCalendar.value = [];
-    list_academic_level.value = [];
-    list_work_experience.value = [];
+
     recCalendar.value = props.recCalendar;
   } else {
     axios
@@ -89,11 +67,11 @@ const loadData = () => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_candidate_get",
+              proc: "hrm_rec_calendar_get",
               par: [
                 {
-                  par: "candidate_id",
-                  va: props.recCalendar.candidate_id,
+                  par: "rec_calendar_id",
+                  va: props.recCalendar.rec_calendar_id,
                 },
               ],
             }),
@@ -107,76 +85,52 @@ const loadData = () => {
         let data = JSON.parse(response.data.data)[0];
         let data1 = JSON.parse(response.data.data)[1];
         let data2 = JSON.parse(response.data.data)[2];
-        let data3 = JSON.parse(response.data.data)[3];
-        let data4 = JSON.parse(response.data.data)[4];
+
         if (data) {
           recCalendar.value = data[0];
-
-          if (recCalendar.value.candidate_place) {
-            onFilterPlace({ value: recCalendar.value.candidate_place }, 1);
-          }
-
-          if (recCalendar.value.resident_curent_address) {
-            onFilterPlace(
-              { value: recCalendar.value.resident_curent_address },
-              4
-            );
-          }
-          if (recCalendar.value.resident_address) {
-            onFilterPlace({ value: recCalendar.value.resident_address }, 3);
-          }
           if (recCalendar.value.rec_calendar_date)
             recCalendar.value.rec_calendar_date = new Date(
               recCalendar.value.rec_calendar_date
             );
-          if (recCalendar.value.candidate_identity_date)
-            recCalendar.value.candidate_identity_date = new Date(
-              recCalendar.value.candidate_identity_date
+          if (recCalendar.value.rec_time_start)
+            recCalendar.value.rec_time_start = new Date(
+              recCalendar.value.rec_time_start
             );
-          if (recCalendar.value.start_date)
-            recCalendar.value.start_date = new Date(
-              recCalendar.value.start_date
+          if (recCalendar.value.rec_time_end)
+            recCalendar.value.rec_time_end = new Date(
+              recCalendar.value.rec_time_end
             );
-          if (recCalendar.value.end_date)
-            recCalendar.value.end_date = new Date(recCalendar.value.end_date);
-          if (recCalendar.value.registration_deadline)
-            recCalendar.value.registration_deadline = new Date(
-              recCalendar.value.registration_deadline
-            );
-          recCalendar.value.candidate_phone_fake =
-            recCalendar.value.candidate_phone.split(",");
-          recCalendar.value.candidate_email_fake =
-            recCalendar.value.candidate_email.split(",");
+
+          recCalendar.value.interviewers_fake =
+            recCalendar.value.interviewers.split(",");
         }
 
         data1.forEach((element) => {
-          if (element.birthday) element.birthday = new Date(element.birthday);
+          if (element.time_recruitment)
+            element.time_recruitment = new Date(element.time_recruitment);
+
+          if (element.candidate_code) {
+            element.candidate_code_fake = listCandidate.value.find(
+              (x) => x.code == element.candidate_code
+            );
+             
+            if (listCandidate.value.length > 0) {
+              var arr = [...listCandidateSave];
+              arr = arr.filter(
+                  (x) => x.code != element.candidate_code_fake.code
+                );
+             
+              listCandidate.value = arr;
+            }
+          }
           list_users_recCalendar.value.push(element);
         });
-        data2.forEach((element) => {
-          if (element.start_date)
-            element.start_date = new Date(element.start_date);
-          if (element.end_date) element.end_date = new Date(element.end_date);
-        });
-        list_academic_level.value = data2;
-
-        if (data3) {
-          data3.forEach((element) => {
-            if (element.start_date)
-              element.start_date = new Date(element.start_date);
-            if (element.end_date) element.end_date = new Date(element.end_date);
-          });
-          list_work_experience.value = data3;
+        if (data2) {
+          listFilesS.value = data2;
         }
-
-        if (data4) {
-          listFilesS.value = data4;
-        }
-
         checkShow.value = true;
         checkShow2.value = true;
-        checkShow3.value = true;
-        checkShow4.value = true;
+
         checkShow5.value = true;
       })
       .catch((error) => {});
@@ -187,54 +141,29 @@ const saveData = (isFormValid) => {
   if (!isFormValid) {
     return;
   }
-
-  if (recCalendar.value.candidate_source == null) {
+  if (
+    recCalendar.value.campaign_id == null ||
+    recCalendar.value.rec_calendar_name == null ||
+    recCalendar.value.rec_calendar_date == null ||
+    recCalendar.value.interviewers_fake == null
+  ) {
     return;
   }
 
-  if (recCalendar.value.candidate_name.length > 250) {
-    swal.fire({
-      title: "Error!",
-      text: "Tên ứng viên không được vượt quá 250 ký tự!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
+  if (recCalendar.value.interviewers_fake) {
+    recCalendar.value.interviewers =
+      recCalendar.value.interviewers_fake.toString();
   }
-  if (recCalendar.value.rec_calendar_name.length > 50) {
-    swal.fire({
-      title: "Error!",
-      text: "Mã ứng viên không được vượt quá 50 ký tự!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-  if (recCalendar.value.candidate_phone_fake)
-    recCalendar.value.candidate_phone =
-      recCalendar.value.candidate_phone_fake.toString();
-  if (recCalendar.value.candidate_email_fake)
-    recCalendar.value.candidate_email =
-      recCalendar.value.candidate_email_fake.toString();
-
   let formData = new FormData();
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
     formData.append("image", file);
   }
 
-  formData.append("hrm_candidate", JSON.stringify(recCalendar.value));
+  formData.append("hrm_rec_calendar", JSON.stringify(recCalendar.value));
   formData.append(
-    "hrm_candidate_family",
+    "hrm_rec_candidate",
     JSON.stringify(list_users_recCalendar.value)
-  );
-  formData.append(
-    "hrm_candidate_academic",
-    JSON.stringify(list_academic_level.value)
-  );
-  formData.append(
-    "list_work_experience",
-    JSON.stringify(list_work_experience.value)
   );
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
   swal.fire({
@@ -243,13 +172,18 @@ const saveData = (isFormValid) => {
       swal.showLoading();
     },
   });
+
   if (props.checkadd) {
     axios
-      .post(baseURL + "/api/hrm_candidate/add_hrm_candidate", formData, config)
+      .post(
+        baseURL + "/api/hrm_rec_calendar/add_hrm_rec_calendar",
+        formData,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm thông tin ứng viên thành công!");
+          toast.success("Thêm thông tin lịch phỏng vấn thành công!");
 
           props.closeDialog();
         } else {
@@ -274,14 +208,14 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_candidate/update_hrm_candidate",
+        baseURL + "/api/hrm_rec_calendar/update_hrm_rec_calendar",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa thông tin ứng viên thành công!");
+          toast.success("Sửa thông tin lịch phỏng vấn thành công!");
 
           props.closeDialog();
         } else {
@@ -382,8 +316,7 @@ const v$ = useVuelidate(rules, recCalendar);
 
 const checkShow = ref(false);
 const checkShow2 = ref(false);
-const checkShow3 = ref(false);
-const checkShow4 = ref(false);
+
 const checkShow5 = ref(false);
 const showHidePanel = (type) => {
   if (type == 1) {
@@ -400,20 +333,7 @@ const showHidePanel = (type) => {
       checkShow2.value = true;
     }
   }
-  if (type == 3) {
-    if (checkShow3.value == true) {
-      checkShow3.value = false;
-    } else {
-      checkShow3.value = true;
-    }
-  }
-  if (type == 4) {
-    if (checkShow4.value == true) {
-      checkShow4.value = false;
-    } else {
-      checkShow4.value = true;
-    }
-  }
+
   if (type == 5) {
     if (checkShow5.value == true) {
       checkShow5.value = false;
@@ -442,36 +362,6 @@ const addRow_Item = (type) => {
     list_users_recCalendar.value.push(obj);
 
     checkShow2.value = true;
-  } else if (type == 3) {
-    let obj = {
-      is_order: list_academic_level.value.length + 1,
-      start_date: null,
-      degree_id: null,
-      end_date: null,
-      learning_place_id: null,
-      specialization_id: null,
-      form_training: null,
-      organization_id: store.getters.user.organization_id,
-      status: true,
-    };
-    list_academic_level.value.push(obj);
-    checkShow3.value = true;
-  } else if (type == 4) {
-    let obj = {
-      is_order: list_work_experience.value.length + 1,
-      start_date: null,
-      end_date: null,
-      company_name: null,
-      position_id: null,
-      reference_person: null,
-      phone_number: null,
-      work_des: null,
-      organization_id: store.getters.user.organization_id,
-      status: true,
-    };
-    list_work_experience.value.push(obj);
-
-    checkShow4.value = true;
   } else if (type == 5) {
     checkShow5.value = true;
   }
@@ -521,75 +411,12 @@ const listLearningPlace = ref([]);
 const listFormTraining = ref([]);
 const listPositions = ref([]);
 const listCampaigns = ref([]);
-const listPlaceDetails = ref([]);
-const listPlaceDetails1 = ref([]);
-const listPlaceDetails2 = ref([]);
-const listPlaceDetails4 = ref([]);
-const listPlaceDetails3 = ref([]);
-const onFilterPlace = (event, type) => {
-  var stc = event.value;
-  if (event.value == "") {
-    stc = null;
-  }
-  axios
-    .post(
-      baseURL + "/api/DictionaryProc/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "ca_place_details_list",
-            par: [
-              { par: "search", va: stc },
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100 },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (type == 1) listPlaceDetails.value = [];
-      if (type == 2) listPlaceDetails1.value = [];
-      if (type == 3) listPlaceDetails2.value = [];
-      if (type == 4) listPlaceDetails3.value = [];
 
-      if (type == 5) listPlaceDetails4.value = [];
-      data.forEach((element, i) => {
-        if (type == 1)
-          listPlaceDetails.value.push({
-            name: element.name,
-          });
-        if (type == 2)
-          listPlaceDetails1.value.push({
-            name: element.name,
-          });
-        if (type == 3)
-          listPlaceDetails2.value.push({
-            name: element.name,
-          });
-        if (type == 4)
-          listPlaceDetails3.value.push({
-            name: element.name,
-          });
-        if (type == 5)
-          listPlaceDetails4.value.push({
-            name: element.name,
-          });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
-    });
-};
 const listCandidate = ref([]);
-const onSelectCandidate = (value) => {
-  var obj = listCandidate.value.find((x) => x.code == value);
-
+const onSelectCandidate = (value, index) => {
+  var obj = listCandidate.value.find((x) => x.code == value.code);
+  list_users_recCalendar.value[index].full_name = obj.name;
+  list_users_recCalendar.value[index].candidate_code = obj.code;
   listPhoneNumber.value = [];
   if (obj.phone_number)
     obj.phone_number.split(",").forEach((element) => {
@@ -598,14 +425,12 @@ const onSelectCandidate = (value) => {
       });
     });
 
-
-    if (listCandidate.value.length > 0) {
+  if (listCandidate.value.length > 0) {
     var arr = [...listCandidateSave];
-    
+
     list_users_recCalendar.value.forEach((element) => {
-      arr = arr.filter((x) => x.code != element.candidate_code);
+      arr = arr.filter((x) => x.code != element.candidate_code_fake.code);
     });
-     
     listCandidate.value = arr;
   }
 };
@@ -652,7 +477,7 @@ const onFilterCandidate = (event) => {
     });
 };
 const listPhoneNumber = ref([]);
-var listCandidateSave=[];
+var listCandidateSave = [];
 const initTudien = () => {
   axios
     .post(
@@ -685,52 +510,12 @@ const initTudien = () => {
           phone_number: element.candidate_phone,
         });
       });
-      listCandidateSave=[... listCandidate.value];
+      listCandidateSave = [...listCandidate.value];
     })
     .catch((error) => {
       console.log(error);
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
-    });
-  axios
-    .post(
-      baseURL + "/api/DictionaryProc/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "ca_place_details_list",
-            par: [
-              { par: "search", va: null },
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100 },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listPlaceDetails.value = [];
-      listPlaceDetails1.value = [];
-      listPlaceDetails2.value = [];
-      listPlaceDetails3.value = [];
-      listPlaceDetails4.value = [];
-      data.forEach((element, i) => {
-        listPlaceDetails.value.push({
-          name: element.name,
-        });
-      });
-      listPlaceDetails1.value = [...listPlaceDetails.value];
-      listPlaceDetails2.value = [...listPlaceDetails.value];
-      listPlaceDetails3.value = [...listPlaceDetails.value];
-      listPlaceDetails4.value = [...listPlaceDetails.value];
-    })
-    .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
     });
 
   axios
@@ -1213,51 +998,58 @@ const delRow_Item = (item, type) => {
       listDataUsers.value = arr;
     }
   }
-  if (type == 2) {
-    list_academic_level.value.splice(
-      list_academic_level.value.lastIndexOf(item),
-      1
-    );
-  }
 };
 //Thêm bản ghi
-const displayBasic=ref(false);
+const displayBasic = ref(false);
 onMounted(() => {
-  loadData();
   initTudien();
+  loadData();
   loadUser();
-  displayBasic.value=props.displayBasic;
+  displayBasic.value = props.displayBasic;
   return {};
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible=" displayBasic"
+    v-model:visible="displayBasic"
     :style="{ width: '40vw' }"
     :maximizable="true"
     :modal="true"
     :closable="true"
   >
     <form>
-      <div class="grid formgrid m-2">
+      <div class="grid formgrid m-2 mt-0 pt-0">
         <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
-        <div class="col-12 flex p-0 text-center align-items-center">
-          <div class="col-12 field flex p-0 text-left align-items-center">
-            <div class="w-11rem">
-              Chiến dịch<span class="redsao pl-1"> (*)</span>
-            </div>
-            <div style="width: calc(100% - 11rem)">
-              <Dropdown
-                v-model="recCalendar.campaign_id"
-                :options="listCampaigns"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="Chọn chiến dịch tuyển dụng"
-                class="w-full"
-              />
-            </div>
+
+        <div class="col-12 field flex p-0 text-left align-items-center">
+          <div class="w-11rem">
+            Chiến dịch<span class="redsao pl-1"> (*)</span>
           </div>
+          <div style="width: calc(100% - 11rem)">
+            <Dropdown
+              v-model="recCalendar.campaign_id"
+              :options="listCampaigns"
+              optionLabel="name"
+              optionValue="code"
+              placeholder="Chọn chiến dịch tuyển dụng"
+              class="w-full"
+              :class="{
+                'p-invalid': recCalendar.campaign_id == null && submitted,
+              }"
+            />
+          </div>
+        </div>
+        <div
+          class="col-12 p-0 field flex"
+          v-if="recCalendar.campaign_id == null && submitted"
+        >
+          <div class="w-11rem"></div>
+          <small style="width: calc(100% - 11rem)">
+            <span style="color: red" class="w-full"
+              >Chiến dịch tuyển dụng không được để trống!</span
+            >
+          </small>
         </div>
 
         <div class="col-12 field flex p-0 align-items-center">
@@ -1311,7 +1103,6 @@ onMounted(() => {
                     autocomplete="off"
                     placeholder="dd/mm/yyyy"
                     :showIcon="true"
-                    :maxDate="new Date()"
                     :class="{
                       'p-invalid':
                         recCalendar.rec_calendar_date == null && submitted,
@@ -1347,6 +1138,7 @@ onMounted(() => {
                           v-model="recCalendar.rec_time_end"
                           :showTime="true"
                           :timeOnly="true"
+                          :minDate="recCalendar.rec_time_start"
                           hourFormat="24"
                           placeholder="hh:mm"
                           icon="pi pi-clock"
@@ -1360,19 +1152,20 @@ onMounted(() => {
             </div>
           </div>
         </div>
+
         <div
-          class="col-12 p-0 field flex"
-          v-if="v$.candidate_name.$invalid && submitted"
+          class="col-12 field p-0 flex text-left align-items-center"
+          v-if="recCalendar.rec_calendar_date == null && submitted"
         >
-          <div class="col-6 p-0 flex">
-            <div class="w-11rem"></div>
-            <small style="width: calc(100% - 11rem)">
-              <span style="color: red" class="w-full">{{
-                v$.candidate_name.required.$message
-                  .replace("Value", "Họ và tên")
-                  .replace("is required", "không được để trống!")
-              }}</span>
-            </small>
+          <div class="w-11rem"></div>
+          <div style="width: calc(100% - 11rem)">
+            <div class="col-12 p-0 flex">
+              <small style="width: calc(100% - 11rem)">
+                <span style="color: red" class="w-full"
+                  >Ngày phỏng vấn không được để trống!</span
+                >
+              </small>
+            </div>
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
@@ -1381,7 +1174,7 @@ onMounted(() => {
           </div>
           <div style="width: calc(100% - 11rem)">
             <MultiSelect
-              v-model="recCalendar.interviewers"
+              v-model="recCalendar.interviewers_fake"
               :options="listDropdownUserGive"
               optionLabel="name"
               optionValue="code"
@@ -1389,7 +1182,7 @@ onMounted(() => {
               panelClass="d-design-dropdown"
               class="w-full p-0"
               :class="{
-                'p-invalid': recCalendar.interviewers == null && submitted,
+                'p-invalid': recCalendar.interviewers_fake == null && submitted,
               }"
               display="chip"
             >
@@ -1401,6 +1194,7 @@ onMounted(() => {
                     >
                       <div class="col-1 mx-2 p-0 align-items-center">
                         <Avatar
+                          style="color: #fff"
                           v-bind:label="
                             slotProps.option.avatar
                               ? ''
@@ -1441,10 +1235,28 @@ onMounted(() => {
             </MultiSelect>
           </div>
         </div>
+
+        <div
+          class="col-12 field p-0 flex text-left align-items-center"
+          v-if="recCalendar.interviewers_fake == null && submitted"
+        >
+          <div class="w-11rem"></div>
+          <div style="width: calc(100% - 11rem)">
+            <div class="col-12 p-0 flex">
+              <small style="width: calc(100% - 11rem)">
+                <span style="color: red" class="w-full"
+                  >Người phỏng vấn không được để trống!</span
+                >
+              </small>
+            </div>
+          </div>
+        </div>
         <div class="col-12 p-0 flex field align-items-center">
           <div class="w-11rem">Phòng phỏng vấn</div>
           <div style="width: calc(100% - 11rem)">
-            <Dropdown
+            <InputText v-model="recCalendar.rec_calendar_room" class="w-full">
+            </InputText>
+            <!-- <Dropdown
               v-model="recCalendar.rec_calendar_room"
               :options="listPlaceDetails1"
               optionLabel="name"
@@ -1453,8 +1265,8 @@ onMounted(() => {
               placeholder="Chọn phòng phỏng vấn"
               panelClass="d-design-dropdown"
               :filter="true"
-              @filter="onFilterPlace($event, 2)"
-            />
+              
+            /> -->
           </div>
         </div>
 
@@ -1488,7 +1300,7 @@ onMounted(() => {
               v-if="!view"
               @click="addRow_Item(2)"
             >
-              <a class="hover" v-tooltip.top="'Thêm ứng viên'">
+              <a class="hover" v-tooltip.top="'Thêm lịch phỏng vấn'">
                 <i class="pi pi-plus-circle" style="font-size: 18px"></i>
               </a>
             </div>
@@ -1526,18 +1338,31 @@ onMounted(() => {
                   <template #body="slotProps">
                     <div class="w-full">
                       <Dropdown
-                        v-model="slotProps.data.candidate_code"
+                        v-model="slotProps.data.candidate_code_fake"
                         :options="listCandidate"
                         optionLabel="name"
-                        optionValue="code"
                         class="w-full"
                         placeholder="Chọn ứng viên"
                         :filter="true"
                         @filter="onFilterCandidate($event)"
                         @change="
-                          onSelectCandidate(slotProps.data.candidate_code)
+                          onSelectCandidate(
+                            slotProps.data.candidate_code_fake,
+                            slotProps.data.is_order - 1
+                          )
                         "
-                      />
+                      >
+                        <template #value="slotPropsD">
+                          <div class=" " v-if="slotPropsD.value">
+                            <div class="flex w-full align-items-center pr-2">
+                              <div class="px-2">
+                                {{ slotProps.data.full_name }}
+                              </div>
+                            </div>
+                          </div>
+                          <span v-else> {{ slotPropsD.placeholder }} </span>
+                        </template>
+                      </Dropdown>
                     </div>
                   </template>
                 </Column>
@@ -1550,13 +1375,6 @@ onMounted(() => {
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <!-- <InputMask
-                      spellcheck="false"
-                      class="w-full h-full d-design-it"
-                      v-model="slotProps.data.phone_number"
-                      mask="9999-999-999"
-                      :disabled="true"
-                    /> -->
                     <Dropdown
                       v-model="slotProps.data.phone_number"
                       :options="listPhoneNumber"
@@ -1578,13 +1396,15 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <Calendar
-                      v-model="slotProps.data.birthday"
+                      v-model="slotProps.data.time_recruitment"
                       :showTime="true"
                       placeholder="hh:mm"
                       :timeOnly="true"
                       hourFormat="24"
                       icon="pi pi-clock"
                       :showIcon="true"
+                      :minDate="recCalendar.rec_time_start"
+                      :maxDate="recCalendar.rec_time_end"
                     />
                   </template>
                 </Column>
@@ -1596,9 +1416,9 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <a
-                      @click="delRow_Item(slotProps.data, 2)"
+                      @click="delRow_Item(slotProps.data, 1)"
                       class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa người thân'"
+                      v-tooltip.top="'Xóa ứng viên'"
                     >
                       <i class="pi pi-times-circle" style="font-size: 18px"></i>
                     </a>

@@ -1626,6 +1626,7 @@ onMounted(() => {
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
             :row-hover="true"
+           class="d-datatable-design"
           >
             <Column
               class="align-items-center justify-content-center text-center"
@@ -1638,16 +1639,17 @@ onMounted(() => {
             <Column
               field="STT"
               header="STT"
-              class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px"
+          
+              class="align-items-center flex justify-content-center text-center"
+              headerStyle="text-align:center ;height:50px"
               bodyStyle="text-align:center;max-width:70px"
             ></Column>
             <Column
               field="training_emps_code"
               header="Mã số"
-              headerStyle="text-align:center;max-width:150px;height:50px"
+              headerStyle="text-align:center;max-width:150px;height:50px "
               bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
+              headerClass="align-items-center    justify-content-center text-center"
               :sortable="true"
             >
               <template #filter="{ filterModel }">
@@ -1663,7 +1665,7 @@ onMounted(() => {
               field="training_emps_name"
               header="Tên khoá đào tạo"
               :sortable="true"
-              headerStyle="text-align:left;height:50px"
+              headerStyle="text-align:center;height:50px"
               bodyStyle="text-align:left"
             >
               <template #filter="{ filterModel }">
@@ -1755,7 +1757,7 @@ onMounted(() => {
                           : 'background:' + bgColor[item.full_name.length % 7]
                       "
                       :image="basedomainURL + item.avatar"
-                      class="w-3rem h-3rem"
+                      class="w-3rem h-3rem text-lg"
                       shape="circle"
 
                       v-tooltip.top="item.full_name"
@@ -1808,8 +1810,8 @@ onMounted(() => {
             <Column
               field="status"
               header="Trạng thái"
-              headerStyle="text-align:center;max-width:11rem;height:50px"
-              bodyStyle="text-align:center;max-width:11rem"
+              headerStyle="text-align:center;max-width:9rem;height:50px"
+              bodyStyle="text-align:center;max-width:9rem"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">

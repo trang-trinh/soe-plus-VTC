@@ -1013,7 +1013,7 @@ onMounted(() => {
                         class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
                       >
                         <div class="col-1 mx-2 p-0 align-items-center">
-                          <Avatar
+                          <Avatar   style="color:#fff"
                             v-bind:label="
                               slotProps.option.avatar
                                 ? ''
@@ -1076,7 +1076,7 @@ onMounted(() => {
                         class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
                       >
                         <div class="col-1 mx-2 p-0 align-items-center">
-                          <Avatar
+                          <Avatar   style="color:#fff"
                             v-bind:label="
                               slotProps.option.avatar
                                 ? ''

@@ -5,17 +5,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    // legacy({
-    //     targets: ['chrome >= 64', 'edge >= 79', 'safari >= 11.1', 'firefox >= 67'],
-    //     ignoreBrowserslistConfig: true,
-    //     renderLegacyChunks: false,
-    //     modernPolyfills: ['es/global-this'],
-    //     //  or
-    //     // modernPolyfills: true,
-    // }),
-    vue(),
-  ],
+  plugins: [vue()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -24,11 +14,11 @@ export default defineConfig({
 
   // Local test
   // define: {
-  //     baseURL: JSON.stringify("http://localhost:8080/"),
-  //     fileURL: JSON.stringify("http://localhost:8080/"),
-  //     socketURL: JSON.stringify("https://socket2.soe.vn/"),
-  //     SecretKey: JSON.stringify("1012198815021989"),
-  //     isDev: true,
+  //   baseURL: JSON.stringify("http://localhost:8080/"),
+  //   fileURL: JSON.stringify("http://localhost:8080/"),
+  //   socketURL: JSON.stringify("https://socket2.soe.vn/"),
+  //   SecretKey: JSON.stringify("1012198815021989"),
+  //   isDev: true,
   // },
   // Của BHBQP
   // define: {
@@ -62,7 +52,7 @@ export default defineConfig({
   server: {
     host: true,
     //port 3000 localhost
-    // port: 3000,
+    port: 3000,
   },
   configureWebpack: {
     devtool: "source-map",

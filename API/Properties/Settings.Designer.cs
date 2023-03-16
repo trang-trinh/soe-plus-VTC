@@ -8,28 +8,34 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace API.Properties {
-    
-    
+namespace API.Properties
+{
+
+
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
-        
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
+    {
+
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-        
-        public static Settings Default {
-            get {
+
+        public static Settings Default
+        {
+            get
+            {
                 return defaultInstance;
             }
         }
-        
+
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.WebServiceUrl)]
         [global::System.Configuration.DefaultSettingValueAttribute("http://mobilepki.viettel-ca.vn:8080/apws.asmx")]
-        public string API_MobileCWS_APWsImplService {
-            get {
-                return ((string)(this["API_MobileCWS_APWsImplService"]));
+        public string API_MobileCAWS_APWsImplService
+        {
+            get
+            {
+                return ((string)(this["API_MobileCAWS_APWsImplService"]));
             }
         }
     }

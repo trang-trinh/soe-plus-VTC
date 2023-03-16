@@ -833,7 +833,11 @@ namespace API.Controllers.HRM
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + " hcal.*,su.full_name,su.avatar from hrm_rec_calendar  hcal LEFT JOIN sys_users su ON hcal.created_by = su.user_id ";
+                sql = selectStr + " hcal.*, (SELECT COUNT(*) FROM hrm_rec_candidate hrc WHERE hrc.rec_calendar_id = hcal.rec_calendar_id) AS countUser, su.full_name AS created_name, su.avatar AS created_avatar, "+
+" (select distinct '[' + STUFF((SELECT     ',{\"full_name\":\"' + cast(ISNULL(hcs.full_name, '') as nvarchar(50)) + '\"' + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(50)) + '\"' + '}' " +
+" FROM sys_users   hcs  WHERE hcs.user_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.interviewers, ',') upp) for xml path(''), type " +
+" ).value('.', 'nvarchar(max)'), 1, 1, '')  +']'  ) as listUserRecs , hc.campaign_name from hrm_rec_calendar hcal   LEFT JOIN sys_users su ON su.user_id = hcal.created_by " +
+" LEFT JOIN hrm_campaign hc ON hcal.campaign_id = hc.campaign_id ";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
