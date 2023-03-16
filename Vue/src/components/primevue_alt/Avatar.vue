@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import img from "../assets/image/nouser1.png";
+import img from "../../assets/image/nouser1.png";
 export default {
   name: "Avatar",
   props: {
