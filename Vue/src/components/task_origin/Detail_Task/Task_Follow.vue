@@ -459,14 +459,13 @@ onMounted(() => {
     >
       <Column
         rowReorder
-        headerStyle="width: 3rem"
-        class="justify-content-center align-items-center text-center w-1rem"
+        class="justify-content-center align-items-center text-center max-w-1rem"
         v-tooltip="'Kéo và thả để sắp xếp các bước'"
       />
       <Column
         header="Bước"
         field="is_step"
-        class="justify-content-center align-items-center text-center w-8rem"
+        class="justify-content-center align-items-center text-center max-w-8rem"
       ></Column>
       <Column
         header="Tên quy trình"
@@ -476,7 +475,7 @@ onMounted(() => {
       <Column
         header="Chức năng"
         field=""
-        headerClass="justify-content-center align-items-center w-10rem"
+        class="justify-content-center align-items-center max-w-10rem"
       >
         <template #body="data">
           <div class="flex">
@@ -668,7 +667,7 @@ onMounted(() => {
             optionLabel="task_name"
             optionValue="task_id"
             :filterFields="['task_name', 'task_name_en']"
-            class="d-design-dropdown w-full"
+            class="d-design-dropdown max-w-full"
           >
             <template #option="slotProps">
               <div class="row col-12 flex">
