@@ -5315,7 +5315,7 @@ const ChangeShowListCVGroup = (model) => {
         width:
           PositionSideBar == 'right'
             ? width1 > 1800
-              ? ' 55vw'
+              ? '65vw'
               : '75vw'
             : '100vw',
         'min-height': '100vh !important',
