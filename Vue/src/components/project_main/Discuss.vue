@@ -837,13 +837,14 @@ const DelComment = (model) => {
 }
 
 onMounted(() => {
+  selectedDiscussProjectID.value = null;
   loadData();
   return {};
 });
 </script>
 <template>
   <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
-    <div class="col-6 p-0 m-0 tab-project-content-left">
+    <div class="p-0 m-0 tab-project-content-left col-6">
       <div class="row">
         <div class="col-12" style="border-bottom: 1px solid #aaa; font-weight: 600;padding: 10px;">
           <Button label="Tạo thảo luận" icon="pi pi-plus" class="mr-2" @click="addDiscuss('Thêm mới thảo luận')" />
@@ -984,8 +985,8 @@ onMounted(() => {
       </div>
     </div>
     <div class="col-6 p-0 m-0 tab-project-content-right" style="position: relative;">
-      <div class="row" style="font-size: 13px;height: 85%;width: 98%;">
-        <div v-if="selectedDiscussProjectID" class="row col-12" id="comments">
+      <div v-if="selectedDiscussProjectID" class="row" style="font-size: 13px;height: 85%;width: 98%;">
+        <div class="row col-12" id="comments">
           <div class="col-12 p-0 m-0" style="font-weight: 600; color: #888; font-size: 1.15rem">
             <div class="col-12">
               <i class="pi pi-comments pr-2" style="font-size: 0.9rem !important">
@@ -1567,7 +1568,8 @@ onMounted(() => {
                   slotProps.option.avatar
                     ? ''
                     : (slotProps.option.name ?? '').substring(0, 1)
-                " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                " v-bind:image="basedomainURL + slotProps.option.avatar" 
+                style="
                                                             background-color: #2196f3;
                                                             color: #ffffff;
                                                             width: 32px;
@@ -1608,7 +1610,10 @@ onMounted(() => {
   background-color: #fff;
   margin: 5px 0px 5px 5px !important;
   height: 100%;
+  width: 50%;
+  animation: 0.5s;
 }
+
 
 #projectmain-thaoluan {
   max-height: calc(100vh - 110px);
