@@ -176,9 +176,10 @@ const OpenEditDialog = (data) => {
   edit.end_date = new Date(edit.end_date);
   taskfollow.value = edit;
   listTask.value = [];
-  edit.task_follow_detail_task_id.forEach((element) => {
-    listTask.value.push(element.follow_task_id);
-  });
+  if (edit.task_follow_detail_task_id != null)
+    edit.task_follow_detail_task_id.forEach((element) => {
+      listTask.value.push(element.follow_task_id);
+    });
   DialogVisible.value = true;
   headerDialog.value = "Sửa quy trình công việc";
 };
