@@ -335,7 +335,7 @@ const toast = useToast();
           <TabPanel>
               <template #header>
                 <i class="pi pi-fw pi-history"></i>
-                <h3 class="m-0 mx-2">lịch sử</h3>
+                <h3 class="m-0 mx-2">Lịch sử</h3>
               </template>
              
               <div v-if="props.devicelogs.length > 0">

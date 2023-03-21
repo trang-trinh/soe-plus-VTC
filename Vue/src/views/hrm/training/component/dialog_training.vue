@@ -837,8 +837,9 @@ const delRow_Item = (item, type) => {
 };
 //Thêm bản ghi
 const listTrainingGroups = ref([]);
+const displayBasic=ref(false);
 onMounted(() => {
-   
+  displayBasic.value=props.displayBasic;
   loadData();
   initTudien();
   loadUser();
@@ -850,11 +851,11 @@ onMounted(() => {
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayBasic"
+    v-model:visible="displayBasic"
     :style="{ width: '65vw' }"
     :maximizable="true"
     :modal="true"
-    :closable="false"
+    :closable="true"
   >
     <form>
       <div class="grid formgrid m-2">
@@ -872,6 +873,7 @@ onMounted(() => {
                   :class="{
                     'p-invalid': v$.training_emps_code.$invalid && submitted,
                   }"
+                  placeholder="Nhập mã đào tạo"
                 />
               </div>
             </div>
@@ -955,6 +957,7 @@ onMounted(() => {
                       ? 'background-color:white !important'
                       : ''
                   "
+                     placeholder="Nhập tên khóa đào tạo"
                   :class="{
                     'p-invalid': v$.training_emps_name.$invalid && submitted,
                   }"
@@ -1105,6 +1108,7 @@ onMounted(() => {
                   inputId="mile"
                   v-model="training_emps.training_times"
                   suffix=" Giờ"
+                  placeholder="Nhập tổng thời gian đào tạo"
                 />
                 <!-- <span class="p-inputgroup-addon bg-blue-500">
                         <i class="pi pi-clock text-0"></i>
@@ -1310,6 +1314,7 @@ onMounted(() => {
                   v-model="training_emps.tuition"
                   class="w-full"
                    suffix=" VND"
+                   placeholder="Nhập học phí"
                 />
               </div>
             </div>
@@ -1324,6 +1329,7 @@ onMounted(() => {
                   v-model="training_emps.expense"
                   class="w-full"
                    suffix=" VND"
+                   placeholder="Nhập chi phí"
                 />
               </div>
             </div>
@@ -1345,6 +1351,7 @@ onMounted(() => {
                       ? 'background-color:white !important'
                       : ''
                   "
+                     placeholder="Nhập địa điểm đào tạo"
                 />
               </div>
             </div>
@@ -1384,9 +1391,9 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 p-0 border-1 border-300 border-solid">
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 ">
             <div
-              class="font-bold flex align-items-center w-full cursor-pointer"
+              class="font-bold flex align-items-center w-full cursor-pointer p-3"
               @click="showHidePanel(1)"
             >
               <i
@@ -1406,9 +1413,15 @@ onMounted(() => {
                 >
               </div>
             </div>
-            <div class="w-1 text-right" v-if="!view">
+            <div  
+            class="w-1 text-right p-3 hover"
+              v-if="!view"
+              @click="addRow_Item(1)"
+            
+            
+           >
               <a
-                @click="addRow_Item(1)"
+             
                 class="hover"
                 v-tooltip.top="'Thêm học viên'"
               >
@@ -1467,6 +1480,7 @@ onMounted(() => {
                         :class="{
                           'p-invalid': slotProps.data.data == null && submitted,
                         }"
+                        placeholder="Chọn học viên"
                         @change="
                           changeUserTrainding(
                             slotProps.data.data,
@@ -1668,9 +1682,9 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 p-0 border-1 border-300 border-solid">
-          <div class="w-full surface-100 flex border-bottom-1 border-200 p-3">
+          <div class="w-full surface-100 flex border-bottom-1 border-200 ">
             <div
-              class="font-bold flex align-items-center w-full cursor-pointer"
+              class="font-bold flex align-items-center w-full cursor-pointer p-3"
               @click="showHidePanel(2)"
             >
               <i
@@ -1690,9 +1704,12 @@ onMounted(() => {
                 >
               </div>
             </div>
-            <div class="w-1 text-right" v-if="!view">
+            <div    class="w-1 text-right p-3 hover"
+              v-if="!view"
+              @click="addRow_Item(2)"
+            >
               <a
-                @click="addRow_Item(2)"
+               
                 class="hover"
                 v-tooltip.top="'Thêm lịch học'"
               >
@@ -1737,6 +1754,7 @@ onMounted(() => {
                         cols="40"
                         v-model="slotProps.data.class_schedule_name"
                         class="w-30rem"
+                        placeholder="Nhập nội dung đào tạo"
                         :class="{
                           'p-invalid':
                             slotProps.data.class_schedule_name == null &&

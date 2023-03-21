@@ -22,7 +22,7 @@ const checkImg = (src) => {
   let allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
   return allowedExtensions.exec(src);
 };
-const totalPrice = ref(0);
+ 
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -55,10 +55,7 @@ onMounted(() => {
       device_handover.value = data[0];
 
       listAssetsH.value = data1;
-      totalPrice.value = 0;
-      listAssetsH.value.forEach((element) => {
-        totalPrice.value += element.current_price;
-      });
+     
       listFilesS.value = data2;
     })
     .catch((error) => {
@@ -438,21 +435,7 @@ const listFilesS = ref([]);
                     </div>
                   </div>
                   <div class="flex">
-                    <div class="w-full flex">
-                      <div v-tooltip.top="'Giá trị hiện tại'">
-                        <font-awesome-icon
-                          icon="fa-solid fa-money-bill-1-wave"
-                        />
-                      </div>
-                      <span class="product-category pl-2">
-                        {{
-                          item.current_price
-                            ? item.current_price.toLocaleString()
-                            : "0"
-                        }}
-                        VND
-                      </span>
-                    </div>
+                 
                     <div class="w-full">
                       <i
                         class="pi pi-shopping-cart product-category-icon"
@@ -471,15 +454,7 @@ const listFilesS = ref([]);
                
               </div>
             </div>
-            <div class="w-full">
-              <Toolbar class="w-full surface-0 border-none">
-                <template #end>
-                  <div class="font-bold">
-                    Tổng: {{ totalPrice.toLocaleString() }} VND
-                  </div>
-                </template>
-              </Toolbar>
-            </div>
+           
             <div
               class="format-center font-bold text-lg p-3"
               v-if="listFilesS.length > 0"

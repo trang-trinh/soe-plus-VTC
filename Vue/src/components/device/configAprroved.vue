@@ -291,7 +291,7 @@ const loadData = () => {
           });
 
           // if (props.checkApp == 1 && element.classify != 17) {
-            if (props.checkApp == 1  ) {
+            if (props.checkApp == 1  && element.status==true) {
             datalists.value.push({
               name: element.approved_group_name,
               code: element.approved_group_id,
@@ -299,7 +299,7 @@ const loadData = () => {
               users: element.device_approved_li,
             });
           }
-          if (props.checkApp == 2) {
+          if (props.checkApp == 2  && element.status==true) {
             datalists.value.push({
               name: element.approved_group_name,
               code: element.approved_group_id,
