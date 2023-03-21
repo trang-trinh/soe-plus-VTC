@@ -271,6 +271,9 @@ const HrmTimekeep = () => import("../views/hrm/timekeep/timekeep.vue");
 const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
+
+const Hrm_proposal = () => import("../views/hrm/recruitment/hrm_proposal.vue");
+
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
 const Hrm_paycheck_form = () => import("../views/hrm/declare/hrm_paycheck_form.vue");
 const Hrm_rec_calendar = () => import("../views/hrm/recruitment/hrm_recCalendar.vue");
@@ -1750,6 +1753,12 @@ const router = createRouter({
       name: "Hrm_campaign",
       component: Hrm_campaign,
     },
+    {
+      path: "/hrm/recruitment/proposal",
+      name: "Hrm_proposal",
+      component: Hrm_proposal,
+    },
+    
     {
       path: "/hrm/recruitment/rec_calendar",
       name: "Hrm_rec_calendar",

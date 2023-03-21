@@ -1086,29 +1086,31 @@ namespace Controllers
                         var org = db.sys_organization.AsNoTracking().Where(x => x.organization_id == dvid).FirstOrDefault();
 
                         var len = table.Columns.Count;
-                        int start = 3;
+                        int start = 4;
                         ExcelRange topcell1 = exWorkSheet.Cells[1, 1, 1, len];
-
-
+                        ExcelRange topcellH = exWorkSheet.Cells[2, 1, 2, len];
                         Image img = Image.FromFile(root + org.logo.Substring(8));
                         ExcelPicture art = exWorkSheet.Drawings.AddPicture("Logo", img);
-                        art.SetSize(100, 56);
-
+                        art.SetSize(80, 42);
                         art.SetPosition(0, 10, 1, 1);
-
-
-
-                        exWorkSheet.Row(1).Height = 56;
-                        exWorkSheet.Row(2).Height = 20;
+                        exWorkSheet.Row(1).Height = 42;
+                        exWorkSheet.Row(2).Height = 42;
                         exWorkSheet.Row(3).Height = 25;
-                        exWorkSheet.Row(4).Height = 25;
+                        exWorkSheet.Row(5).Height = 28;
+                        topcell1.Style.Indent = 18;
                         topcell1.Style.Font.Bold = true;
                         topcell1.Style.Font.Size = 16;
-                        topcell1.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        topcell1.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                         topcell1.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                         topcell1.Merge = true;
-                        topcell1.Style.WrapText = true;
-                        ExcelRange topcell2 = exWorkSheet.Cells[2, 1, 2, len];
+                        topcell1.Value = org.organization_name;
+                        topcellH.Style.Font.Bold = true;
+                        topcellH.Style.Font.Size = 18;
+                        topcellH.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        topcellH.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        topcellH.Merge = true;
+                        topcellH.Style.WrapText = true;
+                        ExcelRange topcell2 = exWorkSheet.Cells[3, 1, 3, len];
                         topcell2.Value = DateTime.Now.ToString("HH:mm dd/MM/yyyy");
                         topcell2.Style.Font.Italic = true;
                         topcell2.Style.Font.Bold = false;
@@ -1148,7 +1150,7 @@ namespace Controllers
                         exWorkSheet.Cells[start, 1, start, len].Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#0078d4"));
                         exWorkSheet.Cells[start, 1, start, len].Style.Font.Color.SetColor(System.Drawing.Color.White);
                         #endregion
-                        topcell1.Value = string.Format(proc.excelname + " ({0})", table.Rows.Count);
+                        topcellH.Value = string.Format(proc.excelname + " ({0})", table.Rows.Count);
                         for (int k = 0; k < table.Rows.Count; k++)
                         {
                             start += 1;
@@ -1161,9 +1163,9 @@ namespace Controllers
                                 ExcelRange cellMauChu = exWorkSheet.Cells[4, 5];
                                 try
                                 {
-                                    if (dr[col.ColumnName].ToString().Contains("Portal") == true && proc.excelname == "DANH SÁCH TEM")
+                                    if (dr[col.ColumnName].ToString().Contains("Portals"+"/"+dvid) == true  )
                                     {
-                                        exWorkSheet.Row(i + 2).Height = 150;
+                                        exWorkSheet.Row(k + 6).Height = 60;
                                         // cell.Value = dr[col.ColumnName].ToString() + "1";
                                         string strPath11 = HttpContext.Current.Server.MapPath(dr[col.ColumnName].ToString());
                                         System.Web.UI.WebControls.Image TEST_IMAGE = new System.Web.UI.WebControls.Image();
@@ -1180,12 +1182,7 @@ namespace Controllers
                                             }
                                         }
                                         if (!File.Exists(HttpContext.Current.Server.MapPath("~/") + pathFile))
-                                        //string pathFileInExport = HttpContext.Current.Server.MapPath("~/Portals");
-                                        //if (dr[col.ColumnName].ToString().Contains("Emote"))
-                                        //{
-                                        //    pathFileInExport += "/Emote";
-                                        //}
-                                        //if (!File.Exists(Path.Combine(pathFileInExport, Path.GetFileName(strPath11))))
+                                
                                         {
                                             cell.Value = dr[col.ColumnName].ToString() + " (File đã bị xóa hoặc chuyển đi nơi khác!)";
                                         }
@@ -1193,9 +1190,9 @@ namespace Controllers
                                         {
                                             System.Drawing.Image myImage = System.Drawing.Image.FromFile(strPath11);
                                             var pic = exWorkSheet.Drawings.AddPicture(dr[col.ColumnName].ToString(), myImage);
-                                            pic.SetSize(180, 180);
+                                            pic.SetSize(60, 60);
                                             // Row, RowoffsetPixel, Column, ColumnOffSetPixel
-                                            pic.SetPosition(i + 1, 10, 2, 12);
+                                            pic.SetPosition(k + 5, 10, 1, 12);
                                         }
                                     }
                                     else

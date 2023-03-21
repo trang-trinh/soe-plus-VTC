@@ -184,7 +184,7 @@ const changeMonthPur = (event) => {
 const print = () => {
   var htmltable = "";
   htmltable = renderhtmlWord("formwordlist", htmltable);
-   
+
   var printframe = window.frames["printframe"];
   printframe.document.write(htmltable);
   setTimeout(function () {
@@ -440,14 +440,6 @@ const filters = ref({
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
   },
-  purchase_date: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_BEFORE }],
-  },
-  purchase_date: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_AFTER }],
-  },
 });
 //Phân trang dữ liệu
 const onPage = (event) => {
@@ -459,7 +451,7 @@ const filterSQL = ref([]);
 const isDynamicSQL = ref(false);
 const loadDataSQL = () => {
   let data = {
-    id: "card_id",
+    id: " card_id ",
     next: options.value.IsNext,
     sqlO: options.value.sort,
     Search: options.value.search,
@@ -607,7 +599,6 @@ const loadDataSQLDM = () => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
-     
         data.forEach((element, i) => {
           element.STT =
             options.value.pagenoDM * options.value.pagesizeDM + i + 1;
@@ -873,7 +864,7 @@ const options = ref({
   sortDM: "device_id DESC",
   search: "",
   pageno: 0,
-  pagesize:2 ,
+  pagesize: 20,
   pagenoDM: 0,
   pagesizeDM: 20,
   loading: true,
@@ -975,7 +966,7 @@ const onSelectDevice = (isFormValid) => {
 
   devicecard.value.insurance_month = selectedDeviceMain.value.insurance_month;
   devicecard.value.device_type_id = selectedDeviceMain.value.device_type_id;
-
+  devicecard.value.device_groups_id = selectedDeviceMain.value.device_groups_id;
   devicecard.value.depreciation_month =
     selectedDeviceMain.value.depreciation_month;
   devicecard.value.device_note = selectedDeviceMain.value.device_note;
@@ -1005,7 +996,193 @@ const filterDeviceMain = () => {
   }
   loadDataSQLDM();
 };
+const filterProvider = (value) => {
+
+   var proSel= listProvider.value.find(x=>x.provider_name==value.provider_name);
+   devicecard.value.warranty_company_address=proSel.address;
+   devicecard.value.warranty_contact=proSel.full_name;
+   devicecard.value.warranty_phone=proSel.phone_number;
+  //  devicecard.value.warranty_company_address warranty_contact warranty_phone
+}
+
+const listManufact = ref([]);
+const listDeviceGroups = ref([]);
+const listProvider = ref([]);
+
+const listUnitList = ref([]);
+
 const initTudien = () => {
+  listUnitList.value = [];
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "device_unit_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.state.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listUnitList.value.push({
+          name: element.device_unit_name,
+          code: element.device_unit_id,
+          
+        });
+      });
+    })
+    .catch((error) => {
+      options.value.loading = false;
+ 
+    });
+  listProvider.value = [];
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "device_provider_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.state.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listProvider.value.push({
+          name: element.provider_name,
+          code: element.provider_id,
+          address:element.address,
+          full_name:element.full_name,
+          phone_number:element.phone_number
+        });
+      });
+    })
+    .catch((error) => {
+      options.value.loading = false;
+ 
+    });
+  listDevice.value = [];
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "device_main_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.state.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listDevice.value.push({
+          name: element.device_name,
+          code: element.device_id,
+        });
+      });
+    })
+    .catch((error) => {
+      options.value.loading = false;
+ 
+    });
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "device_groups_list",
+            par: [
+              { par: "search", va: null },
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.state.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listDeviceGroups.value.push({
+          name: element.groups_name,
+          code: element.device_groups_id,
+        });
+      });
+    })
+    .catch((error) => {
+      options.value.loading = false;
+    });
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "device_manufacturer_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listManufact.value.push({
+          name: element.device_manufacturer_name,
+          code: element.device_manufacturer_id,
+        });
+      });
+    })
+    .catch((error) => {
+      options.value.loading = false;
+    });
   axios
     .post(
       baseURL + "/api/device_card/getData",
@@ -1032,8 +1209,7 @@ const initTudien = () => {
         );
 
         treedonvis.value = obj.arrtreeChils;
-      }  
-     
+      }
     })
     .catch((error) => {});
 };
@@ -1157,7 +1333,8 @@ const saveCard = (isFormValid) => {
 
   if (!isSaveCard.value) {
     if (devicecard.value.status == "CXN") {
-       device_handover.value.device_department_id=devicecard.value.manage_department_id
+      device_handover.value.device_department_id =
+        devicecard.value.manage_department_id;
       formData.append("handover", JSON.stringify(device_handover.value));
     }
     axios
@@ -1231,29 +1408,29 @@ const addDeviceHanover = () => {
       is_receiver_accept: false,
       is_individual: true,
       organization_id: store.getters.user.organization_id,
-     
     };
     axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-          proc: "device_config_number_get",
-          par: [
-            { par: "user_id", va: store.getters.user.user_id },
-            { par: "current_number", va: null },
-            { par: "year", va: null },
-            { par: "text_symbols", va: null },
-            { par: "agency_issued", va: null },
-            { par: "code_number", va: "TS_PhieuBanGiao" },
-            { par: "status", va: true },
-          ],
-        }),
+      .post(
+        baseURL + "/api/device_card/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "device_config_number_get",
+              par: [
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "current_number", va: null },
+                { par: "year", va: null },
+                { par: "text_symbols", va: null },
+                { par: "agency_issued", va: null },
+                { par: "code_number", va: "TS_PhieuBanGiao" },
+                { par: "status", va: true },
+              ],
+            }),
             SecretKey,
             cryoptojs
           ).toString(),
-        },config
+        },
+        config
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
@@ -1455,9 +1632,7 @@ const openBasic = (str) => {
         headerDialog.value = str;
         isSaveCard.value = false;
         displayBasic.value = true;
-      }
-      else{
-        
+      } else {
         swal.fire({
           title: "Error!",
           text: "Vui lòng cấu hình số hiệu cho thẻ thiết bị!",
@@ -1562,14 +1737,7 @@ const loadCountDeviceMain = () => {
         options.value.totalRecordsDM = data[0].totalRecords;
       }
     })
-    .catch((error) => {
-      addLog({
-        title: "Lỗi Console loadCount",
-        controller: "SQLView.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
-    });
+    .catch((error) => {});
 };
 const loadDataDeviceMain = (rf) => {
   if (rf) {
@@ -1691,27 +1859,40 @@ const toggleFilter = (event) => {
 const hideFilter = () => {
   if (
     !(
-      filterTrangthai.value != null ||
-      filterCardUser.value != null ||
-      filterCardType.value != null ||
-      filterCardWarehouse.value != null
+      options.value.status != null ||
+      options.value.device_user != null ||
+      options.value.device_id != null ||
+      options.value.provider_id != null ||
+      options.value.department_use_name != null || 
+      options.value.device_unit_id!= null ||
+      options.value.device_type_id!= null ||
+      options.value.device_groups_id != null ||
+      options.value.manufacture != null ||
+      options.value.warehouse_id != null
     )
   )
     checkFilter.value = false;
 };
 const filterIsHot = ref();
-const filterTrangthai = ref();
-const filterCardUser = ref();
-const filterCardType = ref();
-const filterCardWarehouse = ref();
-
+ 
+ 
+ 
+ 
+ 
+ 
 const reFilterCard = () => {
   checkFilter.value = false;
   filterIsHot.value = null;
-  filterCardUser.value = null;
-  filterCardType.value = null;
-  filterCardWarehouse.value = null;
-  filterTrangthai.value = null;
+  options.value.device_user = null;
+  options.value.device_id = null ;
+      options.value.provider_id  = null ;
+  options.value.device_type_id= null;
+  options.value.department_use_name=null;
+  options.value.warehouse_id=null;
+  options.value.status = null;
+  options.value.device_unit_id= null ;
+  options.value.device_groups_id= null;
+  options.value.manufacture= null;
   taskDateFilter.value = null;
   options.value.is_hot = null;
   options.value.news_type = null;
@@ -1722,44 +1903,168 @@ const filterCard = (check) => {
   if (check) checkFilter.value = true;
 
   filterSQL.value = [];
-  if (filterCardUser.value != null) {
-    let filterS = {
-      filterconstraints: [{ value: filterCardUser.value, matchMode: "equals" }],
-      filteroperator: "and",
-      key: "device_user_id",
-    };
-    filterSQL.value.push(filterS);
+    
+  if (options.value.department_use_name ) {
+    if (Object.keys(options.value.department_use_name).length>0 ) {
+  let filterS1 = {
+    filterconstraints: [],
+    filteroperator: "or",
+    key: "tm.department_use_name",
+  };
+  for (const key in options.value.department_use_name) {
+     
+    var obi=listDepartmentTree.value.find(x=>x.key==key).label;
+    var addr = { value: obi, matchMode: "equals" };
+      filterS1.filterconstraints.push(addr);
+    
+    }
+    filterSQL.value.push(filterS1);
   }
-  if (filterCardType.value != null) {
-    let filterS = {
-      filterconstraints: [{ value: filterCardType.value, matchMode: "equals" }],
-      filteroperator: "and",
-      key: "device_type_id",
+}
+  if (options.value.status ) {
+  
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.status",
     };
-    filterSQL.value.push(filterS);
+    if (options.value.status.length > 0) {
+      options.value.status.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
   }
-  if (filterCardWarehouse.value != null) {
-    let filterS = {
-      filterconstraints: [
-        { value: filterCardWarehouse.value, matchMode: "equals" },
-      ],
-      filteroperator: "and",
-      key: "warehouse_id",
+  if (options.value.device_user ) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.device_user_id",
     };
-    filterSQL.value.push(filterS);
+    if (options.value.device_user.length > 0) {
+      options.value.device_user.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
   }
-  if (filterTrangthai.value != null) {
-    let filterS = {
-      filterconstraints: [
-        { value: filterTrangthai.value, matchMode: "equals" },
-      ],
-      filteroperator: "and",
-      key: "status",
+  if (options.value.provider_id ) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.warranty_company",
     };
-    filterSQL.value.push(filterS);
+    if (options.value.provider_id.length > 0) {
+      options.value.provider_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
   }
+  if (options.value.device_id ) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.device_id",
+    };
+    if (options.value.device_id.length > 0) {
+      options.value.device_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
+  }
+  if (options.value.device_type_id ) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.device_type_id",
+    };
+    if (options.value.device_type_id.length > 0) {
+      options.value.device_type_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
+  }
+   
+
+  if (options.value.device_unit_id ) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.device_unit_id",
+    };
+    if (options.value.device_unit_id.length > 0) {
+      options.value.device_unit_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
+  }
+  if (options.value.device_groups_id ) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.device_groups_id",
+    };
+    if (options.value.device_groups_id.length > 0) {
+      options.value.device_groups_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
+  }
+  if (options.value.manufacture ) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.producer",
+    };
+    if (options.value.manufacture.length > 0) {
+      options.value.manufacture.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
+  }
+    
+  if (options.value.warehouse_id ) {
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "tm.warehouse_id",
+    };
+    if (options.value.warehouse_id.length > 0) {
+      options.value.warehouse_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS1.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS1);
+    }
+  }
+   
+     
   isDynamicSQL.value = true;
   loadData(true);
+  filterButs.value.hide()
 };
 //Tìm kiếm
 const searchCard = () => {
@@ -1769,10 +2074,18 @@ const first = ref(0);
 const refreshData = () => {
   options.value.search = "";
   options.value.status = null;
-  filterCardType.value = null;
-  filterCardUser.value = null;
-  filterTrangthai.value = null;
-  filterCardWarehouse.value = null;
+  options.value.device_type_id = null;
+  options.value.department_use_name = null;
+  options.value.device_id  = null;
+  options.value.provider_id  = null;
+  options.value.device_user = null;
+  options.value.manufacture = null;
+  options.value.device_groups_id = null;
+  
+  options.value.device_unit_id = null;
+  
+  options.value.status = null;
+  options.value.warehouse_id = null;
   options.value.start_date = null;
   options.value.end_date = null;
   taskDateFilter.value = null;
@@ -1822,86 +2135,7 @@ const refreshData = () => {
 };
 
 //Xuất excel
-const menuButs = ref();
-const itemButs = ref([
-  {
-    label: "Xuất Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportData("ExportExcel");
-    },
-  },
-  {
-    label: "Nhập Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      ImportExcel("ImportExcel");
-    },
-  },
-]);
-const toggleExport = (event) => {
-  menuButs.value.toggle(event);
-};
-const exportData = (method) => {
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  axios
-    .post(
-      baseURL + "/api/Excel/ExportExcel",
-      {
-        excelname: "SỔ CÔNG VĂN",
-        proc: "ca_dispatch_book_listexport",
-        par: [
-          { par: "search", va: options.value.SearchText },
-          { par: "status", va: filterTrangthai.value },
-          { par: "user_id", va: store.state.user.user_id },
-        ],
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      if (response.data.err != "1") {
-        swal.close();
-
-        toast.success("Kết xuất Data thành công!");
-        if (response.data.path != null) {
-          let pathReplace = response.data.path
-            .replace(/\\+/g, "/")
-            .replace(/\/+/g, "/")
-            .replace(/^\//g, "");
-          var listPath = pathReplace.split("/");
-          var pathFile = "";
-          listPath.forEach((item) => {
-            if (item.trim() != "") {
-              pathFile += "/" + item;
-            }
-          });
-          window.open(baseURL + pathFile);
-        }
-      } else {
-        swal.fire({
-          title: "Error!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    })
-    .catch((error) => {
-      if (error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
+ 
 
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -1940,11 +2174,11 @@ const renderTreeDV = (data, id, name, title) => {
       retreechildren(om, m[id]);
       arrtreeChils.push(om);
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: -1,
-    label: "-----Chọn " + title + "----",
-  });
+  // arrtreeChils.unshift({
+  //   key: -1,
+  //   data: -1,
+  //   label: "-----Chọn " + title + "----",
+  // });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 const renderTreeDV1 = (data, id, name, title, org_id) => {
@@ -1992,6 +2226,7 @@ const renderTreeDV1 = (data, id, name, title, org_id) => {
   return { arrtreeChils: arrtreeChils };
 };
 const listType = ref();
+const listDevice=ref([]);
 const loadDeviceType = () => {
   listType.value = [];
   axios
@@ -2189,12 +2424,13 @@ const loadUser = () => {
 
 const datalistsDM = ref();
 const showListAssets = () => {
-  let arw = "";
-  Object.keys(devicecard.value.corporation).forEach((key) => {
-    arw = key;
-    return;
-  });
-  loadOrganization(arw);
+  // let arw = "";
+  // Object.keys(devicecard.value.corporation).forEach((key) => {
+  //   arw = key;
+  //   return;
+  // });
+  // debugger
+  // loadOrganization(arw);
 
   selectedDeviceMain.value = {
     is_order: 1,
@@ -2217,7 +2453,9 @@ const showListAssets = () => {
   loadDataDeviceMain(true);
 };
 const listDepartment = ref([]);
+const listDepartmentTree = ref([]);
 const loadOrganization = (value) => {
+  listDepartment.value=[];
   axios
     .post(
       baseURL + "/api/device_card/getData",
@@ -2236,6 +2474,10 @@ const loadOrganization = (value) => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
+        var arrr=[...data]
+        arrr.forEach(element => {
+          listDepartment.value.push({name:element.organization_name,code:element.organization_id})
+        });
         let obj = renderTreeDV1(
           data,
           "organization_id",
@@ -2243,9 +2485,8 @@ const loadOrganization = (value) => {
           "đơn vị",
           value
         );
-
-        listDepartment.value = obj.arrtreeChils;
-      } else listDepartment.value = [];
+        listDepartmentTree.value = obj.arrtreeChils;
+      } else listDepartmentTree.value = [];
     })
     .catch((error) => {
       options.value.loading = false;
@@ -2399,7 +2640,7 @@ onMounted(() => {
   }
   loadProducerDevice();
   loadStatusDevice();
-  loadOrganization(null);
+  loadOrganization(store.getters.user.organization_id);
   loadUser();
   loadWareHouse();
   loadDeviceType();
@@ -2466,10 +2707,18 @@ onMounted(() => {
                 <!-- :class="checkFilter?'':'p-button-secondary'" -->
                 <Button
                   :class="
-                    (filterTrangthai != null ||
-                      filterCardUser != null ||
-                      filterCardType != null ||
-                      filterCardWarehouse != null) &&
+                    (options.status != null ||
+                    options.device_user != null ||
+                    options.device_type_id != null ||
+                    options.department_use_name != null ||
+                   
+                    options.device_id != null ||
+      options.provider_id != null ||
+                      options.device_groups_id != null ||
+                      options.device_unit_id != null ||
+                      
+                      options.manufacture!= null ||
+                      options.warehouse_id     != null) &&
                     checkFilter
                       ? ''
                       : 'p-button-secondary p-button-outlined'
@@ -2486,156 +2735,335 @@ onMounted(() => {
                   appendTo="body"
                   :showCloseIcon="false"
                   id="overlay_panelS"
-                  style="width: 400px"
+                  style="width: 700px"
                   :breakpoints="{ '960px': '20vw' }"
                 >
-                  <div class="grid formgrid m-2">
-                    <div class="field col-12 md:col-12 flex">
-                      <div class="col-4 p-0 align-items-center flex">
-                        Trạng thái:
-                      </div>
-                      <Dropdown
-                        v-model="filterTrangthai"
-                        :options="listSCard"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Trạng thái"
-                        panelClass="d-design-dropdown"
-                        class="col-8 p-0"
-                        :style="
-                          filterTrangthai != null
-                            ? 'border:2px solid #2196f3'
-                            : ''
-                        "
-                      />
-                    </div>
-                    <div class="field col-12 md:col-12 flex">
-                      <div class="col-4 p-0 align-items-center flex">
-                        Người sử dụng:
-                      </div>
-                      <Dropdown
-                        v-model="filterCardUser"
-                        panelClass="d-design-dropdown"
-                        :options="listDropdownUser"
-                        :filter="true"
-                        optionLabel="name"
-                        optionValue="code"
-                        style="width: calc(100% - 10rem)"
-                        class="w-full"
-                        placeholder="Người sử dụng"
-                      >
-                        <template #option="slotProps">
-                          <div class="country-item flex align-items-center">
-                            <div class="grid w-full p-0">
-                              <div
-                                class="
-                                  field
-                                  p-0
-                                  py-1
-                                  col-12
-                                  flex
-                                  m-0
-                                  cursor-pointer
-                                  align-items-center
-                                "
-                              >
-                                <div class="col-1 mx-2 p-0 align-items-center">
-                                  <Avatar
-                                    v-bind:label="
-                                      slotProps.option.avatar
-                                        ? ''
-                                        : slotProps.option.name.substring(
-                                            slotProps.option.name.lastIndexOf(
-                                              ' '
-                                            ) + 1,
-                                            slotProps.option.name.lastIndexOf(
-                                              ' '
-                                            ) + 2
-                                          )
-                                    "
-                                    :image="
-                                      basedomainURL + slotProps.option.avatar
-                                    "
-                                    size="small"
-                                    :style="
-                                      slotProps.option.avatar
-                                        ? 'background-color: #2196f3'
-                                        : 'background:' +
-                                          bgColor[
-                                            slotProps.option.name.length % 7
-                                          ]
-                                    "
-                                    shape="circle"
-                                    @error="
-                                      $event.target.src =
-                                        basedomainURL +
-                                        '/Portals/Image/nouser1.png'
-                                    "
-                                  />
-                                </div>
-                                <div class="col-11 p-0 pl-2 align-items-center">
-                                  <div class="pt-2">
-                                    <div class="font-bold">
-                                      {{ slotProps.option.name }}
+                  <div class="grid formgrid m-0">
+                    <div class="col-12 p-0 flex">
+                      <div class="p-0 col-6 md:col-6">
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 pb-2 align-items-center flex">
+                            Trạng thái:
+                          </div>
+
+                          <MultiSelect
+                            :style="
+                              options.status != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listSCard"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.status"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Chọn trạng thái"
+                            class="col-12 p-0"
+                            display="chip"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 py-2 align-items-center flex">
+                            Người sử dụng:
+                          </div>
+
+                          <MultiSelect
+                            :style="
+                              options.device_user != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listDropdownUser"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.device_user"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Chọn người sử dụng"
+                            class="col-12 p-0"   display="chip"
+                            panelClass="d-design-dropdown"
+                          >
+                            <template #option="slotProps">
+                              <div class="country-item flex align-items-center">
+                                <div class="grid w-full p-0">
+                                  <div
+                                    class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
+                                  >
+                                    <div
+                                      class="col-1 mx-2 p-0 align-items-center"
+                                    >
+                                      <Avatar
+                                        v-bind:label="
+                                          slotProps.option.avatar
+                                            ? ''
+                                            : slotProps.option.name.substring(
+                                                slotProps.option.name.lastIndexOf(
+                                                  ' '
+                                                ) + 1,
+                                                slotProps.option.name.lastIndexOf(
+                                                  ' '
+                                                ) + 2
+                                              )
+                                        "
+                                        :image="
+                                          basedomainURL +
+                                          slotProps.option.avatar
+                                        "
+                                        size="small"
+                                        :style="
+                                          slotProps.option.avatar
+                                            ? 'background-color: #2196f3'
+                                            : 'background:' +
+                                              bgColor[
+                                                slotProps.option.name.length % 7
+                                              ]
+                                        "
+                                        shape="circle"
+                                        @error="
+                                          $event.target.src =
+                                            basedomainURL +
+                                            '/Portals/Image/nouser1.png'
+                                        "
+                                      />
                                     </div>
                                     <div
-                                      class="
-                                        flex
-                                        w-full
-                                        text-sm
-                                        font-italic
-                                        text-500
-                                      "
+                                      class="col-11 p-0 pl-3 align-items-center"
                                     >
-                                      <div>
-                                        {{ slotProps.option.position_name }}
-                                      </div>
-                                    </div>
-                                    <!-- <div
+                                      <div class="pt-2">
+                                        <div class="font-bold">
+                                          {{ slotProps.option.name }}
+                                        </div>
+                                        <div
+                                          class="flex w-full text-sm font-italic text-500"
+                                        >
+                                          <div>
+                                            {{ slotProps.option.position_name }}
+                                          </div>
+                                        </div>
+                                        <!-- <div
                               class="flex w-full text-sm font-italic text-500"
                             >
                               {{ slotProps.option.department_name }}
                             </div> -->
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
+                            </template>
+                          </MultiSelect>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 py-2 p-0 align-items-center flex">
+                            Hãng thiết bị:
                           </div>
-                        </template>
-                      </Dropdown>
-                    </div>
-                    <div class="field col-12 md:col-12 flex">
-                      <div class="col-4 p-0 align-items-center flex">
-                        Loại thiết bị:
+
+                          <MultiSelect
+                            :style="
+                              options.manufacture != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listManufact"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.manufacture"
+                            optionLabel="name"
+                            optionValue="name"
+                            placeholder="Chọn hãng thiết bị"   display="chip"
+                            class="col-12 p-0"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 py-2 align-items-center flex">
+                            Nhóm thiết bị:
+                          </div>
+
+                          <MultiSelect
+                            :style="
+                              options.device_groups_id != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listDeviceGroups"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"   display="chip"
+                            v-model="options.device_groups_id"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Chọn nhóm thiết bị"
+                            class="col-12 p-0"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 py-2 align-items-center flex">
+                            Đơn vị tính:
+                          </div>
+
+                          <MultiSelect
+                            :style="
+                              options.device_unit_id != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listUnitList"   display="chip"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.device_unit_id"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Chọn đơn vị tính"
+                            class="col-12 p-0"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect>
+                        </div>
                       </div>
-                      <Dropdown
-                        v-model="filterCardType"
-                        :options="listType"
-                        :filter="true"
-                        optionLabel="name"
-                        optionValue="code"
-                        panelClass="d-design-dropdown"
-                        class="col-8 p-0"
-                        placeholder="Loại thiết bị"
-                      >
-                      </Dropdown>
+                      <div class="p-0 col-6 md:col-6">
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 pb-2 align-items-center flex">
+                            Thiết bị:
+                          </div>
+
+                          <MultiSelect
+                            :style="
+                              options.device_id != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listDevice"
+                            :filter="true"   display="chip"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.device_id"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Chọn loại thiết bị"
+                            class="col-12 p-0"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 py-2 align-items-center flex">
+                            Phòng ban sử dụng:
+                          </div>
+                          <TreeSelect
+                          
+                          :style="
+                              options.department_use_name != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            " class="w-full" v-model="options.department_use_name"
+                          :options="listDepartmentTree" display="chip" selectionMode="checkbox"
+                          placeholder="Chọn phòng sử dụng" :clear="true"></TreeSelect>
+                          <!-- <MultiSelect
+                            :style="
+                              options.warehouse_id != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listWarehouse"   display="chip"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.warehouse_id"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Chọn kho thiết bị"
+                            class="col-12 p-0"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect> -->
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 py-2 align-items-center flex">
+                            Loại thiết bị:
+                          </div>
+
+                          <MultiSelect
+                            :style="
+                              options.device_type_id != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listType"
+                            :filter="true"   display="chip"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.device_type_id"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Chọn loại thiết bị"
+                            class="col-12 p-0"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 py-2 align-items-center flex">
+                            Nhà cung cấp:
+                          </div>
+
+                          <MultiSelect
+                            :style="
+                              options.provider_id != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listProvider"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.provider_id"
+                            optionLabel="name"   display="chip"
+                            optionValue="name"
+                            placeholder="Chọn nhà cung cấp"
+                            class="col-12 p-0"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="col-12 p-0 py-2 align-items-center flex">
+                            Kho:
+                          </div>
+
+                          <MultiSelect
+                            :style="
+                              options.warehouse_id != null
+                                ? 'border:2px solid #2196f3'
+                                : ''
+                            "
+                            :options="listWarehouse"   display="chip"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.warehouse_id"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Chọn kho thiết bị"
+                            class="col-12 p-0"
+                            panelClass="d-design-dropdown"
+                          >
+                          </MultiSelect>
+                        </div>
+                      </div>
                     </div>
-                    <div class="field col-12 md:col-12 flex">
-                      <div class="col-4 p-0 align-items-center flex">Kho:</div>
-                      <Dropdown
-                        v-model="filterCardWarehouse"
-                        :options="listWarehouse"
-                        :filter="true"
-                        optionLabel="name"
-                        optionValue="code"
-                        panelClass="d-design-dropdown"
-                        placeholder="Kho"
-                        class="w-full"
-                      >
-                      </Dropdown>
-                    </div>
-                    <div class="col-12 field p-0">
-                      <Toolbar class="toolbar-filter">
+                    <div class="col-12 field p-0 m-0">
+                      <Toolbar class="toolbar-filter px-2">
                         <template #start>
                           <Button
                             @click="reFilterCard"
@@ -2866,121 +3294,62 @@ onMounted(() => {
                 v-if="data.data.status == 'TPBG'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  surface-200
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full surface-200 justify-content-center p-button-status-d"
               />
               <Chip
                 v-else-if="data.data.status == 'CXN'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  bg-pink-300
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full bg-pink-300 justify-content-center p-button-status-d"
               />
               <Chip
                 v-else-if="data.data.status == 'DTL'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
                 style="background-color: red; color: white"
-                class="
-                  w-full
-                  justify-content-center
-                  p-button-status-d
-                  textonelinec
-                "
+                class="w-full justify-content-center p-button-status-d textonelinec"
               />
               <Chip
                 v-else-if="data.data.status == 'CNK'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  bg-yellow-300
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full bg-yellow-300 justify-content-center p-button-status-d"
               />
               <Chip
                 v-else-if="data.data.is_recall == true"
                 label="Đã thu hồi"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  bg-bluegray-300
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full bg-bluegray-300 justify-content-center p-button-status-d"
               />
               <Chip
                 v-else-if="data.data.status == 'TK'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  bg-green-300
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full bg-green-300 justify-content-center p-button-status-d"
               />
               <Chip
                 v-else-if="data.data.status == 'DSC'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  bg-orange-300
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full bg-orange-300 justify-content-center p-button-status-d"
               />
               <Chip
                 v-else-if="data.data.status == 'DSD'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  bg-blue-300
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full bg-blue-300 justify-content-center p-button-status-d"
               />
               <Chip
                 v-else-if="data.data.status == 'HKS'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  bg-purple-300
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full bg-purple-300 justify-content-center p-button-status-d"
               />
-                 <Chip
+              <Chip
                 v-else-if="data.data.status == 'TPTH'"
                 :label="data.data.device_status_name"
                 v-tooltip.top="data.data.device_status_name"
-                class="
-                  textonelinec
-                  w-full
-                  bg-purple-300
-                  justify-content-center
-                  p-button-status-d
-                "
+                class="textonelinec w-full bg-purple-300 justify-content-center p-button-status-d"
               />
             </div>
           </template>
@@ -2991,15 +3360,12 @@ onMounted(() => {
           bodyStyle="text-align:center;max-width:180px;overflow: hidden;"
           field="device_user_name"
           header="Sử dụng"
-        ><template #body="data">
-            <div
-            >
-            <span v-if="data.data.is_receiver_department">
-  {{ data.data.department_use_name }}
-
-            </span>
-            <span v-else>{{data.data.device_user_name}}</span>
-            
+          ><template #body="data">
+            <div>
+              <span v-if="data.data.is_receiver_department">
+                {{ data.data.department_use_name }}
+              </span>
+              <span v-else>{{ data.data.device_user_name }}</span>
             </div>
           </template>
         </Column>
@@ -3052,7 +3418,8 @@ onMounted(() => {
             ></Button>
             <Button
               v-if="
-                (store.state.user.is_super == true ||
+                (store.getters.user.is_admin ||
+                  store.state.user.is_super == true ||
                   store.state.user.user_id == data.data.created_by ||
                   (store.state.user.role_id == 'admin' &&
                     store.state.user.organization_id ==
@@ -3084,13 +3451,7 @@ onMounted(() => {
         </Column>
         <template #empty>
           <div
-            class="
-              align-items-center
-              justify-content-center
-              p-4
-              text-center
-              m-auto
-            "
+            class="align-items-center justify-content-center p-4 text-center m-auto"
             v-if="!isFirst"
           >
             <img src="../../assets/background/nodata.png" height="144" />
@@ -3099,11 +3460,9 @@ onMounted(() => {
         </template>
       </DataTable>
     </div>
-    <printCardVue
-    :datas="devicecard"  
-  />  <iframe name="printframe" id="printframe" style="display: none"></iframe>
+    <printCardVue :datas="devicecard" />
+    <iframe name="printframe" id="printframe" style="display: none"></iframe>
   </div>
-
 
   <Dialog
     header="Chi tiết thẻ thiết bị"
@@ -3118,7 +3477,7 @@ onMounted(() => {
 
     <template #footer>
       <Button @click="closeDetails" label="Đóng" icon="pi pi-times" autofocus />
-       <!-- <Button @click="print()" label="In phiếu" icon="pi pi-print" /> -->
+      <!-- <Button @click="print()" label="In phiếu" icon="pi pi-print" /> -->
     </template>
   </Dialog>
   <Dialog
@@ -3598,8 +3957,8 @@ onMounted(() => {
               <Dropdown
                 v-model="devicecard.manage_department_id"
                 :options="listDepartment"
-                optionLabel="label"
-                optionValue="data"
+                optionLabel="name"
+                optionValue="code"
                 disabled
                 class="surface-300"
                 style="width: calc(100% - 10rem)"
@@ -3656,16 +4015,7 @@ onMounted(() => {
                   <div class="country-item flex align-items-center">
                     <div class="grid w-full p-0">
                       <div
-                        class="
-                          field
-                          p-0
-                          py-1
-                          col-12
-                          flex
-                          m-0
-                          cursor-pointer
-                          align-items-center
-                        "
+                        class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
                       >
                         <div class="col-1 mx-2 p-0 align-items-center">
                           <Avatar
@@ -3804,11 +4154,20 @@ onMounted(() => {
         <div class="col-12 field flex p-0 align-items-center">
           <div class="w-10rem">Tên công ty</div>
           <div style="width: calc(100% - 10rem)">
-            <InputText
-              :autoResize="true"
-              v-model="devicecard.warranty_company"
-              class="w-full"
-            />
+
+            <Dropdown
+            v-model="devicecard.warranty_company"
+                      :options="listProvider"
+                      :filter="true"
+                      optionLabel="name"
+                      optionValue="name"
+                      @change="filterProvider(devicecard.warranty_company)"
+                      class="w-full"
+                      panelClass="d-design-dropdown"
+                      placeholder="Chọn tên công ty"
+                      :showClear="true"
+                    />
+           
           </div>
         </div>
         <div class="col-12 field flex p-0 align-items-center">
@@ -3837,10 +4196,8 @@ onMounted(() => {
         <div class="col-12 flex p-0 align-items-center">
           <div class="w-10rem">Địa chỉ</div>
           <div style="width: calc(100% - 10rem)">
-            <Textarea
-              :autoResize="true"
-              rows="2"
-              cols="30"
+            <InputText
+         
               v-model="devicecard.warranty_company_address"
               class="w-full"
             />
@@ -3853,7 +4210,7 @@ onMounted(() => {
         label="Hủy"
         icon="pi pi-times"
         @click="closeDialogDC()"
-      class="p-button-outlined"
+        class="p-button-outlined"
       />
 
       <Button
@@ -3981,13 +4338,7 @@ onMounted(() => {
 
             <template #empty>
               <div
-                class="
-                  align-items-center
-                  justify-content-center
-                  p-4
-                  text-center
-                  m-auto
-                "
+                class="align-items-center justify-content-center p-4 text-center m-auto"
                 v-if="!isFirst"
               >
                 <img src="../../assets/background/nodata.png" height="144" />
@@ -4128,16 +4479,7 @@ onMounted(() => {
                         <div class="country-item flex align-items-center">
                           <div class="grid w-full p-0">
                             <div
-                              class="
-                                field
-                                p-0
-                                py-1
-                                col-12
-                                flex
-                                m-0
-                                cursor-pointer
-                                align-items-center
-                              "
+                              class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
                             >
                               <div class="col-1 mx-2 p-0 align-items-center">
                                 <Avatar
@@ -4179,13 +4521,7 @@ onMounted(() => {
                                     {{ slotProps.option.name }}
                                   </div>
                                   <div
-                                    class="
-                                      flex
-                                      w-full
-                                      text-sm
-                                      font-italic
-                                      text-500
-                                    "
+                                    class="flex w-full text-sm font-italic text-500"
                                   >
                                     <div>
                                       {{ slotProps.option.position_name }}
@@ -4295,7 +4631,7 @@ onMounted(() => {
 
                       <TreeSelect
                         v-model="selectedDeviceMain.device_department_id"
-                        :options="listDepartment"
+                        :options="listDepartmentTree"
                         :showClear="true"
                         :max-height="200"
                         style="width: calc(100% - 10rem)"

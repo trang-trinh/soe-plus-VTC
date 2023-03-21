@@ -1642,22 +1642,20 @@ function renderhtml(id, htmltable) {
   htmltable +=
     "<th align='center' width='90' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Đơn vị tính</th>";
   htmltable +=
-    "<th align='center' width='90' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Giá trị</th>";
-  htmltable +=
     "<th align='center' width='150' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;'>Tình trạng</th>";
   htmltable += "</tr></thead>";
   htmltable += "<tbody>";
   var stt = 0;
-  var sum = 0;
+ 
   listAssetsH.value.forEach(function (ts) {
     stt += 1;
-    sum += ts.current_price;
+   
  
     var device_number="";
     var barcode_id="";
     var device_name="";
     var device_unit="";
-    var current_price=0;
+  
     var assets_condition="";
     if(ts.device_number)
     device_number=ts.device_number;
@@ -1667,8 +1665,7 @@ function renderhtml(id, htmltable) {
     device_name=ts.device_name;
     if(ts.device_unit)
     device_unit=ts.device_unit;
-    if(ts.current_price)
-    current_price=ts.current_price;
+  
     if(ts.assets_condition)
     assets_condition=ts.assets_condition;
     htmltable +=
@@ -1694,23 +1691,14 @@ function renderhtml(id, htmltable) {
       "<td width='90' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
         device_unit +
       "</td>";
-    htmltable +=
-      "<td width='90' align='center' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;padding:10px 5px;'>" +
-        current_price.toLocaleString()   +
-      " VND " +
-      "</td>";
+     
     htmltable +=
       "<td width='150' align='left' style='border:1px solid #000 !important;font-size:14pt !important;border-left:none !important;border-top:none !important;'>" +
        assets_condition +
       "</td></tr>";
   });
   htmltable += "</tbody></table>";
-  htmltable +=
-    "<table border='0' width='1024' cellpadding='0' style='padding:10px 15px 0px;'><tbody>";
-  htmltable +=
-    "<tr><td style='font-size:16pt;font-weight:bold;text-align:right; padding-top:12px'><a style='padding-right:20px'>Tổng giá trị: </a>" +
-    sum.toLocaleString() +
-    " VND </td></tr></tbody></table>";
+ 
   if (
     device_handover.value.print_note == null ||
     device_handover.value.print_note == ""
@@ -3627,7 +3615,7 @@ onMounted(() => {
             ></Button>
             <div
               v-if="
-                (store.state.user.is_super == true ||
+                (store.getters.user.is_admin ||  store.state.user.is_super == true ||
                   store.state.user.user_id == data.data.created_by ||
                   (store.state.user.role_id == 'admin' &&
                     store.state.user.organization_id ==
@@ -4599,10 +4587,7 @@ onMounted(() => {
                   </div> -->
                     </div>
                     <div class="flex">
-                      <div class="w-full" v-tooltip.top="'Nguyên giá'">
-                        <i class="pi pi-money-bill product-category-icon"></i>
-                        {{ item.pre.price.toLocaleString() }} VND
-                      </div>
+                
                       <!-- <div class="w-full" v-else v-tooltip.top="'Phòng ban quản lý'">
                     <i class="pi pi-home product-category-icon"></i>
                     {{ item.pre.manage_department_name }}
@@ -4663,12 +4648,7 @@ onMounted(() => {
                   </div>
 
                   <div class="flex w-full">
-                    <div class="w-full">
-                      <i class="pi pi-money-bill product-category-icon"></i>
-                      <span class="product-category">
-                        {{ item.pre.current_price.toLocaleString() }} VND
-                      </span>
-                    </div>
+                    
                     <div class="w-full">
                       <i class="pi pi-shopping-cart product-category-icon"></i>
                       <span class="product-category">
@@ -4734,10 +4714,7 @@ onMounted(() => {
                   </div> -->
                     </div>
                     <div class="flex">
-                      <div class="w-full" v-tooltip.top="'Nguyên giá'">
-                        <i class="pi pi-money-bill product-category-icon"></i>
-                        {{ item.next.price.toLocaleString() }} VND
-                      </div>
+                 
                       <!-- <div class="w-full" v-else v-tooltip.top="'Phòng ban quản lý'">
                     <i class="pi pi-home product-category-icon"></i>
                     {{ item.pre.manage_department_name }}
@@ -5297,12 +5274,7 @@ onMounted(() => {
                   </div>
 
                   <div class="flex w-full">
-                    <div class="w-full">
-                      <i class="pi pi-money-bill product-category-icon"></i>
-                      <span class="product-category">
-                        {{ item.pre.current_price.toLocaleString() }} VND
-                      </span>
-                    </div>
+                     
                     <div class="w-full">
                       <i class="pi pi-shopping-cart product-category-icon"></i>
                       <span class="product-category">
@@ -5367,12 +5339,7 @@ onMounted(() => {
                   </div>
 
                   <div class="flex w-full">
-                    <div class="w-full">
-                      <i class="pi pi-money-bill product-category-icon"></i>
-                      <span class="product-category">
-                        {{ item.next.current_price.toLocaleString() }} VND
-                      </span>
-                    </div>
+                     
                     <div class="w-full">
                       <i class="pi pi-shopping-cart product-category-icon"></i>
                       <span class="product-category">
@@ -5858,19 +5825,7 @@ onMounted(() => {
                     </span>
                   </div>
 
-                  <div class="w-full flex">
-                    <div v-tooltip.top="'Giá trị hiện tại'">
-                      <font-awesome-icon icon="fa-solid fa-money-bill-1-wave" />
-                    </div>
-                    <span class="product-category pl-2">
-                      {{
-                        item.current_price
-                          ? item.current_price.toLocaleString()
-                          : "0"
-                      }}
-                      VND
-                    </span>
-                  </div>
+                  
                 </div>
               </div>
 

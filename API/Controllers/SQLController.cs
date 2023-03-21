@@ -5390,20 +5390,12 @@ namespace Controllers
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
-            //try
-            //{
+
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            //}
-            //catch
-            //{
-            //    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
-            //}
-            //try
-            //{
-            //var param = new DynamicParameters();
+
             string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
@@ -5412,13 +5404,25 @@ namespace Controllers
             string dvid = claims.Where(x => x.Type == "dvid").FirstOrDefault()?.Value;
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             string sql = "";
-            string sqlCount = " Select count(card_id)  as totalRecords from device_card tm";
+            var sqlCount = " ";
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + " tm.*,( SELECT dw.warehouse_name FROM device_warehouse dw WHERE dw.warehouse_id = tm.warehouse_id) AS warehouse_name " +
-                    ",  (SELECT ds.device_status_name FROM device_status ds WHERE ds.device_status_code = tm.status) AS device_status_name," +
-                    "su.full_name AS device_user_name, so.organization_name AS manage_department_name from device_card tm LEFT JOIN sys_users su ON tm.device_user_id=su.user_id LEFT JOIN sys_organization so ON tm.manage_department_id =so.organization_id ";
+                sql = selectStr + "   dw.warehouse_name, dm.device_groups_id,dm.device_unit_id, " +
+                 " (SELECT so1.organization_name FROM sys_organization so1 WHERE so1.organization_id = drc.corporation) AS corporation_name, " +
+                " (SELECT dsu.full_name FROM sys_users dsu WHERE dsu.user_id = drc.created_by) AS created_name," +
+                 "   ds.device_status_name, drc.*," +
+                " (SELECT so1.organization_name from device_handover dh LEFT JOIN sys_organization so1 ON dh.receiver_department = so1.organization_id" +
+                " WHERE dh.handover_id = ((SELECT TOP 1 dha.handover_id FROM device_handover_attach dha WHERE dha.card_id = drc.card_id))) AS department_use_name" +
+                "  ,(SELECT dh.is_receiver_department from device_handover dh" +
+                 "     WHERE dh.handover_id = ((SELECT TOP 1 dha.handover_id FROM device_handover_attach dha WHERE dha.card_id = drc.card_id))) AS is_receiver_department" +
+                   "   , su.full_name AS device_user_name, so.organization_name AS manage_department_name into #BangTamSSL" +
+                 "  from device_card drc " +
+                    " LEFT JOIN sys_users su ON drc.device_user_id=su.user_id " +
+                    " LEFT JOIN sys_organization so ON drc.manage_department_id =so.organization_id " +
+                    " LEFT JOIN device_main dm ON drc.device_id = dm.device_id" +
+                  " LEFT JOIN device_status ds ON drc.status = ds.device_status_code" +
+                  " LEFT JOIN device_warehouse dw ON drc.warehouse_id = dw.warehouse_id";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
@@ -5468,10 +5472,12 @@ namespace Controllers
                                         WhereSQLR += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
                                         break;
                                     case "equals":
-                                        WhereSQLR += " " + field.filteroperator + " ( tm." + field.key + " = N'" + m.value + "')";
+                                        WhereSQLR += " " + field.filteroperator + " ( " + field.key + " = N'" + m.value + "')";
+                                        if (m.value == "DTH")
+                                            WhereSQLR += " or tm.is_recall = 1 ";
                                         break;
                                     case "notEquals":
-                                        WhereSQLR += " " + field.filteroperator + " ( tm." + field.key + "  <> N'" + m.value + "')";
+                                        WhereSQLR += " " + field.filteroperator + " ( " + field.key + "  <> N'" + m.value + "')";
                                         break;
                                     case "dateIs":
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
@@ -5480,10 +5486,10 @@ namespace Controllers
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateBefore":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <= CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateAfter":
-                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) >= CAST('" + m.value + "' as date)";
                                         break;
 
                                 }
@@ -5508,9 +5514,10 @@ namespace Controllers
                         {
                             WhereSQLR = WhereSQLR.Substring(3);
                         }
+
                         if (check == true)
                         {
-                            WhereSQLR = field.filteroperator + WhereSQLR;
+                            WhereSQLR = "  and  " + WhereSQLR;
                         }
                         WhereSQL += WhereSQLR;
                         check = true;
@@ -5524,7 +5531,7 @@ namespace Controllers
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
                         + "("
 
-                        + " CONTAINS( tm.device_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
+                        + " CONTAINS( tm.device_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') "   +
 
                         " or ( tm.barcode_id like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
                             " or ( tm.device_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
@@ -5550,16 +5557,16 @@ namespace Controllers
 
                 if (WhereSQL.Trim() != "")
                 {
-                    sql += " WHERE (" + WhereSQL + ") and " + checkOrgz + @"
+                    sql += "  select * from  #BangTamSSL tm WHERE (" + WhereSQL + ") and " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
-                    sqlCount += " WHERE " + WhereSQL + " and " + checkOrgz;
+                    sqlCount += " select count(*)  as totalRecords from  #BangTamSSL tm WHERE " + WhereSQL + " and " + checkOrgz;
                 }
                 else
                 {
-                    sql += " WHERE " + checkOrgz + @"
+                    sql += " select * from  #BangTamSSL tm WHERE " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
 
-                    sqlCount += " WHERE " + checkOrgz;
+                    sqlCount += "  select count(*)  as totalRecords from  #BangTamSSL tm WHERE " + checkOrgz;
                 }
                 if (!filterSQL.next)//Đảo Sort
                 {
@@ -5567,7 +5574,7 @@ namespace Controllers
                 }
 
 
-
+                
                 sql += sqlCount;
 
                 sql = sql.Replace("\r", " ").Replace("\n", " ").Replace("   ", " ").Trim();
@@ -5633,111 +5640,141 @@ namespace Controllers
             string dvid = claims.Where(x => x.Type == "dvid").FirstOrDefault()?.Value;
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             string sql = "";
-            string sqlCount = " Select count(card_id)  as totalRecords from device_card tm";
+            string sqlCount = " ";
             try
             {
+
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + "tm.*,( SELECT dw.warehouse_name FROM device_warehouse dw WHERE dw.warehouse_id = tm.warehouse_id) AS warehouse_name ," +
-                    "su.full_name AS device_user_name, so.organization_name AS manage_department_name," +
-                    " (SELECT so1.organization_name FROM sys_organization so1 WHERE so1.organization_id = tm.corporation) AS corporation_name," +
-                    "(SELECT ds.full_name FROM sys_users ds WHERE ds.user_id = tm.created_by) AS created_name," +
-                    "(SELECT ds.device_status_name FROM device_status ds WHERE ds.device_status_code = tm.status) AS device_status_name" +
-                    " from device_card tm LEFT JOIN sys_users su ON tm.device_user_id=su.user_id LEFT JOIN sys_organization so ON tm.manage_department_id =so.organization_id ";
+                sql = selectStr + "   dw.warehouse_name, dm.device_groups_id,dm.device_unit_id, " +
+                 " (SELECT so1.organization_name FROM sys_organization so1 WHERE so1.organization_id = drc.corporation) AS corporation_name, " +
+                " (SELECT dsu.full_name FROM sys_users dsu WHERE dsu.user_id = drc.created_by) AS created_name," +
+                 "   ds.device_status_name, drc.*," +
+                " (SELECT so1.organization_name from device_handover dh LEFT JOIN sys_organization so1 ON dh.receiver_department = so1.organization_id" +
+                " WHERE dh.handover_id = ((SELECT TOP 1 dha.handover_id FROM device_handover_attach dha WHERE dha.card_id = drc.card_id))) AS department_use_name" +
+                "  ,(SELECT dh.is_receiver_department from device_handover dh" +
+                 "     WHERE dh.handover_id = ((SELECT TOP 1 dha.handover_id FROM device_handover_attach dha WHERE dha.card_id = drc.card_id))) AS is_receiver_department" +
+                   "   , su.full_name AS device_user_name, so.organization_name AS manage_department_name into #BangTamSSL" +
+                 "  from device_card drc " +
+                    " LEFT JOIN sys_users su ON drc.device_user_id=su.user_id " +
+                    " LEFT JOIN sys_organization so ON drc.manage_department_id =so.organization_id " +
+                    " LEFT JOIN device_main dm ON drc.device_id = dm.device_id" +
+                  " LEFT JOIN device_status ds ON drc.status = ds.device_status_code" +
+                  " LEFT JOIN device_warehouse dw ON drc.warehouse_id = dw.warehouse_id";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = " (tm.price IS NULL OR tm.depreciation_month IS NULL OR tm.depreciation_month = 0" +
                     " OR(tm.depreciation_month > 0 AND((DATEDIFF(MONTH, tm.purchase_date, GETDATE()) - tm.depreciation_month) > 0" +
                     " AND DATEDIFF(MONTH, tm.purchase_date, GETDATE()) > 0 )" +
                     "  OR((DAY(GETDATE()) - DAY(tm.purchase_date)) > 0" +
-                    " AND(DATEDIFF(MONTH, tm.purchase_date, GETDATE()) - tm.depreciation_month) = 0)) )";
+                    " AND(DATEDIFF(MONTH, tm.purchase_date, GETDATE()) - tm.depreciation_month) = 0)) ) ";
+
                 string checkOrgz = super == "True" ? " tm.organization_id is not null " : (" ( tm.organization_id = 0 or tm.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
+                    var check = false;
+                    WhereSQL += " and ";
                     foreach (var field in filterSQL.fieldSQLS)
                     {
+                        string WhereSQLR = "";
                         if (field.filteroperator == "in")
                         {
-                            WhereSQL += (WhereSQL != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
+                            WhereSQLR += (WhereSQLR != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
                         }
                         else
                         {
-                            WhereSQL += field.filterconstraints.Count > 1 ? "(" : "";
+                            WhereSQLR += field.filterconstraints.Count > 1 ? "(" : "";
                             foreach (var m in field.filterconstraints.Where(a => a.value != null))
                             {
                                 switch (m.matchMode)
                                 {
+                                    case "isNull":
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " is null  )";
+                                        break;
                                     case "lt":
-                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
                                         break;
                                     case "gt":
-                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
                                         break;
                                     case "lte":
-                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
                                         break;
                                     case "gte":
-                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
                                         break;
                                     case "startsWith":
-                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
                                         break;
                                     case "endsWith":
-                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
                                         break;
                                     case "contains":
-                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
                                         break;
                                     case "notContains":
-                                        WhereSQL += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
                                         break;
                                     case "equals":
-                                        WhereSQL += " " + field.filteroperator + " ( tm." + field.key + " = N'" + m.value + "')";
+                                        WhereSQLR += " " + field.filteroperator + " ( " + field.key + " = N'" + m.value + "')";
+                                        if (m.value == "DTH")
+                                            WhereSQLR += " or tm.is_recall = 1 ";
                                         break;
                                     case "notEquals":
-                                        WhereSQL += " " + field.filteroperator + " ( tm." + field.key + "  <> N'" + m.value + "')";
+                                        WhereSQLR += " " + field.filteroperator + " ( " + field.key + "  <> N'" + m.value + "')";
                                         break;
                                     case "dateIs":
-                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateIsNot":
-                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateBefore":
-                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <= CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateAfter":
-                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) >= CAST('" + m.value + "' as date)";
                                         break;
 
                                 }
                             }
-                            WhereSQL += field.filterconstraints.Count > 1 ? ")" : "";
+                            WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
                         }
+                        if (WhereSQLR.StartsWith("( and"))
+                        {
+
+                            WhereSQLR = "( " + WhereSQLR.Substring(5);
+                        }
+                        else if (WhereSQLR.StartsWith("( or"))
+                        {
+                            WhereSQLR = "( " + WhereSQLR.Substring(4);
+                        }
+                        if (WhereSQLR.StartsWith(" and"))
+                        {
+
+                            WhereSQLR = WhereSQLR.Substring(4);
+                        }
+                        else if (WhereSQLR.StartsWith(" or"))
+                        {
+                            WhereSQLR = WhereSQLR.Substring(3);
+                        }
+
+                        if (check == true)
+                        {
+                            WhereSQLR = "  and  " + WhereSQLR;
+                        }
+                        WhereSQL += WhereSQLR;
+                        check = true;
                     }
                 }
 
-                if (WhereSQL.StartsWith("( and"))
-                {
 
-                    WhereSQL = "( " + WhereSQL.Substring(5);
-                }
-                else if (WhereSQL.StartsWith("( or"))
-                {
-                    WhereSQL = "( " + WhereSQL.Substring(4);
-                }
-                if (WhereSQL.StartsWith(" and"))
-                {
-
-                    WhereSQL = WhereSQL.Substring(4);
-                }
-                else if (WhereSQL.StartsWith(" or"))
-                {
-                    WhereSQL = WhereSQL.Substring(3);
-                }
                 //Search
                 if (!string.IsNullOrWhiteSpace(filterSQL.Search))
                 {
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
-                        + "(( tm.device_name like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )" +
+                        + "("
+
+                        + " CONTAINS( tm.device_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
+
                         " or ( tm.barcode_id like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
                             " or ( tm.device_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
                         ")";
@@ -5762,22 +5799,21 @@ namespace Controllers
 
                 if (WhereSQL.Trim() != "")
                 {
-                    sql += " WHERE " + WhereSQL + " and " + checkOrgz + @"
+                    sql += "  select * from  #BangTamSSL tm WHERE (" + WhereSQL + ") and " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
-                    sqlCount += " WHERE " + WhereSQL + " and " + checkOrgz;
+                    sqlCount += " select count(*)  as totalRecords from  #BangTamSSL tm WHERE " + WhereSQL + " and " + checkOrgz;
                 }
                 else
                 {
-                    sql += " WHERE " + checkOrgz + @"
+                    sql += " select * from  #BangTamSSL tm WHERE " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
 
-                    sqlCount += " WHERE " + checkOrgz;
+                    sqlCount += "  select count(*)  as totalRecords from  #BangTamSSL tm WHERE " + checkOrgz;
                 }
                 if (!filterSQL.next)//Đảo Sort
                 {
                     sql = "Select * from (" + sql + " ORDER BY " + (filterSQL.sqlO.Contains("DESC") ? filterSQL.sqlO.Replace("DESC", "ASC") : filterSQL.sqlO.Replace("ASC", "DESC")) + ") as tbn ";
                 }
-
 
 
                 sql += sqlCount;
@@ -5844,107 +5880,136 @@ namespace Controllers
             string dvid = claims.Where(x => x.Type == "dvid").FirstOrDefault()?.Value;
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
             string sql = "";
-            string sqlCount = " Select count(card_id)  as totalRecords from device_card tm";
+            string sqlCount = "";
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + "tm.*,( SELECT dw.warehouse_name FROM device_warehouse dw WHERE dw.warehouse_id = tm.warehouse_id) AS warehouse_name ," +
-                    "su.full_name AS device_user_name, so.organization_name AS manage_department_name," +
-                    " (SELECT so1.organization_name FROM sys_organization so1 WHERE so1.organization_id = tm.corporation) AS corporation_name," +
-                    "(SELECT ds.full_name FROM sys_users ds WHERE ds.user_id = tm.created_by) AS created_name," +
-                    "(SELECT ds.device_status_name FROM device_status ds WHERE ds.device_status_code = tm.status) AS device_status_name" +
-                    " from device_card tm LEFT JOIN sys_users su ON tm.device_user_id=su.user_id LEFT JOIN sys_organization so ON tm.manage_department_id =so.organization_id ";
+                sql = selectStr + "   dw.warehouse_name, dm.device_groups_id,dm.device_unit_id, " +
+                 " (SELECT so1.organization_name FROM sys_organization so1 WHERE so1.organization_id = drc.corporation) AS corporation_name, " +
+                " (SELECT dsu.full_name FROM sys_users dsu WHERE dsu.user_id = drc.created_by) AS created_name," +
+                 "   ds.device_status_name, drc.*," +
+                " (SELECT so1.organization_name from device_handover dh LEFT JOIN sys_organization so1 ON dh.receiver_department = so1.organization_id" +
+                " WHERE dh.handover_id = ((SELECT TOP 1 dha.handover_id FROM device_handover_attach dha WHERE dha.card_id = drc.card_id))) AS department_use_name" +
+                "  ,(SELECT dh.is_receiver_department from device_handover dh" +
+                 "     WHERE dh.handover_id = ((SELECT TOP 1 dha.handover_id FROM device_handover_attach dha WHERE dha.card_id = drc.card_id))) AS is_receiver_department" +
+                   "   , su.full_name AS device_user_name, so.organization_name AS manage_department_name into #BangTamSSL" +
+                 "  from device_card drc " +
+                    " LEFT JOIN sys_users su ON drc.device_user_id=su.user_id " +
+                    " LEFT JOIN sys_organization so ON drc.manage_department_id =so.organization_id " +
+                    " LEFT JOIN device_main dm ON drc.device_id = dm.device_id" +
+                  " LEFT JOIN device_status ds ON drc.status = ds.device_status_code" +
+                  " LEFT JOIN device_warehouse dw ON drc.warehouse_id = dw.warehouse_id";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
-                string WhereSQL = " dbo.checkInsurance(tm.purchase_date,tm.insurance_cycle,tm.insurance_month ,'" + filterSQL.Date + "' ) =1";
+                string WhereSQL = " dbo.checkInsurance(tm.purchase_date,tm.insurance_cycle,tm.insurance_month ,'" + filterSQL.Date + "' ) =1 ";
+
                 string checkOrgz = super == "True" ? " tm.organization_id is not null " : (" ( tm.organization_id = 0 or tm.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
+                    var check = false;
+                    WhereSQL += " and ";
                     foreach (var field in filterSQL.fieldSQLS)
                     {
+                        string WhereSQLR = "";
                         if (field.filteroperator == "in")
                         {
-                            WhereSQL += (WhereSQL != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
+                            WhereSQLR += (WhereSQLR != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
                         }
                         else
                         {
-                            WhereSQL += field.filterconstraints.Count > 1 ? "(" : "";
+                            WhereSQLR += field.filterconstraints.Count > 1 ? "(" : "";
                             foreach (var m in field.filterconstraints.Where(a => a.value != null))
                             {
                                 switch (m.matchMode)
                                 {
+                                    case "isNull":
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " is null  )";
+                                        break;
                                     case "lt":
-                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
                                         break;
                                     case "gt":
-                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
                                         break;
                                     case "lte":
-                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
                                         break;
                                     case "gte":
-                                        WhereSQL += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
                                         break;
                                     case "startsWith":
-                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
                                         break;
                                     case "endsWith":
-                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
                                         break;
                                     case "contains":
-                                        WhereSQL += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
                                         break;
                                     case "notContains":
-                                        WhereSQL += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
                                         break;
                                     case "equals":
-                                        WhereSQL += " " + field.filteroperator + " ( tm." + field.key + " = N'" + m.value + "')";
+                                        WhereSQLR += " " + field.filteroperator + " ( " + field.key + " = N'" + m.value + "')";
+                                        if (m.value == "DTH")
+                                            WhereSQLR += " or tm.is_recall = 1 ";
                                         break;
                                     case "notEquals":
-                                        WhereSQL += " " + field.filteroperator + " ( tm." + field.key + "  <> N'" + m.value + "')";
+                                        WhereSQLR += " " + field.filteroperator + " ( " + field.key + "  <> N'" + m.value + "')";
                                         break;
                                     case "dateIs":
-                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateIsNot":
-                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateBefore":
-                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) < CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <= CAST('" + m.value + "' as date)";
                                         break;
                                     case "dateAfter":
-                                        WhereSQL += " " + field.filteroperator + " CAST(" + field.key + " as date) > CAST('" + m.value + "' as date)";
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) >= CAST('" + m.value + "' as date)";
                                         break;
 
                                 }
                             }
-                            WhereSQL += field.filterconstraints.Count > 1 ? ")" : "";
+                            WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
                         }
+                        if (WhereSQLR.StartsWith("( and"))
+                        {
+
+                            WhereSQLR = "( " + WhereSQLR.Substring(5);
+                        }
+                        else if (WhereSQLR.StartsWith("( or"))
+                        {
+                            WhereSQLR = "( " + WhereSQLR.Substring(4);
+                        }
+                        if (WhereSQLR.StartsWith(" and"))
+                        {
+
+                            WhereSQLR = WhereSQLR.Substring(4);
+                        }
+                        else if (WhereSQLR.StartsWith(" or"))
+                        {
+                            WhereSQLR = WhereSQLR.Substring(3);
+                        }
+
+                        if (check == true)
+                        {
+                            WhereSQLR = "  and  " + WhereSQLR;
+                        }
+                        WhereSQL += WhereSQLR;
+                        check = true;
                     }
                 }
 
-                if (WhereSQL.StartsWith("( and"))
-                {
 
-                    WhereSQL = "( " + WhereSQL.Substring(5);
-                }
-                else if (WhereSQL.StartsWith("( or"))
-                {
-                    WhereSQL = "( " + WhereSQL.Substring(4);
-                }
-                if (WhereSQL.StartsWith(" and"))
-                {
-
-                    WhereSQL = WhereSQL.Substring(4);
-                }
-                else if (WhereSQL.StartsWith(" or"))
-                {
-                    WhereSQL = WhereSQL.Substring(3);
-                }
                 //Search
                 if (!string.IsNullOrWhiteSpace(filterSQL.Search))
                 {
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
-                        + "(( tm.device_name like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )" +
+                        + "("
+
+                        + " CONTAINS( tm.device_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
+
                         " or ( tm.barcode_id like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
                             " or ( tm.device_number like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
                         ")";
@@ -5969,22 +6034,23 @@ namespace Controllers
 
                 if (WhereSQL.Trim() != "")
                 {
-                    sql += " WHERE " + WhereSQL + " and " + checkOrgz + @"
+                    sql += "  select * from  #BangTamSSL tm WHERE (" + WhereSQL + ") and " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
-                    sqlCount += " WHERE " + WhereSQL + " and " + checkOrgz;
+                    sqlCount += " select count(*)  as totalRecords from  #BangTamSSL tm WHERE " + WhereSQL + " and " + checkOrgz;
                 }
                 else
                 {
-                    sql += " WHERE " + checkOrgz + @"
+                    sql += " select * from  #BangTamSSL tm WHERE " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
 
-                    sqlCount += " WHERE " + checkOrgz;
+                    sqlCount += "  select count(*)  as totalRecords from  #BangTamSSL tm WHERE " + checkOrgz;
                 }
                 if (!filterSQL.next)//Đảo Sort
                 {
                     sql = "Select * from (" + sql + " ORDER BY " + (filterSQL.sqlO.Contains("DESC") ? filterSQL.sqlO.Replace("DESC", "ASC") : filterSQL.sqlO.Replace("ASC", "DESC")) + ") as tbn ";
                 }
 
+ 
 
 
                 sql += sqlCount;
@@ -8341,7 +8407,7 @@ namespace Controllers
                                             (select full_name from sys_users s WHERE s.user_id=t.created_by) as fullname from task_ca_taskgroup t where " + WhereSQL;
                 }
                 //string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
-           
+
                 sql += @" ORDER BY " + (filterSQL.sqlO != null ? filterSQL.sqlO : "is_order asc  ");
                 //+ @"OFFSET " + OFFSET + " ROWS FETCH NEXT " + filterSQL.PageSize + " ROWS ONLY ";
                 sql += sqlCount;
@@ -8453,7 +8519,7 @@ namespace Controllers
 
 
                             sql += " SELECT organization_id, organization_name into #Phongban FROM  sys_organization WHERE organization_id in(select * from udf_PivotParameters('" + field.filteroperator + "', ','));";
-                            sql +=      
+                            sql +=
                                " SELECT df.doc_master_id into #FollowsI from doc_follows df WHERE df.is_recall=0 AND ( (df.receive_by IN (SELECT user_key FROM #SysUI) AND df.receive_type =0) " +
                                " OR df.receive_type=2  );";
 
@@ -8482,7 +8548,7 @@ namespace Controllers
                             WhereSQL += (WhereSQL != "" ? " And " : " ");
                             WhereSQL += " " + "  (  dm.doc_master_id in (select doc_master_id from #NguoiXuLy)  or  dm.doc_master_id in (select doc_master_id from #Follows) ) ";
                         }
-                  
+
                         else
                       if (field.filteroperator == "in")
                         {
@@ -8572,7 +8638,7 @@ namespace Controllers
                             WhereSQLR = WhereSQLR.Substring(3);
                         }
 
-                        if (check == true && WhereSQLR!="")
+                        if (check == true && WhereSQLR != "")
                         {
                             WhereSQLR = "  and  " + WhereSQLR;
                         }
@@ -8589,7 +8655,7 @@ namespace Controllers
 "   (SELECT TOP(1) df.receive_by_name FROM doc_follows df WHERE df.doc_master_id = dm.doc_master_id)" +
 "  ELSE dm.list_receiver " +
 " END as user_receive FROM doc_master dm LEFT JOIN sys_users u ON dm.created_by = u.user_key ";
-            
+
                 //Search
                 if (!string.IsNullOrWhiteSpace(filterSQL.Search))
                 {
@@ -8614,8 +8680,8 @@ namespace Controllers
                         offSetSQL = " offset (" + filterSQL.PageNo * filterSQL.PageSize + ") rows fetch next " + filterSQL.PageSize + " rows only";
                     }
                 }
-               
-                    if (WhereSQL.Trim() != "")
+
+                if (WhereSQL.Trim() != "")
                 {
                     sql += " WHERE " + WhereSQL + " and dm.nav_type=1 AND  dm.dispatch_book_id IS NOT NULL " + " and " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
@@ -8738,7 +8804,7 @@ namespace Controllers
                         }
                         else if (field.key == "department_id")
                         {
-                         
+
 
 
 
@@ -8776,7 +8842,7 @@ namespace Controllers
                         }
                         else
 
-                       
+
                         if (field.filteroperator == "in")
                         {
                             WhereSQLR += (WhereSQLR != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
@@ -8879,7 +8945,7 @@ namespace Controllers
                         " WHEN(SELECT TOP(1) df.receive_type FROM doc_follows df WHERE df.doc_master_id = dm.doc_master_id) = 2 THEN (SELECT TOP(1) df.receive_by_name FROM doc_follows df WHERE df.doc_master_id = dm.doc_master_id) " +
                         "  ELSE dm.list_receiver END as user_receive" +
                         "  FROM doc_master dm LEFT JOIN sys_users u ON dm.created_by = u.user_key ";
-              
+
                 //Search
                 if (!string.IsNullOrWhiteSpace(filterSQL.Search))
                 {
@@ -9188,7 +9254,7 @@ namespace Controllers
 "   (SELECT TOP(1) df.receive_by_name FROM doc_follows df WHERE df.doc_master_id = dm.doc_master_id)" +
 "  ELSE dm.list_receiver end " +
 "   as user_receive  FROM doc_master dm  LEFT JOIN sys_users u ON dm.created_by = u.user_key ";
-          
+
                 //Search
                 if (!string.IsNullOrWhiteSpace(filterSQL.Search))
                 {

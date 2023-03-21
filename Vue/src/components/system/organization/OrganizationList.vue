@@ -46,6 +46,7 @@ const rules = {
 };
 const v$ = useVuelidate(rules, donvi);
 //Khai báo biến
+const expandedKeys = ref({});
 const displayPhongban = ref(false);
 const isDisplayAvt = ref(false);
 const isDisplayNen = ref(false);
@@ -274,6 +275,11 @@ const loadDonvi = (rf) => {
           "đơn vị",
         );
         donvis.value = obj.arrChils;
+        if(!store.getters.user.is_super){
+          donvis.value.forEach((element) => {
+            expandNode(element);
+          });
+        }
         treedonvis.value = obj.arrtreeChils;
         opition.value.totalRecords = data[1][0].totalrecords;
       } else {
@@ -292,6 +298,14 @@ const loadDonvi = (rf) => {
         });
       }
     });
+};
+const expandNode = (node) => {
+  if (node.children && node.children.length) {
+    expandedKeys.value[node.key] = true;
+    // for (let child of node.children) {
+    //   expandNode(child);
+    // }
+  }
 };
 const editDonvi = (md) => {
   submitted.value = false;
@@ -668,12 +682,14 @@ onMounted(() => {
       :loading="opition.loading"
       @nodeSelect="onNodeSelect"
       @nodeUnselect="onNodeUnselect"
+      :expandedKeys="expandedKeys"
       :filters="filters"
       :showGridlines="true"
       selectionMode="checkbox"
       filterMode="strict"
       class="p-treetable-sm"
       :rows="20"
+      :lazy="true"
       :rowHover="true"
       responsiveLayout="scroll"
       :scrollable="true"

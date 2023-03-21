@@ -1965,7 +1965,7 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const listSCard = ref([
   { name: "Đã tạo", code: 0 },
-  { name: "Chờ xác nhận", code: 1 },
+  { name: "Chờ đánh giá", code: 1 },
   { name: "Đã xác nhận", code: 2 },
   { name: "Chờ duyệt", code: 3 },
   { name: "Hoàn thành", code: 4 },
@@ -2890,7 +2890,11 @@ onMounted(() => {
           bodyStyle="text-align:center"
           field="deviceFrom"
           header="Kho/Phòng ban kiểm kê"
-        >
+        >    <template #body="data">
+            <div>
+              {{ data.data.deviceFrom  ? data.data.deviceFrom  : "" }}
+            </div>
+          </template>
         </Column>
         <Column
           class="align-items-center justify-content-center text-center"
@@ -3001,7 +3005,7 @@ onMounted(() => {
 
             <div
               v-if="
-                (store.state.user.is_super == true ||
+                (store.getters.user.is_admin ||  store.state.user.is_super == true ||
                   store.state.user.user_id == data.data.created_by ||
                   (store.state.user.role_id == 'admin' &&
                     store.state.user.organization_id ==

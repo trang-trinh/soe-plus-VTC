@@ -1088,7 +1088,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         <template #body="data">
           <div
             v-if="
-              store.state.user.user_id == data.data.created_by ||
+               store.getters.user.is_admin ||  store.state.user.user_id == data.data.created_by ||
               (store.state.user.role_id == 'admin' &&
                 store.state.user.organization_id == data.data.organization_id)
             "

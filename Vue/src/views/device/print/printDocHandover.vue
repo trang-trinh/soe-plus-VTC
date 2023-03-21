@@ -33,7 +33,7 @@ const props = defineProps({
               colspan="2"
               style="width: 40%; vertical-align: bottom"
             >
-              <div  >BỘ QUỐC PHÒNG</div>
+            <div > <b>BỘ QUỐC PHÒNG</b></div>
               <div  >
                 <b>BẢO HIỂM XÃ HỘI</b>
                 <div
@@ -130,7 +130,7 @@ const props = defineProps({
   <th align='center' width='12%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Barcode</th> 
  <th align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Tên thiết bị</th> 
    <th align='center' width='10%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Đơn vị tính</th> 
- <th align='center' width='10%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Giá trị</th> 
+ 
  <th align='center' width='20%' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;'>Tình trạng</th> 
  </tr></thead> 
  <tbody>
@@ -147,9 +147,7 @@ const props = defineProps({
       {{ts.device_name}}  </td>
 <td width='10%' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'> 
      {{ ts.device_unit}} </td>
-<td width='10%' align='center' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;padding:10px 5px;'> 
-        {{ts.price != null ? ts.price.toLocaleString() : " 0 "}}
-       VND  </td>
+ 
 <td width='20%' align='left' style='border:1px solid #000 !important;font-size:16px !important;border-left:none !important;border-top:none !important;'> 
      {{ ts.assets_condition}}  </td></tr>
  </tbody></table> 

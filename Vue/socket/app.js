@@ -36,7 +36,6 @@ app.get('/', (req, res) => {
     res.setHeader("Content-Security-Policy", "script-src 'self'");
     res.send('socket connect successful!');
 });
-
 app.get('/restart', function(req, res, next) {
     process.exit(1);
     //res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
@@ -204,15 +203,43 @@ io.on('connection', (socket) => {
         } else {
             if (data.event == "reloadDataTivi" || data.event == "updateAPK" || data.event == "controlTivi") {
                 socket.broadcast.emit(event, data);
+            } else if (data.event == "goScreenshot") {
+                socket.to(data.socket_nhan_id).emit(event, data);
             } else {
                 socket.emit(event, data);
             }
+        }
+
+        //push html
+        if(event === "sendNotify"){
+            fetch((`http://${host}:${port}/`).concat(`sendnotification`), {
+                credentials: "omit",
+                headers: {
+                    "content-type": "application/json;charset=UTF-8",
+                    "sec-fetch-mode": "cors",
+                },
+                body: JSON.stringify({
+                    uids: data.uids,
+                    options: {
+                      title: (data.title || null),
+                      text: (data.contents || null),
+                      image: (data.image || null),
+                      tag: (data.tag || null),
+                      url: (data.url || null),
+                    },
+                  }),
+                method: "POST",
+                mode: "cors"
+            }).then((result) => {
+                let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
+                log('push html: result('+ result + ')', logFile, '\r\n');
+            });
         }
     });
 
     socket.on('listTivi', (data) => {
         var dataUserTV = users.filter(x => x.type == "Tivi");
-        //socket.emit("socketUserTV", dataUserTV);
+        socket.emit("listTiviSocket", dataUserTV);
         let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
         log(socket.user.full_name + ' (dataUserTV: ' + dataUserTV.length + ', dataTV: ' + data.length + ')', logFile, '\r\n');
     });
@@ -221,7 +248,7 @@ io.on('connection', (socket) => {
 
 //Start Notification
 //Function
-app.use(cors())
+app.use(cors());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(compression());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -236,5 +263,5 @@ module.exports = app;
 
 //Listen
 server.listen(port, () => {
-    console.log(`Node.js API server is listening on http://localhost:${port}/`);
+    console.log(`Node.js API server is listening on http://${host}:${port}/`);
 });

@@ -1058,7 +1058,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           ></Button>
           <div
             v-if="
-              store.state.user.is_super == true ||
+          store.getters.user.is_admin ||    store.state.user.is_super == true ||
               store.state.user.user_id == data.node.data.created_by ||
               (store.state.user.role_id == 'admin' &&
                 store.state.user.organization_id ==

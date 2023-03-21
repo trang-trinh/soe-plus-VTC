@@ -85,28 +85,28 @@ const approve = () => {
       swal.close();
       toast.success("Duyệt thành công!");
       props.closeDialog();
-      if (response.data.data != null) {
-        var datas = JSON.parse(response.data.data);
-        if (datas != null && datas.length > 0) {
-          datas.forEach((item) => {
-            socketMethod
-              .post("sendnotification", {
-                uids: item["uids"],
-                options: {
-                  title: item["title"],
-                  text: item["text"],
-                  image:
-                    baseURL +
-                    (store.getters.user.background_image ||
-                      "../assets/background/bg.png"),
-                  tag: "project.soe.vn",
-                  url: "/calendar/detail/".concat(item["calendar_duty_id"]),
-                },
-              })
-              .then((res) => {});
-          });
-        }
-      }
+      // if (response.data.data != null) {
+      //   var datas = JSON.parse(response.data.data);
+      //   if (datas != null && datas.length > 0) {
+      //     datas.forEach((item) => {
+      //       socketMethod
+      //         .post("sendnotification", {
+      //           uids: item["uids"],
+      //           options: {
+      //             title: item["title"],
+      //             text: item["text"],
+      //             image:
+      //               baseURL +
+      //               (store.getters.user.background_image ||
+      //                 "../assets/background/bg.png"),
+      //             tag: "project.soe.vn",
+      //             url: "/calendar/detail/".concat(item["calendar_duty_id"]),
+      //           },
+      //         })
+      //         .then((res) => {});
+      //     });
+      //   }
+      // }
     })
     .catch((error) => {
       swal.close();

@@ -899,7 +899,7 @@ onMounted(() => {
               <Button
                 v-if="
                   data.data.status == 1 &&
-                  ((data.data.user_receiver_id == store.getters.user.user_id &&
+                  (store.getters.user.is_admin ||   (data.data.user_receiver_id == store.getters.user.user_id &&
                     !data.data.is_receiver_accept) ||
                     (data.data.user_verifier_id == store.getters.user.user_id &&
                       !data.data.is_verifier_accept) ||

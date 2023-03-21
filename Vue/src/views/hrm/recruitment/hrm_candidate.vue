@@ -179,16 +179,17 @@ const checkDelList = ref(false);
 const options = ref({
   IsNext: true,
   sort: "hcal.created_date desc ",
-  SearchText: "",
+  SearchText: null,
   PageNo: 0,
   PageSize: 20,
   loading: true,
   totalRecords: 0,
-  tab: -1,
+  tab: 0,
   totalRecords1: 0,
   totalRecords2: 0,
   totalRecords3: 0,
-  totalRecords4: 0,
+  totalRecords4: 0,  totalRecordsExport:50,
+  pagenoExport:1
 });
 
 //Hiển thị dialog
@@ -295,6 +296,16 @@ const delTem = (Tem) => {
 };
 //Xuất excel
 
+const exportExcelR = () => {
+  showExport.value = false;
+
+ 
+    exportData("ExportExcel");
+ 
+};
+const headerExport=ref("Cấu hình xuất Excel");
+ 
+const showExport = ref(false);
 //Sort
 const onSort = (event) => {
   options.value.PageNo = 0;
@@ -517,7 +528,7 @@ const itemButs = ref([
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportData("ExportExcel");
+      showExport.value = true;
     },
   },
 ]);
@@ -535,21 +546,20 @@ const exportData = (method) => {
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
-        excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
+        excelname: "DANH SÁCH ỨNG VIÊN",
         proc: "hrm_candidate_export",
         par: [
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "training_groups", va: options.value.campaign_id },
-          { par: "user_verify", va: options.value.user_verify },
-          { par: "user_follows", va: options.value.user_follows },
-          { par: "form_training", va: options.value.type_formtraining },
-          { par: "status ", va: options.value.status_filter },
+          { par: "campaign_id", va: options.value.campaign_id?options.value.campaign_id.toString(): null },
+          { par: "candidate_source", va: options.value.candidate_source?options.value.candidate_source.toString():null },
+          { par: "status ", va:  options.value.status_filter?
+          options.value.status_filter.toString():null },
           { par: "start_date", va: options.value.start_date },
           { par: "end_date", va: options.value.end_date },
           { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.PageNo },
-          { par: "pagesize", va: options.value.PageSize },
+          { par: "pageno", va: options.value.pagenoExport-1 },
+          { par: "pagesize", va: options.value.totalRecordsExport },
         ],
       },
       config
@@ -868,6 +878,46 @@ const initTudien = () => {
     });
 };
 
+const setStatus = (value) => {
+  opstatus.value.hide();
+  let data = {
+    IntID: value.candidate_id,
+    TextID: value.candidate_id + "",
+    IntTrangthai: value.status,
+    BitTrangthai: false,
+  };
+  axios
+    .put(baseURL + "/api/hrm_candidate/update_s_hrm_candidate", data, config)
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+        toast.success("Cập nhật trạng thái thành công!");
+        loadData(true);
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
+
+const opstatus = ref();
+const toggleStatus = (item, event) => {
+  candidate.value = item;
+  opstatus.value.toggle(event);
+};
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
@@ -1355,13 +1405,17 @@ onMounted(() => {
             <Column
               field="status"
               header="Trạng thái"
-              headerStyle="text-align:center;max-width:12rem;height:50px"
-              bodyStyle="text-align:center;max-width:12rem"
+              headerStyle="text-align:center;max-width:11rem;height:50px"
+              bodyStyle="text-align:center;max-width:11rem"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
                 <div
-                  class="m-2 w-full"
+               
+                  @click="
+                    toggleStatus(slotProps.data, $event);
+                    $event.stopPropagation();
+                  "
                   aria:haspopup="true"
                   aria-controls="overlay_panel_status"
                 >
@@ -1387,12 +1441,12 @@ onMounted(() => {
                
                     icon="pi pi-chevron-down"
                     iconPos="right"
-                    class="px-2 w-11rem d-design-left"
+                    class="px-2 w-10rem d-design-left"
                   />
 
 
                 </div>
-                <!-- <OverlayPanel
+                <OverlayPanel
                   :showCloseIcon="false"
                   ref="opstatus"
                   appendTo="body"
@@ -1418,7 +1472,7 @@ onMounted(() => {
                       </Dropdown>
                     </div>
                   </div>
-                </OverlayPanel> -->
+                </OverlayPanel>
               </template>
             </Column>
             <Column
@@ -1508,7 +1562,36 @@ onMounted(() => {
     ref="menuButMores"
     :model="itemButMores"
     :popup="true"
-  />
+  /> <Dialog
+    :style="{ width: '20vw' }"
+    :header="headerExport"
+    v-model:visible="showExport"
+    :modal="true"
+  >
+    <div class="grid">
+      <div class="col-12 field flex">
+        <div class="col-6 p-0">Số bản ghi:</div>
+        <div class="col-6 p-0">
+          <InputNumber class="w-full" v-model="options.totalRecordsExport" />
+        </div>
+      </div>
+      <div class="col-12 field flex">
+        <div class="col-6 p-0">Trang bắt đầu:</div>
+        <div class="col-6 p-0">
+          <InputNumber class="w-full" :min="1" :max="Math.ceil(options.totalRecords/options.totalRecordsExport)" v-model="options.pagenoExport" />
+        </div>
+      </div>
+      <div class="col-12 p-0">
+        <Toolbar class="surface-0 p-0 border-0">
+          <template #end>
+            <div>
+              <Button label="Xuất" @click="exportExcelR"></Button>
+            </div>
+          </template>
+        </Toolbar>
+      </div>
+    </div>
+  </Dialog>
 </template>
   
     <style scoped>

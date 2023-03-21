@@ -379,6 +379,15 @@ const DeleteItem = (vl) => {
       }
     });
 };
+const taskStep = ref({});
+const tempMinDate = ref();
+const tempMaxDate = ref();
+const StepDialogVisible = ref(false);
+const openDialogStep = (e) => {
+  console.log(e);
+  tempMinDate.value = e.start_date ? e.start_date : props.data.start_date;
+  tempMaxDate.value = e.end_date ? e.end_date : props.data.end_date;
+};
 // 0: tạo/giao 1,2: làm, 3:theo dõi
 const TypeMember = ref();
 const expandedRows = ref([]);
@@ -413,7 +422,6 @@ onMounted(() => {
   <div class="h-custom">
     <Toolbar class="w-full custoolbar">
       <template #end>
-        {{ datalists }}
         <Button
           icon="pi pi-plus"
           label="Thêm quy trình"
@@ -494,7 +502,7 @@ onMounted(() => {
                 <Button
                   icon="pi pi-plus"
                   label="Thêm bước"
-                  @click="openDialogStep()"
+                  @click="openDialogStep(slotProps.data)"
                   v-if="user.is_admin == true || TypeMember == 0"
                 ></Button>
               </template>

@@ -20,7 +20,8 @@ function sendPushNotification(req, res) {
             webpush
                 .sendNotification(subscription, JSON.stringify(req.body.options))
                 .catch(err => {
-                    console.log(err);
+                    let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
+                    log('error push html: error('+ err +'), req(' + req + '),  res:(' + res + ')', logFile, '\r\n');
                 });
         });
     } else {
@@ -28,7 +29,8 @@ function sendPushNotification(req, res) {
             webpush
                 .sendNotification(subscription, JSON.stringify(req.body.options))
                 .catch(err => {
-                    console.log(err);
+                    let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
+                    log('error push html: error('+ err +'), req(' + req + '),  res:(' + res + ')', logFile, '\r\n');
                 });
         });
     }
