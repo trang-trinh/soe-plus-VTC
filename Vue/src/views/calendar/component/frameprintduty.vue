@@ -26,7 +26,7 @@ const props = defineProps({
 const newDate = new Date();
 </script>
 <template>
-  <Dialog :visible="true" :closable="false" style="display: none">
+  <Dialog :visible="true" :closable="false" style="display: block">
     <div id="formprint">
       <table>
         <thead>
@@ -233,7 +233,7 @@ const newDate = new Date();
 .boder tr th,
 .boder tr td {
   border: 1px solid #999999 !important;
-  padding: 0.5rem;
+  padding: 0.2rem;
 }
 table {
   min-width: 100% !important;
