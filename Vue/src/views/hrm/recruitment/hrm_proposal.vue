@@ -1957,7 +1957,7 @@ onMounted(() => {
                     "
                     icon="pi pi-chevron-down"
                     iconPos="right"
-                    class="px-2 w-10rem  "
+                    class="px-2 w-10rem d-design-left"
                   />
                 </div>
                 <OverlayPanel

@@ -5950,6 +5950,9 @@ const is_viewSecurityTask = ref(true);
           :id="props.id"
           :pj_id="datalists.project_id"
           :listChild="ListChildTask"
+          :member="members"
+          :data="datalists"
+          :isClose="isClose"
         ></Task_FollowVue>
       </div>
       <div v-if="CongViecCon == true">
@@ -7961,7 +7964,7 @@ const is_viewSecurityTask = ref(true);
     v-model:visible="showDetail1"
     position="right"
     :style="{
-      width: width1 > 1800 ? ' 55vw' : '75vw',
+      width: width1 > 1800 ? ' 65vw' : '75vw',
       'min-height': '100vh !important',
     }"
     :showCloseIcon="false"

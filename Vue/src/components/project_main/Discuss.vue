@@ -16,6 +16,7 @@ const store = inject("store");
 const axios = inject("axios"); // inject axios
 const emitter = inject("emitter");
 const basedomainURL = fileURL;
+const user = store.state.user;
 
 const props = defineProps({
   id: String,
@@ -662,6 +663,113 @@ const handleFileUploadReport = (event) => {
     });
   }
 };
+const panel_file = ref();
+const filefilefile = ref();
+const file_Created = ref();
+const FileAction = ref([
+  {
+    label: "Tải xuống tệp",
+    icon: "pi pi-download",
+    command: () => {
+      download(filefilefile.value);
+    },
+  },
+]);
+const FileActionUploader = ref([
+  {
+    label: "Tải xuống tệp",
+    icon: "pi pi-download",
+    command: () => {
+      download(filefilefile.value);
+    },
+  },
+  {
+    label: "Xóa tệp",
+    icon: "pi pi-trash",
+    command: (event) => {
+      DelFile(filefilefile.value);
+    },
+  },
+]);
+const toggle_panel_file = (event, fileSelected, created) => {
+  panel_file.value.toggle(event);
+  filefilefile.value = fileSelected;
+  file_Created.value = created;
+};
+
+const download = (file) => {
+  panel_file.value.hide();
+  var name = file.file_name || "file_download";
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    file.file_path +
+    "&title=" +
+    name;
+  a.download = name;
+
+  a.click();
+  a.remove();
+};
+
+const DelFile = (file) => {
+  let id = [];
+  id.push(file.file_id);
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá tệp tài liệu này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+        axios
+          .delete(baseURL + "/api/ProjectMain/delete_Discuss_File", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: id,
+          })
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá tệp tài liệu thành công!");
+              loadDiscuss();
+            } else {
+              swal.fire({
+                title: "Error!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                title: "Error!",
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+  panel_file.value.hide();
+};
 
 const delImgComment = (value, index) => {
   if (editComment.value == true && value.data) {
@@ -729,13 +837,14 @@ const DelComment = (model) => {
 }
 
 onMounted(() => {
+  selectedDiscussProjectID.value = null;
   loadData();
   return {};
 });
 </script>
 <template>
   <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
-    <div class="col-6 p-0 m-0 tab-project-content-left">
+    <div class="p-0 m-0 tab-project-content-left col-6">
       <div class="row">
         <div class="col-12" style="border-bottom: 1px solid #aaa; font-weight: 600;padding: 10px;">
           <Button label="Tạo thảo luận" icon="pi pi-plus" class="mr-2" @click="addDiscuss('Thêm mới thảo luận')" />
@@ -876,8 +985,8 @@ onMounted(() => {
       </div>
     </div>
     <div class="col-6 p-0 m-0 tab-project-content-right" style="position: relative;">
-      <div class="row" style="font-size: 13px;height: 85%;width: 98%;">
-        <div v-if="selectedDiscussProjectID" class="row col-12" id="comments">
+      <div v-if="selectedDiscussProjectID" class="row" style="font-size: 13px;height: 85%;width: 98%;">
+        <div class="row col-12" id="comments">
           <div class="col-12 p-0 m-0" style="font-weight: 600; color: #888; font-size: 1.15rem">
             <div class="col-12">
               <i class="pi pi-comments pr-2" style="font-size: 0.9rem !important">
@@ -1013,7 +1122,7 @@ onMounted(() => {
                   <div class="col-10 p-0 m-0 bg-white-100 border-1 border-round border-blue-100">
                     <div class="col-12 flex flex-wrap">
                       <div v-for="(slotProps, index) in cmt.files" :key="index"
-                        class="col-3 py-0 mb-0 h-full relative div-menu-file-hover"
+                        class="col-4 py-0 mb-0 h-full relative div-menu-file-hover"
                         v-on:dblclick="ViewFileInfo(slotProps)" v-tooltip.top="{
                           value: 'Nháy chuột 2 lần để xem chi tiết',
                         }">
@@ -1028,7 +1137,7 @@ onMounted(() => {
                             " aria-haspopup="true" aria-controls="overlay_panel" />
                         </div>
                         <div class="col-12 p-0 m-0 py-2 format-default file-hover file-comments" style="height: 8rem">
-                          <div class="col-12 p-0 m-0">
+                          <div class="col-12 p-0 m-0" style="display: flex;flex-direction: column;align-items: center;">
                             <Image :src="basedomainURL + slotProps.file_path" :alt="slotProps.file_name" preview
                               :imageStyle="'max-width: 50px; max-height: 50px; margin-top:5px'"
                               v-if="slotProps.is_image == 1" style="
@@ -1308,7 +1417,7 @@ onMounted(() => {
                 <div class="col-10 p-0 m-0 bg-white-100 border-1 border-round border-blue-100">
                   <div class="col-12 flex flex-wrap">
                     <div v-for="(slotProps, index) in replyCmtValue[0].files" :key="index"
-                      class="col-3 py-0 mb-0 h-full relative div-menu-file-hover" v-on:dblclick="ViewFileInfo(slotProps)"
+                      class="col-4 py-0 mb-0 h-full relative div-menu-file-hover" v-on:dblclick="ViewFileInfo(slotProps)"
                       v-tooltip.top="{
                         value: 'Nháy chuột 2 lần để xem chi tiết',
                       }">
@@ -1323,7 +1432,7 @@ onMounted(() => {
                           " aria-haspopup="true" aria-controls="overlay_panel" />
                       </div>
                       <div class="col-12 p-0 m-0 py-2 format-default file-hover file-comments" style="height: 8rem">
-                        <div class="col-12 p-0 m-0">
+                        <div class="col-12 p-0 m-0" style="display: flex;flex-direction: column;align-items: center;">
                           <Image :src="basedomainURL + slotProps.file_path" :alt="slotProps.file_name" preview
                             :imageStyle="'max-width: 50px; max-height: 50px; margin-top:5px'"
                             v-if="slotProps.is_image == 1" style="
@@ -1379,6 +1488,28 @@ onMounted(() => {
   <OverlayPanel class="p-0" ref="panelEmoij1" append-to="body" :show-close-icon="false" id="overlay_panelEmoij1">
     <VuemojiPicker @emojiClick="handleEmojiClick" />
   </OverlayPanel>
+  <Menu
+    :model="user.user_id == file_Created ? FileActionUploader : FileAction"
+    ref="panel_file"
+    :popup="true"
+    id="overlay_panel"
+  >
+    <template #item="{ item }">
+      <a
+        download
+        style="text-decoration: none"
+        class="a-hover format-center"
+      >
+        <Button
+          :icon="item.icon"
+          class="w-full p-button-text p-button-secondary p-button-hover-file"
+          :label="item.label"
+          @click="item.command"
+        >
+        </Button>
+      </a>
+    </template>
+  </Menu>
   <FileInfoVue :data="fileInfo" v-if="isViewFileInfo"></FileInfoVue>
   <Dialog :header="headerAddDiscuss" v-model:visible="displayDiscuss" :style="{ width: '40vw' }" :closable="true"
     :maximizable="true">
@@ -1437,7 +1568,8 @@ onMounted(() => {
                   slotProps.option.avatar
                     ? ''
                     : (slotProps.option.name ?? '').substring(0, 1)
-                " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                " v-bind:image="basedomainURL + slotProps.option.avatar" 
+                style="
                                                             background-color: #2196f3;
                                                             color: #ffffff;
                                                             width: 32px;
@@ -1478,7 +1610,10 @@ onMounted(() => {
   background-color: #fff;
   margin: 5px 0px 5px 5px !important;
   height: 100%;
+  width: 50%;
+  animation: 0.5s;
 }
+
 
 #projectmain-thaoluan {
   max-height: calc(100vh - 110px);

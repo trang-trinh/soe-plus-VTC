@@ -9,6 +9,7 @@ import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
 import printprofile from "../component/printprofile.vue";
 import diloginsurance from "../../insurance/component/diloginsurance.vue";
+import comptimekeep from "../component/comptimekeep.vue";
 import moment from "moment";
 
 const route = useRoute();
@@ -1010,8 +1011,10 @@ const initView1 = (rf) => {
           profile.value = tbs[0][0];
           profile.value["relates"] = JSON.parse(profile.value["relates"]);
           profile.value["relate"] = profile.value["relates"][0];
-          if(profile.value["relate"]["relate_time"] != null){
-            profile.value["relate"]["relate_time"] = moment(new Date(profile.value["relate"]["relate_time"])).format("DD/MM/YYYY");
+          if (profile.value["relate"]["relate_time"] != null) {
+            profile.value["relate"]["relate_time"] = moment(
+              new Date(profile.value["relate"]["relate_time"])
+            ).format("DD/MM/YYYY");
           }
           profile.value["gender"] =
             profile.value["gender"] == 1
@@ -1466,6 +1469,116 @@ const initView3 = (rf) => {
               { par: "search", va: options.value.search },
               { par: "pageNo", va: options.value.pageNo },
               { par: "pageSize", va: options.value.pageSize },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data);
+        if (data != null) {
+          if (data[0] != null && data[0].length > 0) {
+            data[0].forEach((item, i) => {
+              item["STT"] = i + 1;
+              var idx = typestatus.value.findIndex(
+                (x) => x["value"] === item["status"]
+              );
+              if (idx != -1) {
+                item["status_name"] = typestatus.value[idx]["title"];
+                item["bg_color"] = typestatus.value[idx]["bg_color"];
+                item["text_color"] = typestatus.value[idx]["text_color"];
+              } else {
+                item["status_name"] = "Chưa xác định";
+                item["bg_color"] = "#bbbbbb";
+                item["text_color"] = "#fff";
+              }
+              item["effect"] = "";
+              if (item["sign_date"] != null) {
+                item["sign_date"] = moment(new Date(item["sign_date"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+              if (item["start_date"] != null) {
+                item["start_date"] = moment(
+                  new Date(item["start_date"])
+                ).format("DD/MM/YYYY");
+                item["effect"] += item["sign_date"];
+              }
+              if (item["end_date"] != null) {
+                item["end_date"] = moment(new Date(item["end_date"])).format(
+                  "DD/MM/YYYY"
+                );
+                item["effect"] += "<br/> đến <br/>" + item["sign_date"];
+              }
+              if (item["created_date"] != null) {
+                item["created_date"] = moment(
+                  new Date(item["created_date"])
+                ).format("DD/MM/YYYY");
+              }
+              if (item["liquidation_date"] != null) {
+                item["liquidation_date"] = moment(
+                  new Date(item["liquidation_date"])
+                ).format("DD/MM/YYYY");
+              }
+            });
+            contracts.value = data[0];
+            if (data[1] != null && data[1].length > 0) {
+              options.value.total = data[1][0].total;
+            }
+          } else {
+            contracts.value = [];
+            options.value.total = 0;
+          }
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+const initView4 = (rf) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_timekeep_by_user",
+            par: [
+              { par: "profile_id", va: options.value["profile_id"] },
             ],
           }),
           SecretKey,
@@ -2452,7 +2565,10 @@ const onPage = (event) => {
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
                   <!-- 1. Thông tin chung -->
-                  <Accordion class="w-full mb-2 header-padding-y-0" :activeIndex="0">
+                  <Accordion
+                    class="w-full mb-2 header-padding-y-0"
+                    :activeIndex="0"
+                  >
                     <AccordionTab>
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold py-0">
@@ -2461,7 +2577,10 @@ const onPage = (event) => {
                             <span>1. Thông tin chung</span>
                           </template>
                           <template #end>
-                            <div class="relative relative-hover" :style="{ margin: '0.5rem 0' }">
+                            <div
+                              class="relative relative-hover"
+                              :style="{ margin: '0.5rem 0' }"
+                            >
                               <Avatar
                                 v-if="profile.relate"
                                 v-bind:label="
@@ -2488,7 +2607,15 @@ const onPage = (event) => {
                                 size="xlarge"
                                 class="border-radius"
                               />
-                              <span class="absolute" :style="{ color: 'red', bottom: '-3px', right: '-3px' }"><i class="pi pi-heart-fill"></i></span>
+                              <span
+                                class="absolute"
+                                :style="{
+                                  color: 'red',
+                                  bottom: '-3px',
+                                  right: '-3px',
+                                }"
+                                ><i class="pi pi-heart-fill"></i
+                              ></span>
                               <div
                                 v-if="profile.relate"
                                 class="absolute absolute-hover"
@@ -2507,40 +2634,53 @@ const onPage = (event) => {
                                   <div class="mr-2 format-center">
                                     <div>
                                       <Avatar
-                                      v-bind:label="
-                                        profile.relate.avatar
-                                          ? ''
-                                          : (
-                                              profile.relate
-                                                .profile_user_name ?? ''
-                                            )
-                                              .substring(0, 1)
-                                              .toUpperCase()
-                                      "
-                                      v-bind:image="
-                                        profile.relate.avatar
-                                          ? basedomainURL +
-                                            profile.relate.avatar
-                                          : basedomainURL +
-                                            '/Portals/Image/noimg.jpg'
-                                      "
-                                      :style="{
-                                        background: bgColor[1 % 7],
-                                        color: '#ffffff',
-                                        width: '5rem',
-                                        height: '5rem',
-                                        fontSize: '1.5rem',
-                                        borderRadius: '5px',
-                                        fontSize: '1.5rem !important',
-                                      }"
-                                      size="xlarge"
-                                      class="border-radius"
-                                    />
-                                    <div class="description format-center" :style="{fontSize: '11px'}">{{ profile.relate.relate_time }}</div>
+                                        v-bind:label="
+                                          profile.relate.avatar
+                                            ? ''
+                                            : (
+                                                profile.relate
+                                                  .profile_user_name ?? ''
+                                              )
+                                                .substring(0, 1)
+                                                .toUpperCase()
+                                        "
+                                        v-bind:image="
+                                          profile.relate.avatar
+                                            ? basedomainURL +
+                                              profile.relate.avatar
+                                            : basedomainURL +
+                                              '/Portals/Image/noimg.jpg'
+                                        "
+                                        :style="{
+                                          background: bgColor[1 % 7],
+                                          color: '#ffffff',
+                                          width: '5rem',
+                                          height: '5rem',
+                                          fontSize: '1.5rem',
+                                          borderRadius: '5px',
+                                          fontSize: '1.5rem !important',
+                                        }"
+                                        size="xlarge"
+                                        class="border-radius"
+                                      />
+                                      <div
+                                        class="description format-center"
+                                        :style="{ fontSize: '11px' }"
+                                      >
+                                        {{ profile.relate.relate_time }}
+                                      </div>
                                     </div>
                                   </div>
                                   <div>
-                                    <div class="mb-2"><span :style="{ color: 'rgb(0, 90, 158)' }">Đã kết hôn với</span> <b>{{profile.relate.profile_user_name}}</b></div>
+                                    <div class="mb-2">
+                                      <span
+                                        :style="{ color: 'rgb(0, 90, 158)' }"
+                                        >Đã kết hôn với</span
+                                      >
+                                      <b>{{
+                                        profile.relate.profile_user_name
+                                      }}</b>
+                                    </div>
                                     <div class="description">
                                       <span>{{
                                         profile.relate.department_name
@@ -2589,9 +2729,11 @@ const onPage = (event) => {
                                 <div class="form-group m-0">
                                   <label>
                                     Mã nhân sự:
-                                    <b class="m-0" :style="{ color: '#2ECC71' }">{{
-                                      profile.profile_id
-                                    }}</b>
+                                    <b
+                                      class="m-0"
+                                      :style="{ color: '#2ECC71' }"
+                                      >{{ profile.profile_id }}</b
+                                    >
                                   </label>
                                 </div>
                               </div>
@@ -4235,7 +4377,9 @@ const onPage = (event) => {
                 </DataTable>
               </div>
             </div>
-            <div v-show="options.view === 4" class="f-full">Chấm công</div>
+            <div v-show="options.view === 4" class="f-full">
+              <comptimekeep :profile_id="options.profile_id" />
+            </div>
             <div v-show="options.view === 5" class="f-full">Phiếu lương</div>
             <div v-show="options.view === 6" class="f-full">
               <div class="row p-2">
@@ -5428,12 +5572,12 @@ const onPage = (event) => {
   border-color: #ced4da !important;
   color: #495057 !important;
 }
-.absolute-hover{
+.absolute-hover {
   display: none;
   animation: 0.5s;
   z-index: 999;
 }
-.relative-hover:hover .absolute-hover{
+.relative-hover:hover .absolute-hover {
   display: block;
 }
 </style>
@@ -5488,8 +5632,8 @@ const onPage = (event) => {
     border-radius: 5px;
   }
 }
-::v-deep(.header-padding-y-0){
-  .p-accordion-header-link{
+::v-deep(.header-padding-y-0) {
+  .p-accordion-header-link {
     padding-top: 0;
     padding-bottom: 0;
   }

@@ -2,12 +2,12 @@
 import { ref, inject, onMounted } from "vue";
 import { encr } from "../../../util/function";
 import { socketMethod } from "../../../util/methodSocket";
-const cryoptojs = inject("cryptojs");
 import moment from "moment";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { de } from "date-fns/locale";
+const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -206,28 +206,28 @@ const send = () => {
       swal.close();
       toast.success("Gửi thành công!");
       props.closeDialog();
-      if (response.data.data != null) {
-        var datas = JSON.parse(response.data.data);
-        if (datas != null && datas.length > 0) {
-          datas.forEach((item) => {
-            socketMethod
-              .post("sendnotification", {
-                uids: item.uids,
-                options: {
-                  title: item["title"],
-                  text: item["text"],
-                  image:
-                    baseURL +
-                    (store.getters.user.background_image ||
-                      "../assets/background/bg.png"),
-                  tag: "project.soe.vn",
-                  url: "/calendar/detail/".concat(item["calendar_id"]),
-                },
-              })
-              .then((res) => {});
-          });
-        }
-      }
+      // if (response.data.data != null) {
+      //   var datas = JSON.parse(response.data.data);
+      //   if (datas != null && datas.length > 0) {
+      //     datas.forEach((item) => {
+      //       socketMethod
+      //         .post("sendnotification", {
+      //           uids: item.uids,
+      //           options: {
+      //             title: item["title"],
+      //             text: item["text"],
+      //             image:
+      //               baseURL +
+      //               (store.getters.user.background_image ||
+      //                 "../assets/background/bg.png"),
+      //             tag: "project.soe.vn",
+      //             url: "/calendar/detail/".concat(item["calendar_id"]),
+      //           },
+      //         })
+      //         .then((res) => {});
+      //     });
+      //   }
+      // }
     })
     .catch((error) => {
       swal.close();

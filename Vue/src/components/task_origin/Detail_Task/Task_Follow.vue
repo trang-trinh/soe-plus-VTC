@@ -65,6 +65,9 @@ const props = defineProps({
   id: String,
   pj_id: String,
   listChild: Array,
+  member: Array,
+  data: Object,
+  isClose: Boolean,
 });
 const listChildTask = ref([]);
 const DialogVisible = ref();
@@ -144,7 +147,6 @@ const openDialog = () => {
   isEdit.value = false;
   taskfollow.value = {
     task_id: props.id,
-    project_id: props.pj_id,
     follow_name: null,
     description: null,
     start_date: null,
@@ -156,11 +158,6 @@ const openDialog = () => {
     status: 0,
     is_step: 1,
   };
-  console.log(datalists.value);
-  taskfollow.value.is_step =
-    datalists.value.length > 0
-      ? datalists.value[datalists.value.length - 1].is_step + 1
-      : 1;
   DialogVisible.value = true;
   listTask.value = [];
   headerDialog.value = "Tạo quy trình công việc";
@@ -169,13 +166,9 @@ const OpenEditDialog = (data) => {
   submitted.value = false;
   isEdit.value = true;
   let edit = JSON.parse(JSON.stringify(data));
-  edit.start_date = new Date(edit.start_date);
-  edit.end_date = new Date(edit.end_date);
+  edit.start_date = edit.start_date ? new Date(edit.start_date) : null;
+  edit.end_date = edit.end_date ? new Date(edit.end_date) : null;
   taskfollow.value = edit;
-  listTask.value = [];
-  edit.task_follow_detail_task_id.forEach((element) => {
-    listTask.value.push(element.follow_task_id);
-  });
   DialogVisible.value = true;
   headerDialog.value = "Sửa quy trình công việc";
 };
@@ -186,20 +179,8 @@ const saveData = (isFormValid) => {
   if (!isFormValid) {
     return;
   }
-  let task_follow_detail = [];
-  if (listTask.value != null) {
-    listTask.value.forEach((x) => {
-      let model = {
-        project_id: props.pj_id,
-        task_id: props.id,
-        follow_task_id: x,
-      };
-      task_follow_detail.push(model);
-    });
-  }
   let formData = new FormData();
   formData.append("task_follow", JSON.stringify(taskfollow.value));
-  formData.append("task_follow_detail", JSON.stringify(task_follow_detail));
   axios({
     method: isEdit.value == false ? "post" : "put",
     url:
@@ -261,23 +242,16 @@ const loadData = () => {
     .then((response) => {
       datalists.value = [];
       let data = JSON.parse(response.data.data)[0];
-      data.forEach((edit) => {
-        if (edit.task_follow_detail_task_id != null) {
-          edit.task_follow_detail_task_id = JSON.parse(
-            edit.task_follow_detail_task_id,
-          );
-          edit.childTask = [];
-          edit.task_follow_detail_task_id.forEach((z) => {
-            let finde = listChildTask.value.filter(
-              (x) => x.task_id == z.follow_task_id,
-            );
-            if (finde != null) {
-              edit.childTask = edit.childTask.concat(finde);
-            }
-          });
-        }
-      });
-      if (data.length > 0) datalists.value = data;
+      if (data.length > 0)
+        data.forEach((x) => {
+          if (x.task_follow_step != null) {
+            x.task_follow_step = JSON.parse(x.task_follow_step);
+            x.task_follow_step.forEach((z) => {});
+          } else {
+            x.task_follow_step = [];
+          }
+        });
+      datalists.value = data;
     })
     .catch((error) => {
       options.value.loading = false;
@@ -405,22 +379,54 @@ const DeleteItem = (vl) => {
       }
     });
 };
+const taskStep = ref({});
+const tempMinDate = ref();
+const tempMaxDate = ref();
+const StepDialogVisible = ref(false);
+const openDialogStep = (e) => {
+  console.log(e);
+  tempMinDate.value = e.start_date ? e.start_date : props.data.start_date;
+  tempMaxDate.value = e.end_date ? e.end_date : props.data.end_date;
+};
+// 0: tạo/giao 1,2: làm, 3:theo dõi
+const TypeMember = ref();
+const expandedRows = ref([]);
 onMounted(() => {
   loadData();
   if (props.listChild != null) {
     listChildTask.value = JSON.parse(JSON.stringify(props.listChild));
+  }
+  let type = [];
+  props.member.forEach((x) => {
+    if (x.user_id == user.user_id) {
+      type.push(x.is_type);
+    }
+  });
+  if (
+    props.data.created_by == user.user_id ||
+    type.filter((x) => x == 0) != null
+  ) {
+    TypeMember.value = 0;
+  } else if (type.filter((x) => x == 1) != null) {
+    TypeMember.value = 1;
+  } else if (type.filter((x) => x == 2) != null) {
+    TypeMember.value = 1;
+  } else if (type.filter((x) => x == 3) != null) {
+    TypeMember.value = 3;
+  } else {
+    TypeMember.value = 4;
   }
 });
 </script>
 <template>
   <div class="h-custom">
     <Toolbar class="w-full custoolbar">
-      {{ datalists }}
       <template #end>
         <Button
           icon="pi pi-plus"
-          label="Thêm bước"
+          label="Thêm quy trình"
           @click="openDialog()"
+          v-if="user.is_admin == true || TypeMember == 0"
         ></Button>
       </template>
     </Toolbar>
@@ -429,21 +435,9 @@ onMounted(() => {
       :value="datalists"
       scrollable
       scrollHeight="flex"
-      :reorderableColumns="true"
-      @rowReorder="onRowReorder"
+      v-model:expandedRows="expandedRows"
     >
-      <Column
-        rowReorder
-        headerStyle="width: 3rem"
-        :reorderableColumn="false"
-        class="justify-content-center align-items-center text-center w-1rem"
-        v-tooltip="'Kéo và thả để sắp xếp các bước'"
-      />
-      <Column
-        header="Bước"
-        field="is_step"
-        class="justify-content-center align-items-center text-center w-8rem"
-      ></Column>
+      <Column expander />
       <Column
         header="Tên quy trình"
         field="follow_name"
@@ -452,7 +446,7 @@ onMounted(() => {
       <Column
         header="Chức năng"
         field=""
-        headerClass="justify-content-center align-items-center w-10rem"
+        class="justify-content-center align-items-center max-w-10rem"
       >
         <template #body="data">
           <div class="flex">
@@ -470,6 +464,7 @@ onMounted(() => {
               icon="pi pi-pencil"
               v-tooltip="'Sửa'"
               @click="OpenEditDialog(data.data)"
+              v-if="user.is_admin == true || TypeMember == 0"
             >
             </Button>
             <Button
@@ -478,6 +473,7 @@ onMounted(() => {
               type="button"
               v-tooltip="'Xóa'"
               icon="pi pi-trash"
+              v-if="user.is_admin == true || TypeMember == 0"
             ></Button>
           </div>
         </template>
@@ -491,6 +487,38 @@ onMounted(() => {
             height="144"
           />
           <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
+      </template>
+      <template #expansion="slotProps">
+        <div class="p-3">
+          <h4>{{ slotProps.data }}</h4>
+          <DataTable :value="slotProps.data.task_follow_step">
+            <Column
+              expander
+              style="width: 5rem"
+            />
+            <Toolbar class="w-full custoolbar">
+              <template #end>
+                <Button
+                  icon="pi pi-plus"
+                  label="Thêm bước"
+                  @click="openDialogStep(slotProps.data)"
+                  v-if="user.is_admin == true || TypeMember == 0"
+                ></Button>
+              </template>
+            </Toolbar>
+            <template #empty>
+              <div
+                class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
+              >
+                <img
+                  src="../../../assets/background/nodata.png"
+                  height="144"
+                />
+                <h3 class="m-1">Không có dữ liệu</h3>
+              </div>
+            </template>
+          </DataTable>
         </div>
       </template>
     </DataTable>
@@ -567,6 +595,8 @@ onMounted(() => {
           :showTime="true"
           class="col-3 px-0"
           :manualInput="false"
+          :minDate="new Date(props.data.start_date)"
+          :maxDate="new Date(props.data.end_date)"
         >
         </Calendar>
         <div class="col-2 flex align-items-center justify-content-center">
@@ -583,6 +613,7 @@ onMounted(() => {
               ? new Date(taskfollow.start_date)
               : new Date()
           "
+          :maxDate="new Date(props.data.end_date)"
         >
         </Calendar>
       </div>
@@ -602,20 +633,6 @@ onMounted(() => {
         </Dropdown>
       </div>
       <div class="col-12 flex">
-        <div class="col-4">Trọng số quy trình</div>
-        <InputNumber
-          v-model="taskfollow.weight"
-          spellcheck="false"
-          class="col-8 p-0"
-          mode="decimal"
-          showButtons
-          :min="0"
-          :max="100"
-          :useGrouping="false"
-          autocomplete="off"
-        />
-      </div>
-      <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Trạng thái</div>
         <Dropdown
           :filter="true"
@@ -630,7 +647,7 @@ onMounted(() => {
         >
         </Dropdown>
       </div>
-      <div class="col-12 flex">
+      <!-- <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Chọn công việc</div>
         <div class="col-8 p-0">
           <MultiSelect
@@ -808,7 +825,7 @@ onMounted(() => {
             </template>
           </MultiSelect>
         </div>
-      </div>
+      </div> -->
     </form>
 
     <template #footer>

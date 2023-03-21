@@ -224,10 +224,13 @@ const loadData = (rf) => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
+      countComments.value = data[6][0].total_discussproject;
+      countAllFile.value = data[7][0].total_file;
       ProjectMainDetail.value = data[0][0];
       ProjectMainDetail.value.status_name = listStatusProjectMain.value.filter(x=>x.value == data[0][0].status)[0].text;
       if(data[5].length > 0){
         Thanhviens.value = new Set(data[5]);
+        countMembers.value = (new Set(data[5])).size;
         listDropdownMembers.value = data[5].map((x) => ({
           name: x.full_name,
           code: x.user_id,
@@ -239,7 +242,10 @@ const loadData = (rf) => {
         } else {
           ThanhvienShows.value = [...data[5]];
         }
+      }else{
+        countMembers.value = 0;
       }
+      
       ProjectMainMembers.value = data[5].filter(x=>x.is_type == 0);
       ProjectMainParticipants.value = data[5].filter(x=>x.is_type == 1);
       PhongBanThamGia.value = data[2];
@@ -656,8 +662,7 @@ onMounted(() => {
                                                 </div>
                                                 <div class="col-3 format-center pt-1">
                                                     <Button
-                                                    class="p-button-success py-0 w-full"
-                                                    style="
+                                                    class="p-button-success py-0 w-full" style="
                                                         font-weight: 500;
                                                         background-color: #fbad4c !important;
                                                         font-size: 1rem !important;
@@ -666,7 +671,6 @@ onMounted(() => {
                                                         display: flex;
                                                         justify-content: center;
                                                     "
-                                                    @click="GotoView('members')"
                                                     >
                                                     <i class="pi pi-user px-0"></i>
                                                     <span class="pl-2">{{ countMembers }}</span>
@@ -685,7 +689,7 @@ onMounted(() => {
                                                         display: flex;
                                                         justify-content: center;
                                                     "
-                                                    @click="GotoView('comments')"
+                                                    @click="ChangeTab(4)"
                                                     >
                                                     <i class="pi pi-comments px-0"></i>
                                                     <span class="pl-2">{{ countComments }}</span>
@@ -695,8 +699,7 @@ onMounted(() => {
                                                 <div class="col-3 format-center pt-1">
                                                     <Button
                                                     class="p-button-success py-0 w-full"
-                                                    style="
-                                                        font-weight: 500;
+                                                    style="font-weight: 500;
                                                         background-color: #1d62f0 !important;
                                                         font-size: 1rem !important;
                                                         box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
@@ -704,7 +707,7 @@ onMounted(() => {
                                                         display: flex;
                                                         justify-content: center;
                                                     "
-                                                    @click="GotoView('file')"
+                                                    @click="ChangeTab(3)"
                                                     >
                                                     <i class="pi pi-file px-0"></i>
                                                     <span class="pl-2">{{ countAllFile }}</span>
@@ -888,7 +891,6 @@ onMounted(() => {
                                 @page="onPage($event)"
                                 @sort="onSort($event)"
                                 @filter="onFilter($event)"
-                                :lazy="true"
                                 selectionMode="single"
                                 >
                                 <Column field="STT" header="STT"

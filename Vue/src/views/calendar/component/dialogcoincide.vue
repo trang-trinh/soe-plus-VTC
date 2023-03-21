@@ -46,6 +46,9 @@ const props = defineProps({
                 headerStyle="height:50px;max-width:auto;min-width:150px;"
                 bodyStyle="max-height:60px;"
               >
+                <template #body="slotProps">
+                  <div v-html="slotProps.data.contents"></div>
+                </template>
               </Column>
               <Column
                 header="Chức năng"
