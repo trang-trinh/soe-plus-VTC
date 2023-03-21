@@ -2536,7 +2536,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
 
         <Column
           :sortable="true"
-          class="align-items-center justify-content-center text-center"
+           
           headerStyle="text-align:center;max-width:70px;height:50px"
           bodyStyle="text-align:center;max-width:70px;overflow: hidden;"
           field="is_order"
@@ -2612,7 +2612,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           </template>
         </Column>
         <Column
-          class="align-items-center justify-content-center text-center"
+           
           headerStyle="text-align:center;max-width:150px;height:50px"
           bodyStyle="text-align:center;max-width:150px;overflow: hidden;"
           field="price"
@@ -2625,7 +2625,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           </template>
         </Column>
         <Column
-          class="align-items-center justify-content-center text-center"
+           
           headerStyle="text-align:center;max-width:120px;height:50px"
           bodyStyle="text-align:center;max-width:120px;overflow: hidden;"
           field="purchase_date"
@@ -2641,7 +2641,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         </Column>
 
         <Column
-          class="align-items-center justify-content-center text-center"
+           
           headerStyle="text-align:center;max-width:150px;height:50px"
           bodyStyle="text-align:center;max-width:150px;overflow: hidden;"
           field="status"
@@ -2749,7 +2749,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           </template>
         </Column>
         <Column
-          class="align-items-center justify-content-center text-center"
+           
           headerStyle="text-align:center;max-width:180px;height:50px"
           bodyStyle="text-align:center;max-width:180px;overflow: hidden;"
           field="device_user_name"
@@ -2757,7 +2757,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         >
         </Column>
         <!-- <Column
-          class="align-items-center justify-content-center text-center"
+           
           headerStyle="text-align:center;max-width:180px;height:50px"
           bodyStyle="text-align:center;max-width:180px"
           field="manage_department_name"
@@ -2790,7 +2790,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           </template>
         </Column> -->
         <Column
-          class="align-items-center justify-content-center text-center"
+           
           headerStyle="text-align:center;max-width:150px;height:50px"
           bodyStyle="text-align:center;max-width:150px"
           header="Chức năng"
@@ -2912,16 +2912,16 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
 
             <Column
               selectionMode="single"
-              headerStyle="text-align:center;max-width:75px;height:50px"
+              headerStyle="text-align:center;width:3%;height:50px"
               bodyStyle="text-align:center;max-width:75px"
-              class="align-items-center justify-content-center text-center"
+               
             ></Column>
             <Column
               field="STT"
               header="STT"
-              headerStyle="text-align:center;max-width:75px;height:50px"
-              bodyStyle="text-align:center;max-width:75px;"
-              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;width:3%;height:50px"
+              bodyStyle="text-align:center;width:3%;"
+               
             >
             </Column>
 
@@ -2942,14 +2942,14 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             <Column
               field="device_type_name"
               header="Loại thiết bị"
-              class="align-items-center justify-content-center text-center"
+               
               headerStyle="height:50px place-content: center;place-items: center;height: 50px; max-width:150px"
               bodyStyle=" max-width:150px"
             ></Column>
             <Column
               field="device_unit_name"
               header="Đơn vị tính"
-              class="align-items-center justify-content-center text-center"
+               
               headerStyle="height:50px place-content: center;place-items: center;height: 50px; max-width:150px"
               bodyStyle="max-width:150px"
             >

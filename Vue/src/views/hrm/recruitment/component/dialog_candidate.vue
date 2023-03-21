@@ -2502,86 +2502,80 @@ onMounted(() => {
                 <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
               </template>
             </FileUpload>
-
             <div class="col-12 p-0">
               <div
-                class="p-0 w-full flex"
-                v-for="(item, index) in listFilesS"
-                :key="index"
+              class="p-0 w-full flex"
+              v-for="(item, index) in listFilesS"
+              :key="index"
+            >
+              <div
+                class="p-0 surface-100"
+                style="width: 100%; border-radius: 10px"
               >
-                <div
-                  class="p-0 surface-50"
-                  style="width: 100%; border-radius: 10px"
-                >
-                  <Toolbar class="w-full py-3">
-                    <template #start>
-                      <div class="flex">
-                        <div
-                          v-if="item.is_image"
-                          class="align-items-center flex"
-                        >
-                          <Image
-                            :src="basedomainURL + item.file_path"
-                            :alt="item.file_name"
-                            width="70"
-                            height="50"
-                            style="
-                              object-fit: contain;
-                              border: 1px solid #ccc;
-                              width: 70px;
-                              height: 50px;
-                            "
-                            preview
-                            class="pr-2"
-                          />
-                          <div class="ml-2">
+                <div class="w-full py-3 flex align-items-center border-1 border-solid border-400 ">
+                  <div class="flex w-full">
+                    <div v-if="item.is_image" class="align-items-center flex ">
+                      <Image
+                        :src="basedomainURL + item.file_path"
+                        :alt="item.file_name"
+                        width="70"
+                        height="50"
+                        style="
+                          object-fit: contain;
+                          border: 1px solid #ccc;
+                          width: 70px;
+                          height: 50px;
+                        "
+                        preview
+                        class="pr-2"
+                      />
+                      <div class="ml-2 " style="word-break: break-all;">
+                        {{ item.file_name }}
+                      </div>
+                    </div>
+                    <div v-else>
+                      <a
+                        :href="basedomainURL + item.file_path"
+                        download
+                        class="w-full no-underline cursor-pointer"
+                      >
+                        <div class="align-items-center flex">
+                          <div>
+                            <img
+                              :src="
+                                basedomainURL +
+                                '/Portals/Image/file/' +
+                                item.file_path.substring(
+                                  item.file_path.lastIndexOf('.') + 1
+                                ) +
+                                '.png'
+                              "
+                              style="
+                                width: 70px;
+                                height: 50px;
+                                object-fit: contain;
+                              "
+                              :alt="item.file_name"
+                            />
+                          </div>
+                          <div class="ml-2" style="word-break: break-all;">
                             {{ item.file_name }}
                           </div>
                         </div>
-                        <div v-else>
-                          <a
-                            :href="basedomainURL + item.file_path"
-                            download
-                            class="w-full no-underline cursor-pointer"
-                          >
-                            <div class="align-items-center flex">
-                              <div>
-                                <img
-                                  :src="
-                                    basedomainURL +
-                                    '/Portals/Image/file/' +
-                                    item.file_path.substring(
-                                      item.file_path.lastIndexOf('.') + 1
-                                    ) +
-                                    '.png'
-                                  "
-                                  style="
-                                    width: 70px;
-                                    height: 50px;
-                                    object-fit: contain;
-                                  "
-                                  :alt="item.file_name" 
-                                />
-                              </div>
-                              <div class="ml-2">
-                                {{ item.file_name }}
-                              </div>
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-                    </template>
-                    <template #end>
-                      <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded p-button-danger"
-                        @click="deleteFileH(item)"
-                      />
-                    </template>
-                  </Toolbar>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="w-3rem align-items-center ">
+                    <Button
+                      icon="pi pi-times"
+                      class="p-button-rounded p-button-danger"
+                      @click="deleteFileH(item)"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>

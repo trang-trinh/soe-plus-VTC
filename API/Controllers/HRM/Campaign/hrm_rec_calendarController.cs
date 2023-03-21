@@ -575,5 +575,95 @@ namespace API.Controllers.HRM.Campaign
             }
         }
 
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_s_hrm_rec_calendar([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            IEnumerable<Claim> claims = identity.Claims;
+
+            try
+            {
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        var int_id = int.Parse(trangthai.IntID.ToString());
+                        var das = db.hrm_rec_calendar.Where(a => (a.rec_calendar_id == int_id)).FirstOrDefault<hrm_rec_calendar>();
+                        if (das != null)
+                        {
+                            das.modified_by = uid;
+                            das.modified_date = DateTime.Now;
+                            das.modified_ip = ip;
+                            das.modified_token_id = tid;
+                            das.status = trangthai.IntTrangthai;
+
+
+                            #region add hrm_log
+                            if (helper.wlog)
+                            {
+
+                                hrm_log log = new hrm_log();
+                                log.title = "Sửa ứng viên " + das.rec_calendar_name;
+
+                                log.log_module = "rec_calendar";
+                                log.log_type = 1;
+                                log.id_key = das.rec_calendar_id.ToString();
+                                log.created_date = DateTime.Now;
+                                log.created_by = uid;
+                                log.created_token_id = tid;
+                                log.created_ip = ip;
+                                db.hrm_log.Add(log);
+                                db.SaveChanges();
+
+
+                            }
+                            #endregion
+                            await db.SaveChangesAsync();
+                        }
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_rec_calendar/Update_Trangthairec_calendar", ip, tid, "Lỗi khi cập nhật trạng thái ứng viên", 0, "hrm_rec_calendar");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_rec_calendar/Update_Trangthairec_calendar", ip, tid, "Lỗi khi cập nhật trạng thái ứng viên", 0, "hrm_rec_calendar");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+
+        }
+
+
     }
 }

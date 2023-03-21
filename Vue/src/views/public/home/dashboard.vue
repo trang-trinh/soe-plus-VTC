@@ -7,6 +7,7 @@ import dialogcutrice from "./dialogcutrice.vue";
 import vi from "date-fns/locale/vi";
 import moment from "moment";
 import { useToast } from "vue-toastification";
+import { useCookies } from "vue3-cookies";
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
 const store = inject("store");
@@ -20,6 +21,7 @@ const config = {
     Authorization: `Bearer ${store.getters.token}`,
   },
 };
+const { cookies } = useCookies();
 const PositionSideBar = ref("right");
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
@@ -701,7 +703,7 @@ const initNew = () => {
               { par: "is_notify", va: null },
               { par: "datefilter", va: 0 },
               { par: "pageno", va: 0 },
-              { par: "pagesize", va: 9 },
+              { par: "pagesize", va: 12 },
               { par: "start_date", va: null },
               { par: "end_date", va: null },
             ],
@@ -1296,6 +1298,13 @@ const initCalendarDuty = (rf) => {
       console.log(error);
     });
 };
+// region chat 
+const datalistsChat = ref([]);
+const chat = ref({
+	chat_group_name: "",
+	status: 1,
+	organization_id: store.getters.user.organization_id,
+});
 const ActiveMessage = (user) => {
   router
     .push({
@@ -1306,6 +1315,61 @@ const ActiveMessage = (user) => {
       router.go(0);
     });
 };
+const savingChat = ref(false);
+const saveGroupChat = () => {
+	if (savingChat.value == true) {
+		return;
+	}
+  
+	var ms = { chat_message_id: null }; 
+	let formData = new FormData();
+  let listMember = [];
+	formData.append("models", JSON.stringify(chat.value));
+	formData.append("members", JSON.stringify(listMember));
+	formData.append("messages", JSON.stringify(ms));
+	savingChat.value = true;
+	axios({
+		method: "post",
+		url:
+		baseURL + "/api/chat/Add_Chat",
+		data: formData,
+		headers: {
+			Authorization: `Bearer ${store.getters.token}`,
+		},
+	})
+  .then((response) => {
+		savingChat.value = false;
+		if (response.data.err != "1") {
+			if (response.data.chatGroupID) {
+				cookies.set("ck_cgi", response.data.chatGroupID);
+				router
+						.push({ name: "chat_message", })
+						.then(() => {
+							router.go(0);
+						});
+			}
+		} else {
+			swal.fire({
+				title: "Thông báo!",
+				text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+				icon: "error",
+				confirmButtonText: "OK",
+			});
+		}
+  })
+  .catch((error) => {
+    savingChat.value = false;
+    if (error && error.status === 401) {
+      swal.fire({					
+        text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",					
+        confirmButtonText: "OK",
+      });
+      store.commit("gologout");
+    }
+  });
+};
+// end region chat
+
 const initData = () => {
   initDictionaryCutRice();
   initCounts();
@@ -1472,9 +1536,9 @@ onMounted(() => {
                 <Carousel
                   v-show="datanews.length > 0"
                   :value="datanews"
-                  :numVisible="3"
-                  :numScroll="3"
-                  :circular="true"
+                  :numVisible="4"
+                  :numScroll="4"
+                  :circular="false"
                   orientation="vertical"
                   verticalViewPortHeight="400px"
                 >
@@ -1487,29 +1551,25 @@ onMounted(() => {
                         })
                       "
                     >
-                      <div class="d-grid formgrid">
-                        <div class="col-3 md:col-3 p-0">
-                          <img
-                            :src="
-                              slotProps.data.image
-                                ? basedomainURL + slotProps.data.image
-                                : basedomainURL + '/Portals/Image/noimg.jpg'
-                            "
-                            :alt="slotProps.data.title"
-                            style="
-                              width: 100%;
-                              object-fit: contain;
-                              border-radius: 3px;
-                            "
-                          />
-                        </div>
-                        <div class="col-9 md:col-9 p-0 pl-3">
+                      <div class="d-grid formgrid px-2">
+                       
+                        <div class="col-12 md:col-12 p-0 pl-0">
                           <div class="d-grid formgrid">
-                            <div class="col-12 md:col-12 p-0 pb-2">
-                              <span class="limit-line">{{
+                            <div class="col-12 md:col-12 p-0 flex pb-2">
+                             <div><img
+                          v-if="slotProps.data.is_hot"
+                            style="
+                              width: 40px;
+                              height: 20px;
+                              margin-right: 12px;
+                            "
+                            :src="basedomainURL + '/Portals/News/new.jpg'"
+                            alt="new"
+                          /></div> 
+                           <div> <span class="limit-line" :class="slotProps.data.is_hot?'font-bold':''">{{
                                 slotProps.data.title
                               }}</span>
-                            </div>
+                            </div></div> 
                             <div class="col-12 md:col-12 p-0">
                               <div class="description">
                                 <i class="pi pi-clock"></i>
@@ -2642,7 +2702,7 @@ onMounted(() => {
 }
 .carousel-item {
   cursor: pointer;
-  padding-bottom: 0.75rem !important;
+  padding-bottom: 0.5rem !important;
 }
 .row-item {
   cursor: pointer;
