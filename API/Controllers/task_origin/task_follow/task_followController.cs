@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
@@ -16,9 +15,6 @@ using API.Models;
 using Helper;
 using API.Helper;
 using Newtonsoft.Json;
-using System.Text.RegularExpressions;
-using System.Text.Json;
-using Spire.Doc.Fields;
 
 namespace API.Controllers
 {
@@ -77,9 +73,10 @@ namespace API.Controllers
                         task_Follow.created_date = DateTime.Now;
                         task_Follow.created_ip = ip;
                         task_Follow.created_token_id = tid;
-                        if (task_Follow.start_date <= DateTime.Now)
+                        if (task_Follow.start_date <= DateTime.Now && task_Follow.status==0)
                         {
                             task_Follow.status = 1;
+                            task_Follow.start_real_date = DateTime.Now;
                         }
                 
                         db.task_follow.Add(task_Follow);
@@ -121,7 +118,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addFollows", ip, tid, "Lỗi khi thêm task_follow", 0, "Công việc");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addFollows", ip, tid, "Lỗi khi thêm quy trình", 0, "Công việc");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -132,7 +129,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addFollows", ip, tid, "Lỗi khi thêm task_follow", 0, "Công việc");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addFollows", ip, tid, "Lỗi khi thêm quy trình", 0, "Công việc");
                 {
                     contents = "";
                 }
@@ -190,8 +187,9 @@ namespace API.Controllers
                         task_Follow.modified_ip = ip;
                         task_Follow.modified_token_id = tid;
 
-                        if (task_Follow.start_date >= DateTime.Now)
+                        if (task_Follow.start_date <= DateTime.Now && task_Follow.status==0)
                         {
+                            task_Follow.start_real_date = DateTime.Now;
                             task_Follow.status = 1;
                         }
                         db.Entry(task_Follow).State = EntityState.Modified;
@@ -233,7 +231,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi thêm task_follow", 0, "task_follow");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi cập nhật quy trình", 0, "task_follow");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -244,7 +242,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi thêm task_follow", 0, "task_follow");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi cập nhật quy trình", 0, "task_follow");
                 {
                     contents = "";
                 }
@@ -443,7 +441,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "task_follow/deletetask_follow", ip, tid, "Lỗi khi xoá task_follow", 0, "Công việc");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "task_follow/deletetask_follow", ip, tid, "Lỗi khi xoá quy trình", 0, "Công việc");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -454,7 +452,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "task_follow/deletetask_follow", ip, tid, "Lỗi khi xoá task_follow", 0, "Công việc");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "task_follow/deletetask_follow", ip, tid, "Lỗi khi xoá quy trình", 0, "Công việc");
                 if (!helper.debug)
                 {
                     contents = "";
