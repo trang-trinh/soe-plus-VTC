@@ -46,18 +46,21 @@ const loadData = () => {
       let listDropdown = JSON.parse(response.data.data)[4];
       let temp1 = JSON.parse(listDropdown[0].list_project);
       let temp2 = JSON.parse(listDropdown[0].list_group);
-      temp1.forEach((element) => {
-        listDropdownProject.value.push({
-          label: element.project_name,
-          value: element.project_id,
+      if (temp1 != null) {
+        temp1.forEach((element) => {
+          listDropdownProject.value.push({
+            label: element.project_name,
+            value: element.project_id,
+          });
         });
-      });
-      temp2.forEach((x) => {
-        listDropdownGroup.value.push({
-          label: x.group_name,
-          value: x.group_id,
+      }
+      if (temp2 != null)
+        temp2.forEach((x) => {
+          listDropdownGroup.value.push({
+            label: x.group_name,
+            value: x.group_id,
+          });
         });
-      });
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!" + error);

@@ -7964,7 +7964,7 @@ const is_viewSecurityTask = ref(true);
     v-model:visible="showDetail1"
     position="right"
     :style="{
-      width: width1 > 1800 ? ' 55vw' : '75vw',
+      width: width1 > 1800 ? ' 65vw' : '75vw',
       'min-height': '100vh !important',
     }"
     :showCloseIcon="false"

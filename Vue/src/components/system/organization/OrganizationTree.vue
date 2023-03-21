@@ -43,6 +43,7 @@ const rules = {
 };
 const v$ = useVuelidate(rules, donvi);
 //Khai báo biến
+const expandedKeys =ref({})
 const id_active = ref();
 const department_name = ref();
 const displayPhongban = ref(false);
@@ -349,6 +350,11 @@ const loadDonvi = (rf) => {
         "đơn vị",
       );
       donvis.value = obj.arrChils;
+      if(!store.getters.user.is_super){
+          donvis.value.forEach((element) => {
+            expandNode(element);
+          });
+        }
       // treedonvis.value = obj.arrtreeChils;
       opition.value.loading = false;
 
@@ -367,6 +373,14 @@ const loadDonvi = (rf) => {
         store.commit("gologout");
       }
     });
+};
+const expandNode = (node) => {
+  if (node.children && node.children.length) {
+    expandedKeys.value[node.key] = true;
+    // for (let child of node.children) {
+    //   expandNode(child);
+    // }
+  }
 };
 const loadDataDetails = (id, name) => {
   id_active.value = id;
@@ -532,10 +546,14 @@ const addDonvi = () => {
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
-        donvi.value.organization_type == 0
-          ? toast.success("Cập nhật đơn vị thành công!")
-          : toast.success("Cập nhật phòng ban thành công!");
-        loadDonvi();
+        if(donvi.value.organization_type == 0){
+          toast.success("Cập nhật đơn vị thành công!");
+          loadDonvi();
+        }
+        else {
+          toast.success("Cập nhật phòng ban thành công!");
+          loadDataDetails(id_active.value,department_name.value);
+        }
         closedisplayAddDonvi();
       } else {
         swal.fire({
@@ -808,21 +826,13 @@ onMounted(() => {
                   filterMode="strict"
                   class="p-treetable-sm"
                   :rows="20"
+                  :lazy="true"
+                  :expandedKeys="expandedKeys"
                   :rowHover="true"
                   responsiveLayout="scroll"
                   :scrollable="true"
                   scrollHeight="flex"
                 >
-                  <!-- <Column field="is_order" header="STT"
-                                            class="align-items-center justify-content-center text-center font-bold"
-                                            headerStyle="text-align:center;max-width:100px"
-                                            bodyStyle="text-align:center;max-width:100px">
-                                            <template #body="md">
-                                                <div v-bind:class="md.node.data.status ? '' : 'text-error'">
-                                                    {{ md.node.data.label_order }}
-                                                </div>
-                                            </template>
-                                        </Column> -->
                   <Column
                     field="Logo"
                     header="Logo"
