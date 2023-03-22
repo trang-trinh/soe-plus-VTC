@@ -244,6 +244,11 @@ const loadData = () => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0)
         data.forEach((x) => {
+          x.StepProgress = 0;
+          if (x.countStep > 0) {
+            x.StepProgress =
+              Math.floor(x.countStepFinished / x.countStep) * 100;
+          }
           if (x.task_follow_step != null) {
             x.task_follow_step = JSON.parse(x.task_follow_step);
             x.task_follow_step.forEach((z) => {});
@@ -418,6 +423,15 @@ const openStepDialog = (e) => {
   taskStep.value.is_step = e.countStep > 0 ? e.countStep + 1 : 1;
   StepDialogVisible.value = true;
 };
+const openEditStepDialog = (e) => {
+  submitted.value = false;
+  isEdit.value = true;
+  let template = JSON.parse(JSON.stringify(e));
+  taskStep.value = template;
+  tempMinDate.value = e.start_date ? e.start_date : props.data.start_date;
+  tempMaxDate.value = e.end_date ? e.end_date : props.data.end_date;
+  StepDialogVisible.value = true;
+};
 const length2 = ref(false);
 const checklength2 = () => {
   length.value = false;
@@ -439,7 +453,7 @@ const saveStep = (isFormValid) => {
     url:
       baseURL +
       "/api/task_follow_step/" +
-      (isEdit.value == false ? "addStep" : "UpdateFollow"),
+      (isEdit.value == false ? "addStep" : "UpdateStep"),
     data: formData,
     headers: {
       headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -538,12 +552,49 @@ onMounted(() => {
         header="Bước"
         field="follow_name"
         class="justify-content-center align-items-center max-w-10rem"
-      ></Column>
+      >
+        <template #body="data">
+          <div
+            class="w-full justify-content-center align-items-center text-center max-w-10rem"
+          >
+            <div>
+              {{ data.data.countStepFinished }} / {{ data.data.countStep }}
+            </div>
+            <div v-if="data.data.StepProgress > 0">
+              <ProgressBar :value="data.data.StepProgress" />
+            </div>
+            <div
+              class="pt-2"
+              v-else
+            >
+              0%
+            </div>
+          </div>
+        </template>
+      </Column>
       <Column
         header="Công việc"
         field="follow_name"
         class="justify-content-center align-items-center max-w-10rem"
       >
+        <template #body="data">
+          <div
+            class="w-full justify-content-center align-items-center text-center max-w-10rem"
+          >
+            <div>
+              {{ data.data.countTaskFinished }} / {{ data.data.countTask }}
+            </div>
+            <div v-if="data.data.StepProgress > 0">
+              <ProgressBar :value="data.data.StepProgress" />
+            </div>
+            <div
+              class="pt-2"
+              v-else
+            >
+              0%
+            </div>
+          </div>
+        </template>
       </Column>
       <Column
         header="Chức năng"
@@ -603,10 +654,45 @@ onMounted(() => {
               class="max-w-4rem"
             />
             <Column
-              header="Tên quy trình"
+              header="Tên bước"
               field="step_name"
               header-class="justify-content-center align-items-center text-center"
             ></Column>
+            <Column
+              header="Chức năng"
+              field=""
+              class="justify-content-center align-items-center max-w-10rem"
+            >
+              <template #body="data">
+                <div class="flex">
+                  <Button
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    icon="pi pi-info"
+                    v-tooltip="'Chi tiết'"
+                    @click="openDetail(data.data)"
+                  >
+                  </Button>
+                  <Button
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    icon="pi pi-pencil"
+                    v-tooltip="'Sửa'"
+                    @click="openEditStepDialog(data.data)"
+                    v-if="user.is_admin == true || TypeMember == 0"
+                  >
+                  </Button>
+                  <Button
+                    @click="DeleteItem(data.data, true)"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    v-tooltip="'Xóa'"
+                    icon="pi pi-trash"
+                    v-if="user.is_admin == true || TypeMember == 0"
+                  ></Button>
+                </div>
+              </template>
+            </Column>
             <Toolbar class="w-full custoolbar">
               <template #end>
                 <Button

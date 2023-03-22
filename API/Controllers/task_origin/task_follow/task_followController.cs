@@ -231,7 +231,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi cập nhật quy trình", 0, "task_follow");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/UpdateFollow", ip, tid, "Lỗi khi cập nhật quy trình", 0, "task_follow");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -242,7 +242,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/addtask_follow", ip, tid, "Lỗi khi cập nhật quy trình", 0, "task_follow");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow/UpdateFollow", ip, tid, "Lỗi khi cập nhật quy trình", 0, "task_follow");
                 {
                     contents = "";
                 }
