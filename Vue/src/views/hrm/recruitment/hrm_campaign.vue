@@ -1774,7 +1774,7 @@ onMounted(() => {
             filterMode="lenient"
             :filters="filters"
             :scrollable="true"
-            scrollHeight="flex"
+            scrollHeight="flex" selectionMode="single"
             :showGridlines="true"
             columnResizeMode="fit"
             :lazy="true"
