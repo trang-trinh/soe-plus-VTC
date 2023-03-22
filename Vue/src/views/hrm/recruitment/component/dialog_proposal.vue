@@ -1398,7 +1398,7 @@ onMounted(() => {
           <div style="width: calc(100% - 10rem)" class="flex">
             <Textarea
               :autoResize="true"
-              rows="1"
+              rows="3"
               cols="40"
               v-model="recruitment_proposal.job_description"
               class="w-full"

@@ -1305,7 +1305,7 @@ onMounted(() => {
             dataKey="rec_calendar_id"
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
-            :row-hover="true"
+            :row-hover="true" selectionMode="single"
           >
             <!-- <Column
               class="align-items-center justify-content-center text-center"

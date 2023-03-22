@@ -1767,7 +1767,7 @@ onMounted(() => {
             dataKey="recruitment_proposal_id"
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
-            :row-hover="true"
+            :row-hover="true" selectionMode="single"
           >
             <Column
               field="STT"

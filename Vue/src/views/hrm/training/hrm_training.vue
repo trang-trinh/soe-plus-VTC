@@ -1625,17 +1625,17 @@ onMounted(() => {
             :paginator="true"
             dataKey="training_emps_id"
             responsiveLayout="scroll"
-            v-model:selection="selectedStamps"
+            v-model:selection="selectedStamps" selectionMode="single"
             :row-hover="true"
           
           >
-            <Column
+            <!-- <Column
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
               selectionMode="multiple"
             >
-            </Column>
+            </Column> -->
 
             <Column
               field="STT"
