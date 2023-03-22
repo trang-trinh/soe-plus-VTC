@@ -69,8 +69,13 @@ const WeekDay = ref([
     { value: "Sunday", text: "CN", bg: "antiquewhite" },
 ]);
 
+const ChangeFilterDate = (time) => {
+    var startDate = new Date(time.getFullYear(), time.getMonth(), 1);
+    var endDate = new Date(time.getFullYear(), time.getMonth() + 1, 0);
+    getDates(startDate,endDate);
+}
+
 const getDates = (startDate, endDate) => {
-    debugger
     var dateArray = [];
     var currentDate = moment(startDate);
     var stopDate = moment(endDate);
@@ -90,8 +95,8 @@ const getDates = (startDate, endDate) => {
                 (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
             )[0].bg,
             color:
-                parseInt(moment(currentDate).format("DD")) ==
-                    parseInt(moment(new Date()).format("DD"))
+                parseInt(moment(currentDate).format("DD/MM/YYYY")) ==
+                    parseInt(moment(new Date()).format("DD/MM/YYYY"))
                     ? "#ff0000"
                     : "",
             totalDayCurrent: getDaysInMonth(currentYear, currentMonth),
@@ -132,7 +137,7 @@ const getDates = (startDate, endDate) => {
         d.totalDay = dates.filter((x) => x.IsCheck == true).length;
         d.dateArray = dates.filter((x) => x.IsHide == false);
     });
-    debugger
+
     GrandsDate.value = dateArray;
 
     var years = [];
@@ -142,7 +147,7 @@ const getDates = (startDate, endDate) => {
         i++
     ) {
         for (var j = 0; j < 12; j++) {
-            var Month = { Month: j + 1, Year: i, Dates: [] };
+            var Month = { Month: j + 1, Year: i, Dates: [], Time: new Date(startDate)};
             Month.Dates = dateArray.filter((x) => x.Month === j && x.Year === i);
             if (Month.Dates.length > 0) years.push(Month);
         }
@@ -238,7 +243,6 @@ const loadData = (rf) => {
         )
         .then((response) => {
             let data1 = JSON.parse(response.data.data)[0];
-            debugger
             if (data1.length > 0) {
                 data1.forEach((element, i) => {
                     element.progress = element.progress == null ? 0 : element.progress;
@@ -346,7 +350,6 @@ const loadData = (rf) => {
             }
 
             listProject.value = data1;
-            debugger
             let date1 = new Date(
                 opition.value.sdate ? opition.value.sdate : new Date(),
             );
@@ -423,7 +426,15 @@ onMounted(() => {
                             </th>
                             <th v-for="m in Grands" class="p-3" align="center" :width="m.Dates.length * 40"
                                 :colspan="m.Dates.length" style="text-align: center; min-width: 100px; color: #2196f3">
-                                Tháng {{ m.Month }}/{{ m.Year }}
+                                <!-- Tháng {{ m.Month }}/{{ m.Year }}  -->
+                                <Calendar
+                                    @date-select="ChangeFilterDate(m.Time)"
+                                    inputId="icon"
+                                    v-model="m.Time"
+                                    :showIcon="true"
+                                    view="month"
+                                    dateFormat="Tháng mm/yy"
+                                />
                             </th>
                             <!-- <th class="p-3" style="border: 1px solid #e9e9e9;" :colspan="GrandsDate.length">Tháng 2</th> -->
                         </tr>
@@ -603,5 +614,13 @@ onMounted(() => {
 
 #project-calendar .left-450 {
     left: 450px;
+}
+</style>
+<style>
+#project-calendar .table thead tr th .p-calendar-w-btn .p-inputtext{
+    border: none !important;
+    background-color: #f8f9fa;
+    color: #2196f3;
+    width: 110px;
 }
 </style>

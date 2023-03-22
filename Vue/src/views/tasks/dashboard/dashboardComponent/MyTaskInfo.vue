@@ -200,7 +200,7 @@ const LoadActive = () => {
       });
     })
     .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!" + error);
+      toast.error("Tải dữ liệu không thành công!");
       addLog({
         title: "Lỗi Console loadData",
         controller: "MyTaskInfo.vue",
