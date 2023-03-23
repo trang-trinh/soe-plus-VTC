@@ -242,6 +242,9 @@ const loadData = () => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0)
         data.forEach((x) => {
+          let type = listDrdType.value.filter((xz) => xz.value == x.type)[0];
+          x.type_display = {};
+          x.type_display = type;
           let filterstatus = listDrdStatus.value.filter(
             (xz) => xz.value == x.status,
           )[0];
@@ -260,7 +263,11 @@ const loadData = () => {
           if (x.task_follow_step != null) {
             x.task_follow_step = JSON.parse(x.task_follow_step);
             x.task_follow_step.forEach((y) => {
-              console.log(y);
+              let type = listDrdType.value.filter(
+                (xz) => xz.value == y.type,
+              )[0];
+              y.type_display = {};
+              y.type_display = type;
               let filterstatuszz = listDrdStatus.value.filter(
                 (xz) => xz.value == y.status,
               )[0];
@@ -319,6 +326,7 @@ const closeDialogDetail = () => {
 };
 const onRowReorder = (event) => {
   let formData = new FormData();
+  console.log(event.value);
   formData.append("task_follow", JSON.stringify(event.value));
   swal.fire({
     width: 110,
@@ -698,7 +706,7 @@ onMounted(() => {
       <Column
         header="Trạng thái"
         field=""
-        class="justify-content-center align-items-center max-w-12rem"
+        class="justify-content-center align-items-center max-w-13rem"
       >
         <template #body="data">
           <span
@@ -845,7 +853,7 @@ onMounted(() => {
             <Column
               header="Trạng thái"
               field="task_id_follow"
-              class="justify-content-center align-items-center text-center max-w-12rem"
+              class="justify-content-center align-items-center text-center max-w-13rem"
             >
               <template #body="data">
                 <span
@@ -939,6 +947,7 @@ onMounted(() => {
                   @rowReorder="onRowReorder"
                 >
                   <Column
+                    v-if="TypeMember.value == 0"
                     rowReorder
                     class="max-w-2rem justify-content-center align-items-center text-center"
                   />
@@ -996,7 +1005,7 @@ onMounted(() => {
                   <Column
                     header="Trạng thái"
                     field="task_id_follow"
-                    class="justify-content-center align-items-center text-center max-w-8rem"
+                    class="justify-content-center align-items-center text-center max-w-13rem"
                   >
                     <template #body="data">
                       <span
@@ -1037,6 +1046,8 @@ onMounted(() => {
       :data="round"
       :isOpen="isOpen"
       :closeDialogDetail="closeDialogDetail"
+      :rowReorder="onRowReorder"
+      :memberType="TypeMember"
     ></TaskFollowDetailVue>
   </div>
   <Dialog
