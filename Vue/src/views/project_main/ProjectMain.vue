@@ -29,6 +29,7 @@ const opition = ref({
   search: "",
   Filteruser_id: null,
   user_id: store.getters.user_id,
+  type_view:2,
 });
 
 const bgColor = ref([
@@ -161,7 +162,7 @@ const listUser = () => {
               { par: "search", va: opition.value.SearchTextUser },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "role_id", va: null },
-              { par: "organization_id",va: store.getters.user.organization_id,},
+              { par: "organization_id", va: store.getters.user.organization_id, },
               { par: "department_id", va: null },
               { par: "position_id", va: null },
               { par: "isadmin", va: null },
@@ -399,7 +400,7 @@ const editProjectMain = (dataProjectMain) => {
       ProjectMain.value.start_date = ProjectMain.value.start_date
         ? new Date(ProjectMain.value.start_date)
         : null;
-        ProjectMain.value.end_date = ProjectMain.value.end_date
+      ProjectMain.value.end_date = ProjectMain.value.end_date
         ? new Date(ProjectMain.value.end_date)
         : null;
       ProjectMain.value.files = data[1];
@@ -537,10 +538,10 @@ const saveProjectMain = (isFormValid) => {
     ProjectMain.value.group_code = null;
   }
   let formData = new FormData();
-  if(files["LogoDonvi"]){
+  if (files["LogoDonvi"]) {
     formData.append("LogoDonvi", JSON.stringify(files["LogoDonvi"].name));
     fileAll.push(files["LogoDonvi"]);
-  }else{
+  } else {
     formData.append("LogoDonvi", JSON.stringify());
   }
   for (var i = 0; i < fileAll.length; i++) {
@@ -627,11 +628,12 @@ const saveProjectMain = (isFormValid) => {
   }
 };
 const emitter = inject("emitter");
-emitter.on("SideBar", (obj) => {
-  showDetail.value = false;
-  selectedDiscussProjectID.value = null;
-  loadData(false);
-});
+// emitter.on("SideBar", (obj) => {
+//   debugger
+//   showDetailProject.value = false;
+//   selectedDiscussProjectID.value = null;
+//   loadData(false);
+// });
 
 const RenderData = (response) => {
   opition.value.allRecord = null;
@@ -815,12 +817,12 @@ const listtreeProjectMain = () => {
 // };
 const delLogo = (datafile) => {
   files["LogoDonvi"] = [];
-    isDisplayAvt.value = false;
-    var output = document.getElementById("LogoDonvi");
-    output.src = basedomainURL + "/Portals/Image/noimg.jpg";
-    ProjectMain.value.logo = null;
+  isDisplayAvt.value = false;
+  var output = document.getElementById("LogoDonvi");
+  output.src = basedomainURL + "/Portals/Image/noimg.jpg";
+  ProjectMain.value.logo = null;
   // if (isAdd.value == true) {
-    
+
   // } else {
   //   swal
   //     .fire({
@@ -876,6 +878,10 @@ const delLogo = (datafile) => {
   //     });
   // }
 };
+
+const closeSildeBar = () => {
+  showDetailProject.value = false;
+}
 
 const onRefersh = () => {
   opition.value = {
@@ -1001,7 +1007,7 @@ const OpenDialogTreeUser = (one, type) => {
       selectedUser.value.push(select);
     });
     headerDialogUser.value = "Chọn người tham gia";
-  } 
+  }
   displayDialogUser.value = true;
   is_one.value = one;
   is_type.value = type;
@@ -1014,10 +1020,10 @@ const choiceTreeUser = () => {
   switch (is_type.value) {
     case 1:
       if (selectedUser.value.length > 0) {
-          ProjectMain.value.managers = [];
-          selectedUser.value.forEach((t) => {
-            ProjectMain.value.managers.push(t.user_id);
-          });
+        ProjectMain.value.managers = [];
+        selectedUser.value.forEach((t) => {
+          ProjectMain.value.managers.push(t.user_id);
+        });
       }
       break;
     case 2:
@@ -1051,16 +1057,92 @@ const PositionSideBar = ref("right");
 const forceRerender = () => {
   componentKey.value += 1;
 };
+const MaxMin = (m) => {
+  PositionSideBar.value = m;
+  emitter.emit("psb", m);
+};
 
-const showDetail = ref(false);
+emitter.on("psb", (obj) => {
+  PositionSideBar.value = obj;
+  console.log(obj);
+});
+
+const showDetailProject = ref(false);
 const selectedProjectMainID = ref();
 const selectedKeys = ref();
 const onNodeSelect = (id) => {
   forceRerender();
-  showDetail.value = true;
+  showDetailProject.value = true;
   selectedProjectMainID.value = id.data.project_id;
 };
+const menuListTypeButs = ref();
+const toggleListType = (event) => {
+  menuListTypeButs.value.toggle(event);
+};
+const itemListTypeButs = ref([
+  {
+    label: "LIST",
+    active: false,
+    icon: "pi pi-list",
+    type: 1,
+    command: (event) => {
+      ChangeView(1);
+    },
+  },
+  {
+    label: "TREE",
+    active: true,
+    icon: "pi pi-list",
+    type: 2,
+    command: (event) => {
+      ChangeView(2);
+    },
+  },
+  {
+    label: "GRID",
+    active: false,
+    icon: "pi pi-table",
+    type: 3,
+    command: (event) => {
+      ChangeView(3);
+    },
+  },
+  {
+    label: "GANTT",
+    active: false,
+    icon: "pi pi-calendar-plus",
+    type: 4,
+    command: (event) => {
+      ChangeView(4);
+    },
+  },
+  {
+    label: "USER",
+    active: false,
+    icon: "pi pi-user-plus",
+    type: 5,
+    command: (event) => {
+      ChangeView(5);
+    },
+  },
+]);
 
+const ChangeView = (data) => {
+  if (data.type == 3) {
+    opition.value.PageSize = 10000;
+  } else {
+    opition.value.PageSize = 20;
+  }
+  loadData(true);
+  itemListTypeButs.value.forEach((t) => {
+    if (data.type != t.type) {
+      t.active = false;
+    } else {
+      t.active = true;
+    }
+  });
+  menuListTypeButs.value.toggle();
+};
 onMounted(() => {
   listUser();
   loadData(true);
@@ -1070,7 +1152,8 @@ onMounted(() => {
   return {};
 });
 </script>
-<template><!-- @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" selectionMode="checkbox" -->
+<template>
+  <!-- @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" selectionMode="checkbox" -->
   <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
     <TreeTable :value="listProjectMains" v-model:selectionKeys="selectedKeys" v-model:first="first"
       :loading="opition.loading" @page="onPage($event)" @sort="onSort($event)" :paginator="true" :rows="opition.PageSize"
@@ -1078,10 +1161,7 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]" :filters="filters" :showGridlines="true" filterMode="strict"
       class="p-treetable-sm" :rowHover="true" responsiveLayout="scroll" :lazy="true" :scrollable="true"
-      @nodeSelect="onNodeSelect"
-      selectionMode="single"
-      @nodeUnselect="onNodeUnselect"
-      scrollHeight="flex">
+      @nodeSelect="onNodeSelect" selectionMode="single" @nodeUnselect="onNodeUnselect" scrollHeight="flex">
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
           <i class="pi pi-microsoft"></i> Danh sách dự án ({{
@@ -1094,22 +1174,54 @@ onMounted(() => {
               <i class="pi pi-search" />
               <InputText type="text" spellcheck="false" v-model="opition.search" placeholder="Tìm kiếm theo tên dự án"
                 v-on:keyup.enter="loadData(true)" />
-            </span>
+            </span> 
           </template>
 
           <template #end>
             <Button label="Thêm dự án" icon="pi pi-plus" class="mr-2" @click="addProjectMain('Thêm mới dự án')" />
+            <ul id="toolbar_right" style="padding: 0px; margin: 0px; display: flex">
+              <li
+              @click="toggleListType"
+              aria-haspopup="true"
+              :class="{ active: opition.type_view != 0 }"
+              aria-controls="overlay_Export1"
+            >
+              <a
+                ><i
+                  style="margin-right: 5px"
+                  class="pi pi-bars"
+                ></i
+                >Kiểu hiển thị<i
+                  style="margin-left: 5px"
+                  class="pi pi-angle-down"
+                ></i
+              ></a>
+            </li>
+            </ul>
             <Button class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh" @click="onRefersh" />
             <Button label="Xoá" icon="pi pi-trash" class="mr-2 p-button-danger" v-if="selectedNodes.length > 0"
               @click="DelProjectMain()" />
             <!-- <Button label="Export" icon="pi pi-file-excel" class="mr-2 p-button-outlined p-button-secondary"
-                              @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export" /> -->
+                                @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export" /> -->
             <Menu vị id="overlay_Export" ref="menuButs" :model="itemButs" :popup="true" />
+            <Menu
+            id="task_list_type"
+            :model="itemListTypeButs"
+            ref="menuListTypeButs"
+            :popup="true"
+          >
+            <template #item="{ item }">
+              <div @click="ChangeView(item)">
+                <a :class="{ active: item.active }"
+                  ><i :class="item.icon"></i>{{ item.label }}</a
+                >
+              </div>
+            </template>
+          </Menu>
           </template>
         </Toolbar>
       </template>
-      <Column field="STT" header="STT"
-        class="align-items-center justify-content-center text-center font-bold"
+      <Column field="STT" header="STT" class="align-items-center justify-content-center text-center font-bold"
         headerStyle="text-align:center;max-width:4rem" bodyStyle="text-align:center;max-width:4rem">
       </Column>
       <Column field="Logo" header="Logo" class="align-items-center justify-content-center text-center"
@@ -1167,38 +1279,37 @@ onMounted(() => {
       </Column>
       <template #empty>
         <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-              min-height: calc(100vh - 220px);
-              max-height: calc(100vh - 220px);
-              display: flex;
-              flex-direction: column;
-            " v-if="!isFirst">
+                min-height: calc(100vh - 220px);
+                max-height: calc(100vh - 220px);
+                display: flex;
+                flex-direction: column;
+              " v-if="!isFirst">
           <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
     </TreeTable>
 
-    <Sidebar
-      v-model:visible="showDetail"
-      :position="PositionSideBar"
-      :style="{
-        width:
-          PositionSideBar == 'right'
-            ? width1 > 1800
-              ? ' 60vw'
-              : '80vw'
-            : '100vw',
-        'height': '100vh !important',
-      }"
-      :showCloseIcon="false"
-    >
-    <DetailProject
-      :isShow="showDetail"
-      :id="selectedProjectMainID"
-      :turn="0"
-    >
-    </DetailProject>
-  </Sidebar>
+    <Sidebar v-model:visible="showDetailProject" :position="PositionSideBar" :style="{
+      width:
+        PositionSideBar == 'right'
+          ? width1 > 1800
+            ? ' 60vw'
+            : '80vw'
+          : '100vw',
+      'height': '100vh !important',
+    }" :showCloseIcon="false">
+      <div style="position: absolute;z-index: 10;left: 0px;padding-bottom: 10px;background-color: #fff;width: 66px;display: flex;">
+        <Button icon="pi pi-times" class="p-button-rounded p-button-text"
+          v-tooltip="{ value: 'Đóng' }" @click="closeSildeBar()" />
+        <Button icon="pi pi-window-maximize" class="p-button-rounded p-button-text" v-tooltip="{ value: 'Phóng to' }"
+          @click="MaxMin('full')" v-if="PositionSideBar == 'right'" />
+        <Button icon="pi pi-window-minimize" class="p-button-rounded p-button-text" v-tooltip="{ value: 'Thu nhỏ' }"
+          @click="MaxMin('right')" v-if="PositionSideBar == 'full'" />
+      </div>
+      <DetailProject :isShow="showDetailProject" :id="selectedProjectMainID" :turn="0">
+      </DetailProject>
+    </Sidebar>
 
     <Dialog :header="headerAddProjectMain" v-model:visible="displayProjectMain" :style="{ width: '40vw' }"
       :closable="true" :maximizable="true">
@@ -1316,54 +1427,28 @@ onMounted(() => {
           </div>
 
           <div class="field col-12 md:col-12">
-            <label class="col-3 text-left p-0"
-              >Người quản lý
-              <span
-                @click="OpenDialogTreeUser(false, 1)"
-                class="choose-user"
-                ><i class="pi pi-user-plus"></i></span
-              ></label
-            >
-            <MultiSelect
-              :filter="true"
-              v-model="ProjectMain.managers"
-              :options="listDropdownUser"
-              optionValue="code"
-              optionLabel="name"
-              class="col-9 ip36 p-0"
-              placeholder="Người quản lý"
-              display="chip"
-            >
+            <label class="col-3 text-left p-0">Người quản lý
+              <span @click="OpenDialogTreeUser(false, 1)" class="choose-user"><i
+                  class="pi pi-user-plus"></i></span></label>
+            <MultiSelect :filter="true" v-model="ProjectMain.managers" :options="listDropdownUser" optionValue="code"
+              optionLabel="name" class="col-9 ip36 p-0" placeholder="Người quản lý" display="chip">
               <template #option="slotProps">
-                <div
-                  class="country-item flex"
-                  style="align-items: center; margin-left: 10px"
-                >
-                  <Avatar
-                    v-bind:label="
-                      slotProps.option.avatar
-                        ? ''
-                        : (slotProps.option.name ?? '').substring(0, 1)
-                    "
-                    v-bind:image="basedomainURL + slotProps.option.avatar" style="
-                      background-color: #2196f3;
-                      color: #ffffff;
-                      width: 32px;
-                      height: 32px;
-                      font-size: 15px !important;
-                      margin-left: -10px;
-                    "
-                    :style="{
-                      background: bgColor[slotProps.index % 7] + '!important',
-                    }"
-                    class="cursor-pointer"
-                    size="xlarge"
-                    shape="circle"
-                  />
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                <div class="country-item flex" style="align-items: center; margin-left: 10px">
+                  <Avatar v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                        background-color: #2196f3;
+                        color: #ffffff;
+                        width: 32px;
+                        height: 32px;
+                        font-size: 15px !important;
+                        margin-left: -10px;
+                      " :style="{
+                        background: bgColor[slotProps.index % 7] + '!important',
+                      }" class="cursor-pointer" size="xlarge" shape="circle" />
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
                 </div>
@@ -1371,55 +1456,28 @@ onMounted(() => {
             </MultiSelect>
           </div>
           <div class="field col-12 md:col-12">
-            <label class="col-3 text-left p-0"
-              >Người tham gia
-              <span
-                @click="OpenDialogTreeUser(false, 2)"
-                class="choose-user"
-                ><i class="pi pi-user-plus"></i></span
-              ></label
-            >
-            <MultiSelect
-              :filter="true"
-              v-model="ProjectMain.participants"
-              :options="listDropdownUser"
-              optionValue="code"
-              optionLabel="name"
-              class="col-9 ip36 p-0"
-              placeholder="Người tham gia"
-              display="chip"
-            >
+            <label class="col-3 text-left p-0">Người tham gia
+              <span @click="OpenDialogTreeUser(false, 2)" class="choose-user"><i
+                  class="pi pi-user-plus"></i></span></label>
+            <MultiSelect :filter="true" v-model="ProjectMain.participants" :options="listDropdownUser" optionValue="code"
+              optionLabel="name" class="col-9 ip36 p-0" placeholder="Người tham gia" display="chip">
               <template #option="slotProps">
-                <div
-                  class="country-item flex"
-                  style="align-items: center; margin-left: 10px"
-                >
-                  <Avatar
-                    v-bind:label="
-                      slotProps.option.avatar
-                        ? ''
-                        : (slotProps.option.name ?? '').substring(0, 1)
-                    "
-                    v-bind:image="basedomainURL + slotProps.option.avatar"
-                    style="
-                      background-color: #2196f3;
-                      color: #ffffff;
-                      width: 32px;
-                      height: 32px;
-                      font-size: 15px !important;
-                      margin-left: -10px;
-                    "
-                    :style="{
-                      background: bgColor[slotProps.index % 7] + '!important',
-                    }"
-                    class="cursor-pointer"
-                    size="xlarge"
-                    shape="circle"
-                  />
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                <div class="country-item flex" style="align-items: center; margin-left: 10px">
+                  <Avatar v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  " v-bind:image="basedomainURL + slotProps.option.avatar" style="
+                        background-color: #2196f3;
+                        color: #ffffff;
+                        width: 32px;
+                        height: 32px;
+                        font-size: 15px !important;
+                        margin-left: -10px;
+                      " :style="{
+                        background: bgColor[slotProps.index % 7] + '!important',
+                      }" class="cursor-pointer" size="xlarge" shape="circle" />
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
                 </div>
@@ -1474,15 +1532,8 @@ onMounted(() => {
       </template>
     </Dialog>
   </div>
-  <treeuser
-    v-if="displayDialogUser === true"
-    :headerDialog="headerDialogUser"
-    :displayDialog="displayDialogUser"
-    :one="is_one"
-    :selected="selectedUser"
-    :closeDialog="closeDialog"
-    :choiceUser="choiceTreeUser"
-  />
+  <treeuser v-if="displayDialogUser === true" :headerDialog="headerDialogUser" :displayDialog="displayDialogUser"
+    :one="is_one" :selected="selectedUser" :closeDialog="closeDialog" :choiceUser="choiceTreeUser" />
 </template>
 <style>
 .p-treeselect-panel {
@@ -1503,5 +1554,31 @@ onMounted(() => {
 
 .choose-user:hover {
   cursor: pointer;
+}
+#toolbar_right .active {
+  background-color: #2196f3 !important;
+  border: 1px solid #5ca7e3 !important;
+  color: #fff;
+}
+#toolbar_right li {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+  border: 1px solid;
+  border-radius: 4px;
+  margin: 0px 5px 0px 0px;
+}
+
+#toolbar_right li a {
+  padding: 0px 10px;
+}
+
+#toolbar_right li:hover {
+  cursor: pointer;
+  background-color: #2196f3 !important;
+  border: 1px solid #5ca7e3 !important;
+  color: #fff;
 }
 </style>

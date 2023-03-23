@@ -620,6 +620,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   candidate.value = item;
+  selectedStamps.value=item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -1305,7 +1306,7 @@ onMounted(() => {
             dataKey="rec_calendar_id"
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
-            :row-hover="true"
+            :row-hover="true" selectionMode="single"
           >
             <!-- <Column
               class="align-items-center justify-content-center text-center"

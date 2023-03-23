@@ -1398,7 +1398,7 @@ onMounted(() => {
           <div style="width: calc(100% - 10rem)" class="flex">
             <Textarea
               :autoResize="true"
-              rows="1"
+              rows="3"
               cols="40"
               v-model="recruitment_proposal.job_description"
               class="w-full"
@@ -1430,10 +1430,10 @@ onMounted(() => {
               :key="index"
             >
               <div
-                class="p-0 surface-100"
+                class="p-0 "
                 style="width: 100%; border-radius: 10px"
               >
-                <div class="w-full py-3 flex align-items-center border-1 border-solid border-400 ">
+                <div class="w-full py-3 flex align-items-center   ">
                   <div class="flex w-full">
                     <div v-if="item.is_image" class="align-items-center flex ">
                       <Image

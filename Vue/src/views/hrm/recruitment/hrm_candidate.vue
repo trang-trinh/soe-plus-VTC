@@ -640,6 +640,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   candidate.value = item;
+  selectedStamps.value=item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -1195,7 +1196,7 @@ onMounted(() => {
             @page="onPage($event)"
             @sort="onSort($event)"
             @filter="onFilter($event)"
-            v-model:filters="filters"
+            v-model:filters="filters" selectionMode="single"
             filterDisplay="menu"
             filterMode="lenient"
             :filters="filters"

@@ -1292,4 +1292,7 @@ onMounted(() => {
 .main-layout{
   height: 100%;
 }
+.p-tabview-nav-container{
+  left: 60px;
+}
 </style>
