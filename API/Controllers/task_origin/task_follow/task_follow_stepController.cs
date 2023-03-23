@@ -393,6 +393,117 @@ namespace API.Controllers
             }
 
         }
+        [HttpPut]
+        public async Task<HttpResponseMessage> ReOdersFollow()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            string temp1 = "";
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string strPath = root + "/Task_Files";
+                    bool exists = Directory.Exists(strPath);
+                    if (!exists)
+                        Directory.CreateDirectory(strPath);
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        temp1 = provider.FormData.GetValues("task_follow").SingleOrDefault();
+                        List<task_follow_task> task_Follow = JsonConvert.DeserializeObject<List<task_follow_task>>(temp1);
+               
+                        int index = 1;
+                        foreach (var item in task_Follow)
+                        {
+                            item.step = index;
+                            item.modified_by = uid;
+                            item.modified_date = DateTime.Now;
+                            item.modified_ip = ip;
+                            item.modified_token_id = tid;
+                            db.Entry(item).State = EntityState.Modified;
+                            index++;
+                        }
+                        //Noti
+                        string ssid = task_Follow[0].task_id;
+                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                        listuser.Remove(uid);
+
+                        foreach (var l in listuser)
+                        {
+                            helper.saveNotify(uid, l, null, "Công việc", "Cập nhật thứ tự thực hiện công việc trong quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                        }
+                        //Logs
+                        if (helper.wlog)
+                        {
+
+                            task_logs log = new task_logs();
+                            log.log_id = helper.GenKey();
+                            log.task_id = ssid;
+                            log.project_id = null;
+                            log.description = "Cập nhật thứ tự thực hiện công việc quy trình công việc";
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.task_logs.Add(log);
+                            db.SaveChanges();
+                        }
+                        db.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow_step/ReOdersFollow", ip, tid, "Lỗi khi cập nhật thứ tự công việc trong quy trình", 0, "Công việc");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow_step/ReOdersFollow", ip, tid, "Lỗi khi cập nhật thứ tự công việc trong quy trình", 0, "Công việc");
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
 
     }
 }

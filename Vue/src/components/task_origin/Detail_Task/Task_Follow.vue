@@ -328,17 +328,15 @@ const onRowReorder = (event) => {
   });
   axios({
     method: "put",
-    url: baseURL + "/api/task_follow/ReOdersFollow",
+    url: baseURL + "/api/task_follow_step/ReOdersFollow",
     data: formData,
-    headers: {
-      headers: { Authorization: `Bearer ${store.getters.token}` },
-    },
+    headers: { Authorization: `Bearer ${store.getters.token}` },
   })
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
         loadData();
-        toast.success("Sửa thứ tự thực hiện quy trình thành công");
+        toast.success("Sửa thứ tự thực hiện công việc thành công");
       } else {
         let ms = response.data.ms;
         swal.fire({
@@ -530,12 +528,12 @@ const openEditStepDialog = (e, f) => {
 };
 const length2 = ref(false);
 const checklength2 = () => {
-  length.value = false;
+  length2.value = false;
   const textbox = document.getElementById("step_name");
   if (textbox.value.length > 500) {
-    length.value = true;
+    length2.value = true;
   }
-  return length.value;
+  return length2.value;
 };
 const saveStep = (isFormValid) => {
   submitted.value = true;
@@ -936,7 +934,14 @@ onMounted(() => {
                   </AccordionTab>
                 </Accordion>
 
-                <DataTable :value="slotProps.data.task_info">
+                <DataTable
+                  :value="slotProps.data.task_info"
+                  @rowReorder="onRowReorder"
+                >
+                  <Column
+                    rowReorder
+                    class="max-w-2rem justify-content-center align-items-center text-center"
+                  />
                   <Column
                     header="STT"
                     field="step"
@@ -1198,7 +1203,7 @@ onMounted(() => {
       >
         <div class="col-4 p-0 text-left"></div>
         <small class="col-8 p-0 p-error">
-          <span class="col-12">Tên quy bước không quá 500 kí tự!</span>
+          <span class="col-12">Tên bước không quá 500 kí tự!</span>
         </small>
       </div>
       <div
