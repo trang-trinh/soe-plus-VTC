@@ -89,7 +89,7 @@ onMounted(() => {});
             class="py-0"
             style="color: #2196f3"
           >
-            Bước: {{ props.data.is_step }} - {{ props.data.follow_name }}
+            {{ props.data.follow_name }}
           </h2>
         </h3>
         <Accordion :activeIndex="0">
