@@ -105,7 +105,11 @@ namespace Controllers
                     }
                     if (user != null)
                     {
-                        user.wrong_pass_count = 0;
+                        if (user.wrong_pass_count > 0)
+                        {
+                            user.wrong_pass_count = 0;
+                            db.SaveChanges(); 
+                        }
                         if (user.avatar == null)
                         {
                             user.avatar = "/Portals/Image/nouser1.png";

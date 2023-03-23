@@ -18,6 +18,7 @@ using Newtonsoft.Json;
 
 namespace API.Controllers
 {
+    [Authorize(Roles = "login")]
     public class task_followController : ApiController
     {
         string module_key = "M4";
@@ -384,9 +385,6 @@ namespace API.Controllers
                 using (DBEntities db = new DBEntities())
                 {
                     List<task_follow> del = new List<task_follow>();
-     
-
-
                     var das = await db.task_follow.Where(a => id.Contains(a.follow_id)).ToListAsync();
                     List<string> paths = new List<string>();
                     if (das != null)
@@ -431,9 +429,10 @@ namespace API.Controllers
                     {
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
                     }
-                    if (del.Count > 0)
-                    {   
-                    }
+                    if (del.Count>0) {
+                    db.task_follow.RemoveRange(del);
+                        db.SaveChanges();
+                            }
                     await db.SaveChangesAsync();
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }

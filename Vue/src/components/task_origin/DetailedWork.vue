@@ -6324,7 +6324,7 @@ const is_viewSecurityTask = ref(true);
       <div class="row col-12 flex">
         <div
           v-if="datalists.is_deadline == true && datalists.status == 1"
-          class="col-11 p-0 m-0 p-button-warning format-center font-bold py-3 my-1 text-xl border-round flex ml-2"
+          class="col-12 p-button-warning format-center font-bold py-3 my-1 text-xl border-round flex"
           style="background-color: #fffbd8; color: #857a1f"
         >
           <i
@@ -6558,7 +6558,7 @@ const is_viewSecurityTask = ref(true);
             style="position: relative"
           >
             <Button
-              icon="p-custom pi pi-spin pi-sync"
+              icon="p-custom pi  pi-sync"
               label="Thiết lập quy trình"
               class="p-button-raised p-button-text w-full py-3 text-left"
               @click="Switch('11')"

@@ -18,6 +18,7 @@ using System.Data.Entity;
 
 namespace API.Controllers
 {
+    [Authorize(Roles = "login")]
     public class task_follow_stepController : ApiController
     {
         string module_key = "M4";
@@ -40,6 +41,7 @@ namespace API.Controllers
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
             string temp1 = "";
+            string temp2 = "";
             try
             {
                 using (DBEntities db = new DBEntities())
@@ -107,6 +109,24 @@ namespace API.Controllers
                             db.task_logs.Add(log);
                             db.SaveChanges();
                         }
+                        temp2 = provider.FormData.GetValues("task_follow_task").SingleOrDefault();
+                        List<task_follow_task> task_Follow_Task = JsonConvert.DeserializeObject<List<task_follow_task>>(temp2);
+                        List<task_follow_task> task_ADd= new List<task_follow_task>();
+                        int i = 1;
+                        foreach(var model in task_Follow_Task)
+                        {
+                            model.follow_task_id = helper.GenKey();
+                            model.follow_step_id = task_Follow.follow_step_id;
+                            model.task_id = ssid;
+                            model.step = i;
+                            i++;
+                            model.created_by= uid;
+                            model.created_token_id = tid;
+                            model.created_ip = ip;
+                            model.created_date= DateTime.Now;
+                            task_ADd.Add(model);
+                        }    
+                        db.task_follow_task.AddRange(task_ADd);
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -221,6 +241,29 @@ namespace API.Controllers
                             db.task_logs.Add(log);
                             db.SaveChanges();
                         }
+                        var listDel = db.task_follow_task.Where(x => x.follow_step_id == task_Follow.follow_step_id).ToList();
+                        if(listDel.Count > 0)
+                        {
+                            db.task_follow_task.RemoveRange(listDel);
+                        }    
+                        temp2 = provider.FormData.GetValues("task_follow_task").SingleOrDefault();
+                        List<task_follow_task> task_Follow_Task = JsonConvert.DeserializeObject<List<task_follow_task>>(temp2);
+                        List<task_follow_task> task_ADd = new List<task_follow_task>();
+                        int i = 1;
+                        foreach (var model in task_Follow_Task)
+                        {
+                            model.follow_task_id = helper.GenKey();
+                            model.follow_step_id = task_Follow.follow_step_id;
+                            model.task_id = ssid;
+                            model.step = i;
+                            i++;
+                            model.created_by = uid;
+                            model.created_token_id = tid;
+                            model.created_ip = ip;
+                            model.created_date = DateTime.Now;
+                            task_ADd.Add(model);
+                        }
+                        db.task_follow_task.AddRange(task_ADd);
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -231,7 +274,7 @@ namespace API.Controllers
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow_step/UpdateStep", ip, tid, "Lỗi khi cập nhật bước trong  quy trình", 0, "task_follow");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow_step/UpdateStep", ip, tid, "Lỗi khi cập nhật bước trong  quy trình", 0, "Công việc");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -242,7 +285,7 @@ namespace API.Controllers
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow_step/UpdateStep", ip, tid, "Lỗi khi cập nhật bước trong quy trình", 0, "task_follow");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "task_follow_step/UpdateStep", ip, tid, "Lỗi khi cập nhật bước trong quy trình", 0, "Công việc");
                 {
                     contents = "";
                 }
@@ -251,5 +294,105 @@ namespace API.Controllers
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
+        [HttpDelete]
+        public async Task<HttpResponseMessage> DeleteStep([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> id)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+
+
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/"; if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+
+                using (DBEntities db = new DBEntities())
+                {
+                    List<task_follow_step> del = new List<task_follow_step>();
+                    var das = await db.task_follow_step.Where(a => id.Contains(a.follow_step_id)).ToListAsync();
+                    List<string> paths = new List<string>();
+                    if (das != null)
+                    {
+                        foreach (var da in das)
+                        {
+                            del.Add(da);
+                            #region add logs
+                            if (helper.wlog)
+                            {
+
+                                task_logs log = new task_logs();
+                                log.log_id = helper.GenKey();
+                                log.task_id = da.task_id;
+                                log.project_id = null;
+                                log.description = "xóa bước trong quy trình công việc";
+                                log.created_date = DateTime.Now;
+                                log.created_by = uid;
+                                log.created_token_id = tid;
+                                log.created_ip = ip;
+                                db.task_logs.Add(log);
+                                db.SaveChanges();
+                            }
+                            #endregion
+                        }
+                    }
+                    if (das.Count > 0)
+                    {
+                        string ssid = das[0].task_id;
+
+                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                        listuser.Remove(uid);
+
+                        foreach (var l in listuser)
+                        {
+                            helper.saveNotify(uid, l, null, "Công việc", "Xóa quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                        }
+                    }
+                    if (del.Count == 0)
+                    {
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                    }
+                    if (del.Count > 0)
+                    {
+                        db.task_follow_step.RemoveRange(del);
+                        db.SaveChanges();
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "task_follow/deletetask_follow", ip, tid, "Lỗi khi xoá quy trình", 0, "Công việc");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "task_follow/deletetask_follow", ip, tid, "Lỗi khi xoá quy trình", 0, "Công việc");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+
+        }
+
     }
 }
