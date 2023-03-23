@@ -5,6 +5,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { encr } from "../../util/function.js";
 import moment from "moment";
+import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import { VuemojiPicker } from "vuemoji-picker";
 
 const cryoptojs = inject("cryptojs");
@@ -16,6 +17,8 @@ const axios = inject("axios"); // inject axios
 const emitter = inject("emitter");
 const basedomainURL = fileURL;
 const user = store.state.user;
+const PositionSideBarCalender = ref("right");
+const width1 = ref(window.screen.availWidth);
 
 const props = defineProps({
     id: String,
@@ -386,6 +389,33 @@ const loadData = (rf) => {
         });
 }
 
+const componentKey = ref(0);
+const forceRerender = () => {
+  componentKey.value += 1;
+};
+
+const showDetail = ref(false);
+const selectedTaskID = ref();
+const onRowSelect = (id) => {
+  forceRerender();
+  showDetail.value = false;
+  showDetail.value = true;
+  selectedTaskID.value = id.task_id;
+};
+const selectedKeys = ref();
+const onNodeSelect = (id) => {
+  forceRerender();
+  showDetail.value = false;
+  showDetail.value = true;
+  selectedTaskID.value = id.data.task_id;
+};
+emitter.on("SideBar", (obj) => {
+  showDetail.value = obj;
+  showDetail.value = false;
+  selectedTaskID.value = null;
+});
+const onRowUnselect = (id) => {};
+
 onMounted(() => {
     loadData(true);
     return {};
@@ -418,12 +448,12 @@ onMounted(() => {
                             <th class="fixcol left-200 p-3" rowspan="3" style="width: 150px; border: 1px solid #e9e9e9">
                                 Thực hiện
                             </th>
-                            <th class="fixcol left-350 p-3" rowspan="3" style="width: 100px; border: 1px solid #e9e9e9">
+                            <!-- <th class="fixcol left-350 p-3" rowspan="3" style="width: 100px; border: 1px solid #e9e9e9">
                                 Bắt đầu
                             </th>
                             <th class="fixcol left-450 p-3" rowspan="3" style="width: 100px; border: 1px solid #e9e9e9">
                                 Kết thúc
-                            </th>
+                            </th> -->
                             <th v-for="m in Grands" class="p-3" align="center" :width="m.Dates.length * 40"
                                 :colspan="m.Dates.length" style="text-align: center; min-width: 100px; color: #2196f3">
                                 <!-- Tháng {{ m.Month }}/{{ m.Year }}  -->
@@ -462,7 +492,32 @@ onMounted(() => {
                     <tbody>
                         <tr v-for="l in listProject" @click="onRowSelect(l)">
                             <td class="fixcol left-0 p-3" style="border: 1px solid #e9e9e9; background-color: #f8f9fa">
-                                {{ l.task_name }}
+                                <div>
+                                    <label>{{ l.task_name }}</label>
+                                    <div style="
+                                        font-size: 12px;
+                                        margin-top: 5px;
+                                        display: flex;
+                                        align-items: center;
+                                    "
+                                    >
+                                    <span
+                                        v-if="l.start_date || l.end_date"
+                                        style="color: #98a9bc"
+                                        >{{
+                                        l.start_date
+                                            ? moment(new Date(l.start_date)).format(
+                                                "DD/MM/YYYY",
+                                            )
+                                            : null
+                                        }}
+                                        {{
+                                        l.end_date
+                                            ? '- ' + moment(new Date(l.end_date)).format("DD/MM/YYYY")
+                                            : null
+                                        }}</span>
+                                    </div>
+                                </div>
                             </td>
                             <td class="fixcol left-200 p-3" style="border: 1px solid #e9e9e9; background-color: #f8f9fa">
                                 <div style="display: flex; justify-content: center">
@@ -510,7 +565,7 @@ onMounted(() => {
                                     </AvatarGroup>
                                 </div>
                             </td>
-                            <td class="fixcol left-350 p-3"
+                            <!-- <td class="fixcol left-350 p-3"
                                 style="border: 1px solid #e9e9e9; background-color: #f8f9fa; text-align: center;">
                                 {{
                                     l.start_date
@@ -525,7 +580,7 @@ onMounted(() => {
                                     ? moment(new Date(l.end_date)).format("DD/MM/YYYY HH:mm")
                                     : ""
                                 }}
-                            </td>
+                            </td> -->
                             <td class="no-fixcol-hover" style="background-color: #fff; border: 1px solid #e9e9e9" width="40"
                                 :colspan="g.IsCheck ? l.totalDay : 1" :style="
                                     (g.Name
@@ -545,7 +600,8 @@ onMounted(() => {
                         </tr>
                         <tr v-if="listProject.length == 0">
                             <td :colspan="GrandsDate.length + 4" style="text-align: center">
-                                <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
+                                <div class="align-items-center justify-content-center p-4 text-center m-auto" 
+                                style="
                                       min-height: calc(100vh - 215px);
                                       max-height: calc(100vh - 215px);
                                       display: flex;
@@ -561,6 +617,19 @@ onMounted(() => {
             </div>
         </div>
     </div>
+    <Sidebar
+      v-model:visible="showDetail"
+      position="right"
+      style="width:65vw;min-height: 100vh !important"
+      :showCloseIcon="false"
+    >
+      <DetailedWork
+        :isShow="showDetail"
+        :id="selectedTaskID"
+        :turn="0"
+      >
+      </DetailedWork
+    ></Sidebar>
 </template>
 <style scoped>
 .scrollbox_delayed:hover {
@@ -622,5 +691,8 @@ onMounted(() => {
     background-color: #f8f9fa;
     color: #2196f3;
     width: 110px;
+}
+.p-sidebar .p-sidebar-content{
+    padding: 0px !important;
 }
 </style>
