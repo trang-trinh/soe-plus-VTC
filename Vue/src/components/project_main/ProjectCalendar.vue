@@ -493,7 +493,7 @@ onMounted(() => {
                         <tr v-for="l in listProject" @click="onRowSelect(l)">
                             <td class="fixcol left-0 p-3" style="border: 1px solid #e9e9e9; background-color: #f8f9fa">
                                 <div>
-                                    <label>{{ l.task_name }}</label>
+                                    <label @click="onRowSelect(l)">{{ l.task_name }}</label>
                                     <div style="
                                         font-size: 12px;
                                         margin-top: 5px;
