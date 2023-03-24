@@ -252,13 +252,15 @@ const loadData = () => {
           x.status_display = filterstatus;
           x.StepProgress = 0;
           if (x.countStep > 0) {
-            x.StepProgress =
-              Math.floor(x.countStepFinished / x.countStep) * 100;
+            x.StepProgress = Math.floor(
+              (x.countStepFinished / x.countStep) * 100,
+            );
           }
           x.TaskProgress = 0;
           if (x.countTask > 0) {
-            x.TaskProgress =
-              Math.floor(x.countTaskFinished / x.countTask) * 100;
+            x.TaskProgress = Math.floor(
+              (x.countTaskFinished / x.countTask) * 100,
+            );
           }
           if (x.task_follow_step != null) {
             x.task_follow_step = JSON.parse(x.task_follow_step);
@@ -275,8 +277,9 @@ const loadData = () => {
               y.status_display = filterstatuszz;
               y.TaskProgress = 0;
               if (y.countTask > 0) {
-                y.TaskProgress =
-                  Math.floor(y.countTaskFinished / y.countTask) * 100;
+                y.TaskProgress = Math.floor(
+                  (y.countTaskFinished / y.countTask) * 100,
+                );
               }
               y.task_info = [];
               if (y.task_id_follow != null) {
@@ -596,6 +599,146 @@ const saveStep = (isFormValid) => {
       });
     });
 };
+const items = ref([
+  {
+    value: 0,
+    label: "Chưa bắt đầu",
+    bg_color: "#bbbbbb",
+    text_color: "#FFFFFF",
+    command: () => {},
+  },
+  {
+    value: 1,
+    label: "Đang làm",
+    bg_color: "#2196f3",
+    text_color: "#FFFFFF",
+    command: () => {},
+  },
+  {
+    value: 2,
+    label: "Hoàn thành đúng hạn",
+    bg_color: "#04D215",
+    text_color: "#FFFFFF",
+    command: () => {},
+  },
+  {
+    value: 3,
+    label: "Hoàn thành sau hạn",
+    bg_color: "#ff8b4e",
+    text_color: "#FFFFFF",
+    command: () => {},
+  },
+  {
+    value: 4,
+    label: "Tạm ngưng",
+    bg_color: "#d87777",
+    text_color: "#FFFFFF",
+    command: () => {},
+  },
+  {
+    value: 5,
+    label: "Đóng",
+    bg_color: "#d87777",
+    text_color: "#FFFFFF",
+    command: () => {},
+  },
+]);
+const menu = ref();
+const menuPos = ref();
+const menuData = ref();
+const toggle = (event, e, data) => {
+  menu.value.toggle(event);
+  menuPos.value = e;
+  menuData.value = data;
+};
+const changeStatus = (e) => {
+  if (menuData.value.status == e) {
+    toast.success(
+      "Quy trình đang có trạng thái: " +
+        listDrdStatus.value.filter((z) => z.value == e)[0].label,
+    );
+    return;
+  } else {
+    if (e == 5) {
+      if (menuData.value.status == 3) {
+        toast.success(
+          menuPos.value == 1
+            ? "Quy trình đang đóng!"
+            : "Bước thực hiện đang đóng",
+        );
+        return;
+      }
+      swal
+        .fire({
+          title: "Thông báo",
+          html:
+            "Bạn có chắc chắn muốn đóng " +
+            (menuPos.value == 1 ? "quy trình" : "bước thực hiện") +
+            " này không!<br/>(Hành động này sẽ đóng tất cả " +
+            (menuPos.value == 1 ? "quy trình" : "bước thực hiện") +
+            " thuộc bước hiện tại!)",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Có",
+          cancelButtonText: "Không",
+        })
+        .then((result) => {
+          if (result.isConfirmed) {
+            swal.fire({
+              width: 110,
+              didOpen: () => {
+                swal.showLoading();
+              },
+            });
+            UpdateStatusTaksFunc(e);
+          }
+        });
+    } else {
+      UpdateStatusTaksFunc(e);
+    }
+  }
+};
+const UpdateStatusTaksFunc = (e) => {
+  let formData = new FormData();
+  menuData.value.status = e;
+  formData.append("model", JSON.stringify(menuData.value));
+  axios
+    .put(
+      baseURL +
+        "/api/" +
+        (menuPos.value == 1 ? "task_follow/" : "task_follow_step/") +
+        (menuPos.value == 1 ? "Update_Status_Follow" : "Update_Status_Step"),
+      formData,
+      config,
+    )
+    .then((response) => {
+      if (response.data.err != "1") {
+        menu.value.hide();
+        swal.close();
+        toast.success("Cập nhật trạng thái công việc thành công!");
+        loadData(true);
+      } else {
+        let ms = response.data.ms;
+        swal.fire({
+          title: "Thông báo!",
+          html: ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!" + error,
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
 // 0: tạo/giao 1,2: làm, 3:theo dõi
 const TypeMember = ref();
 const expandedRows = ref([]);
@@ -682,7 +825,7 @@ onMounted(() => {
       <Column
         header="Công việc"
         field="follow_name"
-        class="justify-content-center align-items-center max-w-10rem"
+        class="justify-content-center align-items-center max-w-8rem"
       >
         <template #body="data">
           <div
@@ -717,6 +860,14 @@ onMounted(() => {
               border: '1px solid' + data.data.status_display.bg_color,
               borderRadius: '5px',
             }"
+            @click="
+              toggle($event, 1, {
+                follow_id: data.data.follow_id,
+                status: data.data.status,
+              })
+            "
+            aria-haspopup="true"
+            aria-controls="overlay_menu"
           >
             {{ data.data.status_display.label }}
           </span>
@@ -828,11 +979,11 @@ onMounted(() => {
             <Column
               header="Công việc"
               field="step_name"
-              class="justify-content-center align-items-center text-center max-w-10rem"
+              class="justify-content-center align-items-center text-center max-w-8rem"
             >
               <template #body="data">
                 <div
-                  class="w-full justify-content-center align-items-center text-center max-w-10rem"
+                  class="w-full justify-content-center align-items-center text-center"
                 >
                   <div>
                     {{ data.data.countTaskFinished }} /
@@ -864,6 +1015,14 @@ onMounted(() => {
                     border: '1px solid' + data.data.status_display.bg_color,
                     borderRadius: '5px',
                   }"
+                  @click="
+                    toggle($event, 2, {
+                      follow_step_id: data.data.follow_step_id,
+                      status: data.data.status,
+                    })
+                  "
+                  aria-haspopup="true"
+                  aria-controls="overlay_menu"
                 >
                   {{ data.data.status_display.label }}
                 </span>
@@ -947,7 +1106,7 @@ onMounted(() => {
                   @rowReorder="onRowReorder"
                 >
                   <Column
-                    v-if="TypeMember.value == 0"
+                    v-if="TypeMember == 0"
                     rowReorder
                     class="max-w-2rem justify-content-center align-items-center text-center"
                   />
@@ -991,7 +1150,10 @@ onMounted(() => {
                     class="justify-content-center align-items-center text-center max-w-8rem"
                   >
                     <template #body="data">
-                      <div v-if="data.data.progress > 0">
+                      <div
+                        v-if="data.data.progress > 0"
+                        class="w-full"
+                      >
                         <ProgressBar :value="data.data.progress" />
                       </div>
                       <div
@@ -1000,8 +1162,8 @@ onMounted(() => {
                       >
                         0%
                       </div>
-                    </template></Column
-                  >
+                    </template>
+                  </Column>
                   <Column
                     header="Trạng thái"
                     field="task_id_follow"
@@ -1670,6 +1832,33 @@ onMounted(() => {
       </div>
     </template>
   </Dialog>
+  <Menu
+    ref="menu"
+    id="overlay_menu"
+    :model="items"
+    :popup="true"
+  >
+    <template #item="{ item }">
+      <div
+        class="w-full p-2"
+        @click="changeStatus(item.value)"
+      >
+        <span>
+          <i
+            class="pi pi-circle"
+            style="
+              border: 1px hidden #ffffff;
+              border-radius: 50%;
+              color: #ffffff;
+              border-style: hidden;
+            "
+            :style="{ background: item.bg_color }"
+          />
+          {{ item.label }}
+        </span>
+      </div>
+    </template></Menu
+  >
 </template>
 
 <style lang="scss" scoped>

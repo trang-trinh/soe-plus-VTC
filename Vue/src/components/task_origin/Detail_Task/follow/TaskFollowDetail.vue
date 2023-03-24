@@ -193,12 +193,12 @@ onMounted(() => {});
       >
         <Column
           expander
-          class="max-w-1rem"
+          class="w-1rem"
         />
         <Column
           header="Thứ tự"
           field="is_step"
-          class="justify-content-center align-items-center text-center max-w-1rem"
+          class="justify-content-center align-items-center text-center w-5rem"
         >
         </Column>
         <Column
@@ -209,7 +209,7 @@ onMounted(() => {});
         <Column
           header="Công việc"
           field="step_name"
-          class="justify-content-center align-items-center text-center max-w-2rem"
+          class="justify-content-center align-items-center text-center w-7rem"
         >
           <template #body="data">
             <div>
@@ -230,7 +230,7 @@ onMounted(() => {});
         <Column
           header="Trình tự thực hiện"
           field="task_id_follow"
-          class="justify-content-center align-items-center text-center max-w-3rem"
+          class="justify-content-center align-items-center text-center w-12rem"
         >
           <template #body="data">
             <span
@@ -249,7 +249,7 @@ onMounted(() => {});
         <Column
           header="Trạng thái"
           field="task_id_follow"
-          class="justify-content-center align-items-center text-center max-w-3rem"
+          class="justify-content-center align-items-center text-center w-14rem"
         >
           <template #body="data">
             <span

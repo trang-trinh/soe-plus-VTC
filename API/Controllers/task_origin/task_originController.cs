@@ -1461,6 +1461,7 @@ namespace API.Controllers
                             {
                                 task_orgin.end_real_date = end_date;
                                 task_orgin.finish_date = end_date;
+                                task_orgin.progress = 100;
                             }
                             else if (stt == 3)
                             {
@@ -1472,7 +1473,7 @@ namespace API.Controllers
                                 task_orgin.end_real_date = null;
                                 task_orgin.finish_date = null;
                                 task_orgin.close_date = null;
-                                task_orgin.close_by = null;
+                                task_orgin.close_by = null; task_orgin.progress = null;
                             }
 
                             #region add task_logs
