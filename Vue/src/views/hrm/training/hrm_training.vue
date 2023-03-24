@@ -696,7 +696,7 @@ const itemButMores = ref([
 const toggleMores = (event, item) => {
   training_emps.value = item;
   menuButMores.value.toggle(event);
-  //selectedNodes.value = item;
+  selectedStamps.value = item;
 };
 //Xóa nhiều
 const deleteList = () => {

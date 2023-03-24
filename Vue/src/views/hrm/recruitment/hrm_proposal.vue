@@ -318,16 +318,14 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/HRM_SQL/Filter_hrm_recruitment_proposal", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_proposal", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
-          }
+          
         });
 
         datalists.value = data;
@@ -433,7 +431,7 @@ const refreshStamp = () => {
   options.value.user_verify_list = null;
   options.value.rec_position_id = null;
   options.value.can_academic_level_id = null;
-  options.value.rec_vacancies = null;
+  options.value.vacancy_id = null;
   options.value.start_dateI = null;
   options.value.end_dateI = null;
   options.value.start_dateI = null;
@@ -608,8 +606,8 @@ const exportData = (method) => {
            options.value.user_follows_list.toString():null },
           { par: "can_academic_level_id", va: options.value.can_academic_level_id?
            options.value.can_academic_level_id.toString():null },
-          { par: "rec_vacancies", va: options.value.rec_vacancies?
-           options.value.rec_vacancies.toString():null },
+          { par: "vacancy_id", va: options.value.vacancy_id?
+           options.value.vacancy_id.toString():null },
           { par: "status ", va: options.value.status_filter?
           options.value.status_filter.toString():null },
           { par: "start_dateI", va: options.value.start_dateI },
@@ -700,6 +698,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   recruitment_proposal.value = item;
+  selectedStamps.value=item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -773,7 +772,7 @@ const deleteList = () => {
 //Filter
 const reFilter = () => {
   options.value.user_follows = null;
-  options.value.rec_vacancies = null;
+  options.value.vacancy_id = null;
   options.value.user_verify = null;
   options.value.start_dateI = null;
   options.value.end_dateI = null;
@@ -862,14 +861,14 @@ const filterFileds = () => {
       filterSQL.value.push(filterS3);
     }
   }
-  if (options.value.rec_vacancies) {
+  if (options.value.vacancy_id) {
     let filterS4 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "rec_vacancies",
+      key: "vacancy_id",
     };
-    if (options.value.rec_vacancies.length > 0) {
-      options.value.rec_vacancies.forEach((element) => {
+    if (options.value.vacancy_id.length > 0) {
+      options.value.vacancy_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS4.filterconstraints.push(addr);
       });
@@ -1032,71 +1031,7 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
-
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
-
-const loadUser = () => {
-  listDropdownUser.value = [];
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          role_name: element.role_name,
-          position_name: element.position_name,
-        });
-      });
-
-      listDropdownUserCheck.value = [...listDropdownUser.value];
-    })
-    .catch((error) => {
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-
+ 
 const listPosition = ref([]);
 const listClasroom = ref([]);
 
@@ -1233,7 +1168,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  loadUser();
+   
 };
 const listAcademic_level = ref([]);
 onMounted(() => {
@@ -1329,10 +1264,29 @@ onMounted(() => {
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.rec_vacancies"
+                                v-model="options.vacancy_id"
+                                optionLabel="name"
+                                optionValue="code" display="chip"
+                                placeholder="Chọn vị trí tuyển dụng"
+                                class="w-full limit-width"
+                                style="min-height: 36px"
+                                panelClass="d-design-dropdown"
+                              >
+                              </MultiSelect>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12 p-0">
+                            <div class="form-group">
+                              <div class="py-2">Chức vụ</div>
+                              <MultiSelect
+                                :options="listPosition"
+                                :filter="true"
+                                :showClear="true"
+                                :editable="false"
+                                v-model="options.rec_position_id"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn vị trí tuyển dụng"
+                                placeholder="Chọn chức vụ" display="chip"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1371,112 +1325,8 @@ onMounted(() => {
                               </div>
                             </div>
                           </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="col-12 p-0">
-                              <div class="py-2">Người phụ trách</div>
-                            </div>
-                            <MultiSelect
-                              :options="listDropdownUser"
-                              :filter="true"
-                              :showClear="true"
-                              :editable="false"
-                              display="chip"
-                              v-model="options.user_verify"
-                              optionLabel="name"
-                              placeholder="Chọn người phụ trách"
-                              panelClass="d-design-dropdown  d-tree-input"
-                              class="col-12 p-0"
-                              style="min-height: 36px"
-                            >
-                              <template #option="slotProps">
-                                <div
-                                  class="country-item flex align-items-center"
-                                >
-                                  <div class="grid w-full p-0">
-                                    <div
-                                      class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
-                                    >
-                                      <div
-                                        class="col-1 mx-2 p-0 align-items-center"
-                                      >
-                                        <Avatar   style="color:#fff"
-                                          v-bind:label="
-                                            slotProps.option.avatar
-                                              ? ''
-                                              : slotProps.option.name.substring(
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 1,
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 2
-                                                )
-                                          "
-                                          :image="
-                                            basedomainURL +
-                                            slotProps.option.avatar
-                                          "
-                                          size="small"
-                                          :style="
-                                            slotProps.option.avatar
-                                              ? 'background-color: #2196f3'
-                                              : 'background:' +
-                                                bgColor[
-                                                  slotProps.option.name.length %
-                                                    7
-                                                ]
-                                          "
-                                          shape="circle"
-                                          @error="
-                                            $event.target.src =
-                                              basedomainURL +
-                                              '/Portals/Image/nouser1.png'
-                                          "
-                                        />
-                                      </div>
-                                      <div
-                                        class="col-11 p-0 ml-3 align-items-center"
-                                      >
-                                        <div class="pt-2">
-                                          <div class="font-bold">
-                                            {{ slotProps.option.name }}
-                                          </div>
-                                          <div
-                                            class="flex w-full text-sm font-italic text-500"
-                                          >
-                                            <div>
-                                              {{
-                                                slotProps.option.position_name
-                                              }}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </template>
-                            </MultiSelect>
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Chức vụ</div>
-                              <MultiSelect
-                                :options="listPosition"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.rec_position_id"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn chức vụ"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
+                       
+                        
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
@@ -1486,7 +1336,7 @@ onMounted(() => {
                               <div class="py-2">Trình độ</div>
 
                               <MultiSelect
-                                :options="listAcademic_level"
+                                :options="listAcademic_level" 
                                 :filter="false"
                                 :showClear="true"
                                 :editable="false"
@@ -1497,6 +1347,27 @@ onMounted(() => {
                                 placeholder="Chọn trình độ"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
+                                panelClass="d-design-dropdown"
+                              >
+                              </MultiSelect>
+                            </div>
+                          </div>
+                      
+                        
+                          <div class="col-12 md:col-12 p-0">
+                            <div class="form-group">
+                              <div class="py-2">Trạng thái</div>
+                              <MultiSelect
+                                :options="listStatus"
+                                v-model="options.status_filter"
+                                :filter="true"
+                                :showClear="true"
+                                :editable="false"
+                                display="chip"
+                                optionLabel="name"
+                                optionValue="code"
+                                placeholder="Chọn trạng thái"
+                                class="w-full limit-width"
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
@@ -1533,113 +1404,6 @@ onMounted(() => {
                               </div>
                             </div>
                           </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="col-12 p-0 pt-2">
-                              <label>Người theo dõi</label>
-                            </div>
-                            <MultiSelect
-                              :options="listDropdownUser"
-                              :filter="true"
-                              :showClear="true"
-                              :editable="false"
-                              display="chip"
-                              v-model="options.user_follows"
-                              optionLabel="name"
-                              placeholder="Chọn người theo dõi"
-                              style="min-height: 36px"
-                              panelClass="d-design-dropdown  d-tree-input"
-                              class="col-12 p-0  mt-2"
-                            >
-                              <template #option="slotProps">
-                                <div
-                                  class="country-item flex align-items-center"
-                                >
-                                  <div class="grid w-full p-0">
-                                    <div
-                                      class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
-                                    >
-                                      <div
-                                        class="col-1 mx-2 p-0 align-items-center"
-                                      >
-                                        <Avatar   style="color:#fff"
-                                          v-bind:label=" 
-                                            slotProps.option.avatar
-                                              ? ''
-                                              : slotProps.option.name.substring(
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 1,
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 2
-                                                )
-                                          "
-                                          :image="
-                                            basedomainURL +
-                                            slotProps.option.avatar
-                                          "
-                                          size="small"
-                                          :style="
-                                            slotProps.option.avatar
-                                              ? 'background-color: #2196f3'
-                                              : 'background:' +
-                                                bgColor[
-                                                  slotProps.option.name.length %
-                                                    7
-                                                ]
-                                          "
-                                          shape="circle"
-                                          @error="
-                                            $event.target.src =
-                                              basedomainURL +
-                                              '/Portals/Image/nouser1.png'
-                                          "
-                                        />
-                                      </div>
-                                      <div
-                                        class="col-11 p-0 ml-3 align-items-center"
-                                      >
-                                        <div class="pt-2">
-                                          <div class="font-bold">
-                                            {{ slotProps.option.name }}
-                                          </div>
-                                          <div
-                                            class="flex w-full text-sm font-italic text-500"
-                                          >
-                                            <div>
-                                              {{
-                                                slotProps.option.position_name
-                                              }}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </template>
-                            </MultiSelect>
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Trạng thái</div>
-                              <MultiSelect
-                                :options="listStatus"
-                                v-model="options.status_filter"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn trạng thái"
-                                class="w-full limit-width"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                          
                         </div>
                       </div>
                     </div>
@@ -1781,7 +1545,7 @@ onMounted(() => {
             <Column
               field="recruitment_proposal_name"
               header="Tên đề xuất"
-              :sortable="true"
+              :sortable="true"     headerClass="align-items-center justify-content-center text-center"
               headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"
             >

@@ -725,6 +725,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   campaign.value = item;
+  selectedStamps.value=item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -1822,6 +1823,7 @@ onMounted(() => {
               header="Tên chiến dịch"
               :sortable="true"
               headerStyle="text-align:left;height:50px"
+              headerClass="align-items-center justify-content-center text-center"
               bodyStyle="text-align:left"
             >
               <template #filter="{ filterModel }">

@@ -251,7 +251,7 @@ namespace Controllers
                         }
                         if (um?.status != model.status && um?.status == 0 && model.status == 1)
                         {
-                            um.wrong_pass_count = 0;
+                            model.wrong_pass_count = 0;
                         }
                         #region nội dung thay đổi
                         if (noidung == "")

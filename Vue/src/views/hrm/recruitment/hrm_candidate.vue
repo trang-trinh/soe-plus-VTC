@@ -640,6 +640,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   candidate.value = item;
+  selectedStamps.value=item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
