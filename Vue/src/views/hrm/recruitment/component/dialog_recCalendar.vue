@@ -477,8 +477,43 @@ const onFilterCandidate = (event) => {
     });
 };
 const listPhoneNumber = ref([]);
+const listClasroom = ref([]);
 var listCandidateSave = [];
 const initTudien = () => {
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_classroom_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listClasroom.value = [];
+      data.forEach((element) => {
+        listClasroom.value.push({
+          name: element.classroom_name,
+          code: element.classroom_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -1254,11 +1289,11 @@ onMounted(() => {
         <div class="col-12 p-0 flex field align-items-center">
           <div class="w-11rem">Phòng phỏng vấn</div>
           <div style="width: calc(100% - 11rem)">
-            <InputText v-model="recCalendar.rec_calendar_room" class="w-full">
-            </InputText>
-            <!-- <Dropdown
+            <!-- <InputText v-model="recCalendar.rec_calendar_room" class="w-full">
+            </InputText> -->
+            <Dropdown
               v-model="recCalendar.rec_calendar_room"
-              :options="listPlaceDetails1"
+              :options="listClasroom"
               optionLabel="name"
               optionValue="name"
               class="w-full"
@@ -1266,7 +1301,7 @@ onMounted(() => {
               panelClass="d-design-dropdown"
               :filter="true"
               
-            /> -->
+            />
           </div>
         </div>
 
@@ -1474,83 +1509,78 @@ onMounted(() => {
 
             <div class="col-12 p-0">
               <div
-                class="p-0 w-full flex"
-                v-for="(item, index) in listFilesS"
-                :key="index"
+              class="p-0 w-full flex"
+              v-for="(item, index) in listFilesS"
+              :key="index"
+            >
+              <div
+                class="p-0"
+                style="width: 100%; border-radius: 10px"
               >
-                <div
-                  class="p-0 surface-50"
-                  style="width: 100%; border-radius: 10px"
-                >
-                  <Toolbar class="w-full py-3">
-                    <template #start>
-                      <div class="flex">
-                        <div
-                          v-if="item.is_image"
-                          class="align-items-center flex"
-                        >
-                          <Image
-                            :src="basedomainURL + item.file_path"
-                            :alt="item.file_name"
-                            width="70"
-                            height="50"
-                            style="
-                              object-fit: contain;
-                              border: 1px solid #ccc;
-                              width: 70px;
-                              height: 50px;
-                            "
-                            preview
-                            class="pr-2"
-                          />
-                          <div class="ml-2">
+                <div class="w-full py-3 flex align-items-center ">
+                  <div class="flex w-full">
+                    <div v-if="item.is_image" class="align-items-center flex ">
+                      <Image
+                        :src="basedomainURL + item.file_path"
+                        :alt="item.file_name"
+                        width="70"
+                        height="50"
+                        style="
+                          object-fit: contain;
+                          border: 1px solid #ccc;
+                          width: 70px;
+                          height: 50px;
+                        "
+                        preview
+                        class="pr-2"
+                      />
+                      <div class="ml-2 " style="word-break: break-all;">
+                        {{ item.file_name }}
+                      </div>
+                    </div>
+                    <div v-else>
+                      <a
+                        :href="basedomainURL + item.file_path"
+                        download
+                        class="w-full no-underline cursor-pointer"
+                      >
+                        <div class="align-items-center flex">
+                          <div>
+                            <img
+                              :src="
+                                basedomainURL +
+                                '/Portals/Image/file/' +
+                                item.file_path.substring(
+                                  item.file_path.lastIndexOf('.') + 1
+                                ) +
+                                '.png'
+                              "
+                              style="
+                                width: 70px;
+                                height: 50px;
+                                object-fit: contain;
+                              "
+                              :alt="item.file_name"
+                            />
+                          </div>
+                          <div class="ml-2" style="word-break: break-all;">
                             {{ item.file_name }}
                           </div>
                         </div>
-                        <div v-else>
-                          <a
-                            :href="basedomainURL + item.file_path"
-                            download
-                            class="w-full no-underline cursor-pointer"
-                          >
-                            <div class="align-items-center flex">
-                              <div>
-                                <img
-                                  :src="
-                                    basedomainURL +
-                                    '/Portals/Image/file/' +
-                                    item.file_path.substring(
-                                      item.file_path.lastIndexOf('.') + 1
-                                    ) +
-                                    '.png'
-                                  "
-                                  style="
-                                    width: 70px;
-                                    height: 50px;
-                                    object-fit: contain;
-                                  "
-                                  :alt="item.file_name"
-                                />
-                              </div>
-                              <div class="ml-2">
-                                {{ item.file_name }}
-                              </div>
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-                    </template>
-                    <template #end>
-                      <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded p-button-danger"
-                        @click="deleteFileH(item)"
-                      />
-                    </template>
-                  </Toolbar>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="w-3rem align-items-center ">
+                    <Button
+                      icon="pi pi-times"
+                      class="p-button-rounded p-button-danger"
+                      @click="deleteFileH(item)"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>

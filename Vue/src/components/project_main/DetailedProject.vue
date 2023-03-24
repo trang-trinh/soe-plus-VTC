@@ -7,6 +7,7 @@ import { encr } from "../../util/function.js";
 import moment from "moment";
 import TaskOrigin from "../../views/task_origin/TaskOrigin.vue";
 import Discuss from "../project_main/Discuss.vue";
+import ProjectCalendar from "../project_main/ProjectCalendar.vue";
 
 const cryoptojs = inject("cryptojs");
 const first = ref(0);
@@ -1055,7 +1056,10 @@ onMounted(() => {
                             </Discuss>
                         </TabPanel>
                         <TabPanel header="Lịch">
-                            <p>Lịch</p>
+                          <ProjectCalendar
+                              :id="props.id"
+                            >
+                            </ProjectCalendar>
                         </TabPanel>
                         <TabPanel header="Báo cáo">
                             <p>Báo cáo</p>
@@ -1287,5 +1291,8 @@ onMounted(() => {
 }
 .main-layout{
   height: 100%;
+}
+.p-tabview-nav-container{
+  left: 60px;
 }
 </style>

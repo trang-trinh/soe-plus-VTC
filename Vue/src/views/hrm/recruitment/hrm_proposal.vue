@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
-import dialogTraining from "./component/dialog_training.vue";
+import dialogrecruitment_proposal from "./component/dialog_proposal.vue";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -19,11 +19,11 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  training_emps_name: {
+  recruitment_proposal_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
-  training_emps_code: {
+  recruitment_proposal_code: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -37,19 +37,7 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
-
-const listStatus = ref([
-  { name: "Lên kế hoạch", code: 1 },
-  { name: "Đang thực hiện", code: 2 },
-  { name: "Đã hoàn thành", code: 3 },
-  { name: "Tạm dừng", code: 4 },
-  { name: "Đã hủy", code: 5 },
-]);
-const listFormTraining = ref([
-  { name: "Bắt buộc", code: 1 },
-  { name: "Đăng ký", code: 2 },
-  { name: "Cả hai", code: 3 },
-]);
+ 
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -58,7 +46,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_training_emps_count",
+            proc: "hrm_recruitment_proposal_count",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
@@ -74,6 +62,7 @@ const loadCount = () => {
       let data3 = JSON.parse(response.data.data)[3];
       let data4 = JSON.parse(response.data.data)[4];
       let data5 = JSON.parse(response.data.data)[5];
+      let data6 = JSON.parse(response.data.data)[6];
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
         options.value.totalRecords1 = data1[0].totalRecords1;
@@ -81,14 +70,18 @@ const loadCount = () => {
         options.value.totalRecords3 = data3[0].totalRecords3;
         options.value.totalRecords4 = data4[0].totalRecord4;
         options.value.totalRecords5 = data5[0].totalRecords5;
-
+        options.value.totalRecords6 = data6[0].totalRecords6;
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
     .catch((error) => {});
 };
 
-//Lấy dữ liệu training_emps
+const recruitment_proposal = ref({
+  recruitment_proposal_name: null,
+  
+});
+//Lấy dữ liệu recruitment_proposal
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -106,7 +99,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_training_emps_list",
+              proc: "hrm_recruitment_proposal_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -124,9 +117,6 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
-          } else element.li_user_verify = [];
         });
 
         datalists.value = data;
@@ -155,25 +145,16 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].training_emps_id;
+    options.value.id = datalists.value[datalists.value.length - 1].recruitment_proposal_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].training_emps_id;
+    options.value.id = datalists.value[0].recruitment_proposal_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
-
-const training_emps = ref({
-  training_emps_name: "",
-  emote_file: "",
-  status: true,
-  is_default: false,
-  is_order: 1,
-});
 
 const selectedStamps = ref();
 
@@ -185,51 +166,46 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "training_emps_id desc ",
-  SearchText:null,
+  sort: "recruitment_proposal_id desc ",
+  SearchText: null,
   PageNo: 0,
   PageSize: 20,
   loading: true,
   totalRecords: 0,
-  tab: -1,
+  tab: 0,
   totalRecords1: 0,
   totalRecords2: 0,
   totalRecords3: 0,
   totalRecords4: 0,
   totalRecords5: 0,
+  totalRecords6:0,
+  totalRecordsExport:50,
+  pagenoExport:1
 });
 
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
-  training_emps.value = {
-    training_emps_code: null,
-    training_emps_name: null,
-    form_training: 1,
+  recruitment_proposal.value = {
+    recruitment_proposal_name: null,
+ 
     status: 1,
     training_place: null,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-    user_follows_fake: [],
-    user_verify_fake: [],
-    organization_training_fake: {},
+  
   };
-
-  if (store.getters.user.organization_id)
-    training_emps.value.organization_training_fake[
-      store.getters.user.organization_id
-    ] = true;
 
   isSaveTem.value = true;
   headerDialog.value = str;
-numOfKey.value+=1;
+
   displayBasic.value = true;
 };
 
 const closeDialog = () => {
-  training_emps.value = {
-    training_emps_name: "",
+  recruitment_proposal.value = {
+    recruitment_proposal_name: "",
     emote_file: "",
     status: true,
     is_default: false,
@@ -243,8 +219,8 @@ const sttStamp = ref(1);
 
 //Sửa bản ghi
 const editTem = (dataTem) => {
-  training_emps.value = dataTem;
-  headerDialog.value = "Sửa đào tạo";
+  recruitment_proposal.value = dataTem;
+  headerDialog.value = "Sửa đề xuất";
   isSaveTem.value = false;
   displayBasic.value = true;
 };
@@ -271,15 +247,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_training_emps/delete_hrm_training_emps", {
+          .delete(baseURL + "/api/hrm_recruitment_proposal/delete_hrm_recruitment_proposal", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.training_emps_id] : 1,
+            data: Tem != null ? [Tem.recruitment_proposal_id] : 1,
           })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá thông tin đào tạo thành công!");
+              toast.success("Xoá thông tin đề xuất thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -330,7 +306,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "training_emps_id",
+    id: "recruitment_proposal_id",
     sqlS: null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -342,16 +318,14 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/HRM_SQL/Filter_hrm_training_emps", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_proposal", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
-          }
+          
         });
 
         datalists.value = data;
@@ -362,12 +336,14 @@ const loadDataSQL = () => {
       options.value.loading = false;
       //Show Count nếu có
       if (dt.length >= 2 && checkLoadCount.value == true) {
+       
         options.value.totalRecords = dt[1][0].totalRecords;
         options.value.totalRecords1 = dt[2][0].totalRecords1;
         options.value.totalRecords2 = dt[3][0].totalRecords2;
         options.value.totalRecords3 = dt[4][0].totalRecords3;
         options.value.totalRecords4 = dt[5][0].totalRecords4;
         options.value.totalRecords5 = dt[6][0].totalRecords5;
+        options.value.totalRecords6 = dt[7][0].totalRecords6;
       }
     })
     .catch((error) => {
@@ -389,17 +365,13 @@ const loadDataSQL = () => {
 const setStatus = (value) => {
   opstatus.value.hide();
   let data = {
-    IntID: value.training_emps_id,
-    TextID: value.training_emps_id + "",
+    IntID: value.recruitment_proposal_id,
+    TextID: value.recruitment_proposal_id + "",
     IntTrangthai: value.status,
     BitTrangthai: false,
   };
   axios
-    .put(
-      baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
-      data,
-      config
-    )
+    .put(baseURL + "/api/hrm_recruitment_proposal/update_s_hrm_recruitment_proposal", data, config)
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
@@ -427,7 +399,7 @@ const setStatus = (value) => {
 
 const opstatus = ref();
 const toggleStatus = (item, event) => {
-  training_emps.value = item;
+  recruitment_proposal.value = item;
   opstatus.value.toggle(event);
 };
 //Tìm kiếm
@@ -444,9 +416,26 @@ const searchStamp = (event) => {
     }
   }
 };
+const listStatus = ref([
+  { name: "Chờ duyệt", code: 1 },
+  { name: "Đã duyệt", code: 2 },
+  { name: "Đang tuyển", code: 3 },
+  { name: "Hoàn thành", code: 4 },
+  { name: "Hết hạn", code: 5 },
+  { name: "Hủy bỏ", code: 6 },
+]);
 const refreshStamp = () => {
   options.value.SearchText = null;
   options.value.status_filter = null;
+  options.value.user_follows_list = null;
+  options.value.user_verify_list = null;
+  options.value.rec_position_id = null;
+  options.value.can_academic_level_id = null;
+  options.value.vacancy_id = null;
+  options.value.start_dateI = null;
+  options.value.end_dateI = null;
+  options.value.start_dateI = null;
+  options.value.end_dateD = null;
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -485,35 +474,31 @@ const onFilter = (event) => {
   options.value.id = null;
   isDynamicSQL.value = true;
   loadDataSQL();
-};
+}; 
 const tabs = ref([
   { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
-  { id: 1, title: "Lên kế hoạch", icon: "", total: 0 },
-  { id: 2, title: "Đang thực hiện", icon: "", total: 0 },
-  { id: 3, title: "Đã hoàn thành", icon: "", total: 0 },
-  { id: 4, title: "Tạm dừng", icon: "", total: 0 },
-  { id: 5, title: "Đã hủy", icon: "", total: 0 },
+  { id: 1, title: "Chờ duyệt", icon: "", total: 0 },
+  { id: 2, title: "Đã duyệt", icon: "", total: 0 },
+  { id: 3, title: "Đang tuyển", icon: "", total: 0 },
+  { id: 4, title: "Hoàn thành", icon: "", total: 0 },
+  { id: 5, title: "Hết hạn", icon: "", total: 0 },
+  { id: 6, title: "Hủy bỏ", icon: "", total: 0 },
 ]);
-const numOfKey=ref(0);
 //Checkbox
 const onCheckBox = (value, check) => {
   if (check) {
     let data = {
-      IntID: value.training_emps_id,
-      TextID: value.training_emps_id + "",
+      IntID: value.recruitment_proposal_id,
+      TextID: value.recruitment_proposal_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
-      .put(
-        baseURL + "/api/hrm_training_emps/update_s_hrm_training_emps",
-        data,
-        config
-      )
+      .put(baseURL + "/api/hrm_recruitment_proposal/update_s_hrm_recruitment_proposal", data, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái đào tạo thành công!");
+          toast.success("Sửa trạng thái đề xuất thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -536,20 +521,16 @@ const onCheckBox = (value, check) => {
       });
   } else {
     let data1 = {
-      IntID: value.training_emps_id,
-      TextID: value.training_emps_id + "",
+      IntID: value.recruitment_proposal_id,
+      TextID: value.recruitment_proposal_id + "",
       BitMain: value.is_default,
     };
     axios
-      .put(
-        baseURL + "/api/hrm_training_emps/Update_DefaultStamp",
-        data1,
-        config
-      )
+      .put(baseURL + "/api/hrm_recruitment_proposal/Update_DefaultStamp", data1, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái đào tạo thành công!");
+          toast.success("Sửa trạng thái đề xuất thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -574,16 +555,29 @@ const onCheckBox = (value, check) => {
 };
 
 //Xuất excel
+
+const exportExcelR = () => {
+  showExport.value = false;
+
+ 
+    exportData("ExportExcel");
+ 
+};
+
+const headerExport=ref("Cấu hình xuất Excel");
 const menuButs = ref();
+const showExport = ref(false);
 const itemButs = ref([
   {
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportData("ExportExcel");
+
+     
+        showExport.value = true;
+     
     },
   },
- 
 ]);
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
@@ -595,28 +589,36 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
+ 
   axios
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
-        excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
-        proc: "hrm_training_emps_export",
+        excelname: "DANH SÁCH đề xuất",
+        proc: "hrm_recruitment_proposal_export",
         par: [
- 
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "training_groups", va:  options.value.training_groups_id  },
-          { par: "user_verify", va:  options.value.user_verify  },
-          { par: "user_follows", va: options.value.user_follows},
-           { par: "form_training", va: options.value.type_formtraining},
-          { par: "status ", va: options.value.status_filter},
-          { par: "start_date", va: options.value.start_date },
-          { par: "end_date", va: options.value.end_date },
-             { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.PageNo },
-          { par: "pagesize", va: options.value.PageSize },
+          { par: "rec_position_id", va:options.value.rec_position_id?
+           options.value.rec_position_id.toString():null },
+          { par: "user_verify", va:options.value.user_verify_list? options.value.user_verify_list.toString():null },
+          { par: "user_follows", va:options.value.user_follows_list?
+           options.value.user_follows_list.toString():null },
+          { par: "can_academic_level_id", va: options.value.can_academic_level_id?
+           options.value.can_academic_level_id.toString():null },
+          { par: "vacancy_id", va: options.value.vacancy_id?
+           options.value.vacancy_id.toString():null },
+          { par: "status ", va: options.value.status_filter?
+          options.value.status_filter.toString():null },
+          { par: "start_dateI", va: options.value.start_dateI },
+          { par: "end_dateI", va: options.value.end_dateI },
+          { par: "start_dateD", va: options.value.start_dateD },
+          { par: "end_dateD", va: options.value.end_dateD },
+          { par: "sort", va: options.value.sort },
+          { par: "pageno", va: options.value.pagenoExport-1 },
+          { par: "pagesize", va: options.value.totalRecordsExport },
         ],
-      },
+      }, 
       config
     )
     .then((response) => {
@@ -625,7 +627,7 @@ const exportData = (method) => {
         swal.close();
 
         toast.success("Kết xuất Data thành công!");
-        debugger
+
         if (response.data.path != null) {
           let pathReplace = response.data.path
             .replace(/\\+/g, "/")
@@ -662,6 +664,7 @@ const exportData = (method) => {
 
 const activeTab = (tab) => {
   options.value.tab = tab.id;
+
   reFilter();
   if (tab.id) {
     checkLoadCount.value = false;
@@ -682,21 +685,22 @@ const itemButMores = ref([
     label: "Hiệu chỉnh nội dung",
     icon: "pi pi-pencil",
     command: (event) => {
-      editTem(training_emps.value, "Chỉnh sửa hợp đồng");
+      editTem(recruitment_proposal.value, "Chỉnh sửa hợp đồng");
     },
   },
   {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
-      delTem(training_emps.value);
+      delTem(recruitment_proposal.value);
     },
   },
 ]);
 const toggleMores = (event, item) => {
-  training_emps.value = item;
+  recruitment_proposal.value = item;
+  selectedStamps.value=item;
   menuButMores.value.toggle(event);
-  selectedStamps.value = item;
+  //selectedNodes.value = item;
 };
 //Xóa nhiều
 const deleteList = () => {
@@ -707,7 +711,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá thông tin đào tạo này không!",
+        text: "Bạn có muốn xoá thông tin đề xuất này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -725,21 +729,18 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.training_emps_id);
+            listId.push(item.recruitment_proposal_id);
           });
           axios
-            .delete(
-              baseURL + "/api/hrm_training_emps/delete_hrm_training_emps",
-              {
-                headers: { Authorization: `Bearer ${store.getters.token}` },
-                data: listId != null ? listId : 1,
-              }
-            )
+            .delete(baseURL + "/api/hrm_recruitment_proposal/delete_hrm_recruitment_proposal", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: listId != null ? listId : 1,
+            })
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá thông tin đào tạo thành công!");
+                toast.success("Xoá thông tin đề xuất thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -771,12 +772,15 @@ const deleteList = () => {
 //Filter
 const reFilter = () => {
   options.value.user_follows = null;
-  options.value.training_groups_id = null;
+  options.value.vacancy_id = null;
   options.value.user_verify = null;
-options.value.start_date=null;
-options.value.end_date=null
-  options.value.type_formtraining = null;
-
+  options.value.start_dateI = null;
+  options.value.end_dateI = null;
+  options.value.start_dateD = null;
+  options.value.end_dateD = null;
+  options.value.can_academic_level_id = null;
+  
+  options.value.rec_position_id = null;
   options.value.status_filter = null;
   checkLoadCount.value = true;
   isDynamicSQL.value = false;
@@ -789,6 +793,8 @@ const reFilterEmail = () => {
   op.value.hide();
   loadData(true);
 };
+
+const listVacancies = ref([]);
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
@@ -807,14 +813,31 @@ const filterFileds = () => {
       filterSQL.value.push(filterS1);
     }
   }
-  if (options.value.type_formtraining) {
+
+  
+  if (options.value.rec_position_id) {
     let filterS2 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "form_training",
+      key: "rec_position_id",
     };
-    if (options.value.type_formtraining.length > 0) {
-      options.value.type_formtraining.forEach((element) => {
+    if (options.value.rec_position_id.length > 0) {
+      options.value.rec_position_id.forEach((element) => {
+        var addr = { value: element, matchMode: "equals" };
+        filterS2.filterconstraints.push(addr);
+      });
+
+      filterSQL.value.push(filterS2);
+    }
+  }
+  if (options.value.can_academic_level_id) {
+    let filterS2 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "can_academic_level_id",
+    };
+    if (options.value.can_academic_level_id.length > 0) {
+      options.value.can_academic_level_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS2.filterconstraints.push(addr);
       });
@@ -832,19 +855,20 @@ const filterFileds = () => {
       options.value.user_follows.forEach((element) => {
         var addr = { value: element.code, matchMode: "contains" };
         filterS3.filterconstraints.push(addr);
+        options.value.user_follows_list.push(element.code);
       });
 
       filterSQL.value.push(filterS3);
     }
   }
-  if (options.value.training_groups_id) {
+  if (options.value.vacancy_id) {
     let filterS4 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "training_groups_id",
+      key: "vacancy_id",
     };
-    if (options.value.training_groups_id.length > 0) {
-      options.value.training_groups_id.forEach((element) => {
+    if (options.value.vacancy_id.length > 0) {
+      options.value.vacancy_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS4.filterconstraints.push(addr);
       });
@@ -862,6 +886,7 @@ const filterFileds = () => {
       options.value.user_verify.forEach((element) => {
         var addr = { value: element.code, matchMode: "contains" };
         filterS5.filterconstraints.push(addr);
+        options.value.user_verify_list.push(element.code);
       });
 
       filterSQL.value.push(filterS5);
@@ -869,28 +894,26 @@ const filterFileds = () => {
   }
 
   onDayClick();
+   
   loadDataSQL();
   op.value.hide();
 };
 
-
 const onDayClick = () => {
-  if (options.value.start_date != null)  
-  {
- 
-    if (!options.value.end_date)
-      options.value.end_date = options.value.start_date;
-    
+  if (options.value.start_dateI != null) {
+    if (!options.value.end_dateI)
+      options.value.end_dateI = options.value.start_dateI;
+
     if (
-      options.value.start_date &&
-      options.value.start_date != options.value.end_date
+      options.value.start_dateI &&
+      options.value.start_dateI != options.value.end_dateI
     ) {
-      let sDate = new Date(options.value.start_date);
-      sDate.setDate(sDate.getDate() - 1);
-      options.value.start_date = sDate;
+      let sDate = new Date(options.value.start_dateI);
+   
+      options.value.start_dateI = sDate;
       let filterS = {
         filterconstraints: [
-          { value: options.value.start_date, matchMode: "dateAfter" },
+          { value: options.value.start_dateI, matchMode: "dateAfter" },
         ],
         filteroperator: "and",
         key: "start_date",
@@ -898,15 +921,60 @@ const onDayClick = () => {
       filterSQL.value.push(filterS);
     }
     if (
-      options.value.end_date &&
-      options.value.start_date != options.value.end_date
+      options.value.end_dateI &&
+      options.value.start_dateI != options.value.end_dateI
     ) {
-      let eDate = new Date(options.value.end_date);
-      eDate.setDate(eDate.getDate() + 1);
-      options.value.end_date = eDate;
+      let eDate = new Date(options.value.end_dateI);
+     
+      options.value.end_dateI = eDate;
       let filterS = {
         filterconstraints: [
-          { value: options.value.end_date, matchMode: "dateBefore" },
+          { value: options.value.end_dateI, matchMode: "dateBefore" },
+        ],
+        filteroperator: "and",
+        key: "start_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (
+      options.value.start_dateI &&
+      options.value.start_dateI == options.value.end_dateI
+    ) {
+      let filterS1 = {
+        filterconstraints: [
+          { value: options.value.start_dateI, matchMode: "dateIs" },
+        ],
+        filteroperator: "and",
+        key: "start_date",
+      };
+      filterSQL.value.push(filterS1);
+      let filterS2 = {
+        filterconstraints: [
+          { value: options.value.end_dateI, matchMode: "dateIs" },
+        ],
+        filteroperator: "and",
+        key: "start_date",
+      };
+      filterSQL.value.push(filterS2);
+    }
+  }
+
+
+
+  if (options.value.start_dateD != null) {
+    if (!options.value.end_dateD)
+      options.value.end_dateD = options.value.start_dateD;
+
+    if (
+      options.value.start_dateD &&
+      options.value.start_dateD != options.value.end_dateD
+    ) {
+      let sDate = new Date(options.value.start_dateD);
+   
+      options.value.start_dateD = sDate;
+      let filterS = {
+        filterconstraints: [
+          { value: options.value.start_dateD, matchMode: "dateAfter" },
         ],
         filteroperator: "and",
         key: "end_date",
@@ -914,20 +982,36 @@ const onDayClick = () => {
       filterSQL.value.push(filterS);
     }
     if (
-      options.value.start_date &&
-      options.value.start_date == options.value.end_date
+      options.value.end_dateD &&
+      options.value.start_dateI != options.value.end_dateD
+    ) {
+      let eDate = new Date(options.value.end_dateD);
+     
+      options.value.end_dateD = eDate;
+      let filterS = {
+        filterconstraints: [
+          { value: options.value.end_dateD, matchMode: "dateBefore" },
+        ],
+        filteroperator: "and",
+        key: "end_date",
+      };
+      filterSQL.value.push(filterS);
+    }
+    if (
+      options.value.start_dateD &&
+      options.value.start_dateD == options.value.end_dateD
     ) {
       let filterS1 = {
         filterconstraints: [
-          { value: options.value.start_date, matchMode: "dateIs" },
+          { value: options.value.start_dateD, matchMode: "dateIs" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "end_date",
       };
       filterSQL.value.push(filterS1);
-        let filterS2 = {
+      let filterS2 = {
         filterconstraints: [
-          { value: options.value.end_date, matchMode: "dateIs" },
+          { value: options.value.end_dateD, matchMode: "dateIs" },
         ],
         filteroperator: "and",
         key: "end_date",
@@ -935,7 +1019,6 @@ const onDayClick = () => {
       filterSQL.value.push(filterS2);
     }
   }
-   
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -948,35 +1031,22 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
+ 
+const listPosition = ref([]);
+const listClasroom = ref([]);
 
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
-
-const loadUser = () => {
-  listDropdownUser.value = [];
+const initTudien = () => {
   axios
     .post(
-      baseURL + "/api/device_card/getData",
+      baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_users_list_dd",
+            proc: "ca_positions_list",
             par: [
-              { par: "search", va: null },
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
             ],
           }),
           SecretKey,
@@ -987,43 +1057,25 @@ const loadUser = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
+      listPosition.value = [];
       data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          role_name: element.role_name,
-          position_name: element.position_name,
+        listPosition.value.push({
+          name: element.position_name,
+          code: element.position_id,
         });
       });
-
-      listDropdownUserCheck.value = [...listDropdownUser.value];
     })
     .catch((error) => {
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
+      console.log(error);
     });
-};
 
-const listTrainingGroups = ref([]);
-const listClasroom = ref([]);
-
-const initTudien = () => {
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_enecting_group_list",
+            proc: "hrm_ca_academic_level_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -1039,11 +1091,44 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listTrainingGroups.value = [];
-      data.forEach((element) => {
-        listTrainingGroups.value.push({
-          name: element.enecting_group_name,
-          code: element.enecting_group_id,
+      listAcademic_level.value = [];
+      data.forEach((element, i) => {
+        listAcademic_level.value.push({
+          name: element.academic_level_name,
+          code: element.academic_level_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_vacancy_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      listVacancies.value = [];
+      data.forEach((element, i) => {
+        listVacancies.value.push({
+          name: element.vacancy_name,
+          code: element.vacancy_id,
         });
       });
     })
@@ -1083,9 +1168,9 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  loadUser();
+   
 };
-
+const listAcademic_level = ref([]);
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
@@ -1111,12 +1196,12 @@ onMounted(() => {
   };
 });
 </script>
-    <template>
+<template>
   <div class="p-3 surface-100">
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách đào tạo
+          <i class="pi pi-send"></i> Danh sách đề xuất
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1164,7 +1249,7 @@ onMounted(() => {
                     class="col-12 md:col-12 p-0"
                     style="
                       min-height: unset;
-                      max-height: calc(100vh - 300px);
+                      max-height: calc(100vh - 200px);
                       overflow: auto;
                     "
                   >
@@ -1173,151 +1258,35 @@ onMounted(() => {
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <div class="pb-2">Nhóm đào tạo</div>
+                              <div class="py-2">Vị trí tuyển dụng</div>
                               <MultiSelect
-                                :options="listTrainingGroups"
+                                :options="listVacancies"
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.training_groups_id"
+                                v-model="options.vacancy_id"
                                 optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn nhóm đào tạo"
+                                optionValue="code" display="chip"
+                                placeholder="Chọn vị trí tuyển dụng"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
                             </div>
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                                <div class="col-12 p-0 pt-2 ">
-                              <label  >Người phụ trách</label>
-                                </div>
-                              <MultiSelect
-                                :options="listDropdownUser"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                v-model="options.user_verify"
-                                optionLabel="name"
-                                placeholder="Chọn người phụ trách"
-                                                   panelClass="d-design-dropdown  d-tree-input"
-         class="col-12 my-2   "
-                                
-                                style="min-height: 36px"
-                              
-                              >
-                                <template #option="slotProps">
-                                  <div
-                                    class="country-item flex align-items-center"
-                                  >
-                                    <div class="grid w-full p-0">
-                                      <div
-                                        class="
-                                          field
-                                          p-0
-                                          py-1
-                                          col-12
-                                          flex
-                                          m-0
-                                          cursor-pointer
-                                          align-items-center
-                                        "
-                                      >
-                                        <div
-                                          class="
-                                            col-1
-                                            mx-2
-                                            p-0
-                                            align-items-center
-                                          "
-                                        >
-                                          <Avatar
-                                            v-bind:label="
-                                              slotProps.option.avatar
-                                                ? ''
-                                                : slotProps.option.name.substring(
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 1,
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 2
-                                                  )
-                                            "
-                                            :image="
-                                              basedomainURL +
-                                              slotProps.option.avatar
-                                            "
-                                            size="small"
-                                            :style="
-                                              slotProps.option.avatar
-                                                ? 'background-color: #2196f3'
-                                                : 'background:' +
-                                                  bgColor[
-                                                    slotProps.option.name
-                                                      .length % 7
-                                                  ]
-                                            "
-                                            shape="circle"
-                                            @error="
-                                              $event.target.src =
-                                                basedomainURL +
-                                                '/Portals/Image/nouser1.png'
-                                            "
-                                          />
-                                        </div>
-                                        <div
-                                          class="
-                                            col-11
-                                            p-0
-                                            ml-3
-                                            align-items-center
-                                          "
-                                        >
-                                          <div class="pt-2">
-                                            <div class="font-bold">
-                                              {{ slotProps.option.name }}
-                                            </div>
-                                            <div
-                                              class="
-                                                flex
-                                                w-full
-                                                text-sm
-                                                font-italic
-                                                text-500
-                                              "
-                                            >
-                                              <div>
-                                                {{
-                                                  slotProps.option.position_name
-                                                }}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </template>
-                              </MultiSelect>
-                          
                           </div>
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <div class="pb-2">Hình thức đào tạo</div>
+                              <div class="py-2">Chức vụ</div>
                               <MultiSelect
-                                :options="listFormTraining"
-                                :filter="false"
+                                :options="listPosition"
+                                :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.type_formtraining"
+                                v-model="options.rec_position_id"
                                 optionLabel="name"
                                 optionValue="code"
-                                display="chip"
-                                placeholder="Chọn hình thức đào tạo"
+                                placeholder="Chọn chức vụ" display="chip"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1325,161 +1294,69 @@ onMounted(() => {
                               </MultiSelect>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="row">
-                          <div class="col-12 md:col-12">
-                            <div class="form-group m-0 pb-2">
-                              <label>Thời gian đào tạo</label>
+                          <div class="col-12 p-0 md:col-12">
+                            <div class="form-group m-0 py-2">
+                              <div>Ngày bắt đầu</div>
                             </div>
                           </div>
                           <div class="col-12 p-0 flex">
-                            <div class="col-6 md:col-6">
+                            <div class="col-6 p-0 md:col-6">
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
                                   class="ip36"
                                   autocomplete="on"
                                   inputId="time24"
-                                  v-model="options.start_date"
+                                  v-model="options.start_dateI"
                                   placeholder="Từ ngày"
                                 />
                               </div>
                             </div>
-                            <div class="col-6 md:col-6">
+                            <div class="col-6  p-0 pl-2 md:col-6">
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
                                   class="ip36"
                                   autocomplete="on"
                                   inputId="time24"
-                                  v-model="options.end_date"
+                                  v-model="options.end_dateI"
                                   placeholder="Đến ngày"
                                 />
                               </div>
                             </div>
                           </div>
-                          <div class="col-12 md:col-12">
-                           
-                             <div class="col-12 p-0 pt-2">
-                               <label>Người theo dõi</label>
-                             </div>
-                             <MultiSelect
-                                :options="listDropdownUser"
-                                :filter="true"
+                       
+                        
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="row">
+                          <div class="col-12 md:col-12 p-0">
+                            <div class="form-group">
+                              <div class="py-2">Trình độ</div>
+
+                              <MultiSelect
+                                :options="listAcademic_level" 
+                                :filter="false"
                                 :showClear="true"
                                 :editable="false"
-                                display="chip"
-                                v-model="options.user_follows"
+                                v-model="options.can_academic_level_id"
                                 optionLabel="name"
-                                placeholder="Chọn người theo dõi"
-                               
+                                optionValue="code"
+                                display="chip"
+                                placeholder="Chọn trình độ"
+                                class="w-full limit-width"
                                 style="min-height: 36px"
-                                    panelClass="d-design-dropdown  d-tree-input"
-         class="col-12 my-2   "
-                                
+                                panelClass="d-design-dropdown"
                               >
-                                <template #option="slotProps">
-                                  <div
-                                    class="country-item flex align-items-center"
-                                  >
-                                    <div class="grid w-full p-0">
-                                      <div
-                                        class="
-                                          field
-                                          p-0
-                                          py-1
-                                          col-12
-                                          flex
-                                          m-0
-                                          cursor-pointer
-                                          align-items-center
-                                        "
-                                      >
-                                        <div
-                                          class="
-                                            col-1
-                                            mx-2
-                                            p-0
-                                            align-items-center
-                                          "
-                                        >
-                                          <Avatar
-                                            v-bind:label="
-                                              slotProps.option.avatar
-                                                ? ''
-                                                : slotProps.option.name.substring(
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 1,
-                                                    slotProps.option.name.lastIndexOf(
-                                                      ' '
-                                                    ) + 2
-                                                  )
-                                            "
-                                            :image="
-                                              basedomainURL +
-                                              slotProps.option.avatar
-                                            "
-                                            size="small"
-                                            :style="
-                                              slotProps.option.avatar
-                                                ? 'background-color: #2196f3'
-                                                : 'background:' +
-                                                  bgColor[
-                                                    slotProps.option.name
-                                                      .length % 7
-                                                  ]
-                                            "
-                                            shape="circle"
-                                            @error="
-                                              $event.target.src =
-                                                basedomainURL +
-                                                '/Portals/Image/nouser1.png'
-                                            "
-                                          />
-                                        </div>
-                                        <div
-                                          class="
-                                            col-11
-                                            p-0
-                                            ml-3
-                                            align-items-center
-                                          "
-                                        >
-                                          <div class="pt-2">
-                                            <div class="font-bold">
-                                              {{ slotProps.option.name }}
-                                            </div>
-                                            <div
-                                              class="
-                                                flex
-                                                w-full
-                                                text-sm
-                                                font-italic
-                                                text-500
-                                              "
-                                            >
-                                              <div>
-                                                {{
-                                                  slotProps.option.position_name
-                                                }}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </template>
                               </MultiSelect>
-                          
+                            </div>
                           </div>
-
-                          <div class="col-12 md:col-12">
+                      
+                        
+                          <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <div class="pb-2">Trạng thái</div>
+                              <div class="py-2">Trạng thái</div>
                               <MultiSelect
                                 :options="listStatus"
                                 v-model="options.status_filter"
@@ -1491,37 +1368,63 @@ onMounted(() => {
                                 optionValue="code"
                                 placeholder="Chọn trạng thái"
                                 class="w-full limit-width"
-                                style="min-height: 36px"
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
+                            </div>
+                          </div>
+                          <div class="col-12 p-0 md:col-12">
+                            <div class="form-group m-0 py-2">
+                              <div>Ngày kết thúc</div>
+                            </div>
+                          </div>
+                          <div class="col-12 p-0 flex">
+                            <div class="col-6 p-0 md:col-6">
+                              <div class="form-group">
+                                <Calendar
+                                  :showIcon="true"
+                                  class="ip36"
+                                  autocomplete="on"
+                                  inputId="time24"
+                                  v-model="options.start_dateD"
+                                  placeholder="Từ ngày"
+                                />
+                              </div>
+                            </div>
+                            <div class="col-6  p-0 pl-2 md:col-6">
+                              <div class="form-group">
+                                <Calendar
+                                  :showIcon="true"
+                                  class="ip36"
+                                  autocomplete="on"
+                                  inputId="time24"
+                                  v-model="options.end_dateD"
+                                  placeholder="Đến ngày"
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 md:col-12 p-0   pl-2 pr-3">
+                  <div class="col-12 md:col-12 p-0">
                     <Toolbar
-                      class="
-                        border-none
-                        surface-0
-                        outline-none
-                        px-0
-                        pb-0
-                        w-full
-                       
-                      "
+                      class="border-none surface-0 outline-none px-0 pb-0 w-full"
                     >
                       <template #start>
                         <Button
                           @click="reFilterEmail()"
-                          class="p-button-outlined  "
+                          class="p-button-outlined mx-2"
                           label="Bỏ chọn"
                         ></Button>
                       </template>
                       <template #end>
-                        <Button @click="filterFileds()" label="Lọc"></Button>
+                        <Button
+                          @click="filterFileds()"
+                          class="mx-2"
+                          label="Lọc"
+                        ></Button>
                       </template>
                     </Toolbar>
                   </div>
@@ -1532,7 +1435,7 @@ onMounted(() => {
 
           <template #end>
             <Button
-              @click="openBasic('Thêm mới đào tạo')"
+              @click="openBasic('Thêm mới đề xuất')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1551,19 +1454,19 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-                label="Tiện ích"
-                icon="pi pi-file-excel"
-                class="mr-2 p-button-outlined p-button-secondary"
-                @click="toggleExport"
-                aria-haspopup="true"
-                aria-controls="overlay_Export"
-              />
-              <Menu
-                id="overlay_Export"
-                ref="menuButs"
-                :model="itemButs"
-                :popup="true"
-              />
+              label="Tiện ích"
+              icon="pi pi-file-excel"
+              class="mr-2 p-button-outlined p-button-secondary"
+              @click="toggleExport"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            />
+            <Menu
+              id="overlay_Export"
+              ref="menuButs"
+              :model="itemButs"
+              :popup="true"
+            />
           </template>
         </Toolbar>
       </div>
@@ -1591,6 +1494,8 @@ onMounted(() => {
                       ? options.totalRecords4
                       : tab.id == 5
                       ? options.totalRecords5
+                      : tab.id == 6
+                      ? options.totalRecords6
                       : options.totalRecords
                   }})</span
                 >
@@ -1623,50 +1528,25 @@ onMounted(() => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
             :paginator="true"
-            dataKey="training_emps_id"
+            dataKey="recruitment_proposal_id"
             responsiveLayout="scroll"
-            v-model:selection="selectedStamps" selectionMode="single"
-            :row-hover="true"
-          
+            v-model:selection="selectedStamps"
+            :row-hover="true" selectionMode="single"
           >
-            <!-- <Column
-              class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px"
-              bodyStyle="text-align:center;max-width:70px"
-              selectionMode="multiple"
-            >
-            </Column> -->
-
             <Column
               field="STT"
               header="STT"
-          
-              class="align-items-center flex justify-content-center text-center"
-              headerStyle="text-align:center ;max-width:70px;height:50px"
-              bodyStyle="text-align:center;max-width:70px"
-            ></Column>
-            <Column
-              field="training_emps_code"
-              header="Mã số"
-              headerStyle="text-align:center;max-width:150px;height:50px "
-              bodyStyle="text-align:center;max-width:150px"
-              headerClass="align-items-center    justify-content-center text-center"
-              :sortable="true"
+              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;max-width:55px;height:50px"
+              bodyStyle="text-align:center;max-width:55px"
             >
-              <template #filter="{ filterModel }">
-                <InputText
-                  type="text"
-                  v-model="filterModel.value"
-                  class="p-column-filter"
-                  placeholder="Từ khoá"
-                />
-              </template>
             </Column>
+            
             <Column
-              field="training_emps_name"
-              header="Tên khoá đào tạo"
-              :sortable="true"
-              headerStyle="text-align:center;height:50px"
+              field="recruitment_proposal_name"
+              header="Tên đề xuất"
+              :sortable="true"     headerClass="align-items-center justify-content-center text-center"
+              headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"
             >
               <template #filter="{ filterModel }">
@@ -1679,45 +1559,67 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="form_training"
-              header="Hình thức"
+              field="vacancy_name"
+              header="Vị trí"
+              headerStyle="text-align:center;max-width:250px;height:50px"
+              bodyStyle="text-align:center;max-width:250px"
+              class="align-items-center justify-content-center text-center"
+            >
+            </Column>
+           
+            <Column
+              field="recruits_num"
+              header="Số lượng"
+              headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px"
+              class="align-items-center justify-content-center text-center"
+            >
+            </Column>
+            <Column
+              field="expected_cost"
+              header="Ứng tuyển"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
                 <div>
-                  {{
-                    data.data.form_training == 1
-                      ? "Bắt buộc"
-                      : data.data.form_training == 2
-                      ? "Đăng ký"
-                      : "Cả hai"
-                  }}
+                  {{ data.data.slTuyen }}
                 </div>
               </template>
             </Column>
             <Column
-              field="start_date"
-              header="Từ ngày"
+              field="expected_cost"
+              header="Trúng tuyển"
+              headerStyle="text-align:center;max-width:120px;height:50px"
+              bodyStyle="text-align:center;max-width:120px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="data">
+                <div>
+                  {{ data.data.trungTuyen }}
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="expected_cost"
+              header="Còn tuyển"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div v-if="data.data.start_date">
-                  {{
-                    moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
-                  }}
+                <div>
+                  <!-- {{ data.data.num_vacancies - data.data.trungTuyen }} -->
                 </div>
               </template>
             </Column>
 
             <Column
-              field="end_date"
-              header="Đến ngày"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
+              field="start_date"
+              header="Hạn tuyển"
+              headerStyle="text-align:center;max-width:150px;height:50px"
+              bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
@@ -1725,69 +1627,6 @@ onMounted(() => {
                   {{
                     moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
                   }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="li_user_verify"
-              header="Giảng viên"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  <AvatarGroup>
-                    <Avatar
-                      v-for="(item, index) in data.data.li_user_verify.slice(
-                        0,
-                        4
-                      )"
-                      v-bind:label="
-                        item.avatar
-                          ? ''
-                          : item.full_name.substring(
-                              item.full_name.lastIndexOf(' ') + 1,
-                              item.full_name.lastIndexOf(' ') + 2
-                            )
-                      "
-                      :key="index"
-                      :style="
-                        item.avatar
-                          ? 'background-color: #2196f3'
-                          : 'background:' + bgColor[item.full_name.length % 7]
-                      "
-                      :image="basedomainURL + item.avatar"
-                      class="w-3rem h-3rem text-lg"
-                      shape="circle"
-
-                      v-tooltip.top="item.full_name"
-                    />
-                    <Avatar
-                      v-if="data.data.li_user_verify.length > 4"
-                      :label="(data.data.li_user_verify.length - 4).toString()"
-                      shape="circle"
-                      class="w-3rem h-3rem"
-                      style="
-                        background-color: #9c27b0;
-                        color: #ffffff;
-                        font-size: 12pt !important;
-                      "
-                    />
-                  </AvatarGroup>
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="count_emps"
-              header="Học viên"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{ data.data.count_emps ? data.data.count_emps : "0" }}
                 </div>
               </template>
             </Column>
@@ -1836,23 +1675,6 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-            <!-- <Column
-              field="created_date"
-              header="Ngày tạo"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{
-                    moment(new Date(data.data.created_date)).format(
-                      "DD/MM/YYYY"
-                    )
-                  }}
-                </div>
-              </template>
-            </Column> -->
             <Column
               field="status"
               header="Trạng thái"
@@ -1872,30 +1694,34 @@ onMounted(() => {
                 >
                   <Button
                     :label="
-                      slotProps.data.status == 1
-                        ? 'Lên kế hoạch'
-                        : slotProps.data.status == 2
-                        ? 'Đang thực hiện'
+                      slotProps.data.status == 2
+                        ? 'Đã duyệt'
                         : slotProps.data.status == 3
-                        ? 'Đã hoàn thành'
+                        ? 'Đang tuyển'
                         : slotProps.data.status == 4
-                        ? 'Tạm dừng'
-                        : 'Đã hủy'
+                        ? 'Hoàn thành'
+                        : slotProps.data.status == 5
+                        ? 'Hết hạn'
+                        : slotProps.data.status == 6
+                        ? 'Hủy bỏ'
+                        : 'Chờ duyệt'
                     "
-                    :class="
-                      slotProps.data.status == 1
-                        ? 'bg-blue-500'
-                        : slotProps.data.status == 2
-                        ? 'bg-yellow-500'
+                    :style="
+                      slotProps.data.status == 2
+                        ? 'backgroundColor:#ff8b4e; border:#ff8b4e'
                         : slotProps.data.status == 3
-                        ? 'bg-green-500'
+                        ?  ' backgroundColor: #2196f3; border:#2196f3'
                         : slotProps.data.status == 4
-                        ? 'bg-orange-500'
-                        : 'bg-pink-500'
+                        ?  'backgroundColor:var(--green-500); border:var(--green-500)'
+                        : slotProps.data.status == 5
+                        ? 'backgroundColor:var(--purple-500); border:var(--purple-500)'
+                        : slotProps.data.status == 6
+                        ? 'backgroundColor:red; border:red'
+                        : 'backgroundColor:#bbbbbb; border:#bbbbbb'
                     "
                     icon="pi pi-chevron-down"
                     iconPos="right"
-                    class="px-2 w-10rem"
+                    class="px-2 w-10rem d-design-left"
                   />
                 </div>
                 <OverlayPanel
@@ -1914,12 +1740,12 @@ onMounted(() => {
                         :filter="false"
                         :showClear="false"
                         :editable="false"
-                        v-model="training_emps.status"
+                        v-model="recruitment_proposal.status"
                         optionLabel="name"
                         optionValue="code"
                         placeholder="Chọn trạng thái"
                         class="w-full"
-                        @change="setStatus(training_emps)"
+                        @change="setStatus(recruitment_proposal)"
                       >
                       </Dropdown>
                     </div>
@@ -1927,6 +1753,7 @@ onMounted(() => {
                 </OverlayPanel>
               </template>
             </Column>
+
             <Column
               header=""
               headerStyle="text-align:center;max-width:50px"
@@ -1944,54 +1771,10 @@ onMounted(() => {
                 />
               </template>
             </Column>
-            <!-- <Column
-              header="Chức năng"
-              class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-            >
-              <template #body="Tem">
-                <div
-                  v-if="
-                    store.state.user.is_super == true ||
-                    store.state.user.user_id == Tem.data.created_by ||
-                    (store.state.user.role_id == 'admin' &&
-                      store.state.user.organization_id ==
-                        Tem.data.organization_id)
-                  "
-                >
-                  <Button
-                    @click="editTem(Tem.data)"
-                    class="
-                      p-button-rounded p-button-secondary p-button-outlined
-                      mx-1
-                    "
-                    type="button"
-                    icon="pi pi-pencil"
-                    v-tooltip.top="'Sửa'"
-                  ></Button>
-                  <Button
-                    class="
-                      p-button-rounded p-button-secondary p-button-outlined
-                      mx-1
-                    "
-                    type="button"
-                    icon="pi pi-trash"
-                    @click="delTem(Tem.data)"
-                    v-tooltip.top="'Xóa'"
-                  ></Button>
-                </div>
-              </template>
-            </Column> -->
+
             <template #empty>
               <div
-                class="
-                  align-items-center
-                  justify-content-center
-                  p-4
-                  text-center
-                  m-auto
-                "
+                class="align-items-center justify-content-center p-4 text-center m-auto"
                 v-if="!isFirst"
               >
                 <img src="../../../assets/background/nodata.png" height="144" />
@@ -2002,12 +1785,12 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div v-if="displayBasic">
-      <dialogTraining
-      :key="numOfKey"
+    <div v-if="displayBasic == true">
+  
+      <dialogrecruitment_proposal
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
-        :training_emps="training_emps"
+        :recruitment_proposal="recruitment_proposal"
         :checkadd="isSaveTem"
         :view="false"
         :closeDialog="closeDialog"
@@ -2021,9 +1804,39 @@ onMounted(() => {
     :model="itemButMores"
     :popup="true"
   />
+  <Dialog
+    :style="{ width: '20vw' }"
+    :header="headerExport"
+    v-model:visible="showExport"
+    :modal="true"
+  >
+    <div class="grid">
+      <div class="col-12 field flex">
+        <div class="col-6 p-0">Số bản ghi:</div>
+        <div class="col-6 p-0">
+          <InputNumber class="w-full" v-model="options.totalRecordsExport" />
+        </div>
+      </div>
+      <div class="col-12 field flex">
+        <div class="col-6 p-0">Trang bắt đầu:</div>
+        <div class="col-6 p-0">
+          <InputNumber class="w-full" :min="1" :max="Math.ceil(options.totalRecords/options.totalRecordsExport)" v-model="options.pagenoExport" />
+        </div>
+      </div>
+      <div class="col-12 p-0">
+        <Toolbar class="surface-0 p-0 border-0">
+          <template #end>
+            <div>
+              <Button label="Xuất" @click="exportExcelR"></Button>
+            </div>
+          </template>
+        </Toolbar>
+      </div>
+    </div>
+  </Dialog>
 </template>
   
-    <style scoped>
+<style scoped>
 .d-container {
   background-color: #f5f5f5;
 }
@@ -2034,13 +1847,16 @@ onMounted(() => {
   margin: 8px 8px 0px 8px;
   height: 33px;
 }
+
 .d-lang-header h3,
 i {
   font-weight: 600;
 }
+
 .d-module-title {
   margin: 0;
 }
+
 .d-lang-table {
   margin: 0px;
   height: calc(100vh - 200px);
@@ -2056,9 +1872,11 @@ i {
   margin: 0;
   padding: 0;
 }
+
 .tableview-header {
   display: inline-block;
 }
+
 .tableview-nav li {
   border: solid #dee2e6;
   border-width: 0 0 2px 0;
@@ -2067,32 +1885,39 @@ i {
   margin: 0 0 -2px 0;
   transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
+
 .tableview-nav li:hover {
   cursor: pointer;
 }
+
 .tableview-nav li.highlight {
   background: #ffffff;
   border-color: #3b82f6;
   color: #3b82f6;
 }
+
 .tableview-nav li:not(.highlight):hover {
   background: #ffffff;
   border-color: #adb5bd;
   color: #6c757d;
 }
+
 .tableview-nav li a:focus {
   outline: 0 none;
   outline-offset: 0;
   box-shadow: inset 0 0 0 0.2rem #bfdbfe;
 }
+
 .btn-hidden {
   filter: opacity(40%) !important;
   cursor: auto !important;
 }
+
 .hover:hover {
   cursor: pointer;
   color: #2196f3 !important;
 }
+
 .inputanh {
   border: 1px solid #ccc;
   width: 8rem;
@@ -2103,9 +1928,11 @@ i {
   margin-left: auto;
   margin-right: auto;
 }
+
 .ipnone {
   display: none;
 }
+
 .inputanh img {
   object-fit: cover;
   width: 100%;

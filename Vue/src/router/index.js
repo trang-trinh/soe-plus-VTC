@@ -17,6 +17,10 @@ const GroupView = () => import("../views/hethong/GroupView.vue");
 const ConfigDonviView = () => import("../views/hethong/ConfigDonviView.vue");
 const LoginView = () => import("../views/LoginView.vue");
 const Error = () => import("../error/404.vue");
+const ConfigAprrovedGroups = () => import("../views/hethong/process/ConfigAprrovedGroups.vue");
+
+const ConfigProcess = () => import("../views/hethong/process/ConfigProcess.vue");
+
 //Scraper
 // const ScraperView = () =>
 //     import ("../views/scraper/ScraperView.vue");
@@ -271,9 +275,15 @@ const HrmTimekeep = () => import("../views/hrm/timekeep/timekeep.vue");
 const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
+
+const Hrm_proposal = () => import("../views/hrm/recruitment/hrm_proposal.vue");
+
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
 const Hrm_paycheck_form = () => import("../views/hrm/declare/hrm_paycheck_form.vue");
 const Hrm_rec_calendar = () => import("../views/hrm/recruitment/hrm_recCalendar.vue");
+const Hrm_configprocess = () => import("../views/hrm/process/config_Process.vue");
+const Hrm_config_approved = () => import("../views/hrm/process/config_approved.vue");
+
 //end
 // TV
 const ConfigScreenTV = () => import("../views/tivi/tivi_screen_config.vue");
@@ -486,7 +496,16 @@ const router = createRouter({
       name: "error-404",
       component: Error,
     },
-
+    {
+      path: "/sys/sys_approved_groups",
+      name: "sys_sys_approved_groups",
+      component: ConfigAprrovedGroups,
+    },
+    {
+      path: "/sys/sys_process",
+      name: "sys_sys_process",
+      component: ConfigProcess,
+    },
     //Danh mục
     {
       path: "/folder",
@@ -1751,6 +1770,12 @@ const router = createRouter({
       component: Hrm_campaign,
     },
     {
+      path: "/hrm/recruitment/proposal",
+      name: "Hrm_proposal",
+      component: Hrm_proposal,
+    },
+    
+    {
       path: "/hrm/recruitment/rec_calendar",
       name: "Hrm_rec_calendar",
       component: Hrm_rec_calendar,
@@ -1764,6 +1789,16 @@ const router = createRouter({
       path: "/hrm/paycheckform",
       name: "Hrm_paycheck_form",
       component: Hrm_paycheck_form,
+    },
+    {
+      path: "/hrm/configprocess",
+      name: "Hrm_config_process",
+      component: Hrm_configprocess,
+    },
+    {
+      path: "/hrm/config_approved",
+      name: "Hrm_config_approved",
+      component: Hrm_config_approved,
     },
     
     // Request

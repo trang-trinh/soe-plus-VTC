@@ -30,7 +30,7 @@ const rules = {
       {
         $property: "classroom_name",
         $validator: "required",
-        $message: "Tên tên lớp học không được để trống!",
+        $message: "Tên phòng họp không được để trống!",
       },
     ],
   },
@@ -224,7 +224,7 @@ const saveData = (isFormValid) => {
   if (classroom.value.classroom_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên tên lớp học không được vượt quá 250 ký tự!",
+      text: "Tên phòng họp không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -251,7 +251,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm tên lớp học thành công!");
+          toast.success("Thêm phòng họp thành công!");
           loadData(true);
       
           closeDialog();
@@ -283,7 +283,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa tên lớp học thành công!");
+          toast.success("Sửa phòng họp thành công!");
 
        
           closeDialog();
@@ -319,7 +319,7 @@ const editTem = (dataTem) => {
   } else {
     checkIsmain.value = true;
   }
-  headerDialog.value = "Sửa tên lớp học";
+  headerDialog.value = "Sửa phòng họp";
   isSaveTem.value = true;
   displayBasic.value = true;
  
@@ -358,7 +358,7 @@ const delTem = (Tem) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá tên lớp học thành công!");
+              toast.success("Xoá phòng họp thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -530,7 +530,7 @@ const onCheckBox = (value, check, checkIsmain) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái tên lớp học thành công!");
+          toast.success("Sửa trạng thái phòng họp thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -562,7 +562,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá tên lớp học này không!",
+        text: "Bạn có muốn xoá phòng họp này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -594,7 +594,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá tên lớp học thành công!");
+                toast.success("Xoá phòng họp thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -710,7 +710,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-credit-card"></i> Danh sách tên lớp học ({{
+          <i class="pi pi-credit-card"></i> Danh sách phòng họp ({{
             options.totalRecords
           }})
         </h3>
@@ -796,7 +796,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm tên lớp học')"
+              @click="openBasic('Thêm phòng họp')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -845,7 +845,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
  
       <Column
         field="classroom_name"
-        header="Tên tên lớp học"
+        header="Tên phòng họp"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -983,7 +983,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           >
             <span class="col-12 p-0">{{
               v$.classroom_name.required.$message
-                .replace("Value", "Tên tên lớp học")
+                .replace("Value", "Tên phòng họp")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>

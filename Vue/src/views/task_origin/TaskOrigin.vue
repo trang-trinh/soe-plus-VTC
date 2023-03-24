@@ -1398,13 +1398,14 @@ const loadData = (rf, type) => {
           startProgress(element.progress);
         });
       }
-      opition.value.totalRecords = data[7][0].totalRecords;
+      opition.value.totalRecords = data[8][0].totalRecords;
       opition.value.totalAlls = data[1][0].total;
       opition.value.total_toilam = data[2][0].total_toilam;
       opition.value.total_quanly = data[3][0].total_quanly;
       opition.value.total_theodoi = data[4][0].total_theodoi;
       opition.value.total_toitao = data[5][0].total_toitao;
       opition.value.total_hoanthanh = data[6][0].total_hoanthanh;
+      opition.value.total_quahan = data[7][0].total_quahan;
       opition.value.type_view = type;
       opition.value.type_group_view = type_group_view_refresh.value;
       if (type == 1) {
@@ -2770,6 +2771,17 @@ const ChangeShowListCVGroup = (model) => {
           <a
             ><i class="pi pi-check-circle"></i> Hoàn thành ({{
               opition.total_hoanthanh
+            }})</a
+          >
+        </li>
+        <li
+          @click="ChangeData(5)"
+          class="header-bottom"
+          :class="{ active: opition.IsType == 5 }"
+        >
+          <a
+            ><i class="pi pi-calendar-times"></i> Quá hạn ({{
+              opition.total_quahan
             }})</a
           >
         </li>
@@ -4674,7 +4686,7 @@ const ChangeShowListCVGroup = (model) => {
           display: flex;
           flex-direction: column;
         "
-        v-if="listTask.length == 0 || opition.totalRecords == 0"
+        v-if="listTask.length == 0"
       >
         <img
           src="../../assets/background/nodata.png"
@@ -4927,7 +4939,7 @@ const ChangeShowListCVGroup = (model) => {
                   </div>
                 </td>
               </tr>
-              <tr v-if="listTask.length == 0 || opition.totalRecords == 0">
+              <tr v-if="listTask.length == 0">
                 <td
                   :colspan="GrandsDate.length + 4"
                   style="text-align: center"
@@ -5279,13 +5291,13 @@ const ChangeShowListCVGroup = (model) => {
                   </div>
                 </td>
               </tr>
-              <tr v-if="listTask.length == 0 || opition.totalRecords == 0">
+              <tr v-if="listTask.length == 0">
                 <td
                   :colspan="GrandsDate.length + 4"
                   style="text-align: center"
                 >
                   <div
-                    class="align-items-center justify-content-center p-4 text-center m-auto"
+                    class="align-items-center justify-content-center p-4 text-center m-auto" 
                     style="
                       min-height: calc(100vh - 215px);
                       max-height: calc(100vh - 215px);

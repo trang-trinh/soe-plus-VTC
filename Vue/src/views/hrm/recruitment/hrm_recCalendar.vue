@@ -185,7 +185,7 @@ const checkDelList = ref(false);
 const options = ref({
   IsNext: true,
   sort: "rec_calendar_id desc ",
-  SearchText: "",
+  SearchText: null,
   PageNo: 0,
   PageSize: 20,
   loading: true,
@@ -196,6 +196,8 @@ const options = ref({
   totalRecords3: 0,
   totalRecords4: 0,
   totalRecords5: 0,
+  totalRecordsExport:50,
+  pagenoExport:1
 });
 
 //Hiển thị dialog
@@ -488,13 +490,24 @@ const numOfKey=ref(0);
  
 
 //Xuất excel
+
+const exportExcelR = () => {
+  showExport.value = false;
+
+ 
+    exportData("ExportExcel");
+ 
+};
+const headerExport=ref("Cấu hình xuất Excel");
+ 
+const showExport = ref(false);
 const menuButs = ref();
 const itemButs = ref([
   {
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportData("ExportExcel");
+      showExport.value = true;
     },
   },
  
@@ -513,22 +526,20 @@ const exportData = (method) => {
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
-        excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
+        excelname: "DANH SÁCH LỊCH PHỎNG VẤN",
         proc: "hrm_rec_calendar_export",
         par: [
  
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "training_groups", va:  options.value.training_groups_id  },
-          { par: "interviewers", va:  options.value.interviewers  },
-          { par: "user_follows", va: options.value.user_follows},
-           { par: "form_training", va: options.value.type_formtraining},
-          { par: "status ", va: options.value.status_filter},
+          { par: "campaign_id", va: options.value.campaign_id?options.value.campaign_id.toString(): null },
+          { par: "interviewers", va:  options.value.interviewers?options.value.interviewers.toString(): null  },
+
           { par: "start_date", va: options.value.start_date },
           { par: "end_date", va: options.value.end_date },
-             { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.PageNo },
-          { par: "pagesize", va: options.value.PageSize },
+          { par: "sort", va: options.value.sort },
+          { par: "pageno", va: options.value.pagenoExport-1 },
+          { par: "pagesize", va: options.value.totalRecordsExport },
         ],
       },
       config
@@ -609,6 +620,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   candidate.value = item;
+  selectedStamps.value=item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -938,39 +950,7 @@ const initTudien = () => {
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
     }); 
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_classroom_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listClasroom.value = [];
-      data.forEach((element) => {
-        listClasroom.value.push({
-          name: element.classroom_name,
-          code: element.classroom_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+ 
   loadUser();
 };
 
@@ -1326,7 +1306,7 @@ onMounted(() => {
             dataKey="rec_calendar_id"
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
-            :row-hover="true"
+            :row-hover="true" selectionMode="single"
           >
             <!-- <Column
               class="align-items-center justify-content-center text-center"
@@ -1621,6 +1601,36 @@ onMounted(() => {
     :model="itemButMores"
     :popup="true"
   />
+  <Dialog
+    :style="{ width: '20vw' }"
+    :header="headerExport"
+    v-model:visible="showExport"
+    :modal="true"
+  >
+    <div class="grid">
+      <div class="col-12 field flex">
+        <div class="col-6 p-0">Số bản ghi:</div>
+        <div class="col-6 p-0">
+          <InputNumber class="w-full" v-model="options.totalRecordsExport" />
+        </div>
+      </div>
+      <div class="col-12 field flex">
+        <div class="col-6 p-0">Trang bắt đầu:</div>
+        <div class="col-6 p-0">
+          <InputNumber class="w-full" :min="1" :max="Math.ceil(options.totalRecords/options.totalRecordsExport)" v-model="options.pagenoExport" />
+        </div>
+      </div>
+      <div class="col-12 p-0">
+        <Toolbar class="surface-0 p-0 border-0">
+          <template #end>
+            <div>
+              <Button label="Xuất" @click="exportExcelR"></Button>
+            </div>
+          </template>
+        </Toolbar>
+      </div>
+    </div>
+  </Dialog>
 </template>
   
     <style scoped>

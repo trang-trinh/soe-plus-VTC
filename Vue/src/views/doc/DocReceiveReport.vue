@@ -395,7 +395,7 @@ const onFilterHistory = (value) => {
   }
   if (value.department_id_process) {
     options.value.department_id_process = {};
-    ;
+
     value.department_id_process.split(',').forEach(element => {
       options.value.department_id_process[element] = {
         checked: true, partialChecked: false

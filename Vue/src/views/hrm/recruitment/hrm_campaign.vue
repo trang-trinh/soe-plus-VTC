@@ -195,7 +195,7 @@ const checkDelList = ref(false);
 const options = ref({
   IsNext: true,
   sort: "campaign_id desc ",
-  SearchText: "",
+  SearchText: null,
   PageNo: 0,
   PageSize: 20,
   loading: true,
@@ -206,6 +206,8 @@ const options = ref({
   totalRecords3: 0,
   totalRecords4: 0,
   totalRecords5: 0,
+  totalRecordsExport:50,
+  pagenoExport:1
 });
 
 //Hiển thị dialog
@@ -453,6 +455,15 @@ const listStatus = ref([
 const refreshStamp = () => {
   options.value.SearchText = null;
   options.value.status_filter = null;
+  options.value.user_follows_list = null;
+  options.value.user_verify_list = null;
+  options.value.rec_position_id = null;
+  options.value.can_academic_level_id = null;
+  options.value.rec_vacancies = null;
+  options.value.start_dateI = null;
+  options.value.end_dateI = null;
+  options.value.start_dateI = null;
+  options.value.end_dateD = null;
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -571,13 +582,27 @@ const onCheckBox = (value, check) => {
 };
 
 //Xuất excel
+
+const exportExcelR = () => {
+  showExport.value = false;
+
+ 
+    exportData("ExportExcel");
+ 
+};
+
+const headerExport=ref("Cấu hình xuất Excel");
 const menuButs = ref();
+const showExport = ref(false);
 const itemButs = ref([
   {
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportData("ExportExcel");
+
+     
+        showExport.value = true;
+     
     },
   },
 ]);
@@ -591,27 +616,36 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
+ 
   axios
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
-        excelname: "DANH SÁCH THÔNG TIN ĐÀO TẠO",
+        excelname: "DANH SÁCH CHIẾN DỊCH",
         proc: "hrm_campaign_export",
         par: [
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "training_groups", va: options.value.rec_vacancies },
-          { par: "user_verify", va: options.value.user_verify },
-          { par: "user_follows", va: options.value.user_follows },
-          { par: "form_training", va: options.value.can_academic_level_id },
-          { par: "status ", va: options.value.status_filter },
-          { par: "start_date", va: options.value.start_date },
-          { par: "end_date", va: options.value.end_date },
+          { par: "rec_position_id", va:options.value.rec_position_id?
+           options.value.rec_position_id.toString():null },
+          { par: "user_verify", va:options.value.user_verify_list? options.value.user_verify_list.toString():null },
+          { par: "user_follows", va:options.value.user_follows_list?
+           options.value.user_follows_list.toString():null },
+          { par: "can_academic_level_id", va: options.value.can_academic_level_id?
+           options.value.can_academic_level_id.toString():null },
+          { par: "rec_vacancies", va: options.value.rec_vacancies?
+           options.value.rec_vacancies.toString():null },
+          { par: "status ", va: options.value.status_filter?
+          options.value.status_filter.toString():null },
+          { par: "start_dateI", va: options.value.start_dateI },
+          { par: "end_dateI", va: options.value.end_dateI },
+          { par: "start_dateD", va: options.value.start_dateD },
+          { par: "end_dateD", va: options.value.end_dateD },
           { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.PageNo },
-          { par: "pagesize", va: options.value.PageSize },
+          { par: "pageno", va: options.value.pagenoExport-1 },
+          { par: "pagesize", va: options.value.totalRecordsExport },
         ],
-      },
+      }, 
       config
     )
     .then((response) => {
@@ -691,6 +725,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   campaign.value = item;
+  selectedStamps.value=item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -847,6 +882,7 @@ const filterFileds = () => {
       options.value.user_follows.forEach((element) => {
         var addr = { value: element.code, matchMode: "contains" };
         filterS3.filterconstraints.push(addr);
+        options.value.user_follows_list.push(element.code);
       });
 
       filterSQL.value.push(filterS3);
@@ -877,6 +913,7 @@ const filterFileds = () => {
       options.value.user_verify.forEach((element) => {
         var addr = { value: element.code, matchMode: "contains" };
         filterS5.filterconstraints.push(addr);
+        options.value.user_verify_list.push(element.code);
       });
 
       filterSQL.value.push(filterS5);
@@ -1738,7 +1775,7 @@ onMounted(() => {
             filterMode="lenient"
             :filters="filters"
             :scrollable="true"
-            scrollHeight="flex"
+            scrollHeight="flex" selectionMode="single"
             :showGridlines="true"
             columnResizeMode="fit"
             :lazy="true"
@@ -1786,6 +1823,7 @@ onMounted(() => {
               header="Tên chiến dịch"
               :sortable="true"
               headerStyle="text-align:left;height:50px"
+              headerClass="align-items-center justify-content-center text-center"
               bodyStyle="text-align:left"
             >
               <template #filter="{ filterModel }">
@@ -1937,7 +1975,11 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <div
-                  class="m-2 w-full"
+                  class="m-2"
+                  @click="
+                    toggleStatus(slotProps.data, $event);
+                    $event.stopPropagation();
+                  "
                   aria:haspopup="true"
                   aria-controls="overlay_panel_status"
                 >
@@ -1969,7 +2011,7 @@ onMounted(() => {
                     class="px-2 w-10rem d-design-left"
                   />
                 </div>
-                <!-- <OverlayPanel
+                <OverlayPanel
                   :showCloseIcon="false"
                   ref="opstatus"
                   appendTo="body"
@@ -1985,17 +2027,17 @@ onMounted(() => {
                         :filter="false"
                         :showClear="false"
                         :editable="false"
-                        v-model="candidate.status"
+                        v-model="campaign.status"
                         optionLabel="name"
                         optionValue="code"
                         placeholder="Chọn trạng thái"
                         class="w-full"
-                        @change="setStatus(candidate)"
+                        @change="setStatus(campaign)"
                       >
                       </Dropdown>
                     </div>
                   </div>
-                </OverlayPanel> -->
+                </OverlayPanel>
               </template>
             </Column>
 
@@ -2049,6 +2091,36 @@ onMounted(() => {
     :model="itemButMores"
     :popup="true"
   />
+  <Dialog
+    :style="{ width: '20vw' }"
+    :header="headerExport"
+    v-model:visible="showExport"
+    :modal="true"
+  >
+    <div class="grid">
+      <div class="col-12 field flex">
+        <div class="col-6 p-0">Số bản ghi:</div>
+        <div class="col-6 p-0">
+          <InputNumber class="w-full" v-model="options.totalRecordsExport" />
+        </div>
+      </div>
+      <div class="col-12 field flex">
+        <div class="col-6 p-0">Trang bắt đầu:</div>
+        <div class="col-6 p-0">
+          <InputNumber class="w-full" :min="1" :max="Math.ceil(options.totalRecords/options.totalRecordsExport)" v-model="options.pagenoExport" />
+        </div>
+      </div>
+      <div class="col-12 p-0">
+        <Toolbar class="surface-0 p-0 border-0">
+          <template #end>
+            <div>
+              <Button label="Xuất" @click="exportExcelR"></Button>
+            </div>
+          </template>
+        </Toolbar>
+      </div>
+    </div>
+  </Dialog>
 </template>
   
 <style scoped>
