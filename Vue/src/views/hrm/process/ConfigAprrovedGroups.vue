@@ -663,7 +663,7 @@ const openBasic = (str) => {
   listUserA.value = [];
   datalistsD.value = datalistsDSave.value;
   sys_approved_groups.value = {
-    is_local: false,
+    is_local: true,
     module_fake: null,
     approved_type: 0,
     is_department: false,
@@ -701,11 +701,13 @@ const loadData = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_config_approved_list",
+            proc: "sys_config_approved_list_module",
             par: [
               { par: "pageno", va: options.value.pageno },
               { par: "pagesize", va: options.value.pagesize },
               { par: "user_id", va: store.getters.user.user_id },
+    
+              { par: "module_id", va: 235 },
               { par: "status", va: null },
             ],
           }),
@@ -1290,11 +1292,7 @@ const renderTree = (data, id, name, title) => {
       retreechildren(om, m[id]);
       arrtreeChils.push(om);
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: "ALL",
-    label: "Tất cả",
-  });
+   
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 var arrr = [];
@@ -1336,8 +1334,8 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_modules_list",
-            par: [{ par: "search", va: options.value.search }],
+            proc: "sys_modules_listbymodule_id",
+            par: [{ par: "module_id", va:235}],
           }),
           SecretKey,
           cryoptojs
@@ -1347,11 +1345,11 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-
+debugger
       if (data.length > 0) {
         let obj = renderTree(data, "module_id", "module_name", "module");
         listModules.value = obj.arrtreeChils;
-        // modules.value = obj.arrChils;
+
       }
     })
     .catch((error) => {
@@ -1513,14 +1511,7 @@ onMounted(() => {
                     </div>
                   </OverlayPanel>
                 </span>
-
-                <!-- <TreeSelect
-                  style="margin-left: 24px; min-width: 200px"
-                  @change="selectTree()"
-                  v-model="menu_IDNode"
-                  :options="danhMuc"
-                  placeholder="Tất cả tin tức"
-                ></TreeSelect> -->
+ 
               </template>
 
               <template #end>
@@ -1704,12 +1695,13 @@ onMounted(() => {
                     (store.state.user.role_id == 'admin' &&
                       store.state.user.organization_id ==
                         data.data.organization_id)
-                  ) || data.data.is_default
+                  ) || ( data.data.is_local==false ||  data.data.is_local==null)
                 "
                 :binary="data.data.status"
                 v-model="data.data.status"
                 @click="onCheckBox(data.data)"
               />
+             
             </template>
           </Column>
 
@@ -1723,11 +1715,11 @@ onMounted(() => {
             <template #body="data">
               <div
                 v-if="
-                  store.state.user.is_super == true ||
+                data.data.is_local ==true && ( store.state.user.is_super == true ||
                   store.state.user.user_id == data.data.created_by ||
                   (store.state.user.role_id == 'admin' &&
                     store.state.user.organization_id ==
-                      data.data.organization_id)
+                      data.data.organization_id))  
                 "
               >
                 <Button

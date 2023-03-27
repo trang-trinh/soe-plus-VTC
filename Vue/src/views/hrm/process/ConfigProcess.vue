@@ -84,9 +84,7 @@ const listModules = ref([]);
 const selectedKeyProcedure = ref([]);
 const selectedKeySign = ref([]);
 
-watch(selectedKeyProcedure, () => {
-  goProcedure(selectedKeyProcedure.value);
-});
+ 
 
 //Model procedure
 const sys_config_process = ref({});
@@ -109,16 +107,14 @@ const displayDialogSign = ref(false);
 const openAddDialogProcedure = (str) => {
   isAdd.value = true;
   submitted.value = false;
+  selectedKeyProcedure.value=[];
   sys_config_process.value = {
-    status: true, is_local: false,
+    status: true, 
+    is_local: true,
     config_process_type: 0,
-    is_order: 0,
+    is_order: options.value.is_orderProcess,
   };
-  if (options.value.totalRecords > 0) {
-    sys_config_process.value.is_order = options.value.totalRecords + 1;
-  } else {
-    sys_config_process.value.is_order = 1;
-  }
+  options.value.config_process_id=null;
   headerDialogProcedure.value = str;
   displayDialogProcedure.value = true;
 };
@@ -135,11 +131,12 @@ const openAddDialogSign = (str) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_config_approved_list",
+            proc: "sys_config_approved_list_module",
             par: [
               { par: "pageno", va: options.value.pagenoAP },
               { par: "pagesize", va: options.value.pagesizeAP },
               { par: "user_id", va: store.getters.user.user_id },
+              { par: "module_id", va: 235 },
               { par: "status", va: null },
             ],
           }),
@@ -219,7 +216,7 @@ const closeDialogProcedure = () => {
   sys_config_process.value = {
     status: true,
     config_process_type: 0,
-    is_order: 0,
+     
   };
   displayDialogProcedure.value = false;
 };
@@ -407,8 +404,11 @@ const saveconfig_approved = () => {
 
   closeDialogSign();
 };
-const goProcedure = (node) => {
-  options.value.config_process_id = node["config_process_id"];
+const goProcedure = (event) => {
+  
+   sys_config_process.value = event.data;
+ 
+  options.value.config_process_id = sys_config_process.value["config_process_id"];
   initSign(true);
 };
 const editProcedure = (item) => {
@@ -417,6 +417,8 @@ const editProcedure = (item) => {
   sys_config_process.value = item;
 
   headerDialogProcedure.value = "Cập nhật quy trình";
+  
+  options.value.config_process_id=null;
   displayDialogProcedure.value = true;
 };
 const editSign = (item) => {
@@ -776,6 +778,7 @@ const searchSign = () => {
 //init
 const refreshProcedure = () => {
   options.value.searchText = "";
+  selectedKeyProcedure.value=[];
   initProcedure(true);
 };
 const refreshSign = () => {
@@ -803,10 +806,11 @@ const initProcedure = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_config_process_list",
+            proc: "sys_config_process_list_module",
             par: [
               { par: "search", va: options.value.searchText },
               { par: "user_id", va: store.getters.user.user_id },
+              { par: "module_id", va:235},
               { par: "pageno", va: options.value.pageno },
               { par: "pagesize", va: options.value.pagesize },
               { par: "status", va: null },
@@ -852,6 +856,7 @@ const initProcedure = (rf) => {
         }
         if (data1) {
           options.value.totalRecords = data1[0].total;
+          options.value.is_orderProcess=data1[0].total+1;
         }
       } else {
         listdatas.value = [];
@@ -998,63 +1003,9 @@ const onChangeSWT = () => {
   }
 };
 const removeListUser = (value) => {
- 
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá nhóm duyệt này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-
-        axios
-          .delete(
-            baseURL + "/api/sys_process_link_approved/delete_sys_process_link_approved",
-            {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: value != null ? [value.process_link_approved_id] : 1,
-            }
-          )
-          .then((response) => {
-            swal.close();
-            if (response.data.err != "1") {
-              swal.close();
-              toast.success("Xoá nhóm duyệt thành công!");
-              signs.value = signs.value.filter(
-    (x) => x.process_link_approved_id != value.process_link_approved_id
+  signs.value = signs.value.filter(
+    (x) => x.approved_groups_id != value.approved_groups_id
   );
-            } else {
-              swal.fire({
-                title: "Error!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          })
-          .catch((error) => {
-            swal.close();
-            if (error.status === 401) {
-              swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                confirmButtonText: "OK",
-              });
-            }
-          });
-      }
-    });
 };
 const liUserCF = ref([]);
 const rechildren = (data) => {
@@ -1225,8 +1176,8 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_modules_list",
-            par: [{ par: "search", va: options.value.searchsign }],
+            proc: "sys_modules_listbymodule_id",
+            par: [{ par: "module_id", va: 235}],
           }),
           SecretKey,
           cryoptojs
@@ -1290,13 +1241,53 @@ const renderTree = (data, id, name, title) => {
       retreechildren(om, m[id]);
       arrtreeChils.push(om);
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: "ALL",
-    label: "Tất cả",
-  });
+ 
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
+const selectionChangeOrder=(event)=>{
+
+
+  let formData = new FormData();
+  formData.append("sys_process_link_approved", JSON.stringify(signs.value));
+ 
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  axios
+    .put(
+      baseURL + "/api/sys_process_link_approved/update_sys_process_link_approved",
+      formData,
+      config
+    )
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+    
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+
+ 
+}
 onMounted(() => {
   initTudien();
   loadOrganization(store.getters.user.organization_id);
@@ -1360,6 +1351,7 @@ emitter.on("emitData", (obj) => {
             :showGridlines="true"
             :scrollable="true"
             v-model:selection="selectedKeyProcedure"
+            @row-click=" goProcedure($event)"
             selectionMode="single"
             dataKey="config_process_id"
             scrollHeight="flex"
@@ -1438,6 +1430,7 @@ emitter.on("emitData", (obj) => {
             >
               <template #body="data">
                 <Checkbox
+                :disabled="!data.data.is_local"
                   :binary="data.data.status"
                   v-model="data.data.status"
                   @click="updateStatusProcedure(data.data)"
@@ -1452,12 +1445,12 @@ emitter.on("emitData", (obj) => {
             >
               <template #body="data">
                 <div
-                  v-if="
+                  v-if="data.data.is_local &&(
                     store.state.user.is_super == true ||
                     store.state.user.user_id == data.data.created_by ||
                     (store.state.user.role_id == 'admin' &&
                       store.state.user.organization_id ==
-                        data.data.organization_id)
+                        data.data.organization_id))
                   "
                 >
                   <Button
@@ -1511,6 +1504,7 @@ emitter.on("emitData", (obj) => {
                 label="Thêm mới"
                 icon="pi pi-plus"
                 class="mr-2"
+                v-if="sys_config_process.is_local==true "
               />
               <Button
                 @click="onShowDetailsP()"
@@ -1526,11 +1520,102 @@ emitter.on("emitData", (obj) => {
               />
             </template>
           </Toolbar>
-          <div class="d-lang-table">
-            <OrderList
+          <div class="d-lang-table" >
+            <Panel   v-if="!(sys_config_process.is_local==true) ">
+              <template #header><div class="font-bold">Danh sách nhóm duyệt </div></template>
+              
+   <div class="w-full p-0" v-for="(slotProps, index) in signs" :key="index">
+    <Toolbar class="surface-0 m-0 p-0 border-0 w-full">
+                  <template #start>
+                    <div class="flex align-items-center">
+                      <div class="format-flex-center">
+                        <b class="p-3">{{ index  + 1 }} </b>
+                      </div>
+                      <div class="flex">
+                        <div>
+                          <div class="mb-2">
+                            {{ slotProps.approved_group_name }}
+                          </div>
+                          <div v-if="slotProps.signusers">
+                            <AvatarGroup
+                              v-if="
+                                slotProps.signusers &&
+                                slotProps.signusers.length > 0
+                              "
+                            >
+                              <Avatar
+                                v-for="(
+                                  elen, index1
+                                ) in slotProps.signusers.slice(0, 3)"
+                                v-bind:label="
+                                  elen.avatar
+                                    ? ''
+                                    : elen.last_name.substring(0, 1)
+                                "
+                                v-bind:image="
+                                  elen.avatar
+                                    ? basedomainURL + elen.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                v-tooltip.bottom="{
+                                  value:
+                                    elen.full_name +
+                                    '<br/>' +
+                                    elen.position_name +
+                                    '<br/>' +
+                                    elen.department_name,
+                                  escape: true,
+                                }"
+                                :key="elen.user_id"
+                                style="
+                                  border: 2px solid white;
+                                  color: white;
+                                  width: 2.5rem;
+                                  height: 2.5rem;
+                                "
+                                @error="
+                                  basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                size="large"
+                                shape="circle"
+                                class="cursor-pointer"
+                                :style="{ backgroundColor: bgColor[index1 % 7] }"
+                              />
+                              <Avatar
+                                v-if="
+                                  slotProps.signusers &&
+                                  slotProps.signusers.length > 3
+                                "
+                                v-bind:label="
+                                  '+' +
+                                  (
+                                    slotProps.signusers.length - 3
+                                  ).toString()
+                                "
+                                shape="circle"
+                                size="large"
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                "
+                                class="cursor-pointer"
+                              />
+                            </AvatarGroup>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+            
+                </Toolbar>
+   </div>
+</Panel>
+
+            <OrderList     v-else   
               v-model="signs"
               listStyle="height: auto"
               dataKey="process_link_approved_id"
+              @reorder="selectionChangeOrder($event)"
             >
               <template #header> Danh sách nhóm duyệt </template>
               <template #item="slotProps">
@@ -1616,8 +1701,8 @@ emitter.on("emitData", (obj) => {
                     </div>
                   </template>
                   <template #end>
-                    <div>
-                      <Button
+                    <div   >
+                      <Button 
                         icon="pi pi-trash"
                         class="p-button-rounded p-button-secondary p-button-text"
                         @click="removeListUser(slotProps.item)"
@@ -1674,7 +1759,7 @@ emitter.on("emitData", (obj) => {
     v-model:visible="displayDialogProcedure"
     :style="{ width: '35vw' }"
     :closable="true"
-    style="z-index: 1000"
+ 
     :modal="true"
   >
     <form>
@@ -1684,6 +1769,7 @@ emitter.on("emitData", (obj) => {
             Tên quy trình <span class="redsao">(*)</span>
           </div>
           <div class="col-9 p-0">
+            
             <InputText
               v-model="sys_config_process.config_process_name"
               spellcheck="false"
@@ -1765,6 +1851,7 @@ emitter.on("emitData", (obj) => {
           <div class="col-6 p-0 align-items-center flex">
             <div class="col-6 p-0">STT</div>
             <div class="col-6 p-0">
+             
               <InputText v-model="sys_config_process.is_order" class="w-full" />
             </div>
           </div>

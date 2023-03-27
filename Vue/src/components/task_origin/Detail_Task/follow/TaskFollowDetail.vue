@@ -99,7 +99,7 @@ onMounted(() => {});
                   class="col-6"
                   v-if="props.data.end_date"
                 >
-                  Ngày bắt đầu(dự kiến):
+                  Ngày kết thúc(dự kiến):
                   <span class="pl-2 text-xl text-blue-600">{{
                     moment(new Date(props.data.end_date)).format(
                       "HH:mm DD/MM/YYYY",
@@ -115,7 +115,7 @@ onMounted(() => {});
                   class="col-6"
                   v-if="props.data.start_real_date"
                 >
-                  Ngày bắt đầu(dự kiến):
+                  Ngày bắt đầu:
                   <span class="pl-2 text-xl text-blue-600">{{
                     moment(new Date(props.data.start_real_date)).format(
                       "HH:mm DD/MM/YYYY",
@@ -126,7 +126,7 @@ onMounted(() => {});
                   class="col-6"
                   v-if="props.data.end_real_date"
                 >
-                  Ngày bắt đầu(dự kiến):
+                  Ngày kết thúc:
                   <span class="pl-2 text-xl text-blue-600">{{
                     moment(new Date(props.data.end_real_date)).format(
                       "HH:mm DD/MM/YYYY",
@@ -205,7 +205,25 @@ onMounted(() => {});
           header="Tên bước"
           field="step_name"
           header-class="justify-content-center align-items-center text-center"
-        ></Column>
+        >
+          <template #body="data"
+            ><div>
+              <span class="font-bold text-xl">
+                {{ data.data.step_name }}
+              </span>
+              <br />
+              <span v-if="data.data.start_date">
+                {{
+                  moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
+                }}-
+              </span>
+
+              <span v-if="data.data.is_deadline == true">
+                {{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY") }}
+              </span>
+            </div></template
+          ></Column
+        >
         <Column
           header="Công việc"
           field="step_name"
@@ -406,8 +424,8 @@ onMounted(() => {});
         </template>
       </DataTable>
     </div>
-
-    {{ props.data.task_follow_step }}
+    <!-- 
+    {{ props.data.task_follow_step }} -->
   </Dialog>
 </template>
 

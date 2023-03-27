@@ -886,6 +886,9 @@ li.p-chips-token {
 .p-button.d-design-left{
     text-align: left !important;
 }
+.d-tree-border.p-treeselect{
+    border: none;
+}
 .d-design-calendar.p-calendar .p-inputtext{
 text-align: center !important;
 }
