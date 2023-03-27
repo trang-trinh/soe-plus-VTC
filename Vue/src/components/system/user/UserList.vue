@@ -1718,7 +1718,7 @@ onMounted(() => {
             :label="opition.tenstatus"
             removable
           />
-          <label
+          <Chip
             class="custom-chip chippb ml-2 mr-1"
             @remove="goQuyen()"
             v-if="opition.check_quyen_label"
@@ -1965,12 +1965,12 @@ onMounted(() => {
                     {{ slotProps.data.full_name }}
                   </h3>
                 </Button>
-                <label
+                <Chip
                   @click="goDonvi(slotProps.data)"
                   class="m-1 chippb p-ripple"
                   v-ripple
                   :label="slotProps.data.organization_name"
-                ></label>
+                ></Chip>
                 <div class="mb-1" v-if="slotProps.data.position_name">
                   <Chip
                     @click="goChucvu(slotProps.data)"
