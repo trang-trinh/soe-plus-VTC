@@ -3,7 +3,6 @@ import { ref, inject, onMounted, watch, onBeforeUnmount } from "vue";
 import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
-import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import moment from "moment";
 import { concat } from "lodash";
 import { encr } from "../../util/function.js";
@@ -31,6 +30,11 @@ const opition = ref({
   Filteruser_id: null,
   user_id: store.getters.user_id,
   type_view: 2,
+  filter_type: 0,
+  sdate: null,
+  edate: null,
+  loctitle: "Lọc",
+  filter_date: null,
 });
 
 const bgColor = ref([
@@ -245,6 +249,10 @@ const loadData = (rf) => {
               { par: "search", va: opition.value.search },
               { par: "sort", va: opition.value.sort },
               { par: "ob", va: opition.value.ob },
+              { par: "loc", va: opition.value.filter_type },
+              { par: "sdate", va: opition.value.sdate },
+              { par: "edate", va: opition.value.edate },
+              { par: "filter_date", va: opition.value.filter_date },
             ],
           }),
           SecretKey,
@@ -835,12 +843,6 @@ const saveProjectMain = (isFormValid) => {
   }
 };
 const emitter = inject("emitter");
-// emitter.on("SideBar", (obj) => {
-//   debugger
-//   showDetailProject.value = false;
-//   selectedDiscussProjectID.value = null;
-//   loadData(false);
-// });
 
 const RenderData = (response) => {
   opition.value.allRecord = null;
@@ -1101,6 +1103,11 @@ const onRefersh = () => {
     Filteruser_id: null,
     user_id: store.getters.user_id,
     type_view: 2,
+    filter_type: 0,
+    sdate: null,
+    edate: null,
+    loctitle: "Lọc",
+    filter_date: null,
   };
   first.value = 0;
   itemSortButs.value.forEach((i) => {
@@ -1109,6 +1116,11 @@ const onRefersh = () => {
     } else {
       i.active = false;
     }
+  });
+  filterTime1.value = null;
+  filterTime2.value = null;
+  itemFilterButs.value.forEach((i) => {
+    i.active = false;
   });
   loadData(true);
 };
@@ -1372,6 +1384,266 @@ const menuSortButs = ref();
 const toggleSort = (event) => {
   menuSortButs.value.toggle(event);
 };
+const menuFilterButs = ref();
+const itemFilterButs = ref([
+  {
+    label: "Trong tuần",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 1,
+    hasChildren: false,
+  },
+  {
+    label: "Trong tháng",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 2,
+    hasChildren: false,
+  },
+  {
+    label: "Trong năm",
+    icon: "pi pi-calendar",
+    active: false,
+    istype: 3,
+    hasChildren: false,
+  },
+  {
+    label: "Theo thời gian",
+    icon: "pi pi-calendar-times",
+    active: false,
+    istype: 4,
+    hasChildren: true,
+    groups: [
+      {
+        label: "Ngày bắt đầu",
+        icon: "pi pi-calendar",
+        children_id: true,
+        is_change: 1,
+      },
+      {
+        label: "Ngày kết thúc",
+        icon: "pi pi-calendar",
+        children_id: true,
+        is_change: 2,
+      },
+    ],
+  },
+]);
+const toggleFilter = (event) => {
+  menuFilterButs.value.toggle(event);
+};
+const filterTime1 = ref();
+const filterTime2 = ref();
+const ChangeFilter = (type, act) => {
+  opition.value.filter_type = type;
+  itemFilterButs.value.forEach((i) => {
+    if (i.istype == type) {
+      i.active = true;
+    } else {
+      i.active = false;
+    }
+  });
+  var date = new Date();
+  switch (type) {
+    case -1: //tất cả
+      opition.value.sdate = null;
+      filterTime1.value = null;
+      opition.value.edate = null;
+      filterTime2.value = null;
+      opition.value.loctitle = "Lọc";
+      break;
+    case 1: //Trong tuần
+      opition.value.sdate = moment().startOf("isoWeek").toDate();
+      opition.value.edate = moment().endOf("isoWeek").toDate();
+      opition.value.loctitle = "Trong tuần";
+      break;
+    case 5: //theo ngày nhận
+      opition.value.sdate = null;
+      opition.value.edate = null;
+      debugger
+      itemFilterButs.value
+        .filter((x) => x.istype == 5)
+        .forEach((t) => {
+          t.groups
+            .filter((y) => y.is_children == 1)
+            .forEach((d) => {
+              d.label =
+                "Theo ngày nhận" +
+                " (" +
+                moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
+                ")";
+              opition.value.filter_date = t.filter_date;
+            });
+        });
+
+      itemFilterButs.value
+        .filter((x) => x.istype == 6)
+        .forEach((t) => {
+          t.groups
+            .filter((y) => y.is_children == 3)
+            .forEach((d) => {
+              d.label = "Ngày hoàn thành";
+            });
+        });
+      opition.value.loctitle = "Theo ngày nhận";
+      break;
+    case 6: //theo ngày hoàn thành
+      opition.value.sdate = null;
+      opition.value.edate = null;
+      itemFilterButs.value
+        .filter((x) => x.istype == 6)
+        .forEach((t) => {
+          t.groups
+            .filter((y) => y.is_children == 3)
+            .forEach((d) => {
+              d.label =
+                "Ngày hoàn thành (" +
+                moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
+                ")";
+            });
+          opition.value.filter_date = t.filter_date;
+        });
+      itemFilterButs.value
+        .filter((x) => x.istype == 5)
+        .forEach((t) => {
+          t.groups
+            .filter((y) => y.is_children == 1)
+            .forEach((d) => {
+              d.label = "Theo ngày nhận";
+            });
+        });
+      opition.value.loctitle = "Theo ngày hoàn thành";
+      break;
+    case 2: //Trong tháng
+      opition.value.sdate = new Date(date.getFullYear(), date.getMonth(), 1);
+      opition.value.edate = new Date(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        0,
+      );
+      opition.value.loctitle = "Trong tháng";
+      break;
+    case 3: //Trong năm
+      opition.value.sdate = new Date(date.getFullYear(), 1, 1);
+      opition.value.edate = new Date(date.getFullYear(), 12, 31);
+      opition.value.loctitle = "Trong năm";
+      break;
+    default:
+      if (opition.value.sdate) {
+        if (opition.value.edate) {
+          opition.value.loctitle =
+            "Từ " +
+            moment(opition.value.sdate).format("DD/MM/YYYY") +
+            " - " +
+            moment(opition.value.edate).format("DD/MM/YYYY");
+        } else {
+          opition.value.loctitle =
+            "Từ ngày " + moment(opition.value.sdate).format("DD/MM/YYYY");
+        }
+      } else {
+        if (opition.value.edate) {
+          opition.value.loctitle =
+            "Đến ngày " + moment(opition.value.edate).format("DD/MM/YYYY");
+        }
+      }
+      break;
+  }
+  filterTime1.value = opition.value.sdate
+    ? moment(new Date(opition.value.sdate)).format("DD/MM/YYYY")
+    : null;
+  filterTime2.value = opition.value.edate
+    ? moment(new Date(opition.value.edate)).format("DD/MM/YYYY")
+    : null;
+  if (type == 1 || type == 2 || type == 3) {
+    menuFilterButs.value.toggle();
+    loadData(true, opition.value.type_view);
+  } else {
+    if (act == true) {
+      menuFilterButs.value.toggle();
+      loadData(true, opition.value.type_view);
+    }
+  }
+};
+const ChangeTimeFilter = (type, value) => {
+  opition.value.filter_type = 4;
+  itemFilterButs.value.forEach((i) => {
+    if (i.istype == 4) {
+      i.active = true;
+    } else {
+      i.active = false;
+    }
+  });
+  if (type == 1) {
+    filterTime1.value = moment(new Date(value)).format("DD/MM/YYYY HH:mm");
+    opition.value.sdate = value;
+  } else {
+    filterTime2.value = moment(new Date(value)).format("DD/MM/YYYY HH:mm");
+    opition.value.edate = value;
+  }
+};
+const Del_ChangeFilter = () => {
+  opition.value.filter_duan = null;
+  opition.value.filter_taskgroup = null;
+  opition.value.filter_type = 0;
+  filterTime1.value = null;
+  filterTime2.value = null;
+  opition.value.sdate = null;
+  opition.value.edate = null;
+  opition.value.filter_date = null;
+  opition.value.loctitle = "Lọc";
+  // itemFilterButs.value.forEach((i) => {
+  //   if(i.istype == 5 || i.istype == 6){
+  //     i.filter_date = new Date();
+  //   }
+  //   i.active = false;
+  // });
+  itemFilterButs.value = [
+    {
+      label: "Trong tuần",
+      icon: "pi pi-calendar",
+      active: false,
+      istype: 1,
+      hasChildren: false,
+    },
+    {
+      label: "Trong tháng",
+      icon: "pi pi-calendar",
+      active: false,
+      istype: 2,
+      hasChildren: false,
+    },
+    {
+      label: "Trong năm",
+      icon: "pi pi-calendar",
+      active: false,
+      istype: 3,
+      hasChildren: false,
+    },
+    {
+      label: "Theo thời gian",
+      icon: "pi pi-calendar-times",
+      active: false,
+      istype: 4,
+      hasChildren: true,
+      groups: [
+        {
+          label: "Ngày bắt đầu",
+          icon: "pi pi-calendar",
+          children_id: true,
+          is_change: 1,
+        },
+        {
+          label: "Ngày kết thúc",
+          icon: "pi pi-calendar",
+          children_id: true,
+          is_change: 2,
+        },
+      ],
+    },
+  ];
+  menuFilterButs.value.toggle();
+  loadData(true);
+};
 const itemListTypeButs = ref([
   {
     label: "LIST",
@@ -1467,6 +1739,11 @@ onMounted(() => {
               <a><i style="margin-right: 5px" class="pi pi-bars"></i>Kiểu hiển thị<i style="margin-left: 5px"
                   class="pi pi-angle-down"></i></a>
             </li>
+            <li @click="toggleFilter" :class="{ active: opition.sort }" aria-haspopup="true"
+              aria-controls="overlay_Export">
+              <a><i class="pi pi-filter"></i> {{ opition.loctitle }}
+                <i class="pi pi-angle-down"></i></a>
+            </li>
             <li @click="toggleSort" :class="{ active: opition.sort }" aria-haspopup="true" aria-controls="overlay_Export">
               <a><i class="pi pi-sort"></i> Sắp xếp
                 <i class="pi pi-angle-down"></i></a>
@@ -1476,7 +1753,7 @@ onMounted(() => {
           <Button label="Xoá" icon="pi pi-trash" class="mr-2 p-button-danger" v-if="selectedNodes.length > 0"
             @click="DelProjectMain()" />
           <!-- <Button label="Export" icon="pi pi-file-excel" class="mr-2 p-button-outlined p-button-secondary"
-                                      @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export" /> -->
+                                        @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export" /> -->
           <Menu vị id="overlay_Export" ref="menuButs" :model="itemButs" :popup="true" />
           <Menu id="task_list_type" :model="itemListTypeButs" ref="menuListTypeButs" :popup="true">
             <template #item="{ item }">
@@ -1485,20 +1762,139 @@ onMounted(() => {
               </div>
             </template>
           </Menu>
-          <Menu
-            id="task_sort"
-            :model="itemSortButs"
-            ref="menuSortButs"
-            :popup="true"
-          >
+          <Menu id="task_sort" :model="itemSortButs" ref="menuSortButs" :popup="true">
             <template #item="{ item }">
-              <a
-                @click="ChangeSortProject(item.sort, item.ob)"
-                :class="{ active: item.active }"
-                >{{ item.label }}</a
-              >
+              <a @click="ChangeSortProject(item.sort, item.ob)" :class="{ active: item.active }">{{ item.label }}</a>
             </template>
           </Menu>
+          <OverlayPanel ref="menuFilterButs" id="task_filter" style="z-index: 10">
+            <div style="
+                  min-height: calc(100vh - 250px);
+                  max-height: calc(100vh - 250px);
+                  width: 100%;
+                  overflow-x: scroll; ;
+                ">
+              <ul v-for="(item, index) in itemFilterButs" :key="index" style="padding: 0px; margin: 0px">
+                <li v-if="item.istype == 5 || item.istype == 6" :class="{
+                  children: item.hasChildren,
+                  parent: !item.hasChildren,
+                }" class="p-menuitem">
+                  <ul style="padding: 0px; display: flex; flex-direction: row">
+                    <li style="
+                          list-style: none;
+                          /* padding: 10px; */
+                          /* display: flex; */
+                          flex: 1;
+                          align-items: center;
+                        " v-for="(item1, index) in item.groups" :key="index">
+                      <div v-if="item1.is_children == 1 || item1.is_children == 3">
+                        <a @click="ChangeFilter(item.istype, false)" :class="{ active: item.active }">
+                          <i style="padding-right: 5px" :class="item1.icon"></i>
+                          {{ item1.label }}
+                        </a>
+                        <span style="margin-left: 10px">
+                          <Calendar @date-select="ChangeFilter(item.istype, false)" inputId="icon"
+                            v-model="item.filter_date" :showIcon="true" :manualInput="true" />
+                        </span>
+                      </div>
+                      <div v-if="item1.is_children != 1 && item1.is_children != 3"
+                        style="display: flex; align-items: center">
+                        <a style="flex: 1" @click="ChangeFilter(item.istype, false)">{{ item1.label }}
+                        </a>
+                        <span style="margin-left: 10px; flex: auto">
+                          <Dropdown @change="ChangeFilterAdvanced(item1.is_children)" v-if="item1.is_children == 2"
+                            :filter="true" v-model="opition.filter_duan" panelClass="d-design-dropdown" selectionLimit="1"
+                            :options="listDropdownProject" optionLabel="project_name" optionValue="project_id"
+                            spellcheck="false" class="col-9 ip36 p-0" placeholder="Chọn">
+                            <template #option="slotProps">
+                              <div class="country-item flex">
+                                <div class="pt-1">
+                                  {{ slotProps.option.project_name }}
+                                </div>
+                              </div>
+                            </template>
+                          </Dropdown>
+                          <Dropdown v-if="item1.is_children == 4" @change="ChangeFilterAdvanced(item1.is_children)"
+                            :filter="true" v-model="opition.filter_taskgroup" panelClass="d-design-dropdown"
+                            selectionLimit="1" :options="listDropdownTaskGroup" optionLabel="group_name"
+                            optionValue="group_id" spellcheck="false" class="col-9 ip36 p-0" placeholder="Chọn">
+                            <template #option="slotProps">
+                              <div class="country-item flex">
+                                <div class="pt-1">
+                                  {{ slotProps.option.group_name }}
+                                </div>
+                              </div>
+                            </template>
+                          </Dropdown>
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
+                </li>
+                <li v-if="item.istype == 4" :class="{
+                  children: item.hasChildren,
+                  parent: !item.hasChildren,
+                }" class="p-menuitem">
+                  <a :class="{ active: item.active }"><i style="padding-right: 5px" :class="item.icon"></i>{{ item.label
+                  }}</a>
+                  <ul style="padding: 0px; display: flex">
+                    <li style="
+                          list-style: none;
+                          padding: 10px;
+                          font-weight: bold;
+                          display: flex;
+                          flex-direction: column;
+                        " v-for="(item1, index) in item.groups" :key="index">
+                      <div style="padding-bottom: 10px">
+                        <span>{{ item1.label }}</span>
+                        <span style="
+                              color: #2196f3;
+                              font-weight: bold;
+                              margin-left: 5px;
+                              font-size: 14px;
+                            " v-if="item1.is_change == 1">{{ filterTime1 }}
+                          <i @click="removeTime(item1.is_change)" v-if="filterTime1" style="color: black"
+                            class="pi pi-times-circle"></i></span>
+                        <span style="
+                              color: #2196f3;
+                              font-weight: bold;
+                              margin-left: 5px;
+                              font-size: 14px;
+                            " v-if="item1.is_change == 2">{{ filterTime2 }}
+                          <i @click="removeTime(item1.is_change)" v-if="filterTime2" style="color: black"
+                            class="pi pi-times-circle"></i></span>
+                      </div>
+                      <Calendar v-if="item1.is_change == 1" @date-select="
+                        ChangeTimeFilter(item1.is_change, opition.sdate)
+                      " v-model="opition.sdate" id="filterTime1" :inline="true"
+                        :manualInput="true" />
+                      <Calendar v-if="item1.is_change == 2" @date-select="
+                        ChangeTimeFilter(item1.is_change, opition.edate)
+                      " v-model="opition.edate" id="filterTime2" :inline="true" />
+                    </li>
+                  </ul>
+                </li>
+                <li v-if="
+                  item.istype == 1 || item.istype == 2 || item.istype == 3
+                " :class="{
+  children: item.hasChildren,
+  parent: !item.hasChildren,
+}" class="p-menuitem" @click="ChangeFilter(item.istype, false)">
+                  <a :class="{ active: item.active }"><i style="padding-right: 5px" :class="item.icon"></i>{{ item.label
+                  }}</a>
+                </li>
+              </ul>
+            </div>
+            <div style="float: right; padding: 10px">
+              <Button @click="ChangeFilter(opition.filter_type, true)" label="Thực hiện" />``
+              <Button @click="Del_ChangeFilter" id="btn_huy" style="
+                    background-color: #f2f4f6;
+                    border: 1px solid #f2f4f6;
+                    color: #333;
+                    margin-left: 10px;
+                  " label="Hủy lọc" />
+            </div>
+          </OverlayPanel>
         </template>
       </Toolbar>
     </div>
@@ -1569,11 +1965,11 @@ onMounted(() => {
       </Column>
       <template #empty>
         <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                      min-height: calc(100vh - 220px);
-                      max-height: calc(100vh - 220px);
-                      display: flex;
-                      flex-direction: column;
-                    " v-if="!isFirst">
+                        min-height: calc(100vh - 220px);
+                        max-height: calc(100vh - 220px);
+                        display: flex;
+                        flex-direction: column;
+                      " v-if="!isFirst">
           <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
@@ -1644,11 +2040,11 @@ onMounted(() => {
       </Column>
       <template #empty>
         <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                      min-height: calc(100vh - 220px);
-                      max-height: calc(100vh - 220px);
-                      display: flex;
-                      flex-direction: column;
-                    " v-if="!isFirst">
+                        min-height: calc(100vh - 220px);
+                        max-height: calc(100vh - 220px);
+                        display: flex;
+                        flex-direction: column;
+                      " v-if="!isFirst">
           <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
@@ -1657,55 +2053,55 @@ onMounted(() => {
     <!-- end -->
     <!-- dạng GRID -->
     <div id="project-main-list" v-if="opition.type_view == 3" style="
-              /* height: 85%; */
-              width: 100%;
-              display: -webkit-box;
-              overflow-x: auto;
-              overflow-y: hidden;
-            ">
+                /* height: 85%; */
+                width: 100%;
+                display: -webkit-box;
+                overflow-x: auto;
+                overflow-y: hidden;
+              ">
       <div v-if="listProjectMains.length > 0" class="md:col-md-3" v-for="item in listProjectMains"
         style="width: 320px; height: 100%; margin: 0px 10px">
         <span style="
-                  padding: 10px;
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  font-weight: bold;
-                  color: #ffffff;
-                " :style="{
-                  background: item.group_view_bg_color + '!important',
-                }">{{ item.group_view_name }} ({{ item.countProject }})</span>
+                    padding: 10px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-weight: bold;
+                    color: #ffffff;
+                  " :style="{
+                    background: item.group_view_bg_color + '!important',
+                  }">{{ item.group_view_name }} ({{ item.countProject }})</span>
         <div style="width: 106%; height: 95%; overflow: hidden auto" id="task-grid" class="scroll-outer">
           <div class="scroll-inner" style="width: fit-content">
             <Card v-for="cv in item.CVGroup" style="width: 320px; margin-bottom: 2em;">
               <template #title>
                 <span @click="onRowSelect(cv)" style="
-                          overflow: hidden;
-                          font-size: 14px;
-                          font-weight: bold;
-                          text-overflow: ellipsis;
-                          width: 100%;
-                          display: -webkit-box;
-                          -webkit-line-clamp: 2;
-                          -webkit-box-orient: vertical;
-                        ">
+                            overflow: hidden;
+                            font-size: 14px;
+                            font-weight: bold;
+                            text-overflow: ellipsis;
+                            width: 100%;
+                            display: -webkit-box;
+                            -webkit-line-clamp: 2;
+                            -webkit-box-orient: vertical;
+                          ">
                   {{ cv.project_name }}
                 </span>
               </template>
               <template #content>
                 <span v-if="cv.group_name" style="
-                          margin: 0px auto;
-                          text-align: center;
-                          padding: 5px 15px;
-                          background-color: #f2f4f6;
-                          max-width: max-content;
-                          border-radius: 5px;
-                          overflow: hidden;
-                          text-overflow: ellipsis;
-                          white-space: nowrap;
-                          max-width: 100%;
-                          font-weight: 500;
-                        ">{{ cv.group_name }}</span>
+                            margin: 0px auto;
+                            text-align: center;
+                            padding: 5px 15px;
+                            background-color: #f2f4f6;
+                            max-width: max-content;
+                            border-radius: 5px;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            max-width: 100%;
+                            font-weight: 500;
+                          ">{{ cv.group_name }}</span>
                 <span v-if="cv.start_date || cv.end_date" style="color: #98a9bc"><i style="margin-right: 5px"
                     class="pi pi-calendar"></i>{{
                       cv.start_date
@@ -1722,56 +2118,56 @@ onMounted(() => {
                 </span>
                 <span>
                   <span v-if="cv.isQL" style="
-                            background-color: #337ab7;
-                            color: #ffffff;
-                            display: inline;
-                            padding: 0.4em 0.6em;
-                            font-size: 75%;
-                            font-weight: 700;
-                            line-height: 1;
-                            color: #fff;
-                            text-align: center;
-                            white-space: nowrap;
-                            vertical-align: baseline;
-                            border-radius: 0.25em;
-                            margin-left: 10px;
-                          ">Quản lý</span>
+                              background-color: #337ab7;
+                              color: #ffffff;
+                              display: inline;
+                              padding: 0.4em 0.6em;
+                              font-size: 75%;
+                              font-weight: 700;
+                              line-height: 1;
+                              color: #fff;
+                              text-align: center;
+                              white-space: nowrap;
+                              vertical-align: baseline;
+                              border-radius: 0.25em;
+                              margin-left: 10px;
+                            ">Quản lý</span>
                   <span v-if="cv.isTT" style="
-                            background-color: #5cb85c;
-                            color: #ffffff;
-                            display: inline;
-                            padding: 0.4em 0.6em;
-                            font-size: 75%;
-                            font-weight: 700;
-                            line-height: 1;
-                            color: #fff;
-                            text-align: center;
-                            white-space: nowrap;
-                            vertical-align: baseline;
-                            border-radius: 0.25em;
-                            margin-left: 5px;
-                          ">Thực hiện</span>
+                              background-color: #5cb85c;
+                              color: #ffffff;
+                              display: inline;
+                              padding: 0.4em 0.6em;
+                              font-size: 75%;
+                              font-weight: 700;
+                              line-height: 1;
+                              color: #fff;
+                              text-align: center;
+                              white-space: nowrap;
+                              vertical-align: baseline;
+                              border-radius: 0.25em;
+                              margin-left: 5px;
+                            ">Thực hiện</span>
                   <span v-if="cv.isTD" style="
-                            background-color: #5bc0de;
-                            color: #ffffff;
-                            display: inline;
-                            padding: 0.4em 0.6em;
-                            font-size: 75%;
-                            font-weight: 700;
-                            line-height: 1;
-                            color: #fff;
-                            text-align: center;
-                            white-space: nowrap;
-                            vertical-align: baseline;
-                            border-radius: 0.25em;
-                            margin-left: 5px;
-                          ">Theo dõi</span>
+                              background-color: #5bc0de;
+                              color: #ffffff;
+                              display: inline;
+                              padding: 0.4em 0.6em;
+                              font-size: 75%;
+                              font-weight: 700;
+                              line-height: 1;
+                              color: #fff;
+                              text-align: center;
+                              white-space: nowrap;
+                              vertical-align: baseline;
+                              border-radius: 0.25em;
+                              margin-left: 5px;
+                            ">Theo dõi</span>
                 </span>
                 <span style="
-                          display: flex;
-                          justify-content: center;
-                          align-items: center;
-                        ">
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                          ">
                   <AvatarGroup>
                     <div v-for="(value, index) in cv.ThanhvienShows" :key="index">
                       <div>
@@ -1788,15 +2184,15 @@ onMounted(() => {
     ? ''
     : (value.ten ?? '').substring(0, 1)
 " v-bind:image="basedomainURL + value.avatar" style="
-                                  background-color: #2196f3;
-                                  color: #ffffff;
-                                  width: 32px;
-                                  height: 32px;
-                                  font-size: 15px !important;
-                                  margin-left: -10px;
-                                " :style="{
-                                  background: bgColor[index % 7] + '!important',
-                                }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                    background-color: #2196f3;
+                                    color: #ffffff;
+                                    width: 32px;
+                                    height: 32px;
+                                    font-size: 15px !important;
+                                    margin-left: -10px;
+                                  " :style="{
+                                    background: bgColor[index % 7] + '!important',
+                                  }" class="cursor-pointer" size="xlarge" shape="circle" />
                       </div>
                     </div>
                     <Avatar v-if="cv.Thanhviens.length - cv.ThanhvienShows.length > 0" :label="
@@ -1804,38 +2200,38 @@ onMounted(() => {
                       (cv.Thanhviens.length - cv.ThanhvienShows.length) +
                       ''
                     " class="cursor-pointer" shape="circle" style="
-                              background-color: #e9e9e9 !important;
-                              color: #98a9bc;
-                              font-size: 14px !important;
-                              width: 32px;
-                              margin-left: -10px;
-                              height: 32px;
-                            " />
+                                background-color: #e9e9e9 !important;
+                                color: #98a9bc;
+                                font-size: 14px !important;
+                                width: 32px;
+                                margin-left: -10px;
+                                height: 32px;
+                              " />
                   </AvatarGroup>
                 </span>
                 <span v-if="cv.title_time" style="
-                          width: max-content;
-                          font-size: 10px;
-                          font-weight: bold;
-                          padding: 5px;
-                          border-radius: 5px;
-                        " :style="{
-                          background: cv.time_bg,
-                          color: cv.status_text_color,
-                        }">{{ cv.title_time }}</span>
+                            width: max-content;
+                            font-size: 10px;
+                            font-weight: bold;
+                            padding: 5px;
+                            border-radius: 5px;
+                          " :style="{
+                            background: cv.time_bg,
+                            color: cv.status_text_color,
+                          }">{{ cv.title_time }}</span>
                 <div class="card-chucnang" style="
-                          display: none;
-                          flex-direction: column;
-                          position: absolute;
-                          right: 10px;
-                          top:-20px;
-                        " v-if="
-                          store.state.user.is_super == true ||
-                          store.state.user.user_id == cv.created_by ||
-                          (store.state.user.role_id == 'admin' &&
-                            store.state.user.organization_id ==
-                            cv.organization_id)
-                        ">
+                            display: none;
+                            flex-direction: column;
+                            position: absolute;
+                            right: 10px;
+                            top:-20px;
+                          " v-if="
+                            store.state.user.is_super == true ||
+                            store.state.user.user_id == cv.created_by ||
+                            (store.state.user.role_id == 'admin' &&
+                              store.state.user.organization_id ==
+                              cv.organization_id)
+                          ">
                   <Button @click="editProjectMain(cv)" style="margin-bottom: 5px"
                     class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-pencil"
                     v-tooltip="'Sửa'"></Button>
@@ -1854,11 +2250,11 @@ onMounted(() => {
         </div>
       </div>
       <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                min-height: calc(100vh - 215px);
-                max-height: calc(100vh - 215px);
-                display: flex;
-                flex-direction: column;
-              " v-if="listProjectMains.length == 0">
+                  min-height: calc(100vh - 215px);
+                  max-height: calc(100vh - 215px);
+                  display: flex;
+                  flex-direction: column;
+                " v-if="listProjectMains.length == 0">
         <img src="../../assets/background/nodata.png" height="144" />
         <h3 class="m-1">Không có dữ liệu</h3>
       </div>
@@ -1866,31 +2262,31 @@ onMounted(() => {
     <!-- end -->
     <!-- dạng GANTT -->
     <div id="project-main-list" v-if="opition.type_view == 4" style="
-              /* max-height: calc(100vh - 500px);
-              min-height: calc(100vh - 150px); */
-              display: -webkit-box;
-              overflow-x: auto;
-              overflow-y: hidden;
-            " class="grid formgrid m-2">
+                /* max-height: calc(100vh - 500px);
+                min-height: calc(100vh - 150px); */
+                display: -webkit-box;
+                overflow-x: auto;
+                overflow-y: hidden;
+              " class="grid formgrid m-2">
       <div class="field col-12 md:col-12" style="
-                display: flex;
-                padding: 0px;
-                height: 100%;
-              ">
+                  display: flex;
+                  padding: 0px;
+                  height: 100%;
+                ">
         <div class="col-12 scrollbox_delayed" style="height: 100%; padding: 0px; overflow: auto">
           <table class="table table-border" style="
-                    width: max-content;
-                    table-layout: fixed;
-                    min-width: 100%;
-                    border-collapse: collapse;
-                    overflow-x: scroll;
-                  ">
-            <thead style="
-                      background-color: #f8f9fa;
-                      position: sticky;
-                      top: 0px;
-                      z-index: 5;
+                      width: max-content;
+                      table-layout: fixed;
+                      min-width: 100%;
+                      border-collapse: collapse;
+                      overflow-x: scroll;
                     ">
+            <thead style="
+                        background-color: #f8f9fa;
+                        position: sticky;
+                        top: 0px;
+                        z-index: 5;
+                      ">
               <tr>
                 <th class="fixcol left-0 p-3" rowspan="3" style="width: 200px; border: 1px solid #e9e9e9">
                   Dự án
@@ -1902,9 +2298,9 @@ onMounted(() => {
                   Nhóm dự án
                 </th>
                 <!-- sa
-                  <th class="fixcol left-450 p-3" rowspan="3" style="width: 100px; border: 1px solid #e9e9e9">
-                    Kết thúc
-                  </th> -->
+                    <th class="fixcol left-450 p-3" rowspan="3" style="width: 100px; border: 1px solid #e9e9e9">
+                      Kết thúc
+                    </th> -->
                 <th v-for="m in Grands" class="p-3" align="center" :width="m.Dates.length * 40" :colspan="m.Dates.length"
                   style="text-align: center; min-width: 100px; color: #2196f3">
                   Tháng {{ m.Month }}/{{ m.Year }}
@@ -1969,15 +2365,15 @@ onMounted(() => {
     ? ''
     : (value.ten ?? '').substring(0, 1)
 " v-bind:image="basedomainURL + value.avatar" style="
-                                    background-color: #2196f3;
-                                    color: #ffffff;
-                                    width: 32px;
-                                    height: 32px;
-                                    font-size: 15px !important;
-                                    margin-left: -10px;
-                                  " :style="{
-                                    background: bgColor[index % 7] + '!important',
-                                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                      background-color: #2196f3;
+                                      color: #ffffff;
+                                      width: 32px;
+                                      height: 32px;
+                                      font-size: 15px !important;
+                                      margin-left: -10px;
+                                    " :style="{
+                                      background: bgColor[index % 7] + '!important',
+                                    }" class="cursor-pointer" size="xlarge" shape="circle" />
                         </div>
                       </div>
                       <Avatar v-if="l.countThanhviens - l.countThanhvienShows > 0" :label="
@@ -1985,13 +2381,13 @@ onMounted(() => {
                         (l.countThanhviens - l.countThanhvienShows) +
                         ''
                       " class="cursor-pointer" shape="circle" style="
-                                background-color: #e9e9e9 !important;
-                                color: #98a9bc;
-                                font-size: 14px !important;
-                                width: 32px;
-                                margin-left: -10px;
-                                height: 32px;
-                              " />
+                                  background-color: #e9e9e9 !important;
+                                  color: #98a9bc;
+                                  font-size: 14px !important;
+                                  width: 32px;
+                                  margin-left: -10px;
+                                  height: 32px;
+                                " />
                     </AvatarGroup>
                   </div>
                 </td>
@@ -2002,13 +2398,13 @@ onMounted(() => {
                   }}
                 </td>
                 <!-- <td class="fixcol left-450 p-3"
-                    style="border: 1px solid #e9e9e9; background-color: #f8f9fa; text-align: center;">
-                    {{
-                      l.end_date
-                      ? moment(new Date(l.end_date)).format("DD/MM/YYYY HH:mm")
-                      : ""
-                    }}
-                  </td> -->
+                      style="border: 1px solid #e9e9e9; background-color: #f8f9fa; text-align: center;">
+                      {{
+                        l.end_date
+                        ? moment(new Date(l.end_date)).format("DD/MM/YYYY HH:mm")
+                        : ""
+                      }}
+                    </td> -->
                 <td class="no-fixcol-hover" style="background-color: #fff; border: 1px solid #e9e9e9" width="40"
                   :colspan="g.IsCheck ? l.totalDay : 1" :style="
                     (g.Name
@@ -2029,11 +2425,11 @@ onMounted(() => {
               <tr v-if="listProjectMains.length == 0">
                 <td :colspan="GrandsDate.length + 4" style="text-align: center">
                   <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                            min-height: calc(100vh - 215px);
-                            max-height: calc(100vh - 215px);
-                            display: flex;
-                            flex-direction: column;
-                          " v-if="listProjectMains != null || opition.totalRecords == 0">
+                              min-height: calc(100vh - 215px);
+                              max-height: calc(100vh - 215px);
+                              display: flex;
+                              flex-direction: column;
+                            " v-if="listProjectMains != null || opition.totalRecords == 0">
                     <img src="../../assets/background/nodata.png" height="144" />
                     <h3 class="m-1">Không có dữ liệu</h3>
                   </div>
@@ -2047,37 +2443,37 @@ onMounted(() => {
     <!-- end -->
     <!-- dạng User -->
     <div id="project-main-list" v-if="opition.type_view == 5" style="
-          display: -webkit-box;
-          overflow-x: auto;
-          overflow-y: hidden;
-        " class="grid formgrid m-2">
+            display: -webkit-box;
+            overflow-x: auto;
+            overflow-y: hidden;
+          " class="grid formgrid m-2">
       <div class="field col-12 md:col-12" style="
-            display: flex;
-            padding: 0px;
-            height: 100%;
-          ">
+              display: flex;
+              padding: 0px;
+              height: 100%;
+            ">
         <div class="col-12 scrollbox_delayed" style="height: 100%; padding: 0px; overflow: auto">
           <table class="table table-border" style="
-                width: max-content;
-                table-layout: fixed;
-                min-width: 100%;
-                border-collapse: collapse;
-                overflow-x: scroll;
-              ">
-            <thead style="
-                  background-color: #f8f9fa;
-                  position: sticky;
-                  top: 0px;
-                  z-index: 5;
+                  width: max-content;
+                  table-layout: fixed;
+                  min-width: 100%;
+                  border-collapse: collapse;
+                  overflow-x: scroll;
                 ">
+            <thead style="
+                    background-color: #f8f9fa;
+                    position: sticky;
+                    top: 0px;
+                    z-index: 5;
+                  ">
               <tr>
                 <th class="fixcol left-0 p-3" rowspan="3" style="width: 200px; border: 1px solid #e9e9e9">
                   <div style="
-                        display: flex;
-                        justify-content: center;
-                        flex-direction: column;
-                        align-items: center;
-                      ">
+                          display: flex;
+                          justify-content: center;
+                          flex-direction: column;
+                          align-items: center;
+                        ">
                     <span style="margin-bottom: 5px">
                       Thành viên {{ "(" + listDropdownUser.length + ")" }}
                     </span>
@@ -2089,16 +2485,17 @@ onMounted(() => {
                               value.avatar
                                 ? ''
                                 : (value.ten ?? '').substring(0, 1)
-                            " v-bind:image="basedomainURL + value.avatar" style="
-                                  background-color: #2196f3;
-                                  color: #ffffff;
-                                  width: 32px;
-                                  height: 32px;
-                                  font-size: 15px !important;
-                                  margin-left: -10px;
-                                " :style="{
-                                  background: bgColor[index % 7] + '!important',
-                                }" class="cursor-pointer" size="xlarge" shape="circle" />
+                            " v-bind:image="basedomainURL + value.avatar" 
+                            style="
+                                    background-color: #2196f3;
+                                    color: #ffffff;
+                                    width: 32px;
+                                    height: 32px;
+                                    font-size: 15px !important;
+                                    margin-left: -10px;
+                                  " :style="{
+                                    background: bgColor[index % 7] + '!important',
+                                  }" class="cursor-pointer" size="xlarge" shape="circle" />
                           </div>
                         </div>
                         <Avatar v-if="
@@ -2107,15 +2504,14 @@ onMounted(() => {
   '+' +
   (listDropdownUser.length - listThanhVien.length) +
   ''
-" class="cursor-pointer" shape="circle" 
-style="
-                              background-color: #e9e9e9 !important;
-                              color: #98a9bc;
-                              font-size: 14px !important;
-                              width: 32px;
-                              margin-left: -10px;
-                              height: 32px;
-                            " />
+" class="cursor-pointer" shape="circle" style="
+                                background-color: #e9e9e9 !important;
+                                color: #98a9bc;
+                                font-size: 14px !important;
+                                width: 32px;
+                                margin-left: -10px;
+                                height: 32px;
+                              " />
                       </AvatarGroup>
                     </span>
                   </div>
@@ -2149,10 +2545,10 @@ style="
             <tbody>
               <tr v-for="(l, index) in listProjectMains">
                 <td class="fixcol left-0 p-3" style="
-                      height: 40px;
-                      border: 1px solid #dedede;
-                      background-color: #f8f9fa;
-                    " v-if="l.IsHienThi" :rowspan="l.count_cv">
+                        height: 40px;
+                        border: 1px solid #dedede;
+                        background-color: #f8f9fa;
+                      " v-if="l.IsHienThi" :rowspan="l.count_cv">
                   <div style="display: flex; align-items: center; padding: 10px">
                     <span>
                       <Avatar v-tooltip.bottom="{
@@ -2166,27 +2562,27 @@ style="
                       }" v-bind:label="
   l.avatar ? '' : (l.last_name ?? '').substring(0, 1)
 " v-bind:image="basedomainURL + l.avatar" style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 3.5rem;
-                            height: 3.5rem;
-                            font-size: 15px !important;
-                          " :style="{
-                            background: bgColor[(index % 7) + 1] + '!important',
-                          }" class="cursor-pointer" size="xlarge" shape="circle" />
+                              background-color: #2196f3;
+                              color: #ffffff;
+                              width: 3.5rem;
+                              height: 3.5rem;
+                              font-size: 15px !important;
+                            " :style="{
+                              background: bgColor[(index % 7) + 1] + '!important',
+                            }" class="cursor-pointer" size="xlarge" shape="circle" />
                     </span>
                     <span style="margin-left: 10px">
                       <div style="
-                            display: flex;
-                            flex-direction: column;
-                            line-height: 20px;
-                          ">
+                              display: flex;
+                              flex-direction: column;
+                              line-height: 20px;
+                            ">
                         <b style="font-size: 13px">{{ l.user_name }}</b>
                         <div style="
-                              font-weight: 600;
-                              color: #72777a;
-                              font-size: 12px;
-                            ">
+                                font-weight: 600;
+                                color: #72777a;
+                                font-size: 12px;
+                              ">
                           {{ l.tenChucVu }}
                         </div>
                         <div style="font-weight: 500; font-size: 11px">
@@ -2194,65 +2590,65 @@ style="
                         </div>
                         <div style="display: flex">
                           <span v-if="l.count_istype_0 > 0" style="
-                                background-color: #337ab7;
-                                color: #ffffff;
-                                display: inline;
-                                padding: 0.4em 0.6em;
-                                font-size: 75%;
-                                font-weight: 700;
-                                line-height: 1;
-                                color: #fff;
-                                text-align: center;
-                                white-space: nowrap;
-                                vertical-align: baseline;
-                                border-radius: 0.25em;
-                                margin-left: 10px;
-                              ">Quản lý {{ l.count_istype_0 }}</span>
+                                  background-color: #337ab7;
+                                  color: #ffffff;
+                                  display: inline;
+                                  padding: 0.4em 0.6em;
+                                  font-size: 75%;
+                                  font-weight: 700;
+                                  line-height: 1;
+                                  color: #fff;
+                                  text-align: center;
+                                  white-space: nowrap;
+                                  vertical-align: baseline;
+                                  border-radius: 0.25em;
+                                  margin-left: 10px;
+                                ">Quản lý {{ l.count_istype_0 }}</span>
                           <span v-if="l.count_istype_1 > 0" style="
-                                background-color: #5cb85c;
-                                color: #ffffff;
-                                display: inline;
-                                padding: 0.4em 0.6em;
-                                font-size: 75%;
-                                font-weight: 700;
-                                line-height: 1;
-                                color: #fff;
-                                text-align: center;
-                                white-space: nowrap;
-                                vertical-align: baseline;
-                                border-radius: 0.25em;
-                                margin-left: 5px;
-                              ">Tham gia {{ l.count_istype_1 }}</span>
+                                  background-color: #5cb85c;
+                                  color: #ffffff;
+                                  display: inline;
+                                  padding: 0.4em 0.6em;
+                                  font-size: 75%;
+                                  font-weight: 700;
+                                  line-height: 1;
+                                  color: #fff;
+                                  text-align: center;
+                                  white-space: nowrap;
+                                  vertical-align: baseline;
+                                  border-radius: 0.25em;
+                                  margin-left: 5px;
+                                ">Tham gia {{ l.count_istype_1 }}</span>
                           <span v-if="l.count_istype_3 > 0" style="
-                                background-color: #5bc0de;
-                                color: #ffffff;
-                                display: inline;
-                                padding: 0.4em 0.6em;
-                                font-size: 75%;
-                                font-weight: 700;
-                                line-height: 1;
-                                color: #fff;
-                                text-align: center;
-                                white-space: nowrap;
-                                vertical-align: baseline;
-                                border-radius: 0.25em;
-                                margin-left: 5px;
-                              ">Theo dõi {{ l.count_istype_3 }}</span>
+                                  background-color: #5bc0de;
+                                  color: #ffffff;
+                                  display: inline;
+                                  padding: 0.4em 0.6em;
+                                  font-size: 75%;
+                                  font-weight: 700;
+                                  line-height: 1;
+                                  color: #fff;
+                                  text-align: center;
+                                  white-space: nowrap;
+                                  vertical-align: baseline;
+                                  border-radius: 0.25em;
+                                  margin-left: 5px;
+                                ">Theo dõi {{ l.count_istype_3 }}</span>
                         </div>
                       </div>
                     </span>
                   </div>
                 </td>
                 <td @click="onRowSelect(l)" rowspan="1" class="no-fixcol-hover" style="
-                      background-color: #fff;
-                      border: 1px solid #e9e9e9;
-                      height: 40px;
-                    " width="40" :colspan="g.IsCheck ? l.totalDay : 1" :style="
-                      (g.Name
-                        ? 'background-color: #fff;'
-                        : 'background-color:' + g.bg + ';',
-                        'color:' + g.color)
-                    " v-for="g in l.dateArray">
+                        background-color: #fff;
+                        border: 1px solid #e9e9e9;
+                        height: 40px;
+                      " width="40" :colspan="g.IsCheck ? l.totalDay : 1" :style="
+                        (g.Name
+                          ? 'background-color: #fff;'
+                          : 'background-color:' + g.bg + ';',
+                          'color:' + g.color)
+                      " v-for="g in l.dateArray">
                   <div v-if="g.Name" class="divbg" :style="
                     'background-color:' +
                     l.time_bg +
@@ -2266,11 +2662,11 @@ style="
               <tr v-if="listProjectMains.length == 0">
                 <td :colspan="GrandsDate.length + 4" style="text-align: center">
                   <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                        min-height: calc(100vh - 215px);
-                        max-height: calc(100vh - 215px);
-                        display: flex;
-                        flex-direction: column;
-                      " v-if="listProjectMains != null || opition.totalRecords == 0">
+                          min-height: calc(100vh - 215px);
+                          max-height: calc(100vh - 215px);
+                          display: flex;
+                          flex-direction: column;
+                        " v-if="listProjectMains != null || opition.totalRecords == 0">
                     <img src="../../assets/background/nodata.png" height="144" />
                     <h3 class="m-1">Không có dữ liệu</h3>
                   </div>
@@ -2432,15 +2828,15 @@ style="
                       ? ''
                       : (slotProps.option.name ?? '').substring(0, 1)
                   " v-bind:image="basedomainURL + slotProps.option.avatar" style="
-                              background-color: #2196f3;
-                              color: #ffffff;
-                              width: 32px;
-                              height: 32px;
-                              font-size: 15px !important;
-                              margin-left: -10px;
-                            " :style="{
-                              background: bgColor[slotProps.index % 7] + '!important',
-                            }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                background-color: #2196f3;
+                                color: #ffffff;
+                                width: 32px;
+                                height: 32px;
+                                font-size: 15px !important;
+                                margin-left: -10px;
+                              " :style="{
+                                background: bgColor[slotProps.index % 7] + '!important',
+                              }" class="cursor-pointer" size="xlarge" shape="circle" />
                   <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
@@ -2461,15 +2857,15 @@ style="
                       ? ''
                       : (slotProps.option.name ?? '').substring(0, 1)
                   " v-bind:image="basedomainURL + slotProps.option.avatar" style="
-                              background-color: #2196f3;
-                              color: #ffffff;
-                              width: 32px;
-                              height: 32px;
-                              font-size: 15px !important;
-                              margin-left: -10px;
-                            " :style="{
-                              background: bgColor[slotProps.index % 7] + '!important',
-                            }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                background-color: #2196f3;
+                                color: #ffffff;
+                                width: 32px;
+                                height: 32px;
+                                font-size: 15px !important;
+                                margin-left: -10px;
+                              " :style="{
+                                background: bgColor[slotProps.index % 7] + '!important',
+                              }" class="cursor-pointer" size="xlarge" shape="circle" />
                   <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
@@ -2643,6 +3039,7 @@ style="
 #project-main-list .left-450 {
   left: 450px;
 }
+
 #task_sort .p-menuitem {
   padding: 5px 10px;
 }
@@ -2653,6 +3050,24 @@ style="
 }
 
 #task_sort .p-menuitem .active {
+  color: #2196f3 !important;
+}
+
+#task_filter .p-menuitem {
+  padding: 5px 10px;
+  list-style: none;
+}
+
+#task_filter .parent:hover {
+  cursor: pointer;
+  background-color: #e9ecef;
+}
+
+#task_filter .parent .active {
+  color: #2196f3 !important;
+}
+
+#task_filter .children .active {
   color: #2196f3 !important;
 }
 </style>
