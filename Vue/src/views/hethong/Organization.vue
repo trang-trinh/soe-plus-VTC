@@ -3,8 +3,8 @@ import { ref, inject, onMounted, watch } from "vue";
 import organizationList from "../../components/system/organization/OrganizationList.vue"
 import organizationTree from "../../components/system/organization/OrganizationTree.vue"
 const emitter = inject("emitter");
-const isViewList = ref(false);
-const isViewTree = ref(true);
+const isViewList = ref(true);
+const isViewTree = ref(false);
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "change_type":

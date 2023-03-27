@@ -825,7 +825,7 @@ onMounted(() => {
                   :value="donvis"
                   v-model:selectionKeys="selectedKey"
                   :filters="filters"
-                  :showGridlines="true"
+                  :showGridlines="false"
                   filterMode="strict"
                   class="p-treetable-sm"
                   :rows="20"
@@ -1594,9 +1594,18 @@ onMounted(() => {
 }
 </style>
 <style lang="scss" scoped>
+// ::v-deep(.p-treetable-tbody) {
+//   tr {
+//     cursor: pointer;
+//   }
+//   tr > td {
+//   border:none;
+// }
+//}
 ::v-deep(.col-12) {
   .p-inputswitch {
     top: 6px;
   }
 }
+
 </style>
