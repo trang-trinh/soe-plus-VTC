@@ -1305,7 +1305,7 @@ const exportExcelR = () => {
   else {
 
     options.value.loading = true;
-    debugger
+     
     axios
       .post(
         baseURL + "/api/DocProc/CallProc",
@@ -1369,6 +1369,8 @@ const itemButs = ref([
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
+      debugger
+      if(options.value.totalRecords >0){
       if (options.value.totalRecords < 10000) {
         options.value.totalRecordsExport = options.value.totalRecords;
         exportData("ExportExcel");
@@ -1378,16 +1380,35 @@ const itemButs = ref([
         checkTypeExpport = true;
         showExport.value = true;
       }
+    }
+    else
+    {
+      swal.fire({
+          title: "Thông báo!",
+          text: "Không có bản ghi để xuất Excel",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+    }
     },
   },
   {
     label: "In báo cáo",
     icon: "pi pi-print",
     command: (event) => {
+      if(option.totalRecords>0){
       headerExport.value = "Cấu hình in báo cáo";
       options.value.totalRecordsExport = 50;
       checkTypeExpport = false;
-      showExport.value = true;
+      showExport.value = true;}
+      else{
+        swal.fire({
+          title: "Thông báo!",
+          text: "Không có bản ghi để In",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
     },
   },
 ]);

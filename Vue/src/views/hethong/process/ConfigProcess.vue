@@ -1,28 +1,37 @@
 <script setup>
-import { ref, inject, onMounted } from "vue";
+import { ref, inject, onMounted, watch } from "vue";
+import { encr } from "../../../util/function";
+const cryoptojs = inject("cryptojs");
+import moment from "moment";
 import { useToast } from "vue-toastification";
-import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-
 import treeuser from "../../../components/user/treeuser.vue";
-import { encr, checkURL } from "../../../util/function.js";
-//Khai báo
-const router = inject("router");
-const cryoptojs = inject("cryptojs");
-
-const axios = inject("axios");
+import { de } from "date-fns/locale";
 const store = inject("store");
 const swal = inject("$swal");
+const axios = inject("axios");
+const emitter = inject("emitter");
+const isDynamicSQL = ref(false);
 const basedomainURL = baseURL;
-const selectedHandOver = ref();
-const displayAssets = ref(false);
-const headerDialogUser = ref("Chọn người duyệt");
-const expandedKeys = ref([]);
-const isFirstCard = ref(false);
-const selectedUser = ref([]);
-
-const rules = {
+const config = {
+  headers: {
+    Authorization: `Bearer ${store.getters.token}`,
+  },
+};
+const ruleprocedure = {
+  config_process_name: {
+    required,
+    $errors: [
+      {
+        $property: "config_process_name",
+        $validator: "required",
+        $message: "Tên quy trình không được để trống!",
+      },
+    ],
+  },
+};
+const rulesign = {
   config_procerduce_name: {
     required,
     $errors: [
@@ -34,9 +43,12 @@ const rules = {
     ],
   },
 };
+const toast = useToast();
 
-const taskDateFilter = ref();
-
+//Declare
+const isFirst = ref(true);
+const listdatas = ref([]);
+const signs = ref([]);
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -46,37 +58,947 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
-const checkMultile = ref(false);
-const checkShowAssets = ref(false);
-const showListAssets = () => {
-  liUserCF.value = [];
-  displayAssets.value = true;
-};
-const showListUser = () => {
-  checkMultile.value = false;
-  selectedUser.value = [...listUserA.value];
-  displayDialogUser.value = true;
-};
-let selectedTreeU = null;
-const showTreeUser = (value) => {
-  checkMultile.value = true;
-  selectedTreeU = value;
-  displayDialogUser.value = true;
-};
-const onChangeSWT = () => {
-  if (hrm_approved_group.value.is_approved_by_department == true) {
-    listUserA.value = [];
+const options = ref({
+  loading: false,
+  user_id: store.getters.user.user_id,
+  searchText: "",
+  searchsign: "",
+  totalRecords: 0,
+  totalsign: 0,
+  sort: "created_date desc",
+  orderBy: "desc",
+  config_process_id: null,
+  pageno: 0,
+  pagesize: 20,
+  pagenoAP: 0,
+  pagesizeAP: 20,
+  totalRecordsAP: 0,
+});
+const types = ref([
+  { value: 0, title: "Duyệt tuần tự" },
+  { value: 1, title: "Duyệt một trong nhiều" },
+  { value: 2, title: "Duyệt ngẫu nhiên" },
+]);
+
+const listModules = ref([]);
+const selectedKeyProcedure = ref([]);
+const selectedKeySign = ref([]);
+
+watch(selectedKeyProcedure, () => {
+  goProcedure(selectedKeyProcedure.value);
+});
+
+//Model procedure
+const sys_config_process = ref({});
+const vp$ = useVuelidate(ruleprocedure, sys_config_process);
+
+//Model procedure
+const config_approved = ref({});
+const vs$ = useVuelidate(rulesign, config_approved);
+
+//Function
+
+//Function add
+const isAdd = ref(false);
+const submitted = ref(false);
+const headerDialogProcedure = ref();
+const headerDialogSign = ref();
+const displayDialogProcedure = ref(false);
+const displayDialogSign = ref(false);
+
+const openAddDialogProcedure = (str) => {
+  isAdd.value = true;
+  submitted.value = false;
+  sys_config_process.value = {
+    status: true, is_local: false,
+    config_process_type: 0,
+    is_order: 0,
+  };
+  if (options.value.totalRecords > 0) {
+    sys_config_process.value.is_order = options.value.totalRecords + 1;
   } else {
-    selectedUser.value = [];
+    sys_config_process.value.is_order = 1;
+  }
+  headerDialogProcedure.value = str;
+  displayDialogProcedure.value = true;
+};
+const listUserA = ref([]);
+const listApproveds = ref([]);
+const approvedSelected = ref([]);
+const openAddDialogSign = (str) => {
+  isAdd.value = true;
+  submitted.value = false;
+
+  axios
+    .post(
+      baseURL + "/api/HRM_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_config_approved_list",
+            par: [
+              { par: "pageno", va: options.value.pagenoAP },
+              { par: "pagesize", va: options.value.pagesizeAP },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            listApproveds.value = tbs[0];
+            if (listApproveds.value.length > 0) {
+              listApproveds.value.forEach((element, i) => {
+                element["STT"] = i + 1;
+
+                if (element["signusers"] != null) {
+                  element["signusers"] = JSON.parse(element["signusers"]);
+                }
+
+                if (element["signusers"] != null) {
+                  element["signusers"].forEach((ilem) => {
+                    if (ilem.is_order == "") ilem.is_order = null;
+                    else ilem.is_order = Number(ilem.is_order);
+                    if (ilem.approved_users_id == "")
+                      ilem.approved_users_id = null;
+                    else
+                      ilem.approved_users_id = Number(ilem.approved_users_id);
+                    if (ilem.department_id == "") ilem.department_id = null;
+                    else ilem.department_id = Number(ilem.department_id);
+                    if (ilem.avatar == "") ilem.avatar = null;
+                    else ilem.avatar = ilem.avatar;
+                  });
+                }
+              });
+           
+           
+           
+            }
+          } else {
+            listApproveds.value = [];
+          }
+          signs.value.forEach(ele => {
+           if( listApproveds.value.find(x=>x.approved_groups_id==ele.approved_groups_id)!=null)
+            approvedSelected.value.push(listApproveds.value.find(x=>x.approved_groups_id==ele.approved_groups_id));  
+          });
+          if (tbs.length == 2) {
+            options.value.totalRecordsAP = tbs[1][0].total;
+          }
+        }
+      }
+      swal.close();
+      if (isFirst.value) isFirst.value = false;
+      if (options.value.loading) options.value.loading = false;
+      submitted.value = false;
+      headerDialogSign.value = str;
+      displayDialogSign.value = true;
+    })
+    .catch((error) => {
+      if (options.value.loading) options.value.loading = false;
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      console.log(error);
+      return;
+    });
+};
+const closeDialogProcedure = () => {
+  sys_config_process.value = {
+    status: true,
+    config_process_type: 0,
+    is_order: 0,
+  };
+  displayDialogProcedure.value = false;
+};
+const closeDialogSign = () => {
+  listApproveds.value = [];
+  displayDialogSign.value = false;
+};
+const savesys_config_process = (isFormValid) => {
+  submitted.value = true;
+  if (!isFormValid) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  if (sys_config_process.value.module_fake == null) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  if (sys_config_process.value.config_process_name.length > 250) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Tên quy trình không vượt quá 250 ký tự!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  if (!sys_config_process.value.module_fake) {
+    return;
+  } else {
+    let str = "";
+    let kol = "";
+    for (const key in sys_config_process.value.module_fake) {
+      str += kol + key;
+      kol = ",";
+    }
+    sys_config_process.value.module = str;
+  }
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  let formData = new FormData();
+
+  formData.append(
+    "sys_config_process",
+    JSON.stringify(sys_config_process.value)
+  );
+  if (isAdd.value) {
+    axios
+      .post(
+        baseURL + "/api/sys_config_process/add_sys_config_process",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err === "1") {
+          swal.close();
+          if (options.value.loading) options.value.loading = false;
+          swal.fire({
+            title: "Thông báo!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+          return;
+        }
+        swal.close();
+        toast.success("Thêm quy trình thành công!");
+        initProcedure(true);
+        closeDialogProcedure();
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      });
+    if (submitted.value) submitted.value = true;
+  } else {
+    axios
+      .put(
+        baseURL + "/api/sys_config_process/update_sys_config_process",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err === "1") {
+          swal.close();
+          if (options.value.loading) options.value.loading = false;
+          swal.fire({
+            title: "Thông báo!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+          return;
+        }
+        swal.close();
+        toast.success("Sửa quy trình thành công!");
+        initProcedure(true);
+        closeDialogProcedure();
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      });
+  }
+};
+const saveconfig_approved = () => {
+  approvedSelected.value.forEach((element, i) => {
+    if (
+      signs.value.find(
+        (x) => x.approved_groups_id == element.approved_groups_id
+      ) == null
+    ) {
+      signs.value.push(element);
+    }
+  });
+  signs.value.forEach((item, i) => {
+    item.is_order = i + 1;
+    item.config_process_id = options.value.config_process_id;
+  });
+  approvedSelected.value = [];
+  let formData = new FormData();
+  formData.append("sys_process_link_approved", JSON.stringify(signs.value));
+
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  axios
+    .post(
+      baseURL + "/api/sys_process_link_approved/add_sys_process_link_approved",
+      formData,
+      config
+    )
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+        toast.success("Thêm nhóm duyệt thành công!");
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+
+  closeDialogSign();
+};
+const goProcedure = (node) => {
+  options.value.config_process_id = node["config_process_id"];
+  initSign(true);
+};
+const editProcedure = (item) => {
+  submitted.value = false;
+  isAdd.value = false;
+  sys_config_process.value = item;
+
+  headerDialogProcedure.value = "Cập nhật quy trình";
+  displayDialogProcedure.value = true;
+};
+const editSign = (item) => {
+  submitted.value = false;
+
+  isAdd.value = false;
+
+  config_approved.value = item;
+  config_approved.value.users = item.signusers;
+  headerDialogSign.value = "Cập nhật nhóm duyệt";
+  displayDialogSign.value = true;
+
+  // axios
+  //   .post(
+  //     baseURL + "/api/HRM_SQL/getData",
+  //     {
+  //       str: encr(
+  //         JSON.stringify({
+  //           proc: "calendar_duty_signform_get",
+  //           par: [
+  //             { par: "user_id", va: store.state.user.user_id },
+  //             { par: "sign_id", va: item.signform_id },
+  //           ],
+  //         }),
+  //         SecretKey,
+  //         cryoptojs
+  //       ).toString(),
+  //     },
+  //     config
+  //   )
+  //   .then((response) => {
+  //     if (response != null && response.data != null) {
+  //       var data = response.data.data;
+  //       if (data != null) {
+  //         var tbs = JSON.parse(data);
+  //         config_approved.value = tbs[0][0];
+  //         config_approved.value.users = tbs[1];
+  //       }
+  //     }
+  //     swal.close();
+  //     if (options.value.loading) options.value.loading = false;
+
+  //     headerDialogSign.value = "Cập nhật nhóm duyệt";
+  //     displayDialogSign.value = true;
+  //   })
+  //   .catch((error) => {
+  //     toast.error("Tải dữ liệu không thành công!");
+  //     if (options.value.loading) options.value.loading = false;
+
+  //   });
+};
+
+const onChangeModule = (event) => {
+  for (const key in event) {
+    if (key == -1) {
+      const qrechildren = (mm) => {
+        sys_config_process.value.module_fake[mm.key] = {
+          checked: true,
+          partialChecked: false,
+        };
+        if (mm.children) {
+          mm.children.forEach((ol) => {
+            qrechildren(ol);
+          });
+        }
+      };
+      listModules.value.forEach((element) => {
+        qrechildren(element);
+      });
+    }
+  }
+};
+const updateStatusProcedure = (item) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  let data = {
+    IntID: item.config_process_id,
+    BitTrangthai: item.status || false,
+  };
+  axios
+    .put(
+      baseURL + "/api/sys_config_process/update_s_sys_config_process",
+      data,
+      config
+    )
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.close();
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      } else {
+        swal.close();
+        toast.success("Cập nhật trạng thái thành công!");
+        initProcedure(true);
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
+const updateStatusSign = (item) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  let data = {
+    IntID: item.config_approved_id,
+    BitTrangthai: item.status || false,
+  };
+  axios
+    .put(
+      baseURL + "/api/sys_config_approved/update_s_sys_config_approved",
+      data,
+      config
+    )
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.close();
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      } else {
+        swal.close();
+        toast.success("Cập nhật trạng thái thành công!");
+        initSign(true);
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
+const deleteProcedure = (item) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá quy trình này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        options.value.loading = true;
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+        var ids = [item["config_process_id"]];
+        axios
+          .delete(
+            baseURL + "/api/sys_config_process/delete_sys_config_process",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: ids,
+            }
+          )
+          .then((response) => {
+            if (response.data.err === "1") {
+              swal.close();
+              if (options.value.loading) options.value.loading = false;
+              swal.fire({
+                title: "Thông báo!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+              return;
+            }
+            //initData(true);
+            if (ids.length > 0) {
+              ids.forEach((element, i) => {
+                var idx = listdatas.value.findIndex(
+                  (x) => x.config_process_id == element
+                );
+                if (idx != -1) {
+                  listdatas.value.splice(idx, 1);
+                }
+              });
+            }
+            swal.close();
+            toast.success("Xoá quy trình thành công!");
+            if (options.value.loading) options.value.loading = false;
+          })
+          .catch((error) => {
+            swal.close();
+            if (options.value.loading) options.value.loading = false;
+            addLog({
+              title: "Lỗi Console delItem",
+              controller: "boardroom.vue",
+              logcontent: error.message,
+              loai: 2,
+            });
+            if (error.status === 401) {
+              swal.fire({
+                title: "Thông báo!",
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+              return;
+            }
+          });
+      }
+    });
+};
+const deleteSign = (item) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá nhóm duyệt này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        options.value.loading = true;
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+        var ids = [item["config_approved_id"]];
+        axios
+          .delete(
+            baseURL + "/api/sys_config_approved/delete_sys_config_approved",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: ids,
+            }
+          )
+          .then((response) => {
+            if (response.data.err === "1") {
+              swal.close();
+              if (options.value.loading) options.value.loading = false;
+              swal.fire({
+                title: "Thông báo!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+              return;
+            }
+            //initData(true);
+            if (ids.length > 0) {
+              ids.forEach((element, i) => {
+                var idx = signs.value.findIndex(
+                  (x) => x.signform_id == element
+                );
+                if (idx != -1) {
+                  signs.value.splice(idx, 1);
+                }
+              });
+            }
+            swal.close();
+            toast.success("Xoá nhóm duyệt thành công!");
+            initSign(true);
+            if (options.value.loading) options.value.loading = false;
+          })
+          .catch((error) => {
+            swal.close();
+            if (options.value.loading) options.value.loading = false;
+          });
+      }
+    });
+};
+const removeUser = (item, us) => {
+  var idx = us.findIndex((x) => x["user_id"] === item["user_id"]);
+  if (idx != -1) {
+    us.splice(idx, 1);
   }
 };
 
-const removeListUser = (value) => {
-  listUserA.value = listUserA.value.filter((x) => x.user_id != value.user_id);
-};
-const listUserA = ref([]);
+//Function choice user
+// reload component
+const componentKey = ref(0);
 
-const delCard = (Card) => {
+const selectedUser = ref([]);
+const is_one = ref(false);
+const config_process_type = ref();
+const headerDialogUser = ref();
+const displayDialogUser = ref(false);
+const displayAprroved = ref(false);
+const showModalUser = () => {
+  displayAprroved.value = true;
+};
+const choiceUser = () => {
+  if (config_process_type.value != null) {
+    switch (config_process_type.value) {
+      case 0:
+        var notexist = selectedUser.value.filter(
+          (a) =>
+            config_approved.value.users.findIndex(
+              (b) => b["user_id"] === a["user_id"]
+            ) === -1
+        );
+        if (notexist.length > 0) {
+          config_approved.value.users =
+            config_approved.value.users.concat(notexist);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  closeDialogUser();
+};
+const closeDialogUser = () => {
+  displayDialogUser.value = false;
+};
+
+//Function filter
+const searchText = () => {
+  initProcedure(true);
+};
+const searchSign = () => {
+  initSign(true);
+};
+
+//init
+const refreshProcedure = () => {
+  options.value.searchText = "";
+  initProcedure(true);
+};
+const refreshSign = () => {
+  options.value.searchsign = "";
+  initSign(true);
+};
+const displayDialogProcess = ref(false);
+const onShowDetailsP = () => {
+  displayDialogProcess.value = true;
+};
+const initProcedure = (rf) => {
+  if (rf) {
+    options.value.loading = true;
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+
+  axios
+    .post(
+      baseURL + "/api/calendar/get_datas",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_config_process_list",
+            par: [
+              { par: "search", va: options.value.searchText },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "pageno", va: options.value.pageno },
+              { par: "pagesize", va: options.value.pagesize },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data)[0];
+        let data1 = JSON.parse(response.data.data)[1];
+        if (isFirst.value) isFirst.value = false;
+        data.forEach((element, i) => {
+          element.STT = options.value.pageno * options.value.pagesize + i + 1;
+        });
+        listdatas.value = data;
+
+        if (listdatas.value.length > 0) {
+          listdatas.value.forEach((element, i) => {
+            element["STT"] = i + 1;
+            var idx = types.value.findIndex(
+              (x) => x["value"] === element["config_process_type"]
+            );
+            if (idx !== -1) {
+              element["type_name"] = types.value[idx]["title"];
+            } else {
+              element["type_name"] = "Chưa xác định";
+            }
+            if (!element.module_fake) {
+              element.module_fake = {};
+              element.module.split(",").forEach((item) => {
+                element.module_fake[item] = {
+                  checked: true,
+                  partialChecked: false,
+                };
+              });
+            }
+          });
+        }
+        if (data1) {
+          options.value.totalRecords = data1[0].total;
+        }
+      } else {
+        listdatas.value = [];
+      }
+
+      swal.close();
+      if (isFirst.value) isFirst.value = false;
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      if (options.value.loading) options.value.loading = false;
+      console.log(error);
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
+const initSign = (rf) => {
+  if (rf) {
+    options.value.loading = true;
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/HRM_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_link_approved_list",
+            par: [
+              { par: "search", va: options.value.searchsign },
+              { par: "config_process_id", va: options.value.config_process_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            signs.value = tbs[0];
+            if (signs.value.length > 0) {
+              signs.value.forEach((element, i) => {
+                element["STT"] = i + 1;
+
+                if (element["signusers"] != null) {
+                  element["signusers"] = JSON.parse(element["signusers"]);
+                }
+              });
+            }
+          } else {
+            signs.value = [];
+          }
+          if (tbs.length == 2) {
+            options.value.totalsign = tbs[1][0].total;
+          }
+        }
+      }
+      swal.close();
+      if (isFirst.value) isFirst.value = false;
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      if (options.value.loading) options.value.loading = false;
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
+
+const menuButMores = ref();
+const itemButMores = ref([
+  {
+    label: "Hiệu chỉnh nội dung",
+    icon: "pi pi-pencil",
+    command: (event) => {
+      editProcedure(sys_config_process.value);
+    },
+  },
+  {
+    label: "Xoá",
+    icon: "pi pi-trash",
+    command: (event) => {
+      deleteProcedure(sys_config_process.value);
+    },
+  },
+]);
+const toggleMores = (event, item) => {
+  sys_config_process.value = item;
+  menuButMores.value.toggle(event);
+  //selectedNodes.value = item;
+};
+
+const menuButMores_Sign = ref();
+const itemButMores_Sign = ref([
+  {
+    label: "Hiệu chỉnh nội dung",
+    icon: "pi pi-pencil",
+    command: (event) => {
+      editSign(config_approved.value);
+    },
+  },
+  {
+    label: "Xoá",
+    icon: "pi pi-trash",
+    command: (event) => {
+      deleteSign(config_approved.value);
+    },
+  },
+]);
+const toggleMores_Sign = (event, item) => {
+  config_approved.value = item;
+  menuButMores_Sign.value.toggle(event);
+  //selectedNodes.value = item;
+};
+const selectedNodes = ref();
+const onChangeSWT = () => {
+  if (config_approved.value.is_approved_by_department == true) {
+    config_approved.value.users = [];
+  } else {
+    config_approved.value.users = [];
+  }
+};
+const removeListUser = (value) => {
+ 
   swal
     .fire({
       title: "Thông báo",
@@ -99,10 +1021,10 @@ const delCard = (Card) => {
 
         axios
           .delete(
-            baseURL + "/api/hrm_approved_group/delete_hrm_approved_group",
+            baseURL + "/api/sys_process_link_approved/delete_sys_process_link_approved",
             {
               headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Card != null ? [Card.approved_group_id] : 1,
+              data: value != null ? [value.process_link_approved_id] : 1,
             }
           )
           .then((response) => {
@@ -110,7 +1032,9 @@ const delCard = (Card) => {
             if (response.data.err != "1") {
               swal.close();
               toast.success("Xoá nhóm duyệt thành công!");
-              loadData(true);
+              signs.value = signs.value.filter(
+    (x) => x.process_link_approved_id != value.process_link_approved_id
+  );
             } else {
               swal.fire({
                 title: "Error!",
@@ -132,220 +1056,6 @@ const delCard = (Card) => {
       }
     });
 };
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  config_procerduce_name: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
-  handover_created_date: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
-  },
-  user_deliver_name: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
-  user_receiver_name: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
-  status: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-  },
-});
-//Phân trang dữ liệu
-const onPage = (event) => {
-  options.value.pagesize = event.rows;
-  options.value.pageno = event.page;
-  loadData();
-};
-const filterSQL = ref([]);
-const isDynamicSQL = ref(false);
-const loadDataSQL = () => {
-  let data = {
-    id: "approved_group_id",
-    next: options.value.IsNext,
-    sqlO: options.value.sort,
-    Search: options.value.search,
-    PageNo: options.value.pageno,
-    PageSize: options.value.pagesize,
-    fieldSQLS: filterSQL.value,
-  };
-
-  options.value.loading = true;
-  axios
-    .post(baseURL + "/api/SQL/Filter_hrm_approved_group", data, config)
-    .then((response) => {
-      let dt = JSON.parse(response.data.data);
-
-      let data = dt[0];
-
-      if (data.length > 0) {
-        data.forEach((element, i) => {
-          element.is_order =
-            options.value.pageno * options.value.pagesize + i + 1;
-
-          if (!element.config_process_pattern) {
-            element.config_process_pattern = element.classify.split(",");
-          }
-
-          if (!element.config_type_name) element.config_type_name = "";
-          if (element.config_process_pattern.length > 0) {
-            var panelst = "";
-            element.config_process_pattern.forEach((item) => {
-              if (item == "11") {
-                element.config_type_name += panelst + "Nhóm xử lý";
-                panelst = ", ";
-              } else if (item == "17") {
-                element.config_type_name += panelst + "Hoàn thành";
-                panelst = ", ";
-              } else {
-                element.config_type_name += panelst + "Nhóm duyệt";
-                panelst = ", ";
-              }
-              
-            });
-          }
-        });
-
-        datalists.value = data;
-      } else {
-        datalists.value = [];
-      }
-      if (isFirst.value) isFirst.value = false;
-      options.value.loading = false;
-      //Show Count nếu có
-      if (dt.length == 2) {
-        options.value.totalRecords = dt[1][0].totalRecords;
-      }
-    })
-    .catch((error) => {
-      options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-      addLog({
-        title: "Lỗi Console loadData",
-        controller: "Card.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-
-const checkTypeHO = ref(false);
-
-//Sort
-const onSort = (event) => {
-  first.value = 0;
-  options.value.pageno = 0;
-
-  if (event.sortField == null) {
-    isDynamicSQL.value = false;
-    loadData();
-  } else {
-    options.value.sort =
-      event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
-    if (event.sortField != " cp.approved_group_id") {
-      options.value.sort +=
-        ", cp.approved_group_id " + (event.sortOrder == 1 ? " ASC" : " DESC");
-    }
-
-    isDynamicSQL.value = true;
-    loadData();
-  }
-};
-const onFilter = (event) => {
-  filterSQL.value = [];
-
-  for (const [key, value] of Object.entries(event.filters)) {
-    if (key != "global") {
-      let obj = {
-        key: key,
-        filteroperator: value.operator,
-        filterconstraints: value.constraints,
-      };
-      if (value.value && value.value.length > 0) {
-        obj.filteroperator = value.matchMode;
-        obj.filterconstraints = [];
-        value.value.forEach(function (vl) {
-          obj.filterconstraints.push({ value: vl[obj.key] });
-        });
-      } else if (value.matchMode) {
-        obj.filteroperator = "and";
-        obj.filterconstraints = [value];
-      }
-      if (
-        obj.filterconstraints &&
-        obj.filterconstraints.filter((x) => x.value != null).length > 0
-      )
-        filterSQL.value.push(obj);
-    }
-  }
-
-  options.value.pageno = 0;
-  options.value.id = null;
-  isDynamicSQL.value = true;
-  loadData(true);
-};
-
-const toast = useToast();
-const isFirst = ref(true);
-const datalists = ref();
-const isSaveCard = ref(false);
-const sttCard = ref(1);
-const config = {
-  headers: { Authorization: `Bearer ${store.getters.token}` },
-};
-//ADD log
-const addLog = (log) => {
-  axios.post(baseURL + "/api/Proc/AddLog", log, config);
-};
-const submitted = ref(false);
-const options = ref({
-  IsNext: true,
-  sort: " cp.approved_group_id DESC",
-  sortDM: "card_id DESC",
-  search: "",
-  pageno: 0,
-  pagesize: 20,
-  pagenoDM: 0,
-  pagesizeDM: 10,
-  loading: true,
-  totalRecords: null,
-  totalRecordsDM: null,
-  start_date: null,
-  end_date: null,
-  next: true,
-});
-const hrm_approved_group = ref({
-  is_order: 1,
-  proposal_code: "",
-  device_id: null,
-  config_procerduce_name: "",
-  image: "",
-  barcode_id: "",
-  barcode_type: 0,
-  barcode_image: "",
-  status: 0,
-  is_approved_by_department: false,
-});
-const v$ = useVuelidate(rules, hrm_approved_group);
-const danhMuc = ref();
-//METHOD
-
-const hideSelectDevice = () => {
-  loadOrganization(store.getters.user.user_id);
-  displayAssets.value = false;
-};
-
 const liUserCF = ref([]);
 const rechildren = (data) => {
   if (data.data != null) {
@@ -360,11 +1070,21 @@ const rechildren = (data) => {
       });
   }
 };
-const closeDialogUser = () => {
-  displayDialogUser.value = false;
+const displayAssets = ref(false);
+const showListAssets = () => {
+  liUserCF.value = [];
+  displayAssets.value = true;
 };
 
-const choiceUser = () => {
+let selectedTreeU = null;
+const showTreeUser = (value) => {
+  checkMultile.value = true;
+  selectedTreeU = value;
+  displayDialogUser.value = true;
+};
+const first = ref();
+const checkMultile = ref(false);
+const choiceUserD = () => {
   if (checkMultile.value == true)
     datalistsD.value.forEach((m, i) => {
       let om = { key: m.key, data: m };
@@ -408,678 +1128,12 @@ const onSelectDevice = () => {
   datalistsD.value.forEach((dataT) => {
     rechildren(dataT);
   });
+
   displayAssets.value = false;
 };
-const listUserApproved = ref();
-const typeUserApp = ref(false);
-const idApprovedSave = ref();
-const openDetails = (data) => {
-  if (swithViewGroups.value && idApprovedSave.value == data.approved_group_id) {
-    typeUserApp.value = false;
-    selectedHandOver.value = null;
-    swithViewGroups.value = false;
-  } else {
-    idApprovedSave.value = data.approved_group_id;
-    typeUserApp.value = data.is_approved_by_department;
-    selectedHandOver.value = data;
-    options.value.loadingU = true;
-    swithViewGroups.value = true;
-    axios
-      .post(
-        baseURL + "/api/device_card/getData",
-        { str: encr(
-          JSON.stringify({
-          proc: "hrm_approved_group_list_user",
-          par: [
-            { par: "approved_group_id", va: data.approved_group_id },
-            { par: "search", va: null },
-          ],
-        }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data);
-        listUserApproved.value = data[0];
 
-        options.value.loadingU = false;
-      })
-      .catch((error) => {});
-  }
-};
-const loadCount = () => {
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_approved_group_count",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: options.value.status },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (data.length > 0) {
-        options.value.totalRecords = data[0].totalRecords;
-        sttCard.value = data[0].totalRecords + 1;
-      } else options.value.totalRecords = 0;
-    })
-    .catch(() => {});
-};
-const saveHandover = (isFormValid) => {
-  submitted.value = true;
-
-  if (!isFormValid) {
-    return;
-  }
-  if (hrm_approved_group.value.department_id)
-    Object.keys(hrm_approved_group.value.department_id).forEach((key) => {
-      hrm_approved_group.value.department_id = Number(key);
-    });
-
-  if (!hrm_approved_group.value.config_process_pattern) {
-    return;
-  } else {
-    hrm_approved_group.value.classify =
-      hrm_approved_group.value.config_process_pattern.toString();
-  }
-  if (hrm_approved_group.value.config_procerduce_name.length > 250) {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Tên nhóm duyệt không được dài quá 250 kí tự!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-  if (hrm_approved_group.value.is_approved_by_department) {
-    hrm_approved_group.value.approved_type = null;
-  }
-  if (hrm_approved_group.value.module != "TS_PhieuSuaChua") {
-    hrm_approved_group.value.is_suggest_repair = null;
-  }
-  let formData = new FormData();
-  listUserA.value.forEach((element) => {
-    if (!element.approved_user_id) element.approved_user_id = element.user_id;
-  });
-  formData.append("approved", JSON.stringify(hrm_approved_group.value));
-  formData.append("approvedusers", JSON.stringify(listUserA.value));
-  formData.append("approvedgroups", JSON.stringify(liUserCF.value));
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  if (!isSaveCard.value) {
-    axios
-      .post(
-        baseURL + "/api/hrm_approved_group/add_hrm_approved_group",
-        formData,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Thêm  nhóm duyệt thành công!");
-          checkCV.value = true;
-          displayBasic.value = false;
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  } else {
-    axios
-      .put(
-        baseURL + "/api/hrm_approved_group/update_hrm_approved_group",
-        formData,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa nhóm duyệt thành công!");
-          checkCV.value = true;
-          displayBasic.value = false;
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
-};
-const dpmId = ref({});
-const editCard = (data) => {
-  submitted.value = false;
-  dpmId.value = {};
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_approved_group_get",
-            par: [
-              { par: "approved_group_id", va: data.approved_group_id },
-              { par: "module", va: null },
-              { par: "default", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-      hrm_approved_group.value = data[0];
-      if (!hrm_approved_group.value.config_process_pattern) {
-        hrm_approved_group.value.config_process_pattern =
-          hrm_approved_group.value.classify.split(",");
-      }
-      dpmId.value[data[0].department_id] = true;
-      hrm_approved_group.value.department_id = dpmId.value;
-      if (!hrm_approved_group.value.is_approved_by_department) {
-        listUserA.value = data1;
-      } else {
-        liUserCF.value = data1;
-        datalistsD.value.forEach((element) => {
-          rechildrenSPK(element, data1);
-        });
-      }
-    })
-    .catch((error) => {});
-  checkShowAssets.value = false;
-  headerDialog.value = "Sửa nhóm duyệt";
-  isSaveCard.value = true;
-  displayBasic.value = true;
-};
-const rechildrenSPK = (item, data) => {
-  let arm = data.filter((x) => x.department_id == item.key);
-  if (arm.length > 0) {
-    item.data.userM = arm[0].approved_user_id;
-  }
-  if (item.children) {
-    item.children.forEach((em) => {
-      rechildrenSPK(em, data);
-    });
-  }
-};
-//Hiển thị dialog
-
-const headerDialog = ref();
-const displayBasic = ref(false);
-//  { name: "Duyệt cấp hành chính, lãnh đạo", code: "2" },
-//   { name: "Phòng chức năng duyệt", code: "8" },
-//   { name: "Phòng chức năng đánh giá", code: "9" },
-//   { name: "Phòng kỹ thuật duyệt", code: "10" },
-//   { name: "Phòng kỹ thuật đánh giá", code: "11" },
-//   { name: "Báo giá sửa chữa", code: "12" },
-//   { name: "Lãnh đạo duyệt phí sửa chữa", code: "13" },
-//   { name: "Hoàn thành sửa chữa", code: "14" },
-//   { name: "Kế toán duyệt", code: "15" },
-//   { name: "Lãnh đạo duyệt", code: "16" },
-//   { name: "Hoàn thành", code: "17" },
-const listModules = ref([
-  { value: "QTDX", title: "Đề xuất" },
-  { value: "QTCD", title: "Chiến dịch" },
-  { value: "QTUV", title: "Ứng viên" },
-]);
-const listTCard = ref([
-  { name: "Duyệt một nhiều", code: 1 },
-  { name: "Duyệt tuần tự", code: 2 },
-  { name: "Duyệt ngẫu nhiên", code: 3 },
-]);
-const listMCard = ref([
-  { name: "Tất cả Module", code: "all" },
-  { name: "Sửa chữa", code: "TS_PhieuSuaChua" },
-  { name: "Kiểm kê", code: "TS_PhieuKiemKe" },
-  { name: "Thu hồi", code: "TS_PhieuThuHoi" },
-]);
-
-const openBasic = (str) => {
-  checkTypeHO.value = false;
-  listUserA.value = [];
-  datalistsD.value = datalistsDSave.value;
-  hrm_approved_group.value = {
-    status: true,
-    is_order: sttCard.value ? sttCard.value : 1,
-    config_process_pattern:null,
-    is_return_created: false,
-    is_skip: false,
-    is_approved_by_department: false,
-  
-    config_approved_type: 0,
- 
-
-  };
-
-  // loadRelate();
-  checkCV.value = false;
-  submitted.value = false;
-  headerDialog.value = str;
-  isSaveCard.value = false;
-  checkShowAssets.value = false;
-  displayBasic.value = true;
-};
-const checkCV = ref(false);
-const closeDialogDC = () => {
-  displayBasic.value = false;
-};
-const closeDialog = () => {
-  isFirstCard.value = false;
-  loadData(true);
-  displayBasic.value = false;
-};
-const loadData = (rf) => {
-  if (isDynamicSQL.value) {
-    loadDataSQL();
-    return false;
-  }
-
-//   if (rf) {
-//     options.value.loading = true;
-//     loadCount();
-//   }
-  axios
-    .post(
-      baseURL + "/api/HRM_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_config_approved_list",
-            par: [
-              { par: "search", va: options.value.search },
-              { par: "config_process_id", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      if (response != null && response.data != null) {
-        var data = response.data.data;
-        if (data != null) {
-          let tbs = JSON.parse(data);
-          if (tbs[0] != null && tbs[0].length > 0) {
-            datalists.value = tbs[0];
-            if (datalists.value.length > 0) {
-                datalists.value.forEach((element, i) => {
-                element["STT"] = i + 1;
-                var idx = listTCard.value.findIndex(
-                  (x) => x["value"] === element["config_approved_type"]
-                );
-                if (idx !== -1) {
-                  element["type_name"] = listTCard.value[idx]["title"];
-                } else {
-                  element["type_name"] = "Chưa xác định";
-                }
-                if (element["signusers"] != null) {
-                  element["signusers"] = JSON.parse(element["signusers"]);
-                }
-              });
-            }
-          } else {
-            datalists.value = [];
-          }
-          if (tbs.length == 2) {
-            options.value.totalRecords = tbs[1][0].total;
-          }
-        }
-      }
-      swal.close();
-      if (isFirst.value) isFirst.value = false;
-      if (options.value.loading) options.value.loading = false;
-    })
-    .catch((error) => {
-      if (options.value.loading) options.value.loading = false;
-      swal.close();
-      swal.fire({
-        title: "Thông báo!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
-    });
-};
-
-const filterButs = ref();
-const checkFilter = ref(false);
-//Khai báo function
-const toggleFilter = (event) => {
-  filterButs.value.toggle(event);
-};
-const hideFilter = () => {
-  if (
-    !(
-      filterSCard.value != null ||
-      filterMCard.value != null ||
-      filterTCard.value != null
-    )
-  )
-    checkFilter.value = false;
-};
-const filterMCard = ref();
-const filterTCard = ref();
-const filterSCard = ref();
-
-const showFilter = ref(false);
-const reFilterCard = () => {
-  checkFilter.value = false;
-  filterSCard.value = null;
-  filterMCard.value = null;
-  filterTCard.value = null;
-  taskDateFilter.value = [];
-  options.value.is_hot = null;
-  options.value.news_type = null;
-  options.value.status = null;
-  filterCard(false);
-  showFilter.value = false;
-};
-const filterCard = (check) => {
-  if (check) checkFilter.value = true;
-
-  showFilter.value = false;
-
-  filterSQL.value = [];
-  if (filterSCard.value != null) {
-    let filterS = {
-      filterconstraints: [{ value: filterSCard.value, matchMode: "equals" }],
-      filteroperator: "and",
-      key: "classify",
-    };
-    filterSQL.value.push(filterS);
-  }
-  if (filterTCard.value != null) {
-    let filterS = {
-      filterconstraints: [{ value: filterTCard.value, matchMode: "equals" }],
-      filteroperator: "and",
-      key: "approved_type",
-    };
-    filterSQL.value.push(filterS);
-  }
-  if (filterMCard.value != null) {
-    let filterS = {
-      filterconstraints: [{ value: filterMCard.value, matchMode: "equals" }],
-      filteroperator: "and",
-      key: "module",
-    };
-    filterSQL.value.push(filterS);
-  }
-  isDynamicSQL.value = true;
-  loadData(true);
-};
-//Tìm kiếm
-const searchCard = () => {
-  loadDataSQL();
-};
-const first = ref(0);
-const refreshData = () => {
-  options.value.search = "";
-  options.value.status = null;
-  filterSCard.value = null;
-  filterMCard.value = null;
-  filterTCard.value = null;
-  options.value.start_date = null;
-  options.value.end_date = null;
-  taskDateFilter.value = [];
-  checkFilter.value = false;
-  first.value = 0;
-  options.value.pageno = 0;
-  filterSQL.value = [];
-  filters.value = {
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    config_procerduce_name: {
-      operator: FilterOperator.AND,
-      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-    },
-    handover_created_date: {
-      operator: FilterOperator.AND,
-      constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
-    },
-    user_deliver_name: {
-      operator: FilterOperator.AND,
-      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-    },
-    user_receiver_name: {
-      operator: FilterOperator.AND,
-      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-    },
-    status: {
-      operator: FilterOperator.AND,
-      constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-    },
-  };
-  loadDataSQL();
-};
-
-const renderTreeDV1 = (data, id, name, title, org_id) => {
-  let arrtreeChils = [];
-  let arrChils = [];
-
-  data
-    .filter((x) => x.parent_id == null)
-    .forEach((m, i) => {
-      if (!m.userM) m.userM = null;
-      let om = { key: m[id], data: m };
-
-      const rechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em) => {
-            if (!em.userM) em.userM = null;
-            let om1 = { key: em[id], data: em };
-            rechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
-        }
-      };
-      rechildren(om, m[id]);
-      arrChils.push(om);
-    });
-  if (org_id == "") {
-    data.forEach((m, i) => {
-      let om = { key: m[id], data: m[id], label: m[name] };
-
-      const retreechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em) => {
-            let om1 = { key: em[id], data: em[id], label: em[name] };
-            retreechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
-        }
-      };
-      retreechildren(om, m[id]);
-      arrtreeChils.push(om);
-    });
-  } else {
-    let rew = Number(org_id);
-    data
-      .filter((x) => x.parent_id == rew)
-      .forEach((m, i) => {
-        let om = { key: m[id], data: m[id], label: m[name] };
-
-        const retreechildren = (mm, pid) => {
-          let dts = data.filter((x) => x.parent_id == pid);
-          if (dts.length > 0) {
-            if (!mm.children) mm.children = [];
-            dts.forEach((em) => {
-              let om1 = { key: em[id], data: em[id], label: em[name] };
-              retreechildren(om1, em[id]);
-              mm.children.push(om1);
-            });
-          }
-        };
-        retreechildren(om, m[id]);
-        arrtreeChils.push(om);
-      });
-  }
-  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
-};
-
-const listDropdownUserGive = ref();
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
-const listUsers = ref([]);
-const loadingUser = ref(false);
-const onFilterUserDropdown = (value) => {
-  loadingUser.value = true;
-
-  if (value.organization_id == 1)
-    listDropdownUserGive.value = listDropdownUser.value;
-  else
-    listDropdownUserGive.value = listDropdownUser.value.filter(
-      (x) => x.department_id == value.organization_id
-    );
-  loadingUser.value = false;
-};
-const loadUser = () => {
-  listUsers.value = [];
-  listDropdownUser.value = [];
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          department_id: element.department_id,
-          position_name: element.position_name,
-          role_name: element.role_name,
-          organization_id: element.organization_id,
-        });
-        listUsers.value.push({ data: element, active: false });
-      });
-      listUsers.value = data;
-      listDropdownUserGive.value = listDropdownUser.value;
-    })
-    .catch((error) => {
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-
-const listUser = () => {
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_approved_group_list_user",
-            par: [
-              {
-                par: "approved_group_id",
-                va: selectedHandOver.value.approved_group_id,
-              },
-              { par: "search", va: options.value.SearchTextUser },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      listUserApproved.value = data[0];
-
-      options.value.loadingU = false;
-    })
-    .catch((error) => {});
-};
 const datalistsD = ref();
+
 const loadOrganization = (value) => {
   axios
     .post(
@@ -1117,6 +1171,7 @@ const loadOrganization = (value) => {
     });
 };
 const datalistsDSave = ref();
+
 const expandListD = (data) => {
   for (let node of data) {
     expandedKeys.value[node.key] = true;
@@ -1131,966 +1186,597 @@ const expandNode = (node) => {
     }
   }
 };
-const swithViewGroups = ref(false);
-const displayDialogUser = ref(false);
-
-//Checkbox
-
-const onCheckBoxD = (value) => {
-  if (!value.is_default) {
-    options.value.loading = true;
-    let data = {
-      IntID: value.approved_group_id,
-      TextID: value.classify.toString() + "",
-      IntTrangthai: null,
-      BitTrangthai: value.status,
-    };
-    if (
-      store.state.user.is_super == true ||
-      store.state.user.user_id == value.created_by ||
-      (store.state.user.role_id == "admin" &&
-        store.state.user.organization_id == value.organization_id)
-    ) {
-      axios
-        .put(
-          baseURL + "/api/hrm_approved_group/update_d_approved_group",
-          data,
-          config
-        )
-        .then((response) => {
-          if (response.data.err != "1") {
-            swal.close();
-            toast.success("Sửa nhóm duyệt thành công!");
-            loadData(false);
-          } else {
-            swal.fire({
-              title: "Thông báo",
-              text: response.data.ms,
-              icon: "error",
-              confirmButtonText: "OK",
-            });
-          }
-        })
-        .catch((error) => {
-          swal.close();
-          swal.fire({
-            title: "Thông báo",
-            text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        });
-    } else {
-      swal.fire({
-        title: "Thông báo!",
-        text: "Bạn không có quyền chỉnh sửa! Chỉ có Quản trị viên đơn vị hoặc Quản trị viên hệ thống mới có quyền chỉnh sửa mục này",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      loadData(true);
-    }
-  } else {
-    return;
-  }
-};
-const onCheckBox = (value) => {
-  options.value.loading = true;
-  let data = {
-    IntID: value.approved_group_id,
-    TextID: value.approved_group_id + "",
-    IntTrangthai: 1,
-    BitTrangthai: value.status,
-  };
-  if (
-    store.state.user.is_super == true ||
-    store.state.user.user_id == value.created_by ||
-    (store.state.user.role_id == "admin" &&
-      store.state.user.organization_id == value.organization_id)
-  ) {
-    axios
-      .put(
-        baseURL + "/api/hrm_approved_group/update_s_approved_group",
-        data,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa nhóm duyệt thành công!");
-          loadData(false);
-        } else {
-          swal.fire({
-            title: "Thông báo",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
+let arrr = [];
+const initTudien = () => {
+  arrr = [];
+  axios
+    .post(
+      baseURL + "/api/Notify/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_modules_listmodulestop",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        arrr = data[0];
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
         swal.fire({
-          title: "Thông báo",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
-      });
-  } else {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Bạn không có quyền chỉnh sửa! Chỉ có Quản trị viên đơn vị hoặc Quản trị viên hệ thống mới có quyền chỉnh sửa mục này",
-      icon: "error",
-      confirmButtonText: "OK",
+      }
     });
-    loadData(true);
-  }
+
+  axios
+    .post(
+      baseURL + "/api/Modules/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_modules_list",
+            par: [{ par: "search", va: options.value.searchsign }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      if (data.length > 0) {
+        let obj = renderTree(data, "module_id", "module_name", "module");
+        listModules.value = obj.arrtreeChils;
+        initProcedure(true);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
+const renderTree = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+
+  data
+    .filter(
+      (x) =>
+        x.parent_id == null &&
+        arrr.find((xs) => xs.module_id == x.module_id) != null
+    )
+    .forEach((m, i) => {
+      m.IsOrder = i + 1;
+      let om = { key: m[id], data: m };
+      const rrechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em };
+            rrechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rrechildren(om, m[id]);
+      arrChils.push(om);
+      //
+      om = { key: m[id], data: m[id], label: m[name] };
+      const retreechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em[id], label: em[name] };
+            retreechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      retreechildren(om, m[id]);
+      arrtreeChils.push(om);
+    });
+  arrtreeChils.unshift({
+    key: -1,
+    data: "ALL",
+    label: "Tất cả",
+  });
+  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
-  loadUser();
+  initTudien();
   loadOrganization(store.getters.user.organization_id);
-  loadData(true);
-  return {
-    isFirst,
-    options,
-    danhMuc,
-  };
+});
+
+emitter.on("emitData", (obj) => {
+  if (obj.type != null) {
+    switch (obj.type) {
+      case "choiceusers":
+        displayDialogUser.value = obj.data["displayDialog"];
+        if (obj.data["submit"]) {
+          choiceUser();
+        }
+        break;
+      default:
+        break;
+    }
+  }
 });
 </script>
-
 <template>
-  <div class="d-container flex">
-    <div :style="swithViewGroups == false ? 'width:100%' : 'width:65%'">
-      <div class="d-lang-table">
-        <DataTable
-          class="w-full p-datatable-sm e-sm"
-          @page="onPage($event)"
-          @filter="onFilter($event)"
-          @sort="onSort($event)"
-          v-model:filters="filters"
-          removableSort
-          filterDisplay="menu"
-          filterMode="lenient"
-          dataKey="approved_group_id"
-          responsiveLayout="scroll"
-          :scrollable="true"
-          scrollHeight="flex"
-          :showGridlines="true"
-          :rows="options.pagesize"
-          :lazy="true"
-          :value="datalists"
-          :loading="options.loading"
-          :paginator="true"
-          :totalRecords="options.totalRecords"
-          :row-hover="true"
-          v-model:first="first"
-          v-model:selection="selectedHandOver"
-          :pageLinkSize="options.pagesize"
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks  NextPageLink LastPageLink    RowsPerPageDropdown"
-          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-          selectionMode="single"
-        >
-          <template #header>
-            <div>
-              <h3 class="module-title my-2 ml-1">
-                <i class="pi pi-th-large"></i> Cấu hình nhóm duyệt ({{
-                  options.totalRecords ? options.totalRecords : 0
-                }})
-              </h3>
-            </div>
-            <Toolbar class="d-toolbar p-0 py-3 surface-50">
-              <template #start>
-                <span class="p-input-icon-left">
-                  <i class="pi pi-search" />
-                  <InputText
-                    v-model="options.search"
-                    @keyup.enter="searchCard()"
-                    type="text"
-                    spellcheck="false"
-                    placeholder="Tìm kiếm"
-                  />
-                  <!-- :class="checkFilter?'':'p-button-secondary'" -->
-                  <Button
-                    :class="
-                      (filterSCard != null ||
-                        filterTCard != null ||
-                        filterMCard != null) &&
-                      checkFilter
-                        ? ''
-                        : 'p-button-secondary p-button-outlined'
-                    "
-                    class="ml-2"
-                    icon="pi pi-filter"
-                    @click="toggleFilter"
-                    aria-haspopup="true"
-                    aria-controls="overlay_panelS"
-                  />
-                  <OverlayPanel
-                    @hide="hideFilter"
-                    ref="filterButs"
-                    appendTo="body"
-                    :showCloseIcon="false"
-                    id="overlay_panelS"
-                    style="width: 400px"
-                    :breakpoints="{ '960px': '20vw' }"
-                  >
-                    <div class="grid formgrid m-2">
-                      <div class="field col-12 md:col-12 flex">
-                        <div class="col-4 p-0 align-items-center flex">
-                          Loại quy trình:
-                        </div>
-                        <Dropdown
-                          v-model="filterSCard"
-                          :options="listModules"
-                          optionLabel="name"
-                          optionValue="code"
-                          placeholder="Chọn Loại quy trình"
-                          panelClass="d-design-dropdown"
-                          class="col-8 p-0"
-                          :style="
-                            filterSCard != null
-                              ? 'border:2px solid #2196f3'
-                              : ''
-                          "
-                        />
-                      </div>
-                      <div class="field col-12 md:col-12 flex">
-                        <div class="col-4 p-0 align-items-center flex">
-                          Loại duyệt:
-                        </div>
-                        <Dropdown
-                          v-model="filterTCard"
-                          panelClass="d-design-dropdown"
-                          :options="listTCard"
-                          :filter="true"
-                          optionLabel="name"
-                          optionValue="code"
-                          style="width: calc(100% - 10rem)"
-                          class="w-full"
-                          placeholder="Người bàn giao"
-                          :style="
-                            filterTCard != null
-                              ? 'border:2px solid #2196f3'
-                              : ''
-                          "
-                        >
-                        </Dropdown>
-                      </div>
-                      <div class="field col-12 md:col-12 flex">
-                        <div class="col-4 p-0 align-items-center flex">
-                          Module:
-                        </div>
-                        <Dropdown
-                          v-model="filterMCard"
-                          panelClass="d-design-dropdown"
-                          :options="listMCard"
-                          :filter="true"
-                          optionLabel="name"
-                          optionValue="code"
-                          style="width: calc(100% - 10rem)"
-                          class="w-full"
-                          placeholder="Người bàn giao"
-                          :style="
-                            filterMCard != null
-                              ? 'border:2px solid #2196f3'
-                              : ''
-                          "
-                        >
-                        </Dropdown>
-                      </div>
-
-                      <div class="col-12 field p-0">
-                        <Toolbar class="toolbar-filter">
-                          <template #start>
-                            <Button
-                              @click="reFilterCard"
-                              class="p-button-outlined"
-                              label="Xóa"
-                            ></Button>
-                          </template>
-                          <template #end>
-                            <Button
-                              @click="filterCard(true)"
-                              label="Lọc"
-                            ></Button>
-                          </template>
-                        </Toolbar>
-                      </div>
-                    </div>
-                  </OverlayPanel>
-                </span>
-
-                <!-- <TreeSelect
-                  style="margin-left: 24px; min-width: 200px"
-                  @change="selectTree()"
-                  v-model="menu_IDNode"
-                  :options="danhMuc"
-                  placeholder="Tất cả tin tức"
-                ></TreeSelect> -->
-              </template>
-
-              <template #end>
-                <Button
-                  @click="openBasic('Thêm mới')"
-                  label="Thêm mới"
-                  icon="pi pi-plus"
-                  class="mr-2"
-                />
-
-                <Button
-                  class="mr-2 p-button-outlined p-button-secondary"
-                  icon="pi pi-refresh"
-                  @click="refreshData"
-                />
-              </template>
-            </Toolbar>
-          </template>
-
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:70px;height:50px"
-            bodyStyle="text-align:center;max-width:70px; "
-            field="is_order"
-            header="STT"
-          >
-          </Column>
-          <Column
-            headerStyle="text-align:center;height:50px;  "
-            bodyStyle="text-align:center; "
-            headerClass="textoneline"
-            field="config_procerduce_name"
-            class="align-items-center justify-content-center text-center"
-            header="Tên nhóm duyệt"
-            :sortable="true"
-          >
-            <template #filter="{ filterModel }">
+  <div class="surface-100 p-3 calendar">
+    <Splitter style="height: 100%">
+      <SplitterPanel :size="70" :minSize="35">
+        <Toolbar class="outline-none surface-0 border-none">
+          <template #start>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
               <InputText
+                @keypress.enter="searchText()"
+                v-model="options.searchText"
                 type="text"
-                v-model="filterModel.value"
-                class="p-column-filter"
-                placeholder="Từ khoá"
+                spellcheck="false"
+                placeholder=" Tìm kiếm tên quy trình"
               />
-            </template>
-          </Column>
-
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;height:50px ;max-width:250px;"
-            bodyStyle="text-align:center;max-width:250px;"
-            field="user_deliver_name"
-            header="Loại quy trình"
-            headerClass="textoneline"
-          >
-            <template #body="data">
-              <div>
-                {{ data.data.config_type_name }}
-              </div>
-            </template>
-          </Column>
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;height:50px;max-width:200px;"
-            bodyStyle="text-align:center;max-width:200px; ;"
-            header="Loại duyệt"
-            headerClass="textoneline"
-          >
-            <template #body="data">
-              <div>
-                {{
-                  data.data.approved_type == 1
-                    ? "Duyệt một nhiều"
-                    : data.data.approved_type == 2
-                    ? "Duyệt tuần tự"
-                    : "Duyệt ngẫu nhiên"
-                }}
-              </div>
-            </template>
-          </Column>
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;height:50px ;max-width:150px;"
-            bodyStyle="text-align:center;max-width:150px;"
-            field="user_deliver_name"
-            header="Module"
-            headerClass="textoneline"
-          >
-            <template #body="data">
-              <div>
-                {{
-                  data.data.module == "all"
-                    ? "Tất cả module"
-                    : data.data.module == "TS_PhieuSuaChua"
-                    ? "Sửa chữa"
-                    : data.data.module == "TS_PhieuKiemKe"
-                    ? "Kiểm kê"
-                    : data.data.module == "TS_PhieuThuHoi"
-                    ? "Thu hồi"
-                    : "Tất cả module"
-                }}
-              </div>
-            </template>
-          </Column>
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;height:50px;max-width:120px"
-            bodyStyle="text-align:center;max-width:120px; "
-            field="users_count"
-            headerClass="textoneline"
-            header="Người duyệt"
-            ><template #body="data">
-              <div>
-                <Button
-                  @click="openDetails(data.data)"
-                  :label="
-                    data.data.users_count
-                      ? data.data.users_count.toString()
-                      : '0'
-                  "
-                  class="p-button-rounded"
-                />
-              </div>
-            </template>
-          </Column>
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:120px;height:50px"
-            bodyStyle="text-align:center;max-width:120px; "
-            header="Duyệt mặc định"
-            headerClass="textoneline"
-          >
-            <template #body="data">
-              <Checkbox
-                :disabled="
-                  !(
-                    store.state.user.is_super == true ||
-                    store.state.user.user_id == data.data.created_by ||
-                    (store.state.user.role_id == 'admin' &&
-                      store.state.user.organization_id ==
-                        data.data.organization_id)
-                  ) || data.data.is_default
-                "
-                :binary="data.data.is_default"
-                v-model="data.data.is_default"
-                @click="onCheckBoxD(data.data)"
-              />
-            </template>
-          </Column>
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:200px;height:50px"
-            bodyStyle="text-align:center;max-width:200px; "
-            header="Duyệt theo phòng ban"
-            headerClass="textoneline"
-          >
-            <template #body="data">
-              <Checkbox
-                :disabled="true"
-                :binary="data.data.is_approved_by_department"
-                v-model="data.data.is_approved_by_department"
-              />
-            </template>
-          </Column>
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:150px;height:50px"
-            bodyStyle="text-align:center;max-width:150px; "
-            field="status"
-            headerClass="textoneline"
-            header="Trạng thái"
-          >
-            <template #body="data">
-              <Checkbox
-                :disabled="
-                  !(
-                    store.state.user.is_super == true ||
-                    store.state.user.user_id == data.data.created_by ||
-                    (store.state.user.role_id == 'admin' &&
-                      store.state.user.organization_id ==
-                        data.data.organization_id)
-                  ) || data.data.is_default
-                "
-                :binary="data.data.status"
-                v-model="data.data.status"
-                @click="onCheckBox(data.data)"
-              />
-            </template>
-          </Column>
-
-          <Column
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:150px;height:50px"
-            bodyStyle="text-align:center;max-width:150px"
-            header="Chức năng"
-            headerClass="textoneline"
-          >
-            <template #body="data">
-              <div
-                v-if="
-                  store.state.user.is_super == true ||
-                  store.state.user.user_id == data.data.created_by ||
-                  (store.state.user.role_id == 'admin' &&
-                    store.state.user.organization_id ==
-                      data.data.organization_id)
-                "
-              >
-                <Button
-                  v-tooltip.top="'Sửa'"
-                  @click="editCard(data.data)"
-                  class="
-                    p-button-rounded p-button-secondary p-button-outlined
-                    mx-1
-                  "
-                  type="button"
-                  icon="pi pi-pencil"
-                ></Button>
-                <Button
-                  v-tooltip.top="'Xóa'"
-                  class="
-                    p-button-rounded p-button-secondary p-button-outlined
-                    mx-1
-                  "
-                  type="button"
-                  icon="pi pi-trash"
-                  @click="delCard(data.data)"
-                ></Button>
-              </div>
-            </template>
-          </Column>
-          <template #empty>
-            <div
-              class="
-                align-items-center
-                justify-content-center
-                p-4
-                text-center
-                m-auto
-              "
-              v-if="!isFirst"
-            >
-              <img src="../../../assets/background/nodata.png" height="144" />
-              <h3 class="m-1">Không có dữ liệu</h3>
-            </div>
+            </span>
           </template>
-        </DataTable>
-      </div>
-    </div>
-    <div v-if="swithViewGroups" style="width: 35%">
-      <DataView
-        v-if="!typeUserApp"
-        class="w-full h-full e-sm flex flex-column"
-        responsiveLayout="scroll"
-        :scrollable="true"
-        layout="list"
-        :lazy="true"
-        :value="listUserApproved"
-        :loading="options.loadingU"
-      >
-        <template #header>
-          <div class="pt-2 pb-3 text-lg">Danh sách người duyệt</div>
+          <template #end>
+            <Button
+              @click="openAddDialogProcedure('Thêm mới quy trình')"
+              label="Thêm mới"
+              icon="pi pi-plus"
+              class="mr-2"
+            />
+            <Button
+              @click="refreshProcedure()"
+              class="p-button-outlined p-button-secondary"
+              icon="pi pi-refresh"
+              v-tooltip.top="'Tải lại'"
+            />
+          </template>
+        </Toolbar>
+        <div class="d-lang-table">
+          <DataTable
+            @sort="onSort($event)"
+            :value="listdatas"
+            :loading="options.loading"
+            :totalRecords="options.totalRecords"
+            :lazy="true"
+            :rowHover="true"
+            :showGridlines="true"
+            :scrollable="true"
+            v-model:selection="selectedKeyProcedure"
+            selectionMode="single"
+            dataKey="config_process_id"
+            scrollHeight="flex"
+            filterDisplay="menu"
+            filterMode="lenient"
+            responsiveLayout="scroll"
+          >
+            <Column
+              field="STT"
+              header="STT"
+              headerStyle="text-align:center;max-width:50px;height:50px"
+              bodyStyle="text-align:center;max-width:50px;"
+              class="align-items-center justify-content-center text-center"
+            >
+            </Column>
+            <Column
+              field="config_process_name"
+              header="Tên quy trình"
+              headerStyle="height:50px;max-width:auto;"
+              headerClass="align-items-center justify-content-center text-center"
+            >
+            </Column>
 
-          <Toolbar class="custoolbar p-0">
+            <Column
+              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;height:50px ;max-width:400px;"
+              bodyStyle="text-align:center;max-width:400px;"
+              field="module"
+              header="Modules"
+            >
+              <template #body="data">
+                <div class="w-full">
+                  <TreeSelect
+                    panelClass="d-design-dropdown  d-tree-input d-tree-border"
+                    class="w-full p-0 sel-placeholder d-tree-input d-tree-border"
+                    v-model="data.data.module_fake"
+                    :options="listModules"
+                    selectionMode="checkbox"
+                    optionLabel="data.module_name"
+                    optionValue="data.module_id"
+                    display="chip"
+                  ></TreeSelect>
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="type_name"
+              header="Kiểu duyệt"
+              headerStyle="text-align:center;max-width:180px;height:50px"
+              bodyStyle="text-align:center;max-width:180px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <div class="format-flex-center">
+                  <Tag
+                    class="px-3 py-1"
+                    :value="slotProps.data.type_name"
+                    :class="'type' + slotProps.data.config_process_type"
+                    style="
+                      font-size: 11px;
+                      min-width: max-content;
+                      color: #fff;
+                      border-radius: 25px;
+                      height: max-content;
+                    "
+                  ></Tag>
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="status"
+              header="Trạng thái"
+              headerStyle="text-align:center;max-width:90px;height:50px"
+              bodyStyle="text-align:center;max-width:90px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="data">
+                <Checkbox
+                  :binary="data.data.status"
+                  v-model="data.data.status"
+                  @click="updateStatusProcedure(data.data)"
+                />
+              </template>
+            </Column>
+            <Column
+              header=""
+              headerStyle="text-align:center;max-width:50px"
+              bodyStyle="text-align:center;max-width:50px"
+              class="align-items-center justify-content-center text-center format-center"
+            >
+              <template #body="data">
+                <div
+                  v-if="
+                    store.state.user.is_super == true ||
+                    store.state.user.user_id == data.data.created_by ||
+                    (store.state.user.role_id == 'admin' &&
+                      store.state.user.organization_id ==
+                        data.data.organization_id)
+                  "
+                >
+                  <Button
+                    icon="pi pi-ellipsis-h"
+                    class="p-button-rounded p-button-text ml-2"
+                    @click="toggleMores($event, data.data)"
+                    aria-haspopup="true"
+                    aria-controls="overlay_More"
+                    v-tooltip.top="'Tác vụ'"
+                  />
+                </div>
+              </template>
+            </Column>
+
+            <template #empty>
+              <div
+                class="align-items-center justify-content-center p-4 text-center m-auto"
+                v-if="!isFirst || options.total == 0"
+                style="display: flex; height: calc(100vh - 195px)"
+              >
+                <div>
+                  <img
+                    src="../../../assets/background/nodata.png"
+                    height="144"
+                  />
+                  <h3 class="m-1">Không có dữ liệu</h3>
+                </div>
+              </div>
+            </template>
+          </DataTable>
+        </div>
+      </SplitterPanel>
+      <SplitterPanel :size="30" :minSize="30">
+        <div v-if="options.config_process_id != null">
+          <Toolbar class="outline-none surface-0 border-none">
             <template #start>
               <span class="p-input-icon-left">
                 <i class="pi pi-search" />
                 <InputText
+                  @keypress.enter="searchSign()"
+                  v-model="options.searchsign"
                   type="text"
-                  class="p-inputtext-sm"
                   spellcheck="false"
-                  placeholder="Tìm kiếm"
-                  v-model="options.SearchTextUser"
-                  @keyup.enter="listUser(options.SearchTextUser)"
+                  placeholder=" Tìm kiếm tên nhóm"
                 />
               </span>
             </template>
             <template #end>
-              <div></div>
+              <Button
+                @click="openAddDialogSign('Thêm mới nhóm duyệt')"
+                label="Thêm mới"
+                icon="pi pi-plus"
+                class="mr-2"
+              />
+              <Button
+                @click="onShowDetailsP()"
+                class="p-button-outlined p-button-secondary mr-2"
+                icon="pi pi-info"
+                v-tooltip.top="'Chi tiết quy trình'"
+              />
+              <Button
+                @click="refreshSign()"
+                class="p-button-outlined p-button-secondary"
+                icon="pi pi-refresh"
+                v-tooltip.top="'Tải lại'"
+              />
             </template>
           </Toolbar>
-        </template>
-        <template #list="slotProps">
-          <div class="grid w-full p-2">
-            <div
-              class="field col-12 flex m-0 cursor-pointer align-items-center"
+          <div class="d-lang-table">
+            <OrderList
+              v-model="signs"
+              listStyle="height: auto"
+              dataKey="process_link_approved_id"
             >
-              <div class="col-1 p-0 align-items-center">
-                <Avatar
-                  v-bind:label="
-                    slotProps.data.avatar
-                      ? ''
-                      : slotProps.data.full_name.substring(
-                          slotProps.data.full_name.lastIndexOf(' ') + 1,
-                          slotProps.data.full_name.lastIndexOf(' ') + 2
-                        )
-                  "
-                  :image="basedomainURL + slotProps.data.avatar"
-                  class="w-3rem"
-                  size="large"
-                  :style="
-                    slotProps.data.avatar
-                      ? 'background-color: #2196f3'
-                      : 'background:' +
-                        bgColor[slotProps.data.full_name.length % 7]
-                  "
-                  shape="circle"
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                />
-              </div>
-              <div class="col-11 p-0 pl-3 align-items-center">
-                <div class="pt-2">
-                  <div class="font-bold">
-                    {{ slotProps.data.full_name }}
-                  </div>
-                  <div class="flex w-full text-sm font-italic text-500">
-                    <div>{{ slotProps.data.user_id }}</div>
-                    <div v-if="slotProps.data.phone" class="">
-                      <span class="px-2">|</span>{{ slotProps.data.phone }}
+              <template #header> Danh sách nhóm duyệt </template>
+              <template #item="slotProps">
+                <Toolbar class="surface-0 m-0 p-0 border-0 w-full">
+                  <template #start>
+                    <div class="flex align-items-center">
+                      <div class="format-flex-center">
+                        <b class="p-3">{{ slotProps.index + 1 }} </b>
+                      </div>
+                      <div class="flex">
+                        <div>
+                          <div class="mb-2">
+                            {{ slotProps.item.approved_group_name }}
+                          </div>
+                          <div v-if="slotProps.item.signusers">
+                            <AvatarGroup
+                              v-if="
+                                slotProps.item.signusers &&
+                                slotProps.item.signusers.length > 0
+                              "
+                            >
+                              <Avatar
+                                v-for="(
+                                  elen, index
+                                ) in slotProps.item.signusers.slice(0, 3)"
+                                v-bind:label="
+                                  elen.avatar
+                                    ? ''
+                                    : elen.last_name.substring(0, 1)
+                                "
+                                v-bind:image="
+                                  elen.avatar
+                                    ? basedomainURL + elen.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                v-tooltip.bottom="{
+                                  value:
+                                    elen.full_name +
+                                    '<br/>' +
+                                    elen.position_name +
+                                    '<br/>' +
+                                    elen.department_name,
+                                  escape: true,
+                                }"
+                                :key="elen.user_id"
+                                style="
+                                  border: 2px solid white;
+                                  color: white;
+                                  width: 2.5rem;
+                                  height: 2.5rem;
+                                "
+                                @error="
+                                  basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                size="large"
+                                shape="circle"
+                                class="cursor-pointer"
+                                :style="{ backgroundColor: bgColor[index % 7] }"
+                              />
+                              <Avatar
+                                v-if="
+                                  slotProps.item.signusers &&
+                                  slotProps.item.signusers.length > 3
+                                "
+                                v-bind:label="
+                                  '+' +
+                                  (
+                                    slotProps.item.signusers.length - 3
+                                  ).toString()
+                                "
+                                shape="circle"
+                                size="large"
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                "
+                                class="cursor-pointer"
+                              />
+                            </AvatarGroup>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div v-if="slotProps.data.email" class="">
-                      <span class="px-2">|</span>{{ slotProps.data.email }}
+                  </template>
+                  <template #end>
+                    <div>
+                      <Button
+                        icon="pi pi-trash"
+                        class="p-button-rounded p-button-secondary p-button-text"
+                        @click="removeListUser(slotProps.item)"
+                      ></Button>
                     </div>
+                  </template>
+                </Toolbar>
+              </template>
+              <!-- <template #item="slotProps">
+                <div class="flex">
+                  <div class="format-flex-center">
+                    <b class="p-3">{{ slotProps.index + 1 }}</b>
                   </div>
-                  <div class="flex w-full text-sm font-italic text-500">
-                    {{ slotProps.data.department_name }}
+                  <div class="image-container pl-3 pr-2">
+                    {{ slotProps.item }}
+                  </div>
+                  <div
+                    class="format-grid-center justify-content-start"
+                    style="flex: 1"
+                  >
+                    <span class="text-left">{{
+                      slotProps.item.full_name
+                    }}</span>
+                    <span class="text-left" style="color: #aaa">{{
+                      slotProps.item.position_name
+                    }}</span>
+                  </div>
+                  <div class="format-flex-center">
+                    <a
+                      @click="removeUser(slotProps.item, config_approved.users)"
+                    >
+                      <i class="pi pi-trash"></i>
+                    </a>
                   </div>
                 </div>
-              </div>
-            </div>
+              </template> -->
+            </OrderList>
           </div>
-        </template>
-      </DataView>
-      <DataView
-        v-else
-        class="w-full h-full e-sm flex flex-column"
-        responsiveLayout="scroll"
-        :scrollable="true"
-        layout="list"
-        :lazy="true"
-        :value="listUserApproved"
-        :loading="options.loadingU"
-      >
-        <template #header>
-          <div class="pt-2 pb-3 text-lg">
-            Danh sách người duyệt theo phòng ban
-          </div>
-
-          <Toolbar class="custoolbar p-0">
-            <template #start>
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText
-                  type="text"
-                  class="p-inputtext-sm"
-                  spellcheck="false"
-                  placeholder="Tìm kiếm"
-                  v-model="options.SearchTextUser"
-                  @keyup.enter="listUser(options.SearchTextUser)"
-                />
-              </span>
-            </template>
-            <template #end>
-              <div></div>
-            </template>
-          </Toolbar>
-        </template>
-        <template #list="slotProps">
-          <div class="grid w-full p-2">
-            <div class="col-12 p-2 m-0">
-              <div class="flex w-full font-bold align-items-center text-lg">
-                <i class="pi pi-angle-double-right pr-2"></i>
-                {{ slotProps.data.department_name }}
-              </div>
-            </div>
-            <div
-              class="
-                field
-                col-12
-                p-0
-                pl-5
-                flex
-                m-0
-                cursor-pointer
-                align-items-center
-              "
-            >
-              <div class="col-1 p-0 align-items-center">
-                <Avatar
-                  v-bind:label="
-                    slotProps.data.avatar
-                      ? ''
-                      : slotProps.data.full_name.substring(
-                          slotProps.data.full_name.lastIndexOf(' ') + 1,
-                          slotProps.data.full_name.lastIndexOf(' ') + 2
-                        )
-                  "
-                  :image="basedomainURL + slotProps.data.avatar"
-                  size="large"
-                  :style="
-                    slotProps.data.avatar
-                      ? 'background-color: #2196f3'
-                      : 'background:' +
-                        bgColor[slotProps.data.full_name.length % 7]
-                  "
-                  shape="circle"
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                />
-              </div>
-              <div class="col-11 p-0 pl-2 align-items-center ml-2">
-                <div class="pt-2">
-                  <div class="font-bold">
-                    {{ slotProps.data.full_name }}
-                  </div>
-                  <div class="flex w-full text-sm font-italic text-500">
-                    <div>{{ slotProps.data.user_id }}</div>
-                    <div v-if="slotProps.data.phone" class="">
-                      <span class="px-2">|</span>{{ slotProps.data.phone }}
-                    </div>
-                    <div v-if="slotProps.data.email" class="">
-                      <span class="px-2">|</span>{{ slotProps.data.email }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
-      </DataView>
-    </div>
+        </div>
+        <div
+          v-else
+          class="flex align-items-center justify-content-center"
+          style="height: 100%"
+        >
+          <h3 class="m-1">Bạn chưa chọn quy trình</h3>
+        </div>
+      </SplitterPanel>
+    </Splitter>
   </div>
 
+  <!--Dialog-->
   <Dialog
-    @hide="closeDialog"
-    :header="headerDialog"
-    v-model:visible="displayBasic"
-    :maximizable="true"
+    :header="headerDialogProcedure"
+    v-model:visible="displayDialogProcedure"
     :style="{ width: '35vw' }"
+    :closable="true"
+    style="z-index: 1000"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="col-12 field flex p-0 pb-2 align-items-center">
-          <div class="col-3 p-0">
-            Tên nhóm duyệt<span class="redsao pl-1"> (*)</span>
+        <div class="col-12 p-0 field md:col-12 flex align-items-center">
+          <div class="col-3 text-left p-0">
+            Tên quy trình <span class="redsao">(*)</span>
           </div>
           <div class="col-9 p-0">
             <InputText
-              v-model="hrm_approved_group.config_procerduce_name"
+              v-model="sys_config_process.config_process_name"
+              spellcheck="false"
               class="w-full"
               :class="{
-                'p-invalid': v$.config_procerduce_name.$invalid && submitted,
+                'p-invalid': vp$.config_process_name.$invalid && submitted,
               }"
             />
           </div>
         </div>
         <div
+          class="col-12 p-0 field flex"
           v-if="
-            (v$.config_procerduce_name.$invalid && submitted) ||
-            v$.config_procerduce_name.$pending.$response
+            (vp$.config_process_name.$invalid && submitted) ||
+            vp$.config_process_name.$pending.$response
           "
-          class="col-12 field p-0 flex"
         >
           <div class="col-3 p-0"></div>
-          <small class="col-9 p-0">
-            <span style="color: red" class="w-full">{{
-              v$.config_procerduce_name.required.$message
-                .replace("Value", "Tên nhóm duyệt")
-                .replace("is required", "không được để trống!")
-            }}</span>
-          </small>
-        </div>
-
-         
-        <div
-          class="field p-0 col-12 pb-2 md:col-12 flex"
-          v-if="!hrm_approved_group.is_approved_by_department"
-        >
-          <div class="col-3 p-0 align-items-center flex">Loại duyệt</div>
-          <Dropdown
-            v-model="hrm_approved_group.config_approved_type"
-            :options="listTCard"
-            optionLabel="name"
-            optionValue="code"
-            placeholder="--- Chọn loại duyệt ---"
-            panelClass="d-design-dropdown"
-            class="col-9 p-0 sel-placeholder"
-          />
-        </div>
-
-        <div class="field p-0 col-12 pb-2 md:col-12 flex">
-          <div class="col-3 p-0 align-items-center flex">
-            Loại cấu hình <span class="redsao pl-1"> (*)</span>
+          <div class="col-9 p-0">
+            <small class="p-error">
+              <span class="col-12 p-0">{{
+                vp$.config_process_name.required.$message
+                  .replace("Value", "Tên quy trình")
+                  .replace("is required", "không được để trống!")
+              }}</span>
+            </small>
           </div>
-
-          <MultiSelect
-            v-model="hrm_approved_group.config_process_pattern"
-            :options="listModules"
-            optionLabel="name"
-            optionValue="code"
-            placeholder="--- Chọn loại cấu hình ---"
-            panelClass="d-design-dropdown  d-tree-input"
-            class="col-9 p-0 sel-placeholder d-tree-input"
-            :class="{
-              'p-invalid': !hrm_approved_group.config_process_pattern && submitted,
-            }"
-          />
+        </div>
+        <div class="col-12 p-0 field md:col-12 flex align-items-center">
+          <div class="col-3 text-left p-0">
+            Modules <span class="redsao">(*)</span>
+          </div>
+          <div class="col-9 p-0">
+            <TreeSelect
+              panelClass="d-design-dropdown  d-tree-input"
+              class="w-full p-0 sel-placeholder d-tree-input"
+              placeholder="--- Chọn Module ---"
+              v-model="sys_config_process.module_fake"
+              :options="listModules"
+              @change="onChangeModule($event)"
+              :showClear="true"
+              selectionMode="checkbox"
+              optionLabel="data.module_name"
+              optionValue="data.module_id"
+              display="chip"
+              :class="{
+                'p-invalid': !sys_config_process.module_fake && submitted,
+              }"
+            ></TreeSelect>
+          </div>
         </div>
         <div
-          v-if="!hrm_approved_group.config_process_pattern && submitted"
-          class="col-12 field p-0 flex"
+          class="col-12 p-0 field flex"
+          v-if="sys_config_process.module_fake == null && submitted"
         >
           <div class="col-3 p-0"></div>
-          <small calss="col-9 p-0">
-            <span style="color: red" class="w-full"
-              >Loại cấu hình không được để trống!</span
+          <div class="col-9 p-0">
+            <small class="p-error"> Modules không được để trống! </small>
+          </div>
+        </div>
+        <div class="col-12 p-0 field md:col-12 flex align-items-center">
+          <div class="col-3 text-left p-0">Kiểu duyệt</div>
+          <div class="col-9 p-0">
+            <Dropdown
+              :options="types"
+              :filter="true"
+              :showClear="false"
+              :editable="false"
+              v-model="sys_config_process.config_process_type"
+              optionLabel="title"
+              optionValue="value"
+              placeholder="Chọn kiểu duyệt"
+              class="w-full"
             >
-          </small>
-        </div>
-       
-       
-        <div class="col-12 p-0 field flex align-items-center">
-          <div class="col-6 p-0 flex align-items-center">
-            <div class="col-6 text-left p-0">Duyệt phòng ban</div>
-            <div  class="col-6 p-0">
-              <InputSwitch @change="onChangeSWT"
-                v-model="hrm_approved_group.is_approved_by_department"
-                class="ml-0 w-4rem lck-checked"
-              />
-            </div>
-          </div>
-          <div class="col-6 p-0 flex align-items-center">
-            <div class="col-6   text-left p-0 pl-3">Trả lại người tạo</div>
-            <div class=" col-6 p-0">
-              <InputSwitch
-                v-model="hrm_approved_group.is_return_created"
-                class="ml-3 w-4rem lck-checked"
-              />
-            </div>
+            </Dropdown>
           </div>
         </div>
-        <div class="col-12 p-0 field flex align-items-center">
-          <div class="col-6 p-0 flex align-items-center">
-            <div class="col-6  text-left p-0">Thứ tự duyệt</div>
+        <div class="col-12 p-0 field md:col-12 flex align-items-center">
+          <div class="col-6 p-0 align-items-center flex">
+            <div class="col-6 p-0">STT</div>
             <div class="col-6 p-0">
-              <InputText v-model="hrm_approved_group.is_order" class="w-full" />
+              <InputText v-model="sys_config_process.is_order" class="w-full" />
             </div>
           </div>
-          <div class="col-6 p-0 flex align-items-center">
-            <div class="col-6   text-left p-0 pl-3">Trạng thái</div>
-            <div class=" col-6 p-0">
+          <div class="col-6 p-0 align-items-center flex">
+            <div class="col-6 p-0 text-center">Trạng thái</div>
+            <div class="col-6 p-0">
               <InputSwitch
-                v-model="hrm_approved_group.status"
-                class="ml-3 w-4rem lck-checked"
+                class="w-4rem lck-checked"
+                v-model="sys_config_process.status"
               />
             </div>
           </div>
-        </div>
-        <div
-          v-if="hrm_approved_group.is_approved_by_department"
-          class="field p-0 pb-2 col-12 md:col-12 flex"
-        >
-          <div
-            class="
-              col-6
-              p-0
-              flex
-              align-items-center
-              cursor-pointer
-              text-blue-500
-            "
-            @click="showListAssets"
-          >
-            <i class="pi pi-plus-circle pr-2"></i> Cấu hình người duyệt theo
-            phòng ban
-          </div>
-        </div>
-        <div class="field p-0 pb-2 col-12 md:col-12 flex" v-else>
-          <div
-            class="
-              col-6
-              p-0
-              flex
-              align-items-center
-              cursor-pointer
-              text-blue-500
-            "
-            @click="showListUser"
-          >
-            <i class="pi pi-plus-circle pr-2"></i> Cấu hình người duyệt
-          </div>
-        </div>
-        <div
-          v-if="!hrm_approved_group.is_approved_by_department"
-          class="field p-0 pb-2 col-12 md:col-12"
-        >
-          <!-- style="display: grid; grid-template-columns: repeat(2, 1fr)" -->
-          <OrderList
-            v-model="listUserA"
-            listStyle="height:auto"
-            class="w-full"
-            dataKey="id"
-          >
-            <template #header> Danh sách người duyệt </template>
-            <template #item="slotProps">
-              <Toolbar class="surface-0 m-0 p-0 border-0 w-full">
-                <template #start>
-                    <div class="flex align-items-center">
-                <div class="format-flex-center">
-                  <b class="p-3">{{ slotProps.index + 1 }}</b>
-                </div> <div class="flex ">
-                    <Avatar
-                      v-bind:label="
-                        slotProps.item.avatar
-                          ? ''
-                          : slotProps.item.full_name.substring(
-                              slotProps.item.full_name.lastIndexOf(' ') + 1,
-                              slotProps.item.full_name.lastIndexOf(' ') + 2
-                            )
-                      "
-                      :image="basedomainURL + slotProps.item.avatar"
-                      class="w-2rem h-2rem"
-                      size="large"
-                      :style="
-                        slotProps.item.avatar
-                          ? 'background-color: #2196f3'
-                          : 'background:' +
-                            bgColor[slotProps.item.full_name.length % 7]
-                      "
-                      shape="circle"
-                      @error="
-                        $event.target.src =
-                          basedomainURL + '/Portals/Image/nouser1.png'
-                      "
-                    />
-                    <div class="pt-1 pl-2">
-                      {{ slotProps.item.full_name }}
-                    </div>
-                  </div>
-                  </div>
-                </template>
-                <template #end>
-                  <div>
-                    <Button
-                      icon="pi pi-trash"
-                      class="
-                        p-button-rounded p-button-secondary p-button-text
-                        ml-1
-                      "
-                      @click="removeListUser(slotProps.item)"
-                    ></Button>
-                  </div>
-                </template>
-              </Toolbar>
-            </template>
-          </OrderList>
- 
         </div>
       </div>
     </form>
@@ -2098,18 +1784,223 @@ onMounted(() => {
       <Button
         label="Hủy"
         icon="pi pi-times"
-        @click="closeDialogDC()"
+        @click="closeDialogProcedure()"
         class="p-button-outlined"
       />
 
       <Button
-        @click="saveHandover(!v$.$invalid)"
         label="Lưu"
         icon="pi pi-check"
-        autofocus
+        @click="savesys_config_process(!vp$.$invalid)"
       />
     </template>
   </Dialog>
+
+  <Dialog
+    :header="headerDialogSign"
+    v-model:visible="displayDialogSign"
+    :style="{ width: '50vw' }"
+    :closable="true"
+    style="z-index: 1000"
+    :modal="true"
+  >
+    <form>
+      <div class="grid formgrid">
+        <div class="col-12 md:col-12">
+          <DataTable
+            class="w-full p-datatable-sm e-sm"
+            @page="onPage($event)"
+            @filter="onFilter($event)"
+            @sort="onSort($event)"
+            v-model:filters="filters"
+            removableSort
+            filterDisplay="menu"
+            filterMode="lenient"
+            dataKey="approved_groups_id"
+            responsiveLayout="scroll"
+            :scrollable="true"
+            scrollHeight="flex"
+            :showGridlines="true"
+            :rows="options.pagesizeAP"
+            :lazy="true"
+            :value="listApproveds"
+            :loading="options.loading"
+            :paginator="true"
+            :totalRecords="options.totalRecordsAP"
+            :row-hover="true"
+            v-model:first="first"
+            v-model:selection="approvedSelected"
+            :pageLinkSize="options.pagesizeAP"
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks  NextPageLink LastPageLink RowsPerPageDropdown"
+            :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+            selectionMode="checkbox"
+          >
+            <template #header>
+              <Toolbar class="d-toolbar custoolbar p-0 py-2 surface-50">
+                <template #start>
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText
+                      v-model="options.search"
+                      @keyup.enter="searchCard()"
+                      type="text"
+                      spellcheck="false"
+                      placeholder="Tìm kiếm"
+                    />
+                  </span>
+                </template>
+              </Toolbar>
+            </template>
+            <Column
+              selectionMode="multiple"
+              headerStyle="text-align:center;max-width:75px;height:50px"
+              bodyStyle="text-align:center;max-width:75px"
+              class="align-items-center justify-content-center text-center"
+            ></Column>
+            <Column
+              headerStyle="text-align:center;height:50px;  "
+              bodyStyle="text-align:left; "
+              field="approved_group_name"
+              headerClass="align-items-center justify-content-center text-center"
+              header="Nhóm duyệt"
+            >
+              <template #body="slotProps">
+                <div>
+                  <div class="mb-2">
+                    {{ slotProps.data.approved_group_name }}
+                  </div>
+                  <div v-if="slotProps.data.signusers">
+                    <AvatarGroup
+                      v-if="
+                        slotProps.data.signusers &&
+                        slotProps.data.signusers.length > 0
+                      "
+                    >
+                      <Avatar
+                        v-for="(item, index) in slotProps.data.signusers.slice(
+                          0,
+                          3
+                        )"
+                        v-bind:label="
+                          item.avatar ? '' : item.last_name.substring(0, 1)
+                        "
+                        v-bind:image="
+                          item.avatar
+                            ? basedomainURL + item.avatar
+                            : basedomainURL + '/Portals/Image/noimg.jpg'
+                        "
+                        v-tooltip.bottom="{
+                          value:
+                            item.full_name +
+                            '<br/>' +
+                            item.position_name +
+                            '<br/>' +
+                            item.department_name,
+                          escape: true,
+                        }"
+                        :key="item.user_id"
+                        style="
+                          border: 2px solid white;
+                          color: white;
+                          width: 2.5rem;
+                          height: 2.5rem;
+                        "
+                        @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                        size="large"
+                        shape="circle"
+                        class="cursor-pointer"
+                        :style="{ backgroundColor: bgColor[index % 7] }"
+                      />
+                      <Avatar
+                        v-if="
+                          slotProps.data.signusers &&
+                          slotProps.data.signusers.length > 3
+                        "
+                        v-bind:label="
+                          '+' + (slotProps.data.signusers.length - 3).toString()
+                        "
+                        shape="circle"
+                        size="large"
+                        style="background-color: #2196f3; color: #ffffff"
+                        class="cursor-pointer"
+                      />
+                    </AvatarGroup>
+                  </div>
+                </div>
+              </template>
+            </Column>
+            <Column
+              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;height:50px;max-width:150px;"
+              bodyStyle="text-align:center;max-width:150px; ;"
+              header="Loại duyệt"
+              headerClass="textoneline"
+            >
+              <template #body="data">
+                <div>
+                  {{
+                    data.data.approved_type == 1
+                      ? "Duyệt một nhiều"
+                      : data.data.approved_type == 2
+                      ? "Duyệt tuần tự"
+                      : "Duyệt ngẫu nhiên"
+                  }}
+                </div>
+              </template>
+            </Column>
+            <Column
+              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;max-width:150px;height:50px"
+              bodyStyle="text-align:center;max-width:150px; "
+              header="Duyệt phòng ban"
+              headerClass="textoneline"
+            >
+              <template #body="data">
+                <Checkbox
+                  :disabled="true"
+                  :binary="data.data.is_department"
+                  v-model="data.data.is_department"
+                />
+              </template>
+            </Column>
+            <template #empty>
+              <div
+                class="align-items-center justify-content-center p-4 text-center m-auto"
+                v-if="!isFirst"
+              >
+                <img src="../../../assets/background/nodata.png" height="144" />
+                <h3 class="m-1">Không có dữ liệu</h3>
+              </div>
+            </template>
+          </DataTable>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialogSign()"
+        class="p-button-outlined"
+      />
+
+      <Button label="Chọn" icon="pi pi-check" @click="saveconfig_approved()" />
+    </template>
+  </Dialog>
+
+  <Dialog
+    header="Chi tiết quy trình"
+    v-model:visible="displayDialogProcess"
+    :style="{ width: '50vw' }"
+    :closable="true"
+    style="z-index: 1000"
+    :modal="true"
+  >
+    <form>
+      <div class="grid formgrid m-2">fff</div>
+    </form>
+  </Dialog>
+
   <Dialog
     header="Cập nhật nhóm duyệt phòng ban"
     v-model:visible="displayAssets"
@@ -2140,7 +2031,7 @@ onMounted(() => {
                   </div>
                 </template>
                 <template #body="data">
-                  <div class="w-full flex align-items-center">
+                  <div class="w-full flex">
                     <Button
                       @click="showTreeUser(data.node.data)"
                       v-tooltip.top="'Chọn người duyệt'"
@@ -2168,11 +2059,7 @@ onMounted(() => {
                     >
                       <template #value="slotProps">
                         <div
-                          class="
-                            country-item country-item-value
-                            flex
-                            align-items-center
-                          "
+                          class="country-item country-item-value flex align-items-center"
                           v-if="slotProps.value"
                         >
                           <Avatar
@@ -2295,143 +2182,129 @@ onMounted(() => {
     </div>
   </Dialog>
 
+  <Menu
+    id="overlay_More"
+    ref="menuButMores"
+    :model="itemButMores"
+    :popup="true"
+  />
+  <Menu
+    id="overlay_More_Sign"
+    ref="menuButMores_Sign"
+    :model="itemButMores_Sign"
+    :popup="true"
+  />
   <treeuser
-    v-if="displayDialogUser === true"
+    :key="componentKey"
     :headerDialog="headerDialogUser"
     :displayDialog="displayDialogUser"
     :closeDialog="closeDialogUser"
-    :one="checkMultile"
+    :one="is_one"
     :selected="selectedUser"
     :choiceUser="choiceUser"
   />
+  <!--Dialog-->
 </template>
-
 <style scoped>
-.product-item {
-  display: flex;
-  align-items: center;
-  padding: 0.2rem;
-  width: 100%;
-}
-.product-list-detail {
-  flex: 1 1 0;
-}
-
-.product-list-action {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.product-category-icon {
-  vertical-align: middle;
-  margin-right: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.product-category {
-  vertical-align: middle;
-  line-height: 1;
-  font-size: 0.875rem;
-}
-
-@media screen and (max-width: 576px) {
-  .product-item {
-    flex-wrap: wrap;
-  }
-  .image-container {
-    width: 100%;
-    text-align: center;
-  }
-
-  img {
-    margin: 0 0 1rem 0;
-    width: 100px;
-  }
-}
-</style>
-<style scoped>
-.ck-editor__editable {
-  max-height: 500px !important;
-}
-.d-container {
-  background-color: #f5f5f5;
-}
-
-.d-lang-header {
-  background-color: #ffff;
-  padding: 12px 8px 0px 8px;
-  margin: 8px 8px 0px 8px;
-  height: 33px;
-}
-.d-lang-header h3,
-i {
-  font-weight: 600;
-}
-.d-module-title {
-  margin: 0;
-}
 .d-lang-table {
-  margin: 0px 8px 0px 8px;
-  height: calc(100vh - 50px);
-}
-
-.d-toolbar {
-  border: unset;
-  outline: unset;
-  background-color: #fff;
-  margin: 0px 8px 0px 8px;
-}
-
-.d-btn-function {
-  border-radius: 50%;
-  margin-left: 6px;
+  height: calc(100vh - 130px);
+  overflow-y: auto;
 }
 .inputanh {
   border: 1px solid #ccc;
-  width: 100%;
-  height: 200px;
+  width: 96px;
+  height: 96px;
   cursor: pointer;
   padding: 1px;
-  object-fit: contain;
-  background-color: #eeeeee;
 }
 .ipnone {
   display: none;
 }
-
-.d-avatar-hrm_approved_group {
-  position: relative;
+.inputanh img {
+  object-fit: cover;
   width: 100%;
-  height: 350px;
+  height: 100%;
 }
-.d-avatar-hrm_approved_group img {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  object-fit: contain;
-}
-.multi-width {
-  max-width: 500px !important;
-}
-.toolbar-filter {
-  border: unset;
-  outline: unset;
-  background-color: #fff;
-  padding-bottom: 0px;
-}
-.sel-placeholder::placeholder {
+.format-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  position: absolute;
-  top: 0;
+}
+.format-grid-center {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.style-day {
+  line-height: 1.8rem;
+}
+.style-day.false {
+  color: #2196f3 !important;
+}
+.style-day.true {
+  color: red !important;
+}
+.form-group {
+  display: grid;
+  margin-bottom: 1rem;
+}
+.form-group > label {
+  margin-bottom: 0.5rem;
+}
+.ip36 {
+  width: 100%;
+}
+.p-ulchip {
+  margin: 0;
+  margin-top: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+.p-lichip {
+  float: left;
+}
+.p-multiselect-label {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.type0 {
+  background-color: #ff8b4e;
+}
+.type1 {
+  background-color: #33c9dc;
 }
 </style>
-
 <style lang="scss" scoped>
-::v-deep(.p-calendar) {
-  .p-button.p-button-icon-only {
-    width: 3.5rem !important;
+::v-deep(.d-lang-table) {
+  .p-datatable-thead .justify-content-center .p-column-header-content {
+    justify-content: center !important;
+  }
+
+  .p-datatable-table {
+    position: absolute;
+  }
+
+  .p-datatable-thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-chip img {
+    margin: 0;
+  }
+  .p-avatar-text {
+    font-size: 1rem;
   }
 }
 </style>

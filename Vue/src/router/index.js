@@ -281,8 +281,9 @@ const Hrm_proposal = () => import("../views/hrm/recruitment/hrm_proposal.vue");
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
 const Hrm_paycheck_form = () => import("../views/hrm/declare/hrm_paycheck_form.vue");
 const Hrm_rec_calendar = () => import("../views/hrm/recruitment/hrm_recCalendar.vue");
-const Hrm_configprocess = () => import("../views/hrm/process/config_Process.vue");
-const Hrm_config_approved = () => import("../views/hrm/process/config_approved.vue");
+const Hrm_configprocess = () => import("../views/hrm/process/ConfigProcess.vue");
+const Hrm_config_approved = () => import("../views/hrm/process/ConfigAprrovedGroups.vue");
+ 
 
 //end
 // TV
