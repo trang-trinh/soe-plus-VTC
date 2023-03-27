@@ -38,39 +38,21 @@ const datalists = ref([]);
 const options = ref({
   loading: true,
 });
-const listStatus = ref([
-  {
-    value: 0,
-    text: "Chưa bắt đầu",
-    bg_color: "#bbbbbb",
-    text_color: "#FFFFFF",
-  },
-  { value: 1, text: "Đang làm", bg_color: "#2196f3", text_color: "#FFFFFF" },
-  { value: 2, text: "Tạm ngừng", bg_color: "#d87777", text_color: "#FFFFFF" },
-  { value: 3, text: "Đã đóng", bg_color: "#d87777", text_color: "#FFFFFF" },
-  { value: 4, text: "HT đúng hạn", bg_color: "#04D215", text_color: "#FFFFFF" },
-  {
-    value: 5,
-    text: "Chờ đánh giá",
-    bg_color: "#33c9dc",
-    text_color: "#FFFFFF",
-  },
-  { value: 6, text: "Bị trả lại", bg_color: "#ffa500", text_color: "#FFFFFF" },
-  { value: 7, text: "HT sau hạn", bg_color: "#ff8b4e", text_color: "#FFFFFF" },
-  { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
-  { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
-]);
+
+const expandedRows = ref([]);
 const props = defineProps({
   data: Object,
   isOpen: Boolean,
   closeDialogDetail: Function,
+  rowReorder: Function,
+  memberType: Intl,
 });
 onMounted(() => {});
 </script>
 <template>
   <Dialog
     v-model:visible="props.isOpen"
-    :style="'width:80vw;'"
+    :style="'width:88vw;'"
     :showCloseIcon="true"
     :header="'Chi tiết quy trình'"
     @update:visible="closeDialogDetail"
@@ -89,360 +71,218 @@ onMounted(() => {});
             class="py-0"
             style="color: #2196f3"
           >
-            Bước: {{ props.data.is_step }} - {{ props.data.follow_name }}
+            {{ props.data.follow_name }}
           </h2>
         </h3>
         <Accordion :activeIndex="0">
-          <AccordionTab header="Mô tả quy trình">
+          <AccordionTab header="Thông tin chung">
             <div
               class="max-h-15rem"
               style="overflow-y: auto"
             >
-              <span
-                v-html="props.data.description"
-                v-if="props.data.description != null"
-              ></span>
-              <b v-else>Không có mô tả cho quy trình này!</b>
+              <div
+                class="col-12 flex"
+                v-if="props.data.start_date || props.data.end_date"
+              >
+                <div
+                  class="col-6"
+                  v-if="props.data.start_date"
+                >
+                  Ngày bắt đầu(dự kiến):
+                  <span class="pl-2 text-xl text-blue-600">{{
+                    moment(new Date(props.data.start_date)).format(
+                      "HH:mm DD/MM/YYYY",
+                    )
+                  }}</span>
+                </div>
+                <div
+                  class="col-6"
+                  v-if="props.data.end_date"
+                >
+                  Ngày kết thúc(dự kiến):
+                  <span class="pl-2 text-xl text-blue-600">{{
+                    moment(new Date(props.data.end_date)).format(
+                      "HH:mm DD/MM/YYYY",
+                    )
+                  }}</span>
+                </div>
+              </div>
+              <div
+                class="col-12 flex"
+                v-if="props.data.start_real_date || props.data.end_real_date"
+              >
+                <div
+                  class="col-6"
+                  v-if="props.data.start_real_date"
+                >
+                  Ngày bắt đầu:
+                  <span class="pl-2 text-xl text-blue-600">{{
+                    moment(new Date(props.data.start_real_date)).format(
+                      "HH:mm DD/MM/YYYY",
+                    )
+                  }}</span>
+                </div>
+                <div
+                  class="col-6"
+                  v-if="props.data.end_real_date"
+                >
+                  Ngày kết thúc:
+                  <span class="pl-2 text-xl text-blue-600">{{
+                    moment(new Date(props.data.end_real_date)).format(
+                      "HH:mm DD/MM/YYYY",
+                    )
+                  }}</span>
+                </div>
+              </div>
+              <div class="col-12 flex">
+                <div class="col-4">
+                  Trọng số: <span class="pl-2">{{ props.data.weight }}</span>
+                </div>
+                <div class="col-4">
+                  Trạng thái:
+                  <span
+                    class=""
+                    :style="{
+                      background: props.data.status_display.bg_color,
+                      color: props.data.status_display.text_color,
+                      padding: '2px 8px',
+                      border: '1px solid' + props.data.status_display.bg_color,
+                      borderRadius: '5px',
+                    }"
+                  >
+                    {{ props.data.status_display.label }}
+                  </span>
+                </div>
+                <div class="col-4">
+                  Trình tự thực hiện:
+                  <span
+                    class=""
+                    :style="{
+                      background: props.data.type_display.bg_color,
+                      color: props.data.type_display.text_color,
+                      padding: '2px 8px',
+                      border: '1px solid' + props.data.type_display.bg_color,
+                      borderRadius: '5px',
+                    }"
+                  >
+                    {{ props.data.type_display.label }}
+                  </span>
+                </div>
+              </div>
+              <div class="col-12 flex">
+                <div class="col-1">Mô tả quy trình</div>
+                <div
+                  class="col-11"
+                  v-html="props.data.description"
+                  v-if="props.data.description != null"
+                ></div>
+                <b
+                  class="col-11"
+                  v-else
+                  >Không có mô tả cho quy trình này!</b
+                >
+              </div>
             </div>
           </AccordionTab>
         </Accordion>
       </div>
+
       <DataTable
-        :value="props.data.childTask"
-        showGridlines
-        scrollable
-        scrollHeight="flex"
-        :reorderableColumns="true"
-        @rowReorder="onRowReorder"
+        :value="props.data.task_follow_step"
+        v-model:expandedRows="expandedRows"
       >
-        <!-- <template #header>
-          <Toolbar class="w-full custoolbar">
-            <template #end> </template>
-          </Toolbar>
-        </template> -->
         <Column
-          field="task_name"
-          header="Tên công việc"
-          headerClass=" align-items-center justify-content-center"
-          bodyClass="align-items-center"
+          expander
+          class="w-1rem"
+        />
+        <Column
+          header="Thứ tự"
+          field="is_step"
+          class="justify-content-center align-items-center text-center w-5rem"
+        >
+        </Column>
+        <Column
+          header="Tên bước"
+          field="step_name"
+          header-class="justify-content-center align-items-center text-center"
+        >
+          <template #body="data"
+            ><div>
+              <span class="font-bold text-xl">
+                {{ data.data.step_name }}
+              </span>
+              <br />
+              <span v-if="data.data.start_date">
+                {{
+                  moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
+                }}-
+              </span>
+
+              <span v-if="data.data.is_deadline == true">
+                {{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY") }}
+              </span>
+            </div></template
+          ></Column
+        >
+        <Column
+          header="Công việc"
+          field="step_name"
+          class="justify-content-center align-items-center text-center w-7rem"
         >
           <template #body="data">
+            <div>
+              {{ data.data.countTaskFinished }} /
+              {{ data.data.countTask }}
+            </div>
+            <div v-if="data.data.TaskProgress > 0">
+              <ProgressBar :value="data.data.TaskProgress" />
+            </div>
             <div
-              style="display: flex; flex-direction: column; padding: 5px"
-              class="task-hover w-full"
+              class="pt-2"
+              v-else
             >
-              <div style="line-height: ; display: flex">
-                <span
-                  v-tooltip="'Ưu tiên'"
-                  v-if="data.data.is_prioritize"
-                  style="margin-right: 5px"
-                  ><i
-                    style="color: orange"
-                    class="pi pi-star-fill"
-                  ></i>
-                </span>
-                <span
-                  style="
-                    font-weight: bold;
-                    font-size: 14px;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    width: 100%;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                  "
-                  >{{ data.data.task_name }}</span
-                >
-              </div>
-              <div
-                style="
-                  font-size: 11px;
-                  margin-top: 5px;
-                  display: flex;
-                  align-items: center;
-                "
-              >
-                <span
-                  v-if="data.data.start_date || data.data.end_date"
-                  style="color: #98a9bc"
-                >
-                  {{
-                    data.data.start_date
-                      ? moment(new Date(data.data.start_date)).format(
-                          "DD/MM/YYYY",
-                        )
-                      : null
-                  }}
-                  -
-                  {{
-                    data.data.end_date
-                      ? moment(new Date(data.data.end_date)).format(
-                          "DD/MM/YYYY",
-                        )
-                      : null
-                  }}
-                </span>
-              </div>
-              <div
-                v-if="data.data.p_id != null"
-                style="
-                  min-height: 25px;
-                  display: flex;
-                  align-items: center;
-                  margin-top: 10px;
-                "
-              >
-                <i class="pi pi-tag"></i>
-                <span
-                  class="duan"
-                  style="
-                    font-size: 13px;
-                    font-weight: 400;
-                    margin-left: 5px;
-                    color: #0078d4;
-                  "
-                  >{{ data.data.project_name }}</span
-                >
-              </div>
+              0%
             </div>
           </template>
         </Column>
         <Column
-          field="progress"
-          header="Tiến độ"
-          class="align-items-center justify-content-center text-center max-w-6rem"
+          header="Trình tự thực hiện"
+          field="task_id_follow"
+          class="justify-content-center align-items-center text-center w-12rem"
         >
           <template #body="data">
-            <Knob
-              class="w-full"
-              v-model="data.data.progress"
-              :readonly="true"
-              valueTemplate="{value}%"
-              :valueColor="
-                data.data.progress < 33
-                  ? '#FF0000'
-                  : data.data.progress < 66
-                  ? '#2196f3'
-                  : '#6dd230'
-              "
-              :textColor="
-                data.data.progress < 33
-                  ? '#FF0000'
-                  : data.data.progress < 66
-                  ? '#2196f3'
-                  : '#6dd230'
-              "
-              size="75"
-            />
-          </template>
-        </Column>
-        <Column
-          header="Thành viên tham gia"
-          class="align-items-center justify-content-center text-center max-w-6rem"
-        >
-          <template #body="data">
-            <AvatarGroup
-              class="align-items-center justify-content-center text-center"
+            <span
+              :style="{
+                background: data.data.type_display.bg_color,
+                color: data.data.type_display.text_color,
+                padding: '5px 10px',
+                border: '1px solid' + data.data.type_display.bg_color,
+                borderRadius: '5px',
+              }"
             >
-              <div
-                v-for="(user, index) in data.data.users"
-                :key="index"
-              >
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  v-if="user.is_type == 0 && user.STTGV == 0"
-                  v-tooltip.right="{
-                    value: user.tooltip,
-                    escape: true,
-                  }"
-                  v-bind:label="
-                    user.avt
-                      ? ''
-                      : user.full_name.split(' ').at(-1).substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + user.avt"
-                  style="color: #ffffff; cursor: pointer"
-                  :style="{
-                    background: bgColor[index % 7],
-                    border: '1px solid' + bgColor[index % 10],
-                  }"
-                  class="myTextAvatar"
-                  size="large"
-                  shape="circle"
-                />
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  v-if="user.is_type == 1 && user.STTTH == 0"
-                  v-tooltip.right="{
-                    value: user.tooltip,
-                    escape: true,
-                  }"
-                  v-bind:label="
-                    user.avt
-                      ? ''
-                      : user.full_name.split(' ').at(-1).substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + user.avt"
-                  style="color: #ffffff; cursor: pointer"
-                  :style="{
-                    background: bgColor[index % 7],
-                    border: '1px solid' + bgColor[index % 10],
-                  }"
-                  class="myTextAvatar"
-                  size="large"
-                  shape="circle"
-                />
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  v-if="user.is_type == 2 && user.STTDTH == 0"
-                  v-tooltip.right="{
-                    value: user.tooltip,
-                    escape: true,
-                  }"
-                  v-bind:label="
-                    user.avt
-                      ? ''
-                      : user.full_name.split(' ').at(-1).substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + user.avt"
-                  style="color: #ffffff; cursor: pointer"
-                  :style="{
-                    background: bgColor[index % 7],
-                    border: '1px solid' + bgColor[index % 10],
-                  }"
-                  class="myTextAvatar"
-                  size="large"
-                  shape="circle"
-                />
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  v-if="user.is_type == 3 && user.STTTD == 0"
-                  v-tooltip.right="{
-                    value: user.tooltip,
-                    escape: true,
-                  }"
-                  v-bind:label="
-                    user.avt
-                      ? ''
-                      : user.full_name.split(' ').at(-1).substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + user.avt"
-                  style="color: #ffffff; cursor: pointer"
-                  :style="{
-                    background: bgColor[index % 7],
-                    border: '1px solid' + bgColor[index % 10],
-                  }"
-                  class="myTextAvatar"
-                  size="large"
-                  shape="circle"
-                />
-              </div>
-              <Avatar
-                @error="
-                  $event.target.src =
-                    basedomainURL + '/Portals/Image/nouser1.png'
-                "
-                v-if="data.data.users.length > 4"
-                v-tooltip.right="{
-                  value:
-                    'và ' +
-                    (data.data.users.length - 4) +
-                    ' người khác tham gia',
-                }"
-                :label="'+' + (data.data.users.length - 4)"
-                style="color: #ffffff; cursor: pointer; font-size: 1rem"
-                :style="{
-                  background: bgColor[index % 7],
-                  border: '1px solid' + bgColor[index % 10],
-                }"
-                class="myTextAvatar"
-                size="large"
-                shape="circle"
-              ></Avatar>
-            </AvatarGroup>
-          </template>
-        </Column>
-        <Column
-          header="Hạn xử lý"
-          field=""
-          class="align-items-center justify-content-center text-center max-w-5rem"
+              {{ data.data.type_display.label }}
+            </span>
+          </template></Column
         >
-          <template #body="data">
-            <div
-              v-if="data.data.is_deadline == true"
-              style="
-                background-color: #fff2d7;
-                padding: 10px 10px;
-                border-radius: 5px;
-              "
-              class="w-full font-bold text-blue-500"
-            >
-              {{ moment(data.data.end_date).format("DD/MM/YYYY HH:mm") }}
-            </div>
-          </template>
-        </Column>
-        <Column
-          header="Thời gian xử lý"
-          field=""
-          class="align-items-center justify-content-center text-center max-w-4rem"
-        >
-          <template #body="data">
-            <div
-              v-if="data.data.is_deadline == true"
-              style="
-                background-color: #fff8ee;
-                padding: 10px 10px;
-                border-radius: 5px;
-              "
-              class="w-full"
-            >
-              <span
-                v-if="data.data.exp_time > 0"
-                style="color: #f00000; font-size: 13px; font-weight: bold"
-                >Quá hạn {{ data.data.exp_time }} ngày</span
-              >
-              <span
-                v-else-if="data.data.exp_time < 0"
-                style="color: #04d214; font-size: 13px; font-weight: bold"
-                >Còn {{ Math.abs(data.data.exp_time) }} ngày</span
-              >
-              <span
-                v-else
-                style="color: #2196f3; font-size: 13px; font-weight: bold"
-                >Đến hạn hoàn thành</span
-              >
-            </div>
-          </template>
-        </Column>
         <Column
           header="Trạng thái"
-          field=""
-          class="align-items-center justify-content-center text-center max-w-4rem"
+          field="task_id_follow"
+          class="justify-content-center align-items-center text-center w-14rem"
         >
           <template #body="data">
-            <Chip
-              class="px-3 py-1"
+            <span
               :style="{
                 background: data.data.status_display.bg_color,
                 color: data.data.status_display.text_color,
+                padding: '5px 10px',
+                border: '1px solid' + data.data.status_display.bg_color,
+                borderRadius: '5px',
               }"
-              v-bind:label="data.data.status_display.text"
-            />
-          </template>
-        </Column>
+            >
+              {{ data.data.status_display.label }}
+            </span>
+          </template></Column
+        >
         <template #empty>
           <div
             class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
@@ -454,8 +294,138 @@ onMounted(() => {});
             <h3 class="m-1">Không có dữ liệu</h3>
           </div>
         </template>
+        <template #expansion="slotProps">
+          <div class="w-full">
+            <Toolbar class="w-full custoolbar">
+              <template #start>
+                <span>
+                  Thông tin bước:
+                  <span class="px-1 font-bold line-height-3">{{
+                    slotProps.data.step_name
+                  }}</span></span
+                >
+              </template>
+            </Toolbar>
+            <Accordion
+              :activeIndex="0"
+              class="w-full"
+            >
+              <AccordionTab header="Mô tả bước">
+                <span
+                  class="max-h-15rem"
+                  style="overflow-y: auto"
+                >
+                  {{ slotProps.data.description }}
+                  <span
+                    v-html="slotProps.data.description"
+                    v-if="
+                      slotProps.data.description != null &&
+                      slotProps.data.description != ''
+                    "
+                  ></span>
+                  <b v-else>Không có mô tả cho bước này!</b>
+                </span>
+              </AccordionTab>
+            </Accordion>
+
+            <DataTable
+              :value="slotProps.data.task_info"
+              @rowReorder="props.rowReorder"
+            >
+              <Column
+                v-if="props.memberType == 0"
+                rowReorder
+                class="max-w-1rem justify-content-center align-items-center text-center"
+              />
+              <Column
+                header="STT"
+                field="step"
+                class="justify-content-center align-items-center text-center max-w-5rem"
+              ></Column>
+              <Column
+                header="Tên công việc"
+                field="task_id_follow"
+                header-class="justify-content-center align-items-center text-center"
+              >
+                <template #body="data">
+                  <div>
+                    <span class="font-bold text-xl">
+                      {{ data.data.task_name }}
+                    </span>
+                    <br />
+                    <span>
+                      {{
+                        moment(new Date(data.data.start_date)).format(
+                          "DD/MM/YYYY",
+                        )
+                      }}
+                    </span>
+                    -
+                    <span v-if="data.data.is_deadline == true">
+                      {{
+                        moment(new Date(data.data.end_date)).format(
+                          "DD/MM/YYYY",
+                        )
+                      }}
+                    </span>
+                  </div>
+                </template>
+              </Column>
+              <Column
+                header="Tiến độ"
+                field="task_id_follow"
+                class="justify-content-center align-items-center text-center max-w-8rem"
+              >
+                <template #body="data">
+                  <div v-if="data.data.progress > 0">
+                    <ProgressBar :value="data.data.progress" />
+                  </div>
+                  <div
+                    class="pt-2"
+                    v-else
+                  >
+                    0%
+                  </div>
+                </template></Column
+              >
+              <Column
+                header="Trạng thái"
+                field="task_id_follow"
+                class="justify-content-center align-items-center text-center max-w-8rem"
+              >
+                <template #body="data">
+                  <!-- <span
+                    :style="{
+                      background: data.data.status_display.bg_color,
+                      color: data.data.status_display.text_color,
+                      padding: '5px 10px',
+                      border: '1px solid' + data.data.status_display.bg_color,
+                      borderRadius: '5px',
+                    }"
+                  >
+                    {{ data.data.status_display.text }}
+                  </span> -->
+                </template></Column
+              >
+
+              <template #empty>
+                <div
+                  class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
+                >
+                  <img
+                    src="../../../../assets/background/nodata.png"
+                    height="144"
+                  />
+                  <h3 class="m-1">Không có dữ liệu</h3>
+                </div>
+              </template>
+            </DataTable>
+          </div>
+        </template>
       </DataTable>
     </div>
+    <!-- 
+    {{ props.data.task_follow_step }} -->
   </Dialog>
 </template>
 

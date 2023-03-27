@@ -213,10 +213,10 @@ io.on('connection', (socket) => {
         //push html
         if(event === "sendNotify"){
             fetch((`http://${host}:${port}/`).concat(`sendnotification`), {
-                credentials: "omit",
+                //credentials: "omit",
                 headers: {
                     "content-type": "application/json;charset=UTF-8",
-                    "sec-fetch-mode": "cors",
+                    //"sec-fetch-mode": "cors",
                 },
                 body: JSON.stringify({
                     uids: data.uids,
@@ -229,10 +229,19 @@ io.on('connection', (socket) => {
                     },
                   }),
                 method: "POST",
-                mode: "cors"
-            }).then((result) => {
+                //mode: "cors"
+            })
+            .then((result) => {
                 let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
-                log('push html: result('+ result + ')', logFile, '\r\n');
+                log('push html: result('+ result.json() + ')', logFile, '\r\n');
+            })
+            .then((data) => {
+                let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
+                log('push html: data('+ data + ')', logFile, '\r\n');
+            })
+            .catch((error) => {
+                let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
+                log('push html: error('+ error + ')', logFile, '\r\n');
             });
         }
     });
