@@ -665,7 +665,7 @@ const openBasic = (str) => {
   sys_approved_groups.value = {
     is_local: true,
     module_fake: null,
-    approved_type: 0,
+    approved_type: 1,
     is_department: false,
     is_return_pre: false,
     status: true,

@@ -6,8 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
-import dialogrecruitment_proposal from "./component/dialog_proposal.vue";
-import dialogSend from "./component/dialog_send.vue";
+import dialog_recCalendar from "./component/dialog_recCalendar.vue";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -20,11 +19,11 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  recruitment_proposal_name: {
+  candidate_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
-  recruitment_proposal_code: {
+  rec_calendar_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -38,7 +37,19 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
- 
+
+const listStatus = ref([
+  { name: "Lên kế hoạch", code: 1 },
+  { name: "Đang thực hiện", code: 2 },
+  { name: "Đã hoàn thành", code: 3 },
+  { name: "Tạm dừng", code: 4 },
+  { name: "Đã hủy", code: 5 },
+]);
+const listFormTraining = ref([
+  { name: "Bắt buộc", code: 1 },
+  { name: "Đăng ký", code: 2 },
+  { name: "Cả hai", code: 3 },
+]);
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -47,8 +58,11 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_recruitment_proposal_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_rec_calendar_count",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -58,53 +72,36 @@ const loadCount = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-      let data2 = JSON.parse(response.data.data)[2];
-      let data3 = JSON.parse(response.data.data)[3];
-      let data4 = JSON.parse(response.data.data)[4];
-      let data5 = JSON.parse(response.data.data)[5];
-      let data6 = JSON.parse(response.data.data)[6];
+
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
-        options.value.totalRecords1 = data1[0].totalRecords1;
-        options.value.totalRecords2 = data2[0].totalRecords2;
-        options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
-        options.value.totalRecords5 = data5[0].totalRecords5;
-        options.value.totalRecords6 = data6[0].totalRecords6;
+
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
     .catch((error) => {});
 };
 
-const recruitment_proposal = ref({
-  recruitment_proposal_name: null,
-  
-});
-//Lấy dữ liệu recruitment_proposal
+//Lấy dữ liệu candidate
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
       return false;
     }
-    if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
-    }
+
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_recruitment_proposal_list",
+              proc: "hrm_config_process_list",
               par: [
+                { par: "search", va: options.value.SearchText },
+                { par: "user_id", va: store.getters.user.user_id },
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
-                { par: "user_id", va: store.getters.user.user_id },
               ],
             }),
             SecretKey,
@@ -115,16 +112,20 @@ const loadData = (rf) => {
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
+        let data1 = JSON.parse(response.data.data)[1];
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
         });
 
         datalists.value = data;
-
+        if (data1) {
+          options.value.totalRecords = data1[0].total;
+        }
         options.value.loading = false;
       })
       .catch((error) => {
+        console.log(error);
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
       });
@@ -146,18 +147,27 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].recruitment_proposal_id;
+    options.value.id =
+      datalists.value[datalists.value.length - 1].rec_calendar_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].recruitment_proposal_id;
+    options.value.id = datalists.value[0].rec_calendar_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const dataSelected = ref();
+const candidate = ref({
+  candidate_name: "",
+  emote_file: "",
+  status: true,
+  is_default: false,
+  is_order: 1,
+});
+
+const selectedStamps = ref();
 
 const isSaveTem = ref(true);
 const datalists = ref();
@@ -167,47 +177,43 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "recruitment_proposal_id desc ",
+  sort: "rec_calendar_id desc ",
   SearchText: null,
   PageNo: 0,
   PageSize: 20,
   loading: true,
   totalRecords: 0,
-  tab: 0,
+  tab: -1,
   totalRecords1: 0,
   totalRecords2: 0,
   totalRecords3: 0,
   totalRecords4: 0,
   totalRecords5: 0,
-  totalRecords6:0,
-  totalRecordsExport:50,
-  pagenoExport:1,
- 
+  totalRecordsExport: 50,
+  pagenoExport: 1,
 });
 
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
-  recruitment_proposal.value = {
-    recruitment_proposal_name: null,
- 
-    status: 0,
-    training_place: null,
+  candidate.value = {
+    form_training: 1,
+    status: 1,
+
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-  
   };
 
   isSaveTem.value = true;
   headerDialog.value = str;
-
+  numOfKey.value += 1;
   displayBasic.value = true;
 };
 
 const closeDialog = () => {
-  recruitment_proposal.value = {
-    recruitment_proposal_name: "",
+  candidate.value = {
+    candidate_name: "",
     emote_file: "",
     status: true,
     is_default: false,
@@ -221,8 +227,7 @@ const sttStamp = ref(1);
 
 //Sửa bản ghi
 const editTem = (dataTem) => {
-  recruitment_proposal.value = dataTem;
-  headerDialog.value = "Sửa đề xuất";
+  headerDialog.value = "Sửa phiếu chờ duyệt";
   isSaveTem.value = false;
   displayBasic.value = true;
 };
@@ -249,15 +254,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_recruitment_proposal/delete_hrm_recruitment_proposal", {
+          .delete(baseURL + "/api/hrm_rec_calendar/delete_hrm_rec_calendar", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.recruitment_proposal_id] : 1,
+            data: Tem != null ? [Tem.rec_calendar_id] : 1,
           })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá thông tin đề xuất thành công!");
+              toast.success("Xoá thông tin phiếu chờ duyệt thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -308,7 +313,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "recruitment_proposal_id",
+    id: "rec_calendar_id",
     sqlS: null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -320,14 +325,16 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/HRM_SQL/Filter_hrm_proposal", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_rec_calendar", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          
+          if (element.listUserRecs) {
+            element.listUserRecs = JSON.parse(element.listUserRecs);
+          }
         });
 
         datalists.value = data;
@@ -338,14 +345,7 @@ const loadDataSQL = () => {
       options.value.loading = false;
       //Show Count nếu có
       if (dt.length >= 2 && checkLoadCount.value == true) {
-       
         options.value.totalRecords = dt[1][0].totalRecords;
-        options.value.totalRecords1 = dt[2][0].totalRecords1;
-        options.value.totalRecords2 = dt[3][0].totalRecords2;
-        options.value.totalRecords3 = dt[4][0].totalRecords3;
-        options.value.totalRecords4 = dt[5][0].totalRecords4;
-        options.value.totalRecords5 = dt[6][0].totalRecords5;
-        options.value.totalRecords6 = dt[7][0].totalRecords6;
       }
     })
     .catch((error) => {
@@ -363,17 +363,21 @@ const loadDataSQL = () => {
       }
     });
 };
-
+const listCampaigns = ref([]);
 const setStatus = (value) => {
   opstatus.value.hide();
   let data = {
-    IntID: value.recruitment_proposal_id,
-    TextID: value.recruitment_proposal_id + "",
+    IntID: value.rec_calendar_id,
+    TextID: value.rec_calendar_id + "",
     IntTrangthai: value.status,
     BitTrangthai: false,
   };
   axios
-    .put(baseURL + "/api/hrm_recruitment_proposal/update_s_hrm_recruitment_proposal", data, config)
+    .put(
+      baseURL + "/api/hrm_rec_calendar/update_s_hrm_rec_calendar",
+      data,
+      config
+    )
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
@@ -401,7 +405,7 @@ const setStatus = (value) => {
 
 const opstatus = ref();
 const toggleStatus = (item, event) => {
-  recruitment_proposal.value = item;
+  candidate.value = item;
   opstatus.value.toggle(event);
 };
 //Tìm kiếm
@@ -418,29 +422,11 @@ const searchStamp = (event) => {
     }
   }
 };
-const listStatus = ref([
-{ name: "Đã tạo", code: 0 },
-  { name: "Chờ duyệt", code: 1 },
-  { name: "Đã duyệt", code: 2 },
-  { name: "Đang tuyển", code: 3 },
-  { name: "Hoàn thành", code: 4 },
-  { name: "Hết hạn", code: 5 },
-  { name: "Hủy bỏ", code: 6 },
-]);
 const refreshStamp = () => {
   options.value.SearchText = null;
   options.value.status_filter = null;
-  options.value.user_follows_list = null;
-  options.value.user_verify_list = null;
-  options.value.rec_position_id = null;
-  options.value.can_academic_level_id = null;
-  options.value.vacancy_id = null;
-  options.value.start_dateI = null;
-  options.value.end_dateI = null;
-  options.value.start_dateI = null;
-  options.value.end_dateD = null;
   options.value.loading = true;
-  dataSelected.value = [];
+  selectedStamps.value = [];
   isDynamicSQL.value = false;
   filterSQL.value = [];
   loadData(true);
@@ -477,179 +463,41 @@ const onFilter = (event) => {
   options.value.id = null;
   isDynamicSQL.value = true;
   loadDataSQL();
-}; 
+};
 const tabs = ref([
   { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
-  { id: 1, title: "Chờ duyệt", icon: "", total: 0 },
-  { id: 2, title: "Đã duyệt", icon: "", total: 0 },
-  { id: 3, title: "Đang tuyển", icon: "", total: 0 },
-  { id: 4, title: "Hoàn thành", icon: "", total: 0 },
-  { id: 5, title: "Hết hạn", icon: "", total: 0 },
-  { id: 6, title: "Hủy bỏ", icon: "", total: 0 },
+  { id: 1, title: "Lên kế hoạch", icon: "", total: 0 },
+  { id: 2, title: "Đang thực hiện", icon: "", total: 0 },
+  { id: 3, title: "Đã hoàn thành", icon: "", total: 0 },
+  { id: 4, title: "Tạm dừng", icon: "", total: 0 },
+  { id: 5, title: "Đã hủy", icon: "", total: 0 },
 ]);
+const numOfKey = ref(0);
 //Checkbox
-const onCheckBox = (value, check) => {
-  if (check) {
-    let data = {
-      IntID: value.recruitment_proposal_id,
-      TextID: value.recruitment_proposal_id + "",
-      IntTrangthai: 1,
-      BitTrangthai: value.status,
-    };
-    axios
-      .put(baseURL + "/api/hrm_recruitment_proposal/update_s_hrm_recruitment_proposal", data, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái đề xuất thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  } else {
-    let data1 = {
-      IntID: value.recruitment_proposal_id,
-      TextID: value.recruitment_proposal_id + "",
-      BitMain: value.is_default,
-    };
-    axios
-      .put(baseURL + "/api/hrm_recruitment_proposal/Update_DefaultStamp", data1, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái đề xuất thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
-};
 
 //Xuất excel
 
 const exportExcelR = () => {
   showExport.value = false;
 
- 
-    exportData("ExportExcel");
- 
+  exportData("ExportExcel");
 };
+const headerExport = ref("Cấu hình xuất Excel");
 
-const headerExport=ref("Cấu hình xuất Excel");
-const menuButs = ref();
-const menuAproves=ref();
 const showExport = ref(false);
+const menuButs = ref();
 const itemButs = ref([
   {
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-
-     
-        showExport.value = true;
-     
+      showExport.value = true;
     },
   },
 ]);
-const headerSend=ref();
-const displaySend=ref(false);
-const closeDialogSend=()=>{
-  loadData(true);
-  dataSelected.value=[];
-  displaySend.value=false;
-
-};
-const modelsend=ref({
-  type_send:0,
-  type_module:0
-})
-const itemAproves = ref([
-  {
-    label: "Chuyển đến quy trình",
-    icon: "pi pi-chart-line",
-    command: (event) => {
-     
-    headerSend.value="Chuyển đến quy trình";
-    modelsend.value.type_send=0;
-    displaySend.value=true;
-     
-    },
-  },  {
-    label: "Chuyển đến nhóm",
-    icon: "pi pi-users",
-    command: (event) => {
-
-     
-        showExport.value = true;
-     
-    },
-  },
-  {
-    label: "Chuyển đích danh",
-    icon: "pi pi-user-edit",
-    command: (event) => {
-
-     
-        showExport.value = true;
-     
-    },
-  },
-
-]);
-
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
-const toggleAprroves = (event) => {
-  var check=true;
-  dataSelected.value.forEach(element => {
-      if(element.status!=0){
-        swal.fire({
-      title: "Thông báo!",
-      text: "Chỉ được chuyển xử lý bản ghi có trạng thái đã tạo!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    check=false;
-    return;
-      }
-    });
-    if(check)
-  menuAproves.value.toggle(event);
-};
-
 const exportData = (method) => {
   swal.fire({
     width: 110,
@@ -657,36 +505,35 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
- 
   axios
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
-        excelname: "DANH SÁCH đề xuất",
-        proc: "hrm_recruitment_proposal_export",
+        excelname: "DANH SÁCH LỊCH PHỎNG VẤN",
+        proc: "hrm_rec_calendar_export",
         par: [
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "rec_position_id", va:options.value.rec_position_id?
-           options.value.rec_position_id.toString():null },
-          { par: "user_verify", va:options.value.user_verify_list? options.value.user_verify_list.toString():null },
-          { par: "user_follows", va:options.value.user_follows_list?
-           options.value.user_follows_list.toString():null },
-          { par: "can_academic_level_id", va: options.value.can_academic_level_id?
-           options.value.can_academic_level_id.toString():null },
-          { par: "vacancy_id", va: options.value.vacancy_id?
-           options.value.vacancy_id.toString():null },
-          { par: "status ", va: options.value.status_filter?
-          options.value.status_filter.toString():null },
-          { par: "start_dateI", va: options.value.start_dateI },
-          { par: "end_dateI", va: options.value.end_dateI },
-          { par: "start_dateD", va: options.value.start_dateD },
-          { par: "end_dateD", va: options.value.end_dateD },
+          {
+            par: "campaign_id",
+            va: options.value.campaign_id
+              ? options.value.campaign_id.toString()
+              : null,
+          },
+          {
+            par: "interviewers",
+            va: options.value.interviewers
+              ? options.value.interviewers.toString()
+              : null,
+          },
+
+          { par: "start_date", va: options.value.start_date },
+          { par: "end_date", va: options.value.end_date },
           { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.pagenoExport-1 },
+          { par: "pageno", va: options.value.pagenoExport - 1 },
           { par: "pagesize", va: options.value.totalRecordsExport },
         ],
-      }, 
+      },
       config
     )
     .then((response) => {
@@ -695,7 +542,7 @@ const exportData = (method) => {
         swal.close();
 
         toast.success("Kết xuất Data thành công!");
-
+        debugger;
         if (response.data.path != null) {
           let pathReplace = response.data.path
             .replace(/\\+/g, "/")
@@ -732,7 +579,6 @@ const exportData = (method) => {
 
 const activeTab = (tab) => {
   options.value.tab = tab.id;
-
   reFilter();
   if (tab.id) {
     checkLoadCount.value = false;
@@ -753,33 +599,66 @@ const itemButMores = ref([
     label: "Hiệu chỉnh nội dung",
     icon: "pi pi-pencil",
     command: (event) => {
-      editTem(recruitment_proposal.value, "Chỉnh sửa hợp đồng");
+      editTem(candidate.value, "Chỉnh sửa hợp đồng");
     },
   },
   {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
-      delTem(recruitment_proposal.value);
+      delTem(candidate.value);
     },
   },
 ]);
 const toggleMores = (event, item) => {
-  recruitment_proposal.value = item;
-  dataSelected.value=item;
+  candidate.value = item;
+  selectedStamps.value = item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
+
+const toggleAprroves = (event) => {
+  menuAproves.value.toggle(event);
+};
+ 
+
+const menuAproves = ref();
+const process=ref({
+  content:null
+
+});
+const headerSend = ref( );
+const displaySend = ref(false);
+const itemAproves = ref([
+  {
+    label: "Xác nhận duyệt",
+    icon: "pi pi-check-circle",
+    command: (event) => {
+      headerSend.value = "Xác nhận duyệt";
+     
+      displaySend.value = true;
+    },
+  },
+  {
+    label: "Trả lại",
+    icon: "pi pi-replay",
+    command: (event) => {
+      showExport.value = true;
+    },
+  },
+   
+]);
+
 //Xóa nhiều
 const deleteList = () => {
-  let listId = new Array(dataSelected.value.length);
+  let listId = new Array(selectedStamps.value.length);
   let checkD = false;
 
   if (!checkD) {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá thông tin đề xuất này không!",
+        text: "Bạn có muốn xoá thông tin phiếu chờ duyệt này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -796,11 +675,11 @@ const deleteList = () => {
             },
           });
 
-          dataSelected.value.forEach((item) => {
-            listId.push(item.recruitment_proposal_id);
+          selectedStamps.value.forEach((item) => {
+            listId.push(item.rec_calendar_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_recruitment_proposal/delete_hrm_recruitment_proposal", {
+            .delete(baseURL + "/api/hrm_rec_calendar/delete_hrm_rec_calendar", {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: listId != null ? listId : 1,
             })
@@ -808,7 +687,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá thông tin đề xuất thành công!");
+                toast.success("Xoá thông tin phiếu chờ duyệt thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -839,16 +718,12 @@ const deleteList = () => {
 
 //Filter
 const reFilter = () => {
-  options.value.user_follows = null;
-  options.value.vacancy_id = null;
-  options.value.user_verify = null;
-  options.value.start_dateI = null;
-  options.value.end_dateI = null;
-  options.value.start_dateD = null;
-  options.value.end_dateD = null;
-  options.value.can_academic_level_id = null;
-  
-  options.value.rec_position_id = null;
+  options.value.campaign_id = null;
+
+  options.value.interviewers = null;
+  options.value.start_date = null;
+  options.value.end_date = null;
+
   options.value.status_filter = null;
   checkLoadCount.value = true;
   isDynamicSQL.value = false;
@@ -861,8 +736,6 @@ const reFilterEmail = () => {
   op.value.hide();
   loadData(true);
 };
-
-const listVacancies = ref([]);
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
@@ -882,61 +755,14 @@ const filterFileds = () => {
     }
   }
 
-  
-  if (options.value.rec_position_id) {
-    let filterS2 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "rec_position_id",
-    };
-    if (options.value.rec_position_id.length > 0) {
-      options.value.rec_position_id.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS2.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS2);
-    }
-  }
-  if (options.value.can_academic_level_id) {
-    let filterS2 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "can_academic_level_id",
-    };
-    if (options.value.can_academic_level_id.length > 0) {
-      options.value.can_academic_level_id.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS2.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS2);
-    }
-  }
-  if (options.value.user_follows) {
-    let filterS3 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "user_follows",
-    };
-    if (options.value.user_follows.length > 0) {
-      options.value.user_follows.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS3.filterconstraints.push(addr);
-        options.value.user_follows_list.push(element.code);
-      });
-
-      filterSQL.value.push(filterS3);
-    }
-  }
-  if (options.value.vacancy_id) {
+  if (options.value.campaign_id) {
     let filterS4 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "vacancy_id",
+      key: "campaign_id",
     };
-    if (options.value.vacancy_id.length > 0) {
-      options.value.vacancy_id.forEach((element) => {
+    if (options.value.campaign_id.length > 0) {
+      options.value.campaign_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS4.filterconstraints.push(addr);
       });
@@ -944,17 +770,16 @@ const filterFileds = () => {
       filterSQL.value.push(filterS4);
     }
   }
-  if (options.value.user_verify) {
+  if (options.value.interviewers) {
     let filterS5 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "user_verify",
+      key: "interviewers",
     };
-    if (options.value.user_verify.length > 0) {
-      options.value.user_verify.forEach((element) => {
+    if (options.value.interviewers.length > 0) {
+      options.value.interviewers.forEach((element) => {
         var addr = { value: element.code, matchMode: "contains" };
         filterS5.filterconstraints.push(addr);
-        options.value.user_verify_list.push(element.code);
       });
 
       filterSQL.value.push(filterS5);
@@ -962,135 +787,72 @@ const filterFileds = () => {
   }
 
   onDayClick();
-   
   loadDataSQL();
   op.value.hide();
 };
 
 const onDayClick = () => {
-  if (options.value.start_dateI != null) {
-    if (!options.value.end_dateI)
-      options.value.end_dateI = options.value.start_dateI;
+  if (options.value.start_date != null) {
+    if (!options.value.end_date)
+      options.value.end_date = options.value.start_date;
 
     if (
-      options.value.start_dateI &&
-      options.value.start_dateI != options.value.end_dateI
+      options.value.start_date &&
+      options.value.start_date != options.value.end_date
     ) {
-      let sDate = new Date(options.value.start_dateI);
-   
-      options.value.start_dateI = sDate;
+      let sDate = new Date(options.value.start_date);
+
+      options.value.start_date = sDate;
       let filterS = {
         filterconstraints: [
-          { value: options.value.start_dateI, matchMode: "dateAfter" },
+          { value: options.value.start_date, matchMode: "dateAfter" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "rec_calendar_date",
       };
       filterSQL.value.push(filterS);
     }
     if (
-      options.value.end_dateI &&
-      options.value.start_dateI != options.value.end_dateI
+      options.value.end_date &&
+      options.value.start_date != options.value.end_date
     ) {
-      let eDate = new Date(options.value.end_dateI);
-     
-      options.value.end_dateI = eDate;
+      let eDate = new Date(options.value.end_date);
+
+      options.value.end_date = eDate;
       let filterS = {
         filterconstraints: [
-          { value: options.value.end_dateI, matchMode: "dateBefore" },
+          { value: options.value.end_date, matchMode: "dateBefore" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "rec_calendar_date",
       };
       filterSQL.value.push(filterS);
     }
     if (
-      options.value.start_dateI &&
-      options.value.start_dateI == options.value.end_dateI
+      options.value.start_date &&
+      options.value.start_date == options.value.end_date
     ) {
       let filterS1 = {
         filterconstraints: [
-          { value: options.value.start_dateI, matchMode: "dateIs" },
+          { value: options.value.start_date, matchMode: "dateIs" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "rec_calendar_date",
       };
       filterSQL.value.push(filterS1);
       let filterS2 = {
         filterconstraints: [
-          { value: options.value.end_dateI, matchMode: "dateIs" },
+          { value: options.value.end_date, matchMode: "dateIs" },
         ],
         filteroperator: "and",
-        key: "start_date",
-      };
-      filterSQL.value.push(filterS2);
-    }
-  }
-
-
-
-  if (options.value.start_dateD != null) {
-    if (!options.value.end_dateD)
-      options.value.end_dateD = options.value.start_dateD;
-
-    if (
-      options.value.start_dateD &&
-      options.value.start_dateD != options.value.end_dateD
-    ) {
-      let sDate = new Date(options.value.start_dateD);
-   
-      options.value.start_dateD = sDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.start_dateD, matchMode: "dateAfter" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.end_dateD &&
-      options.value.start_dateI != options.value.end_dateD
-    ) {
-      let eDate = new Date(options.value.end_dateD);
-     
-      options.value.end_dateD = eDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.end_dateD, matchMode: "dateBefore" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.start_dateD &&
-      options.value.start_dateD == options.value.end_dateD
-    ) {
-      let filterS1 = {
-        filterconstraints: [
-          { value: options.value.start_dateD, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS1);
-      let filterS2 = {
-        filterconstraints: [
-          { value: options.value.end_dateD, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
+        key: "rec_calendar_date",
       };
       filterSQL.value.push(filterS2);
     }
   }
 };
-watch(dataSelected, () => {
-  if (dataSelected.value.length > 0) {
-  
+watch(selectedStamps, () => {
+  if (selectedStamps.value.length > 0) {
     checkDelList.value = true;
   } else {
     checkDelList.value = false;
@@ -1100,21 +862,86 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
- 
-const listPosition = ref([]);
+
+const listDropdownUserCheck = ref();
+const listDropdownUser = ref();
+
+const loadUser = () => {
+  listDropdownUser.value = [];
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_users_list_dd",
+            par: [
+              { par: "search", va: null },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "role_id", va: null },
+              {
+                par: "organization_id",
+                va: store.getters.user.organization_id,
+              },
+              { par: "department_id", va: null },
+              { par: "position_id", va: null },
+              { par: "pageno", va: 1 },
+              { par: "pagesize", va: 10000 },
+              { par: "isadmin", va: null },
+              { par: "status", va: null },
+              { par: "start_date", va: null },
+              { par: "end_date", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listDropdownUser.value.push({
+          name: element.full_name,
+          code: element.user_id,
+          avatar: element.avatar,
+          department_name: element.department_name,
+          role_name: element.role_name,
+          position_name: element.position_name,
+        });
+      });
+
+      listDropdownUserCheck.value = [...listDropdownUser.value];
+    })
+    .catch((error) => {
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
+const listTrainingGroups = ref([]);
 const listClasroom = ref([]);
 
 const initTudien = () => {
+  listCampaigns.value = [];
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "ca_positions_list",
+            proc: "hrm_campaign_list",
             par: [
               { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
+              { par: "pagesize", va: 10000 },
               { par: "user_id", va: store.getters.user.user_id },
             ],
           }),
@@ -1126,120 +953,87 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listPosition.value = [];
+
       data.forEach((element, i) => {
-        listPosition.value.push({
-          name: element.position_name,
-          code: element.position_id,
+        listCampaigns.value.push({
+          name: element.campaign_name,
+          code: element.campaign_id,
         });
       });
     })
     .catch((error) => {
-      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
     });
 
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_academic_level_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listAcademic_level.value = [];
-      data.forEach((element, i) => {
-        listAcademic_level.value.push({
-          name: element.academic_level_name,
-          code: element.academic_level_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listVacancies.value = [];
-      data.forEach((element, i) => {
-        listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_classroom_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listClasroom.value = [];
-      data.forEach((element) => {
-        listClasroom.value.push({
-          name: element.classroom_name,
-          code: element.classroom_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-   
+  loadUser();
 };
-const listAcademic_level = ref([]);
+
+
+
+const filesList=ref();
+
+const send = () => {
+  submitted.value = true;
+  if (!process.value.config_process_id) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  var obj = {  };
+  obj.key_id=process.value.config_process_id;
+  obj.content=process.value.content;
+ 
+
+  let formData = new FormData();
+  formData.append("type_send", obj["type_send"]);
+  formData.append("key_id", obj["key_id"]);
+  formData.append("type_module", obj["type_module"]);
+  formData.append("content", obj["content"]); 
+  for (var i = 0; i < filesList.value.length; i++) {
+    let file = filesList.value[i];
+    formData.append("files", file);
+  }
+  formData.append("hrm_obj", JSON.stringify(props.dataSelected));
+  // axios
+  //   .post(baseURL + "/api/hrm_campage_process/update_hrm_campage_process", formData, config)
+  //   .then((response) => {
+  //     if (response.data.err === "1") {
+  //       swal.fire({
+  //         title: "Thông báo!",
+  //         text: response.data.ms,
+  //         icon: "error",
+  //         confirmButtonText: "OK",
+  //       });
+  //       return;
+  //     }
+      
+  //     swal.close();
+  //     toast.success("Gửi thành công!");
+  //     props.closeDialog();
+      
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //     swal.close();
+  //     swal.fire({
+  //       title: "Thông báo!",
+  //       text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+  //       icon: "error",
+  //       confirmButtonText: "OK",
+  //     });
+  //   });
+  // if (submitted.value) submitted.value = false;
+};
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
@@ -1259,18 +1053,20 @@ onMounted(() => {
 
     isFirst,
     searchStamp,
-    onCheckBox,
-    dataSelected,
+
+    selectedStamps,
     deleteList,
   };
 });
 </script>
-<template>
+    <template>
   <div class="p-3 surface-100">
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-send"></i> Danh sách đề xuất
+          <i class="pi pi-id-card"></i> Danh sách phiếu chờ duyệt ({{
+            options.totalRecords
+          }})
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1311,166 +1107,162 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width: 700px"
+                style="width: 350px"
               >
                 <div class="grid formgrid m-0">
                   <div
                     class="col-12 md:col-12 p-0"
                     style="
                       min-height: unset;
-                      max-height: calc(100vh - 200px);
+                      max-height: calc(100vh - 300px);
                       overflow: auto;
                     "
                   >
-                    <div class="flex">
-                      <div class="col-6 md:col-6">
+                    <div class=" ">
+                      <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <div class="py-2">Vị trí tuyển dụng</div>
+                              <div class="pb-2">Chiến dịch</div>
                               <MultiSelect
-                                :options="listVacancies"
+                                :options="listCampaigns"
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.vacancy_id"
-                                optionLabel="name"
-                                optionValue="code" display="chip"
-                                placeholder="Chọn vị trí tuyển dụng"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Chức vụ</div>
-                              <MultiSelect
-                                :options="listPosition"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.rec_position_id"
+                                v-model="options.campaign_id"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn chức vụ" display="chip"
+                                placeholder="Chọn chiến dịch tuyển dụng"
                                 class="w-full limit-width"
-                                style="min-height: 36px"
                                 panelClass="d-design-dropdown"
                               >
                               </MultiSelect>
                             </div>
                           </div>
-                          <div class="col-12 p-0 md:col-12">
-                            <div class="form-group m-0 py-2">
-                              <div>Ngày bắt đầu</div>
-                            </div>
-                          </div>
-                          <div class="col-12 p-0 flex">
-                            <div class="col-6 p-0 md:col-6">
-                              <div class="form-group">
-                                <Calendar
-                                  :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
-                                  inputId="time24"
-                                  v-model="options.start_dateI"
-                                  placeholder="Từ ngày"
-                                />
-                              </div>
-                            </div>
-                            <div class="col-6  p-0 pl-2 md:col-6">
-                              <div class="form-group">
-                                <Calendar
-                                  :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
-                                  inputId="time24"
-                                  v-model="options.end_dateI"
-                                  placeholder="Đến ngày"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                       
-                        
                         </div>
                       </div>
-                      <div class="col-6 md:col-6">
+                      <div class="col-12 md:col-12 field p-0">
                         <div class="row">
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Trình độ</div>
-
-                              <MultiSelect
-                                :options="listAcademic_level" 
-                                :filter="false"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.can_academic_level_id"
-                                optionLabel="name"
-                                optionValue="code"
-                                display="chip"
-                                placeholder="Chọn trình độ"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                      
-                        
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Trạng thái</div>
-                              <MultiSelect
-                                :options="listStatus"
-                                v-model="options.status_filter"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn trạng thái"
-                                class="w-full limit-width"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                          <div class="col-12 p-0 md:col-12">
+                          <div class="col-12 md:col-12">
                             <div class="form-group m-0 py-2">
-                              <div>Ngày kết thúc</div>
+                              <label>Ngày phỏng vấn</label>
                             </div>
                           </div>
                           <div class="col-12 p-0 flex">
-                            <div class="col-6 p-0 md:col-6">
+                            <div class="col-6 md:col-6">
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
                                   autocomplete="on"
                                   inputId="time24"
-                                  v-model="options.start_dateD"
+                                  v-model="options.start_date"
                                   placeholder="Từ ngày"
                                 />
                               </div>
                             </div>
-                            <div class="col-6  p-0 pl-2 md:col-6">
+                            <div class="col-6 md:col-6">
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
                                   autocomplete="on"
                                   inputId="time24"
-                                  v-model="options.end_dateD"
+                                  v-model="options.end_date"
                                   placeholder="Đến ngày"
                                 />
                               </div>
+                            </div>
+                          </div>
+
+                          <div class="col-12 md:col-12">
+                            <div class="col-12 p-0 md:col-12">
+                              <div class="form-group m-0 py-2">
+                                <label>Người phỏng vấn</label>
+                              </div>
+                            </div>
+                            <div class="form-group">
+                              <MultiSelect
+                                :options="listDropdownUser"
+                                :filter="true"
+                                :showClear="true"
+                                :editable="false"
+                                display="chip"
+                                v-model="options.interviewers"
+                                optionLabel="name"
+                                placeholder="Chọn người phụ trách"
+                                panelClass="d-design-dropdown  d-tree-input"
+                                class="col-12 p-0"
+                                style="min-height: 36px"
+                              >
+                                <template #option="slotProps">
+                                  <div
+                                    class="country-item flex align-items-center"
+                                  >
+                                    <div class="grid w-full p-0">
+                                      <div
+                                        class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
+                                      >
+                                        <div
+                                          class="col-1 mx-2 p-0 align-items-center"
+                                        >
+                                          <Avatar
+                                            style="color: #fff"
+                                            v-bind:label="
+                                              slotProps.option.avatar
+                                                ? ''
+                                                : slotProps.option.name.substring(
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 1,
+                                                    slotProps.option.name.lastIndexOf(
+                                                      ' '
+                                                    ) + 2
+                                                  )
+                                            "
+                                            :image="
+                                              basedomainURL +
+                                              slotProps.option.avatar
+                                            "
+                                            size="small"
+                                            :style="
+                                              slotProps.option.avatar
+                                                ? 'background-color: #2196f3'
+                                                : 'background:' +
+                                                  bgColor[
+                                                    slotProps.option.name
+                                                      .length % 7
+                                                  ]
+                                            "
+                                            shape="circle"
+                                            @error="
+                                              $event.target.src =
+                                                basedomainURL +
+                                                '/Portals/Image/nouser1.png'
+                                            "
+                                          />
+                                        </div>
+                                        <div
+                                          class="col-11 p-0 ml-3 align-items-center"
+                                        >
+                                          <div class="pt-2">
+                                            <div class="font-bold">
+                                              {{ slotProps.option.name }}
+                                            </div>
+                                            <div
+                                              class="flex w-full text-sm font-italic text-500"
+                                            >
+                                              <div>
+                                                {{
+                                                  slotProps.option.position_name
+                                                }}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </template>
+                              </MultiSelect>
                             </div>
                           </div>
                         </div>
@@ -1479,21 +1271,17 @@ onMounted(() => {
                   </div>
                   <div class="col-12 md:col-12 p-0">
                     <Toolbar
-                      class="border-none surface-0 outline-none px-0 pb-0 w-full"
+                      class="border-none surface-0 outline-none pl-2 pr-3 pb-0 w-full"
                     >
                       <template #start>
                         <Button
                           @click="reFilterEmail()"
-                          class="p-button-outlined mx-2"
+                          class="p-button-outlined"
                           label="Bỏ chọn"
                         ></Button>
                       </template>
                       <template #end>
-                        <Button
-                          @click="filterFileds()"
-                          class="mx-2"
-                          label="Lọc"
-                        ></Button>
+                        <Button @click="filterFileds()" label="Lọc"></Button>
                       </template>
                     </Toolbar>
                   </div>
@@ -1503,31 +1291,25 @@ onMounted(() => {
           </template>
 
           <template #end>
+          
             <Button
-         
-          icon="pi pi-send"
-          label="Chuyển xử lý"
-          class="mr-2 p-button-outlined p-button-secondary"
-          aria:haspopup="true"
-          aria-controls="overlay_approves"
-          v-if="checkDelList"
-          @click="toggleAprroves"
-        />
-        <Menu
+              icon="pi pi-send"
+              label="Chuyển xử lý"
+              class="mr-2 p-button-outlined p-button-secondary"
+              aria:haspopup="true"
+              aria-controls="overlay_approves"
+              v-if="checkDelList"
+              @click="toggleAprroves"
+            />
+            <Menu
               id="overlay_approves"
               ref="menuAproves"
               :model="itemAproves"
               :popup="true"
             />
-        <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
+        
             <Button
-              @click="openBasic('Thêm mới đề xuất')"
+              @click="openBasic('Thêm mới phiếu chờ duyệt')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1538,7 +1320,7 @@ onMounted(() => {
               icon="pi pi-refresh"
               v-tooltip="'Tải lại'"
             />
-      
+
             <Button
               label="Tiện ích"
               icon="pi pi-file-excel"
@@ -1556,7 +1338,7 @@ onMounted(() => {
           </template>
         </Toolbar>
       </div>
-      <div class="tabview">
+      <!-- <div class="tabview">
         <div class="tableview-nav-content">
           <ul class="tableview-nav">
             <li
@@ -1580,8 +1362,6 @@ onMounted(() => {
                       ? options.totalRecords4
                       : tab.id == 5
                       ? options.totalRecords5
-                      : tab.id == 6
-                      ? options.totalRecords6
                       : options.totalRecords
                   }})</span
                 >
@@ -1589,8 +1369,8 @@ onMounted(() => {
             </li>
           </ul>
         </div>
-      </div>
-      <div class="d-container">
+      </div> -->
+      <div class="d-container mt-3">
         <div class="d-lang-table">
           <DataTable
             @page="onPage($event)"
@@ -1614,33 +1394,35 @@ onMounted(() => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
             :paginator="true"
-            dataKey="recruitment_proposal_id"
+            dataKey="config_process_id"
             responsiveLayout="scroll"
-            v-model:selection="dataSelected"
-            :row-hover="true" selectionMode="multiple"
+            v-model:selection="selectedStamps"
+            :row-hover="true"
+            selectionMode="multiple"
           >
-              <Column
+            <Column
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
               selectionMode="multiple"
             >
             </Column>
+
             <Column
               field="STT"
               header="STT"
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:55px;height:50px"
               bodyStyle="text-align:center;max-width:55px"
-            >
-            </Column>
-            
+            ></Column>
+
             <Column
-              field="recruitment_proposal_name"
-              header="Tên đề xuất"
-              :sortable="true"     headerClass="align-items-center justify-content-center text-center"
+              field="config_process_name"
+              header="Tên phiếu chờ duyệt"
+              :sortable="true"
               headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"
+              headerClass="align-items-center justify-content-center text-center"
             >
               <template #filter="{ filterModel }">
                 <InputText
@@ -1652,82 +1434,30 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="vacancy_name"
-              header="Vị trí"
-              headerStyle="text-align:center;max-width:250px;height:50px"
-              bodyStyle="text-align:center;max-width:250px"
-              class="align-items-center justify-content-center text-center"
+              field="content"
+              header="Nội dung"
+              headerStyle="text-align:center;max-width:400px;height:50px"
+              bodyStyle="text-align:left;max-width:400px"
+              headerClass="align-items-center justify-content-center text-center"
             >
-            </Column>
-           
-            <Column
-              field="recruits_num"
-              header="Số lượng"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-            </Column>
-            <Column
-              field="expected_cost"
-              header="Ứng tuyển"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{ data.data.slTuyen }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="expected_cost"
-              header="Trúng tuyển"
-              headerStyle="text-align:center;max-width:120px;height:50px"
-              bodyStyle="text-align:center;max-width:120px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{ data.data.trungTuyen }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="expected_cost"
-              header="Còn tuyển"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  <!-- {{ data.data.num_vacancies - data.data.trungTuyen }} -->
-                </div>
-              </template>
             </Column>
 
             <Column
-              field="start_date"
-              header="Hạn tuyển"
+              field="count_emps"
+              header="Module"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div v-if="data.data.end_date">
-                  {{
-                    moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
-                  }}
-                </div>
+                <div v-if="data.data.type_module == 0">Đề xuất</div>
               </template>
             </Column>
             <Column
               field="created_date"
-              header="Ngày/Người lập"
-              headerStyle="text-align:center;max-width:120px;height:50px"
-              bodyStyle="text-align:center;max-width:120px;"
+              header="Ngày/Người gửi"
+              headerStyle="text-align:center;max-width:150px;height:50px"
+              bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -1739,7 +1469,7 @@ onMounted(() => {
                   }}</span
                 >
                 <div>
-                  <Avatar 
+                  <Avatar
                     v-bind:label="
                       slotProps.data.avatar
                         ? ''
@@ -1752,13 +1482,13 @@ onMounted(() => {
                     "
                     style="
                       background-color: #2196f3;
-                      color: #fff;
+                      color: #ffffff;
                       width: 2rem;
                       height: 2rem;
                       font-size: 1rem !important;
                     "
                     :style="{
-                      background: bgColor[slotProps.data.created_is_order % 7],
+                      background: bgColor[slotProps.data.full_name % 7],
                     }"
                     class="text-avatar"
                     size="xlarge"
@@ -1766,88 +1496,6 @@ onMounted(() => {
                     v-tooltip.top="slotProps.data.full_name"
                   />
                 </div>
-              </template>
-            </Column>
-            <Column
-              field="status"
-              header="Trạng thái"
-              headerStyle="text-align:center;max-width:11rem;height:50px"
-              bodyStyle="text-align:center;max-width:11rem"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div
-                  class="m-2"
-                  @click="
-                    toggleStatus(slotProps.data, $event);
-                    $event.stopPropagation();
-                  "
-                  aria:haspopup="true"
-                  aria-controls="overlay_panel_status"
-                >
-                  <Button
-                    :label="
-                     slotProps.data.status == 1
-                        ? 'Chờ duyệt':
-                      slotProps.data.status == 2
-                        ? 'Đã duyệt'
-                        : slotProps.data.status == 3
-                        ? 'Đang tuyển'
-                        : slotProps.data.status == 4
-                        ? 'Hoàn thành'
-                        : slotProps.data.status == 5
-                        ? 'Hết hạn'
-                        : slotProps.data.status == 6
-                        ? 'Hủy bỏ'
-                        : 'Đã tạo'
-                    "
-                    :style="
-                    slotProps.data.status == 1
-                        ?'backgroundColor:#00CCCC; border:#00CCCC':
-                      slotProps.data.status == 2
-                        ? 'backgroundColor:#ff8b4e; border:#ff8b4e'
-                        : slotProps.data.status == 3
-                        ?  ' backgroundColor: #2196f3; border:#2196f3'
-                        : slotProps.data.status == 4
-                        ?  'backgroundColor:var(--green-500); border:var(--green-500)'
-                        : slotProps.data.status == 5
-                        ? 'backgroundColor:var(--purple-500); border:var(--purple-500)'
-                        : slotProps.data.status == 6
-                        ? 'backgroundColor:red; border:red'
-                        : 'backgroundColor:#bbbbbb; border:#bbbbbb'
-                    "
-                    icon="pi pi-chevron-down"
-                    iconPos="right"
-                    class="px-2 w-10rem d-design-left"
-                  />
-                </div>
-                <OverlayPanel
-                  :showCloseIcon="false"
-                  ref="opstatus"
-                  appendTo="body"
-                  class="p-0 m-0"
-                  id="overlay_panel_status"
-                  style="width: 200px"
-                >
-                  <div class="form-group">
-                    <div class="col-12 p-0 field">Chọn trạng thái</div>
-                    <div class="col-12 p-0">
-                      <Dropdown
-                        :options="listStatus"
-                        :filter="false"
-                        :showClear="false"
-                        :editable="false"
-                        v-model="recruitment_proposal.status"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Chọn trạng thái"
-                        class="w-full"
-                        @change="setStatus(recruitment_proposal)"
-                      >
-                      </Dropdown>
-                    </div>
-                  </div>
-                </OverlayPanel>
               </template>
             </Column>
 
@@ -1882,30 +1530,17 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div v-if="displayBasic == true">
-  
-      <dialogrecruitment_proposal
+    <div v-if="displayBasic">
+      <dialog_recCalendar
+        :key="numOfKey"
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
-        :recruitment_proposal="recruitment_proposal"
+        :recCalendar="candidate"
         :checkadd="isSaveTem"
         :view="false"
         :closeDialog="closeDialog"
       />
     </div>
-    <div v-if="displaySend == true">
-  
- 
-  <dialogSend
-    :headerDialog="headerSend"
-    :displayDialog="displaySend"
-   :dataSelected="dataSelected"
-   :modelsend="modelsend"
-  
-    :closeDialog="closeDialogSend"
-  />
-</div>
-    
   </div>
 
   <Menu
@@ -1930,7 +1565,12 @@ onMounted(() => {
       <div class="col-12 field flex">
         <div class="col-6 p-0">Trang bắt đầu:</div>
         <div class="col-6 p-0">
-          <InputNumber class="w-full" :min="1" :max="Math.ceil(options.totalRecords/options.totalRecordsExport)" v-model="options.pagenoExport" />
+          <InputNumber
+            class="w-full"
+            :min="1"
+            :max="Math.ceil(options.totalRecords / options.totalRecordsExport)"
+            v-model="options.pagenoExport"
+          />
         </div>
       </div>
       <div class="col-12 p-0">
@@ -1944,9 +1584,66 @@ onMounted(() => {
       </div>
     </div>
   </Dialog>
+  <Dialog
+    :header="headerSend"
+    v-model:visible="displaySend"
+    :style="{ width: '40vw' }"
+    :maximizable="false"
+    :closable="true"
+    style="z-index: 1001"
+    @hide=" closeDialogSend"
+    :modal="true"
+
+  >
+    <form>
+      <div class="grid formgrid m-2">
+        
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Nội dung</label>
+            <Textarea
+              v-model="process.content"
+              :autoResize="true"
+              rows="5"
+              cols="30"
+            />
+          </div>
+        </div>
+        <div class="col-12 md-col-12">
+          <div class="form-group">
+            <label>Tệp đính kèm</label>
+            <FileUpload
+            chooseLabel="Chọn tệp"
+            :showUploadButton="false"
+            :showCancelButton="false"
+            :multiple="false"
+            :maxFileSize="524288000"
+            @select="onUploadFile"
+            @remove="removeFile"
+            :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
+          >
+            <template #empty>
+              <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
+            </template>
+          </FileUpload>
+          
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialog()"
+        class="p-button-outlined"
+      />
+      <Button label="Gửi" icon="pi pi-send" @click="send()" />
+    </template>
+  </Dialog>
 </template>
   
-<style scoped>
+    <style scoped>
 .d-container {
   background-color: #f5f5f5;
 }
@@ -1957,19 +1654,16 @@ onMounted(() => {
   margin: 8px 8px 0px 8px;
   height: 33px;
 }
-
 .d-lang-header h3,
 i {
   font-weight: 600;
 }
-
 .d-module-title {
   margin: 0;
 }
-
 .d-lang-table {
   margin: 0px;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 160px);
 }
 
 .tableview-nav {
@@ -1982,11 +1676,9 @@ i {
   margin: 0;
   padding: 0;
 }
-
 .tableview-header {
   display: inline-block;
 }
-
 .tableview-nav li {
   border: solid #dee2e6;
   border-width: 0 0 2px 0;
@@ -1995,39 +1687,32 @@ i {
   margin: 0 0 -2px 0;
   transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
-
 .tableview-nav li:hover {
   cursor: pointer;
 }
-
 .tableview-nav li.highlight {
   background: #ffffff;
   border-color: #3b82f6;
   color: #3b82f6;
 }
-
 .tableview-nav li:not(.highlight):hover {
   background: #ffffff;
   border-color: #adb5bd;
   color: #6c757d;
 }
-
 .tableview-nav li a:focus {
   outline: 0 none;
   outline-offset: 0;
   box-shadow: inset 0 0 0 0.2rem #bfdbfe;
 }
-
 .btn-hidden {
   filter: opacity(40%) !important;
   cursor: auto !important;
 }
-
 .hover:hover {
   cursor: pointer;
   color: #2196f3 !important;
 }
-
 .inputanh {
   border: 1px solid #ccc;
   width: 8rem;
@@ -2038,15 +1723,23 @@ i {
   margin-left: auto;
   margin-right: auto;
 }
-
 .ipnone {
   display: none;
 }
-
 .inputanh img {
   object-fit: cover;
   width: 100%;
   height: 100%;
 }
+.form-group {
+    display: grid;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.form-group>label {
+    margin-bottom: 0.5rem;
+}
+
 </style>
     
