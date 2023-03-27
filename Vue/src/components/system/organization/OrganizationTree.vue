@@ -816,7 +816,6 @@ onMounted(() => {
                     icon="pi pi-plus"
                     class="mr-2"
                   />
-                  {{ selectedKey }}
                 </template>
               </Toolbar>
             </div>
@@ -825,7 +824,6 @@ onMounted(() => {
                 <TreeTable
                   :value="donvis"
                   v-model:selectionKeys="selectedKey"
-                  :paginator="true"
                   :filters="filters"
                   :showGridlines="true"
                   filterMode="strict"
@@ -1004,7 +1002,6 @@ onMounted(() => {
               :filters="filters_pb"
               :showGridlines="true"
               class="p-treetable-sm"
-              :paginator="true"
               :rows="options.pagesizeP"
               :rowHover="true"
               responsiveLayout="scroll"

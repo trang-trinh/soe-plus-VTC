@@ -1717,11 +1717,9 @@ onMounted(() => {
                   <TreeTable
                     :value="donvis"
                     v-model:selectionKeys="selectedKey"
-                    :paginator="true"
-                    @nodeSelect="onNodeSelect"
                     @nodeUnselect="onNodeUnselect"
                     :filters="filters"
-                    :showGridlines="true"
+                    :showGridlines="false"
                     filterMode="strict"
                     class="p-treetable-sm"
                     :rows="20"
@@ -1729,6 +1727,12 @@ onMounted(() => {
                     responsiveLayout="scroll"
                     :scrollable="true"
                     scrollHeight="flex"
+                    metaKeySelection="true"
+                  selectionMode="single"
+                  @nodeSelect= "(node)=> loadUser(true,
+                            node.data.organization_id,
+                            node.data.organization_name,
+                          )"
                   >
                     <Column
                       field="Logo"
@@ -1744,13 +1748,6 @@ onMounted(() => {
                             organization_id_label
                               ? 'row-active'
                               : ''
-                          "
-                          @click="
-                            loadUser(
-                              true,
-                              md.node.data.organization_id,
-                              md.node.data.organization_name,
-                            )
                           "
                         >
                           <Avatar
@@ -1774,13 +1771,6 @@ onMounted(() => {
                             organization_id_label
                               ? 'row-active'
                               : ''
-                          "
-                          @click="
-                            loadUser(
-                              true,
-                              md.node.data.organization_id,
-                              md.node.data.organization_name,
-                            )
                           "
                         >
                           <span
@@ -3027,8 +3017,6 @@ onMounted(() => {
 
 .chippb,
 .chip0 {
-  background-color: #4285f4;
-  color: #fff;
   font-size: 1rem;
 }
 
@@ -3101,6 +3089,9 @@ onMounted(() => {
   tr {
     cursor: pointer;
   }
+  tr > td {
+  border:none;
+}
 }
 
 ::v-deep(.col-12) {
