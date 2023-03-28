@@ -1,44 +1,14 @@
 <!-- eslint-disable vue/no-mutating-props -->
 <script setup>
-import { ref, inject, onMounted, watch } from "vue";
-import { required } from "@vuelidate/validators";
-import { useToast } from "vue-toastification";
-import { encr } from "../../../../util/function.js";
+import { ref, inject, onMounted } from "vue";
 import moment from "moment";
-import { FilterMatchMode, FilterOperator } from "primevue/api";
-import useVuelidate from "@vuelidate/core";
-const cryoptojs = inject("cryptojs");
-const emitter = inject("emitter");
-const axios = inject("axios");
-const store = inject("store");
-const toast = useToast();
-const swal = inject("$swal");
-// eslint-disable-next-line no-undef
-const basedomainURL = baseURL;
-const config = {
-  headers: { Authorization: `Bearer ${store.getters.token}` },
-};
-const width1 = window.screen.width;
-const addLog = (log) => {
-  // eslint-disable-next-line no-undef
-  axios.post(baseURL + "/api/Proc/AddLog", log, config);
-};
-const bgColor = ref([
-  "#F4B2A3",
-  "#F8E69A",
-  "#AFDFCF",
-  "#F4B2A3",
-  "#9A97EC",
-  "#CAE2B0",
-  "#8BCFFB",
-  "#CCADD7",
-]);
-let user = store.state.user;
-const datalists = ref([]);
-const options = ref({
-  loading: true,
-});
+import DetailedWork from "../../DetailedWork.vue";
 
+// eslint-disable-next-line no-undef
+const optionsView = ref([
+  { icon: "pi pi-table", value: 1, tooltip: "Bảng" },
+  { icon: "pi pi-th-large", value: 2, tooltip: "Lưới" },
+]);
 const expandedRows = ref([]);
 const props = defineProps({
   data: Object,
@@ -47,18 +17,40 @@ const props = defineProps({
   rowReorder: Function,
   memberType: Intl,
 });
-const type_display = ref("1");
-onMounted(() => {});
+const type_display = ref();
+const PositionSideBar = ref("right");
+const emitter = inject("emitter");
+const showDetail1 = ref(false);
+const selectedTaskID = ref();
+const onNodeSelect = (id) => {
+  showDetail1.value = false;
+  showDetail1.value = true;
+  selectedTaskID.value = id;
+};
+emitter.on("SideBar", (obj) => {
+  showDetail1.value = false;
+});
+emitter.on("SideBar1", (obj) => {
+  console.log(1);
+  showDetail1.value = false;
+});
+emitter.on("psb", (obj) => {
+  PositionSideBar.value = obj;
+});
+onMounted(() => {
+  type_display.value = 1;
+});
 </script>
 <template>
   <Dialog
     v-model:visible="props.isOpen"
-    :style="'width:90vw;'"
+    :style="'width:90vw;height:100vh'"
     :showCloseIcon="true"
     :header="'Chi tiết quy trình'"
-    @update:visible="closeDialogDetail"
+    @update:visible="props.closeDialogDetail"
     maximizable
     modal
+    keepInViewPort
   >
     <div
       class="col-12"
@@ -76,7 +68,29 @@ onMounted(() => {});
           </h2>
         </h3>
         <Accordion :activeIndex="0">
-          <AccordionTab header="Thông tin chung">
+          <AccordionTab>
+            <template #header>
+              <div class="flex justify-content-between w-full">
+                <div class="flex left-0 align-items-center">
+                  Thông tin chung
+                </div>
+                <div class="relative right-0">
+                  <SelectButton
+                    v-model="type_display"
+                    :options="optionsView"
+                    optionValue="value"
+                    aria-labelledby="basic"
+                  >
+                    <template #option="slotProps">
+                      <i
+                        :class="slotProps.option.icon"
+                        v-tooltip="slotProps.option.tooltip"
+                      ></i>
+                    </template>
+                  </SelectButton>
+                </div>
+              </div>
+            </template>
             <div
               class="max-h-15rem"
               style="overflow-y: auto"
@@ -428,7 +442,11 @@ onMounted(() => {});
               </AccordionTab>
             </Accordion>
 
-            <DataTable :value="slotProps.data.task_info">
+            <DataTable
+              :value="slotProps.data.task_info"
+              rowHover
+              @row-click="onNodeSelect($event.data.task_id)"
+            >
               <Column
                 header="STT"
                 field="step"
@@ -522,21 +540,28 @@ onMounted(() => {});
         style="overflow-y: auto"
       >
         <div
-          class="flex"
+          class="flex align-items-center justify-content-center"
           v-for="(item, index) in props.data.task_follow_step"
           :key="index"
         >
-          <Card class="flex m-3 w-45rem h-45rem">
-            <template #content>
-              <div class="align-items-center justify-content-center flex">
+          <Card class="align-items-start m-3 w-45rem h-45rem card-custom">
+            <template #header>
+              <div
+                class="w-full align-items-center justify-content-center flex"
+              >
                 <span
                   class="flex w-3rem h-3rem align-items-center justify-content-center text-center border-circle z-1 shadow-1 text-2xl font-bold text-blue-500"
                 >
                   {{ item.is_step }}
                 </span>
               </div>
+            </template>
+            <template #content>
               <div class="align-items-center justify-content-center flex my-2">
-                {{ item.step_name }}
+                <span class="font-bold text-xl">
+                  Bước:
+                  <span class="text-blue-500"> {{ item.step_name }}</span>
+                </span>
               </div>
               <div class="align-items-center justify-content-center flex my-2">
                 <Chip
@@ -559,7 +584,7 @@ onMounted(() => {});
               <div class="col-12 flex">
                 <span class="col-2">Mô tả bước:</span>
                 <div
-                  class="col-10"
+                  class="col-10 max-h-10rem overflow-y-auto"
                   v-if="item.description"
                   v-html="item.description"
                 ></div>
@@ -570,22 +595,160 @@ onMounted(() => {});
                 >
               </div>
               <div class="col-12 flex">
-                <div class="col-6">
-                  <span>
-                    Ngày bắt đầu(dự kiến):
-                    <span v-if="item.start_date">
-                      {{
-                        moment(new Date(item.start_date)).format("DD/MM/YYYY")
-                      }}-
-                    </span>
-
-                    <span v-if="item.is_deadline == true">
-                      {{ moment(new Date(item.end_date)).format("DD/MM/YYYY") }}
-                    </span></span
+                <div
+                  class="col-6"
+                  v-if="item.start_date"
+                >
+                  Ngày bắt đầu(dự kiến):
+                  <span class="pl-2 text-blue-600">
+                    {{
+                      moment(new Date(item.start_date)).format(
+                        "HH:mm DD/MM/YYYY",
+                      )
+                    }}</span
                   >
                 </div>
+                <div
+                  class="col-6"
+                  v-if="item.end_date"
+                >
+                  Ngày kết thúc(dự kiến):
+                  <span class="pl-2 text-blue-600">
+                    {{
+                      moment(new Date(item.end_date)).format("HH:mm DD/MM/YYYY")
+                    }}
+                  </span>
+                </div>
               </div>
-              <div class="col-12">{{ item }}</div>
+              <div class="col-12 flex">
+                <div
+                  class="col-6"
+                  v-if="item.start_real_date"
+                >
+                  Ngày bắt đầu:
+                  <span class="pl-2 text-blue-600">
+                    {{
+                      moment(new Date(item.start_real_date)).format(
+                        "HH:mm DD/MM/YYYY",
+                      )
+                    }}</span
+                  >
+                </div>
+                <div
+                  class="col-6"
+                  v-if="item.end_real_date"
+                >
+                  Ngày kết thúc:
+                  <span class="pl-2 text-blue-600">
+                    {{
+                      moment(new Date(item.end_real_date)).format(
+                        "HH:mm DD/MM/YYYY",
+                      )
+                    }}
+                  </span>
+                </div>
+              </div>
+              <div
+                v-if="item.task_id_follow != null"
+                class="h-30rem overflow-y-auto grid justify-content-center"
+              >
+                <div
+                  class="m-2"
+                  v-for="(item2, index) in item.task_info"
+                  :key="index"
+                >
+                  <Card
+                    class="bg-bluegray-50 w-30rem"
+                    @click="onNodeSelect(item2.task_id)"
+                  >
+                    <template #header>
+                      <div
+                        class="w-full align-items-center justify-content-center flex"
+                      >
+                        <span
+                          class="bg-white flex w-2rem h-2rem align-items-center justify-content-center text-center border-circle z-1 shadow-1 text-2xl font-bold text-blue-500"
+                        >
+                          {{ item2.step }}
+                        </span>
+                      </div></template
+                    >
+                    <template #title>
+                      <span class="font-bold text-xl">
+                        Công việc:
+                        <span class="text-blue-700">
+                          {{ item2.task_name }}</span
+                        >
+                      </span>
+                    </template>
+                    <template #subtitle>
+                      <div
+                        class="flex justify-content-center align-items-center"
+                      >
+                        <span
+                          v-if="item2.start_date || item2.end_date"
+                          style="color: #98a9bc"
+                        >
+                          <i
+                            style="margin-right: 5px"
+                            class="pi pi-calendar"
+                          >
+                          </i>
+                          {{
+                            item2.start_date
+                              ? moment(new Date(item2.start_date)).format(
+                                  "DD/MM/YYYY",
+                                )
+                              : null
+                          }}
+                          -
+                          {{
+                            item2.end_date
+                              ? moment(new Date(item2.end_date)).format(
+                                  "DD/MM/YYYY",
+                                )
+                              : null
+                          }}
+                        </span>
+                      </div>
+                    </template>
+                    <template #content>
+                      <div
+                        class="w-50 flex justify-content-center align-items-center"
+                      >
+                        <span
+                          class=""
+                          :style="{
+                            background: item2.status_display.bg_color,
+                            color: item2.status_display.text_color,
+                            padding: '2px 8px',
+                            border: '1px solid' + item2.status_display.bg_color,
+                            borderRadius: '5px',
+                          }"
+                        >
+                          {{ item2.status_display.text }}
+                        </span>
+                      </div>
+                    </template>
+                    <template #footer>
+                      <div
+                        v-if="item.progress != 0"
+                        style="width: 100%"
+                      >
+                        <ProgressBar :value="item2.progress ?? 0" /></div
+                    ></template>
+                  </Card>
+                  <icon
+                    v-tooltip="'Tuần tự'"
+                    class="py-2 pi pi-arrow-down font-bold text-2xl flex justify-content-center"
+                    v-if="item.type == 1 && index < item.task_info.length - 1"
+                  ></icon>
+                  <icon
+                    class="py-2 pi pi-sort-alt font-bold text-2xl flex justify-content-center"
+                    v-tooltip="'Song song'"
+                    v-if="item.type == 2 && index < item.task_info.length - 1"
+                  ></icon>
+                </div>
+              </div>
             </template>
           </Card>
 
@@ -609,9 +772,29 @@ onMounted(() => {});
         </div>
       </div>
     </div>
-    <!-- 
-    {{ props.data.task_follow_step }} -->
   </Dialog>
+  <Sidebar
+    v-model:visible="showDetail1"
+    :position="PositionSideBar"
+    :style="{
+      width:
+        PositionSideBar == 'right'
+          ? width1 > 1800
+            ? '65vw'
+            : '75vw'
+          : '100vw',
+      'min-height': '100vh !important',
+    }"
+    :showCloseIcon="false"
+    @hide="close()"
+  >
+    <DetailedWork
+      :isShow="showDetail1"
+      :id="selectedTaskID"
+      :turn="1"
+    >
+    </DetailedWork
+  ></Sidebar>
 </template>
 
 <style lang="scss" scoped>
@@ -624,6 +807,13 @@ onMounted(() => {});
   width: 45rem;
 }
 .h-45rem {
-  height: 45rem;
+  height: 57rem;
+}
+::v-deep(.card-custom) {
+  &.p-card {
+    .p-card-content {
+      text-align: unset !important;
+    }
+  }
 }
 </style>
