@@ -153,7 +153,7 @@ const onPage = (event) => {
     opition.value.IsNext = false;
   }
   opition.value.PageNo = event.page;
-  loadData(true);
+  loadData(true,opition.value.type_view);
 };
 
 const listThanhVien = ref([]);
@@ -225,7 +225,7 @@ const groupBy = (list, props) => {
   }, {});
 };
 
-const loadData = (rf) => {
+const loadData = (rf,type_view) => {
   if (rf) {
     opition.value.loading = true;
     swal.fire({
@@ -290,7 +290,8 @@ const loadData = (rf) => {
           element.STT = opition.value.PageNo * opition.value.PageSize + i + 1;
           element.progress = element.count_task > 0 ? Math.floor((element.count_taskHT / element.count_task) * 100) : 0;
         });
-        if (opition.value.type_view == 1) {
+        opition.value.type_view = type_view;
+        if (type_view == 1) {
           listProjectMains.value = listData.value;
         } else if (opition.value.type_view == 2) {
           let obj = renderTreeDV(
@@ -301,7 +302,7 @@ const loadData = (rf) => {
           );
           listProjectMains.value = obj.arrChils;
           treelistProjectMains.value = obj.arrtreeChils;
-        } else if (opition.value.type_view == 3) {
+        } else if (type_view == 3) {
           var listCV = groupBy(listData.value, "status");
           var arrNew = [];
           for (let k in listCV) {
@@ -323,7 +324,7 @@ const loadData = (rf) => {
           }
           listProjectMains.value = arrNew;
           // stt.value = data[1][0].total + 1;
-        } else if (opition.value.type_view == 4 || opition.value.type_view == 5) {
+        } else if (type_view == 4 || type_view == 5) {
           listProjectMains.value = listData.value;
           let date1 = new Date(
             opition.value.sdate ? opition.value.sdate : new Date(),
@@ -696,7 +697,7 @@ const DelProjectMain = (dataProjectMain) => {
                 swal.close();
                 toast.success("Xoá dự án thành công!");
                 //   checkDelList.value = false;
-                loadData(true);
+                loadData(true,opition.value.type_view);
               } else {
                 swal.fire({
                   title: "Thông báo!",
@@ -810,7 +811,7 @@ const saveProjectMain = (isFormValid) => {
           selectcapcha.value = [];
           arrNhom.value = [];
           listtreeProjectMain();
-          loadData(true);
+          loadData(true,opition.value.type_view);
           closeDialogProjectMain();
         } else {
           let ms = response.data.ms;
@@ -1122,7 +1123,7 @@ const onRefersh = () => {
   itemFilterButs.value.forEach((i) => {
     i.active = false;
   });
-  loadData(true);
+  loadData(true,opition.value.type_view);
 };
 const removeVietnameseTones = (str) => {
   str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
@@ -1166,7 +1167,7 @@ const onSort = (event) => {
     opition.value.ob = event.sortOrder == 1 ? "ASC" : "DESC";
   }
   opition.value.PageNo = 0;
-  loadData(true);
+  loadData(true,opition.value.type_view);
 };
 
 const loadCountProjectGroup = () => {
@@ -1378,7 +1379,7 @@ const ChangeSortProject = (sort, ob) => {
     }
   });
   menuSortButs.value.toggle();
-  loadData(true);
+  loadData(true,opition.value.type_view);
 }
 const menuSortButs = ref();
 const toggleSort = (event) => {
@@ -1460,7 +1461,6 @@ const ChangeFilter = (type, act) => {
     case 5: //theo ngày nhận
       opition.value.sdate = null;
       opition.value.edate = null;
-      debugger
       itemFilterButs.value
         .filter((x) => x.istype == 5)
         .forEach((t) => {
@@ -1642,7 +1642,7 @@ const Del_ChangeFilter = () => {
     },
   ];
   menuFilterButs.value.toggle();
-  loadData(true);
+  loadData(true,opition.value.type_view);
 };
 const itemListTypeButs = ref([
   {
@@ -1698,8 +1698,8 @@ const ChangeView = (data) => {
   } else {
     opition.value.PageSize = 20;
   }
-  opition.value.type_view = data.type;
-  loadData(true);
+    
+  loadData(true,data.type);
   itemListTypeButs.value.forEach((t) => {
     if (data.type != t.type) {
       t.active = false;
@@ -1711,7 +1711,7 @@ const ChangeView = (data) => {
 };
 onMounted(() => {
   listUser();
-  loadData(true);
+  loadData(true,2);
   loadCountProjectGroup();
   listtreeProjectMain();
 
@@ -1727,7 +1727,7 @@ onMounted(() => {
           <span class="p-input-icon-left">
             <i class="pi pi-search" />
             <InputText type="text" spellcheck="false" v-model="opition.search" placeholder="Tìm kiếm theo tên dự án"
-              v-on:keyup.enter="loadData(true)" />
+              v-on:keyup.enter="loadData(true,opition.type_view)" />
           </span>
         </template>
 
@@ -1903,7 +1903,7 @@ onMounted(() => {
       v-model:selectionKeys="selectedKeys" v-model:first="first" :loading="opition.loading" @page="onPage($event)"
       @sort="onSort($event)" :paginator="true" :rows="opition.PageSize" :totalRecords="opition.totalRecords"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]" :filters="filters" :showGridlines="true" filterMode="strict"
+      :rowsPerPageOptions="[20, 30, 50, 100, 200]" :filters="filters" filterMode="strict"
       class="p-treetable-sm" :rowHover="true" responsiveLayout="scroll" :lazy="true" :scrollable="true"
       @nodeSelect="onNodeSelect" selectionMode="single" @nodeUnselect="onNodeUnselect" scrollHeight="flex">
       <Column field="STT" header="STT" class="align-items-center justify-content-center text-center font-bold"
@@ -1918,19 +1918,70 @@ onMounted(() => {
       <Column field="project_name" header="Tên dự án" :expander="true" :sortable="true"
         headerStyle="max-width:auto;height:40px;">
         <template #body="md">
-          <div style="display: flex; align-items: center">
-            <span style="margin-left: 5px">{{
+          <div style="display: flex;flex-direction: column;">
+            <span style="font-weight: bold;">{{
               md.node.data.project_name
             }}</span>
+            <span style="color: rgb(152, 169, 188);margin-top: 5px;">Công việc: {{ md.node.data.count_taskHT + '/' + md.node.data.count_task }}</span>
           </div>
         </template>
       </Column>
-      <Column field="project_code" header="Mã dự án" class="align-items-center justify-content-center text-center"
+      <!-- <Column field="project_code" header="Mã dự án" class="align-items-center justify-content-center text-center"
         headerStyle="max-width:100px;text-align:center;height:40px;" bodyStyle="max-width:100px;text-align:center;">
-      </Column>
-      <Column field="group_name" header="Nhóm dự án" class="align-items-center justify-content-center text-center"
+      </Column> -->
+      <!-- <Column field="group_name" header="Nhóm dự án" class="align-items-center justify-content-center text-center"
         headerStyle="max-width:300px;text-align:center;height:40px;" bodyStyle="max-width:300px;text-align:center;">
-      </Column>
+      </Column> -->
+      <Column
+            class="align-items-center justify-content-center text-center"
+            header="Ngày bắt đầu"
+            headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+            bodyStyle="text-align:center;max-width:150px;"
+          >
+            <template #body="data">
+              <div v-if="data.node.data.start_date"
+                style="
+                  background-color: #fff8ee;
+                  padding: 10px 20px;
+                  border-radius: 5px;
+                "
+              >
+                <span
+                  style="color: #ffab2b; font-size: 13px; font-weight: bold"
+                  >{{
+                    moment(new Date(data.node.data.start_date)).format(
+                      "DD/MM/YYYY HH:mm",
+                    )
+                  }}</span
+                >
+              </div>
+            </template>
+          </Column>
+      <Column
+            class="align-items-center justify-content-center text-center"
+            header="Ngày kết thúc"
+            headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+            bodyStyle="text-align:center;max-width:150px;"
+          >
+            <template #body="data">
+              <div v-if="data.node.data.end_date"
+                style="
+                  background-color: #fff8ee;
+                  padding: 10px 20px;
+                  border-radius: 5px;
+                "
+              >
+                <span
+                  style="color: #ffab2b; font-size: 13px; font-weight: bold"
+                  >{{
+                    moment(new Date(data.node.data.end_date)).format(
+                      "DD/MM/YYYY HH:mm",
+                    )
+                  }}</span
+                >
+              </div>
+            </template>
+          </Column>
       <Column field="status" header="Trạng thái" class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:40px;" bodyStyle="text-align:center;max-width:120px">
         <template #body="md">
@@ -1995,18 +2046,61 @@ onMounted(() => {
       </Column>
       <Column field="project_name" header="Tên dự án" :expander="true" :sortable="true" headerStyle="max-width:auto;">
         <template #body="md">
-          <div style="display: flex; align-items: center">
-            <span style="margin-left: 5px">{{
+          <div style="display: flex;flex-direction: column;">
+            <span style="font-weight: bold;">{{
               md.data.project_name
             }}</span>
+            <span style="color: rgb(152, 169, 188);margin-top: 5px;">Công việc: {{ md.data.count_taskHT + '/' + md.data.count_task }}</span>
           </div>
         </template>
       </Column>
-      <Column field="project_code" header="Mã dự án" class="align-items-center justify-content-center text-center"
+      <!-- <Column field="project_code" header="Mã dự án" class="align-items-center justify-content-center text-center"
         headerStyle="max-width:100px;text-align:center;" bodyStyle="max-width:100px;text-align:center;">
       </Column>
       <Column field="group_name" header="Nhóm dự án" class="align-items-center justify-content-center text-center"
         headerStyle="max-width:300px;text-align:center;" bodyStyle="max-width:300px;text-align:center;">
+      </Column> -->
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Ngày bắt đầu"
+        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:150px;"
+      >
+        <template #body="data">
+          <div
+            v-if="data.data.start_date"
+            style="
+              background-color: #fff8ee;
+              padding: 10px 20px;
+              border-radius: 5px;
+            "
+          >
+            <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
+              >{{ moment(new Date(data.data.start_date)).format("DD/MM/YYYY HH:mm") }}
+            </span>
+          </div>
+        </template>
+      </Column>
+      <Column
+        class="align-items-center justify-content-center text-center"
+        header="Ngày kết thúc"
+        headerStyle="text-align:center;max-width:150px;min-height:3.125rem"
+        bodyStyle="text-align:center;max-width:150px;"
+      >
+        <template #body="data">
+          <div
+            v-if="data.data.end_date"
+            style="
+              background-color: #fff8ee;
+              padding: 10px 20px;
+              border-radius: 5px;
+            "
+          >
+            <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
+              >{{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY HH:mm") }}
+            </span>
+          </div>
+        </template>
       </Column>
       <Column field="status" header="Trạng thái" class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px">
