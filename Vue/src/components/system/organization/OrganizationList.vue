@@ -16,6 +16,7 @@ const tdorganization_types = [
   // { value: 1, text: "Trường học" },
   { value: 1, text: "Phòng ban" },
 ];
+const layout = ref("list");
 const donvi = ref({
   organization_name: "",
   is_order: 1,
@@ -80,14 +81,14 @@ const config = {
 const menuButs = ref();
 const itemButs = ref([
   {
-    label: "Xuất Excel",
+    label: "Import từ file Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
       exportDonvi("ExportExcel");
     },
   },
   {
-    label: "Xuất Mẫu",
+    label: "Export ra file Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
       exportDonvi("ExportExcelMau");
@@ -690,16 +691,17 @@ onMounted(() => {
       filterMode="strict"
       class="p-treetable-sm"
       :rows="20"
-      :lazy="true"
       :rowHover="true"
       responsiveLayout="scroll"
       :scrollable="true"
       scrollHeight="flex"
+      :metaKeySelection="false"
+
     >
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
-          <i class="pi pi-microsoft"></i> Danh sách
-          {{ store.getters.user.is_super ? "đơn vị" : "phòng ban" }} ({{
+          <i class="pi pi-microsoft"></i> 
+          {{ store.getters.user.is_super ? "Danh sách đơn vị" : "Cơ cấu tổ chức" }} ({{
             opition.totalRecords
           }})
         </h3>
@@ -711,7 +713,7 @@ onMounted(() => {
                 type="text"
                 spellcheck="false"
                 v-model="filters['global']"
-                placeholder="Tìm kiếm theo tên đơn vị"
+                placeholder="Tìm kiếm"
               />
             </span>
           </template>
@@ -724,18 +726,20 @@ onMounted(() => {
               class="mr-2"
               @click="showModalAddDonvi"
             />
+            <DataViewLayoutOptions v-model="layout" />
+<!-- 
             <Button
               icon="pi pi-list"
               v-tooltip.left="'Hiển thị phòng ban'"
-              class="mr-2"
+              class="ml-2 mr-2"
               v-bind:class="
                 'p-button p-button-' +
                 (displayPhongban ? 'primary' : 'secondary')
               "
               @click="showPhongban"
-            />
+            /> -->
             <Button
-              class="mr-2 p-button-outlined p-button-secondary"
+              class="mr-2 ml-2 p-button-outlined p-button-secondary"
               icon="pi pi-refresh"
               @click="onRefersh"
             />
@@ -746,9 +750,9 @@ onMounted(() => {
               v-if="selectedNodes.length > 0"
               @click="deleteList()"
             />
-            <!-- <Button
-              label="Export"
-              icon="pi pi-file-excel"
+            <Button
+              label="Tiện ích"
+              icon="pi pi-chevron-down"
               class="mr-2 p-button-outlined p-button-secondary"
               @click="toggleExport"
               aria-haspopup="true"
@@ -759,21 +763,27 @@ onMounted(() => {
               ref="menuButs"
               :model="itemButs"
               :popup="true"
-            /> -->
+            />
           </template>
         </Toolbar>
       </template>
       <Column
         field="is_order"
-        header="STT"
-        class="align-items-center justify-content-center text-center font-bold"
+        header="Phân cấp"
+        class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:100px"
         bodyStyle="text-align:center;max-width:100px"
       >
         <template #body="md">
-          <div v-bind:class="md.node.data.status ? '' : 'text-error'">
-            {{ md.node.data.label_order }}
-          </div>
+
+          <span
+            :class="'donvi' + md.node.data.organization_type"
+            :style="[
+              md.node.data.parent_id ? '' : 'font-weight:bold',
+              md.node.data.status ? '' : 'color:red !important',
+            ]"
+            >{{ md.node.data.label_order }}</span
+          >
         </template>
       </Column>
       <Column
@@ -790,6 +800,22 @@ onMounted(() => {
             class="mr-2"
             size="large"
           />
+        </template>
+      </Column>
+      <Column
+        field="organization_name"
+        header="Tên đơn vị"
+        :expander="true"
+      >
+        <template #body="md">
+          <span
+            :class="'donvi' + md.node.data.organization_type"
+            :style="[
+              md.node.data.parent_id ? '' : 'font-weight:bold',
+              md.node.data.status ? '' : 'color:red !important',
+            ]"
+            >{{ md.node.data.organization_name }}</span
+          >
         </template>
       </Column>
       <Column
@@ -811,24 +837,8 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        field="organization_name"
-        header="Tên đơn vị"
-        :expander="true"
-      >
-        <template #body="md">
-          <span
-            :class="'donvi' + md.node.data.organization_type"
-            :style="[
-              md.node.data.parent_id ? '' : 'font-weight:bold',
-              md.node.data.status ? '' : 'color:red !important',
-            ]"
-            >{{ md.node.data.organization_name }}</span
-          >
-        </template>
-      </Column>
-      <Column
         field="organization_type"
-        header="Loại"
+        header="Phân loại"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px"
         bodyStyle="text-align:center;max-width:120px"
@@ -841,6 +851,27 @@ onMounted(() => {
             "
             >{{
               md.node.data.organization_type == 0 ? "Đơn vị" : "Phòng ban"
+            }}</Chip
+          >
+        </template>
+      </Column>
+      <Column
+        field="users"
+        header="Người dùng"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:100px"
+        bodyStyle="text-align:center;max-width:100px"
+      >
+        <template #body="md">
+
+          <Chip
+            class="chip1"
+            :style="
+              md.node.data.status ? '' : 'background-color:red !important;'
+            "
+            style="background-color: #005c9e;"
+            >{{
+              md.node.data.count_users
             }}</Chip
           >
         </template>
@@ -909,7 +940,7 @@ onMounted(() => {
     </TreeTable>
   </div>
   <Dialog
-    header="Cập nhật Đơn vị"
+    :header="donvi.organization_type == 1 ? 'Cập nhật phòng ban ' : 'Cập nhật đơn vị '"
     v-model:visible="displayAddDonvi"
     :style="{ width: '860px' }"
     :maximizable="true"

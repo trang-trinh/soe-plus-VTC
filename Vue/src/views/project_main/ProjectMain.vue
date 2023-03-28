@@ -3,7 +3,6 @@ import { ref, inject, onMounted, watch, onBeforeUnmount } from "vue";
 import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
-import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import moment from "moment";
 import { concat } from "lodash";
 import { encr } from "../../util/function.js";
@@ -844,12 +843,6 @@ const saveProjectMain = (isFormValid) => {
   }
 };
 const emitter = inject("emitter");
-// emitter.on("SideBar", (obj) => {
-//   debugger
-//   showDetailProject.value = false;
-//   selectedDiscussProjectID.value = null;
-//   loadData(false);
-// });
 
 const RenderData = (response) => {
   opition.value.allRecord = null;
@@ -1393,64 +1386,6 @@ const toggleSort = (event) => {
 };
 const menuFilterButs = ref();
 const itemFilterButs = ref([
-  // {
-  //   label: "",
-  //   icon: "",
-  //   active: false,
-  //   istype: 5,
-  //   hasChildren: true,
-  //   groups: [
-  //     {
-  //       label: "Theo ngày nhận",
-  //       icon: "pi pi-calendar",
-  //       active: false,
-  //       is_children: 1,
-  //       filter_date: new Date(),
-  //     },
-  //     {
-  //       label: "Dự án",
-  //       icon: "pi pi-calendar",
-  //       active: false,
-  //       is_children: 2,
-  //     },
-  //   ],
-  // },
-  // {
-  //   label: "",
-  //   icon: "",
-  //   active: false,
-  //   istype: 6,
-  //   hasChildren: true,
-  //   groups: [
-  //     {
-  //       label: "Ngày hoàn thành",
-  //       icon: "pi pi-calendar",
-  //       active: false,
-  //       is_children: 3,
-  //       filter_date: new Date(),
-  //     },
-  //     {
-  //       label: "Nhóm công việc",
-  //       icon: "pi pi-calendar",
-  //       active: false,
-  //       is_children: 4,
-  //     },
-  //   ],
-  // },
-  // {
-  //   label: "Theo ngày nhận",
-  //   icon: "pi pi-calendar",
-  //   active: false,
-  //   istype: 5,
-  //   filter_date: new Date(),
-  // },
-  // {
-  //   label: "Ngày hoàn thành",
-  //   icon: "pi pi-calendar",
-  //   active: false,
-  //   istype: 6,
-  //   filter_date: new Date(),
-  // },
   {
     label: "Trong tuần",
     icon: "pi pi-calendar",
