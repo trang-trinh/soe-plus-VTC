@@ -799,7 +799,7 @@ const initProcedure = (rf) => {
       },
     });
   }
-
+ 
   axios
     .post(
       baseURL + "/api/calendar/get_datas",
@@ -810,7 +810,7 @@ const initProcedure = (rf) => {
             par: [
               { par: "search", va: options.value.searchText },
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "module_id", va:235},
+              { par: "module_key", va:"M13"},
               { par: "pageno", va: options.value.pageno },
               { par: "pagesize", va: options.value.pagesize },
               { par: "status", va: null },
@@ -826,6 +826,7 @@ const initProcedure = (rf) => {
       if (response != null && response.data != null) {
         let data = JSON.parse(response.data.data)[0];
         let data1 = JSON.parse(response.data.data)[1];
+        debugger
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.pageno * options.value.pagesize + i + 1;
