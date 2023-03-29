@@ -101,6 +101,11 @@ const cpnAddFormRequest = ref(0);
 const forceRerenderForm = () => {
 	cpnAddFormRequest.value += 1;
 };
+const editForm = (data) => {
+	displayBasic.value = true;
+	headerDialogForm.value = "Cập nhật loại đề xuất";
+	
+}
 //Checkbox
 const onCheckBox = (value, check) => {
 	if (check) {
@@ -169,8 +174,11 @@ const expandedRows = ref([]);
 
 //modal select team
 const showSelectTeam = ref(false);
+const selectedFormID = ref();
 const headerDialogFormShowTeam = ref();
-const openModalSelectTeam = () => {
+const openModalSelectTeam = (data) => {
+	debugger
+	selectedFormID.value = data.request_form_id;
 	showSelectTeam.value = true;
 	headerDialogFormShowTeam.value = 'Team sử dụng cho đề xuất'
 }
@@ -366,7 +374,7 @@ onMounted(() => {
 					"
 					>
 						<Button
-							@click="editTem(Tem.data)"
+							@click="editForm(Tem.data)"
 							class="
 								p-button-rounded
 								p-button-secondary
@@ -471,6 +479,7 @@ onMounted(() => {
 		:closeDialog="closeDialog"
 	></dialogAddFormRequest>
 	<dialogShowFormTeam
+		:id="selectedFormID"
 		:headerDialog="headerDialogFormShowTeam"
 		:displayDialog="showSelectTeam"
 		:closeDialog="closeDialogFormShowTeam"
@@ -481,6 +490,7 @@ onMounted(() => {
 	.ca-text {
 		color: #0078d4;
 	}
+	
 </style>
 <style lang="scss" scoped>
 	::v-deep(.table-ca-request.p-datatable-scrollable) {
@@ -520,5 +530,10 @@ onMounted(() => {
 			height: auto;
 			background-color: #fff;
 		}
+	}
+</style>
+<style>
+.p-dialog-mask.p-component-overlay{
+		z-index: 10;
 	}
 </style>
