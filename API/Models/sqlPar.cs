@@ -232,4 +232,13 @@ namespace API.Models
         public bool isBodyHtml { get; set; }
 
     }
+    public class popupNoti
+    {
+        public List<string> uids { get; set; }
+        public string title { get; set; }
+        public string content { get; set; }
+        public string image { get; set; }
+        public string tag { get; set; }
+        public string url { get; set; }
+    }
 }

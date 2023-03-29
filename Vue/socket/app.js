@@ -136,7 +136,7 @@ app.get('/log', (req, res) => {
 var users = [];
 io.use((socket, next) => {
     const user = socket.handshake.auth;
-    if (!user || !user.user_id || (user.user_id !== "chatbot" && (!user.islogin || !user.token_id))) {
+    if (!user || !user.user_id || ((user.user_id !== "chatbot" && user.type != "Tivi") && (!user.islogin || !user.token_id))) {
         return next(new Error("User Error!"));
     }
     socket.user = user;
@@ -192,7 +192,7 @@ io.on('connection', (socket) => {
 
     socket.on('sendData', (data) => {
         var event = data.event || 'getData';
-        if (data.uids != null) {
+        if (data.uids != null && data.event != "resetNotiChat") {
             var send_users = users.filter((x) => data.uids.includes(x.user_id));
             send_users.forEach((user) => {
                 socket.to(user.socket_id).emit(event, data);
@@ -200,10 +200,17 @@ io.on('connection', (socket) => {
                 let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
                 log(socket.user.full_name + ' (user_id: \"' + socket.user.user_id + '\" - socket_id: \"' + socket.id + '\") send message to ' + user.full_name + ' (user_id: \"' + user.user_id + '\" - socket_id: \"' + user.socket_id + '\") ', logFile, '\r\n');
             });
-        } else {
+        } 
+        else if (data.event == "resetNotiChat") {
+            var send_users = users.filter((x) => data.uids.includes(x.user_id));
+            send_users.forEach((user) => {
+                socket.emit(event, data);
+            });
+        }
+        else {
             if (data.event == "reloadDataTivi" || data.event == "updateAPK" || data.event == "controlTivi") {
                 socket.broadcast.emit(event, data);
-            } else if (data.event == "goScreenshot") {
+            } else if (data.event == "goScreenshot" || data.event == "goLog") {
                 socket.to(data.socket_nhan_id).emit(event, data);
             } else {
                 socket.emit(event, data);
@@ -226,22 +233,21 @@ io.on('connection', (socket) => {
                       image: (data.image || null),
                       tag: (data.tag || null),
                       url: (data.url || null),
+                      badge: null,
                     },
                   }),
                 method: "POST",
                 //mode: "cors"
-            })
-            .then((result) => {
+            }).then((result) => {
                 let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
                 log('push html: result('+ result.json() + ')', logFile, '\r\n');
-            })
-            .then((data) => {
+            }).then((data) => {
                 let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
-                log('push html: data('+ data + ')', logFile, '\r\n');
+                log('push html: data(' + data + ')', logFile, '\r\n');
             })
             .catch((error) => {
-                let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
-                log('push html: error('+ error + ')', logFile, '\r\n');
+                    let logFile = "log/log-" + (new Date().toLocaleDateString('vi-VN')).replaceAll("/", "-") + ".txt";
+                    log('push html: error(' + error + ')', logFile, '\r\n');
             });
         }
     });
