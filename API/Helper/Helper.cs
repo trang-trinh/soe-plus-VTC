@@ -36,6 +36,7 @@ namespace Helper
         public static string tokenkey = "101219881502198921112013";
         //public static string passkey = "1012198815021989";
         public static string psKey = "1012198815021989";
+        public static string keyConnect = "1502198910121988";
         public static bool socket = true;
         public static bool debug = true;
         public static string logCongtent = "Có lỗi xảy ra, vui lòng thử lại!";
@@ -1700,6 +1701,37 @@ namespace Helper
         }
         #endregion
 
+        #region Send popup noti
+        public static void send_popup_noti(string user_send, string title, string content, List<string> users, string url_img, string url_link)
+        {
+            using (DBEntities db = new DBEntities())
+            {
+                #region SendSocket
+                //send socket
+                var message = new Dictionary<string, dynamic>
+                        {
+                            { "event", "sendNotify" },
+                            { "user_id", user_send },
+                            { "title", title },
+                            { "contents", content },
+                            { "date", DateTime.Now },
+                            { "uids", users },
+                            { "image", url_img },
+                            { "url", url_link },
+                        };
+                if (helper.socketClient != null && helper.socketClient.Connected == true)
+                {
+                    try
+                    {
+                        helper.socketClient.EmitAsync("sendData", message);
+                    }
+                    catch { };
+                }
+                #endregion
+            }
+        }
+        #endregion
+
         #region Check SQL Injection
         public static Boolean checkForSQLInjection(string userInput)
         {
@@ -1747,5 +1779,11 @@ namespace Helper
             return isSQLInjection;
         }
         #endregion
+
+        public static string strConnect(string conn)
+        {
+            string de_str = Codec.DecryptString(conn, keyConnect);
+            return de_str;
+        }
     }
 }

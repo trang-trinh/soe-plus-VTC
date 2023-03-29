@@ -1094,7 +1094,7 @@ onMounted(() => {
                 class="w-full"
                 id="basic_purchase_date"
                 v-model="recruitment_proposal.start_date"
-                autocomplete="on"
+                autocomplete="off"
                 :showIcon="true"
                 placeholder="dd/mm/yyyy"
               />
@@ -1110,7 +1110,7 @@ onMounted(() => {
                 placeholder="dd/mm/yyyy"
                 id="basic_purchase_date"
                 v-model="recruitment_proposal.end_date"
-                autocomplete="on"
+                autocomplete="off"
                 :minDate="
                   recruitment_proposal.start_date
                     ? new Date(recruitment_proposal.start_date)

@@ -306,13 +306,13 @@ const selectNode = (user, day) => {
     var workday_string = moment(new Date(day["day"])).format("YYYY/MM/DD");
     if (day["selected"]) {
       selectedNodes.value.push({
-        user_id: user["user_id"],
+        profile_id: user["profile_id"],
         workday: workday_string,
       });
     } else {
       var idx = selectedNodes.value.findIndex(
         (x) =>
-          x["user_id"] === user["user_id"] && x["workday"] === workday_string
+          x["profile_id"] === user["profile_id"] && x["workday"] === workday_string
       );
       if (idx != -1) {
         selectedNodes.value.splice(idx, 1);
@@ -352,13 +352,13 @@ const selectDay = (day) => {
           );
           if (user.list_days[idx].selected) {
             selectedNodes.value.push({
-              user_id: user["user_id"],
+              profile_id: user["profile_id"],
               workday: workday_string,
             });
           } else {
             var idx = selectedNodes.value.findIndex(
               (x) =>
-                x["user_id"] === user["user_id"] &&
+                x["profile_id"] === user["profile_id"] &&
                 x["workday"] === workday_string
             );
             if (idx != -1) {
@@ -1255,7 +1255,7 @@ onMounted(() => {
                 backgroundColor: '#fff',
               }"
             >
-              <b>{{ user.full_name }}</b>
+              <b>{{ user.profile_user_name }}</b>
             </td>
             <td
               v-for="(day, day_key) in user.list_days"
