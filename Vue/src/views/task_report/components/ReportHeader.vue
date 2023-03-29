@@ -22,6 +22,8 @@ const addLog = (log) => {
 };
 const options = ref({
   search: "",
+  filterOrg: "",
+  filterDept: "",
 });
 const props = defineProps({
   headersName: String,
@@ -68,6 +70,7 @@ const Switch = (e, va) => {
   if (va == 3) utilities.value.toggle(e);
   else return;
 };
+const listDropdownDonvi = ref([]);
 onMounted(() => {});
 </script>
 <template>
@@ -105,7 +108,75 @@ onMounted(() => {});
       </template>
     </Toolbar>
   </div>
-  <OverlayPanel ref="Filter"> </OverlayPanel>
+  <OverlayPanel
+    ref="Filter"
+    class="w-30rem"
+  >
+    <div class="col-12">
+      <div class="p-1">Công ty</div>
+      <Dropdown
+        :filter="true"
+        v-model="options.filterOrg"
+        panelClass="d-design-dropdown"
+        placeholder="Chọn đơn vị"
+        selectionLimit="1"
+        :options="listDropdownDonvi"
+        optionLabel="organization_name"
+        optionValue="organization_id"
+        spellcheck="false"
+        class="col-12 ip36 p-0"
+      >
+      </Dropdown>
+    </div>
+    <div class="col-12">
+      <div class="p-1">Phòng ban</div>
+      <Dropdown
+        :filter="true"
+        v-model="options.filterDept"
+        panelClass="d-design-dropdown"
+        placeholder="Chọn đơn vị"
+        selectionLimit="1"
+        :options="listDropdownDonvi"
+        optionLabel="organization_name"
+        optionValue="organization_id"
+        spellcheck="false"
+        class="col-12 ip36 p-0"
+      >
+      </Dropdown>
+    </div>
+    <div class="col-12">
+      <div class="p-1">Thành viên</div>
+      <Dropdown
+        :filter="true"
+        v-model="options.filterMembers"
+        panelClass="d-design-dropdown"
+        placeholder="Chọn đơn vị"
+        selectionLimit="1"
+        :options="listDropdownDonvi"
+        optionLabel="organization_name"
+        optionValue="organization_id"
+        spellcheck="false"
+        class="col-12 ip36 p-0"
+      >
+      </Dropdown>
+    </div>
+    <div class="col-12">
+      <div class="p-1">Trạng thái</div>
+      <Dropdown
+        :filter="true"
+        v-model="options.filterStatus"
+        panelClass="d-design-dropdown"
+        placeholder="Chọn đơn vị"
+        selectionLimit="1"
+        :options="listDropdownDonvi"
+        optionLabel="organization_name"
+        optionValue="organization_id"
+        spellcheck="false"
+        class="col-12 ip36 p-0"
+      >
+      </Dropdown>
+    </div>
+  </OverlayPanel>
   <OverlayPanel ref="Sort"> </OverlayPanel>
   <OverlayPanel ref="utilities"> </OverlayPanel>
 </template>
