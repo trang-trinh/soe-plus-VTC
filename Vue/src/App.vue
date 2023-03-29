@@ -5,7 +5,7 @@ import { RouterView } from "vue-router";
 import HeadBar from "./components/base/HeadBar.vue";
 import SideBar from "./components/base/SideBar.vue";
 import LoginView from "./views/LoginView.vue";
-import ForgetView from "./views/login/ForgetPass.vue"
+import ForgetView from "./views/login/ForgetPass.vue";
 import { watch, inject, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { decr, encr } from "./util/function";
@@ -25,6 +25,8 @@ const emitter = inject("emitter");
 const axios = inject("axios"); // inject axios
 const swal = inject("$swal");
 const isDeveloper = ref(isDev);
+
+store.commit("setisframe", window === window.parent ? false : true);
 
 //init Data
 // if (localStorage.getItem("u") != null) {
@@ -48,11 +50,8 @@ if (cookies.get("u") != null) {
   }
 }
 
-// if (cookies.get("tk") != null) {
-//   store.commit("settoken", decr(cookies.get("tk"), SecretKey, cryoptojs));
-// }
-if (cookies.get("usl") != null) {
-  store.commit("settoken", decr(cookies.get("usl"), SecretKey, cryoptojs));
+if (cookies.get("tk") != null) {
+  store.commit("settoken", decr(cookies.get("tk"), SecretKey, cryoptojs));
 }
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -83,27 +82,27 @@ const passModuleToSidebar = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-        let root_path =  router.fullPath;
-        let arr_params = Object.values(router.params);
-        //check router from notify (contain params id, type,....)
-        if (arr_params.length > 0) {
-          arr_params.forEach((item)=>{
-            let idx = root_path.lastIndexOf("/"+item);
-            if(idx != -1) {
-              root_path = root_path.substring(0,idx);
-            }
-          })
-        } 
-        let path_system = ['/options', '/helperview'];
-        if (data[1].filter(x => x.is_link == root_path).length == 0 && !path_system.includes(root_path))
-          route.push({ path: "/" });
-        else if (data[0].length > 0) {
-          if (data[0][0].max_length_file != null) {
-            cookies.set("max_length_file", data[0][0].max_length_file);
+      let root_path = router.fullPath;
+      let arr_params = Object.values(router.params);
+      //check router from notify (contain params id, type,....)
+      if (arr_params.length > 0) {
+        arr_params.forEach((item) => {
+          let idx = root_path.lastIndexOf("/" + item);
+          if (idx != -1) {
+            root_path = root_path.splice(0, idx);
           }
-          emitter.emit("emitData", { type: "moduleFromUrl", data: data[0][0] });
-        }
-
+        });
+      }
+      let path_system = ["/options"];
+      if (
+        data[1].filter((x) => x.is_link == root_path).length == 0 &&
+        !path_system.includes(root_path)
+      )
+        route.push({ path: "/" });
+      else if (data[0].length > 0) {
+        cookies.set("max_length_file", data[0][0].max_length_file);
+        emitter.emit("emitData", { type: "moduleFromUrl", data: data[0][0] });
+      }
     });
 };
 //Vue App
@@ -112,12 +111,12 @@ onMounted(() => {
     // yêu cầu quyền thông báo
     Notification.requestPermission().then(function (result) {});
   }
-  
+
   watch(router, () => {
     if (router.fullPath && router.fullPath.length > 1 && store.getters.islogin)
       passModuleToSidebar();
   });
- 
+
   //socket
   store.getters.user.islogin = store.getters.islogin;
   socket.auth = store.getters.user;
@@ -183,7 +182,6 @@ onMounted(() => {
     //console.log("a user disconnect", store.getters.userConnected);
   });
   //socket
- 
 });
 // console.log("Is DevTools open:", devtools.isOpen);
 
@@ -197,19 +195,22 @@ window.addEventListener("devtoolschange", (event) => {
   // console.log("Is DevTools open:", event.detail.isOpen);
   // console.log("DevTools orientation:", event.detail.orientation);
 });
- 
+
 const is_forgetpass = ref(false);
-const data_props = ref({})
+const data_props = ref({});
 const currentLink = ref(window.location.href);
 if (currentLink.value.includes("/forgetpss/")) {
   is_forgetpass.value = true;
-  let str = window.location.href.substring(window.location.href.lastIndexOf("/forgetpss/") + 11).replaceAll("tun", "+");
-  data_props.value = JSON.parse(decr(str, SecretKey, cryoptojs).replaceAll("\"", "").replaceAll("'", "\""));
+  let str = window.location.href
+    .substring(window.location.href.lastIndexOf("/forgetpss/") + 11)
+    .replaceAll("tun", "+");
+  data_props.value = JSON.parse(
+    decr(str, SecretKey, cryoptojs).replaceAll('"', "").replaceAll("'", '"')
+  );
 }
 </script>
 
 <template>
- 
   <div
     v-if="isDevtool && !isDeveloper"
     class="w-full h-full flex justify-content-center"
@@ -237,12 +238,21 @@ if (currentLink.value.includes("/forgetpss/")) {
     </div>
   </div>
   <div v-else class="flex flex-column flex-grow-1 h-full">
-    <HeadBar v-if="store.getters.islogin && !is_forgetpass" />
+    <HeadBar
+      v-if="store.getters.islogin && !store.getters.isframe && !is_forgetpass"
+    />
     <div class="body-layout flex flex-grow-1 w-full h-full">
-      <SideBar class="shadow-1 h-full" v-if="store.getters.islogin && !is_forgetpass" />
+      <SideBar
+        class="shadow-1 h-full"
+        v-if="store.getters.islogin && !store.getters.isframe && !is_forgetpass"
+      />
       <RouterView v-if="store.getters.islogin && !is_forgetpass" />
       <LoginView v-if="!store.getters.islogin && !is_forgetpass"></LoginView>
-      <ForgetView v-if="is_forgetpass" :uid="data_props.uid" :code="data_props.code"></ForgetView>
+      <ForgetView
+        v-if="is_forgetpass"
+        :uid="data_props.uid"
+        :code="data_props.code"
+      ></ForgetView>
     </div>
   </div>
 </template>
