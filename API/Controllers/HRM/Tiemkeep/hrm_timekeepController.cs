@@ -80,7 +80,7 @@ namespace API.Controllers.HRM.Tiemkeep
                         List<hrm_timekeep> timekeeps = new List<hrm_timekeep>();
                         foreach (var item in selected)
                         {
-                            var exists = await db.hrm_timekeep.FirstOrDefaultAsync(x => x.user_id == item.user_id && x.workday == item.workday);
+                            var exists = await db.hrm_timekeep.FirstOrDefaultAsync(x => x.profile_id == item.profile_id && x.workday == item.workday);
                             if (exists != null)
                             {
                                 exists.symbol_id = model.symbol_id;
@@ -179,7 +179,7 @@ namespace API.Controllers.HRM.Tiemkeep
                         List<hrm_timekeep> timekeeps = new List<hrm_timekeep>();
                         foreach (var item in selected)
                         {
-                            var timekeep = await db.hrm_timekeep.Where(x => x.user_id == item.user_id && x.workday == item.workday).ToListAsync();
+                            var timekeep = await db.hrm_timekeep.Where(x => x.profile_id == item.profile_id && x.workday == item.workday).ToListAsync();
                             if (timekeep.Count > 0)
                             {
                                 foreach (var c in timekeep)

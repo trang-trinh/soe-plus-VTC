@@ -1,11 +1,12 @@
 <script setup>
-import { ref, inject, onMounted, watch } from "vue";
+import { ref, inject, onMounted } from "vue";
 import { required } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 import TaskFollowDetailVue from "./follow/TaskFollowDetail.vue";
-import { FilterMatchMode, FilterOperator } from "primevue/api";
+import DetailedWork from "../DetailedWork.vue";
+
 import useVuelidate from "@vuelidate/core";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
@@ -19,10 +20,6 @@ const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const width1 = window.screen.width;
-const addLog = (log) => {
-  // eslint-disable-next-line no-undef
-  axios.post(baseURL + "/api/Proc/AddLog", log, config);
-};
 const bgColor = ref([
   "#F4B2A3",
   "#F8E69A",
@@ -358,7 +355,7 @@ const onRowReorder = (event) => {
         });
       }
     })
-    .catch((error) => {
+    .catch(() => {
       swal.close();
 
       swal.fire({
@@ -743,6 +740,24 @@ const UpdateStatusTaksFunc = (e) => {
 const TypeMember = ref();
 const expandedRows = ref([]);
 const expandedRows2 = ref([]);
+const PositionSideBar = ref("right");
+
+const showDetail1 = ref(false);
+const selectedTaskID = ref();
+const onRowSelect = (id) => {
+  showDetail1.value = false;
+  showDetail1.value = true;
+  selectedTaskID.value = id;
+};
+emitter.on("SideBar", () => {
+  showDetail1.value = false;
+});
+emitter.on("SideBar1", () => {
+  showDetail1.value = false;
+});
+emitter.on("psb", (obj) => {
+  PositionSideBar.value = obj;
+});
 onMounted(() => {
   loadData();
   if (props.listChild != null) {
@@ -1104,6 +1119,7 @@ onMounted(() => {
                 <DataTable
                   :value="slotProps.data.task_info"
                   @rowReorder="onRowReorder"
+                  @row-click="onRowSelect($event.data.task_id)"
                 >
                   <Column
                     v-if="TypeMember == 0"
@@ -1859,6 +1875,28 @@ onMounted(() => {
       </div>
     </template></Menu
   >
+  <Sidebar
+    v-model:visible="showDetail1"
+    :position="PositionSideBar"
+    :style="{
+      width:
+        PositionSideBar == 'right'
+          ? width1 > 1800
+            ? '65vw'
+            : '75vw'
+          : '100vw',
+      'min-height': '100vh !important',
+    }"
+    :showCloseIcon="false"
+    @hide="close()"
+  >
+    <DetailedWork
+      :isShow="showDetail1"
+      :id="selectedTaskID"
+      :turn="1"
+    >
+    </DetailedWork
+  ></Sidebar>
 </template>
 
 <style lang="scss" scoped>

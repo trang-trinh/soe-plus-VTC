@@ -16,6 +16,7 @@ const tdorganization_types = [
   // { value: 1, text: "Trường học" },
   { value: 1, text: "Phòng ban" },
 ];
+const layout = ref("list");
 const donvi = ref({
   organization_name: "",
   is_order: 1,
@@ -80,14 +81,14 @@ const config = {
 const menuButs = ref();
 const itemButs = ref([
   {
-    label: "Xuất Excel",
+    label: "Import từ file Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
       exportDonvi("ExportExcel");
     },
   },
   {
-    label: "Xuất Mẫu",
+    label: "Export ra file Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
       exportDonvi("ExportExcelMau");
@@ -99,6 +100,7 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const onNodeSelect = (node) => {
+  debugger
   selectedNodes.value.push(node.data.organization_id);
 };
 const onNodeUnselect = (node) => {
@@ -689,16 +691,17 @@ onMounted(() => {
       filterMode="strict"
       class="p-treetable-sm"
       :rows="20"
-      :lazy="true"
       :rowHover="true"
       responsiveLayout="scroll"
       :scrollable="true"
       scrollHeight="flex"
+      :metaKeySelection="false"
+
     >
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
-          <i class="pi pi-microsoft"></i> Danh sách
-          {{ store.getters.user.is_super ? "đơn vị" : "phòng ban" }} ({{
+          <i class="pi pi-microsoft"></i> 
+          {{ store.getters.user.is_super ? "Danh sách đơn vị" : "Cơ cấu tổ chức" }} ({{
             opition.totalRecords
           }})
         </h3>
@@ -710,7 +713,7 @@ onMounted(() => {
                 type="text"
                 spellcheck="false"
                 v-model="filters['global']"
-                placeholder="Tìm kiếm theo tên đơn vị"
+                placeholder="Tìm kiếm"
               />
             </span>
           </template>
@@ -723,18 +726,20 @@ onMounted(() => {
               class="mr-2"
               @click="showModalAddDonvi"
             />
+            <DataViewLayoutOptions v-model="layout" />
+<!-- 
             <Button
               icon="pi pi-list"
               v-tooltip.left="'Hiển thị phòng ban'"
-              class="mr-2"
+              class="ml-2 mr-2"
               v-bind:class="
                 'p-button p-button-' +
                 (displayPhongban ? 'primary' : 'secondary')
               "
               @click="showPhongban"
-            />
+            /> -->
             <Button
-              class="mr-2 p-button-outlined p-button-secondary"
+              class="mr-2 ml-2 p-button-outlined p-button-secondary"
               icon="pi pi-refresh"
               @click="onRefersh"
             />
@@ -745,9 +750,9 @@ onMounted(() => {
               v-if="selectedNodes.length > 0"
               @click="deleteList()"
             />
-            <!-- <Button
-              label="Export"
-              icon="pi pi-file-excel"
+            <Button
+              label="Tiện ích"
+              icon="pi pi-chevron-down"
               class="mr-2 p-button-outlined p-button-secondary"
               @click="toggleExport"
               aria-haspopup="true"
@@ -758,21 +763,27 @@ onMounted(() => {
               ref="menuButs"
               :model="itemButs"
               :popup="true"
-            /> -->
+            />
           </template>
         </Toolbar>
       </template>
       <Column
         field="is_order"
-        header="STT"
-        class="align-items-center justify-content-center text-center font-bold"
+        header="Phân cấp"
+        class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:100px"
         bodyStyle="text-align:center;max-width:100px"
       >
         <template #body="md">
-          <div v-bind:class="md.node.data.status ? '' : 'text-error'">
-            {{ md.node.data.label_order }}
-          </div>
+
+          <span
+            :class="'donvi' + md.node.data.organization_type"
+            :style="[
+              md.node.data.parent_id ? '' : 'font-weight:bold',
+              md.node.data.status ? '' : 'color:red !important',
+            ]"
+            >{{ md.node.data.label_order }}</span
+          >
         </template>
       </Column>
       <Column
@@ -789,6 +800,22 @@ onMounted(() => {
             class="mr-2"
             size="large"
           />
+        </template>
+      </Column>
+      <Column
+        field="organization_name"
+        header="Tên đơn vị"
+        :expander="true"
+      >
+        <template #body="md">
+          <span
+            :class="'donvi' + md.node.data.organization_type"
+            :style="[
+              md.node.data.parent_id ? '' : 'font-weight:bold',
+              md.node.data.status ? '' : 'color:red !important',
+            ]"
+            >{{ md.node.data.organization_name }}</span
+          >
         </template>
       </Column>
       <Column
@@ -810,24 +837,8 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        field="organization_name"
-        header="Tên đơn vị"
-        :expander="true"
-      >
-        <template #body="md">
-          <span
-            :class="'donvi' + md.node.data.organization_type"
-            :style="[
-              md.node.data.parent_id ? '' : 'font-weight:bold',
-              md.node.data.status ? '' : 'color:red !important',
-            ]"
-            >{{ md.node.data.organization_name }}</span
-          >
-        </template>
-      </Column>
-      <Column
         field="organization_type"
-        header="Loại"
+        header="Phân loại"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px"
         bodyStyle="text-align:center;max-width:120px"
@@ -840,6 +851,27 @@ onMounted(() => {
             "
             >{{
               md.node.data.organization_type == 0 ? "Đơn vị" : "Phòng ban"
+            }}</Chip
+          >
+        </template>
+      </Column>
+      <Column
+        field="users"
+        header="Người dùng"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:100px"
+        bodyStyle="text-align:center;max-width:100px"
+      >
+        <template #body="md">
+
+          <Chip
+            class="chip1"
+            :style="
+              md.node.data.status ? '' : 'background-color:red !important;'
+            "
+            style="background-color: #005c9e;"
+            >{{
+              md.node.data.count_users
             }}</Chip
           >
         </template>
@@ -908,11 +940,11 @@ onMounted(() => {
     </TreeTable>
   </div>
   <Dialog
-    header="Cập nhật Đơn vị/ Phòng ban"
+    :header="donvi.organization_type == 1 ? 'Cập nhật phòng ban ' : 'Cập nhật đơn vị '"
     v-model:visible="displayAddDonvi"
-    :style="{ width: '860px', zIndex: 2 }"
+    :style="{ width: '860px' }"
     :maximizable="true"
-    :autoZIndex="false"
+    :autoZIndex="true"
   >
     <form @submit.prevent="handleSubmit(!v$.$invalid)">
       <div class="grid formgrid m-2">
@@ -955,8 +987,8 @@ onMounted(() => {
                   .replace("is required", "không được để trống")
               }}</span
             >
-          </div></small
-        >
+          </div>
+        </small>
         <small
           v-if="v$.organization_name.maxLength.$invalid && submitted"
           class="col-10 p-error"
@@ -985,10 +1017,10 @@ onMounted(() => {
               }}
               ký tự</span
             >
-          </div></small
-        >
+          </div>
+        </small>
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Cấp cha</label>
+          <label class="col-2 text-left">Cấp quản lý</label>
           <TreeSelect
             @change="onChangeParent"
             class="col-10"
@@ -1001,8 +1033,38 @@ onMounted(() => {
           >
           </TreeSelect>
         </div>
-        <div class="field col-12 md:col-12">
+        <!-- <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Loại</label>
+          <Dropdown
+            class="col-10"
+            v-model="donvi.organization_type"
+            :options="tdorganization_types"
+            optionLabel="text"
+            optionValue="value"
+          />
+        </div> -->
+        <div
+          class="field col-12 md:col-12"
+        >
+          <label class="col-2 text-left">Tên tiếng Anh</label>
+          <InputText
+            spellcheck="false"
+            class="col-10 ip36"
+            v-model="donvi.organization_name_en"
+          />
+        </div>
+        <div
+          class="field col-12 md:col-12"
+        >
+          <label class="col-2 text-left">Tên viết tắt</label>
+          <InputText
+            spellcheck="false"
+            class="col-10 ip36"
+            v-model="donvi.short_name"
+          />
+        </div>
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">Phân loại</label>
           <Dropdown
             class="col-10"
             v-model="donvi.organization_type"
@@ -1015,22 +1077,11 @@ onMounted(() => {
           class="field col-12 md:col-12"
           v-if="donvi.organization_type == 0"
         >
-          <label class="col-2 text-left">Tên phần mềm</label>
+          <label class="col-2 text-left">Địa chỉ</label>
           <InputText
             spellcheck="false"
             class="col-10 ip36"
-            v-model="donvi.product_name"
-          />
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="donvi.organization_type == 1"
-        >
-          <label class="col-2 text-left">Ký hiệu văn bản</label>
-          <InputText
-            spellcheck="false"
-            class="col-10 ip36"
-            v-model="donvi.department_doc_code"
+            v-model="donvi.address"
           />
         </div>
         <div
@@ -1042,6 +1093,23 @@ onMounted(() => {
             spellcheck="false"
             class="col-4 ip36"
             v-model="donvi.phone"
+          />
+          <label class="col-2 text-right">Fax</label>
+          <InputText
+            spellcheck="false"
+            class="col-4 ip36"
+            v-model="donvi.fax"
+          />
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          v-if="donvi.organization_type == 0"
+        >
+          <label class="col-2 text-left">Website</label>
+          <InputText
+            spellcheck="false"
+            class="col-4 ip36"
+            v-model="donvi.is_url"
           />
           <label class="col-2 text-right">Email</label>
           <InputText
@@ -1067,34 +1135,57 @@ onMounted(() => {
           class="field col-12 md:col-12"
           v-if="donvi.organization_type == 0"
         >
-          <label class="col-2 text-left">Website</label>
+          <label class="col-2 text-left">Mã số doanh nghiệp</label>
           <InputText
             spellcheck="false"
             class="col-4 ip36"
-            v-model="donvi.is_url"
+            v-model="donvi.business_code"
           />
-          <label class="col-2 text-right">Fax</label>
-          <InputText
-            spellcheck="false"
-            class="col-4 ip36"
-            v-model="donvi.fax"
+          <label class="col-2 text-right">Ngày thành lập</label>
+          <Calendar
+          class="col-4 ip36"
+          id="icon"
+          foundation_date
+          :showIcon="true"
           />
         </div>
         <div
-          class="field col-12 md:col-12"
+          class="field col-12 md:col-12 flex"
           v-if="donvi.organization_type == 0"
+
         >
-          <label class="col-2 text-left">Địa chỉ</label>
-          <InputText
-            spellcheck="false"
-            class="col-4 ip36"
-            v-model="donvi.address"
+          <label class="col-2 text-left">Chức năng</label>
+          <Textarea
+          :autoResize="true"
+          rows="3"
+          class="col-10"
+          v-model="donvi.feature"
           />
-          <label class="col-2 text-right">Tên viết tắt</label>
-          <InputText
-            spellcheck="false"
-            class="col-4 ip36"
-            v-model="donvi.short_name"
+        </div>
+        <div
+          class="field col-12 md:col-12 flex"
+          v-if="donvi.organization_type == 0"
+
+        >
+          <label class="col-2 text-left">Nhiệm vụ</label>
+          <Textarea
+          :autoResize="true"
+          rows="3"
+          class="col-10"
+          v-model="donvi.mission"
+          />
+        </div>
+        <div
+          class="field col-12 md:col-12 flex"
+          v-if="donvi.organization_type == 0"
+
+        >
+          <label class="col-2 text-left">Mô tả</label>
+          <Textarea
+          :autoResize="true"
+          rows="3"
+          class="col-10"
+          v-model="donvi.description"
           />
         </div>
         <div
@@ -1157,6 +1248,17 @@ onMounted(() => {
               @change="handleFileUpload($event, 'LogoNen')"
             />
           </div>
+        </div>
+        <div
+          class="field col-12 md:col-12"
+          v-if="donvi.organization_type == 0"
+        >
+          <label class="col-2 text-left">Tên phần mềm</label>
+          <InputText
+            spellcheck="false"
+            class="col-10 ip36"
+            v-model="donvi.product_name"
+          />
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Màu nền</label>
