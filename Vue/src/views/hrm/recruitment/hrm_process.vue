@@ -197,13 +197,7 @@ const options = ref({
 const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
-  candidate.value = {
-    form_training: 1,
-    status: 1,
-
-    is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
-  };
+ 
 
   isSaveTem.value = true;
   headerDialog.value = str;
@@ -407,6 +401,62 @@ const opstatus = ref();
 const toggleStatus = (item, event) => {
   candidate.value = item;
   opstatus.value.toggle(event);
+};
+const onUploadFile = (event) => {
+ 
+  filesList.value = [];
+
+  var ms = false;
+
+  event.files.forEach((fi) => {
+    let formData = new FormData();
+    formData.append("fileupload", fi);
+    axios({
+      method: "post",
+      url: baseURL + `/api/chat/ScanFileUpload`,
+      data: formData,
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+      },
+    })
+      .then((response) => {
+        if (response.data.err != "1") {
+          if (fi.size > 100 * 1024 * 1024) {
+            ms = true;
+          } else {
+            filesList.value.push(fi);
+       
+          }
+        } else {
+          filesList.value = filesList.value.filter((x) => x.name != fi.name);
+          swal.fire({
+            title: "Cảnh báo",
+            text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
+            icon: "warning",
+            confirmButtonText: "OK",
+          });
+        }
+        if (ms) {
+          swal.fire({
+            icon: "warning",
+            type: "warning",
+            title: "Thông báo",
+            text: "Bạn chỉ được upload file có dung lượng tối đa 100MB!",
+          });
+        }
+      })
+      .catch(() => {
+        swal.fire({
+          title: "Thông báo",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  });
+};
+const removeFile = (event) => {
+  filesList.value = filesList.value.filter((a) => a != event.file);
 };
 //Tìm kiếm
 const searchStamp = (event) => {
@@ -635,7 +685,7 @@ const itemAproves = ref([
     icon: "pi pi-check-circle",
     command: (event) => {
       headerSend.value = "Xác nhận duyệt";
-     
+     process.value={  content:null}
       displaySend.value = true;
     },
   },
@@ -970,19 +1020,15 @@ const initTudien = () => {
 
 
 
-const filesList=ref();
-
+const filesList=ref([]);
+const closeDialogSend=()=>{
+  loadData(true);
+  displaySend.value=false;
+  process.value=null;
+}
 const send = () => {
-  submitted.value = true;
-  if (!process.value.config_process_id) {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
+ 
+ 
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -995,44 +1041,41 @@ const send = () => {
  
 
   let formData = new FormData();
-  formData.append("type_send", obj["type_send"]);
-  formData.append("key_id", obj["key_id"]);
-  formData.append("type_module", obj["type_module"]);
   formData.append("content", obj["content"]); 
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
     formData.append("files", file);
   }
-  formData.append("hrm_obj", JSON.stringify(props.dataSelected));
-  // axios
-  //   .post(baseURL + "/api/hrm_campage_process/update_hrm_campage_process", formData, config)
-  //   .then((response) => {
-  //     if (response.data.err === "1") {
-  //       swal.fire({
-  //         title: "Thông báo!",
-  //         text: response.data.ms,
-  //         icon: "error",
-  //         confirmButtonText: "OK",
-  //       });
-  //       return;
-  //     }
+  formData.append("hrm_obj", JSON.stringify(selectedStamps.value));
+  axios
+    .put(baseURL + "/api/hrm_campage_process/update_hrm_campage_process", formData, config)
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
       
-  //     swal.close();
-  //     toast.success("Gửi thành công!");
-  //     props.closeDialog();
-      
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //     swal.close();
-  //     swal.fire({
-  //       title: "Thông báo!",
-  //       text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-  //       icon: "error",
-  //       confirmButtonText: "OK",
-  //     });
-  //   });
-  // if (submitted.value) submitted.value = false;
+      swal.close();
+      toast.success("Gửi thành công!");
+ 
+      closeDialogSend();
+    })
+    .catch((error) => {
+      console.log(error);
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+  
 };
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
@@ -1439,7 +1482,10 @@ onMounted(() => {
               headerStyle="text-align:center;max-width:400px;height:50px"
               bodyStyle="text-align:left;max-width:400px"
               headerClass="align-items-center justify-content-center text-center"
-            >
+            >   <template #body="data">
+             
+             <div v-if="data.data.content ">{{ data.data.content  }}</div>
+           </template>
             </Column>
 
             <Column
@@ -1450,6 +1496,7 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
+             
                 <div v-if="data.data.type_module == 0">Đề xuất</div>
               </template>
             </Column>

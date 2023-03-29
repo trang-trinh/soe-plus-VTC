@@ -8,6 +8,7 @@ import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 import dialogrecruitment_proposal from "./component/dialog_proposal.vue";
 import dialogSend from "./component/dialog_send.vue";
+import dialogChart from "../process/component/dialogchart.vue";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -38,7 +39,7 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
- 
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -80,7 +81,6 @@ const loadCount = () => {
 
 const recruitment_proposal = ref({
   recruitment_proposal_name: null,
-  
 });
 //Lấy dữ liệu recruitment_proposal
 const loadData = (rf) => {
@@ -146,7 +146,8 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].recruitment_proposal_id;
+    options.value.id =
+      datalists.value[datalists.value.length - 1].recruitment_proposal_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
@@ -179,10 +180,9 @@ const options = ref({
   totalRecords3: 0,
   totalRecords4: 0,
   totalRecords5: 0,
-  totalRecords6:0,
-  totalRecordsExport:50,
-  pagenoExport:1,
- 
+  totalRecords6: 0,
+  totalRecordsExport: 50,
+  pagenoExport: 1,
 });
 
 //Hiển thị dialog
@@ -191,12 +191,11 @@ const displayBasic = ref(false);
 const openBasic = (str) => {
   recruitment_proposal.value = {
     recruitment_proposal_name: null,
- 
+
     status: 0,
     training_place: null,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-  
   };
 
   isSaveTem.value = true;
@@ -249,10 +248,14 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_recruitment_proposal/delete_hrm_recruitment_proposal", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.recruitment_proposal_id] : 1,
-          })
+          .delete(
+            baseURL +
+              "/api/hrm_recruitment_proposal/delete_hrm_recruitment_proposal",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.recruitment_proposal_id] : 1,
+            }
+          )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
@@ -327,7 +330,6 @@ const loadDataSQL = () => {
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          
         });
 
         datalists.value = data;
@@ -338,7 +340,6 @@ const loadDataSQL = () => {
       options.value.loading = false;
       //Show Count nếu có
       if (dt.length >= 2 && checkLoadCount.value == true) {
-       
         options.value.totalRecords = dt[1][0].totalRecords;
         options.value.totalRecords1 = dt[2][0].totalRecords1;
         options.value.totalRecords2 = dt[3][0].totalRecords2;
@@ -373,7 +374,12 @@ const setStatus = (value) => {
     BitTrangthai: false,
   };
   axios
-    .put(baseURL + "/api/hrm_recruitment_proposal/update_s_hrm_recruitment_proposal", data, config)
+    .put(
+      baseURL +
+        "/api/hrm_recruitment_proposal/update_s_hrm_recruitment_proposal",
+      data,
+      config
+    )
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
@@ -419,7 +425,7 @@ const searchStamp = (event) => {
   }
 };
 const listStatus = ref([
-{ name: "Đã tạo", code: 0 },
+  { name: "Lên kế hoạch", code: 0 },
   { name: "Chờ duyệt", code: 1 },
   { name: "Đã duyệt", code: 2 },
   { name: "Đang tuyển", code: 3 },
@@ -477,7 +483,7 @@ const onFilter = (event) => {
   options.value.id = null;
   isDynamicSQL.value = true;
   loadDataSQL();
-}; 
+};
 const tabs = ref([
   { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
   { id: 1, title: "Chờ duyệt", icon: "", total: 0 },
@@ -497,7 +503,12 @@ const onCheckBox = (value, check) => {
       BitTrangthai: value.status,
     };
     axios
-      .put(baseURL + "/api/hrm_recruitment_proposal/update_s_hrm_recruitment_proposal", data, config)
+      .put(
+        baseURL +
+          "/api/hrm_recruitment_proposal/update_s_hrm_recruitment_proposal",
+        data,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -529,7 +540,11 @@ const onCheckBox = (value, check) => {
       BitMain: value.is_default,
     };
     axios
-      .put(baseURL + "/api/hrm_recruitment_proposal/Update_DefaultStamp", data1, config)
+      .put(
+        baseURL + "/api/hrm_recruitment_proposal/Update_DefaultStamp",
+        data1,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -562,92 +577,84 @@ const onCheckBox = (value, check) => {
 const exportExcelR = () => {
   showExport.value = false;
 
- 
-    exportData("ExportExcel");
- 
+  exportData("ExportExcel");
 };
 
-const headerExport=ref("Cấu hình xuất Excel");
+const headerExport = ref("Cấu hình xuất Excel");
 const menuButs = ref();
-const menuAproves=ref();
+const menuAproves = ref();
 const showExport = ref(false);
 const itemButs = ref([
   {
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-
-     
-        showExport.value = true;
-     
+      showExport.value = true;
     },
   },
 ]);
-const headerSend=ref();
-const displaySend=ref(false);
-const closeDialogSend=()=>{
+const headerSend = ref();
+const displaySend = ref(false);
+const closeDialogSend = () => {
   loadData(true);
-  dataSelected.value=[];
-  displaySend.value=false;
-
+  dataSelected.value = [];
+  displaySend.value = false;
 };
-const modelsend=ref({
-  type_send:0,
-  type_module:0
-})
+const closeDialogChart = () => {
+  loadData(true);
+  displayChart.value = false;
+};
+
+
+
+const modelsend = ref({
+  type_send: 0,
+  type_module: 0,
+});
 const itemAproves = ref([
   {
     label: "Chuyển đến quy trình",
     icon: "pi pi-chart-line",
     command: (event) => {
-     
-    headerSend.value="Chuyển đến quy trình";
-    modelsend.value.type_send=0;
-    displaySend.value=true;
-     
+      headerSend.value = "Chuyển đến quy trình";
+      modelsend.value.type_send = 0;
+      displaySend.value = true;
     },
-  },  {
+  },
+  {
     label: "Chuyển đến nhóm",
     icon: "pi pi-users",
     command: (event) => {
-
-     
-        showExport.value = true;
-     
+      showExport.value = true;
     },
   },
   {
     label: "Chuyển đích danh",
     icon: "pi pi-user-edit",
     command: (event) => {
-
-     
-        showExport.value = true;
-     
+      showExport.value = true;
     },
   },
-
 ]);
 
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const toggleAprroves = (event) => {
-  var check=true;
-  dataSelected.value.forEach(element => {
-      if(element.status!=0){
-        swal.fire({
-      title: "Thông báo!",
-      text: "Chỉ được chuyển xử lý bản ghi có trạng thái đã tạo!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    check=false;
-    return;
-      }
-    });
-    if(check)
-  menuAproves.value.toggle(event);
+  var check = true;
+  dataSelected.value.forEach((element) => {
+    if (element.status != 0) {
+      swal.fire({
+        title: "Thông báo!",
+        text: "Chỉ được chuyển xử lý bản ghi có trạng thái lập kế hoạch!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      check = false;
+      return;
+    }
+  });
+  if (check) menuAproves.value.toggle(event);
 };
 
 const exportData = (method) => {
@@ -657,7 +664,7 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
- 
+
   axios
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
@@ -667,26 +674,51 @@ const exportData = (method) => {
         par: [
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "rec_position_id", va:options.value.rec_position_id?
-           options.value.rec_position_id.toString():null },
-          { par: "user_verify", va:options.value.user_verify_list? options.value.user_verify_list.toString():null },
-          { par: "user_follows", va:options.value.user_follows_list?
-           options.value.user_follows_list.toString():null },
-          { par: "can_academic_level_id", va: options.value.can_academic_level_id?
-           options.value.can_academic_level_id.toString():null },
-          { par: "vacancy_id", va: options.value.vacancy_id?
-           options.value.vacancy_id.toString():null },
-          { par: "status ", va: options.value.status_filter?
-          options.value.status_filter.toString():null },
+          {
+            par: "rec_position_id",
+            va: options.value.rec_position_id
+              ? options.value.rec_position_id.toString()
+              : null,
+          },
+          {
+            par: "user_verify",
+            va: options.value.user_verify_list
+              ? options.value.user_verify_list.toString()
+              : null,
+          },
+          {
+            par: "user_follows",
+            va: options.value.user_follows_list
+              ? options.value.user_follows_list.toString()
+              : null,
+          },
+          {
+            par: "can_academic_level_id",
+            va: options.value.can_academic_level_id
+              ? options.value.can_academic_level_id.toString()
+              : null,
+          },
+          {
+            par: "vacancy_id",
+            va: options.value.vacancy_id
+              ? options.value.vacancy_id.toString()
+              : null,
+          },
+          {
+            par: "status ",
+            va: options.value.status_filter
+              ? options.value.status_filter.toString()
+              : null,
+          },
           { par: "start_dateI", va: options.value.start_dateI },
           { par: "end_dateI", va: options.value.end_dateI },
           { par: "start_dateD", va: options.value.start_dateD },
           { par: "end_dateD", va: options.value.end_dateD },
           { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.pagenoExport-1 },
+          { par: "pageno", va: options.value.pagenoExport - 1 },
           { par: "pagesize", va: options.value.totalRecordsExport },
         ],
-      }, 
+      },
       config
     )
     .then((response) => {
@@ -750,6 +782,16 @@ const activeTab = (tab) => {
 const menuButMores = ref();
 const itemButMores = ref([
   {
+    label: "Quy trình xử lý",
+    icon: "pi pi-chart-line",
+    command: (event) => {
+       
+      modelsend.value.key_id=dataSelected.value.recruitment_proposal_id;
+      displayChart.value=true;
+
+    },
+  },
+  {
     label: "Hiệu chỉnh nội dung",
     icon: "pi pi-pencil",
     command: (event) => {
@@ -766,7 +808,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   recruitment_proposal.value = item;
-  dataSelected.value=item;
+  dataSelected.value = item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
@@ -800,10 +842,14 @@ const deleteList = () => {
             listId.push(item.recruitment_proposal_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_recruitment_proposal/delete_hrm_recruitment_proposal", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
+            .delete(
+              baseURL +
+                "/api/hrm_recruitment_proposal/delete_hrm_recruitment_proposal",
+              {
+                headers: { Authorization: `Bearer ${store.getters.token}` },
+                data: listId != null ? listId : 1,
+              }
+            )
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
@@ -847,7 +893,7 @@ const reFilter = () => {
   options.value.start_dateD = null;
   options.value.end_dateD = null;
   options.value.can_academic_level_id = null;
-  
+
   options.value.rec_position_id = null;
   options.value.status_filter = null;
   checkLoadCount.value = true;
@@ -882,7 +928,6 @@ const filterFileds = () => {
     }
   }
 
-  
   if (options.value.rec_position_id) {
     let filterS2 = {
       filterconstraints: [],
@@ -962,7 +1007,7 @@ const filterFileds = () => {
   }
 
   onDayClick();
-   
+
   loadDataSQL();
   op.value.hide();
 };
@@ -977,7 +1022,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateI
     ) {
       let sDate = new Date(options.value.start_dateI);
-   
+
       options.value.start_dateI = sDate;
       let filterS = {
         filterconstraints: [
@@ -993,7 +1038,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateI
     ) {
       let eDate = new Date(options.value.end_dateI);
-     
+
       options.value.end_dateI = eDate;
       let filterS = {
         filterconstraints: [
@@ -1027,8 +1072,6 @@ const onDayClick = () => {
     }
   }
 
-
-
   if (options.value.start_dateD != null) {
     if (!options.value.end_dateD)
       options.value.end_dateD = options.value.start_dateD;
@@ -1038,7 +1081,7 @@ const onDayClick = () => {
       options.value.start_dateD != options.value.end_dateD
     ) {
       let sDate = new Date(options.value.start_dateD);
-   
+
       options.value.start_dateD = sDate;
       let filterS = {
         filterconstraints: [
@@ -1054,7 +1097,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateD
     ) {
       let eDate = new Date(options.value.end_dateD);
-     
+
       options.value.end_dateD = eDate;
       let filterS = {
         filterconstraints: [
@@ -1090,7 +1133,6 @@ const onDayClick = () => {
 };
 watch(dataSelected, () => {
   if (dataSelected.value.length > 0) {
-  
     checkDelList.value = true;
   } else {
     checkDelList.value = false;
@@ -1100,7 +1142,7 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
- 
+
 const listPosition = ref([]);
 const listClasroom = ref([]);
 
@@ -1237,9 +1279,14 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-   
 };
 const listAcademic_level = ref([]);
+const displayChart=ref(false);
+const headerChart=ref("Bảng theo dõi quy trình xử lý");
+
+
+
+
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
@@ -1335,7 +1382,8 @@ onMounted(() => {
                                 :editable="false"
                                 v-model="options.vacancy_id"
                                 optionLabel="name"
-                                optionValue="code" display="chip"
+                                optionValue="code"
+                                display="chip"
                                 placeholder="Chọn vị trí tuyển dụng"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
@@ -1355,7 +1403,8 @@ onMounted(() => {
                                 v-model="options.rec_position_id"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn chức vụ" display="chip"
+                                placeholder="Chọn chức vụ"
+                                display="chip"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1381,7 +1430,7 @@ onMounted(() => {
                                 />
                               </div>
                             </div>
-                            <div class="col-6  p-0 pl-2 md:col-6">
+                            <div class="col-6 p-0 pl-2 md:col-6">
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
@@ -1394,8 +1443,6 @@ onMounted(() => {
                               </div>
                             </div>
                           </div>
-                       
-                        
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
@@ -1405,7 +1452,7 @@ onMounted(() => {
                               <div class="py-2">Trình độ</div>
 
                               <MultiSelect
-                                :options="listAcademic_level" 
+                                :options="listAcademic_level"
                                 :filter="false"
                                 :showClear="true"
                                 :editable="false"
@@ -1421,8 +1468,7 @@ onMounted(() => {
                               </MultiSelect>
                             </div>
                           </div>
-                      
-                        
+
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
                               <div class="py-2">Trạng thái</div>
@@ -1460,7 +1506,7 @@ onMounted(() => {
                                 />
                               </div>
                             </div>
-                            <div class="col-6  p-0 pl-2 md:col-6">
+                            <div class="col-6 p-0 pl-2 md:col-6">
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
@@ -1504,22 +1550,21 @@ onMounted(() => {
 
           <template #end>
             <Button
-         
-          icon="pi pi-send"
-          label="Chuyển xử lý"
-          class="mr-2 p-button-outlined p-button-secondary"
-          aria:haspopup="true"
-          aria-controls="overlay_approves"
-          v-if="checkDelList"
-          @click="toggleAprroves"
-        />
-        <Menu
+              icon="pi pi-send"
+              label="Chuyển xử lý"
+              class="mr-2 p-button-outlined p-button-secondary"
+              aria:haspopup="true"
+              aria-controls="overlay_approves"
+              v-if="checkDelList"
+              @click="toggleAprroves"
+            />
+            <Menu
               id="overlay_approves"
               ref="menuAproves"
               :model="itemAproves"
               :popup="true"
             />
-        <Button
+            <Button
               v-if="checkDelList"
               @click="deleteList()"
               label="Xóa"
@@ -1538,7 +1583,7 @@ onMounted(() => {
               icon="pi pi-refresh"
               v-tooltip="'Tải lại'"
             />
-      
+
             <Button
               label="Tiện ích"
               icon="pi pi-file-excel"
@@ -1617,9 +1662,10 @@ onMounted(() => {
             dataKey="recruitment_proposal_id"
             responsiveLayout="scroll"
             v-model:selection="dataSelected"
-            :row-hover="true" selectionMode="multiple"
+            :row-hover="true"
+            selectionMode="multiple"
           >
-              <Column
+            <Column
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
@@ -1634,11 +1680,12 @@ onMounted(() => {
               bodyStyle="text-align:center;max-width:55px"
             >
             </Column>
-            
+
             <Column
               field="recruitment_proposal_name"
               header="Tên đề xuất"
-              :sortable="true"     headerClass="align-items-center justify-content-center text-center"
+              :sortable="true"
+              headerClass="align-items-center justify-content-center text-center"
               headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"
             >
@@ -1659,7 +1706,7 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
             </Column>
-           
+
             <Column
               field="recruits_num"
               header="Số lượng"
@@ -1739,7 +1786,7 @@ onMounted(() => {
                   }}</span
                 >
                 <div>
-                  <Avatar 
+                  <Avatar
                     v-bind:label="
                       slotProps.data.avatar
                         ? ''
@@ -1787,9 +1834,9 @@ onMounted(() => {
                 >
                   <Button
                     :label="
-                     slotProps.data.status == 1
-                        ? 'Chờ duyệt':
-                      slotProps.data.status == 2
+                      slotProps.data.status == 1
+                        ? 'Chờ duyệt'
+                        : slotProps.data.status == 2
                         ? 'Đã duyệt'
                         : slotProps.data.status == 3
                         ? 'Đang tuyển'
@@ -1799,17 +1846,17 @@ onMounted(() => {
                         ? 'Hết hạn'
                         : slotProps.data.status == 6
                         ? 'Hủy bỏ'
-                        : 'Đã tạo'
+                        : 'Lên kế hoạch'
                     "
                     :style="
-                    slotProps.data.status == 1
-                        ?'backgroundColor:#00CCCC; border:#00CCCC':
-                      slotProps.data.status == 2
+                      slotProps.data.status == 1
+                        ? 'backgroundColor:#00CCCC; border:#00CCCC'
+                        : slotProps.data.status == 2
                         ? 'backgroundColor:#ff8b4e; border:#ff8b4e'
                         : slotProps.data.status == 3
-                        ?  ' backgroundColor: #2196f3; border:#2196f3'
+                        ? ' backgroundColor: #2196f3; border:#2196f3'
                         : slotProps.data.status == 4
-                        ?  'backgroundColor:var(--green-500); border:var(--green-500)'
+                        ? 'backgroundColor:var(--green-500); border:var(--green-500)'
                         : slotProps.data.status == 5
                         ? 'backgroundColor:var(--purple-500); border:var(--purple-500)'
                         : slotProps.data.status == 6
@@ -1883,7 +1930,6 @@ onMounted(() => {
       </div>
     </div>
     <div v-if="displayBasic == true">
-  
       <dialogrecruitment_proposal
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
@@ -1894,17 +1940,23 @@ onMounted(() => {
       />
     </div>
     <div v-if="displaySend == true">
-  
- 
-  <dialogSend
-    :headerDialog="headerSend"
-    :displayDialog="displaySend"
-   :dataSelected="dataSelected"
-   :modelsend="modelsend"
-  
-    :closeDialog="closeDialogSend"
-  />
-</div>
+      <dialogSend
+        :headerDialog="headerSend"
+        :displayDialog="displaySend"
+        :dataSelected="dataSelected"
+        :modelsend="modelsend"
+        :closeDialog="closeDialogSend"
+      />
+    </div>
+    <div v-if="displayChart == true">
+      <dialogChart
+        :headerDialog="headerChart"
+        :displayDialog="displayChart"
+        
+        :modelsend="modelsend"
+        :closeDialog="closeDialogChart"
+      />
+    </div>
     
   </div>
 
@@ -1930,7 +1982,12 @@ onMounted(() => {
       <div class="col-12 field flex">
         <div class="col-6 p-0">Trang bắt đầu:</div>
         <div class="col-6 p-0">
-          <InputNumber class="w-full" :min="1" :max="Math.ceil(options.totalRecords/options.totalRecordsExport)" v-model="options.pagenoExport" />
+          <InputNumber
+            class="w-full"
+            :min="1"
+            :max="Math.ceil(options.totalRecords / options.totalRecordsExport)"
+            v-model="options.pagenoExport"
+          />
         </div>
       </div>
       <div class="col-12 p-0">

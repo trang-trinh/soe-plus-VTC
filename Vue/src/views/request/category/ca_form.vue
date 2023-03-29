@@ -7,6 +7,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 //import moment from "moment";
 import dialogAddFormRequest from "../category/component/dialog_add_form_request.vue";
+import dialogShowFormTeam from "../category/component/dialog_show_form_team.vue";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -155,6 +156,7 @@ const closeDialog = () => {
 
 	displayBasic.value = false;
 };
+
 const refreshData = () => {
 	options.value.SearchText = '';
 	options.value.loading = true;
@@ -164,6 +166,19 @@ const refreshData = () => {
 	loadData(true);
 };
 const expandedRows = ref([]);
+
+//modal select team
+const showSelectTeam = ref(false);
+const headerDialogFormShowTeam = ref();
+const openModalSelectTeam = () => {
+	showSelectTeam.value = true;
+	headerDialogFormShowTeam.value = 'Team sử dụng cho đề xuất'
+}
+const closeDialogFormShowTeam = () => {
+	showSelectTeam.value = false;
+}
+//end
+
 onMounted(() => {
 	if (!checkURL(window.location.pathname, store.getters.listModule)) {
 		//router.back();
@@ -455,6 +470,11 @@ onMounted(() => {
 		:reloadData="loadData"
 		:closeDialog="closeDialog"
 	></dialogAddFormRequest>
+	<dialogShowFormTeam
+		:headerDialog="headerDialogFormShowTeam"
+		:displayDialog="showSelectTeam"
+		:closeDialog="closeDialogFormShowTeam"
+	></dialogShowFormTeam>
 </template>
     
 <style scoped>
