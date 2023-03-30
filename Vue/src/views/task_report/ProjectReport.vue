@@ -65,13 +65,22 @@ const loadData = () => {
     });
 };
 const formatData = (e, i) => {
-  if (i == 2) return e ? moment(new Date(e)).format("HH:mm DD/MM/YYYY") : "";
+  if (i == 2 || i == 3)
+    return e ? moment(new Date(e)).format("HH:mm DD/MM/YYYY") : "";
+  if (i == 4 || i == 5)
+    if (e != null) {
+      let string = "";
+      e.forEach((z) => {
+        string += z.full_name + " (" + z.user_id + ")" + "</br>";
+      });
+      return string;
+    } else return "";
 };
 const col = ref([
   {
     header: "Tên dự án",
     field: "project_name",
-    class: "",
+    class: "min-w-30rem",
     headerClass: "align-items-center justify-content-center text-center",
     bodyClass: "",
     isTemplate: false,
@@ -80,7 +89,7 @@ const col = ref([
   {
     header: "Mô tả",
     field: "description",
-    class: "",
+    class: "min-w-30rem",
     headerClass: "align-items-center justify-content-center text-center",
     bodyClass: "",
     isTemplate: false,
@@ -89,7 +98,7 @@ const col = ref([
   {
     header: "Ngày bắt đầu",
     field: "start_date",
-    class: "align-items-center justify-content-center text-center max-w-10rem",
+    class: "align-items-center justify-content-center text-center min-w-10rem",
     headerClass: "",
     bodyClass: "",
     isTemplate: true,
@@ -100,10 +109,65 @@ const col = ref([
   {
     header: "Ngày kết thúc",
     field: "end_date",
-    class: "align-items-center justify-content-center text-center max-w-10rem",
+    class: "align-items-center justify-content-center text-center min-w-10rem",
     headerClass: "",
     bodyClass: "",
     isTemplate: true,
+    template: (e, header) => {
+      return formatData(e, header);
+    },
+  },
+  {
+    header: "Thành viên quản lý",
+    field: "manage_members",
+    class: "min-w-16rem",
+    headerClass: "align-items-center justify-content-center text-center",
+    bodyClass: "",
+    isTemplate: true,
+    template: (e, header) => {
+      return formatData(e, header);
+    },
+  },
+  {
+    header: "Thành viên tham gia",
+    field: "work_members",
+    class: " min-w-16rem",
+    headerClass: "align-items-center justify-content-center text-center",
+    bodyClass: "",
+    isTemplate: true,
+    template: (e, header) => {
+      return formatData(e, header);
+    },
+  },
+  {
+    header: "Nhóm dự án",
+    field: "project_group_name",
+    class: " min-w-15rem",
+    headerClass: "align-items-center justify-content-center text-center",
+    bodyClass: "",
+    isTemplate: false,
+    template: (e, header) => {
+      return formatData(e, header);
+    },
+  },
+  {
+    header: "Tổng số công việc",
+    field: "countTask",
+    class: "align-items-center justify-content-center text-center min-w-11rem",
+    headerClass: "",
+    bodyClass: "",
+    isTemplate: false,
+    template: (e, header) => {
+      return formatData(e, header);
+    },
+  },
+  {
+    header: "Trạng thái",
+    field: "status",
+    class: "align-items-center justify-content-center text-center min-w-8rem",
+    headerClass: "",
+    bodyClass: "",
+    isTemplate: false,
     template: (e, header) => {
       return formatData(e, header);
     },
