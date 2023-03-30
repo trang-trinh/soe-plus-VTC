@@ -65,7 +65,7 @@ const loadData = () => {
     });
 };
 const formatData = (e, i) => {
-  if (i == 1) return e ? moment(new Date(e)).format("HH:mm DD/MM/YYYY") : "";
+  if (i == 2) return e ? moment(new Date(e)).format("HH:mm DD/MM/YYYY") : "";
 };
 const col = ref([
   {
@@ -81,7 +81,7 @@ const col = ref([
     header: "Mô tả",
     field: "description",
     class: "",
-    headerClass: "align-items-center justify-content-center text-center w-5rem",
+    headerClass: "align-items-center justify-content-center text-center",
     bodyClass: "",
     isTemplate: false,
     template: "",
@@ -89,7 +89,18 @@ const col = ref([
   {
     header: "Ngày bắt đầu",
     field: "start_date",
-    class: "align-items-center justify-content-center text-center w-3rem",
+    class: "align-items-center justify-content-center text-center max-w-10rem",
+    headerClass: "",
+    bodyClass: "",
+    isTemplate: true,
+    template: (e, header) => {
+      return formatData(e, header);
+    },
+  },
+  {
+    header: "Ngày kết thúc",
+    field: "end_date",
+    class: "align-items-center justify-content-center text-center max-w-10rem",
     headerClass: "",
     bodyClass: "",
     isTemplate: true,
@@ -123,7 +134,7 @@ onMounted(() => {
         :field="item.field"
         :headerClass="item.headerClass"
         :bodyClass="item.bodyClass"
-        :class="item.class"
+        :class="[item.class]"
       >
         <template
           #body="data"
