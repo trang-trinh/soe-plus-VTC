@@ -547,6 +547,7 @@ const onFilterPlace = (event, type) => {
   if (event.value == "") {
     stc = null;
   }
+  debugger
   axios
     .post(
       baseURL + "/api/DictionaryProc/getData",
