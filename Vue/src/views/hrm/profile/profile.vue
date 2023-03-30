@@ -354,18 +354,27 @@ const editItem = (item, str) => {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
           model.value = tbs[0][0];
-          model.value["select_birthplace"] = {};
-          model.value["select_birthplace"][
-            model.value["birthplace_id"] || -1
-          ] = true;
-          model.value["select_birthplace_origin"] = {};
-          model.value["select_birthplace_origin"][
-            model.value["birthplace_origin_id"] || -1
-          ] = true;
-          model.value["select_place_register_permanent"] = {};
-          model.value["select_place_register_permanent"][
-            model.value["place_register_permanent"] || -1
-          ] = true;
+          if(model.value["birthplace_id"] == null){
+            model.value["select_birthplace"] = model.value["birthplace_name"];
+          }
+          if(model.value["birthplace_origin_id"] == null){
+            model.value["select_birthplace_origin"] = model.value["birthplace_origin_name"];
+          }
+          if(model.value["place_register_permanent"] == null){
+            model.value["select_place_register_permanent"] = model.value["place_register_permanent_name"];
+          }
+          // model.value["select_birthplace"] = {};
+          // model.value["select_birthplace"][
+          //   model.value["birthplace_id"] || -1
+          // ] = true;
+          // model.value["select_birthplace_origin"] = {};
+          // model.value["select_birthplace_origin"][
+          //   model.value["birthplace_origin_id"] || -1
+          // ] = true;
+          // model.value["select_place_register_permanent"] = {};
+          // model.value["select_place_register_permanent"][
+          //   model.value["place_register_permanent"] || -1
+          // ] = true;
           if (model.value["recruitment_date"] != null) {
             model.value["recruitment_date"] = new Date(
               model.value["recruitment_date"]
