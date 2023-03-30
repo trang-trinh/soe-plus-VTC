@@ -308,7 +308,7 @@ const files = ref([]);
 const headerDialog = ref();
 const displayDialog = ref(false);
 const openAddDialog = (str) => {
-  forceRerender();
+  forceRerender(0);
   isAdd.value = true;
   model.value = {
     status: 0,
@@ -2081,7 +2081,7 @@ onMounted(() => {
 
   <!-- Dialog -->
   <dilogprofile
-    :key="componentKey"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
