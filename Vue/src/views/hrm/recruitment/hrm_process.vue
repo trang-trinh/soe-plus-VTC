@@ -1053,6 +1053,7 @@ const send = () => {
     formData.append("files", file);
   }
   formData.append("hrm_obj", JSON.stringify(selectedStamps.value));
+  if(!checkReturn.value){
   axios
     .put(baseURL + "/api/hrm_campage_process/update_hrm_campage_process", formData, config)
     .then((response) => {
@@ -1081,7 +1082,40 @@ const send = () => {
         confirmButtonText: "OK",
       });
     });
-  
+  }
+  else{
+    axios
+    .put(
+      baseURL + "/api/hrm_campage_process/return_hrm_campage_process",
+      formData,
+      config
+    )
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      swal.close();
+      toast.success("Trả lại thành công!");
+      closeDialogSend();
+    })
+    .catch((error) => {
+      console.log(error);
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+  }
 };
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
@@ -1482,18 +1516,26 @@ onMounted(() => {
                 />
               </template>
             </Column>
+        
             <Column
               field="content"
               header="Nội dung"
-              headerStyle="text-align:center;max-width:400px;height:50px"
-              bodyStyle="text-align:left;max-width:400px"
+              headerStyle="text-align:center;max-width:300px;height:50px"
+              bodyStyle="text-align:left;max-width:300px"
               headerClass="align-items-center justify-content-center text-center"
             >   <template #body="data">
              
              <div v-if="data.data.content ">{{ data.data.content  }}</div>
            </template>
             </Column>
-
+            <Column
+              field="approved_group_name"
+              header="Tên nhóm duyệt"
+              headerStyle="text-align:center;max-width:250px;height:50px"
+              bodyStyle="text-align:left;max-width:250px"
+              headerClass="align-items-center justify-content-center text-center"
+            >   
+            </Column>
             <Column
               field="count_emps"
               header="Module"
@@ -1642,10 +1684,10 @@ onMounted(() => {
     v-model:visible="displaySend"
     :style="{ width: '40vw' }"
     :maximizable="false"
-    :checkReturn="checkReturn"
+ 
     :closable="true"
     style="z-index: 1001"
-    @hide=" closeDialogSend"
+    @hide="closeDialogSend"
     :modal="true"
 
   >

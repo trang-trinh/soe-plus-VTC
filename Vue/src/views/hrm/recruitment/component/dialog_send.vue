@@ -42,7 +42,7 @@ const props = defineProps({
   displayDialog: Boolean,
   closeDialog: Function,
   modelsend: Object,
-  checkReturn:Boolean,
+
   dataSelected: Array,
 });
 
@@ -93,7 +93,7 @@ const send = () => {
     formData.append("files", file);
   }
   formData.append("hrm_obj", JSON.stringify(props.dataSelected));
-  if(!props.checkReturn){
+  
   axios
     .post(
       baseURL + "/api/hrm_campage_process/add_hrm_campage_process",
@@ -125,41 +125,6 @@ const send = () => {
         confirmButtonText: "OK",
       });
     });
-  }
-  else{
-    axios
-    .post(
-      baseURL + "/api/hrm_campage_process/return_hrm_campage_process",
-      formData,
-      config
-    )
-    .then((response) => {
-      if (response.data.err === "1") {
-        swal.fire({
-          title: "Thông báo!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-
-      swal.close();
-      toast.success("Gửi thành công!");
-      props.closeDialog();
-    })
-    .catch((error) => {
-      console.log(error);
-      swal.close();
-      swal.fire({
-        title: "Thông báo!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
-
-  }
   if (submitted.value) submitted.value = false;
 };
 const displayDialog = ref(false);

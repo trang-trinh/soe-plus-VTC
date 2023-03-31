@@ -648,7 +648,7 @@ const toggleExport = (event) => {
 const toggleAprroves = (event) => {
   var check = true;
   dataSelected.value.forEach((element) => {
-    if (element.status != 0) {
+    if (element.status != 0 && element.status != 6) {
       swal.fire({
         title: "Thông báo!",
         text: "Chỉ được chuyển xử lý bản ghi có trạng thái lập kế hoạch!",
