@@ -77,22 +77,54 @@ const saveModel = (is_continue) => {
   });
   var obj = { ...props.model };
   if (obj["select_birthplace"] != null) {
-    obj["birthplace_id"] =
-      Object.keys(obj["select_birthplace"])[0] == -1
-        ? null
-        : Object.keys(obj["select_birthplace"])[0];
+    // obj["birthplace_id"] =
+    //   Object.keys(obj["select_birthplace"])[0] == -1
+    //     ? null
+    //     : Object.keys(obj["select_birthplace"])[0];
+    var checkname = listPlaceDetails1.value.findIndex(
+      (x) => x["place_details_id"] === (obj["select_birthplace"] || "")
+    );
+    if (checkname === -1) {
+      obj["birthplace_name"] = obj["select_birthplace"] || "";
+      obj["birthplace_id"] = null;
+    } else {
+      obj["birthplace_id"] = obj["select_birthplace"];
+    }
   }
   if (obj["select_birthplace_origin"] != null) {
-    obj["birthplace_origin_id"] =
-      Object.keys(obj["select_birthplace_origin"])[0] == -1
-        ? null
-        : Object.keys(obj["select_birthplace_origin"])[0];
+    // obj["birthplace_origin_id"] =
+    //   Object.keys(obj["select_birthplace_origin"])[0] == -1
+    //     ? null
+    //     : Object.keys(obj["select_birthplace_origin"])[0];
+    var checkname = listPlaceDetails2.value.findIndex(
+      (x) => x["place_details_id"] === (obj["select_birthplace_origin"] || "")
+    );
+    if (checkname === -1) {
+      obj["birthplace_origin_name"] = obj["select_birthplace_origin"] || "";
+      obj["birthplace_origin_id"] = null;
+    } else {
+      obj["birthplace_origin_id"] = obj["select_birthplace_origin"];
+    }
   }
   if (obj["select_place_register_permanent"] != null) {
-    obj["place_register_permanent"] =
-      Object.keys(obj["select_place_register_permanent"])[0] == -1
-        ? null
-        : Object.keys(obj["select_place_register_permanent"])[0];
+    // obj["place_register_permanent"] =
+    //   Object.keys(obj["select_place_register_permanent"])[0] == -1
+    //     ? null
+    //     : Object.keys(obj["select_place_register_permanent"])[0];
+    // obj["place_register_permanent_name"] = Object.keys(
+    //   obj["select_place_register_permanent"]
+    // )[1];
+    var checkname = listPlaceDetails3.value.findIndex(
+      (x) =>
+        x["place_details_id"] === (obj["select_place_register_permanent"] || "")
+    );
+    if (checkname === -1) {
+      obj["place_register_permanent_name"] =
+        obj["select_place_register_permanent"] || "";
+      obj["place_register_permanent"] = null;
+    } else {
+      obj["place_register_permanent"] = obj["select_place_register_permanent"];
+    }
   }
   let formData = new FormData();
   formData.append("isAdd", props.isAdd);
@@ -1746,7 +1778,10 @@ onMounted(() => {
               <template #header>
                 <Toolbar class="w-full custoolbar p-0 font-bold">
                   <template #start>
-                    <span>8. Kinh nghiệm làm việc</span></template
+                    <span
+                      >8. Quá trình công tác (đơn vị cũ)/Kinh nghiệm làm
+                      việc</span
+                    ></template
                   >
                   <template #end>
                     <a
@@ -1850,6 +1885,23 @@ onMounted(() => {
                       </template>
                     </Column>
                     <Column
+                      field="address"
+                      header="Địa chỉ"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.address"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
                       field="role"
                       header="Vị trí"
                       headerStyle="text-align:center;width:150px;height:50px"
@@ -1863,6 +1915,23 @@ onMounted(() => {
                           type="text"
                           class="ip36"
                           maxLength="50"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="wage"
+                      header="Mức lương"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.wage"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
                         />
                       </template>
                     </Column>
@@ -1909,6 +1978,23 @@ onMounted(() => {
                       <template #body="slotProps">
                         <InputText
                           v-model="slotProps.data.description"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="reason"
+                      header="Lý do nghỉ việc"
+                      headerStyle="text-align:center;width:200px;height:50px"
+                      bodyStyle="text-align:center;width:200px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.reason"
                           spellcheck="false"
                           type="text"
                           class="ip36"
@@ -2076,6 +2162,13 @@ onMounted(() => {
 @import url(./stylehrm.css);
 </style>
 <style lang="scss" scoped>
+::v-deep(.p-datatable) {
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+}
 ::v-deep(.d-lang-table) {
   .p-datatable-thead .justify-content-center .p-column-header-content {
     justify-content: center !important;
