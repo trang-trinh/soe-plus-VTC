@@ -656,12 +656,15 @@ const addRow = (type) => {
   } else if (type === 4) {
     obj = {
       company: null,
+      address: null,
       role: null,
+      wage: null,
       start_date: null,
       end_date: null,
       reference_name: null,
       reference_phone: null,
       description: null,
+      reason: null,
     };
   }
   if (datachilds.value[type] == null) {
