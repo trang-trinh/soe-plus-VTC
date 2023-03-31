@@ -81,7 +81,6 @@ const saveModel = (is_continue) => {
     //   Object.keys(obj["select_birthplace"])[0] == -1
     //     ? null
     //     : Object.keys(obj["select_birthplace"])[0];
-    // obj["birthplace_name"] = Object.keys(obj["select_birthplace"])[1];
     var checkname = listPlaceDetails1.value.findIndex(
       (x) => x["place_details_id"] === (obj["select_birthplace"] || "")
     );
@@ -97,9 +96,6 @@ const saveModel = (is_continue) => {
     //   Object.keys(obj["select_birthplace_origin"])[0] == -1
     //     ? null
     //     : Object.keys(obj["select_birthplace_origin"])[0];
-    // obj["birthplace_origin_name"] = Object.keys(
-    //   obj["select_birthplace_origin"]
-    // )[1];
     var checkname = listPlaceDetails2.value.findIndex(
       (x) => x["place_details_id"] === (obj["select_birthplace_origin"] || "")
     );
@@ -428,8 +424,6 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 1)"
                     :options="listPlaceDetails1"
                     :filter="true"
-                    :editable="true"
-                    :showClear="true"
                     v-model="props.model.select_birthplace"
                     optionLabel="name"
                     optionValue="name"
@@ -457,8 +451,6 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 2)"
                     :options="listPlaceDetails2"
                     :filter="true"
-                    :editable="true"
-                    :showClear="true"
                     v-model="props.model.select_birthplace_origin"
                     optionLabel="name"
                     optionValue="name"
@@ -486,8 +478,6 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 3)"
                     :options="listPlaceDetails3"
                     :filter="true"
-                    :editable="true"
-                    :showClear="true"
                     v-model="props.model.select_place_register_permanent"
                     optionLabel="name"
                     optionValue="name"

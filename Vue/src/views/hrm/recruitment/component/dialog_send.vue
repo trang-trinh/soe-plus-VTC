@@ -41,17 +41,16 @@ const props = defineProps({
   headerDialog: String,
   displayDialog: Boolean,
   closeDialog: Function,
-  modelsend:Object,
- 
-  dataSelected:Array,
- 
+  modelsend: Object,
+  checkReturn:Boolean,
+  dataSelected: Array,
 });
 
 //Function
- 
+
 const send = () => {
   submitted.value = true;
-  if (!process.value.config_process_id) {
+  if (!process.value.key_id) {
     swal.fire({
       title: "Thông báo!",
       text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
@@ -67,22 +66,40 @@ const send = () => {
     },
   });
   var obj = { ...props.modelsend };
-  obj.key_id=process.value.config_process_id;
-  obj.content=process.value.content;
  
-
+  if(props.modelsend.type_send==2){
+    let strv="",strc="";
+    process.value.key_id.forEach(element => {
+      strv+=strc+element.code;
+      strc=",";
+ });
+    obj.key_id =strv;
+  }
+  else  if(props.modelsend.type_send==1){
+    obj.key_id = process.value.key_id.code;
+  }
+  else{
+    obj.key_id = process.value.key_id;
+  }
+  obj.content = process.value.content;
+ 
   let formData = new FormData();
   formData.append("type_send", obj["type_send"]);
   formData.append("key_id", obj["key_id"]);
   formData.append("type_module", obj["type_module"]);
-  formData.append("content", obj["content"]); 
+  formData.append("content", obj["content"]);
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
     formData.append("files", file);
   }
   formData.append("hrm_obj", JSON.stringify(props.dataSelected));
+  if(!props.checkReturn){
   axios
-    .post(baseURL + "/api/hrm_campage_process/add_hrm_campage_process", formData, config)
+    .post(
+      baseURL + "/api/hrm_campage_process/add_hrm_campage_process",
+      formData,
+      config
+    )
     .then((response) => {
       if (response.data.err === "1") {
         swal.fire({
@@ -93,11 +110,10 @@ const send = () => {
         });
         return;
       }
-      
+
       swal.close();
       toast.success("Gửi thành công!");
       props.closeDialog();
-      
     })
     .catch((error) => {
       console.log(error);
@@ -109,14 +125,48 @@ const send = () => {
         confirmButtonText: "OK",
       });
     });
+  }
+  else{
+    axios
+    .post(
+      baseURL + "/api/hrm_campage_process/return_hrm_campage_process",
+      formData,
+      config
+    )
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      swal.close();
+      toast.success("Gửi thành công!");
+      props.closeDialog();
+    })
+    .catch((error) => {
+      console.log(error);
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+
+  }
   if (submitted.value) submitted.value = false;
 };
-const displayDialog=ref(false);
+const displayDialog = ref(false);
 
 const filesList = ref([]);
- 
+
 const onUploadFile = (event) => {
- 
   filesList.value = [];
 
   var ms = false;
@@ -138,7 +188,6 @@ const onUploadFile = (event) => {
             ms = true;
           } else {
             filesList.value.push(fi);
-       
           }
         } else {
           filesList.value = filesList.value.filter((x) => x.name != fi.name);
@@ -171,28 +220,166 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
-const process=ref({
-  content:null,
-  config_process_id:null
-})
-const listProcess=ref([]);
-const initTudien=()=>{
-  if(props.modelsend.type_module==0&& props.modelsend.type_send==0){
+const process = ref({
+  content: null,
+  key_id: null,
+});
+const listProcess = ref([]);
+const listAproved = ref([]);
+const listUsers = ref([]);
+const initTudien = () => {
+  if (props.modelsend.type_module == 0 && props.modelsend.type_send == 0) {
     listProcess.value = [];
     axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "sys_config_process_list_module",
+              par: [
+                { par: "search", va: null },
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "module_key", va: props.modelsend.module_key},
+                { par: "pageno", va: 0 },
+                { par: "pagesize", va: 100000 },
+                { par: "status", va: null },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        if (response != null && response.data != null) {
+          let data = JSON.parse(response.data.data)[0];
+
+          data.forEach((element, i) => {
+            listProcess.value.push({
+              name: element.config_process_name,
+              code: element.config_process_id,
+            });
+          });
+        } else {
+          listProcess.value = [];
+        }
+        swal.close();
+      })
+      .catch((error) => {
+        console.log(error);
+        swal.close();
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      });
+  } else if (
+    props.modelsend.type_module == 0 &&
+    props.modelsend.type_send == 1
+  ) {
+    listAproved.value = [];
+    axios
+      .post(
+        baseURL + "/api/HRM_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "sys_config_approved_list_module",
+              par: [
+                { par: "pageno", va: 0 },
+                { par: "pagesize", va: 100000 },
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "module_key", va:props.modelsend.module_key },
+                { par: "status", va: null },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        if (response != null && response.data != null) {
+          var data = response.data.data;
+          if (data != null) {
+            let tbs = JSON.parse(data);
+            if (tbs[0] != null && tbs[0].length > 0) {
+              if (tbs[0].length > 0) {
+                tbs[0].forEach((element, i) => {
+                  element["STT"] = i + 1;
+                  if (element["signusers"] != null) {
+                    element["signusers"] = JSON.parse(element["signusers"]);
+                  }
+                  if (element["signusers"] != null) {
+                    element["signusers"].forEach((ilem) => {
+                      if (ilem.is_order == "") ilem.is_order = null;
+                      else ilem.is_order = Number(ilem.is_order);
+                      if (ilem.approved_users_id == "")
+                        ilem.approved_users_id = null;
+                      else
+                        ilem.approved_users_id = Number(ilem.approved_users_id);
+                      if (ilem.department_id == "") ilem.department_id = null;
+                      else ilem.department_id = Number(ilem.department_id);
+                      if (ilem.avatar == "") ilem.avatar = null;
+                    });
+                     
+                    listAproved.value.push({
+                      name: element.approved_group_name,
+                      code: element.approved_groups_id,
+                      data: element,
+                      signusers: element.signusers,
+                    });
+                  }
+                });
+              }
+            }
+          }
+        }
+        swal.close();
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        console.log(error);
+        return;
+      });
+  }
+  else  if (props.modelsend.type_module == 0 && props.modelsend.type_send == 2){
+    listUsers.value = [];
+  axios
     .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
+      baseURL + "/api/device_card/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_config_process_list_module",
+            proc: "sys_users_list_dd",
             par: [
               { par: "search", va: null },
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "module_key", va:"M14"},
-              { par: "pageno", va:0 },
-              { par: "pagesize", va: 100000},
+              { par: "role_id", va: null },
+              {
+                par: "organization_id",
+                va: store.getters.user.organization_id,
+              },
+              { par: "department_id", va: null },
+              { par: "position_id", va: null },
+              { par: "pageno", va: 1 },
+              { par: "pagesize", va: 100000 },
+              { par: "isadmin", va: null },
               { par: "status", va: null },
+              { par: "start_date", va: null },
+              { par: "end_date", va: null },
             ],
           }),
           SecretKey,
@@ -202,46 +389,35 @@ const initTudien=()=>{
       config
     )
     .then((response) => {
-      if (response != null && response.data != null) {
-        let data = JSON.parse(response.data.data)[0];
- 
-      
-        data.forEach((element, i) => {
-          listProcess.value.push({
-            name:element.config_process_name,
-            code:element.config_process_id
-          })
-
-
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        listUsers.value.push({
+          name: element.full_name,
+          code: element.user_id,
+          avatar: element.avatar,
+          department_name: element.department_name,
+          role_name: element.role_name,
+          position_name: element.position_name,
         });
- 
-
-      
-      
-      } else {
-        listdatas.value = [];
-      }
-
-      swal.close();
- 
+      });
  
     })
     .catch((error) => {
-   
-      console.log(error);
-      swal.close();
-      swal.fire({
-        title: "Thông báo!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
+ 
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
     });
+ 
   }
-}
-const checkTimline=ref(false);
-const signforms=ref();
+};
+const checkTimline = ref(false);
+const signforms = ref();
 const changeProcedure = (procedureform_id) => {
   axios
     .post(
@@ -251,8 +427,8 @@ const changeProcedure = (procedureform_id) => {
           JSON.stringify({
             proc: "sys_link_approved_list",
             par: [
-              { par: "search", va: null},
-              { par: "config_process_id", va:procedureform_id},
+              { par: "search", va: null },
+              { par: "config_process_id", va: procedureform_id },
             ],
           }),
           SecretKey,
@@ -278,18 +454,15 @@ const changeProcedure = (procedureform_id) => {
                 }
               });
             }
-            checkTimline.value=true;
+            checkTimline.value = true;
           } else {
             signforms.value = [];
           }
-         
         }
       }
       swal.close();
-  
     })
     .catch((error) => {
-   
       swal.close();
       swal.fire({
         title: "Thông báo!",
@@ -301,8 +474,8 @@ const changeProcedure = (procedureform_id) => {
     });
 };
 onMounted(() => {
-    displayDialog.value=props.displayDialog;
-    initTudien();
+  displayDialog.value = props.displayDialog;
+  initTudien();
 });
 </script>
 <template>
@@ -315,7 +488,6 @@ onMounted(() => {
     style="z-index: 1001"
     @hide="props.closeDialog"
     :modal="true"
-
   >
     <form>
       <div class="grid formgrid m-2">
@@ -335,32 +507,28 @@ onMounted(() => {
             </label>
             <div>
               <div v-if="props.modelsend.type_send === 0">
-                 
                 <Dropdown
                   :options="listProcess"
                   :filter="true"
                   :showClear="true"
                   :class="{
-                    'p-invalid': process.config_process_id == null && submitted,
+                    'p-invalid': process.key_id == null && submitted,
                   }"
-                  v-model="process.config_process_id"
+                  v-model="process.key_id"
                   optionLabel="name"
                   optionValue="code"
                   placeholder="Chọn quy trình"
                   class="ip36 mb-2"
-                  @change="changeProcedure(process.config_process_id)"
+                  @change="changeProcedure(process.key_id)"
                 >
-                  
                 </Dropdown>
                 <div
-                  v-if="
-                  checkTimline
-                  "
+                  v-if="checkTimline"
                   class="p-inputtext ip36 p-3"
                   style="min-height: 36px; height: auto"
                 >
                   <Timeline
-                    :value=" signforms"
+                    :value="signforms"
                     align="alternate"
                     class="customized-timeline"
                   >
@@ -370,12 +538,13 @@ onMounted(() => {
                           {{ slotProps.item.approved_group_name }}
                         </template>
                         <template #subtitle>
-                        
-                          {{ slotProps.item.approved_type == 1
-                      ? "Duyệt một nhiều"
-                      : slotProps.item.approved_type == 2
-                      ? "Duyệt tuần tự"
-                      : "Duyệt ngẫu nhiên" }}
+                          {{
+                            slotProps.item.approved_type == 1
+                              ? "Duyệt một nhiều"
+                              : slotProps.item.approved_type == 2
+                              ? "Duyệt tuần tự"
+                              : "Duyệt ngẫu nhiên"
+                          }}
                         </template>
                         <template #content>
                           <AvatarGroup class="format-flex-center">
@@ -412,9 +581,7 @@ onMounted(() => {
                               "
                               v-bind:label="
                                 '+' +
-                                (
-                                  slotProps.item.signusers.length - 3
-                                ).toString()
+                                (slotProps.item.signusers.length - 3).toString()
                               "
                               shape="circle"
                               size="large"
@@ -428,172 +595,245 @@ onMounted(() => {
                   </Timeline>
                 </div>
               </div>
-              <!-- <div v-if="props.modelsend.is_type_send === 1">
+              <div v-if="props.modelsend.type_send === 1"  class="col-12 md:col-12 p-0 flex">
                 <Dropdown
-                  :options="props.modelsend.signforms"
+                  v-model="process.key_id"
+                  :options="listAproved"
+                  optionLabel="name"
+               
                   :filter="true"
-                  :showClear="true"
-                  :class="{
-                    'p-invalid': props.modelsend.key_id == null && submitted,
-                  }"
-                  v-model="props.modelsend.key_id"
-                  optionLabel="signform_name"
-                  optionValue="signform_id"
+                  panelClass="d-design-dropdown"
                   placeholder="Chọn nhóm duyệt"
-                  class="ip36 mb-2"
-                  @change="changeSign(props.modelsend.key_id)"
+                  class="p-0 p-design-dropdown  w-full   mb-2"
+                  ref="isRefAprroved"
                 >
+                  <template #value="slotProps">
+                    <div
+                      class="p-dropdown-car-value format-center w-full h-full"
+                      v-if="slotProps.value"
+                    >
+                      <div>
+                        <div class="font-bold p-2 px-0">
+                          {{ slotProps.value.name }}
+                        </div>
+
+                        <div class="flex px-2 format-center py-0">
+                          <div v-if="slotProps.value.signusers">
+                            <AvatarGroup
+                              v-if="
+                                slotProps.value.signusers &&
+                                slotProps.value.signusers.length > 0
+                              "
+                            >
+                              <Avatar
+                                v-for="(
+                                  elen, index1
+                                ) in slotProps.value.signusers.slice(0, 3)"
+                                v-bind:label="
+                                  elen.avatar
+                                    ? ''
+                                    : elen.last_name.substring(0, 1)
+                                "
+                                v-bind:image="
+                                  elen.avatar
+                                    ? basedomainURL + elen.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                v-tooltip.bottom="{
+                                  value:
+                                    elen.full_name +
+                                    '<br/>' +
+                                    elen.position_name +
+                                    '<br/>' +
+                                    elen.department_name,
+                                  escape: true,
+                                }"
+                                :key="elen.user_id"
+                                style="
+                                  border: 2px solid white;
+                                  color: white;
+                                  width: 2.5rem;
+                                  height: 2.5rem;
+                                "
+                                @error="
+                                  basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                size="large"
+                                shape="circle"
+                                class="cursor-pointer"
+                                :style="{
+                                  backgroundColor: bgColor[index1 % 7],
+                                }"
+                              />
+                              <Avatar
+                                v-if="
+                                  slotProps.value.signusers &&
+                                  slotProps.value.signusers.length > 3
+                                "
+                                v-bind:label="
+                                  '+' +
+                                  (
+                                    slotProps.value.signusers.length - 3
+                                  ).toString()
+                                "
+                                shape="circle"
+                                size="large"
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                "
+                                class="cursor-pointer"
+                              />
+                            </AvatarGroup>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-else class="format-center h-full">
+                      {{ slotProps.placeholder }}
+                    </div>
+                  </template>
                   <template #option="slotProps">
-                    <div class="country-item flex align-items-center">
-                      <div class="pt-1 pl-2">
-                        {{ slotProps.option.signform_name }}
+                    <div class="p-dropdown-car-option format-center">
+                      <div>
+                        <div class="font-bold p-2 px-0">
+                          {{ slotProps.option.name }}
+                        </div>
+
+                        <div class="flex px-2 py-0 format-center">
+                          <div v-if="slotProps.option.signusers">
+                            <AvatarGroup
+                              v-if="
+                                slotProps.option.signusers &&
+                                slotProps.option.signusers.length > 0
+                              "
+                            >
+                              <Avatar
+                                v-for="(
+                                  elen, index1
+                                ) in slotProps.option.signusers.slice(0, 3)"
+                                v-bind:label="
+                                  elen.avatar
+                                    ? ''
+                                    : elen.last_name.substring(0, 1)
+                                "
+                                v-bind:image="
+                                  elen.avatar
+                                    ? basedomainURL + elen.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                v-tooltip.bottom="{
+                                  value:
+                                    elen.full_name +
+                                    '<br/>' +
+                                    elen.position_name +
+                                    '<br/>' +
+                                    elen.department_name,
+                                  escape: true,
+                                }"
+                                :key="elen.user_id"
+                                style="
+                                  border: 2px solid white;
+                                  color: white;
+                                  width: 2.5rem;
+                                  height: 2.5rem;
+                                "
+                                @error="
+                                  basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                size="large"
+                                shape="circle"
+                                class="cursor-pointer"
+                                :style="{
+                                  backgroundColor: bgColor[index1 % 7],
+                                }"
+                              />
+                              <Avatar
+                                v-if="
+                                  slotProps.option.signusers &&
+                                  slotProps.option.signusers.length > 3
+                                "
+                                v-bind:label="
+                                  '+' +
+                                  (
+                                    slotProps.option.signusers.length - 3
+                                  ).toString()
+                                "
+                                shape="circle"
+                                size="large"
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                "
+                                class="cursor-pointer"
+                              />
+                            </AvatarGroup>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </template>
                 </Dropdown>
-                <Card
-                  v-if="
-                    props.modelsend.key_id != null &&
-                    props.modelsend.signform != null
-                  "
-                  class="my-2"
-                >
-                  <template #title>
-                    {{ props.modelsend.signform.signform_name }}
-                  </template>
-                  <template #subtitle>
-                    {{ props.modelsend.signform.type_name }}
-                  </template>
-                  <template #content>
-                    <AvatarGroup class="format-flex-center">
-                      <Avatar
-                        v-for="(
-                          item, index
-                        ) in props.modelsend.signform.signuserforms.slice(0, 3)"
-                        v-bind:label="
-                          item.avatar ? '' : item.last_name.substring(0, 1)
-                        "
-                        v-bind:image="
-                          item.avatar
-                            ? basedomainURL + item.avatar
-                            : basedomainURL + '/Portals/Image/noimg.jpg'
-                        "
-                        v-tooltip.top="item.full_name"
-                        :key="item.user_id"
-                        style="border: 2px solid white; color: white"
-                        @click="onTaskUserFilter(item)"
-                        @error="basedomainURL + '/Portals/Image/noimg.jpg'"
-                        size="large"
-                        shape="circle"
-                        class="cursor-pointer"
-                        :style="{ backgroundColor: bgColor[index % 7] }"
-                      />
-                      <Avatar
-                        v-if="
-                          props.modelsend.signform.signuserforms != null &&
-                          props.modelsend.signform.signuserforms.length > 3
-                        "
-                        v-bind:label="
-                          '+' +
-                          (
-                            props.modelsend.signform.signuserforms.length - 3
-                          ).toString()
-                        "
-                        shape="circle"
-                        size="large"
-                        style="background-color: #2196f3; color: #ffffff"
-                        class="cursor-pointer"
-                      />
-                    </AvatarGroup>
-                  </template>
-                </Card>
               </div>
-              <div v-if="props.modelsend.is_type_send === 2">
-                <Dropdown
-                  :options="props.modelsend.users"
+              <div v-if="props.modelsend.type_send === 2">
+              
+                <MultiSelect
+                  :options="listUsers"
                   :filter="true"
                   :showClear="true"
                   :class="{
-                    'p-invalid': props.modelsend.user == null && submitted,
+                    'p-invalid': process.key_id == null && submitted,
                   }"
-                  v-model="props.modelsend.user"
-                  optionLabel="full_name"
+                  v-model="process.key_id"
+                  optionLabel="name"
+                  optioncode="code"
+                  display="chip"
                   placeholder="Chọn người duyệt"
                   class="ip36 mb-2"
-                  @change="changeUser(props.modelsend.user)"
+            
                   style="height: auto; min-height: 36px"
                 >
-                  <template #value="slotProps">
-                    <div class="mt-2" v-if="slotProps.value">
-                      <Chip
-                        :image="slotProps.value.avatar"
-                        :label="slotProps.value.full_name"
-                        class="mr-2 mb-2 pl-0"
-                      >
-                        <div class="flex">
-                          <div class="format-flex-center">
-                            <Avatar
-                              v-bind:label="
-                                slotProps.value.avatar
-                                  ? ''
-                                  : (slotProps.value.last_name ?? '').substring(
-                                      0,
-                                      1
-                                    )
-                              "
-                              v-bind:image="
-                                basedomainURL + slotProps.value.avatar
-                              "
-                              style="
-                                background-color: #2196f3;
-                                color: #ffffff;
-                                width: 2rem;
-                                height: 2rem;
-                              "
-                              :style="{
-                                background:
-                                  bgColor[slotProps.value.is_order % 7],
-                              }"
-                              class="mr-2 text-avatar"
-                              size="xlarge"
-                              shape="circle"
-                            />
-                          </div>
-                          <div class="format-flex-center">
-                            <span>{{ slotProps.value.full_name }}</span>
-                          </div>
-                        </div>
-                      </Chip>
-                    </div>
-                    <span v-else> {{ slotProps.placeholder }} </span>
-                  </template>
+             
                   <template #option="slotProps">
                     <div v-if="slotProps.option" class="flex">
                       <div class="format-center">
-                        <Avatar
-                          v-bind:label="
-                            slotProps.option.avatar
-                              ? ''
-                              : slotProps.option.last_name.substring(0, 1)
-                          "
-                          v-bind:image="basedomainURL + slotProps.option.avatar"
-                          style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 3rem;
-                            height: 3rem;
-                            font-size: 1.4rem !important;
-                          "
-                          :style="{
-                            background: bgColor[slotProps.option.is_order % 7],
-                          }"
-                          class="text-avatar"
-                          size="xlarge"
-                          shape="circle"
-                        />
+                        <Avatar   style="color:#fff"
+                                          v-bind:label="
+                                            slotProps.option.avatar
+                                              ? ''
+                                              : slotProps.option.name.substring(
+                                                  slotProps.option.name.lastIndexOf(
+                                                    ' '
+                                                  ) + 1,
+                                                  slotProps.option.name.lastIndexOf(
+                                                    ' '
+                                                  ) + 2
+                                                )
+                                          "
+                                          :image="
+                                            basedomainURL +
+                                            slotProps.option.avatar
+                                          "
+                                          size="small"
+                                          :style="
+                                            slotProps.option.avatar
+                                              ? 'background-color: #2196f3'
+                                              : 'background:' +
+                                                bgColor[
+                                                  slotProps.option.name.length %
+                                                    7
+                                                ]
+                                          "
+                                          shape="circle"
+                                          @error="
+                                            $event.target.src =
+                                              basedomainURL +
+                                              '/Portals/Image/nouser1.png'
+                                          "
+                                        /> 
                       </div>
                       <div class="ml-3">
-                        <div class="mb-1">{{ slotProps.option.full_name }}</div>
+                        <div class="mb-1">{{ slotProps.option.name }}</div>
                         <div class="description">
                           <div>{{ slotProps.option.position_name || "" }}</div>
                           <div>
@@ -602,10 +842,10 @@ onMounted(() => {
                         </div>
                       </div>
                     </div>
-                    <span v-else> Chưa có dữ liệu tuần </span>
+                 
                   </template>
-                </Dropdown>
-              </div> -->
+                </MultiSelect>
+              </div>
             </div>
           </div>
         </div>
@@ -624,20 +864,19 @@ onMounted(() => {
           <div class="form-group">
             <label>Tệp đính kèm</label>
             <FileUpload
-            chooseLabel="Chọn tệp"
-            :showUploadButton="false"
-            :showCancelButton="false"
-            :multiple="false"
-            :maxFileSize="524288000"
-            @select="onUploadFile"
-            @remove="removeFile"
-            :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
-          >
-            <template #empty>
-              <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
-            </template>
-          </FileUpload>
-          
+              chooseLabel="Chọn tệp"
+              :showUploadButton="false"
+              :showCancelButton="false"
+              :multiple="false"
+              :maxFileSize="524288000"
+              @select="onUploadFile"
+              @remove="removeFile"
+              :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
+            >
+              <template #empty>
+                <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
+              </template>
+            </FileUpload>
           </div>
         </div>
       </div>
