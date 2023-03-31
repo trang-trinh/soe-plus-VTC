@@ -679,13 +679,16 @@ const process=ref({
 });
 const headerSend = ref( );
 const displaySend = ref(false);
+const checkReturn = ref(false);
+
 const itemAproves = ref([
   {
     label: "Xác nhận duyệt",
     icon: "pi pi-check-circle",
     command: (event) => {
       headerSend.value = "Xác nhận duyệt";
-     process.value={  content:null}
+     process.value={  content:null};
+     checkReturn.value=false;
       displaySend.value = true;
     },
   },
@@ -693,7 +696,10 @@ const itemAproves = ref([
     label: "Trả lại",
     icon: "pi pi-replay",
     command: (event) => {
-      showExport.value = true;
+      headerSend.value = "Trả lại";
+     process.value={  content:null};
+     checkReturn.value=true;
+      displaySend.value = true;
     },
   },
    
@@ -1636,6 +1642,7 @@ onMounted(() => {
     v-model:visible="displaySend"
     :style="{ width: '40vw' }"
     :maximizable="false"
+    :checkReturn="checkReturn"
     :closable="true"
     style="z-index: 1001"
     @hide=" closeDialogSend"

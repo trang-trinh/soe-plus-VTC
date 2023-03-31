@@ -77,56 +77,22 @@ const saveModel = (is_continue) => {
   });
   var obj = { ...props.model };
   if (obj["select_birthplace"] != null) {
-    // obj["birthplace_id"] =
-    //   Object.keys(obj["select_birthplace"])[0] == -1
-    //     ? null
-    //     : Object.keys(obj["select_birthplace"])[0];
-    // obj["birthplace_name"] = Object.keys(obj["select_birthplace"])[1];
-    var checkname = listPlaceDetails1.value.findIndex(
-      (x) => x["place_details_id"] === (obj["select_birthplace"] || "")
-    );
-    if (checkname === -1) {
-      obj["birthplace_name"] = obj["select_birthplace"] || "";
-      obj["birthplace_id"] = null;
-    } else {
-      obj["birthplace_id"] = obj["select_birthplace"];
-    }
+    obj["birthplace_id"] =
+      Object.keys(obj["select_birthplace"])[0] == -1
+        ? null
+        : Object.keys(obj["select_birthplace"])[0];
   }
   if (obj["select_birthplace_origin"] != null) {
-    // obj["birthplace_origin_id"] =
-    //   Object.keys(obj["select_birthplace_origin"])[0] == -1
-    //     ? null
-    //     : Object.keys(obj["select_birthplace_origin"])[0];
-    // obj["birthplace_origin_name"] = Object.keys(
-    //   obj["select_birthplace_origin"]
-    // )[1];
-    var checkname = listPlaceDetails2.value.findIndex(
-      (x) => x["place_details_id"] === (obj["select_birthplace_origin"] || "")
-    );
-    if (checkname === -1) {
-      obj["birthplace_origin_name"] = obj["select_birthplace_origin"] || "";
-      obj["birthplace_origin_id"] = null;
-    } else {
-      obj["birthplace_origin_id"] = obj["select_birthplace_origin"];
-    }
+    obj["birthplace_origin_id"] =
+      Object.keys(obj["select_birthplace_origin"])[0] == -1
+        ? null
+        : Object.keys(obj["select_birthplace_origin"])[0];
   }
   if (obj["select_place_register_permanent"] != null) {
-    // obj["place_register_permanent"] =
-    //   Object.keys(obj["select_place_register_permanent"])[0] == -1
-    //     ? null
-    //     : Object.keys(obj["select_place_register_permanent"])[0];
-    // obj["place_register_permanent_name"] = Object.keys(
-    //   obj["select_place_register_permanent"]
-    // )[1];
-    var checkname = listPlaceDetails3.value.findIndex(
-      (x) => x["place_details_id"] === (obj["select_place_register_permanent"] || "")
-    );
-    if (checkname === -1) {
-      obj["place_register_permanent_name"] = obj["select_place_register_permanent"] || "";
-      obj["place_register_permanent"] = null;
-    } else {
-      obj["place_register_permanent"] = obj["select_place_register_permanent"];
-    }
+    obj["place_register_permanent"] =
+      Object.keys(obj["select_place_register_permanent"])[0] == -1
+        ? null
+        : Object.keys(obj["select_place_register_permanent"])[0];
   }
   let formData = new FormData();
   formData.append("isAdd", props.isAdd);
@@ -426,8 +392,6 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 1)"
                     :options="listPlaceDetails1"
                     :filter="true"
-                    :editable="true"
-                    :showClear="true"
                     v-model="props.model.select_birthplace"
                     optionLabel="name"
                     optionValue="name"
@@ -455,8 +419,6 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 2)"
                     :options="listPlaceDetails2"
                     :filter="true"
-                    :editable="true"
-                    :showClear="true"
                     v-model="props.model.select_birthplace_origin"
                     optionLabel="name"
                     optionValue="name"
@@ -484,8 +446,6 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 3)"
                     :options="listPlaceDetails3"
                     :filter="true"
-                    :editable="true"
-                    :showClear="true"
                     v-model="props.model.select_place_register_permanent"
                     optionLabel="name"
                     optionValue="name"

@@ -94,20 +94,22 @@
 .type0 {
     background-color: #aaa;
 }
-
+.typenull {
+    background-color: #aaa;
+}
 .type1 {
     background-color: #33c9dc;
 }
 .type2 {
     background-color: #ff8b4e;
 }
-.type-p0 {
+.type-p1 {
     background-color: #ff8b4e;
 }
-.type-p1 {
+.type-p2 {
     background-color: #33c9dc;
 }
-.type-p2 {
+.type-p3 {
     background-color: #2196f3;
 }
 .description {

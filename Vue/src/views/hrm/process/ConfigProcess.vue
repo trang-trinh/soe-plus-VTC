@@ -75,9 +75,9 @@ const options = ref({
   totalRecordsAP: 0,
 });
 const types = ref([
-  { value: 0, title: "Duyệt tuần tự" },
-  { value: 1, title: "Duyệt một trong nhiều" },
-  { value: 2, title: "Duyệt ngẫu nhiên" },
+{ title: "Duyệt một nhiều", value: 1 },
+  { title: "Duyệt tuần tự", value: 2 },
+  { title: "Duyệt ngẫu nhiên", value: 3 },
 ]);
 
 const listModules = ref([]);
@@ -111,7 +111,7 @@ const openAddDialogProcedure = (str) => {
   sys_config_process.value = {
     status: true, 
     is_local: true,
-    config_process_type: 0,
+    config_process_type: 1,
     is_order: options.value.is_orderProcess,
   };
   options.value.config_process_id=null;
@@ -136,7 +136,7 @@ const openAddDialogSign = (str) => {
               { par: "pageno", va: options.value.pagenoAP },
               { par: "pagesize", va: options.value.pagesizeAP },
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "module_id", va: 235 },
+              { par: "module_key", va: "M13" },
               { par: "status", va: null },
             ],
           }),
@@ -215,7 +215,7 @@ const openAddDialogSign = (str) => {
 const closeDialogProcedure = () => {
   sys_config_process.value = {
     status: true,
-    config_process_type: 0,
+    config_process_type: 1,
      
   };
   displayDialogProcedure.value = false;
@@ -826,7 +826,7 @@ const initProcedure = (rf) => {
       if (response != null && response.data != null) {
         let data = JSON.parse(response.data.data)[0];
         let data1 = JSON.parse(response.data.data)[1];
-        debugger
+         
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.pageno * options.value.pagesize + i + 1;
@@ -1525,8 +1525,8 @@ emitter.on("emitData", (obj) => {
             <Panel   v-if="!(sys_config_process.is_local==true) ">
               <template #header><div class="font-bold">Danh sách nhóm duyệt </div></template>
               
-   <div class="w-full p-0" v-for="(slotProps, index) in signs" :key="index">
-    <Toolbar class="surface-0 m-0 p-0 border-0 w-full">
+             <div class="w-full p-0" v-for="(slotProps, index) in signs" :key="index">
+               <Toolbar class="surface-0 m-0 p-0 border-0 w-full">
                   <template #start>
                     <div class="flex align-items-center">
                       <div class="format-flex-center">

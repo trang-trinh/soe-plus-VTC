@@ -610,6 +610,7 @@ const closeDialogChart = () => {
 const modelsend = ref({
   type_send: 0,
   type_module: 0,
+  module_key:"M14"
 });
 const itemAproves = ref([
   {
@@ -625,14 +626,18 @@ const itemAproves = ref([
     label: "Chuyển đến nhóm",
     icon: "pi pi-users",
     command: (event) => {
-      showExport.value = true;
+      headerSend.value = "Chuyển đến nhóm";
+      modelsend.value.type_send = 1;
+      displaySend.value = true;
     },
   },
   {
     label: "Chuyển đích danh",
     icon: "pi pi-user-edit",
     command: (event) => {
-      showExport.value = true;
+      headerSend.value = "Chuyển đích danh";
+      modelsend.value.type_send = 2;
+      displaySend.value = true;
     },
   },
 ]);
@@ -787,6 +792,7 @@ const itemButMores = ref([
     command: (event) => {
        
       modelsend.value.key_id=dataSelected.value.recruitment_proposal_id;
+      console.log("ssos",modelsend.value);
       displayChart.value=true;
 
     },

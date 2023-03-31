@@ -143,14 +143,6 @@ const filters = ref({
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
   },
-  repair_created_date: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_BEFORE }],
-  },
-  repair_created_date: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_AFTER }],
-  },
 });
 //Phân trang dữ liệu
 const onPage = (event) => {
