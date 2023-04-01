@@ -1,5 +1,7 @@
-import { createApp, ref } from "vue";
+import { createApp, ref,inject } from "vue";
 import App from "./App.vue";
+import {decr } from "./util/function.js";
+
 //import cors from "cors"
 import router from "./router";
 import devtools from "devtools-detect";
@@ -108,7 +110,8 @@ import Steps from "primevue/steps";
 import VueSidebarMenu from "vue-sidebar-menu";
 import Toast from "vue-toastification";
 import Editor from "primevue/editor";
-import axios from "redaxios";
+//import axios from "redaxios";
+import axios from 'axios'
 import VueAxios from "vue-axios";
 // Import the CSS or use your own!
 import "@vuepic/vue-datepicker/dist/main.css";
@@ -149,6 +152,7 @@ import {
   faCartFlatbed,
   faBoxesStacked,
   faSquareMinus,
+  faSquarePlus,
   faMoneyBill1Wave,
   faRotateLeft,
   faScrewdriverWrench,
@@ -214,6 +218,7 @@ library.add(
   faCartFlatbed,
   faBoxesStacked,
   faSquareMinus,
+  faSquarePlus,
   faMoneyBill1Wave,
   faCircleUp,
   faScrewdriverWrench,
@@ -281,13 +286,26 @@ app.use(VueAxios, axios);
 app.use(store);
 app.use(CKEditor);
 app.use(ColorPicker);
-
 const options = {
   confirmButtonColor: "#0d6efd",
   cancelButtonColor: "#ff7674",
 };
 axios.defaults.baseURL = baseURL;
 axios.defaults.withCredentials = true;
+// axios.interceptors.response.use(response => {
+//     // if(response.mahoa==true){
+//     //     response.data=descript(response.data);
+//     //     debugger
+//     // }
+//     debugger
+//     if(response.data.dataKey){
+//       let dataKey = decr(response.data.dataKey, SecretKey, cryoptojs) ;
+//     }
+//     return response;
+//  }, error => {
+//     console.log(error);
+//    return error;
+//  });
 const emitter = mitt();
 app.config.globalProperties.emitter = emitter;
 app.provide("emitter", emitter);
