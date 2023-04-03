@@ -23,6 +23,13 @@ const addLog = (log) => {
 };
 const datalists = ref([]);
 const loadData = () => {
+  swal.fire({
+    width: 100,
+    height: 100,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
   axios
     .post(
       baseURL + "/api/TaskProc/getTaskData",
@@ -45,7 +52,9 @@ const loadData = () => {
           x.manage_members != null ? JSON.parse(x.manage_members) : [];
         x.work_members = x.work_members ? JSON.parse(x.work_members) : [];
       });
+      datalists.value = [];
       datalists.value = data;
+      swal.close();
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -64,6 +73,28 @@ const loadData = () => {
       }
     });
 };
+const listDropdownStatus = ref([
+  {
+    value: 0,
+    label: "Chưa bắt đầu",
+    bg_color: "#bbbbbb",
+    label_color: "#FFFFFF",
+  },
+  {
+    value: 1,
+    label: "Đang thực hiện",
+    bg_color: "#2196f3",
+    label_color: "#FFFFFF",
+  },
+  {
+    value: 2,
+    label: "Đã hoàn thành",
+    bg_color: "#04D215",
+    label_color: "#FFFFFF",
+  },
+  { value: 3, label: "Tạm dừng", bg_color: "#d87777", label_color: "#FFFFFF" },
+  { value: 4, label: "Đóng", bg_color: "red", label_color: "#FFFFFF" },
+]);
 const formatData = (e, i) => {
   if (i == 2 || i == 3)
     return e ? moment(new Date(e)).format("HH:mm DD/MM/YYYY") : "";
@@ -75,6 +106,8 @@ const formatData = (e, i) => {
       });
       return string;
     } else return "";
+  if (i == 8)
+    return listDropdownStatus.value.filter((x) => x.value == e)[0].label;
 };
 const col = ref([
   {
@@ -167,18 +200,34 @@ const col = ref([
     class: "align-items-center justify-content-center text-center min-w-8rem",
     headerClass: "",
     bodyClass: "",
+    isTemplate: true,
+    template: (e, header) => {
+      return formatData(e, header);
+    },
+  },
+  {
+    header: "Tệp tài liệu",
+    field: "status",
+    class: "align-items-center justify-content-center text-center min-w-8rem",
+    headerClass: "",
+    bodyClass: "",
     isTemplate: false,
     template: (e, header) => {
       return formatData(e, header);
     },
   },
 ]);
+const refresh = () => {
+  loadData();
+};
+const options = ref({});
 onMounted(() => {
   loadData();
 });
 </script>
 <template>
-  <div class="main-layout true flex-grow-1 p-2">
+  <div class="main-layout true flex-grow-1 p-2 pb-4">
+    {{ options }}
     <DataTable
       :value="datalists"
       scrollable
@@ -189,6 +238,9 @@ onMounted(() => {
         <ReportHeader
           class="h-4rem"
           :headersName="'BÁO CÁO THỐNG KÊ TỔNG HỢP DỰ ÁN'"
+          :options="options"
+          :refresh="refresh"
+          :listDropdownStatus="listDropdownStatus"
         ></ReportHeader>
       </template>
       <Column
