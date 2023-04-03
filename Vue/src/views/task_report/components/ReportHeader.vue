@@ -26,14 +26,57 @@ const options = ref({
   filterDept: "",
 });
 const props = defineProps({
+  options: Object,
   headersName: String,
   loadData: Function,
   refresh: Function,
+  listDropdownStatus: Array,
 });
-const vla = ref();
-const Change = (e) => {
-  vla.value = e;
-};
+const itemSortButs = ref([
+  {
+    label: "Ngày tạo mới đến cũ",
+    sort: "created_date",
+    ob: "DESC",
+    active: true,
+  },
+  {
+    label: "Ngày tạo cũ đến mới",
+    sort: "created_date",
+    ob: "ASC",
+    active: false,
+  },
+  {
+    label: "Ngày bắt đầu mới đến cũ",
+    sort: "start_date",
+    ob: "DESC",
+    active: false,
+  },
+  {
+    label: "Ngày bắt đầu cũ đến mới",
+    sort: "start_date",
+    ob: "ASC",
+    active: false,
+  },
+  {
+    label: "Ngày kết thúc mới đến cũ",
+    sort: "end_date",
+    ob: "DESC",
+    active: false,
+  },
+  {
+    label: "Ngày kết thúc cũ đến mới",
+    sort: "end_date",
+    ob: "ASC",
+    active: false,
+  },
+  {
+    label: "Người giao việc",
+    sort: "modified_date",
+    ob: "ASC",
+    active: false,
+  },
+]);
+const ChangeSort = (sort, ob) => {};
 const listButton = ref([
   {
     label: "Tải lại",
@@ -71,11 +114,12 @@ const Switch = (e, va) => {
   else return;
 };
 const listDropdownDonvi = ref([]);
-onMounted(() => {});
+onMounted(() => {
+  options.value = props.options;
+});
 </script>
 <template>
   <div class="flex justify-content-center align-items-center">
-    {{ vla }}
     <Toolbar class="w-full custoolbar">
       <template #start>
         <div class="flex justify-content-center align-items-center">
@@ -112,6 +156,7 @@ onMounted(() => {});
     ref="Filter"
     class="w-30rem"
   >
+    {{ options }}
     <div class="col-12">
       <div class="p-1">Công ty</div>
       <Dropdown
@@ -168,17 +213,47 @@ onMounted(() => {});
         panelClass="d-design-dropdown"
         placeholder="Chọn đơn vị"
         selectionLimit="1"
-        :options="listDropdownDonvi"
-        optionLabel="organization_name"
-        optionValue="organization_id"
+        :options="props.listDropdownStatus"
+        optionLabel="label"
+        optionValue="value"
         spellcheck="false"
         class="col-12 ip36 p-0"
       >
       </Dropdown>
     </div>
+    <div class="col-12">
+      <div class="p-1">Khoảng thời gian</div>
+      <Calendar
+        v-model="options.dateTime"
+        :showIcon="true"
+        :showTime="true"
+        selectionMode="range"
+        class="col-12 ip36 p-0"
+        :manualInput="true"
+      >
+      </Calendar>
+    </div>
   </OverlayPanel>
-  <OverlayPanel ref="Sort"> </OverlayPanel>
+  <OverlayPanel ref="Sort">
+    <div
+      class="text-base line-height-4 sort-hover"
+      v-for="(item, index) in itemSortButs"
+      :key="index"
+      :class="[{ active: item.active == true }]"
+      @click="ChangeSort(item.sort, item.ob)"
+    >
+      {{ item.label }}
+    </div>
+  </OverlayPanel>
   <OverlayPanel ref="utilities"> </OverlayPanel>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.sort-hover:hover {
+  background-color: #e9ecef;
+  cursor: pointer;
+}
+.active {
+  color: #2196f3;
+}
+</style>

@@ -158,7 +158,7 @@ const onPage = (event) => {
   loadData(true);
 };
 
-const dataSelected = ref();
+const dataSelected = ref([]);
 
 const isSaveTem = ref(true);
 const datalists = ref();
@@ -648,7 +648,7 @@ const toggleExport = (event) => {
 const toggleAprroves = (event) => {
   var check = true;
   dataSelected.value.forEach((element) => {
-    if (element.status != 0) {
+    if (element.status != 0 && element.status != 6) {
       swal.fire({
         title: "Thông báo!",
         text: "Chỉ được chuyển xử lý bản ghi có trạng thái lập kế hoạch!",
@@ -791,8 +791,8 @@ const itemButMores = ref([
     icon: "pi pi-chart-line",
     command: (event) => {
        
-      modelsend.value.key_id=dataSelected.value.recruitment_proposal_id;
-      console.log("ssos",modelsend.value);
+      modelsend.value.key_id=recruitment_proposal.value.recruitment_proposal_id;
+   
       displayChart.value=true;
 
     },
@@ -814,7 +814,8 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   recruitment_proposal.value = item;
-  dataSelected.value = item;
+  dataSelected.value=[];
+  dataSelected.value.push(item);
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };

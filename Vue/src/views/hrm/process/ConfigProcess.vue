@@ -2358,10 +2358,10 @@ emitter.on("emitData", (obj) => {
   display: flex;
   align-items: center;
 }
-.type0 {
+.type1 {
   background-color: #ff8b4e;
 }
-.type1 {
+.type2 {
   background-color: #33c9dc;
 }
 </style>

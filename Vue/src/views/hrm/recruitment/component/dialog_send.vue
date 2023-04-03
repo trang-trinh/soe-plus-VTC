@@ -42,11 +42,16 @@ const props = defineProps({
   displayDialog: Boolean,
   closeDialog: Function,
   modelsend: Object,
-  checkReturn:Boolean,
+
   dataSelected: Array,
 });
 
 //Function
+const listTCard = ref([
+  { name: "Duyệt một nhiều", code: 1 },
+  { name: "Duyệt tuần tự", code: 2 },
+  { name: "Duyệt ngẫu nhiên", code: 3 },
+]);
 
 const send = () => {
   submitted.value = true;
@@ -66,24 +71,26 @@ const send = () => {
     },
   });
   var obj = { ...props.modelsend };
- 
-  if(props.modelsend.type_send==2){
-    let strv="",strc="";
-    process.value.key_id.forEach(element => {
-      strv+=strc+element.code;
-      strc=",";
- });
-    obj.key_id =strv;
-  }
-  else  if(props.modelsend.type_send==1){
+  let formData = new FormData();
+  if (props.modelsend.type_send == 2) {
+    formData.append("aprroved_type", process.value.aproved_type);
+    let strv = "",
+      strc = "";
+    process.value.key_id.forEach((element) => {
+      strv += strc + element.code;
+      strc = ",";
+    });
+    obj.key_id = strv;
+  } else if (props.modelsend.type_send == 1) {
     obj.key_id = process.value.key_id.code;
-  }
-  else{
+  } else {
     obj.key_id = process.value.key_id;
   }
+  if( process.value.content)
   obj.content = process.value.content;
- 
-  let formData = new FormData();
+else
+obj.content ="";
+
   formData.append("type_send", obj["type_send"]);
   formData.append("key_id", obj["key_id"]);
   formData.append("type_module", obj["type_module"]);
@@ -93,7 +100,7 @@ const send = () => {
     formData.append("files", file);
   }
   formData.append("hrm_obj", JSON.stringify(props.dataSelected));
-  if(!props.checkReturn){
+
   axios
     .post(
       baseURL + "/api/hrm_campage_process/add_hrm_campage_process",
@@ -125,41 +132,6 @@ const send = () => {
         confirmButtonText: "OK",
       });
     });
-  }
-  else{
-    axios
-    .post(
-      baseURL + "/api/hrm_campage_process/return_hrm_campage_process",
-      formData,
-      config
-    )
-    .then((response) => {
-      if (response.data.err === "1") {
-        swal.fire({
-          title: "Thông báo!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-
-      swal.close();
-      toast.success("Gửi thành công!");
-      props.closeDialog();
-    })
-    .catch((error) => {
-      console.log(error);
-      swal.close();
-      swal.fire({
-        title: "Thông báo!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
-
-  }
   if (submitted.value) submitted.value = false;
 };
 const displayDialog = ref(false);
@@ -223,6 +195,7 @@ const removeFile = (event) => {
 const process = ref({
   content: null,
   key_id: null,
+  aproved_type: 3,
 });
 const listProcess = ref([]);
 const listAproved = ref([]);
@@ -240,7 +213,7 @@ const initTudien = () => {
               par: [
                 { par: "search", va: null },
                 { par: "user_id", va: store.getters.user.user_id },
-                { par: "module_key", va: props.modelsend.module_key},
+                { par: "module_key", va: props.modelsend.module_key },
                 { par: "pageno", va: 0 },
                 { par: "pagesize", va: 100000 },
                 { par: "status", va: null },
@@ -294,7 +267,7 @@ const initTudien = () => {
                 { par: "pageno", va: 0 },
                 { par: "pagesize", va: 100000 },
                 { par: "user_id", va: store.getters.user.user_id },
-                { par: "module_key", va:props.modelsend.module_key },
+                { par: "module_key", va: props.modelsend.module_key },
                 { par: "status", va: null },
               ],
             }),
@@ -328,7 +301,7 @@ const initTudien = () => {
                       else ilem.department_id = Number(ilem.department_id);
                       if (ilem.avatar == "") ilem.avatar = null;
                     });
-                     
+
                     listAproved.value.push({
                       name: element.approved_group_name,
                       code: element.approved_groups_id,
@@ -354,66 +327,64 @@ const initTudien = () => {
         console.log(error);
         return;
       });
-  }
-  else  if (props.modelsend.type_module == 0 && props.modelsend.type_send == 2){
+  } else if (
+    props.modelsend.type_module == 0 &&
+    props.modelsend.type_send == 2
+  ) {
     listUsers.value = [];
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 100000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      data.forEach((element, i) => {
-        listUsers.value.push({
-          name: element.full_name,
-          code: element.user_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          role_name: element.role_name,
-          position_name: element.position_name,
+    axios
+      .post(
+        baseURL + "/api/device_card/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "sys_users_list_dd",
+              par: [
+                { par: "search", va: null },
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "role_id", va: null },
+                {
+                  par: "organization_id",
+                  va: store.getters.user.organization_id,
+                },
+                { par: "department_id", va: null },
+                { par: "position_id", va: null },
+                { par: "pageno", va: 1 },
+                { par: "pagesize", va: 100000 },
+                { par: "isadmin", va: null },
+                { par: "status", va: null },
+                { par: "start_date", va: null },
+                { par: "end_date", va: null },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        data.forEach((element, i) => {
+          listUsers.value.push({
+            name: element.full_name,
+            code: element.user_id,
+            avatar: element.avatar,
+            department_name: element.department_name,
+            role_name: element.role_name,
+            position_name: element.position_name,
+          });
         });
+      })
+      .catch((error) => {
+        if (error && error.status === 401) {
+          swal.fire({
+            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            confirmButtonText: "OK",
+          });
+          store.commit("gologout");
+        }
       });
- 
-    })
-    .catch((error) => {
- 
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
- 
   }
 };
 const checkTimline = ref(false);
@@ -595,16 +566,18 @@ onMounted(() => {
                   </Timeline>
                 </div>
               </div>
-              <div v-if="props.modelsend.type_send === 1"  class="col-12 md:col-12 p-0 flex">
+              <div
+                v-if="props.modelsend.type_send === 1"
+                class="col-12 md:col-12 p-0 flex"
+              >
                 <Dropdown
                   v-model="process.key_id"
                   :options="listAproved"
                   optionLabel="name"
-               
                   :filter="true"
                   panelClass="d-design-dropdown"
                   placeholder="Chọn nhóm duyệt"
-                  class="p-0 p-design-dropdown  w-full   mb-2"
+                  class="p-0 p-design-dropdown w-full mb-2"
                   ref="isRefAprroved"
                 >
                   <template #value="slotProps">
@@ -776,7 +749,7 @@ onMounted(() => {
                 </Dropdown>
               </div>
               <div v-if="props.modelsend.type_send === 2">
-              
+                <div class="col-12 p-0 field">
                 <MultiSelect
                   :options="listUsers"
                   :filter="true"
@@ -790,47 +763,35 @@ onMounted(() => {
                   display="chip"
                   placeholder="Chọn người duyệt"
                   class="ip36 mb-2"
-            
                   style="height: auto; min-height: 36px"
                 >
-             
                   <template #option="slotProps">
                     <div v-if="slotProps.option" class="flex">
                       <div class="format-center">
-                        <Avatar   style="color:#fff"
-                                          v-bind:label="
-                                            slotProps.option.avatar
-                                              ? ''
-                                              : slotProps.option.name.substring(
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 1,
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 2
-                                                )
-                                          "
-                                          :image="
-                                            basedomainURL +
-                                            slotProps.option.avatar
-                                          "
-                                          size="small"
-                                          :style="
-                                            slotProps.option.avatar
-                                              ? 'background-color: #2196f3'
-                                              : 'background:' +
-                                                bgColor[
-                                                  slotProps.option.name.length %
-                                                    7
-                                                ]
-                                          "
-                                          shape="circle"
-                                          @error="
-                                            $event.target.src =
-                                              basedomainURL +
-                                              '/Portals/Image/nouser1.png'
-                                          "
-                                        /> 
+                        <Avatar
+                          style="color: #fff"
+                          v-bind:label="
+                            slotProps.option.avatar
+                              ? ''
+                              : slotProps.option.name.substring(
+                                  slotProps.option.name.lastIndexOf(' ') + 1,
+                                  slotProps.option.name.lastIndexOf(' ') + 2
+                                )
+                          "
+                          :image="basedomainURL + slotProps.option.avatar"
+                          size="small"
+                          :style="
+                            slotProps.option.avatar
+                              ? 'background-color: #2196f3'
+                              : 'background:' +
+                                bgColor[slotProps.option.name.length % 7]
+                          "
+                          shape="circle"
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
+                        />
                       </div>
                       <div class="ml-3">
                         <div class="mb-1">{{ slotProps.option.name }}</div>
@@ -842,13 +803,90 @@ onMounted(() => {
                         </div>
                       </div>
                     </div>
-                 
                   </template>
                 </MultiSelect>
+              </div>
+                
               </div>
             </div>
           </div>
         </div>
+
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Loại duyệt</label>
+            <Dropdown
+              v-model="process.aproved_type"
+              panelClass="d-design-dropdown"
+              :options="listTCard"
+              :filter="true"
+              optionLabel="name"
+              optionValue="code"
+              class="w-full"
+            >
+            </Dropdown>
+          </div>
+        </div>
+        <div class="col-12 p-0 field" v-if="process.aproved_type==2">
+          <div class="col-12  field">
+                    <OrderList
+                      v-model="process.key_id"
+                      listStyle="height:auto"
+                      class="w-full"
+                      dataKey="id"
+                    >
+                      <template #header>Thứ tự duyệt </template>
+                      <template #item="slotProps">
+                        <Toolbar class="surface-0 m-0 p-0 border-0 w-full">
+                          <template #start>
+                            <div class="flex align-items-center">
+                              <div class="format-flex-center">
+                                <b class="p-3">{{ slotProps.index + 1 }} </b>
+                              </div>
+                              <div class="flex">
+                                <Avatar
+                                  v-bind:label="
+                                    slotProps.item.avatar
+                                      ? ''
+                                      : slotProps.item.name.substring(
+                                          slotProps.item.name.lastIndexOf(
+                                            ' '
+                                          ) + 1,
+                                          slotProps.item.name.lastIndexOf(
+                                            ' '
+                                          ) + 2
+                                        )
+                                  "
+                                  :image="basedomainURL + slotProps.item.avatar"
+                                  class="w-2rem h-2rem"
+                                  size="large"
+                                  :style="
+                                    slotProps.item.avatar
+                                      ? 'background-color: #2196f3'
+                                      : 'background:' +
+                                        bgColor[
+                                          slotProps.item.name.length % 7
+                                        ]
+                                  "
+                                  shape="circle"
+                                  @error="
+                                    $event.target.src =
+                                      basedomainURL +
+                                      '/Portals/Image/nouser1.png'
+                                  "
+                                />
+                                <div class="pt-1 pl-2">
+                                  {{ slotProps.item.name }}
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                          
+                        </Toolbar>
+                      </template>
+                    </OrderList>
+                  </div>
+             </div>
         <div class="col-12 md:col-12">
           <div class="form-group">
             <label>Nội dung</label>

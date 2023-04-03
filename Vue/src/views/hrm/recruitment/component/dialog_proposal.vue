@@ -1406,9 +1406,9 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
+        <div class="col-12 field p-0 text-lg font-bold" v-if="listFilesS.length>0">File đính kèm</div>
         <div class="w-full col-12 field p-0">
-          <FileUpload
+          <FileUpload  v-if="!view"
             chooseLabel="Chọn File"
             :showUploadButton="false"
             :showCancelButton="false"
@@ -1501,7 +1501,7 @@ onMounted(() => {
       </div>
     </form>
     <template #footer>
-      <div class="pt-3" v-if="!view">
+      <div class="pt-3">
         <Button
           label="Hủy"
           icon="pi pi-times"
@@ -1509,7 +1509,7 @@ onMounted(() => {
           class="p-button-outlined"
         />
 
-        <Button
+        <Button  v-if="!view"
           label="Lưu"
           icon="pi pi-check"
           @click="saveData(!v$.$invalid)"
