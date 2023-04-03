@@ -149,6 +149,7 @@ namespace API.Models
 
         public string userftp { get; set; }
         public string psftp { get; set; }
+        public bool isEncodeProc { get; set; }
 
     }
     public class connectString
@@ -231,5 +232,14 @@ namespace API.Models
         public string bottom { get; set; }
         public bool isBodyHtml { get; set; }
 
+    }
+    public class popupNoti
+    {
+        public List<string> uids { get; set; }
+        public string title { get; set; }
+        public string content { get; set; }
+        public string image { get; set; }
+        public string tag { get; set; }
+        public string url { get; set; }
     }
 }

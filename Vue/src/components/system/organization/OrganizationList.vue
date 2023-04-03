@@ -64,6 +64,20 @@ const opition = ref({
   organization_type: null,
   user_id: store.getters.user.user_id,
 });
+const options = ref({
+  IsNext: true,
+  sort: "created_date",
+  SearchText: "",
+  PageNo: 0,
+  PageSize: 20,
+  loading: true,
+  totalRecords: null,
+  loadingP: true,
+  pagenoP: 0,
+  pagesizeP: 20,
+  searchP: "",
+  sortP: "created_date",
+});
 const donvis = ref();
 const treedonvis = ref();
 const treediadanhs = ref();
@@ -387,7 +401,7 @@ const handleSubmit = (isFormValid) => {
   addDonvi();
 };
 
-const addTreeDonvi = (md) => {
+const addTreeDonvi = (md, type) => {
   let is_order = donvis.value.length + 1;
   if (md.children) {
     is_order = md.children.length + 1;
@@ -395,12 +409,12 @@ const addTreeDonvi = (md) => {
     is_order = 1;
   }
   selectCapcha.value = {};
-  selectCapcha.value[md.data.organization_id] = true;
+  selectCapcha.value[md.organization_id] = true;
   donvi.value = {
     organization_name: "",
     is_order: is_order,
     status: true,
-    organization_type: 1,
+    organization_type: type,
   };
   submitted.value = false;
   displayAddDonvi.value = true;
@@ -436,7 +450,9 @@ const addDonvi = () => {
         donvi.value.organization_type == 0
           ? toast.success("Cập nhật đơn vị thành công!")
           : toast.success("Cập nhật phòng ban thành công!");
-        loadDonvi();
+          if(layout.value == 'list')
+                  loadDonvi();
+                  else initTreeDV()
         closedisplayAddDonvi();
       } else {
         swal.fire({
@@ -493,7 +509,9 @@ const delDonvi = (md) => {
               md.organization_type == 1
                 ? toast.success("Xoá phòng ban thành công!")
                 : toast.success("Xoá đơn vị thành công!");
-              loadDonvi();
+                if(layout.value == 'list')
+                  loadDonvi();
+                  else initTreeDV()
               if (!md) selectedNodes.value = [];
             } else {
               swal.fire({
@@ -670,6 +688,136 @@ const showPhongban = () => {
   //           router.go(0);
   //         });
 };
+watch(layout, () => {
+  if(layout.value == 'grid'){
+    initTreeDV();
+  }
+  if(layout.value == 'list'){
+    loadDonvi(true);
+  }
+})
+//tree
+
+const initTreeDV = (rf) => {
+  axios
+    .post(
+      baseURL + "/api/Phongban/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_organization_list_main_new",
+            par: [
+              { par: "pageno", va: options.value.PageNo },
+              { par: "pagesize", va: options.value.PageSize },
+              { par: "search", va: options.value.search },
+              { par: "user_id", va: store.getters.user.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      data.forEach((element, i) => {
+        element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+        element.isClosed = false;
+        element.isOpened = true;
+        if (data.find(x => x.parent_id == element.organization_id)) {
+          element.canExpand = true;
+        }
+      });
+      donvitrees.value = data;
+      opition.value.loading = false;
+
+      if (data[0] != null)
+        loadDataDetails(data[0].organization_id, data[0].organization_name);
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const id_active  = ref();
+const department_name = ref();
+const datalistsDetails = ref();
+const loadDataDetails = (id, name) => {
+  id_active.value = id;
+  department_name.value = name;
+  axios
+    .post(
+      baseURL + "/api/Proc/CallProc",
+      {
+        proc: "sys_user_listby_department",
+        par: [
+          { par: "organization_id", va: id },
+          { par: "search", va: options.value.SearchText },
+          { par: "pageno", va: options.value.pagenoP },
+          { par: "pagesize", va: options.value.pagesizeP },
+        ],
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+      });
+      if (isFirst.value) isFirst.value = false;
+      let obj = renderTree(
+        data,
+        "organization_id",
+        "organization_name",
+        "phòng ban",
+      );
+      // treemodules.value = obj.arrtreeChils;
+
+      datalistsDetails.value = obj.arrChils;
+      options.value.loadingP = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+
+      options.value.loading = false;
+    });
+};
+const item_active = ref();
+const donvitrees = ref();
+const toggle_Donvisudung = (dv) => {
+  item_active.value = dv.organization_id;
+  dv.isOpened = !dv.isOpened;
+  var lst = donvitrees.value.filter(l => l.parent_id === dv.organization_id);
+  lst.forEach((o) => {
+    o.isClosed = !o.isClosed;
+    if (o.isClosed) {
+      Expanded(o);
+    }
+  })
+};
+function Expanded(dv) {
+  dv.isOpened = false;
+  var lst = donvitrees.value.filter(l => l.parent_id === dv.organization_id);
+  if (lst !== null || lst.length > 0) {
+    lst.forEach((o) => {
+      o.isClosed = !o.isClosed;
+      if (o.isClosed) {
+        Expanded(o);
+      }
+    })
+  }
+};
 onMounted(() => {
   //init
   loadDonvi(true);
@@ -677,7 +825,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="main-layout flex-grow-1 p-2">
+  <div class="main-layout flex-grow-1 p-2" v-if="layout == 'list'">
     <TreeTable
       :value="donvis"
       v-model:selectionKeys="selectedKey"
@@ -727,17 +875,7 @@ onMounted(() => {
               @click="showModalAddDonvi"
             />
             <DataViewLayoutOptions v-model="layout" />
-<!-- 
-            <Button
-              icon="pi pi-list"
-              v-tooltip.left="'Hiển thị phòng ban'"
-              class="ml-2 mr-2"
-              v-bind:class="
-                'p-button p-button-' +
-                (displayPhongban ? 'primary' : 'secondary')
-              "
-              @click="showPhongban"
-            /> -->
+
             <Button
               class="mr-2 ml-2 p-button-outlined p-button-secondary"
               icon="pi pi-refresh"
@@ -905,8 +1043,8 @@ onMounted(() => {
             icon="pi pi-plus-circle"
             class="p-button-rounded p-button-secondary p-button-outlined"
             style="margin-right: 0.5rem"
-            v-tooltip.top="'Thêm phòng ban'"
-            @click="addTreeDonvi(md.node)"
+            v-tooltip.top="'Thêm đơn vị trực thuộc'"
+            @click="addTreeDonvi(md.node.data,0)"
           ></Button>
           <Button
             type="button"
@@ -939,6 +1077,164 @@ onMounted(() => {
       </template>
     </TreeTable>
   </div>
+  <div  v-if="layout == 'grid'">
+      <Splitter class="h-full w-full pb-0 pr-0">
+        <SplitterPanel :size="40" class=" ">
+        <div class="p-3" v-if="datalistsDetails">
+              <h3 class="module-title m-0">
+                <i class="pi pi-microsoft"></i> 
+                {{ store.getters.user.is_super ? "Danh sách đơn vị" : "Cơ cấu tổ chức" }} 
+              </h3>
+            </div>
+          <Toolbar class="w-full">
+              <template #start>
+                <span class="p-input-icon-left">
+                  <i class="pi pi-search" />
+                  <InputText spellcheck="false"
+                    placeholder="Tìm kiếm đơn vị" />
+                </span>
+              </template>
+
+              <template #end>
+                <Button @click="showModalAddDonvi(1)" label="Thêm đơn vị" icon="pi pi-plus" class="mx-2" />
+                <Button @click="refreshStamp" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
+                  v-tooltip="'Tải lại'" />
+                <Button v-if="checkDelList" @click="deleteList()" label="Xóa" icon="pi pi-trash"
+                  class="mr-2 p-button-danger" />
+                </template>
+            </Toolbar>
+          <div class="pl-3">
+            <div v-for="(dv, index) in donvitrees" :key="index"
+              :style="'margin-left:' +(dv.is_level+2) + 'em'" v-show="!dv.isClosed" class="my-3 mr-2 relative cursor-pointer ">
+              <div @mouseover="dv.hover = true" @mouseleave="dv.hover = false" style="min-height:20px"  >
+                <span @click="toggle_Donvisudung(dv)" class="absolute" style="left: -1.7rem;top: 0" v-if="dv.canExpand">
+                  <!-- <a v-if="!dv.isOpened"><i style="font-size: 16px;" class="pi pi-plus-circle"></i></a> -->
+                  <a v-if="!dv.isOpened"><font-awesome-icon icon="fa-solid fa-square-plus" style="font-size: 16px; " /></a>
+                  <a v-if="dv.isOpened"><font-awesome-icon icon="fa-solid fa-square-minus" style="font-size: 16px;" /></a>
+                </span>
+                <div class="font-bold w-full text-lg item-hover" :class="{'active':  id_active=== dv.organization_id, 'c-red-600': !dv.status}"  @click="loadDataDetails(dv.organization_id, dv.organization_name)">{{ dv.organization_name }}</div>
+                <div class="absolute" v-if="dv.hover" style="right: 0; top: 0">
+                  <Button
+                  type="button"
+                  icon="pi pi-plus-circle"
+                  class="p-button-rounded p-button-secondary p-button-outlined"
+                  style="width:1.5rem; height:1.5rem;"
+                  v-tooltip.top="'Thêm đơn vị trực thuộc'"
+                  @click="addTreeDonvi(dv, 0)"
+                ></Button>
+                <Button
+                  type="button"
+                  icon="pi pi-pencil"
+                  v-tooltip.top="'Chỉnh sửa'"
+                  class="p-button-rounded p-button-secondary p-button-outlined ml-1"
+                  style="width:1.5rem; height:1.5rem;"
+                  @click="editDonvi(dv)"
+                ></Button>
+                <Button
+                  type="button"
+                  icon="pi pi-trash"
+                  v-tooltip.top="'Xóa'"
+                  class="p-button-rounded p-button-secondary p-button-outlined ml-1"
+                  style="width:1.5rem; height:1.5rem;"
+                  @click="delDonvi(dv)"
+                ></Button>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </SplitterPanel>
+        <SplitterPanel :size="60">
+          <div class="d-lang-table-r">
+            <div class="p-3" v-if="datalistsDetails">
+              <h3 class="module-title m-0">
+                <i class="pi pi-book"></i> {{ department_name }} ({{
+                  datalistsDetails.length
+                }})
+              </h3>
+            </div>
+            <Toolbar class="w-full">
+              <template #start>
+                <span class="p-input-icon-left">
+                  <i class="pi pi-search" />
+                  <InputText  spellcheck="false"
+                    placeholder="Tìm kiếm phòng ban" />
+                </span>
+              </template>
+
+              <template #end>
+                <Button @click="showModalAddDonvi(1)" label="Thêm phòng ban" icon="pi pi-plus" class="mx-2" />
+                <DataViewLayoutOptions v-model="layout" />
+
+                <Button @click="refreshStamp" class="ml-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
+                  v-tooltip="'Tải lại'" />
+                <Button v-if="checkDelList" @click="deleteList()" label="Xóa" icon="pi pi-trash"
+                  class="ml-2 p-button-danger "/>
+                  <Button
+                  label="Tiện ích"
+                  icon="pi pi-chevron-down"
+                  class="mr-2 p-button-outlined p-button-secondary ml-2"
+                  @click="toggleExport"
+                  aria-haspopup="true"
+                  aria-controls="overlay_Export"
+                />
+                <Menu
+                  id="overlay_Export"
+                  ref="menuButs"
+                  :model="itemButs"
+                  :popup="true"
+                />
+               </template>
+            </Toolbar>
+            <TreeTable :value="datalistsDetails" v-model:selectionKeys="selectedWarehouses" :filters="filters_pb"
+              :showGridlines="true" class="p-treetable-sm" :rows="options.pagesizeP" :rowHover="true" 
+              responsiveLayout="scroll" :scrollable="true" scrollHeight="flex" @page="onPageP($event)"
+              :totalRecords="options.totalRecordsPage">
+              <Column field="is_order" header="STT"
+                class="align-items-center justify-content-center text-center font-bold"
+                headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
+                <template #body="md">
+                  <div v-bind:class="md.node.data.status ? '' : 'text-error'">
+                    {{ md.node.data.label_order }}
+                  </div>
+                </template>
+              </Column>
+              <Column field="organization_name" header="Tên phòng ban" :expander="true">
+                <template #body="md">
+                  <span :class="'donvi' + md.node.data.organization_type" :style="[
+                    md.node.data.parent_id ? '' : '',
+                    md.node.data.status ? '' : 'color:red !important',
+                  ]">{{ md.node.data.organization_name }}</span>
+                </template>
+              </Column>
+              <Column header="Chức năng" headerClass="text-center"
+                class="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px">
+                <template #header> </template>
+                <template #body="md">
+                  <Button type="button" icon="pi pi-plus-circle"
+                    class="p-button-rounded p-button-secondary p-button-outlined" style="margin-right: 0.5rem"
+                    v-tooltip.top="'Thêm phòng ban'" @click="addTreeDonvi(md.node.data, 1)"></Button>
+                  <Button type="button" icon="pi pi-pencil" v-tooltip.top="'Chỉnh sửa'"
+                    class="p-button-rounded p-button-secondary p-button-outlined" style="margin-right: 0.5rem"
+                    @click="editDonvi(md.node.data)"></Button>
+                  <Button type="button" icon="pi pi-trash" v-tooltip.top="'Xóa'"
+                    class="p-button-rounded p-button-secondary p-button-outlined"
+                    @click="delDonvi(md.node.data)"></Button>
+                </template>
+              </Column>
+              <template #empty>
+                <div class="m-auto align-items-center justify-content-center p-4 text-center" v-if="!isFirst">
+                  <img src="../../../assets/background/nodata.png" height="144" />
+                  <h3 class="m-1">Không có dữ liệu</h3>
+                </div>
+              </template>
+            </TreeTable>
+          </div>
+        </SplitterPanel>
+      </Splitter>
+    </div>
   <Dialog
     :header="donvi.organization_type == 1 ? 'Cập nhật phòng ban ' : 'Cập nhật đơn vị '"
     v-model:visible="displayAddDonvi"
@@ -1033,16 +1329,6 @@ onMounted(() => {
           >
           </TreeSelect>
         </div>
-        <!-- <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Loại</label>
-          <Dropdown
-            class="col-10"
-            v-model="donvi.organization_type"
-            :options="tdorganization_types"
-            optionLabel="text"
-            optionValue="value"
-          />
-        </div> -->
         <div
           class="field col-12 md:col-12"
         >
@@ -1088,7 +1374,7 @@ onMounted(() => {
           class="field col-12 md:col-12"
           v-if="donvi.organization_type == 0"
         >
-          <label class="col-2 text-left">SĐT</label>
+          <label class="col-2 text-left">Số điện thoại</label>
           <InputText
             spellcheck="false"
             class="col-4 ip36"
@@ -1157,8 +1443,8 @@ onMounted(() => {
           <label class="col-2 text-left">Chức năng</label>
           <Textarea
           :autoResize="true"
-          rows="3"
-          class="col-10"
+          rows="5"
+          class="col-10 py-2"
           v-model="donvi.feature"
           />
         </div>
@@ -1170,8 +1456,8 @@ onMounted(() => {
           <label class="col-2 text-left">Nhiệm vụ</label>
           <Textarea
           :autoResize="true"
-          rows="3"
-          class="col-10"
+          rows="5"
+          class="col-10 py-2"
           v-model="donvi.mission"
           />
         </div>
@@ -1183,8 +1469,8 @@ onMounted(() => {
           <label class="col-2 text-left">Mô tả</label>
           <Textarea
           :autoResize="true"
-          rows="3"
-          class="col-10"
+          rows="5"
+          class="col-10 py-2"
           v-model="donvi.description"
           />
         </div>
@@ -1376,6 +1662,15 @@ span.donvitrue {
 }
 .donvi0 {
   font-weight: bold !important;
+}
+.item-hover:hover{
+  color:#0099f3;
+}
+.row-active,.active {
+  color: rgb(13, 137, 236);
+}
+.c-red-600{
+  color:red;
 }
 </style>
 <style lang="scss" scoped>

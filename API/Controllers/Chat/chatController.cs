@@ -514,6 +514,7 @@ namespace API.Controllers
                         organization_id_user = user_now.organization_id.ToString();
                     }
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    string jwtcookie = HttpContext.Current.Request.Cookies != null && HttpContext.Current.Request.Cookies["jwt"] != null ? HttpContext.Current.Request.Cookies["jwt"].Value : null;
                     var provider = new MultipartFormDataStreamProvider(root);
                     // Read the form data and return an async task.
                     var task = Request.Content.ReadAsMultipartAsync(provider).
@@ -610,6 +611,7 @@ namespace API.Controllers
                                     }
 
                                     fileInfo = new FileInfo(root + pathEdit_File);
+                                    var nameFileOrigin = fileName;
                                     if (fileInfo.Exists)
                                     {
                                         fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
@@ -664,7 +666,7 @@ namespace API.Controllers
                                     fileMes.chat_group_id = chatGroupNow.chat_group_id;
                                     fileMes.chat_message_id = mesFile.chat_message_id;
                                     fileMes.file_type = helper.GetFileExtension(fileName);
-                                    fileMes.file_name = fileName;
+                                    fileMes.file_name = nameFileOrigin;
                                     fileMes.file_path = pathFile;
                                     fileMes.file_size = new FileInfo(fileData.LocalFileName).Length;
                                     fileMes.is_image = mesFile.type_message == 1 ? true : false;
@@ -711,9 +713,9 @@ namespace API.Controllers
                                                 pathEdit_1 += "/" + Path.GetFileName(itemEdit);
                                             }
                                         }
-                                        File.Move(ffileData.LocalFileName, root + pathEdit_1);
-                                        //File.Move(ffileData.LocalFileName, newFileName);
-                                        listPathFileUp.Add(ffileData.LocalFileName);
+                                        //File.Move(ffileData.LocalFileName, root + pathEdit_1);
+                                        //listPathFileUp.Add(ffileData.LocalFileName);
+                                        helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
                                     }
                                 }
                                 if (listMessage.Count > 0)
@@ -740,16 +742,16 @@ namespace API.Controllers
                                 #endregion sendMS
                                 db.SaveChanges();
 
-                                if (listPathFileUp.Count > 0)
-                                {
-                                    foreach (var path in listPathFileUp)
-                                    {
-                                        if (System.IO.File.Exists(path))
-                                        {
-                                            System.IO.File.Delete(path);
-                                        }
-                                    }
-                                }
+                                //if (listPathFileUp.Count > 0)
+                                //{
+                                //    foreach (var path in listPathFileUp)
+                                //    {
+                                //        if (System.IO.File.Exists(path))
+                                //        {
+                                //            System.IO.File.Delete(path);
+                                //        }
+                                //    }
+                                //}
                                 return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", mess = listMesReturn, nsids = nsids });
                             }
                             else
@@ -1496,10 +1498,6 @@ namespace API.Controllers
                                                 }
                                             }
                                         }
-                                        if (filesMsg.Count > 0)
-                                        {
-                                            db.chat_file.AddRange(filesMsg);
-                                        }
 
                                         if (messages.Count > 0)
                                         {
@@ -1532,6 +1530,11 @@ namespace API.Controllers
                                             }
                                             #endregion
                                         }
+                                        if (filesMsg.Count > 0)
+                                        {
+                                            db.chat_file.AddRange(filesMsg);
+                                        }
+                                        db.SaveChanges();
                                     }
                                 }
 
@@ -1665,10 +1668,6 @@ namespace API.Controllers
                                                 }
                                             }
                                         }
-                                        if (filesMsg.Count > 0)
-                                        {
-                                            db.chat_file.AddRange(filesMsg);
-                                        }
 
                                         if (messages.Count > 0)
                                         {
@@ -1700,6 +1699,11 @@ namespace API.Controllers
                                             }
                                             #endregion
                                         }
+                                        if (filesMsg.Count > 0)
+                                        {
+                                            db.chat_file.AddRange(filesMsg);
+                                        }
+                                        db.SaveChanges();
                                     }
                                     else
                                     {
@@ -1824,10 +1828,6 @@ namespace API.Controllers
                                                     }
                                                 }
                                             }
-                                            if (filesMsg.Count > 0)
-                                            {
-                                                db.chat_file.AddRange(filesMsg);
-                                            }
 
                                             if (messages.Count > 0)
                                             {
@@ -1859,6 +1859,10 @@ namespace API.Controllers
                                                     });
                                                 }
                                                 #endregion
+                                            }
+                                            if (filesMsg.Count > 0)
+                                            {
+                                                db.chat_file.AddRange(filesMsg);
                                             }
 
                                             #region add chat_logs
@@ -1983,10 +1987,93 @@ namespace API.Controllers
             }
         }
 
+        #region reset noti chat
+        //[HttpPut]
+        //public async Task<HttpResponseMessage> ResetCountNotiChat()
+        //{
+        //    var identity = User.Identity as ClaimsIdentity;
+        //    IEnumerable<Claim> claims = identity.Claims;
+
+        //    if (identity == null)
+        //    {
+        //        return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+        //    }
+
+        //    string ip = getipaddress();
+        //    string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+        //    string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+        //    string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+        //    string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+        //    try
+        //    {
+        //        using (DBEntities db = new DBEntities())
+        //        {
+        //            var user_reset = db.sys_users.Find(uid);
+        //            if (user_reset != null)
+        //            {
+        //                user_reset.count_noti_chat = 0;
+        //                DateTime sdate = DateTime.Now;
+        //                DateTime edate = DateTime.Now;
+        //                if (helper.wlog)
+        //                {
+        //                    sql_log log = new sql_log();
+        //                    log.controller = domainurl + "chat/ResetCountNotiChat";
+        //                    log.start_date = sdate;
+        //                    log.end_date = edate;
+        //                    log.milliseconds = (int)Math.Ceiling((edate - sdate).TotalMilliseconds);
+        //                    log.user_id = uid;
+        //                    log.token_id = tid;
+        //                    log.created_ip = ip;
+        //                    log.created_date = DateTime.Now;
+        //                    log.created_by = uid;
+        //                    log.created_token_id = tid;
+        //                    log.modified_ip = ip;
+        //                    log.modified_date = DateTime.Now;
+        //                    log.modified_by = uid;
+        //                    log.modified_token_id = tid;
+        //                    log.full_name = name;
+        //                    log.title = "Reset thông báo tin nhắn mới";
+        //                    log.log_content = "user_id: " + uid;
+        //                    db.sql_log.Add(log);
+        //                }
+        //                await db.SaveChangesAsync();
+        //            }
+        //            else
+        //            {
+        //                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Người dùng không tồn tại." });
+        //            }
+        //        }
+        //        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+        //    }
+        //    catch (DbEntityValidationException e)
+        //    {
+        //        string contents = helper.getCatchError(e, null);
+        //        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { contents }), domainurl + "chat/ResetCountNotiChat", ip, tid, "Lỗi khi reset messages", 0, "chat");
+        //        if (!helper.debug)
+        //        {
+        //            contents = helper.logCongtent;
+        //        }
+        //        Log.Error(contents);
+        //        return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        string contents = helper.ExceptionMessage(e);
+        //        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { contents }), domainurl + "chat/ResetCountNotiChat", ip, tid, "Lỗi khi reset messages", 0, "chat");
+        //        if (!helper.debug)
+        //        {
+        //            contents = helper.logCongtent;
+        //        }
+        //        Log.Error(contents);
+        //        return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+        //    }
+        //}
+        #endregion
+
         #endregion Chat new
 
         #region CallProc
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<HttpResponseMessage> GetDataProc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
@@ -2187,70 +2274,54 @@ namespace API.Controllers
         }
         #endregion
 
-        #region Send noti
-        //public static void send_message(string user_send, string id_key, string group_id, [System.Web.Mvc.Bind(Include = "")][FromBody] List<string> users, string title, string content, int is_type, string ip, string token_id)
-        //{
-        //    System.Threading.Tasks.Task.Run(async () =>
-        //    {
-        //        try
-        //        {
-        //            using (DBEntities db = new DBEntities())
-        //            {
-        //                #region Sendhub
-        //                List<sys_sendhub> sendhubs = new List<sys_sendhub>();
-        //                foreach (String user_id in users)
-        //                {
-        //                    var sh = new sys_sendhub();
-        //                    sh.senhub_id = helper.GenKey();
-        //                    sh.title = title;
-        //                    sh.id_key = id_key;
-        //                    sh.group_id = group_id;
-        //                    sh.user_send = user_send;
-        //                    sh.created_by = user_send;
-        //                    sh.created_date = DateTime.Now;
-        //                    sh.created_ip = ip;
-        //                    sh.created_token_id = token_id;
-        //                    sh.receiver = user_id;
-        //                    sh.type = 4;
-        //                    sh.is_type = is_type;
-        //                    sh.module_key = "M8";
-        //                    sh.token_id = token_id;
-        //                    sh.contents = content;
-        //                    sh.date_send = DateTime.Now;
-        //                    sh.seen = false;
-        //                    sendhubs.Add(sh);
-        //                }
-        //                if (sendhubs.Count > 0)
-        //                {
-        //                    db.sys_sendhub.AddRange(sendhubs);
-        //                    await db.SaveChangesAsync();
-        //                }
-        //                #endregion
-        //                #region SendSocket
-        //                //send socket
-        //                var message = new Dictionary<string, dynamic>
-        //                {
-        //                    { "event", "sendNotify" },
-        //                    { "user_id", user_send },
-        //                    { "title", title },
-        //                    { "contents", content },
-        //                    { "date", DateTime.Now },
-        //                    { "uids", users },
-        //                };
-        //                if (helper.socketClient != null && helper.socketClient.Connected == true)
-        //                {
-        //                    try
-        //                    {
-        //                        await helper.socketClient.EmitAsync("sendData", message);
-        //                    }
-        //                    catch { };
-        //                }
-        //                #endregion
-        //            }
-        //        }
-        //        catch { }
-        //    });
-        //}
+        #region Send popup noti
+        [HttpPost]
+        public async Task<HttpResponseMessage> SendPopupNoti([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string dataProc = data["str"].ToObject<string>();
+            string des = Codec.DecryptString(dataProc, helper.psKey);
+            popupNoti dataProp = JsonConvert.DeserializeObject<popupNoti>(des);
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                helper.send_popup_noti(uid, dataProp.title, dataProp.content, dataProp.uids, dataProp.image, domainurl + dataProp.url);
+                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = des, contents }), domainurl + "chat/SendPopupNoti", ip, tid, "Lỗi khi gọi popup", 0, "chat");
+                if (!helper.debug)
+                {
+                    contents = helper.logCongtent;
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = des, contents }), domainurl + "chat/SendPopupNoti", ip, tid, "Lỗi khi gọi popup", 0, "chat");
+                if (!helper.debug)
+                {
+                    contents = helper.logCongtent;
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+
+        }
         #endregion
         public List<UserToken> UserTokenByTable([System.Web.Mvc.Bind(Include = "Rows")] DataTable dt)
         {

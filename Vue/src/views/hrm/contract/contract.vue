@@ -260,6 +260,9 @@ const editItem = (item, str) => {
           if (model.value["sign_users"] != null) {
             model.value["sign_user"] = JSON.parse(model.value["sign_users"])[0];
           }
+          if (model.value["manager_users"] != null) {
+            model.value["manager_user"] = JSON.parse(model.value["manager_users"])[0];
+          }
           if (model.value["start_date"] != null) {
             model.value["start_date"] = new Date(model.value["start_date"]);
           }

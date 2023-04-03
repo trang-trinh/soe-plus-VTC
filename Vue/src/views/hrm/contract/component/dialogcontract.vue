@@ -122,6 +122,9 @@ const saveModel = (is_continue) => {
   if (obj.sign_user != null) {
     obj.sign_user_id = obj.sign_user.user_id;
   }
+  if(obj.manager_user != null){
+    obj.manager_user_id = obj.manager_user.user_id;
+  }
   if (obj.start_date != null) {
     obj.start_date = moment(obj.start_date).format("YYYY-MM-DDTHH:mm:ssZZ");
   }
@@ -776,6 +779,109 @@ onMounted(() => {});
                   optionLabel="full_name"
                   placeholder="Chọn người ký"
                   v-model="props.model.sign_user"
+                  class="ip36"
+                  style="height: auto; min-height: 36px"
+                >
+                  <template #value="slotProps">
+                    <div class="mt-2" v-if="slotProps.value">
+                      <Chip
+                        :image="slotProps.value.avatar"
+                        :label="slotProps.value.full_name"
+                        class="mr-2 mb-2 pl-0"
+                      >
+                        <div class="flex">
+                          <div class="format-flex-center">
+                            <Avatar
+                              v-bind:label="
+                                slotProps.value.avatar
+                                  ? ''
+                                  : (slotProps.value.last_name ?? '').substring(
+                                      0,
+                                      1
+                                    )
+                              "
+                              v-bind:image="
+                                slotProps.value.avatar
+                                  ? basedomainURL + slotProps.value.avatar
+                                  : basedomainURL + '/Portals/Image/noimg.jpg'
+                              "
+                              style="
+                                background-color: #2196f3;
+                                color: #ffffff;
+                                width: 2rem;
+                                height: 2rem;
+                              "
+                              :style="{
+                                background:
+                                  bgColor[slotProps.value.is_order % 7],
+                              }"
+                              class="mr-2 text-avatar"
+                              size="xlarge"
+                              shape="circle"
+                            />
+                          </div>
+                          <div class="format-flex-center">
+                            <span>{{ slotProps.value.full_name }}</span>
+                          </div>
+                        </div>
+                      </Chip>
+                    </div>
+                    <span v-else> {{ slotProps.placeholder }} </span>
+                  </template>
+                  <template #option="slotProps">
+                    <div v-if="slotProps.option" class="flex">
+                      <div class="format-center">
+                        <Avatar
+                          v-bind:label="
+                            slotProps.option.avatar
+                              ? ''
+                              : slotProps.option.last_name.substring(0, 1)
+                          "
+                          v-bind:image="
+                            slotProps.option.avatar
+                              ? basedomainURL + slotProps.option.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 3rem;
+                            height: 3rem;
+                            font-size: 1.4rem !important;
+                          "
+                          :style="{
+                            background: bgColor[slotProps.option.is_order % 7],
+                          }"
+                          class="text-avatar"
+                          size="xlarge"
+                          shape="circle"
+                        />
+                      </div>
+                      <div class="ml-3">
+                        <div class="mb-1">{{ slotProps.option.full_name }}</div>
+                        <div class="description">
+                          <div>{{ slotProps.option.position_name }}</div>
+                          <div>{{ slotProps.option.department_name }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <span v-else> Chưa có dữ liệu </span>
+                  </template>
+                </Dropdown>
+              </div>
+            </div>
+            <div class="col-12 md:col-12">
+              <div class="form-group">
+                <label>Người quản lý</label>
+                <Dropdown
+                  :disabled="props.isView"
+                  :options="props.dictionarys[8]"
+                  :filter="true"
+                  :showClear="true"
+                  :editable="false"
+                  optionLabel="full_name"
+                  placeholder="Chọn người quản lý"
+                  v-model="props.model.manager_user"
                   class="ip36"
                   style="height: auto; min-height: 36px"
                 >

@@ -92,13 +92,26 @@
 }
 
 .type0 {
-    background-color: #ff8b4e;
+    background-color: #aaa;
 }
-
+.typenull {
+    background-color: #aaa;
+}
 .type1 {
     background-color: #33c9dc;
 }
-
+.type2 {
+    background-color: #ff8b4e;
+}
+.type-p1 {
+    background-color: #ff8b4e;
+}
+.type-p2 {
+    background-color: #33c9dc;
+}
+.type-p3 {
+    background-color: #2196f3;
+}
 .description {
     color: #aaa;
     font-size: 12px;
@@ -146,7 +159,7 @@
 .log-detail {
     position: relative;
     flex-grow: 1;
-    min-height: 80px;
+    min-height: 85px;
 }
 
 .signuser-detail>div,
@@ -174,35 +187,35 @@
     min-height: 60px !important;
 }
 
-.status-signtrue .sign-date {
+.status-sign0 .sign-date {
     background-color: #33c9dc;
     color: #fff;
 }
 
-.status-signtrue .signuser-detail {
+.status-sign0 .signuser-detail {
     color: #33c9dc;
 }
 
-.status-signfalse .signuser-image .text-avatar {
+.status-sign1 .signuser-image .text-avatar {
     -webkit-filter: grayscale(80%);
     filter: grayscale(80%);
 }
 
-.is-sign2 .sign-date {
+.is-sign1 .sign-date {
     background-color: #6dd230 !important;
     color: #fff !important;
 }
 
-.is-sign2 .signuser-detail {
+.is-sign1 .signuser-detail {
     color: #6dd230 !important;
 }
 
-.is-sign1 .sign-date {
+.is-sign0 .sign-date {
     background-color: #ff8b4e !important;
     color: #fff !important;
 }
 
-.is-sign1 .signuser-detail {
+.is-sign0 .signuser-detail {
     color: #ff8b4e !important;
 }
 
@@ -213,6 +226,15 @@
 
 .is-sign3 .signuser-detail {
     color: #ff0000 !important;
+}
+.is-sign0.status-sign0 .sign-date {
+    background-color: #fff !important;
+    color: #fff !important;
+}
+
+.is-sign0.status-sign0 .signuser-detail {
+    color: black !important;
+    opacity: 0.5;
 }
 
 .eyeactive {

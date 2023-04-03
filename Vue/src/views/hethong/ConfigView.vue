@@ -422,6 +422,17 @@ onMounted(() => {
             <div class="field col-12 md:col-12">
               <label
                 class="col-4 text-left"
+                style="vertical-align: text-bottom"
+                >Mã hóa dữ liệu trả ra
+              </label>
+              <InputSwitch
+                v-model="config.isEncodeProc"
+                class="col-8"
+              />
+            </div>
+            <div class="field col-12 md:col-12">
+              <label
+                class="col-4 text-left"
                 style="vertical-align: middle"
                 >Lưu Token(phút)</label
               >
