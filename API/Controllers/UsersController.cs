@@ -986,6 +986,7 @@ namespace Controllers
                     }
                 }
                 #endregion
+                string JSONresult = JsonConvert.SerializeObject(tables);
                 (string JSONresult_code, string data_Key) = helper.checkEncodeData(JSONresult, uid, ConfigurationManager.AppSettings["EncriptKey"]);
                 //string data_Key = Codec.EncryptString((helper.isEncodeProc ? "1111" : "0000") + "26$#" + key_code, ConfigurationManager.AppSettings["EncriptKey"]);
                 return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult_code, err = "0", dataKey = data_Key });
