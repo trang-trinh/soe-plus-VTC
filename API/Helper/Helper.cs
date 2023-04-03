@@ -24,6 +24,7 @@ using System.Xml;
 using System.Security.Cryptography.Xml;
 using SocketIOClient;
 using System.Net.Sockets;
+using System.Runtime.Caching;
 
 
 namespace Helper
@@ -37,6 +38,7 @@ namespace Helper
         //public static string passkey = "1012198815021989";
         public static string psKey = "1012198815021989";
         public static string keyConnect = "1502198910121988";
+        public static bool isEncodeProc = false;
         public static bool socket = true;
         public static bool debug = true;
         public static string logCongtent = "Có lỗi xảy ra, vui lòng thử lại!";
@@ -1772,8 +1774,8 @@ namespace Helper
             for (int i = 0; i <= sqlCheckList.Length - 1; i++)
             {
                 if ((CheckString.IndexOf(sqlCheckList[i], StringComparison.OrdinalIgnoreCase) >= 0))
-                { 
-                    isSQLInjection = true; 
+                {
+                    isSQLInjection = true;
                 }
             }
             return isSQLInjection;
@@ -1785,5 +1787,72 @@ namespace Helper
             string de_str = Codec.DecryptString(conn, keyConnect);
             return de_str;
         }
+        #region encode data proc 
+        public class MemoryCacheHelper
+        {
+            public static string GetValue(string key)
+            {
+                return (string)MemoryCache.Default.Get(key);
+            }
+            public static bool Add(string key, object value, DateTimeOffset absExpiration)
+            {
+                return MemoryCache.Default.Add(key, value, absExpiration);
+            }
+            public static void Set(string key, object value, DateTimeOffset absExpiration)
+            {
+                MemoryCache.Default.Set(key, value, absExpiration);
+
+
+            }
+            public static void Delete(string key)
+            {
+                MemoryCache memoryCache = MemoryCache.Default;
+                if (memoryCache.Contains(key))
+                {
+                    memoryCache.Remove(key);
+                }
+            }
+        }
+        public static string GenerateRandomKey()
+        {
+            const int keyLength = 16;
+            const string allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var rng = new RNGCryptoServiceProvider();
+            var result = new char[keyLength];
+            var bytes = new byte[sizeof(uint)];
+
+            for (int i = 0; i < keyLength; i++)
+            {
+                rng.GetBytes(bytes);
+                uint value = BitConverter.ToUInt32(bytes, 0);
+                result[i] = allowedChars[(int)(value % (uint)allowedChars.Length)];
+            }
+
+            return new string(result);
+        }
+        public static (string, string) checkEncodeData(string JSONresult, string user_id, string EncriptKey)
+        {
+            string key_code = helper.psKey;
+            if (helper.isEncodeProc)
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    // key_code = db.sys_users.FirstOrDefault(e => e.user_id == user_id).key_encode_data;
+                    //  key_code = MemoryCacheHelper.GetValue(user_id).ToString();
+                    key_code = MemoryCacheHelper.GetValue(user_id);
+                    if (key_code == null)
+                    {
+                        key_code = db.sys_users.FirstOrDefault(e => e.user_id == user_id).key_encode_data;
+                        if (key_code != null) MemoryCacheHelper.Add(user_id, key_code, DateTimeOffset.UtcNow.AddMinutes(30));
+                    }
+                    if (key_code == null) key_code = helper.psKey;
+                    JSONresult = Codec.EncryptString(JSONresult, key_code);
+                }
+            }
+            string data_Key = Codec.EncryptString((helper.isEncodeProc ? "1111" : "0000") + "26$#" + key_code, EncriptKey);
+
+            return (JSONresult, data_Key);
+        }
+        #endregion
     }
 }

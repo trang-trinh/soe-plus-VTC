@@ -1,6 +1,6 @@
-import { createApp, ref,inject } from "vue";
+import { createApp, ref, inject } from "vue";
 import App from "./App.vue";
-import {decr } from "./util/function.js";
+import { decr } from "./util/function.js";
 
 //import cors from "cors"
 import router from "./router";
@@ -110,8 +110,8 @@ import Steps from "primevue/steps";
 import VueSidebarMenu from "vue-sidebar-menu";
 import Toast from "vue-toastification";
 import Editor from "primevue/editor";
-//import axios from "redaxios";
-import axios from 'axios'
+import axios from "redaxios";
+//import axios from "axios";
 import VueAxios from "vue-axios";
 // Import the CSS or use your own!
 import "@vuepic/vue-datepicker/dist/main.css";
