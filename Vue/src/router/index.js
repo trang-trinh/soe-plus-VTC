@@ -369,7 +369,14 @@ const caClassroom = () => import("../views/hrm/category/caClassroom.vue");
 const caReceipt = () => import("../views/hrm/category/caReceipt.vue");
 const caEnectingGroup = () =>
   import("../views/hrm/category/caEnectingGroup.vue");
-
+  const caRewardTitle = () =>
+  import("../views/hrm/category/caRewardTitle.vue");
+  const caRewardLevel = () =>
+  import("../views/hrm/category/caRewardLevel.vue");
+  const caDiscipline = () =>
+  import("../views/hrm/category/caDiscipline.vue");
+  const caDisciplineLevel = () =>
+  import("../views/hrm/category/caDisciplineLevel.vue");
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
@@ -1737,6 +1744,29 @@ const router = createRouter({
       path: "/hrm/category/ca_enectinggroup",
       name: "caHRMEnectingGroup",
       component: caEnectingGroup,
+    },
+    {
+      path: "/hrm/category/ca_discipline_level",
+      name: "caHRMDisciplineLevel",
+      component: caDisciplineLevel,
+    },
+
+    {
+      path: "/hrm/category/ca_discipline",
+      name: "caHRMDiscipline",
+      component: caDiscipline,
+    },
+
+  
+    {
+      path: "/hrm/category/ca_rewardrlevel",
+      name: "caHRMRewardLevel",
+      component: caRewardLevel,
+    },
+    {
+      path: "/hrm/category/ca_rewardrtitle",
+      name: "caHRMRewardTitle",
+      component: caRewardTitle,
     },
 
     //HRM

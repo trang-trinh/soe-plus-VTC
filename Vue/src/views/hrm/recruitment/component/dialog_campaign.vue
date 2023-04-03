@@ -383,7 +383,40 @@ const deleteFileH = (value) => {
   listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
 };
 const treedonvis = ref();
+const listProposal = ref([]);
 const initTudien = () => {
+  axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_rec_proposal_list_all",
+              par: [
+            
+                { par: "status", va:2 },
+                { par: "user_id", va: store.getters.user.user_id },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        listProposal.value=[];
+        data.forEach(element => {
+          listProposal.value.push({name:element.recruitment_proposal_name, code:element.recruitment_proposal_id});
+        });
+ 
+      })
+      .catch((error) => {
+   console.log(error);
+      });
+
+  
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -852,6 +885,7 @@ onMounted(() => {
           Thông tin chiến dịch
         </div>
         <div class="col-12 field flex p-0 align-items-center">
+        <div class="col-6   flex p-0 align-items-center">
           <div class="w-10rem">
             Mã chiến dịch<span class="redsao pl-1"> (*)</span>
           </div>
@@ -874,6 +908,22 @@ onMounted(() => {
                 />
               </div>
             </div>
+          </div>
+        </div>
+        <div class="col-6    flex p-0 align-items-center">
+         
+            <div class="w-10rem pl-3">Đề xuất</div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                  v-model="campaign.recruitment_proposal_id"
+                  :options="listProposal"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                  placeholder="Đề xuất tuyển dụng"
+                />
+              </div>
           </div>
         </div>
         <div
