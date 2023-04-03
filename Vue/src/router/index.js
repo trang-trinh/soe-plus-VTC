@@ -377,6 +377,8 @@ const caEnectingGroup = () =>
   import("../views/hrm/category/caDiscipline.vue");
   const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
+  const caTags = () =>
+  import("../views/hrm/category/caTags.vue");
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
@@ -1755,6 +1757,11 @@ const router = createRouter({
       path: "/hrm/category/ca_discipline",
       name: "caHRMDiscipline",
       component: caDiscipline,
+    },
+    {
+      path: "/hrm/category/ca_tags",
+      name: "caHRMTags",
+      component: caTags,
     },
 
   
