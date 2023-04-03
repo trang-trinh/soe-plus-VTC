@@ -1807,53 +1807,23 @@ const scrollBoxChat = () => {
  		document.getElementById('id-btn-goBottom').style.visibility = "hidden";
     }
 };
-// const initSocketDataMessage = (data) => {
-// 	switch (data["event"]) {
-// 		case "getSendMessage":
-// 			SeenMess(data["chat_message_id"], data["sender"]);			
-// 			// emitter.emit("emitData", {
-// 			// 	type: "loadListChatGroup",
-// 			// 	data: null
-// 			// });
-// 			props.funcCallUpdate();
-// 			// if (data["UpFile"]) {
-// 			// 	listFileTailieu();
-// 			// }
-// 			break;
-// 		case "getDelMessage":
-// 			if (data["chat_group_id"] == props.detailChat.chat_group_id) {
-// 				// emitter.emit("emitData", {
-// 				// 	type: "loadListChatGroup",
-// 				// 	data: null
-// 				// });
-// 				props.funcCallUpdate();
-// 			}
-// 			break;
-// 		case "OutUserChat":
-// 			if (data["chat_group_id"] == props.detailChat.chat_group_id) {
-// 				// emitter.emit("emitData", {
-// 				// 	type: "loadListChatGroup",
-// 				// 	data: null
-// 				// });
-// 				props.funcCallUpdate();
-// 			}
-// 			break;
-// 	}
-// };
-// const initSocketDataChat = (data) => {
-// 	switch (data["event"]) {
-// 		case "getDelChat":
-// 			if (data["chat_group_id"] == props.detailChat.chat_group_id) {
-// 				// emitter.emit("emitData", {
-// 				// 	type: "loadListChatGroup",
-// 				// 	data: null
-// 				// });
-// 				props.funcCallUpdate();
-// 			}
-// 			break;
-// 	}
-// };
-
+const pasteFile = (evt) => {
+    var getfile = evt.clipboardData || window.clipboardData;
+    if (getfile != null && getfile.files && getfile.files.length > 0) {
+        var file = getfile.files;
+        if (FileAttach.value == null) {
+            FileAttach.value = [];
+        }
+        
+        file.forEach((fi) => {            
+            fi.file_name = fi.name;
+            fi.file_size = fi.size;
+            fi.file_type = fi.name.substring(fi.name.lastIndexOf(".") + 1);
+            FileAttach.value.push(fi);
+        });
+        //$scope.$apply();
+    }
+};
 onMounted(() => {
 	listFileTailieu();
 	loadEmote();
@@ -2064,13 +2034,34 @@ onMounted(() => {
 												:style="u.IsMe ? 'background: #DBF1FF;' : ''">
 												<div class="reply-chat show-reply" v-if="u.ParentComment" style="padding: 10px;border-bottom: 0.5px solid #ccc;">
 													<div>
-														<div class="content-reply">
+														<div class="content-reply flex">
 															<font-awesome-icon icon="fa-solid fa-quote-right" style="font-size: 1rem; color: gray;padding-bottom: 5px;" />
-															<div style="display: inline-block; padding: 5px 10px;" class="bind-chat-html" v-html="u.ParentComment.content_message"></div>
+															<!-- <div style="display: inline-block; padding: 5px 10px;" class="bind-chat-html" v-html="u.ParentComment.content_message"></div>
 															<div v-if="u.ParentComment.file_path" class="r-cm p-0 m-0">
 																<div style="max-width: 150px;">
 																	<a v-bind:href="basedomainURL+u.ParentComment.file_path" data-fancybox :data-caption="u.ParentComment.file_name">
 																		<img v-bind:src="basedomainURL + (u.ParentComment.file_path ||'/Portals/Image/noimg.jpg')" on-error="/Portals/Image/noimg.jpg" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;" />
+																	</a>
+																</div>
+															</div> -->
+															<div style="display: inline-block; padding: 0px 10px 5px;" class="bind-chat-html" 
+																v-html="u.ParentComment.content_message" 
+																v-if="u.ParentComment.type_message == 0"
+															>
+															</div>
+															<div style="display: inline-block; padding: 0px 10px 5px;" class="bind-chat-html" v-else>
+																<Image v-if="u.ParentComment.type_message == 1 && u.ParentComment.files.length > 0"
+																	class="flex"
+																	:src="basedomainURL + (u.ParentComment.files[0].file_path ||'/Portals/Image/noimg.jpg')"
+																	style="height: 3rem; object-fit: contain;"
+																/>
+																<div class="r-fbox image_file_chat flex" style="align-items: center;" v-else>
+																	<img style="width:32px;" 
+																		v-bind:src="basedomainURL+'/Portals/Image/file/'+u.ParentComment.files[0].file_type+'.png'" 
+																		v-if="u.ParentComment.files.length > 0"
+																	/>
+																	<a class="ml-2" style="color:#a9a69e; font-size: 0.9rem;" v-if="u.ParentComment.files.length > 0">
+																		<b>{{u.ParentComment.files[0].file_name}}</b>
 																	</a>
 																</div>
 															</div>
@@ -2245,9 +2236,29 @@ onMounted(() => {
 						<div class="reply-chat show-reply" style="padding: 10px;background-color: antiquewhite;border-radius: 10px;margin: 10px;">
 							<div class="row">
 								<div class="col-12 md:col-12 flex">
-									<div class="col-11 content-reply">
+									<div class="col-11 content-reply flex">
 										<font-awesome-icon icon="fa-solid fa-quote-right" style="font-size: 1rem; color: gray;" />
-										<div style="display: inline-block" class="bind-chat-html ml-2" v-html="tinnhanreply.content_message"></div>
+										<div style="display: inline-block" class="bind-chat-html ml-2" 
+											v-html="tinnhanreply.content_message" 
+											v-if="tinnhanreply.type_message == 0"
+										>
+										</div>
+										<div style="display: inline-block" class="bind-chat-html ml-2" v-else>
+											<Image v-if="tinnhanreply.type_message == 1 && tinnhanreply.files.length > 0"
+												class="flex"
+												:src="basedomainURL + (tinnhanreply.files[0].file_path ||'/Portals/Image/noimg.jpg')"
+												style="height: 3rem; object-fit: contain;"
+											/>
+											<div class="r-fbox image_file_chat flex" style="align-items: center;" v-else>
+												<img style="width:32px;" 
+													v-bind:src="basedomainURL+'/Portals/Image/file/'+tinnhanreply.files[0].file_type+'.png'" 
+													v-if="tinnhanreply.files.length > 0"
+												/>
+												<a class="ml-2" style="color:#a9a69e; font-size: 0.9rem;" v-if="tinnhanreply.files.length > 0">
+													<b>{{tinnhanreply.files[0].file_name}}</b>
+												</a>
+											</div>
+										</div>
 									</div>
 									<div class="col-1 close-reply text-right" v-if="isEdit != true">
 										<a @click="HuyReply()"><i class="pi pi-times"></i></a>
@@ -2322,6 +2333,7 @@ onMounted(() => {
 									v-on:keypress="changeContent($event)"
 									v-on:keydown.enter.exact.prevent="sendMS(0, noiDungChat)" 
 									v-on:keydown.enter.shift.exact.prevent="noiDungChat.noiDung += '\n'" 
+                                    v-on:paste="pasteFile($event)" 
 									placeholder="Nhập nội dung tin nhắn..."
 								/>
 							</div>
