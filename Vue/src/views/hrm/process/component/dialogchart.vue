@@ -73,7 +73,7 @@ const loadData = () => {
       let data = JSON.parse(response.data.data)[0];
       let dataProcess = JSON.parse(response.data.data)[1];
       if (data) {
-       
+        
         data.forEach((element) => {
           if(element.approved_type==2){
             element.type_name="Duyệt tuần tự";
@@ -101,15 +101,16 @@ const loadData = () => {
       }
       if (dataProcess) {
         dataProcess.forEach((item) => {
-         if(item.config_process_type==0){
+         if(item.config_process_type == 2){
           item.type_name="Duyệt tuần tự";
         
          }
-         else     if(item.config_process_type==1){
+         else     if(item.config_process_type==1)
+         {
           item.type_name="Duyệt một trong nhiều";
 
          }
-         else  if(item.config_process_type==2){
+         else  if(item.config_process_type==3){
           item.type_name="Duyệt ngẫu nhiên";
          }
          else
@@ -121,6 +122,7 @@ const loadData = () => {
 
         datalists.value = dataProcess;
       }
+       
     })
     .catch((error) => {
       console.log(error);
@@ -152,8 +154,8 @@ onMounted(() => {
                 <i class="pi pi-fw pi-chart-bar"></i>
                 <h3 class="m-0 mx-2">Quy trình xử lý</h3>
               </template>
-              <div v-if="type_process === 0">
-               
+              <div  >
+            
                 <div v-if="datalists.length > 0">
                   <div
                     v-for="(item, pindex) in datalists"
@@ -161,7 +163,7 @@ onMounted(() => {
                     :key="pindex"
                     class="bg-blue-200 mb-3"
                   >
-                    <Panel
+                  <div  > <Panel
                       header="Header"
                       :toggleable="true"
                       :collapsed="item.is_close"
@@ -174,10 +176,10 @@ onMounted(() => {
                           >
                            {{item.config_process_name}}
                           </h3>
-                          <Tag
+                          <Tag v-if="item.type_send!=2"
                             class="ml-3 px-3 py-1"
                             :value="item.type_name"
-                            :class="'type-p' + item.config_process_type"
+                            :class="'type' + item.config_process_type"
                             style="
                               font-size: 11px;
                               min-width: max-content;
@@ -401,6 +403,7 @@ onMounted(() => {
                         <span class="description">Không có nhóm duyệt</span>
                       </div>
                     </Panel>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -408,7 +411,7 @@ onMounted(() => {
                   class="w-full format-flex-center"
                   style="height: 100px"
                 >
-                  <span class="description">Không có quy trình</span>
+                  <span class="description">Chưa có quy trình xử lý</span>
                 </div>
               </div>
               <!-- <div v-else-if="props.is_type_calendar === 1">
@@ -777,13 +780,7 @@ onMounted(() => {
                   <span class="description">Không có người duyệt</span>
                 </div>
               </div> -->
-              <div
-                v-else
-                class="w-full format-flex-center"
-                style="height: 100px"
-              >
-                <span class="description">Chưa có quy trình xử lý</span>
-              </div>
+               
             </TabPanel>
             <TabPanel>
               <template #header>

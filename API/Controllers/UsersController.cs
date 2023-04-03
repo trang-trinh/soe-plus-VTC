@@ -153,6 +153,8 @@ namespace Controllers
                         model.created_token_id = tid;
                         model.created_ip = ip;
                         model.wrong_pass_count = 0;
+                        model.key_encode_data = helper.GenerateRandomKey();
+                        MemoryCacheHelper.Add(model.user_id, model.key_encode_data, DateTimeOffset.UtcNow.AddMinutes(30));
                         if (!ad)
                         {
                             model.is_admin = false;
@@ -639,6 +641,84 @@ namespace Controllers
             }
 
         }
+        [HttpPut]
+        public async Task<HttpResponseMessage> Refresh_Key()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            var fdmodel = "";
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        var md = provider.FormData.GetValues("model").SingleOrDefault();
+                        sys_users user = JsonConvert.DeserializeObject<sys_users>(md);
+
+                        var model = db.sys_users.FirstOrDefault(a => a.user_id == user.user_id);
+                        if (model != null) model.key_encode_data = helper.GenerateRandomKey();
+                        // This illustrates how to get thefile names.
+                        db.Entry(model).State = EntityState.Modified;
+                        db.SaveChanges();
+                        List<data_user> topProducts = new List<data_user>();
+                        //   topProducts = MemoryCacheHelper.GetValue("topProducts");
+
+                        MemoryCacheHelper.Set(model.user_id, model.key_encode_data, DateTimeOffset.UtcNow.AddMinutes(30));
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdmodel, contents }), domainurl + "User/Refrehkey", ip, tid, "Lỗi khi User/Refrehkey", 0, "User");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdmodel, contents }), domainurl + "User/Refrehkey", ip, tid, "Lỗi khi User/Refrehkey", 0, "User");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
 
         #region Excel
         [HttpPost]
@@ -907,8 +987,9 @@ namespace Controllers
                     }
                 }
                 #endregion
-                string JSONresult = JsonConvert.SerializeObject(tables);
-                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
+                (string JSONresult_code, string data_Key) = helper.checkEncodeData(JSONresult, uid, ConfigurationManager.AppSettings["EncriptKey"]);
+                //string data_Key = Codec.EncryptString((helper.isEncodeProc ? "1111" : "0000") + "26$#" + key_code, ConfigurationManager.AppSettings["EncriptKey"]);
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult_code, err = "0", dataKey = data_Key });
             }
             catch (DbEntityValidationException e)
             {

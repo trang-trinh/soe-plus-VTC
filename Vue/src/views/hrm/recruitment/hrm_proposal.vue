@@ -158,7 +158,7 @@ const onPage = (event) => {
   loadData(true);
 };
 
-const dataSelected = ref();
+const dataSelected = ref([]);
 
 const isSaveTem = ref(true);
 const datalists = ref();
@@ -610,6 +610,7 @@ const closeDialogChart = () => {
 const modelsend = ref({
   type_send: 0,
   type_module: 0,
+  module_key:"M14"
 });
 const itemAproves = ref([
   {
@@ -625,14 +626,18 @@ const itemAproves = ref([
     label: "Chuyển đến nhóm",
     icon: "pi pi-users",
     command: (event) => {
-      showExport.value = true;
+      headerSend.value = "Chuyển đến nhóm";
+      modelsend.value.type_send = 1;
+      displaySend.value = true;
     },
   },
   {
     label: "Chuyển đích danh",
     icon: "pi pi-user-edit",
     command: (event) => {
-      showExport.value = true;
+      headerSend.value = "Chuyển đích danh";
+      modelsend.value.type_send = 2;
+      displaySend.value = true;
     },
   },
 ]);
@@ -643,7 +648,7 @@ const toggleExport = (event) => {
 const toggleAprroves = (event) => {
   var check = true;
   dataSelected.value.forEach((element) => {
-    if (element.status != 0) {
+    if (element.status != 0 && element.status != 6) {
       swal.fire({
         title: "Thông báo!",
         text: "Chỉ được chuyển xử lý bản ghi có trạng thái lập kế hoạch!",
@@ -786,7 +791,8 @@ const itemButMores = ref([
     icon: "pi pi-chart-line",
     command: (event) => {
        
-      modelsend.value.key_id=dataSelected.value.recruitment_proposal_id;
+      modelsend.value.key_id=recruitment_proposal.value.recruitment_proposal_id;
+   
       displayChart.value=true;
 
     },
@@ -808,7 +814,8 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   recruitment_proposal.value = item;
-  dataSelected.value = item;
+  dataSelected.value=[];
+  dataSelected.value.push(item);
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };

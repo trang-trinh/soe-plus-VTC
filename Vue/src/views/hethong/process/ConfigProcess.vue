@@ -75,11 +75,10 @@ const options = ref({
   totalRecordsAP: 0,
 });
 const types = ref([
-  { value: 0, title: "Duyệt tuần tự" },
-  { value: 1, title: "Duyệt một trong nhiều" },
-  { value: 2, title: "Duyệt ngẫu nhiên" },
+{ title: "Duyệt một nhiều", value: 1 },
+  { title: "Duyệt tuần tự", value: 2 },
+  { title: "Duyệt ngẫu nhiên", value: 3 },
 ]);
-
 const listModules = ref([]);
 const selectedKeyProcedure = ref([]);
 const selectedKeySign = ref([]);
@@ -111,7 +110,7 @@ const openAddDialogProcedure = (str) => {
   submitted.value = false;
   sys_config_process.value = {
     status: true, is_local: false,
-    config_process_type: 0,
+    config_process_type: 1,
     is_order: 0,
   };
   if (options.value.totalRecords > 0) {
@@ -218,7 +217,7 @@ const openAddDialogSign = (str) => {
 const closeDialogProcedure = () => {
   sys_config_process.value = {
     status: true,
-    config_process_type: 0,
+    config_process_type: 1,
     is_order: 0,
   };
   displayDialogProcedure.value = false;
@@ -2270,10 +2269,10 @@ emitter.on("emitData", (obj) => {
   display: flex;
   align-items: center;
 }
-.type0 {
+.type1 {
   background-color: #ff8b4e;
 }
-.type1 {
+.type2 {
   background-color: #33c9dc;
 }
 </style>

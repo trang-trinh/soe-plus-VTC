@@ -1480,6 +1480,7 @@ onMounted(() => {
                 placeholder="Xã phường, Quận huyện, Tỉnh thành"
                 panelClass="d-design-dropdown"
                 :filter="true"
+                :editable="true"
                 @filter="onFilterPlace($event, 1)"
               />
               <!-- <TreeSelect
@@ -1514,7 +1515,7 @@ onMounted(() => {
                 v-model="candidate.candidate_domicile"
                 :options="listPlaceDetails1"
                 optionLabel="name"
-                optionValue="name"
+                optionValue="name"   :editable="true"
                 class="w-full"
                 placeholder="Xã phường, Quận huyện, Tỉnh thành"
                 panelClass="d-design-dropdown"
@@ -1742,7 +1743,7 @@ onMounted(() => {
                     class="w-full"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     panelClass="d-design-dropdown"
-                    :filter="true"
+                    :filter="true"   :editable="true"
                     @filter="onFilterPlace($event, 3)"
                   />
                   <!-- <TreeSelect
@@ -1793,7 +1794,7 @@ onMounted(() => {
                     class="w-full"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     panelClass="d-design-dropdown"
-                    :filter="true"
+                    :filter="true"   :editable="true"
                     @filter="onFilterPlace($event, 4)"
                   />
                   <!-- <TreeSelect
@@ -1982,14 +1983,7 @@ onMounted(() => {
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
-                    <!-- <InputText
-                      v-model="slotProps.data.address"
-                      spellcheck="false"
-                      placeholder="Nhập địa chỉ"
-                      type="text"
-                      class="w-full h-full"
-                      maxLength="250"
-                    /> -->
+                   
                     <Dropdown
                       v-model="slotProps.data.address"
                       :options="listPlaceDetails4"
