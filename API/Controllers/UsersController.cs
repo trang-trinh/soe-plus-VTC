@@ -21,7 +21,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-
+using static Helper.helper;
+using System.Configuration;
 namespace Controllers
 {
     [Authorize(Roles = "login")]
@@ -686,8 +687,6 @@ namespace Controllers
                         // This illustrates how to get thefile names.
                         db.Entry(model).State = EntityState.Modified;
                         db.SaveChanges();
-                        List<data_user> topProducts = new List<data_user>();
-                        //   topProducts = MemoryCacheHelper.GetValue("topProducts");
 
                         MemoryCacheHelper.Set(model.user_id, model.key_encode_data, DateTimeOffset.UtcNow.AddMinutes(30));
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
