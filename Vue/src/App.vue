@@ -11,6 +11,7 @@ import { useRouter, useRoute } from "vue-router";
 import { decr, encr } from "./util/function";
 import { useToast } from "vue-toastification";
 import { useCookies } from "vue3-cookies";
+
 const { cookies } = useCookies();
 
 //Khai báo biến
@@ -56,6 +57,21 @@ if (cookies.get("tk") != null) {
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
+axios.interceptors.response.use(response => {
+    if(response.data.dataKey){
+      let dataKey = decr(response.data.dataKey, SecretKey, cryoptojs);
+      let arr_list = dataKey.split("26$#");
+      if(arr_list.length>1){
+        let check_endcode = arr_list[0].toString() == '1111' ? true: false,
+        key = arr_list[1];
+        if(check_endcode)
+        response.data.data = decr(response.data.data, key, cryoptojs);
+      }
+    }
+    return response;
+ }, error => {
+   return error;
+ });
 const passModuleToSidebar = () => {
   var link = router.fullPath;
   if (!link) return false;

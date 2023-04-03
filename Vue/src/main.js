@@ -111,7 +111,7 @@ import VueSidebarMenu from "vue-sidebar-menu";
 import Toast from "vue-toastification";
 import Editor from "primevue/editor";
 //import axios from "redaxios";
-import axios from 'axios'
+ import axios from 'axios'
 import VueAxios from "vue-axios";
 // Import the CSS or use your own!
 import "@vuepic/vue-datepicker/dist/main.css";
