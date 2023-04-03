@@ -54,7 +54,6 @@ const saveModel = () => {
   let formData = new FormData();
   formData.append("profile_id", props.profile["profile_id"]);
   formData.append("tags", JSON.stringify(tags));
-  debugger
   axios
     .put(baseURL + "/api/hrm_profile/update_profile_tags", formData, config)
     .then((response) => {
