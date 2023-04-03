@@ -1094,7 +1094,7 @@ onMounted(() => {
                 class="w-full"
                 id="basic_purchase_date"
                 v-model="recruitment_proposal.start_date"
-                autocomplete="on"
+                autocomplete="off"
                 :showIcon="true"
                 placeholder="dd/mm/yyyy"
               />
@@ -1110,7 +1110,7 @@ onMounted(() => {
                 placeholder="dd/mm/yyyy"
                 id="basic_purchase_date"
                 v-model="recruitment_proposal.end_date"
-                autocomplete="on"
+                autocomplete="off"
                 :minDate="
                   recruitment_proposal.start_date
                     ? new Date(recruitment_proposal.start_date)
@@ -1406,9 +1406,9 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
+        <div class="col-12 field p-0 text-lg font-bold" v-if="listFilesS.length>0">File đính kèm</div>
         <div class="w-full col-12 field p-0">
-          <FileUpload
+          <FileUpload  v-if="!view"
             chooseLabel="Chọn File"
             :showUploadButton="false"
             :showCancelButton="false"
@@ -1501,7 +1501,7 @@ onMounted(() => {
       </div>
     </form>
     <template #footer>
-      <div class="pt-3" v-if="!view">
+      <div class="pt-3">
         <Button
           label="Hủy"
           icon="pi pi-times"
@@ -1509,7 +1509,7 @@ onMounted(() => {
           class="p-button-outlined"
         />
 
-        <Button
+        <Button  v-if="!view"
           label="Lưu"
           icon="pi pi-check"
           @click="saveData(!v$.$invalid)"

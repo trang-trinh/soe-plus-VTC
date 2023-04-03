@@ -1,12 +1,12 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
-import { required } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
+ 
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
-import dialog_recCalendar from "./component/dialog_recCalendar.vue";
+import dialogChart from "../process/component/dialogchart.vue";
+import dialogrecruitment_proposal from "./component/dialog_proposal.vue";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -19,7 +19,7 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  candidate_name: {
+  itemProcess_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -38,51 +38,10 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 
-const listStatus = ref([
-  { name: "Lên kế hoạch", code: 1 },
-  { name: "Đang thực hiện", code: 2 },
-  { name: "Đã hoàn thành", code: 3 },
-  { name: "Tạm dừng", code: 4 },
-  { name: "Đã hủy", code: 5 },
-]);
-const listFormTraining = ref([
-  { name: "Bắt buộc", code: 1 },
-  { name: "Đăng ký", code: 2 },
-  { name: "Cả hai", code: 3 },
-]);
-//Lấy số bản ghi
-const loadCount = () => {
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_rec_calendar_count",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      if (data.length > 0) {
-        options.value.totalRecords = data[0].totalRecords;
-
-        sttStamp.value = data[0].totalRecords + 1;
-      }
-    })
-    .catch((error) => {});
-};
-
-//Lấy dữ liệu candidate
+ 
+ 
+ 
+//Lấy dữ liệu  
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -148,19 +107,19 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].rec_calendar_id;
+      datalists.value[datalists.value.length - 1].config_process_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].rec_calendar_id;
+    options.value.id = datalists.value[0].config_process_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const candidate = ref({
-  candidate_name: "",
+const itemProcess = ref({
+  itemProcess_name: "",
   emote_file: "",
   status: true,
   is_default: false,
@@ -168,8 +127,6 @@ const candidate = ref({
 });
 
 const selectedStamps = ref();
-
-const isSaveTem = ref(true);
 const datalists = ref();
 const toast = useToast();
 const basedomainURL = baseURL;
@@ -177,7 +134,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "rec_calendar_id desc ",
+  sort: "config_process_id desc ",
   SearchText: null,
   PageNo: 0,
   PageSize: 20,
@@ -192,99 +149,7 @@ const options = ref({
   totalRecordsExport: 50,
   pagenoExport: 1,
 });
-
-//Hiển thị dialog
-const headerDialog = ref();
-const displayBasic = ref(false);
-const openBasic = (str) => {
-  candidate.value = {
-    form_training: 1,
-    status: 1,
-
-    is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
-  };
-
-  isSaveTem.value = true;
-  headerDialog.value = str;
-  numOfKey.value += 1;
-  displayBasic.value = true;
-};
-
-const closeDialog = () => {
-  candidate.value = {
-    candidate_name: "",
-    emote_file: "",
-    status: true,
-    is_default: false,
-    is_order: 1,
-  };
-
-  displayBasic.value = false;
-  loadData(true);
-};
-const sttStamp = ref(1);
-
-//Sửa bản ghi
-const editTem = (dataTem) => {
-  headerDialog.value = "Sửa phiếu chờ duyệt";
-  isSaveTem.value = false;
-  displayBasic.value = true;
-};
-//Xóa bản ghi
-const delTem = (Tem) => {
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá bản ghi này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-
-        axios
-          .delete(baseURL + "/api/hrm_rec_calendar/delete_hrm_rec_calendar", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.rec_calendar_id] : 1,
-          })
-          .then((response) => {
-            swal.close();
-            if (response.data.err != "1") {
-              swal.close();
-              toast.success("Xoá thông tin phiếu chờ duyệt thành công!");
-              loadData(true);
-            } else {
-              swal.fire({
-                title: "Error!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          })
-          .catch((error) => {
-            swal.close();
-            if (error.status === 401) {
-              swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                confirmButtonText: "OK",
-              });
-            }
-          });
-      }
-    });
-};
+ 
 //Xuất excel
 
 //Sort
@@ -313,7 +178,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "rec_calendar_id",
+    id: "config_process_id",
     sqlS: null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -363,50 +228,64 @@ const loadDataSQL = () => {
       }
     });
 };
-const listCampaigns = ref([]);
-const setStatus = (value) => {
-  opstatus.value.hide();
-  let data = {
-    IntID: value.rec_calendar_id,
-    TextID: value.rec_calendar_id + "",
-    IntTrangthai: value.status,
-    BitTrangthai: false,
-  };
-  axios
-    .put(
-      baseURL + "/api/hrm_rec_calendar/update_s_hrm_rec_calendar",
-      data,
-      config
-    )
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-        toast.success("Cập nhật trạng thái thành công!");
-        loadData(true);
-      } else {
+const listCampaigns = ref([]); 
+ 
+ 
+const onUploadFile = (event) => {
+ 
+  filesList.value = [];
+
+  var ms = false;
+
+  event.files.forEach((fi) => {
+    let formData = new FormData();
+    formData.append("fileupload", fi);
+    axios({
+      method: "post",
+      url: baseURL + `/api/chat/ScanFileUpload`,
+      data: formData,
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+      },
+    })
+      .then((response) => {
+        if (response.data.err != "1") {
+          if (fi.size > 100 * 1024 * 1024) {
+            ms = true;
+          } else {
+            filesList.value.push(fi);
+       
+          }
+        } else {
+          filesList.value = filesList.value.filter((x) => x.name != fi.name);
+          swal.fire({
+            title: "Cảnh báo",
+            text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
+            icon: "warning",
+            confirmButtonText: "OK",
+          });
+        }
+        if (ms) {
+          swal.fire({
+            icon: "warning",
+            type: "warning",
+            title: "Thông báo",
+            text: "Bạn chỉ được upload file có dung lượng tối đa 100MB!",
+          });
+        }
+      })
+      .catch(() => {
         swal.fire({
-          title: "Error!",
-          text: response.data.ms,
+          title: "Thông báo",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
       });
-    });
+  });
 };
-
-const opstatus = ref();
-const toggleStatus = (item, event) => {
-  candidate.value = item;
-  opstatus.value.toggle(event);
+const removeFile = (event) => {
+  filesList.value = filesList.value.filter((a) => a != event.file);
 };
 //Tìm kiếm
 const searchStamp = (event) => {
@@ -464,26 +343,13 @@ const onFilter = (event) => {
   isDynamicSQL.value = true;
   loadDataSQL();
 };
-const tabs = ref([
-  { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
-  { id: 1, title: "Lên kế hoạch", icon: "", total: 0 },
-  { id: 2, title: "Đang thực hiện", icon: "", total: 0 },
-  { id: 3, title: "Đã hoàn thành", icon: "", total: 0 },
-  { id: 4, title: "Tạm dừng", icon: "", total: 0 },
-  { id: 5, title: "Đã hủy", icon: "", total: 0 },
-]);
-const numOfKey = ref(0);
-//Checkbox
-
+ 
 //Xuất excel
-
 const exportExcelR = () => {
   showExport.value = false;
-
-  exportData("ExportExcel");
+  exportData();
 };
 const headerExport = ref("Cấu hình xuất Excel");
-
 const showExport = ref(false);
 const menuButs = ref();
 const itemButs = ref([
@@ -498,7 +364,7 @@ const itemButs = ref([
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
-const exportData = (method) => {
+const exportData = () => {
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -542,7 +408,7 @@ const exportData = (method) => {
         swal.close();
 
         toast.success("Kết xuất Data thành công!");
-        debugger;
+ 
         if (response.data.path != null) {
           let pathReplace = response.data.path
             .replace(/\\+/g, "/")
@@ -576,66 +442,100 @@ const exportData = (method) => {
       }
     });
 };
-
-const activeTab = (tab) => {
-  options.value.tab = tab.id;
-  reFilter();
-  if (tab.id) {
-    checkLoadCount.value = false;
-    let filterS1 = {
-      filterconstraints: [{ value: tab.id, matchMode: "equals" }],
-      filteroperator: "and",
-      key: "status",
-    };
-
-    filterSQL.value.push(filterS1);
-  }
-
-  loadDataSQL();
+ 
+const closeDialogChart = () => {
+  loadData(true);
+  displayChart.value = false;
 };
+
+const headerChart=ref("Bảng theo dõi quy trình xử lý");
 const menuButMores = ref();
+const displayChart=ref(false);
+const modelsend = ref({
+  type_send: 0,
+  type_module: 0,
+  module_key:"M14"
+});
+const recruitment_proposal=ref({
+  recruitment_proposal_id:null
+});
 const itemButMores = ref([
   {
-    label: "Hiệu chỉnh nội dung",
-    icon: "pi pi-pencil",
+    label: "Thông tin phiếu",
+    icon: "pi pi-info-circle",
     command: (event) => {
-      editTem(candidate.value, "Chỉnh sửa hợp đồng");
+      if(modelsend.value.type_module==0){
+      recruitment_proposal.value.recruitment_proposal_id=itemProcess.value.key_id;
+      displayProposal.value=true;}
     },
   },
   {
-    label: "Xoá",
-    icon: "pi pi-trash",
+    label: "Quy trình xử lý",
+    icon: "pi pi-chart-line",
     command: (event) => {
-      delTem(candidate.value);
+ 
+      modelsend.value.type_module=itemProcess.value.type_module;
+     if(  modelsend.value.type_module==0){
+      modelsend.value.module_key="M14";
+     }
+     modelsend.value.key_id=itemProcess.value.key_id;
+      displayChart.value=true;
+    },
+  },
+  {
+    label: "Xác nhận duyệt",
+    icon: "pi pi-check",
+    command: (event) => {
+      swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xác nhận phiếu duyệt này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+        send();
+       
+      }
+    });
     },
   },
 ]);
 const toggleMores = (event, item) => {
-  candidate.value = item;
+  itemProcess.value = item;
   selectedStamps.value = item;
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
 };
-
 const toggleAprroves = (event) => {
   menuAproves.value.toggle(event);
 };
- 
-
 const menuAproves = ref();
 const process=ref({
   content:null
-
 });
 const headerSend = ref( );
 const displaySend = ref(false);
+const checkReturn = ref(false);
 const itemAproves = ref([
   {
     label: "Xác nhận duyệt",
     icon: "pi pi-check-circle",
     command: (event) => {
       headerSend.value = "Xác nhận duyệt";
-     
+     process.value={  content:null};
+     checkReturn.value=false;
       displaySend.value = true;
     },
   },
@@ -643,213 +543,28 @@ const itemAproves = ref([
     label: "Trả lại",
     icon: "pi pi-replay",
     command: (event) => {
-      showExport.value = true;
+      headerSend.value = "Trả lại";
+     process.value={  content:null};
+     checkReturn.value=true;
+      displaySend.value = true;
     },
   },
    
 ]);
-
-//Xóa nhiều
-const deleteList = () => {
-  let listId = new Array(selectedStamps.value.length);
-  let checkD = false;
-
-  if (!checkD) {
-    swal
-      .fire({
-        title: "Thông báo",
-        text: "Bạn có muốn xoá thông tin phiếu chờ duyệt này không!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có",
-        cancelButtonText: "Không",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          swal.fire({
-            width: 110,
-            didOpen: () => {
-              swal.showLoading();
-            },
-          });
-
-          selectedStamps.value.forEach((item) => {
-            listId.push(item.rec_calendar_id);
-          });
-          axios
-            .delete(baseURL + "/api/hrm_rec_calendar/delete_hrm_rec_calendar", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
-            .then((response) => {
-              swal.close();
-              if (response.data.err != "1") {
-                swal.close();
-                toast.success("Xoá thông tin phiếu chờ duyệt thành công!");
-                checkDelList.value = false;
-
-                loadData(true);
-              } else {
-                swal.fire({
-                  title: "Error!",
-                  text: response.data.ms,
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            })
-            .catch((error) => {
-              swal.close();
-              if (error.status === 401) {
-                swal.fire({
-                  title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            });
-        }
-      });
-  }
-};
+ 
 
 //Filter
 const reFilter = () => {
   options.value.campaign_id = null;
-
   options.value.interviewers = null;
   options.value.start_date = null;
   options.value.end_date = null;
-
   options.value.status_filter = null;
   checkLoadCount.value = true;
   isDynamicSQL.value = false;
   checkFilter.value = false;
   filterSQL.value = [];
   options.value.SearchText = null;
-};
-const reFilterEmail = () => {
-  reFilter();
-  op.value.hide();
-  loadData(true);
-};
-const filterFileds = () => {
-  filterSQL.value = [];
-  checkFilter.value = true;
-  if (options.value.status_filter) {
-    let filterS1 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "status",
-    };
-    if (options.value.status_filter.length > 0) {
-      options.value.status_filter.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS1.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS1);
-    }
-  }
-
-  if (options.value.campaign_id) {
-    let filterS4 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "campaign_id",
-    };
-    if (options.value.campaign_id.length > 0) {
-      options.value.campaign_id.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS4.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS4);
-    }
-  }
-  if (options.value.interviewers) {
-    let filterS5 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "interviewers",
-    };
-    if (options.value.interviewers.length > 0) {
-      options.value.interviewers.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS5.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS5);
-    }
-  }
-
-  onDayClick();
-  loadDataSQL();
-  op.value.hide();
-};
-
-const onDayClick = () => {
-  if (options.value.start_date != null) {
-    if (!options.value.end_date)
-      options.value.end_date = options.value.start_date;
-
-    if (
-      options.value.start_date &&
-      options.value.start_date != options.value.end_date
-    ) {
-      let sDate = new Date(options.value.start_date);
-
-      options.value.start_date = sDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.start_date, matchMode: "dateAfter" },
-        ],
-        filteroperator: "and",
-        key: "rec_calendar_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.end_date &&
-      options.value.start_date != options.value.end_date
-    ) {
-      let eDate = new Date(options.value.end_date);
-
-      options.value.end_date = eDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.end_date, matchMode: "dateBefore" },
-        ],
-        filteroperator: "and",
-        key: "rec_calendar_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.start_date &&
-      options.value.start_date == options.value.end_date
-    ) {
-      let filterS1 = {
-        filterconstraints: [
-          { value: options.value.start_date, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "rec_calendar_date",
-      };
-      filterSQL.value.push(filterS1);
-      let filterS2 = {
-        filterconstraints: [
-          { value: options.value.end_date, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "rec_calendar_date",
-      };
-      filterSQL.value.push(filterS2);
-    }
-  }
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -858,10 +573,7 @@ watch(selectedStamps, () => {
     checkDelList.value = false;
   }
 });
-const op = ref();
-const toggle = (event) => {
-  op.value.toggle(event);
-};
+ 
 
 const listDropdownUserCheck = ref();
 const listDropdownUser = ref();
@@ -926,10 +638,7 @@ const loadUser = () => {
       }
     });
 };
-
-const listTrainingGroups = ref([]);
-const listClasroom = ref([]);
-
+ 
 const initTudien = () => {
   listCampaigns.value = [];
   axios
@@ -970,92 +679,113 @@ const initTudien = () => {
 
 
 
-const filesList=ref();
-
+const filesList=ref([]);
+const closeDialogSend=()=>{
+  loadData(true);
+  displaySend.value=false;
+  process.value=null;
+}
 const send = () => {
-  submitted.value = true;
-  if (!process.value.config_process_id) {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
   });
-  var obj = {  };
-  obj.key_id=process.value.config_process_id;
+  var obj = {};
+  if(process.value.content)
   obj.content=process.value.content;
- 
+ else
+ obj.content="";
 
   let formData = new FormData();
-  formData.append("type_send", obj["type_send"]);
-  formData.append("key_id", obj["key_id"]);
-  formData.append("type_module", obj["type_module"]);
   formData.append("content", obj["content"]); 
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
     formData.append("files", file);
   }
-  formData.append("hrm_obj", JSON.stringify(props.dataSelected));
-  // axios
-  //   .post(baseURL + "/api/hrm_campage_process/update_hrm_campage_process", formData, config)
-  //   .then((response) => {
-  //     if (response.data.err === "1") {
-  //       swal.fire({
-  //         title: "Thông báo!",
-  //         text: response.data.ms,
-  //         icon: "error",
-  //         confirmButtonText: "OK",
-  //       });
-  //       return;
-  //     }
+  formData.append("hrm_obj", JSON.stringify(selectedStamps.value));
+   
+  if(!checkReturn.value){
+  axios
+    .put(baseURL + "/api/hrm_campage_process/update_hrm_campage_process", formData, config)
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
       
-  //     swal.close();
-  //     toast.success("Gửi thành công!");
-  //     props.closeDialog();
-      
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //     swal.close();
-  //     swal.fire({
-  //       title: "Thông báo!",
-  //       text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-  //       icon: "error",
-  //       confirmButtonText: "OK",
-  //     });
-  //   });
-  // if (submitted.value) submitted.value = false;
-};
-onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
+      swal.close();
+      toast.success("Gửi thành công!");
+ 
+      closeDialogSend();
+    })
+    .catch((error) => {
+      console.log(error);
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
   }
+  else{
+    axios
+    .put(
+      baseURL + "/api/hrm_campage_process/return_hrm_campage_process",
+      formData,
+      config
+    )
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      swal.close();
+      toast.success("Trả lại thành công!");
+      closeDialogSend();
+    })
+    .catch((error) => {
+      console.log(error);
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+  }
+};
+
+
+
+const displayProposal=ref(false);
+
+const headerProposal=ref("Thông tin phiếu đề xuất");
+const closeDialogProposal=()=>{
+  displayProposal.value = false;
+ 
+}
+onMounted(() => {
   initTudien();
   loadData(true);
 
   return {
-    datalists,
-    options,
-    onPage,
-    loadData,
-    loadCount,
-    openBasic,
-    closeDialog,
-    basedomainURL,
-
-    isFirst,
-    searchStamp,
-
-    selectedStamps,
-    deleteList,
+  
   };
 });
 </script>
@@ -1080,7 +810,7 @@ onMounted(() => {
                 placeholder="Tìm kiếm"
               />
 
-              <Button
+              <!-- <Button
                 @click="toggle"
                 type="button"
                 class="ml-2 p-button-outlined p-button-secondary"
@@ -1286,7 +1016,7 @@ onMounted(() => {
                     </Toolbar>
                   </div>
                 </div>
-              </OverlayPanel>
+              </OverlayPanel> -->
             </span>
           </template>
 
@@ -1308,12 +1038,7 @@ onMounted(() => {
               :popup="true"
             />
         
-            <Button
-              @click="openBasic('Thêm mới phiếu chờ duyệt')"
-              label="Thêm mới"
-              icon="pi pi-plus"
-              class="mr-2"
-            />
+            
             <Button
               @click="refreshStamp"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -1415,33 +1140,6 @@ onMounted(() => {
               headerStyle="text-align:center;max-width:55px;height:50px"
               bodyStyle="text-align:center;max-width:55px"
             ></Column>
-
-            <Column
-              field="config_process_name"
-              header="Tên phiếu chờ duyệt"
-              :sortable="true"
-              headerStyle="text-align:left;height:50px"
-              bodyStyle="text-align:left"
-              headerClass="align-items-center justify-content-center text-center"
-            >
-              <template #filter="{ filterModel }">
-                <InputText
-                  type="text"
-                  v-model="filterModel.value"
-                  class="p-column-filter"
-                  placeholder="Từ khoá"
-                />
-              </template>
-            </Column>
-            <Column
-              field="content"
-              header="Nội dung"
-              headerStyle="text-align:center;max-width:400px;height:50px"
-              bodyStyle="text-align:left;max-width:400px"
-              headerClass="align-items-center justify-content-center text-center"
-            >
-            </Column>
-
             <Column
               field="count_emps"
               header="Module"
@@ -1450,9 +1148,41 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
+             
                 <div v-if="data.data.type_module == 0">Đề xuất</div>
               </template>
             </Column>
+            <Column
+              field="config_process_name"
+              header="Nội dung phiếu chờ duyệt"
+ 
+              headerStyle="text-align:left;height:50px"
+              bodyStyle="text-align:left"
+              headerClass="align-items-center justify-content-center text-center"
+            >
+    
+            </Column>
+        
+            <Column
+              field="content"
+              header="Nội dung trình"
+              headerStyle="text-align:center;max-width:400px;height:50px"
+              bodyStyle="text-align:left;max-width:400px"
+              headerClass="align-items-center justify-content-center text-center"
+            >   <template #body="data">
+             
+             <div v-if="data.data.content &&  data.data.content !='null'">{{ data.data.content  }}</div>
+           </template>
+            </Column>
+            <Column
+              field="approved_group_name"
+              header="Tên nhóm duyệt"
+              headerStyle="text-align:center;max-width:250px;height:50px"
+              bodyStyle="text-align:left;max-width:250px"
+         class="align-items-center justify-content-center text-center"
+            >   
+            </Column>
+      
             <Column
               field="created_date"
               header="Ngày/Người gửi"
@@ -1530,15 +1260,22 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div v-if="displayBasic">
-      <dialog_recCalendar
-        :key="numOfKey"
-        :headerDialog="headerDialog"
-        :displayBasic="displayBasic"
-        :recCalendar="candidate"
+    <div v-if="displayChart == true">
+      <dialogChart
+        :headerDialog="headerChart"
+        :displayDialog="displayChart"
+        :modelsend="modelsend"
+        :closeDialog="closeDialogChart"
+      />
+    </div>
+    <div v-if="displayProposal == true">
+      <dialogrecruitment_proposal
+        :headerDialog="headerProposal"
+        :displayBasic="displayProposal"
+        :recruitment_proposal="recruitment_proposal"
         :checkadd="isSaveTem"
-        :view="false"
-        :closeDialog="closeDialog"
+        :view="true"
+        :closeDialog="closeDialogProposal"
       />
     </div>
   </div>
@@ -1589,9 +1326,10 @@ onMounted(() => {
     v-model:visible="displaySend"
     :style="{ width: '40vw' }"
     :maximizable="false"
+ 
     :closable="true"
     style="z-index: 1001"
-    @hide=" closeDialogSend"
+    @hide="closeDialogSend"
     :modal="true"
 
   >
@@ -1635,7 +1373,7 @@ onMounted(() => {
       <Button
         label="Hủy"
         icon="pi pi-times"
-        @click="closeDialog()"
+        @click="closeDialogSend()"
         class="p-button-outlined"
       />
       <Button label="Gửi" icon="pi pi-send" @click="send()" />

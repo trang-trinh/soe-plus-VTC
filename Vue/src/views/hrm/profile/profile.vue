@@ -308,7 +308,7 @@ const files = ref([]);
 const headerDialog = ref();
 const displayDialog = ref(false);
 const openAddDialog = (str) => {
-  forceRerender();
+  forceRerender(0);
   isAdd.value = true;
   model.value = {
     status: 0,
@@ -354,18 +354,29 @@ const editItem = (item, str) => {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
           model.value = tbs[0][0];
-          model.value["select_birthplace"] = {};
-          model.value["select_birthplace"][
-            model.value["birthplace_id"] || -1
-          ] = true;
-          model.value["select_birthplace_origin"] = {};
-          model.value["select_birthplace_origin"][
-            model.value["birthplace_origin_id"] || -1
-          ] = true;
-          model.value["select_place_register_permanent"] = {};
-          model.value["select_place_register_permanent"][
-            model.value["place_register_permanent"] || -1
-          ] = true;
+          // model.value["select_birthplace"] = {};
+          // model.value["select_birthplace"][
+          //   model.value["birthplace_id"] || -1
+          // ] = true;
+          // model.value["select_birthplace_origin"] = {};
+          // model.value["select_birthplace_origin"][
+          //   model.value["birthplace_origin_id"] || -1
+          // ] = true;
+          // model.value["select_place_register_permanent"] = {};
+          // model.value["select_place_register_permanent"][
+          //   model.value["place_register_permanent"] || -1
+          // ] = true;
+          if (model.value["birthplace_id"] == null) {
+            model.value["select_birthplace"] = model.value["birthplace_name"];
+          }
+          if (model.value["birthplace_origin_id"] == null) {
+            model.value["select_birthplace_origin"] =
+              model.value["birthplace_origin_name"];
+          }
+          if (model.value["place_register_permanent"] == null) {
+            model.value["select_place_register_permanent"] =
+              model.value["place_register_permanent_name"];
+          }
           if (model.value["recruitment_date"] != null) {
             model.value["recruitment_date"] = new Date(
               model.value["recruitment_date"]
@@ -645,12 +656,15 @@ const addRow = (type) => {
   } else if (type === 4) {
     obj = {
       company: null,
+      address: null,
       role: null,
+      wage: null,
       start_date: null,
       end_date: null,
       reference_name: null,
       reference_phone: null,
       description: null,
+      reason: null,
     };
   }
   if (datachilds.value[type] == null) {
@@ -1329,6 +1343,22 @@ onMounted(() => {
   initCount();
   initData(true);
 });
+// const test = () => {
+//   var str = encr(
+//     JSON.stringify({
+//       user: {
+//         Username: "test",
+//         Password: "123456",
+//         Email: "maiphien261299@gmail.com",
+//         FullName: "test",
+//       },
+//       isAdd: true,
+//     }),
+//     SecretKey,
+//     cryoptojs
+//   ).toString();
+//   console.log(str);
+// };
 </script>
 <template>
   <div class="surface-100 p-2">
@@ -1763,6 +1793,7 @@ onMounted(() => {
         </OverlayPanel>
       </template>
       <template #end>
+        <!-- <Button @click="test()" label="test" icon="pi pi-plus" class="mr-2" /> -->
         <Button
           @click="openAddDialog('Thêm mới hồ sơ')"
           label="Thêm mới"
@@ -2081,7 +2112,7 @@ onMounted(() => {
 
   <!-- Dialog -->
   <dilogprofile
-    :key="componentKey"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"

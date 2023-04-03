@@ -3,31 +3,6 @@ using System.Collections.Generic;
 
 namespace API.Models
 {
-
-
-
-    public class docReport
-    {
-        public DateTime timeExport { get; set; }
-       
-        public string user_id { get; set; }
-        public string user_name { get; set; }
-        public int report_type { get; set; }
-        public int page_no { get; set; }
-        public int page_size { get; set; }
-        public DateTime? start_dateI { get; set; }
-        public DateTime? end_dateI { get; set; }
-        public DateTime? start_dateD { get; set; }
-        public DateTime? end_dateD { get; set; }
-        public string search { get; set; }
-        public string user_recever { get; set; }
-        public string field_id { get; set; }
-        public string dispatch_book_id { get; set; }
-        public string doc_group_id { get; set; }
-        public string department_id_process { get; set; }
-        public string department_id { get; set; }
-   
-    }
     public class colExcel
     {
         public string title { get; set; }
@@ -144,12 +119,7 @@ namespace API.Models
         public string fileNameSettingApp { get; set; }
         public string filePathSettingApp { get; set; }
         public string email { get; set; }
-        public string psemail { get; set; }
-        public int timemail { get; set; }
-
-        public string userftp { get; set; }
-        public string psftp { get; set; }
-        public bool isEncodeProc { get; set; }
+        public string pwEmail { get; set; }
 
     }
     public class connectString
@@ -220,26 +190,5 @@ namespace API.Models
         public string body { get; set; }
         public bool isBodyHtml { get; set; }
 
-    }
-    public class infoMailSend
-    {
-        public string to { get; set; }
-        public string email { get; set; }
-        public string display_name { get; set; }
-        public string subject { get; set; }
-        public string top { get; set; }
-        public string body { get; set; }
-        public string bottom { get; set; }
-        public bool isBodyHtml { get; set; }
-
-    }
-    public class popupNoti
-    {
-        public List<string> uids { get; set; }
-        public string title { get; set; }
-        public string content { get; set; }
-        public string image { get; set; }
-        public string tag { get; set; }
-        public string url { get; set; }
     }
 }
