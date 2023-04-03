@@ -24,6 +24,9 @@ using System.Xml;
 using System.Security.Cryptography.Xml;
 using SocketIOClient;
 using System.Net.Sockets;
+using API.Helper;
+using System.Net.Http;
+using System.Configuration;
 
 
 namespace Helper
@@ -1784,6 +1787,30 @@ namespace Helper
         {
             string de_str = Codec.DecryptString(conn, keyConnect);
             return de_str;
+        }
+
+        public static void UploadFileToDestination(string jwtcookie, string root, MultipartFileData fileData, string newFileName, int? rswidth, int? rsheight) // rswidth, rsheight: size thumb image
+        {
+            Upload upload = new Upload();
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    await upload.UpdateFile(jwtcookie, root, fileData, newFileName, rswidth, rsheight);
+                    if (System.IO.File.Exists(fileData.LocalFileName))
+                    {
+                        System.IO.File.Delete(fileData.LocalFileName);
+                    }
+                    if (!string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["Portals"]))
+                    {
+                        if (System.IO.File.Exists(root + newFileName))
+                        {
+                            System.IO.File.Delete(root + newFileName);
+                        }
+                    }
+                }
+                catch { }
+            });
         }
     }
 }
