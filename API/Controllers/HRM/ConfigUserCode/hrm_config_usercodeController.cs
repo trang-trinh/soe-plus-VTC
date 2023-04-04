@@ -79,7 +79,7 @@ namespace API.Controllers.HRM.ConfigUserCode
                     {
                         var SuperiorCheck = db.hrm_config_usercode.AsNoTracking().Where(p => p.organization_type == 3 && p.organization_id == dv).FirstOrDefault();
                         var itemAdd = db.hrm_config_usercode.Where(p => p.organization_type == 0 && p.organization_id == item.organization_id).FirstOrDefault();
-                        if (itemAdd == null)
+                        if (itemAdd == null&& item.parent_id !=null)
                         {
                             var hrm_Cogfin = new hrm_config_usercode();
                             hrm_Cogfin.organization_name =item.organization_name;
