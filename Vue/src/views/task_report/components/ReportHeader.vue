@@ -76,6 +76,54 @@ const itemSortButs = ref([
     active: false,
   },
 ]);
+const loadData = () => {
+  swal.fire({
+    width: 100,
+    height: 100,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_filter_load",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      let data1 = JSON.parse(response.data.data)[1];
+      data.forEach((x) => {});
+      listDropdownDonvi.value = data;
+      listDropdownDept.value = data1;
+      swal.close();
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      addLog({
+        title: "Lỗi Console loadData",
+        controller: "ProjectReport.vue",
+        log_content: error.message,
+        loai: 2,
+      });
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
 const ChangeSort = (sort, ob) => {};
 const listButton = ref([
   {
@@ -114,7 +162,9 @@ const Switch = (e, va) => {
   else return;
 };
 const listDropdownDonvi = ref([]);
+const listDropdownDept = ref([]);
 onMounted(() => {
+  loadData();
   options.value = props.options;
 });
 </script>
@@ -164,13 +214,25 @@ onMounted(() => {
         v-model="options.filterOrg"
         panelClass="d-design-dropdown"
         placeholder="Chọn đơn vị"
-        selectionLimit="1"
         :options="listDropdownDonvi"
         optionLabel="organization_name"
         optionValue="organization_id"
         spellcheck="false"
         class="col-12 ip36 p-0"
+        showClear
       >
+        <template #option="slotProps">
+          <div
+            :style="{
+              'padding-left':
+                slotProps.option.is_level >= 1
+                  ? slotProps.option.is_level + 'rem'
+                  : '0',
+            }"
+          >
+            {{ slotProps.option.organization_name }}
+          </div>
+        </template>
       </Dropdown>
     </div>
     <div class="col-12">
@@ -181,7 +243,7 @@ onMounted(() => {
         panelClass="d-design-dropdown"
         placeholder="Chọn đơn vị"
         selectionLimit="1"
-        :options="listDropdownDonvi"
+        :options="listDropdownDept"
         optionLabel="organization_name"
         optionValue="organization_id"
         spellcheck="false"
