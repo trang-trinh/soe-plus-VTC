@@ -318,7 +318,12 @@ const saveDeConfig = () => {
       const element = datalistsD.value[key];
       reOrganization(element);
     }
-  } let formData = new FormData();
+  } 
+  datalistsBD.value.forEach(element => {
+    liData.value.push(element);
+  });
+  
+  let formData = new FormData();
   if(configUserCodeMain.value.length>0){
     liData.value.push(configUserCodeMain.value[0])
   }
