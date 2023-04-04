@@ -488,7 +488,7 @@ onMounted(() => {
                 </div>
               </div>
               <div class="col-12 md:col-12">
-                <div class="form-group">
+                <div class="form-group m-0">
                   <label>Nơi đăng ký HKTT</label>
                 </div>
               </div>
@@ -496,18 +496,17 @@ onMounted(() => {
                 <div class="row">
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Số nhà/đường phố</label>
                       <InputText
                         spellcheck="false"
                         class="ip36"
                         v-model="props.model.place_register_permanent_first"
                         maxLength="500"
+                        placeholder="Số nhà/đường phố"
                       />
                     </div>
                   </div>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Xã/phường, Quận/Huyện, Tỉnh/Thành phố</label>
                       <Dropdown
                         @filter="initPlaceFilter($event, 3)"
                         :options="listPlaceDetails3"
@@ -841,30 +840,23 @@ onMounted(() => {
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
-                    <div class="form-group">
-                      <label>Chỗ ở hiện nay: </label>
+                    <div class="form-group m-0">
+                      <label>Chỗ ở hiện nay </label>
                     </div>
                   </div>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Số nhà/đường phố</label>
                       <InputText
                         spellcheck="false"
                         class="ip36"
                         v-model="props.model.place_permanent"
                         maxLength="500"
+                        placeholder="Số nhà/đường phố"
                       />
                     </div>
                   </div>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Xã/phường, Quận/Huyện, Tỉnh/Thành phố</label>
-                      <!-- <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.place_residence"
-                        maxLength="500"
-                      /> -->
                       <Dropdown
                         @filter="initPlaceFilter($event, 4)"
                         :options="listPlaceDetails4"

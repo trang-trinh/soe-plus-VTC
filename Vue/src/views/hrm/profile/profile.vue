@@ -2094,8 +2094,8 @@ onMounted(() => {
         <Column
           field="profile_user_name"
           header="Họ và tên"
-          headerStyle="text-align:center;max-width:150px;height:50px"
-          bodyStyle="text-align:center;max-width:150px;"
+          headerStyle="text-align:center;max-width:300px;height:50px"
+          bodyStyle="text-align:center;max-width:300px;"
           class="align-items-center justify-content-left text-left"
         >
           <template #body="slotProps">
@@ -2173,8 +2173,8 @@ onMounted(() => {
         <Column
           field="countRecruitment"
           header="Ngày thâm niên"
-          headerStyle="text-align:center;max-width:200px;height:50px"
-          bodyStyle="text-align:center;max-width:200px;"
+          headerStyle="text-align:center;max-width:100px;height:50px"
+          bodyStyle="text-align:center;max-width:100px;"
           class="align-items-center justify-content-left text-left"
         >
           <template #body="slotProps">
