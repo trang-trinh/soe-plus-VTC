@@ -61,6 +61,10 @@ namespace API.Controllers
             try
             {
                 string root = HttpContext.Current.Server.MapPath("~/Portals");
+                if (!Directory.Exists(root + "/Temp"))
+                {
+                    Directory.CreateDirectory(root + "/Temp");
+                }
                 var provider = new MultipartFormDataStreamProvider(root + "/Temp");
 
                 // Read the form data and return an async task.

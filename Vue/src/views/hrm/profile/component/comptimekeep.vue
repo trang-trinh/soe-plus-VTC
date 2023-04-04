@@ -144,10 +144,8 @@ const goMonth = (month) => {
   }
 };
 const goYear = (date) => {
-  if (date && options.value["year"] !== date.getFullYear()) {
-    options.value["year"] = date.getFullYear();
-    initDictionary();
-  }
+  options.value.year = date.getFullYear();
+  initDictionary();
 };
 
 //Function
@@ -353,10 +351,84 @@ onMounted(() => {
 });
 </script>
 <template>
+  <Toolbar>
+    <template #start>
+      <div class="form-group m-0 mr-2" v-if="options.view !== 0">
+        <Calendar
+          v-model="options.tempyear"
+          @date-select="goYear(options.tempyear)"
+          :showIcon="true"
+          inputId="yearpicker"
+          view="year"
+          dateFormat="yy"
+          placeholder="Chọn năm"
+          class="ip36"
+          style="min-width: 170px"
+        />
+      </div>
+      <div class="form-group m-0" v-if="options.view === 2">
+        <Dropdown
+          :options="months"
+          :filter="true"
+          :showClear="false"
+          v-model="options.month"
+          @change="goMonth(options.month)"
+          optionLabel="month"
+          optionValue="month"
+          placeholder="Chọn tháng"
+          class="ip36"
+        >
+          <template #value="slotProps">
+            <div
+              class="country-item country-item-value flex"
+              v-if="slotProps.value"
+            >
+              <i class="pi pi-calendar mr-2 format-flex-center"></i>
+              <div>
+                Tháng {{ slotProps.value }} 
+                <!-- ({{
+                  moment(new Date(options["week_start_date"])).format("DD/MM")
+                }}
+                -
+                {{
+                  moment(new Date(options["week_end_date"])).format("DD/MM")
+                }}) -->
+              </div>
+            </div>
+            <span v-else>
+              {{ slotProps.placeholder }}
+            </span>
+          </template>
+          <template #option="slotProps">
+            <div
+              class="country-item country-item-value py-2"
+              v-if="slotProps.option"
+            >
+              <div>Tháng {{ slotProps.option.month }}</div>
+            </div>
+            <span v-else> Chưa có dữ liệu tháng </span>
+          </template>
+        </Dropdown>
+      </div>
+    </template>
+    <template #end>
+      <Button
+        label="30"
+        class="mr-2"
+        style="background-color: #0078d4; color: #fff; border-radius: 10px"
+        v-tooltip.top="'Ngày đi làm'"
+      />
+      <Button
+        label="30"
+        style="background-color: #0078d4; color: #fff; border-radius: 10px"
+        v-tooltip.top="'Tống số ngày'"
+      />
+    </template>
+  </Toolbar>
   <div
     class="d-lang-table p-2"
     :style="{
-      height: 'calc(100vh - 20px)',
+      height: 'calc(100vh - 220px)',
       overflowY: 'auto',
     }"
   >
@@ -371,7 +443,7 @@ onMounted(() => {
           <div>{{ day.day_string_date }}</div>
         </div>
         <div class="format-center h-full">
-            <span :style="{ fontSize: '16px' }">P</span>
+          <span :style="{ fontSize: '16px' }">P</span>
         </div>
       </div>
     </div>

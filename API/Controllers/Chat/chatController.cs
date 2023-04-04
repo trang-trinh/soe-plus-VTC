@@ -26,7 +26,6 @@ namespace API.Controllers
     [Authorize(Roles = "login")]
     public class chatController : ApiController
     {
-        //Upload upload = new Upload();
         public string getipaddress()
         {
             //var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -515,7 +514,7 @@ namespace API.Controllers
                         organization_id_user = user_now.organization_id.ToString();
                     }
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
-                    //string jwtcookie = HttpContext.Current.Request.Cookies["jwt"].Value;
+                    string jwtcookie = HttpContext.Current.Request.Cookies != null && HttpContext.Current.Request.Cookies["jwt"] != null ? HttpContext.Current.Request.Cookies["jwt"].Value : null;
                     var provider = new MultipartFormDataStreamProvider(root);
                     // Read the form data and return an async task.
                     var task = Request.Content.ReadAsMultipartAsync(provider).
@@ -612,6 +611,7 @@ namespace API.Controllers
                                     }
 
                                     fileInfo = new FileInfo(root + pathEdit_File);
+                                    var nameFileOrigin = fileName;
                                     if (fileInfo.Exists)
                                     {
                                         fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
@@ -666,7 +666,7 @@ namespace API.Controllers
                                     fileMes.chat_group_id = chatGroupNow.chat_group_id;
                                     fileMes.chat_message_id = mesFile.chat_message_id;
                                     fileMes.file_type = helper.GetFileExtension(fileName);
-                                    fileMes.file_name = fileName;
+                                    fileMes.file_name = nameFileOrigin;
                                     fileMes.file_path = pathFile;
                                     fileMes.file_size = new FileInfo(fileData.LocalFileName).Length;
                                     fileMes.is_image = mesFile.type_message == 1 ? true : false;
@@ -713,10 +713,9 @@ namespace API.Controllers
                                                 pathEdit_1 += "/" + Path.GetFileName(itemEdit);
                                             }
                                         }
-                                        File.Move(ffileData.LocalFileName, root + pathEdit_1);
-                                        //File.Move(ffileData.LocalFileName, newFileName);
-                                        listPathFileUp.Add(ffileData.LocalFileName);
-                                        //System.Threading.Tasks.Task.Run(() => upload.UpdateFile(jwtcookie, root, fileData, pathEdit_1, null, null));
+                                        //File.Move(ffileData.LocalFileName, root + pathEdit_1);
+                                        //listPathFileUp.Add(ffileData.LocalFileName);
+                                        helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
                                     }
                                 }
                                 if (listMessage.Count > 0)
@@ -743,16 +742,16 @@ namespace API.Controllers
                                 #endregion sendMS
                                 db.SaveChanges();
 
-                                if (listPathFileUp.Count > 0)
-                                {
-                                    foreach (var path in listPathFileUp)
-                                    {
-                                        if (System.IO.File.Exists(path))
-                                        {
-                                            System.IO.File.Delete(path);
-                                        }
-                                    }
-                                }
+                                //if (listPathFileUp.Count > 0)
+                                //{
+                                //    foreach (var path in listPathFileUp)
+                                //    {
+                                //        if (System.IO.File.Exists(path))
+                                //        {
+                                //            System.IO.File.Delete(path);
+                                //        }
+                                //    }
+                                //}
                                 return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", mess = listMesReturn, nsids = nsids });
                             }
                             else
