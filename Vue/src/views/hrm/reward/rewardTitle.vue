@@ -140,6 +140,10 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+
+          if(element.listRewards){
+            element.listRewards=JSON.parse(element.listRewards);
+          }
         });
 
         datalists.value = data;
@@ -147,6 +151,7 @@ const loadData = (rf) => {
         options.value.loading = false;
       })
       .catch((error) => {
+        console.log(error);
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
       });
@@ -1800,7 +1805,20 @@ onMounted(() => {
               bodyStyle="text-align:center;max-width:55px"
             >
             </Column>
-          
+            <Column
+              field="vacancy_name"
+              header="Đối tượng"
+              headerStyle="text-align:center;max-width:400px;height:50px"
+              bodyStyle="text-align:center;max-width:150px"
+              class="align-items-center justify-content-center text-center"
+            > <template #body="data">
+                <div  >
+                  {{
+                 data.data
+                  }}
+                </div>
+              </template>
+            </Column>
             <Column
               field="reward_name"
               header="Tên khen thưởng"
@@ -1816,6 +1834,13 @@ onMounted(() => {
                   class="p-column-filter"
                   placeholder="Từ khoá"
                 />
+              </template>
+              <template #body="data">
+                <div  >
+                  {{
+                 data.data
+                  }}
+                </div>
               </template>
             </Column>
             <Column
