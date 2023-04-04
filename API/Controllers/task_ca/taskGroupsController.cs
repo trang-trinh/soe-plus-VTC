@@ -51,6 +51,9 @@ namespace API.Controllers.Task_Ca
                     taskgroup.created_date = DateTime.Now;
                     taskgroup.created_ip = ip;
                     taskgroup.created_token_id = tid;
+                    //taskgroup.department_id = helper.Department(claims);
+                    taskgroup.organization_child_id = helper.OrgainzationChild(claims);
+                    taskgroup.organization_id = helper.Orgainzation(claims);
                     db.task_ca_taskgroup.Add(taskgroup);
                     await db.SaveChangesAsync();
 

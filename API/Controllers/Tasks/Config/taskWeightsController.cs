@@ -56,6 +56,9 @@ namespace API.Controllers.Tasks.Config
                     role_Groups.created_by = uid;
                     role_Groups.created_token_id = tid;
                     role_Groups.created_ip = ip;
+                    role_Groups.department_id = helper.Department(claims);
+                    role_Groups.organization_child_id = helper.OrgainzationChild(claims);
+                    role_Groups.organization_id = helper.Orgainzation(claims);
                     db.task_weights.Add(role_Groups);
 
                     await db.SaveChangesAsync();
