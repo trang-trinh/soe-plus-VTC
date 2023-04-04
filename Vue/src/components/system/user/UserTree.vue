@@ -1827,7 +1827,7 @@ onMounted(() => {
                     </Column>
                     <Column
                       field="organization_name"
-                      header="Tên đơn vị"
+                      header="Tên đơn vị/phòng ban"
                       :expander="true"
                     >
                       <template #body="md">
@@ -2050,7 +2050,7 @@ onMounted(() => {
                                 <Button
                                   @click="reFilterUser"
                                   class="p-button-outlined"
-                                  label="Xóa"
+                                  label="Bỏ chọn"
                                 ></Button>
                               </template>
                               <template #end>
