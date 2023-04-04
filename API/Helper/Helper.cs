@@ -28,7 +28,8 @@ using API.Helper;
 using System.Net.Http;
 using System.Configuration;
 using System.Runtime.Caching;
-
+using System.Security.Claims;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helper
 {
@@ -1881,5 +1882,20 @@ namespace Helper
             return (JSONresult, data_Key);
         }
         #endregion
+        public static int Department(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "dept").FirstOrDefault()?.Value;
+            return Convert.ToInt32(ctid);
+        }
+        public static int OrgainzationChild(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "ctid").FirstOrDefault()?.Value;
+            return Convert.ToInt32(ctid);
+        }
+        public static int Orgainzation(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            return Convert.ToInt32(ctid);
+        }
     }
 }

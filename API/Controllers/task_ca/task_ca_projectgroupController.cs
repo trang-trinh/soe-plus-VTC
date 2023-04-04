@@ -52,15 +52,14 @@ namespace API.Controllers
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var isExist = db.task_ca_projectgroup.FirstOrDefault(x => x.group_name == pg.group_name);
-                    if (isExist != null)
-                    {
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Tên nhóm đã tồn tại trong hệ thống." });
-                    }
+                    
                     pg.created_by = uid;
                     pg.created_date = DateTime.Now;
                     pg.created_ip = ip;
                     pg.created_token_id = tid;
+                    //pg.department_id = helper.Department(claims);
+                    pg.organization_child_id = helper.OrgainzationChild(claims);
+                    pg.organization_id = helper.Orgainzation(claims);
                     db.task_ca_projectgroup.Add(pg);
                     await db.SaveChangesAsync();
 

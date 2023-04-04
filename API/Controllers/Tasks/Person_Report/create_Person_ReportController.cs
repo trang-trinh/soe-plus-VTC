@@ -59,7 +59,9 @@ namespace API.Controllers.Tasks
                     role_Groups.created_date = DateTime.Now;
                     role_Groups.created_ip = ip;
                     role_Groups.created_token_id = tid;
-                    role_Groups.organization_id = id;
+                    role_Groups.department_id = helper.Department(claims);
+                    role_Groups.organization_child_id = helper.OrgainzationChild(claims);
+                    role_Groups.organization_id = helper.Orgainzation(claims);
                     db.task_person_report.Add(role_Groups);
                     await db.SaveChangesAsync();
                     #region add sys_logs
