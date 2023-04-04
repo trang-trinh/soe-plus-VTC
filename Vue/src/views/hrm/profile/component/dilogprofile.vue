@@ -59,8 +59,7 @@ const saveModel = (is_continue) => {
   if (
     !props.model.profile_id ||
     !props.model.profile_user_name ||
-    !props.model.birthday ||
-    !props.model.select_birthplace
+    !props.model.birthday
   ) {
     swal.fire({
       title: "Thông báo!",
