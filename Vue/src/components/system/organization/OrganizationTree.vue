@@ -43,7 +43,7 @@ const rules = {
 };
 const v$ = useVuelidate(rules, donvi);
 //Khai báo biến
-const expandedKeys =ref({})
+const expandedKeys = ref({})
 const id_active = ref();
 const department_name = ref();
 const displayPhongban = ref(false);
@@ -191,7 +191,7 @@ const showModalAddDonvi = (type) => {
     // parent_id: null,
     // parent_id: store.getters.user.organization_id,
   };
-  type == 0 ? displayAddDonvi.value = true :displayAddPhongban.value = true;
+  type == 0 ? displayAddDonvi.value = true : displayAddPhongban.value = true;
 };
 const chonanh = (id) => {
   document.getElementById(id).click();
@@ -346,19 +346,13 @@ const loadDonvi = (rf) => {
       if (isFirst.value) isFirst.value = false;
       data.forEach((element, i) => {
         element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-      });
-      let obj = renderTree(
-        data,
-        "organization_id",
-        "organization_name",
-        "đơn vị",
-      );
-      donvis.value = obj.arrChils;
-      if(!store.getters.user.is_super){
-          donvis.value.forEach((element) => {
-            expandNode(element);
-          });
+        element.isClosed = false;
+        element.isOpened = true;
+        if (data.find(x => x.parent_id == element.organization_id)) {
+          element.canExpand = true;
         }
+      });
+      donvis.value = data;
       // treedonvis.value = obj.arrtreeChils;
       opition.value.loading = false;
 
@@ -426,6 +420,38 @@ const loadDataDetails = (id, name) => {
       options.value.loading = false;
     });
 };
+const item_active = ref();
+const toggle_Donvisudung = (dv) => {
+  item_active.value = dv.organization_id;
+  //angular.forEach($scope.td.diadanh, function (item) {
+  //    if (item.Diadanh_ID !== dv.Diadanh_ID) {
+  //        item.activeDd = false;
+  //    }
+  //    else {
+  //        item.activeDd = !item.activeDd;
+  //    }
+  //});
+  dv.isOpened = !dv.isOpened;
+  var lst = donvis.value.filter(l => l.parent_id === dv.organization_id);
+  lst.forEach((o) => {
+    o.isClosed = !o.isClosed;
+    if (o.isClosed) {
+      Expanded(o);
+    }
+  })
+};
+function Expanded(dv) {
+  dv.isOpened = false;
+  var lst = donvis.value.filter(l => l.parent_id === dv.organization_id);
+  if (lst !== null || lst.length > 0) {
+    lst.forEach((o) => {
+      o.isClosed = !o.isClosed;
+      if (o.isClosed) {
+        Expanded(o);
+      }
+    })
+  }
+};
 const editDonvi = (md) => {
   submitted.value = false;
   swal.fire({
@@ -434,7 +460,7 @@ const editDonvi = (md) => {
       swal.showLoading();
     },
   });
-  md.organization_type ==0 ? displayAddDonvi.value = true :displayAddPhongban.value = true;
+  md.organization_type == 0 ? displayAddDonvi.value = true : displayAddPhongban.value = true;
   axios
     .post(
       baseURL + "/api/Phongban/GetDataProc",
@@ -520,7 +546,7 @@ const addTreeDonvi = (md, type) => {
     organization_type: type,
   };
   submitted.value = false;
-  type== 0 ? displayAddDonvi.value = true: displayAddPhongban.value = true;
+  type == 0 ? displayAddDonvi.value = true : displayAddPhongban.value = true;
 };
 const addDonvi = () => {
   let formData = new FormData();
@@ -539,8 +565,7 @@ const addDonvi = () => {
     method: donvi.value.organization_id ? "put" : "post",
     url:
       baseURL +
-      `/api/Phongban/${
-        donvi.value.organization_id ? "Update_Donvi" : "Add_Donvi"
+      `/api/Phongban/${donvi.value.organization_id ? "Update_Donvi" : "Add_Donvi"
       }`,
     data: formData,
     headers: {
@@ -550,14 +575,14 @@ const addDonvi = () => {
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
-        if(donvi.value.organization_type == 0){
+        if (donvi.value.organization_type == 0) {
           toast.success("Cập nhật đơn vị thành công!");
           loadDonvi();
           closedisplayAddDonvi();
         }
         else {
           toast.success("Cập nhật phòng ban thành công!");
-          loadDataDetails(id_active.value,department_name.value);
+          loadDataDetails(id_active.value, department_name.value);
           closedisplayAddPhongban();
         }
       } else {
@@ -773,8 +798,8 @@ const rowClass = (data) => {
   return data.organization_type == 0
     ? "classdonvi"
     : data.organization_type == 1
-    ? "classtruonghoc"
-    : "classphongban";
+      ? "classtruonghoc"
+      : "classphongban";
 };
 const rowClassStatus = (data) => {
   return data.status ? "" : "error";
@@ -790,156 +815,75 @@ onMounted(() => {
   <div>
     <div>
       <Splitter class="h-full w-full pb-0 pr-0">
-        <SplitterPanel
-          :size="50"
-          class=" "
-        >
-          <div class="pr-3">
-            <div>
-              <Toolbar>
-                <template #start>
-                  <span class="p-input-icon-left">
-                    <i class="pi pi-search" />
-                    <InputText
-                      v-model="filters['global']"
-                      type="text"
-                      spellcheck="false"
-                      placeholder="Tìm kiếm đơn vị"
-                    />
-                  </span>
-                </template>
-                <template #end>
-                  <Button
-                    v-if="store.getters.user.is_super"
-                    @click="showModalAddDonvi(0)"
-                    label="Thêm đơn vị"
-                    icon="pi pi-plus"
-                    class="mr-2"
-                  />
-                </template>
-              </Toolbar>
+        <SplitterPanel :size="40" class=" ">
+        <div class="p-3" v-if="datalistsDetails">
+              <h3 class="module-title m-0">
+                <i class="pi pi-microsoft"></i> 
+                {{ store.getters.user.is_super ? "Danh sách đơn vị" : "Cơ cấu tổ chức" }} 
+              </h3>
             </div>
-            <div>
-              <div class="w-full d-lang-table">
-                <TreeTable
-                  :value="donvis"
-                  v-model:selectionKeys="selectedKey"
-                  :filters="filters"
-                  :showGridlines="false"
-                  filterMode="strict"
-                  class="p-treetable-sm"
-                  :rows="20"
-                  :expandedKeys="expandedKeys"
-                  :rowHover="true"
-                  responsiveLayout="scroll"
-                  :scrollable="true"
-                  scrollHeight="flex"
-                  metaKeySelection="true"
-                  selectionMode="single"
-                  @nodeSelect= "(node)=> loadDataDetails(
-                            node.data.organization_id,
-                            node.data.organization_name,
-                          )"
-                >
-                  <Column
-                    field="Logo"
-                    header="Logo"
-                    class="align-items-center justify-content-center text-center"
-                    headerStyle="text-align:center;max-width:80px"
-                    bodyStyle="text-align:center;max-width:80px"
-                  >
-                    <template #body="md">
-                      <div
-                      >
-                        <Avatar
-                          v-if="md.node.data.logo"
-                          :image="basedomainURL + md.node.data.logo"
-                          class="mr-2"
-                          size="large"
-                        />
-                      </div>
-                    </template>
-                  </Column>
-                  <Column
-                    field="organization_name"
-                    header="Tên đơn vị"
-                    :expander="true"
-                  >
-                    <template #body="md">
-                      <div
-                      >
-                        <span
-                          :class="
-                            md.node.data.organization_id === id_active
-                              ? 'row-active'
-                              : ''
-                          "
-                          :style="[
-                            md.node.data ? 'font-weight:bold' : '',
-                            md.node.data.status ? '' : 'color:red !important',
-                          ]"
-                          >{{ md.node.data.organization_name }}</span
-                        >
-                      </div>
-                    </template>
-                  </Column>
-                  <Column
-                    header="Chức năng"
-                    headerClass="text-center"
-                    class="align-items-center justify-content-center text-center"
-                    headerStyle="text-align:center;max-width:120px"
-                    bodyStyle="text-align:center;max-width:120px"
-                  >
-                    <template #header> </template>
-                    <template #body="md">
-                      <Button
-                        type="button"
-                        icon="pi pi-plus-circle"
-                        class="p-button-rounded p-button-secondary p-button-outlined"
-                        style="margin-right: 0.5rem"
-                        v-tooltip.top="'Thêm đơn vị con'"
-                        @click="addTreeDonvi(md.node, 0)"
-                      ></Button>
-                      <Button
-                        type="button"
-                        icon="pi pi-pencil"
-                        v-tooltip.top="'Chỉnh sửa'"
-                        class="p-button-rounded p-button-secondary p-button-outlined"
-                        style="margin-right: 0.5rem"
-                        @click="editDonvi(md.node.data)"
-                      ></Button>
-                      <Button
-                        type="button"
-                        icon="pi pi-trash"
-                        v-tooltip.top="'Xóa'"
-                        class="p-button-rounded p-button-secondary p-button-outlined"
-                        @click="delDonvi(md.node.data)"
-                      ></Button>
-                    </template>
-                  </Column>
-                  <template #empty>
-                    <div
-                      class="m-auto align-items-center justify-content-center p-4 text-center"
-                      v-if="!isFirst"
-                    >
-                      <img
-                        src="../../../assets/background/nodata.png"
-                        height="144"
-                      />
-                      <h3 class="m-1">Không có dữ liệu</h3>
-                    </div>
-                  </template>
-                </TreeTable>
+          <Toolbar class="w-full">
+              <template #start>
+                <span class="p-input-icon-left">
+                  <i class="pi pi-search" />
+                  <InputText v-model="filters_pb['global']" type="text" spellcheck="false"
+                    placeholder="Tìm kiếm đơn vị" />
+                </span>
+              </template>
+
+              <template #end>
+                <Button @click="showModalAddDonvi(1)" label="Thêm đơn vị" icon="pi pi-plus" class="mx-2" />
+                <Button @click="refreshStamp" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
+                  v-tooltip="'Tải lại'" />
+                <Button v-if="checkDelList" @click="deleteList()" label="Xóa" icon="pi pi-trash"
+                  class="mr-2 p-button-danger" />
+                </template>
+            </Toolbar>
+          <div class="pl-3">
+            <div v-for="(dv, index) in donvis" :key="index"
+              :style="'margin-left:' +(dv.is_level+2) + 'em'" v-show="!dv.isClosed" class="my-3 mr-2 relative cursor-pointer ">
+              <div @mouseover="dv.hover = true" @mouseleave="dv.hover = false" style="min-height:20px"  >
+                <span @click="toggle_Donvisudung(dv)" class="absolute" style="left: -1.7rem;top: 0" v-if="dv.canExpand">
+                  <!-- <a v-if="!dv.isOpened"><i style="font-size: 16px;" class="pi pi-plus-circle"></i></a> -->
+                  <a v-if="!dv.isOpened"><font-awesome-icon icon="fa-solid fa-square-plus" style="font-size: 16px; color: gray;" /></a>
+                  <a v-if="dv.isOpened"><font-awesome-icon icon="fa-solid fa-square-minus" style="font-size: 16px; color: gray;" /></a>
+                </span>
+                <div class="font-bold w-full text-lg item-hover" :class="{'active':  id_active=== dv.organization_id, 'c-red-600': !dv.status}"  @click="loadDataDetails(dv.organization_id, dv.organization_name)">{{ dv.organization_name }}</div>
+                <div class="absolute" v-if="dv.hover" style="right: 0; top: 0">
+                  <Button
+                  type="button"
+                  icon="pi pi-plus-circle"
+                  class="p-button-rounded p-button-secondary p-button-outlined"
+                  style="width:1.5rem; height:1.5rem;"
+                  v-tooltip.top="'Thêm đơn vị trực thuộc'"
+                  @click="addTreeDonvi(dv)"
+                ></Button>
+                <Button
+                  type="button"
+                  icon="pi pi-pencil"
+                  v-tooltip.top="'Chỉnh sửa'"
+                  class="p-button-rounded p-button-secondary p-button-outlined ml-1"
+                  style="width:1.5rem; height:1.5rem;"
+                  @click="editDonvi(dv)"
+                ></Button>
+                <Button
+                  type="button"
+                  icon="pi pi-trash"
+                  v-tooltip.top="'Xóa'"
+                  class="p-button-rounded p-button-secondary p-button-outlined ml-1"
+                  style="width:1.5rem; height:1.5rem;"
+                  @click="delDonvi(dv)"
+                ></Button>
+
+                </div>
               </div>
+
             </div>
           </div>
         </SplitterPanel>
-        <SplitterPanel :size="50">
+        <SplitterPanel :size="60">
           <div class="d-lang-table-r">
-            <div
-              class="p-3"
-              v-if="datalistsDetails"
-            >
+            <div class="p-3" v-if="datalistsDetails">
               <h3 class="module-title m-0">
                 <i class="pi pi-book"></i> {{ department_name }} ({{
                   datalistsDetails.length
@@ -950,138 +894,64 @@ onMounted(() => {
               <template #start>
                 <span class="p-input-icon-left">
                   <i class="pi pi-search" />
-                  <InputText
-                    v-model="filters_pb['global']"
-                    type="text"
-                    spellcheck="false"
-                    placeholder="Tìm kiếm phòng ban"
-                  />
+                  <InputText v-model="filters_pb['global']" type="text" spellcheck="false"
+                    placeholder="Tìm kiếm phòng ban" />
                 </span>
               </template>
 
               <template #end>
-                <Button
-                  @click="showModalAddDonvi(1)"
-                  label="Thêm phòng ban"
-                  icon="pi pi-plus"
-                  class="mx-2"
-                />
-                <Button
-                  icon="pi pi-list"
-                  v-tooltip.left="'Hiển thị phòng ban'"
-                  class="mr-2"
-                  v-bind:class="
-                    'p-button p-button-' +
-                    (displayPhongban ? 'primary' : 'secondary')
-                  "
-                  @click="showPhongban"
-                />
+                <Button @click="showModalAddDonvi(1)" label="Thêm phòng ban" icon="pi pi-plus" class="mx-2" />
+                <Button icon="pi pi-list" v-tooltip.left="'Hiển thị phòng ban'" class="mr-2" v-bind:class="
+                  'p-button p-button-' +
+                  (displayPhongban ? 'primary' : 'secondary')
+                " @click="showPhongban" />
 
-                <Button
-                  @click="refreshStamp"
-                  class="mr-2 p-button-outlined p-button-secondary"
-                  icon="pi pi-refresh"
-                  v-tooltip="'Tải lại'"
-                />
-                <Button
-                  v-if="checkDelList"
-                  @click="deleteList()"
-                  label="Xóa"
-                  icon="pi pi-trash"
-                  class="mr-2 p-button-danger"
-                />
-                <!-- <Button label="Tiện ích" icon="pi pi-file-excel"
-                                            class="mr-2 p-button-outlined p-button-secondary" @click="toggleExport"
-                                            aria-haspopup="true" aria-controls="overlay_Export" />
-                                        <Menu id="overlay_Export" ref="menuButs" :model="itemButs" :popup="true" /> -->
-              </template>
+                <Button @click="refreshStamp" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
+                  v-tooltip="'Tải lại'" />
+                <Button v-if="checkDelList" @click="deleteList()" label="Xóa" icon="pi pi-trash"
+                  class="mr-2 p-button-danger" />
+               </template>
             </Toolbar>
-            <TreeTable
-              :value="datalistsDetails"
-              v-model:selectionKeys="selectedWarehouses"
-              :filters="filters_pb"
-              :showGridlines="true"
-              class="p-treetable-sm"
-              :rows="options.pagesizeP"
-              :rowHover="true"
-              responsiveLayout="scroll"
-              :scrollable="true"
-              scrollHeight="flex"
-              @page="onPageP($event)"
-              :totalRecords="options.totalRecordsPage"
-            >
-              <Column
-                field="is_order"
-                header="STT"
+            <TreeTable :value="datalistsDetails" v-model:selectionKeys="selectedWarehouses" :filters="filters_pb"
+              :showGridlines="true" class="p-treetable-sm" :rows="options.pagesizeP" :rowHover="true"
+              responsiveLayout="scroll" :scrollable="true" scrollHeight="flex" @page="onPageP($event)"
+              :totalRecords="options.totalRecordsPage">
+              <Column field="is_order" header="STT"
                 class="align-items-center justify-content-center text-center font-bold"
-                headerStyle="text-align:center;max-width:100px"
-                bodyStyle="text-align:center;max-width:100px"
-              >
+                headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
                 <template #body="md">
                   <div v-bind:class="md.node.data.status ? '' : 'text-error'">
                     {{ md.node.data.label_order }}
                   </div>
                 </template>
               </Column>
-              <Column
-                field="organization_name"
-                header="Tên phòng ban"
-                :expander="true"
-              >
+              <Column field="organization_name" header="Tên phòng ban" :expander="true">
                 <template #body="md">
-                  <span
-                    :class="'donvi' + md.node.data.organization_type"
-                    :style="[
-                      md.node.data.parent_id ? '' : '',
-                      md.node.data.status ? '' : 'color:red !important',
-                    ]"
-                    >{{ md.node.data.organization_name }}</span
-                  >
+                  <span :class="'donvi' + md.node.data.organization_type" :style="[
+                    md.node.data.parent_id ? '' : '',
+                    md.node.data.status ? '' : 'color:red !important',
+                  ]">{{ md.node.data.organization_name }}</span>
                 </template>
               </Column>
-              <Column
-                header="Chức năng"
-                headerClass="text-center"
+              <Column header="Chức năng" headerClass="text-center"
                 class="align-items-center justify-content-center text-center"
-                headerStyle="text-align:center;max-width:120px"
-                bodyStyle="text-align:center;max-width:120px"
-              >
+                headerStyle="text-align:center;max-width:120px" bodyStyle="text-align:center;max-width:120px">
                 <template #header> </template>
                 <template #body="md">
-                  <Button
-                    type="button"
-                    icon="pi pi-plus-circle"
+                  <Button type="button" icon="pi pi-plus-circle"
+                    class="p-button-rounded p-button-secondary p-button-outlined" style="margin-right: 0.5rem"
+                    v-tooltip.top="'Thêm phòng ban'" @click="addTreeDonvi(md.node, 1)"></Button>
+                  <Button type="button" icon="pi pi-pencil" v-tooltip.top="'Chỉnh sửa'"
+                    class="p-button-rounded p-button-secondary p-button-outlined" style="margin-right: 0.5rem"
+                    @click="editDonvi(md.node.data)"></Button>
+                  <Button type="button" icon="pi pi-trash" v-tooltip.top="'Xóa'"
                     class="p-button-rounded p-button-secondary p-button-outlined"
-                    style="margin-right: 0.5rem"
-                    v-tooltip.top="'Thêm phòng ban'"
-                    @click="addTreeDonvi(md.node, 1)"
-                  ></Button>
-                  <Button
-                    type="button"
-                    icon="pi pi-pencil"
-                    v-tooltip.top="'Chỉnh sửa'"
-                    class="p-button-rounded p-button-secondary p-button-outlined"
-                    style="margin-right: 0.5rem"
-                    @click="editDonvi(md.node.data)"
-                  ></Button>
-                  <Button
-                    type="button"
-                    icon="pi pi-trash"
-                    v-tooltip.top="'Xóa'"
-                    class="p-button-rounded p-button-secondary p-button-outlined"
-                    @click="delDonvi(md.node.data)"
-                  ></Button>
+                    @click="delDonvi(md.node.data)"></Button>
                 </template>
               </Column>
               <template #empty>
-                <div
-                  class="m-auto align-items-center justify-content-center p-4 text-center"
-                  v-if="!isFirst"
-                >
-                  <img
-                    src="../../../assets/background/nodata.png"
-                    height="144"
-                  />
+                <div class="m-auto align-items-center justify-content-center p-4 text-center" v-if="!isFirst">
+                  <img src="../../../assets/background/nodata.png" height="144" />
                   <h3 class="m-1">Không có dữ liệu</h3>
                 </div>
               </template>
@@ -1091,178 +961,95 @@ onMounted(() => {
       </Splitter>
     </div>
   </div>
-  <Dialog
-    header="Cập nhật Đơn vị"
-    v-model:visible="displayAddDonvi"
-    :style="{ width: '860px' }"
-    :maximizable="true"
-    :autoZIndex="true"
-  >
+  <Dialog header="Cập nhật Đơn vị" v-model:visible="displayAddDonvi" :style="{ width: '860px' }" :maximizable="true"
+    :autoZIndex="true">
     <form @submit.prevent="handleSubmit(!v$.$invalid)">
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left"
-            >Tên{{ donvi.organization_type == 1 ? " phòng ban " : " đơn vị "
-            }}<span class="redsao">(*)</span></label
-          >
-          <InputText
-            spellcheck="false"
-            class="col-10 ip36"
-            v-model="donvi.organization_name"
-            :class="{ 'p-invalid': v$.organization_name.$invalid && submitted }"
-          />
+          <label class="col-2 text-left">Tên{{ donvi.organization_type == 1 ? " phòng ban " : " đơn vị "
+          }}<span class="redsao">(*)</span></label>
+          <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.organization_name"
+            :class="{ 'p-invalid': v$.organization_name.$invalid && submitted }" />
         </div>
-        <small
-          v-if="
-            (v$.organization_name.required.$invalid && submitted) ||
-            v$.organization_name.required.$pending.$response
-          "
-          class="col-10 p-error"
-        >
+        <small v-if="
+          (v$.organization_name.required.$invalid && submitted) ||
+          v$.organization_name.required.$pending.$response
+        " class="col-10 p-error">
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
-            <span
-              class="col-10 pl-3"
-              v-if="donvi.organization_type == 0"
-              >{{
-                v$.organization_name.required.$message
-                  .replace("Value", "Tên đơn vị")
-                  .replace("is required", "không được để trống")
-              }}</span
-            >
-            <span
-              class="col-10 pl-3"
-              v-if="donvi.organization_type == 1"
-              >{{
-                v$.organization_name.required.$message
-                  .replace("Value", "Tên phòng ban")
-                  .replace("is required", "không được để trống")
-              }}</span
-            >
+            <span class="col-10 pl-3" v-if="donvi.organization_type == 0">{{
+              v$.organization_name.required.$message
+                .replace("Value", "Tên đơn vị")
+                .replace("is required", "không được để trống")
+            }}</span>
+            <span class="col-10 pl-3" v-if="donvi.organization_type == 1">{{
+              v$.organization_name.required.$message
+                .replace("Value", "Tên phòng ban")
+                .replace("is required", "không được để trống")
+            }}</span>
           </div>
         </small>
-        <small
-          v-if="v$.organization_name.maxLength.$invalid && submitted"
-          class="col-10 p-error"
-        >
+        <small v-if="v$.organization_name.maxLength.$invalid && submitted" class="col-10 p-error">
           <div class="field col-12 md:col-12">
             <label class="col-2 text-left"></label>
-            <span
-              class="col-10 pl-3"
-              v-if="donvi.organization_type == 0"
-              >{{
-                v$.organization_name.maxLength.$message.replace(
-                  "The maximum length allowed is",
-                  "Tên đơn vị không được vượt quá",
-                )
-              }}
-              ký tự</span
-            >
-            <span
-              class="col-10 pl-3"
-              v-if="donvi.organization_type == 1"
-              >{{
-                v$.organization_name.maxLength.$message.replace(
-                  "The maximum length allowed is",
-                  "Tên phòng ban không được vượt quá",
-                )
-              }}
-              ký tự</span
-            >
+            <span class="col-10 pl-3" v-if="donvi.organization_type == 0">{{
+              v$.organization_name.maxLength.$message.replace(
+                "The maximum length allowed is",
+                "Tên đơn vị không được vượt quá",
+              )
+            }}
+              ký tự</span>
+            <span class="col-10 pl-3" v-if="donvi.organization_type == 1">{{
+              v$.organization_name.maxLength.$message.replace(
+                "The maximum length allowed is",
+                "Tên phòng ban không được vượt quá",
+              )
+            }}
+              ký tự</span>
           </div>
         </small>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Cấp quản lý</label>
-          <TreeSelect
-            @change="onChangeParent"
-            class="col-10"
-            v-model="selectCapcha"
-            :options="treedonvis"
-            :showClear="true"
-            placeholder=""
-            optionLabel="data.organization_name"
-            optionValue="data.organization_id"
-          >
+          <TreeSelect @change="onChangeParent" class="col-10" v-model="selectCapcha" :options="treedonvis"
+            :showClear="true" placeholder="" optionLabel="data.organization_name" optionValue="data.organization_id">
           </TreeSelect>
         </div>
         <!-- <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Loại</label>
-          <Dropdown
-            class="col-10"
-            v-model="donvi.organization_type"
-            :options="tdorganization_types"
-            optionLabel="text"
-            optionValue="value"
-          />
-        </div> -->
-        <div
-          class="field col-12 md:col-12"
-        >
+            <label class="col-2 text-left">Loại</label>
+            <Dropdown
+              class="col-10"
+              v-model="donvi.organization_type"
+              :options="tdorganization_types"
+              optionLabel="text"
+              optionValue="value"
+            />
+          </div> -->
+        <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Tên tiếng Anh</label>
-          <InputText
-            spellcheck="false"
-            class="col-10 ip36"
-            v-model="donvi.organization_name_en"
-          />
+          <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.organization_name_en" />
         </div>
-        <div
-          class="field col-12 md:col-12"
-        >
+        <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Tên viết tắt</label>
-          <InputText
-            spellcheck="false"
-            class="col-10 ip36"
-            v-model="donvi.short_name"
-          />
+          <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.short_name" />
         </div>
-        <div
-          class="field col-12 md:col-12"
-        >
+        <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Địa chỉ</label>
-          <InputText
-            spellcheck="false"
-            class="col-10 ip36"
-            v-model="donvi.address"
-          />
+          <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.address" />
         </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="donvi.organization_type == 0"
-        >
+        <div class="field col-12 md:col-12" v-if="donvi.organization_type == 0">
           <label class="col-2 text-left">SĐT</label>
-          <InputText
-            spellcheck="false"
-            class="col-4 ip36"
-            v-model="donvi.phone"
-          />
-          <label class="col-2 text-right">Fax</label>
-          <InputText
-            spellcheck="false"
-            class="col-4 ip36"
-            v-model="donvi.fax"
-          />
+          <InputText spellcheck="false" class="col-4 ip36" v-model="donvi.phone" />
+          <label class="col-2 text-left ml-5">Fax</label>
+          <InputText spellcheck="false" class="col-4 ip36" v-model="donvi.fax" />
         </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="donvi.organization_type == 0"
-        >
+        <div class="field col-12 md:col-12" v-if="donvi.organization_type == 0">
           <label class="col-2 text-left">Website</label>
-          <InputText
-            spellcheck="false"
-            class="col-4 ip36"
-            v-model="donvi.is_url"
-          />
-          <label class="col-2 text-right">Email</label>
-          <InputText
-            spellcheck="false"
-            class="col-4 ip36"
-            v-model="donvi.mail"
-          />
+          <InputText spellcheck="false" class="col-4 ip36" v-model="donvi.is_url" />
+          <label class="col-2 text-left ml-5">Email</label>
+          <InputText spellcheck="false" class="col-4 ip36" v-model="donvi.mail" />
         </div>
-        <small
-          v-if="v$.mail.email.$invalid && submitted && donvi.mail != null"
-          class="p-error field col-12 md:col-12 mb-3 flex"
-        >
+        <small v-if="v$.mail.email.$invalid && submitted && donvi.mail != null"
+          class="p-error field col-12 md:col-12 mb-3 flex">
           <div class="col-6"></div>
           <label class="col-2 text-left"></label>
           <span class="">{{
@@ -1272,291 +1059,184 @@ onMounted(() => {
             )
           }}</span>
         </small>
-        <div
-          class="field col-12 md:col-12"
-        >
+        <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Mã số doanh nghiệp</label>
-          <InputText
-            spellcheck="false"
-            class="col-4 ip36"
-            v-model="donvi.business_code"
-          />
-          <label class="col-2 text-right">Ngày thành lập</label>
-          <Calendar
-          class="col-4 ip36"
-          id="icon"
-          foundation_date
-          :showIcon="true"
-          />
+          <InputText spellcheck="false" class="col-4 ip36" v-model="donvi.business_code" />
+          <label class="col-2 text-left ml-5">Ngày thành lập</label>
+          <Calendar class="col-4 ip36" id="icon" foundation_date :showIcon="true" />
         </div>
-        <div
-          class="field col-12 md:col-12 flex"
-        >
+        <div class="field col-12 md:col-12 flex">
           <label class="col-2 text-left">Chức năng</label>
-          <Textarea
-          :autoResize="true"
-          rows="3"
-          class="col-10"
-          v-model="donvi.feature"
-          />
+          <Textarea :autoResize="true" rows="3" class="col-10" v-model="donvi.feature" />
         </div>
-        <div
-          class="field col-12 md:col-12 flex"
-        >
+        <div class="field col-12 md:col-12 flex">
           <label class="col-2 text-left">Nhiệm vụ</label>
-          <Textarea
-          :autoResize="true"
-          rows="3"
-          class="col-10"
-          v-model="donvi.mission"
-          />
+          <Textarea :autoResize="true" rows="3" class="col-10" v-model="donvi.mission" />
         </div>
-        <div
-          class="field col-12 md:col-12 flex"
-        >
+        <div class="field col-12 md:col-12 flex">
           <label class="col-2 text-left">Mô tả</label>
-          <Textarea
-          :autoResize="true"
-          rows="3"
-          class="col-10"
-          v-model="donvi.description"
-          />
+          <Textarea :autoResize="true" rows="3" class="col-10" v-model="donvi.description" />
         </div>
-        <div
-          class="field col-12 md:col-12 flex"
-          v-if="donvi.organization_type == 0"
-        >
+        <div class="field col-12 md:col-12 flex" v-if="donvi.organization_type == 0">
           <label class="col-2">Logo</label>
           <div class="col-4 p-0">
             <div class="inputanh relative">
-              <img
-                @click="chonanh('AnhDonvi')"
-                id="LogoDonvi"
-                v-bind:src="
-                  donvi.logo
-                    ? basedomainURL + donvi.logo
-                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-              />
-              <Button
-                v-if="isDisplayAvt || donvi.logo"
-                style="width: 1.5rem; height: 1.5rem"
-                icon="pi pi-times"
-                @click="delLogo"
-                class="p-button-rounded absolute top-0 right-0 cursor-pointer"
-              />
+              <img @click="chonanh('AnhDonvi')" id="LogoDonvi" v-bind:src="
+                donvi.logo
+                  ? basedomainURL + donvi.logo
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              " />
+              <Button v-if="isDisplayAvt || donvi.logo" style="width: 1.5rem; height: 1.5rem" icon="pi pi-times"
+                @click="delLogo" class="p-button-rounded absolute top-0 right-0 cursor-pointer" />
             </div>
-            <input
-              class="ipnone"
-              id="AnhDonvi"
-              type="file"
-              accept="image/*"
-              @change="handleFileUpload($event, 'LogoDonvi')"
-            />
+            <input class="ipnone" id="AnhDonvi" type="file" accept="image/*"
+              @change="handleFileUpload($event, 'LogoDonvi')" />
           </div>
           <label class="col-2 text-right">Ảnh nền</label>
           <div class="col-4 p-0">
             <div class="inputanh relative">
-              <img
-                @click="chonanh('AnhNen')"
-                id="LogoNen"
-                v-bind:src="
-                  donvi.background_image
-                    ? basedomainURL + donvi.background_image
-                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-              />
-              <Button
-                v-if="isDisplayNen || donvi.background_image"
-                style="width: 1.5rem; height: 1.5rem"
-                icon="pi pi-times"
-                @click="delNen"
-                class="p-button-rounded absolute top-0 right-0 cursor-pointer"
-              />
+              <img @click="chonanh('AnhNen')" id="LogoNen" v-bind:src="
+                donvi.background_image
+                  ? basedomainURL + donvi.background_image
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              " />
+              <Button v-if="isDisplayNen || donvi.background_image" style="width: 1.5rem; height: 1.5rem"
+                icon="pi pi-times" @click="delNen" class="p-button-rounded absolute top-0 right-0 cursor-pointer" />
             </div>
-            <input
-              class="ipnone"
-              id="AnhNen"
-              type="file"
-              accept="image/*"
-              @change="handleFileUpload($event, 'LogoNen')"
-            />
+            <input class="ipnone" id="AnhNen" type="file" accept="image/*"
+              @change="handleFileUpload($event, 'LogoNen')" />
           </div>
         </div>
-        <div
-          class="field col-12 md:col-12"
-        >
+        <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Tên phần mềm</label>
-          <InputText
-            spellcheck="false"
-            class="col-10 ip36"
-            v-model="donvi.product_name"
-          />
+          <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.product_name" />
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Màu nền</label>
-          <Button
-            class="p-button-rounded p-button-outlined p-button-secondary col-2"
-            :style="{
-              backgroundColor: donvi.background_color,
-              color: donvi.background_color ? 'transparent' : '#333',
-              border: '1px solid #ccc',
-            }"
-            type="button"
-            icon="pi pi-palette"
-            @click="toggleColor($event, 'background_color')"
-          />
+          <Button class="p-button-rounded p-button-outlined p-button-secondary col-2" :style="{
+            backgroundColor: donvi.background_color,
+            color: donvi.background_color ? 'transparent' : '#333',
+            border: '1px solid #ccc',
+          }" type="button" icon="pi pi-palette" @click="toggleColor($event, 'background_color')" />
           <OverlayPanel ref="opColor">
-            <ColorPicker
-              theme="dark"
-              @changeColor="changeColor"
-              :sucker-hide="true"
-            />
+            <ColorPicker theme="dark" @changeColor="changeColor" :sucker-hide="true" />
           </OverlayPanel>
           <label class="col-3 text-center">Màu chữ</label>
-          <Button
-            class="p-button-rounded p-button-outlined p-button-secondary col-2"
-            :style="{
-              backgroundColor: donvi.text_color,
-              color: donvi.text_color ? 'transparent' : '#333',
-              border: '1px solid #ccc',
-            }"
-            type="button"
-            icon="pi pi-palette"
-            @click="toggleColor($event, 'text_color')"
-          />
+          <Button class="p-button-rounded p-button-outlined p-button-secondary col-2" :style="{
+            backgroundColor: donvi.text_color,
+            color: donvi.text_color ? 'transparent' : '#333',
+            border: '1px solid #ccc',
+          }" type="button" icon="pi pi-palette" @click="toggleColor($event, 'text_color')" />
           <OverlayPanel ref="opColor">
-            <ColorPicker
-              theme="dark"
-              @changeColor="changeColor"
-              :sucker-hide="true"
-            />
+            <ColorPicker theme="dark" @changeColor="changeColor" :sucker-hide="true" />
           </OverlayPanel>
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">STT</label>
-          <InputNumber
-            class="col-2 ip36 p-0"
-            v-model="donvi.is_order"
-          />
+          <InputNumber class="col-2 ip36 p-0" v-model="donvi.is_order" />
           <label class="col-2 text-right">Trạng thái</label>
           <InputSwitch v-model="donvi.status" />
         </div>
       </div>
     </form>
     <template #footer>
-      <Button
-        label="Huỷ"
-        icon="pi pi-times"
-        @click="closedisplayAddDonvi"
-        class="p-button-raised p-button-secondary"
-      />
-      <Button
-        label="Cập nhật"
-        icon="pi pi-save"
-        @click="handleSubmit(!v$.$invalid)"
-      />
+      <Button label="Huỷ" icon="pi pi-times" @click="closedisplayAddDonvi" class="p-button-raised p-button-secondary" />
+      <Button label="Cập nhật" icon="pi pi-save" @click="handleSubmit(!v$.$invalid)" />
     </template>
   </Dialog>
-  <Dialog header="Cập nhật phòng ban" v-model:visible="displayAddPhongban" :style="{ width: '860px' }"
-        :maximizable="true" :autoZIndex="true">
-        <form @submit.prevent="handleSubmit(!v$.$invalid)">
-            <div class="grid formgrid m-2">
-                <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Tên phòng ban <span class="redsao">(*)</span></label>
-                    <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.organization_name"
-                        :class="{ 'p-invalid': v$.organization_name.$invalid && submitted }" />
-                </div>
-                <small v-if="
-                    (v$.organization_name.required.$invalid && submitted) ||
-                    v$.organization_name.required.$pending.$response
-                " class="col-10 p-error">
-                    <div class="field col-12 md:col-12">
-                        <label class="col-2 text-left"></label>
-                        <span class="col-10 pl-3" v-if="donvi.organization_type == 0">{{
-                            v$.organization_name.required.$message
-                                .replace("Value", "Tên đơn vị")
-                                .replace("is required", "không được để trống")
-                        }}</span>
-                        <span class="col-10 pl-3" v-if="donvi.organization_type == 1">{{
-                            v$.organization_name.required.$message
-                                .replace("Value", "Tên phòng ban")
-                                .replace("is required", "không được để trống")
-                        }}</span>
-                    </div>
-                </small>
-                <small v-if="
-                    (v$.organization_name.maxLength.$invalid && submitted)
-                " class="col-10 p-error">
-                    <div class="field col-12 md:col-12">
-                        <label class="col-2 text-left"></label>
-                        <span class="col-10 pl-3" v-if="donvi.organization_type == 0">{{
-                            v$.organization_name.maxLength.$message.replace(
-                                "The maximum length allowed is",
-                                "Tên đơn vị không được vượt quá"
-                            )
-                        }}
-                            ký tự</span>
-                        <span class="col-10 pl-3" v-if="donvi.organization_type == 1">{{
-                            v$.organization_name.maxLength.$message.replace(
-                                "The maximum length allowed is",
-                                "Tên phòng ban không được vượt quá"
-                            )
-                        }}
-                            ký tự</span>
-                    </div>
-                </small>
-                <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Cấp quản lý</label>
-                    <TreeSelect @change="onChangeParent" class="col-10" v-model="selectCapcha" :options="treedonvis"
-                        :showClear="true" placeholder="" optionLabel="data.organization_name"
-                        optionValue="data.organization_id">
-                    </TreeSelect>
-                </div>
-                <div class="field col-12 md:col-12" v-if="donvi.organization_type == 1">
-                    <label class="col-2 text-left">Ký hiệu văn bản</label>
-                    <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.department_doc_code" />
-                </div>
-                <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">Màu nền</label>
-                    <Button class="p-button-rounded p-button-outlined p-button-secondary col-2" :style="{
-                        backgroundColor: donvi.background_color,
-                        color: donvi.background_color ? 'transparent' : '#333',
-                        border: '1px solid #ccc',
-                    }" type="button" icon="pi pi-palette" @click="toggleColor($event, 'background_color')" />
-                    <OverlayPanel ref="opColor">
-                        <ColorPicker theme="dark" @changeColor="changeColor" :sucker-hide="true" />
-                    </OverlayPanel>
-                    <label class="col-3 text-center">Màu chữ</label>
-                    <Button class="p-button-rounded p-button-outlined p-button-secondary col-2" :style="{
-                        backgroundColor: donvi.text_color,
-                        color: donvi.text_color ? 'transparent' : '#333',
-                        border: '1px solid #ccc',
-                    }" type="button" icon="pi pi-palette" @click="toggleColor($event, 'text_color')" />
-                    <OverlayPanel ref="opColor">
-                        <ColorPicker theme="dark" @changeColor="changeColor" :sucker-hide="true" />
-                    </OverlayPanel>
-                </div>
-                <div class="field col-12 md:col-12">
-                    <label class="col-2 text-left">STT</label>
-                    <InputNumber class="col-2 ip36 p-0" v-model="donvi.is_order" />
-                    <label class="col-2 text-right">Trạng thái</label>
-                    <InputSwitch v-model="donvi.status" />
-                </div>
-            </div>
-        </form>
-        <template #footer>
-            <Button label="Huỷ" icon="pi pi-times" @click="closedisplayAddPhongban"
-                class="p-button-raised p-button-secondary" />
-            <Button label="Cập nhật" icon="pi pi-save" @click="handleSubmit(!v$.$invalid)" />
-        </template>
-    </Dialog>
-  <Menu
-    id="overlay_More"
-    ref="menuButMores"
-    :model="itemButMores"
-    :popup="true"
-  />
+  <Dialog header="Cập nhật phòng ban" v-model:visible="displayAddPhongban" :style="{ width: '860px' }" :maximizable="true"
+    :autoZIndex="true">
+    <form @submit.prevent="handleSubmit(!v$.$invalid)">
+      <div class="grid formgrid m-2">
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">Tên phòng ban <span class="redsao">(*)</span></label>
+          <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.organization_name"
+            :class="{ 'p-invalid': v$.organization_name.$invalid && submitted }" />
+        </div>
+        <small v-if="
+          (v$.organization_name.required.$invalid && submitted) ||
+          v$.organization_name.required.$pending.$response
+        " class="col-10 p-error">
+          <div class="field col-12 md:col-12">
+            <label class="col-2 text-left"></label>
+            <span class="col-10 pl-3" v-if="donvi.organization_type == 0">{{
+              v$.organization_name.required.$message
+                .replace("Value", "Tên đơn vị")
+                .replace("is required", "không được để trống")
+            }}</span>
+            <span class="col-10 pl-3" v-if="donvi.organization_type == 1">{{
+              v$.organization_name.required.$message
+                .replace("Value", "Tên phòng ban")
+                .replace("is required", "không được để trống")
+            }}</span>
+          </div>
+        </small>
+        <small v-if="
+          (v$.organization_name.maxLength.$invalid && submitted)
+        " class="col-10 p-error">
+          <div class="field col-12 md:col-12">
+            <label class="col-2 text-left"></label>
+            <span class="col-10 pl-3" v-if="donvi.organization_type == 0">{{
+              v$.organization_name.maxLength.$message.replace(
+                "The maximum length allowed is",
+                "Tên đơn vị không được vượt quá"
+              )
+            }}
+              ký tự</span>
+            <span class="col-10 pl-3" v-if="donvi.organization_type == 1">{{
+              v$.organization_name.maxLength.$message.replace(
+                "The maximum length allowed is",
+                "Tên phòng ban không được vượt quá"
+              )
+            }}
+              ký tự</span>
+          </div>
+        </small>
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">Cấp quản lý</label>
+          <TreeSelect @change="onChangeParent" class="col-10" v-model="selectCapcha" :options="treedonvis"
+            :showClear="true" placeholder="" optionLabel="data.organization_name" optionValue="data.organization_id">
+          </TreeSelect>
+        </div>
+        <div class="field col-12 md:col-12" v-if="donvi.organization_type == 1">
+          <label class="col-2 text-left">Ký hiệu văn bản</label>
+          <InputText spellcheck="false" class="col-10 ip36" v-model="donvi.department_doc_code" />
+        </div>
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">Màu nền</label>
+          <Button class="p-button-rounded p-button-outlined p-button-secondary col-2" :style="{
+            backgroundColor: donvi.background_color,
+            color: donvi.background_color ? 'transparent' : '#333',
+            border: '1px solid #ccc',
+          }" type="button" icon="pi pi-palette" @click="toggleColor($event, 'background_color')" />
+          <OverlayPanel ref="opColor">
+            <ColorPicker theme="dark" @changeColor="changeColor" :sucker-hide="true" />
+          </OverlayPanel>
+          <label class="col-3 text-center">Màu chữ</label>
+          <Button class="p-button-rounded p-button-outlined p-button-secondary col-2" :style="{
+            backgroundColor: donvi.text_color,
+            color: donvi.text_color ? 'transparent' : '#333',
+            border: '1px solid #ccc',
+          }" type="button" icon="pi pi-palette" @click="toggleColor($event, 'text_color')" />
+          <OverlayPanel ref="opColor">
+            <ColorPicker theme="dark" @changeColor="changeColor" :sucker-hide="true" />
+          </OverlayPanel>
+        </div>
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">STT</label>
+          <InputNumber class="col-2 ip36 p-0" v-model="donvi.is_order" />
+          <label class="col-2 text-right">Trạng thái</label>
+          <InputSwitch v-model="donvi.status" />
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button label="Huỷ" icon="pi pi-times" @click="closedisplayAddPhongban"
+        class="p-button-raised p-button-secondary" />
+      <Button label="Cập nhật" icon="pi pi-save" @click="handleSubmit(!v$.$invalid)" />
+    </template>
+  </Dialog>
+  <Menu id="overlay_More" ref="menuButMores" :model="itemButMores" :popup="true" />
 </template>
 
 <style scoped>
@@ -1574,8 +1254,12 @@ onMounted(() => {
 .ipnone {
   display: none;
 }
-.row-active {
+
+.row-active,.active {
   color: rgb(13, 137, 236);
+}
+.c-red-600{
+  color:red;
 }
 .inputanh img {
   object-fit: cover;
@@ -1592,6 +1276,9 @@ onMounted(() => {
   margin: 0px;
   height: calc(100vh - 165px);
 }
+.item-hover:hover{
+  color:#0099f3;
+}
 </style>
 <style lang="scss" scoped>
 // ::v-deep(.p-treetable-tbody) {
@@ -1607,5 +1294,4 @@ onMounted(() => {
     top: 6px;
   }
 }
-
 </style>

@@ -105,7 +105,7 @@ const toast = useToast();
 const swal = inject("$swal");
 const axios = inject("axios"); // inject axios
 const basedomainURL = fileURL;
-const layout = ref("grid");
+const layout = ref("list");
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -234,6 +234,13 @@ const itemButMores = ref([
   //   },
   // },
   {
+    label: "Refresh key",
+    icon: "pi pi-refresh",
+    command: (event) => {
+      refreshKey(user.value);
+    },
+  },
+  {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
@@ -241,6 +248,64 @@ const itemButMores = ref([
     },
   },
 ]);
+const refreshKey = (data)=>{
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn refresh key người dùng này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+        let formData = new FormData();
+        formData.append("model", JSON.stringify(data));
+        axios({
+         method: "put",
+          url:
+            baseURL +
+            `/api/Users/Refresh_Key`,
+          data: formData,
+          headers: {
+            Authorization: `Bearer ${store.getters.token}`,
+          },
+          })
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Cập nhật key thành công!");
+            } else {
+              swal.fire({
+                title: "Thông báo!",
+                text: "Cập nhật không thành công, vui lòng thử lại",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+};
 const toggleFilter = (event) => {
   filterButs.value.toggle(event);
 };
@@ -549,10 +614,10 @@ const initTudien = () => {
         tdRoles.value = data[0];
         chucvus.value = data[2];
       }
-      data_organization = data[1];
-      if (data_organization.length > 0) {
+      data_organization = data[3];
+      if (data[1].length > 0) {
         let obj = renderTreeDV(
-          data_organization,
+          data[1],
           "organization_id",
           "organization_name",
           "phòng ban",
@@ -594,7 +659,6 @@ const loadPhongban = (rf) => {
     )
 
     .then((response) => {
-      debugger;
       let data = JSON.parse(response.data.data)[0];
       if (isFirst.value) isFirst.value = false;
       let obj = renderTree(
@@ -760,6 +824,8 @@ const resetopition = () => {
 const loadUser = (rf, id, name) => {
   organization_name_label.value = name;
   organization_id_label.value = id;
+  selectCapcha.value = {};
+  selectCapcha.value[id ||"-1"] = true;
   if (opition.value.role_id != null)
     opition.value.role_name = tdRoles.value.filter(
       (x) => x.role_id == opition.value.role_id,
@@ -963,7 +1029,7 @@ const handleSubmit = (isFormValid) => {
     });
     return;
   }
-  let id_key = Object.keys(selectCapcha.value)[0];
+  let id_key = parseInt(Object.keys(selectCapcha.value)[0]);
   if (id_key == -1) {
     user.value.department_id = null;
     user.value.organization_id = null;
@@ -1046,7 +1112,7 @@ const addUser = () => {
         //   store.getters.user.full_name = user.value.full_name;
         //   store.getters.user.avatar = user.value.avatar;
         // }
-        loadUser(true);
+        loadUser(true, organization_id_label.value,organization_name_label.value);
         closedisplayAddUser();
       } else {
         swal.fire({
@@ -1684,7 +1750,7 @@ onMounted(() => {
       <div>
         <Splitter class="h-full w-full pb-0 pr-0">
           <SplitterPanel
-            :size="35"
+            :size="32"
             class=" "
           >
             <div class="pr-3">
@@ -1728,18 +1794,18 @@ onMounted(() => {
                     :scrollable="true"
                     scrollHeight="flex"
                     metaKeySelection="true"
-                  selectionMode="single"
-                  @nodeSelect= "(node)=> loadUser(true,
-                            node.data.organization_id,
-                            node.data.organization_name,
-                          )"
+                    selectionMode="single"
+                    @nodeSelect= "(node)=> loadUser(true,
+                    node.data.organization_id,
+                    node.data.organization_name,
+                  )"
                   >
                     <Column
                       field="Logo"
                       header="Logo"
                       class="align-items-center justify-content-center text-center"
-                      headerStyle="text-align:center;max-width:80px"
-                      bodyStyle="text-align:center;max-width:80px"
+                      headerStyle="text-align:center;max-width:50px"
+                      bodyStyle="text-align:center;max-width:50px"
                     >
                       <template #body="md">
                         <div
@@ -1801,7 +1867,7 @@ onMounted(() => {
               </div>
             </div>
           </SplitterPanel>
-          <SplitterPanel :size="65">
+          <SplitterPanel :size="68">
             <div class="w-full d-lang-table-r">
               <DataView
                 class="w-full h-full flex flex-column"
@@ -1902,7 +1968,7 @@ onMounted(() => {
                         appendTo="body"
                         :showCloseIcon="false"
                         id="overlay_panelS"
-                        style="width: 350px"
+                        style="width: 600px"
                         :breakpoints="{ '960px': '20vw' }"
                       >
                         <div class="grid formgrid m-2">
@@ -2178,14 +2244,6 @@ onMounted(() => {
                     style="background-color: #fff"
                   >
                     <div class="flex align-items-center justify-content-center">
-                      <div class="mx-2">
-                        <Checkbox
-                          id="IsIdentity"
-                          v-model="slotProps.data.chon"
-                          :binary="true"
-                          @change="clickDelUser"
-                        />
-                      </div>
                       <Avatar
                         v-bind:label="
                           slotProps.data.avatar
@@ -2213,17 +2271,17 @@ onMounted(() => {
                             {{ slotProps.data.full_name }}
                           </h3>
                         </Button>
-                        <i style="font-size: 10pt; color: #999"
+                        <span style="font-size: 10pt; color: #999"
                           >{{ slotProps.data.user_id }}
                           {{
                             slotProps.data.phone
                               ? "| " + slotProps.data.phone
                               : ""
-                          }}</i
+                          }}</span
                         >
-                        <i style="font-size: 10pt; color: #999">{{
+                        <span style="font-size: 10pt; color: #999">{{
                           slotProps.data.email
-                        }}</i>
+                        }}</span>
                       </div>
                       <Chip
                         @click="goDonvi(slotProps.data)"

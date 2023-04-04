@@ -725,8 +725,8 @@ const initTreeDV = (rf) => {
       if (isFirst.value) isFirst.value = false;
       data.forEach((element, i) => {
         element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        element.isClosed = false;
-        element.isOpened = true;
+        element.isClosed =  false ;
+        element.isOpened =  true;
         if (data.find(x => x.parent_id == element.organization_id)) {
           element.canExpand = true;
         }
@@ -1380,7 +1380,7 @@ onMounted(() => {
             class="col-4 ip36"
             v-model="donvi.phone"
           />
-          <label class="col-2 text-right">Fax</label>
+          <label class="col-2 text-left pl-4">Fax</label>
           <InputText
             spellcheck="false"
             class="col-4 ip36"
@@ -1397,7 +1397,7 @@ onMounted(() => {
             class="col-4 ip36"
             v-model="donvi.is_url"
           />
-          <label class="col-2 text-right">Email</label>
+          <label class="col-2 text-left pl-4">Email</label>
           <InputText
             spellcheck="false"
             class="col-4 ip36"
@@ -1427,9 +1427,9 @@ onMounted(() => {
             class="col-4 ip36"
             v-model="donvi.business_code"
           />
-          <label class="col-2 text-right">Ngày thành lập</label>
+          <label class="col-2 text-left pl-4">Ngày thành lập</label>
           <Calendar
-          class="col-4 ip36"
+          class="col-4 ip36 p-0"
           id="icon"
           foundation_date
           :showIcon="true"

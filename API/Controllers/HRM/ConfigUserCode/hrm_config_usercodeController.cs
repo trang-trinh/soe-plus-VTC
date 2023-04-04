@@ -73,13 +73,13 @@ namespace API.Controllers.HRM.ConfigUserCode
                         db.SaveChanges();
                        
                     }
-                    var ListOrganization = db.sys_organization.Where(p => (p.organization_id == dv || p.parent_id == dv) && p.organization_type==0).ToList();
+                    var ListOrganization = db.sys_organization.Where(p => (p.organization_id == dv || p.parent_id == dv) && p.organization_type==0).OrderBy(x=>x.is_order).ToList();
                     var i = 1;
                     foreach (var item in ListOrganization)
                     {
                         var SuperiorCheck = db.hrm_config_usercode.AsNoTracking().Where(p => p.organization_type == 3 && p.organization_id == dv).FirstOrDefault();
                         var itemAdd = db.hrm_config_usercode.Where(p => p.organization_type == 0 && p.organization_id == item.organization_id).FirstOrDefault();
-                        if (Superior == null)
+                        if (itemAdd == null&& item.parent_id !=null)
                         {
                             var hrm_Cogfin = new hrm_config_usercode();
                             hrm_Cogfin.organization_name =item.organization_name;
@@ -95,6 +95,8 @@ namespace API.Controllers.HRM.ConfigUserCode
                             db.SaveChanges();
                             i++;
                         }
+
+
                     }
 
 

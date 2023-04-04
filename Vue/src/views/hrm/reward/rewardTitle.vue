@@ -47,7 +47,9 @@ const loadCount = () => {
         str: encr(
           JSON.stringify({
             proc: "hrm_reward_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "status", va: null },
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -57,18 +59,10 @@ const loadCount = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-      let data2 = JSON.parse(response.data.data)[2];
-      let data3 = JSON.parse(response.data.data)[3];
-      let data4 = JSON.parse(response.data.data)[4];
-      let data5 = JSON.parse(response.data.data)[5];
+    
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
-        options.value.totalRecords1 = data1[0].totalRecords1;
-        options.value.totalRecords2 = data2[0].totalRecords2;
-        options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
-        options.value.totalRecords5 = data5[0].totalRecords5;
+         
 
         sttStamp.value = data[0].totalRecords + 1;
       }
@@ -132,6 +126,7 @@ const loadData = (rf) => {
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
+                { par: "status", va: null},
               ],
             }),
             SecretKey,
@@ -222,7 +217,8 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
  
-  reward_name_fake:[]
+  reward_name_fake1:[],
+  reward_name_fake2:{}
   };
 
   isSaveTem.value = true;
@@ -1804,23 +1800,7 @@ onMounted(() => {
               bodyStyle="text-align:center;max-width:55px"
             >
             </Column>
-            <Column
-              field="reward_code"
-              header="Mã khen thưởng"
-              class="align-items-center justify-content-center text-center"
-              :sortable="true"
-              headerStyle="text-align:center;max-width:170px;height:50px"
-              bodyStyle=" ;max-width:170px"
-            >
-              <template #filter="{ filterModel }">
-                <InputText
-                  type="text"
-                  v-model="filterModel.value"
-                  class="p-column-filter"
-                  placeholder="Từ khoá"
-                />
-              </template>
-            </Column>
+          
             <Column
               field="reward_name"
               header="Tên khen thưởng"
@@ -1884,46 +1864,7 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
             </Column>
-            <Column
-              field="expected_cost"
-              header="Tổng số CV"
-              headerStyle="text-align:center;max-width:80px;height:50px"
-              bodyStyle="text-align:center;max-width:80px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{ data.data.slTuyen }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="expected_cost"
-              header="Trúng tuyển"
-              headerStyle="text-align:center;max-width:80px;height:50px"
-              bodyStyle="text-align:center;max-width:80px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{ data.data.trungTuyen }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="expected_cost"
-              header="Còn lại"
-              headerStyle="text-align:center;max-width:80px;height:50px"
-              bodyStyle="text-align:center;max-width:80px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div>
-                  {{ data.data.num_vacancies - data.data.trungTuyen }}
-                </div>
-              </template>
-            </Column>
-
+         
             <Column
               field="created_date"
               header="Ngày/Người lập"
@@ -1940,7 +1881,7 @@ onMounted(() => {
                   }}</span
                 >
                 <div>
-                  <Avatar 
+                  <!-- <Avatar 
                     v-bind:label="
                       slotProps.data.avatar
                         ? ''
@@ -1965,7 +1906,7 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                     v-tooltip.top="slotProps.data.full_name"
-                  />
+                  /> -->
                 </div>
               </template>
             </Column>

@@ -4,7 +4,7 @@ import { inject, onMounted, ref } from "vue";
 import moment from "moment";
 import ModuleMenu from "../../components/base/ModuleMenu.vue";
 import Notify from "../../components/base/Notify.vue";
-import { encr } from "../../util/function.js";
+import {decr, encr } from "../../util/function.js";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 
@@ -159,6 +159,10 @@ const clickNoti = () => {
     },
   });
 };
+const goHelp = ()=>{
+  router.push({ name: 'helperview' });
+
+}
 //Vue App
 onMounted(() => {
   loadNoti();
@@ -271,6 +275,16 @@ onMounted(() => {
           style="font-size: 1.5rem"
           v-badge="count_noti"
         ></span>
+      </Button>
+      <Button
+        type="button"
+        class="module-button p-button p-component p-button-icon-only p-button-rounded p-button-plain p-button-text"
+        aria-haspopup="true"
+        @click="goHelp()"
+        aria-controls="menu-help"
+        v-tooltip.left="'Hướng dẫn sử dụng'"
+      >
+        <i class="pi pi-question-circle p-button-icon text-xl"></i>
       </Button>
       <Button
         type="button"

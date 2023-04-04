@@ -76,6 +76,9 @@ const opition = ref({
   user_id: store.getters.user.user_id,
   status: null,
   is_role: false,
+  organization_id: store.getters.user.organization_id,
+  department_id: store.getters.user.department_id,
+  organization_child_id: store.getters.user.organization_child_id,
 });
 const bgColor = ref([
   "#F8E69A",
@@ -87,8 +90,8 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const selectCapcha = ref();
-selectCapcha.value = {};
-selectCapcha.value[store.getters.user.organization_id] = true;
+// selectCapcha.value = {};
+// selectCapcha.value[store.getters.user.organization_id] = true;
 const selectCap = ref();
 selectCap.value = {};
 selectCap.value[
@@ -103,7 +106,7 @@ const toast = useToast();
 const swal = inject("$swal");
 const axios = inject("axios"); // inject axios
 const basedomainURL = fileURL;
-const layout = ref("grid");
+const layout = ref("list");
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -246,6 +249,7 @@ const itemButMores = ref([
     },
   },
 ]);
+
 const refreshKey = (data)=>{
   swal
     .fire({
@@ -309,6 +313,7 @@ const toggleFilter = (event) => {
   filterButs.value.toggle(event);
 };
 const filterUser = () => {
+  isfilter.value = true;
   checkFilter.value = true;
   loadUser(true);
 };
@@ -462,7 +467,6 @@ const handleFileUpload = (event, type) => {
 //Show Modal
 const showModalAddUser = () => {
   files = [];
-  isAdd.value = true;
   submitted.value = false;
   files = [];
   user.value = {
@@ -472,13 +476,13 @@ const showModalAddUser = () => {
     status: 1,
     role_id: "nhanvien",
     is_admin: false,
-    organization_id: store.getters.user.organization_id,
     display_birthday: true,
     email: null,
     is_booking: true,
   };
   // selectCapcha.value = {};
   // selectCapcha.value[user.value.organization_id || "-1"] = true;
+  isAdd.value = true;
   displayAddUser.value = true;
   if (document.querySelector("#AnhUser"))
     document.querySelector("#AnhUser").value = "";
@@ -613,10 +617,10 @@ const initTudien = () => {
         tdRoles.value = data[0];
         chucvus.value = data[2];
       }
-      data_organization = data[1];
-      if (data_organization.length > 0) {
+      data_organization = data[3];
+      if (data[1].length > 0) {
         let obj = renderTreeDV(
-          data_organization,
+          data[1],
           "organization_id",
           "organization_name",
           "phòng ban"
@@ -636,6 +640,7 @@ const initTudien = () => {
     .catch((error) => {});
 };
 const loadCount = (f) => {
+  debugger
   axios
     .post(
       baseURL + "/api/Users/GetDataProc",
@@ -648,7 +653,7 @@ const loadCount = (f) => {
               { par: "user_id", va: opition.value.user_id },
               { par: "role_id", va: opition.value.role_id },
               { par: "organization_id", va: opition.value.organization_id },
-              { par: "department_id", va: opition.value.department_id },
+              { par: "department_id", va: opition.value.organization_child_id || opition.value.department_id },
               { par: "position_id", va: opition.value.position_id },
               { par: "filter_department", va: opition.value.filter_department },
               { par: "filter_permission", va: opition.value.check_quyen },
@@ -684,7 +689,9 @@ const onPage = (event) => {
   opition.value.PageSize = event.rows;
   loadUser(true);
 };
+const isfilter = ref(false);
 const goDonvi = (u) => {
+  isfilter.value = true;
   selectCapcha.value = {};
   if (u) {
     opition.value.department_id = u.department_id;
@@ -819,7 +826,7 @@ const loadUser = (rf, rfpb) => {
               { par: "user_id", va: opition.value.user_id },
               { par: "role_id", va: opition.value.role_id },
               { par: "organization_id", va: opition.value.organization_id },
-              { par: "department_id", va: opition.value.department_id },
+              { par: "department_id", va: opition.value.organization_child_id || opition.value.department_id },
               { par: "position_id", va: opition.value.position_id },
               { par: "filter_department", va: opition.value.filter_department },
               { par: "filter_permission", va: opition.value.check_quyen },
@@ -971,37 +978,40 @@ const handleSubmit = (isFormValid) => {
     });
     return;
   }
-  let id_key = Object.keys(selectCapcha.value)[0];
-  if(id_key == -1){
+  let id_key = parseInt(Object.keys(selectCapcha.value)[0]);
+  if (id_key == -1) {
     user.value.department_id = null;
     user.value.organization_id = null;
     user.value.organization_child_id = null;
-  }
-  else{
+  } else {
     //get organization_parent and child
-    let obj = data_organization.filter(x => x.organization_id == id_key);
-    if(obj.length > 0) {
-      let list_id =  obj[0].listparent_id.slice(0,-1).split("/").map(item => parseInt(item) ? parseInt(item) : item); 
+    let obj = data_organization.filter((x) => x.organization_id == id_key);
+    if (obj.length > 0) {
+      let list_id = obj[0].listparent_id
+        .slice(0, -1)
+        .split("/")
+        .map((item) => (parseInt(item) ? parseInt(item) : item));
       user.value.organization_id = list_id[0];
-      user.value.department_id = list_id[list_id.length-1];
-      list_id.forEach((id)=>{
-        let org = data_organization.filter(x => x.organization_id == id);
-        if(org.length > 0 && org[0].organization_type==0) {
+      user.value.department_id = list_id[list_id.length - 1];
+      list_id.forEach((id) => {
+        let org = data_organization.filter((x) => x.organization_id == id);
+        if (org.length > 0 && org[0].organization_type == 0) {
           user.value.organization_child_id = id;
         }
-      })
-      //check 
-      if(user.value.department_id == user.value.organization_child_id) {
+      });
+      //check
+      if (user.value.department_id == user.value.organization_child_id) {
         user.value.department_id = null;
       }
-      if(user.value.organization_id == user.value.department_id ){
+      if (user.value.organization_id == user.value.department_id) {
         user.value.department_id = null;
         user.value.organization_child_id = null;
       }
-      if(user.value.organization_id == user.value.organization_child_id){
+      if (user.value.organization_id == user.value.organization_child_id) {
         user.value.organization_child_id = null;
       }
-      if(user.value.is_admin && user.value.organization_child_id!== null ) user.value.is_admin_child = true; 
+      if (user.value.is_admin && user.value.organization_child_id !== null)
+        user.value.is_admin_child = true;
     }
   }
   // user.value.department_id = keys[0];
@@ -1664,7 +1674,7 @@ onMounted(() => {
       :paginator="isPaginator"
       :rows="opition.PageSize"
       :totalRecords="opition.totalrecords"
-      :pageLinkSize="opition.PageSize"
+      pageLinkSize="4"
       @page="onPage($event)"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
@@ -1699,7 +1709,7 @@ onMounted(() => {
           <Chip
             class="custom-chip chippb ml-2 mr-1"
             @remove="goDonvi()"
-            v-if="opition.department_id || opition.organization_id"
+            v-if="(opition.department_id || opition.organization_id) && isfilter"
             :label="opition.organization_name"
             removable
           />
@@ -1754,14 +1764,14 @@ onMounted(() => {
               appendTo="body"
               :showCloseIcon="false"
               id="overlay_panelS"
-              style="width: 350px"
+              style="width: 600px"
               :breakpoints="{ '960px': '20vw' }"
             >
               <div class="grid formgrid m-2">
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Đơn vị/Phòng ban:</div>
+                  <div class="col-3 p-0">Đơn vị/Phòng ban:</div>
                   <TreeSelect
-                    class="col-8 p-0"
+                    class="col-9 p-0"
                     v-model="selectCap"
                     :options="treedonvis"
                     :showClear="true"
@@ -1773,7 +1783,7 @@ onMounted(() => {
                   </TreeSelect>
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Chức vụ:</div>
+                  <div class="col-3 p-0">Chức vụ:</div>
                   <Dropdown
                     :showClear="true"
                     v-model="opition.position_id"
@@ -1781,11 +1791,11 @@ onMounted(() => {
                     optionLabel="position_name"
                     optionValue="position_id"
                     placeholder="Chọn chức vụ"
-                    class="p-dropdown-sm col-8 p-0"
+                    class="p-dropdown-sm col-9 p-0"
                   />
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Nhóm người dùng:</div>
+                  <div class="col-3 p-0">Nhóm người dùng:</div>
                   <Dropdown
                     :showClear="true"
                     v-model="opition.role_id"
@@ -1793,11 +1803,11 @@ onMounted(() => {
                     optionLabel="role_name"
                     optionValue="role_id"
                     placeholder="Chọn nhóm người dùng"
-                    class="p-dropdown-sm col-8 p-0"
+                    class="p-dropdown-sm col-9 p-0"
                   />
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Trạng thái:</div>
+                  <div class="col-3 p-0">Trạng thái:</div>
                   <Dropdown
                     :showClear="true"
                     v-model="opition.status"
@@ -1805,11 +1815,11 @@ onMounted(() => {
                     optionLabel="text"
                     optionValue="value"
                     placeholder="Chọn trạng thái"
-                    class="p-dropdown-sm col-8 p-0"
+                    class="p-dropdown-sm col-9 p-0"
                   />
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Quyền Module:</div>
+                  <div class="col-3 p-0">Quyền Module:</div>
                   <Dropdown
                     :showClear="true"
                     v-model="opition.check_quyen"
@@ -1817,7 +1827,7 @@ onMounted(() => {
                     optionLabel="text"
                     optionValue="value"
                     placeholder="Chọn loại quyền"
-                    class="p-dropdown-sm col-8 p-0"
+                    class="p-dropdown-sm col-9 p-0"
                   />
                 </div>
                 <div class="col-12 field p-0">
@@ -2007,14 +2017,6 @@ onMounted(() => {
       <template #list="slotProps">
         <div class="p-2 w-full" style="background-color: #fff">
           <div class="flex align-items-center justify-content-center">
-            <div class="mx-2">
-              <Checkbox
-                id="IsIdentity"
-                v-model="slotProps.data.chon"
-                :binary="true"
-                @change="clickDelUser"
-              />
-            </div>
             <Avatar
               v-bind:label="
                 slotProps.data.avatar
@@ -2040,13 +2042,13 @@ onMounted(() => {
                   {{ slotProps.data.full_name }}
                 </h3>
               </Button>
-              <i style="font-size: 10pt; color: #999"
+              <span style="font-size: 10pt; color: #999"
                 >{{ slotProps.data.user_id }}
-                {{ slotProps.data.phone ? "| " + slotProps.data.phone : "" }}</i
+                {{ slotProps.data.phone ? "| " + slotProps.data.phone : "" }}</span
               >
-              <i style="font-size: 10pt; color: #999">{{
+              <span style="font-size: 10pt; color: #999">{{
                 slotProps.data.email
-              }}</i>
+              }}</span>
             </div>
             <Chip
               @click="goDonvi(slotProps.data)"
