@@ -449,10 +449,8 @@ namespace Controllers
                         for (int i = 0; i < das.Count; i++)
                         {
                             var da = das[i];
-                            if (ad)
-                            {
+                      
                                 da.status = tts[i];
-                            }
                         }
                         await db.SaveChangesAsync();
                     }
