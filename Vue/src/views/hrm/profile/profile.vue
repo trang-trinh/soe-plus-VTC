@@ -188,9 +188,9 @@ const changeView = (view) => {
 };
 
 //Watch
-// watch(selectedNodes, () => {
-//   goProfile(selectedNodes.value);
-// });
+watch(selectedNodes, () => {
+  goProfile(selectedNodes.value);
+});
 
 //Function
 const componentKey = ref({});
@@ -2312,8 +2312,9 @@ onMounted(() => {
               v-if="department.isOpen"
               v-for="(item, index) in department.list"
               :key="index"
+              
             >
-              <tr class="tr-list">
+              <tr @click="goProfile(item)" class="tr-list">
                 <td
                   :style="{
                     width: '5rem',
