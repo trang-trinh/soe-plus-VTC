@@ -419,11 +419,13 @@ onMounted(() => {
               </div>
               <div class="col-12 md:col-12">
                 <div class="form-group">
-                  <label>Nơi sinh <span class="redsao">(*)</span></label>
+                  <label>Nơi sinh</label>
                   <Dropdown
                     @filter="initPlaceFilter($event, 1)"
                     :options="listPlaceDetails1"
                     :filter="true"
+                    :editable="true"
+                    :showClear="true"
                     v-model="props.model.select_birthplace"
                     optionLabel="name"
                     optionValue="name"
@@ -451,6 +453,8 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 2)"
                     :options="listPlaceDetails2"
                     :filter="true"
+                    :editable="true"
+                    :showClear="true"
                     v-model="props.model.select_birthplace_origin"
                     optionLabel="name"
                     optionValue="name"
@@ -478,6 +482,8 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 3)"
                     :options="listPlaceDetails3"
                     :filter="true"
+                    :editable="true"
+                    :showClear="true"
                     v-model="props.model.select_place_register_permanent"
                     optionLabel="name"
                     optionValue="name"
