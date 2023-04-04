@@ -236,6 +236,8 @@ const initPlaceFilter = (event, type) => {
               listPlaceDetails2.value = JSON.parse(JSON.stringify(data[0]));
             } else if (type == 3) {
               listPlaceDetails3.value = JSON.parse(JSON.stringify(data[0]));
+            } else if (type == 4) {
+              listPlaceDetails4.value = JSON.parse(JSON.stringify(data[0]));
             }
           } else {
             if (type == 1) {
@@ -244,6 +246,8 @@ const initPlaceFilter = (event, type) => {
               listPlaceDetails2.value = [];
             } else if (type == 3) {
               listPlaceDetails3.value = [];
+            } else if (type == 4) {
+              listPlaceDetails4.value = [];
             }
           }
         }
