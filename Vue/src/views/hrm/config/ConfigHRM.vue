@@ -118,7 +118,7 @@ onMounted(() => {
       </div>
       <div style="margin: 0 15%">
         <Accordion :multiple="false" :activeIndex="activeIndex"  @tab-open="onTabOpen($event)">
-          <AccordionTab  >
+          <AccordionTab >
             <template #header>
                 <div class="text-xl">
                     Mã nhân sự
@@ -132,7 +132,7 @@ onMounted(() => {
                     Số hợp đồng lao động
                 </div>
             </template>
-            <div   v-if="activeIndex==1"  class="check-scroll-1"><config-contract /></div>
+            <div   v-if="activeIndex==1"   ><config-contract /></div>
           </AccordionTab>
           <AccordionTab  >
             <template #header>

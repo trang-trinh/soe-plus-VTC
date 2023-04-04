@@ -167,9 +167,9 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="d-container p-0">
-    <div class="p-0 surface-0">
-      <div class="col-12 flex style-vb-3">
+  <div class="d-container p-0  ">
+    <div class="p-0 surface-0 check-scroll">
+      <div class="col-12 flex style-vb-3 ">
         <div class="col-2 flex justify-content-end align-items-center"></div>
         <div class="col-3 flex justify-content-end align-items-center">
           <div class="pr-2 font-bold">Năm:</div>
@@ -392,7 +392,7 @@ onMounted(() => {
   }
 
   .check-scroll {
-    max-height: 25rem;
+    max-height: 35rem;
     overflow: scroll;
   }
 }
@@ -403,7 +403,7 @@ onMounted(() => {
   }
 
   .check-scroll {
-    max-height: 40rem;
+    max-height: 25rem;
     overflow: scroll;
   }
 }

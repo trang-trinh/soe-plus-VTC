@@ -379,6 +379,9 @@ const caEnectingGroup = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
   const caTags = () =>
   import("../views/hrm/category/caTags.vue");
+  const caSoefSalary = () =>
+  import("../views/hrm/category/caCoefSalary.vue");
+  
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
@@ -1776,7 +1779,11 @@ const router = createRouter({
       name: "caHRMRewardTitle",
       component: caRewardTitle,
     },
-
+    {
+      path: "/hrm/category/soef_salary",
+      name: "caHRMSoefSalary",
+      component: caSoefSalary,
+    },
     //HRM
     {
       path: "/hrm/hrm_training",
