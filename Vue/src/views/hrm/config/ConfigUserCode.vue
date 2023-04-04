@@ -312,13 +312,13 @@ const reOrganization = (data) => {
 };
 const saveDeConfig = () => {
   liData.value = [];
-  for (const key in datalistsD.value) {
+  // for (const key in datalistsD.value) {
 
-    if (Object.hasOwnProperty.call(datalistsD.value, key)) {
-      const element = datalistsD.value[key];
-      reOrganization(element);
-    }
-  } 
+  //   if (Object.hasOwnProperty.call(datalistsD.value, key)) {
+  //     const element = datalistsD.value[key];
+  //     reOrganization(element);
+  //   }
+  // } 
   datalistsBD.value.forEach(element => {
     liData.value.push(element);
   });
