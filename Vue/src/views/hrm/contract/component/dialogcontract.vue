@@ -122,7 +122,7 @@ const saveModel = (is_continue) => {
   if (obj.sign_user != null) {
     obj.sign_user_id = obj.sign_user.user_id;
   }
-  if(obj.manager_user != null){
+  if (obj.manager_user != null) {
     obj.manager_user_id = obj.manager_user.user_id;
   }
   if (obj.start_date != null) {
@@ -353,7 +353,6 @@ const removeAllowanceDetail = (array, idx) => {
     array.splice(idx, 1);
   }
 };
-
 //init
 onMounted(() => {});
 </script>
@@ -659,7 +658,7 @@ onMounted(() => {});
                 />
               </div>
             </div>
-            <div class="col-4 md:col-4">
+            <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Hình thức làm việc </label>
                 <Dropdown
@@ -684,7 +683,7 @@ onMounted(() => {});
                 </Dropdown>
               </div>
             </div>
-            <div class="col-8 md:col-8">
+            <div class="col-6 md:col-6">
               <div class="form-group">
                 <label>Ngạch lương </label>
                 <Dropdown
@@ -703,6 +702,31 @@ onMounted(() => {});
                     <div class="country-item flex align-items-center">
                       <div class="pt-1 pl-2">
                         {{ slotProps.option.wage_name }}
+                      </div>
+                    </div>
+                  </template>
+                </Dropdown>
+              </div>
+            </div>
+            <div class="col-6 md:col-6">
+              <div class="form-group">
+                <label>Hệ số lương </label>
+                <Dropdown
+                  :disabled="props.isView"
+                  :options="props.dictionarys[13]"
+                  :filter="true"
+                  :showClear="true"
+                  :editable="false"
+                  v-model="props.model.coef_salary_id"
+                  optionLabel="coef_salary_name"
+                  optionValue="coef_salary_id"
+                  placeholder="Chọn hệ số lương"
+                  class="ip36"
+                >
+                  <template #option="slotProps">
+                    <div class="country-item flex align-items-center">
+                      <div class="pt-1 pl-2">
+                        {{ slotProps.option.coef_salary_name }}
                       </div>
                     </div>
                   </template>

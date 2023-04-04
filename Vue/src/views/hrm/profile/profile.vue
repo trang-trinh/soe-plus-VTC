@@ -7,6 +7,7 @@ import dialogreceipt from "../profile/component/dialogreceipt.vue";
 import dialoghealth from "../profile/component/dialoghealth.vue";
 import dialogrelate from "../profile/component/dialogrelate.vue";
 import dialogtag from "../profile/component//dialogtag.vue";
+import dialogcontract from "../contract/component/dialogcontract.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
 const router = inject("router");
@@ -2181,7 +2182,11 @@ onMounted(() => {
               <span v-if="slotProps.data.diffyear > 0"
                 >{{ slotProps.data.diffyear }} năm
               </span>
-              <span v-if="slotProps.data.diffday >= 0"
+              <span
+                v-if="
+                  (slotProps.data.diffyear > 0 && slotProps.data.diffday > 0) ||
+                  (slotProps.data.diffyear == 0 && slotProps.data.diffday >= 0)
+                "
                 >{{ slotProps.data.diffday }} ngày
               </span>
             </div>
@@ -2624,6 +2629,20 @@ onMounted(() => {
     :displayDialog="displayDialogTag"
     :closeDialog="closeDialogTag"
     :profile="profile"
+  />
+  <dialogcontract
+    :key="componentKey['5']"
+    :headerDialog="headerDialogContract"
+    :displayDialog="displayDialogContract"
+    :closeDialog="closeDialogContract"
+    :isAdd="isAdd"
+    :isView="false"
+    :model="model"
+    :files="files"
+    :selectFile="selectFile"
+    :removeFile="removeFile"
+    :dictionarys="dictionarys"
+    :initData="initData"
   />
   <Menu
     id="overlay_More"
