@@ -429,7 +429,6 @@ const loadDataSQL = () => {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
         });
-
         datalists.value = data;
       } else {
         datalists.value = [];

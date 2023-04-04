@@ -13,21 +13,7 @@ const store = inject("store");
 const swal = inject("$swal");
 const basedomainURL = baseURL;
 const toast = useToast();
-
-const expandedKeys = ref([]);
-
-const selectedUser = ref([]);
-
-const bgColor = ref([
-  "#F8E69A",
-  "#AFDFCF",
-  "#F4B2A3",
-  "#9A97EC",
-  "#CAE2B0",
-  "#8BCFFB",
-  "#CCADD7",
-]);
-
+ 
 const isFirst = ref(true);
 
 const config = {

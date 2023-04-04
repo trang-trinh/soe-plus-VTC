@@ -1,10 +1,8 @@
 <script setup>
 import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
-
 import configUsers from "./ConfigUserCode.vue";
 import ConfigContract from "./ConfigContract.vue";
-
 import ConfigHolidays from "./ConfigHolidays.vue";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo

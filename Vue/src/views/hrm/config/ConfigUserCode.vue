@@ -232,6 +232,7 @@ const loadUser = () => {
 };
 
 const datalistsD = ref();
+const datalistsBD = ref();
 const loadOrganization = (value) => {
   axios
     .post(
@@ -258,7 +259,7 @@ const loadOrganization = (value) => {
 
         configUserCodeMain.value = data.filter(x => x.organization_type == 3);
         data = data.filter(x => x.organization_type == 0);
-
+        datalistsBD.value=[...data];
 
         let obj = renderTreeDV1(
           data,
@@ -441,7 +442,7 @@ onMounted(() => {
         </div>
         <div class="col-12 p-0   ">
 
-          <TreeTable :expandedKeys="expandedKeys" :value="datalistsD" class="p-treetable-sm" :rowHover="true"
+          <!-- <TreeTable :expandedKeys="expandedKeys" :value="datalistsD" class="p-treetable-sm" :rowHover="true"
             :lazy="true" scrollHeight="flex">
             <Column field="organization_name" :expander="true"
             headerStyle="text-align:center " 
@@ -515,8 +516,82 @@ onMounted(() => {
               </template>
             </Column>
 
-          </TreeTable>
+          </TreeTable> -->
+          <DataTable  :value="datalistsBD" class="p-treetable-sm" :rowHover="true"
+            :lazy="true" scrollHeight="flex">
+            <Column field="organization_name"  
+            headerStyle="text-align:center " 
+            >
+              <template #header>
+                <div class="w-full ">
+                  <i class="pi pi-building pr-2"></i>Tên công ty
+                </div>
+              </template>
+            </Column>
+            <Column headerStyle="text-align:center; width:200px" bodyStyle=" ; width:200px"
+              field="organization_name">
+              <template #header>
+                <div class="w-full format-center">
+                  Ký hiệu
+                </div>
+              </template>
+              <template #body="data">
+                <div class="w-full  ">
 
+                  <InputText class="w-full duy-inpput "  v-model="data.data.symbol" spellcheck="false" />
+                </div>
+              </template>
+            </Column>
+            <Column headerStyle="text-align:center; width:100px" bodyStyle="text-align:center; width:100px"
+              class="align-items-center justify-content-center text-center" field="organization_name">
+              <template #header>
+                <div class="w-full format-center">
+                  Độ dài
+                </div>
+              </template>
+              <template #body="data">
+                <div class="w-full  ">
+
+                  <InputNumber class="w-full duy-inpput " v-model="data.data.length" type="text" spellcheck="false" />
+                </div>
+              </template>
+            </Column>
+            <Column headerStyle="  text-align:center; width:100px" bodyStyle="text-align:center; width:100px"
+              class="align-items-center justify-content-center text-center" field="organization_name"
+              
+              
+              
+              
+              
+              >
+              <template #header>
+                <div class="w-full  ">
+                  Khởi tạo
+                </div>
+              </template>
+              <template #body="data">
+                <div class="w-full ">
+
+                  <InputNumber    style=" max-width: 100px;  text-align:center !important" class="w-full duy-inpput " v-model="data.data.initialization" spellcheck="false" />
+                </div>
+              </template>
+            </Column>
+            <Column headerStyle="text-align:center;width:100px" bodyStyle="text-align:center;width:100px"
+              class="align-items-center justify-content-center text-center" field="organization_name">
+              <template #header>
+                <div class="w-full format-center">
+                  Tự động
+                </div>
+              </template>
+              <template #body="data">
+                <div class="w-full format-center">
+
+                  <InputSwitch class="w-4rem lck-checked" v-model="data.data.automatic" spellcheck="false" />
+                </div>
+              </template>
+            </Column>
+
+          </DataTable>
 
 
 

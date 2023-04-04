@@ -69,10 +69,10 @@ const rules = {
 };
 const listFilesS = ref([]);
 const reward = ref({
-  reward_name_fake1: null,
+  reward_name_fake1: [],
   is_recruitment_proposal: null,
   reward_code: null,
-  reward_name_fake2: [],
+  reward_name_fake2: {},
 });
 const submitted = ref(false);
 const list_users_training = ref([]);
@@ -109,16 +109,11 @@ const loadData = () => {
         if (data) {
           reward.value = data[0];
 
-          if (reward.value.start_date)
-            reward.value.start_date = new Date(reward.value.start_date);
-          if (reward.value.end_date)
-            reward.value.end_date = new Date(reward.value.end_date);
-          if (reward.value.rec_recruitment_deadline)
-            reward.value.rec_recruitment_deadline = new Date(
-              reward.value.rec_recruitment_deadline
-            );
-          reward.value.user_verify_fake = reward.value.user_verify.split(",");
-          reward.value.user_follows_fake = reward.value.user_follows.split(",");
+          if (reward.value.decision_date)
+            reward.value.decision_date = new Date(reward.value.decision_date);
+          if (reward.value.effective_date)
+            reward.value.effective_date = new Date(reward.value.effective_date);
+ 
         }
 
         if (data1) {
@@ -128,11 +123,10 @@ const loadData = () => {
       .catch((error) => {});
   }
 };
-const saveData = (isFormValid) => {
+const saveData = ( ) => {
   submitted.value = true;
-  if (!isFormValid) {
-    return;
-  }
+   
+  
   if (
     reward.value.reward_level_id == null ||
     reward.value.reward_title_id == null
@@ -140,7 +134,7 @@ const saveData = (isFormValid) => {
     return;
   }
   if (reward.value.reward_type == 1) {
-    if (reward.value.reward_name_fake1 == null) {
+    if (reward.value.reward_name_fake1.length == 0) {
       return;
     }
   } else if (reward.value.reward_type == 2)
@@ -306,9 +300,9 @@ const loadUser = () => {
     });
 };
 const v$ = useVuelidate(rules, reward);
-const listVacancies = ref([]);
+const listRewardLevel= ref([]);
 const listPosition = ref([]);
-const listFormality = ref([]);
+const listRewardTitle = ref([]);
 const listDepartmentTree = ref();
 const listAcademic_level = ref([]);
 const listSpecialization = ref([]);
@@ -507,7 +501,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
+            proc: "hrm_ca_reward_level_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -523,11 +517,11 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listVacancies.value = [];
-      data.forEach((element, i) => {
-        listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
+      listRewardLevel.value = [];
+      data.forEach(element => {
+        listRewardLevel.value.push({
+          name: element.reward_level_name,
+          code: element.reward_level_id,
         });
       });
     })
@@ -573,7 +567,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_formality_list",
+            proc: "hrm_ca_reward_title_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -589,11 +583,11 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listFormality.value = [];
+      listRewardTitle.value = [];
       data.forEach((element, i) => {
-        listFormality.value.push({
-          name: element.formality_name,
-          code: element.formality_id,
+        listRewardTitle.value.push({
+          name: element.reward_title_name,
+          code: element.reward_title_id,
         });
       });
     })
@@ -971,7 +965,7 @@ onMounted(() => {
                     class="w-full p-0 d-tree-input"
                     :class="{
                       'p-invalid':
-                        reward.reward_name_fake1 == null && submitted,
+                        reward.reward_name_fake1.length == 0 && submitted,
                     }"
                     display="chip"
                   >
@@ -1037,7 +1031,7 @@ onMounted(() => {
           </div>
           <div
             class="col-12 p-0 field flex"
-            v-if="reward.reward_name_fake1 == null && submitted"
+            v-if="reward.reward_name_fake1.length == 0 && submitted"
           >
             <div class="p-0 col-12">
               <div class="col-12 p-0 flex">
@@ -1064,16 +1058,16 @@ onMounted(() => {
                     :options="listDepartmentTree"
                     :class="{
                       'p-invalid':
-                        reward.reward_name_fake2.length == 0 && submitted,
+                       Object.keys(reward.reward_name_fake2).length == 0 && submitted,
                     }"
                     :showClear="true"
                     :max-height="200"
                     optionLabel="data.organization_name"
                     optionValue="data.department_id"
                     panelClass="d-design-dropdown"
-                    class="w-full"
+                    class="w-full d-tree-input "
                     selectionMode="checkbox"
-                    placeholder="Chọn phòng ban"
+                    placeholder="-------- Chọn phòng ban khen thưởng--------"
                     display="chip"
                   >
                   </TreeSelect>
@@ -1083,7 +1077,7 @@ onMounted(() => {
           </div>
           <div
             class="col-12 p-0 field flex"
-            v-if="reward.reward_name_fake2.length == 0 && submitted"
+            v-if="  Object.keys(reward.reward_name_fake2).length == 0 && submitted"
           >
             <div class="p-0 col-12">
               <div class="col-12 p-0 flex">
@@ -1106,7 +1100,7 @@ onMounted(() => {
               <Dropdown
                 :filter="true"
                 v-model="reward.reward_level_id"
-                :options="listVacancies"
+                :options="listRewardLevel"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
@@ -1126,7 +1120,7 @@ onMounted(() => {
               <Dropdown
                 :filter="true"
                 v-model="reward.reward_title_id"
-                :options="listVacancies"
+                :options="listRewardTitle"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
@@ -1181,7 +1175,7 @@ onMounted(() => {
               <Calendar
                 class="w-full"
                 id="basic_purchase_date"
-                v-model="reward.start_date"
+                v-model="reward.decision_date"
                 autocomplete="off"
                 :showIcon="true"
                 placeholder="dd/mm/yyyy"
@@ -1195,11 +1189,9 @@ onMounted(() => {
                 class="w-full"
                 placeholder="dd/mm/yyyy"
                 id="basic_purchase_date"
-                v-model="reward.end_date"
+                v-model="reward.effective_date"
                 autocomplete="off"
-                :minDate="
-                  reward.start_date ? new Date(reward.start_date) : null
-                "
+               
                 :showIcon="true"
               />
             </div>
@@ -1223,6 +1215,7 @@ onMounted(() => {
                 class="w-full"
                 v-model="reward.reward_cost"
                 placeholder="Nhập giá trị khen thưởng"
+                suffix=" VNĐ"
               />
             </div>
           </div>
@@ -1347,7 +1340,7 @@ onMounted(() => {
         <Button
           label="Lưu"
           icon="pi pi-check"
-          @click="saveData(!v$.$invalid)"
+          @click="saveData()"
           autofocus
         />
       </div>
