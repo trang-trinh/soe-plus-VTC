@@ -202,7 +202,9 @@ const initData = (rf) => {
     });
 };
 onMounted(() => {
-  initData(true);
+  if (props.displayDialog) {
+    initData(true);
+  }
 });
 </script>
 <template>
