@@ -432,7 +432,12 @@ const forceRerender = () => {
   componentKey.value += 1;
 };
 const changeView = (view) => {
-  options.value.view = view;
+  if (view != null) {
+    options.value.view = view;
+    options.value.view_copy = view;
+  } else {
+    options.value.view = options.value.view_copy;
+  }
   initData();
 };
 
@@ -1577,9 +1582,7 @@ const initView4 = (rf) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_timekeep_by_user",
-            par: [
-              { par: "profile_id", va: options.value["profile_id"] },
-            ],
+            par: [{ par: "profile_id", va: options.value["profile_id"] }],
           }),
           SecretKey,
           cryoptojs
@@ -2229,179 +2232,7 @@ const onPage = (event) => {
   <div class="surface-100 p-2">
     <Toolbar class="outline-none surface-0 border-none pb-1">
       <template #start>
-        <span v-if="options.view === 10" class="p-input-icon-left">
-          <i class="pi pi-search" />
-          <InputText
-            @keypress.enter="searchData()"
-            v-model="options.search"
-            type="text"
-            spellcheck="false"
-            :placeholder="'Tìm kiếm'"
-          />
-        </span>
-        <Button
-          v-if="options.view === 10"
-          @click="toggleFilter($event)"
-          type="button"
-          class="ml-2 p-button-outlined p-button-secondary"
-          aria:haspopup="true"
-          aria-controls="overlay_panel"
-        >
-          <div>
-            <span class="mr-2"><i class="pi pi-filter"></i></span>
-            <span class="mr-2">Lọc dữ liệu</span>
-            <span><i class="pi pi-chevron-down"></i></span>
-          </div>
-        </Button>
-        <OverlayPanel
-          :showCloseIcon="false"
-          ref="opfilter"
-          appendTo="body"
-          class="p-0 m-0"
-          id="overlay_panel"
-          style="width: 400px"
-        >
-          <div class="grid formgrid m-0">
-            <div
-              class="col-12 md:col-12 p-0"
-              :style="{
-                minHeight: 'unset',
-                maxHeight: 'calc(100vh - 300px)',
-                overflow: 'auto',
-              }"
-            >
-              <div class="row">
-                <div class="col-12 md:col-12">
-                  <div class="row">
-                    <div class="col-12 md:col-12 p-0">
-                      <div class="form-group">
-                        <label>Loại file</label>
-                        <MultiSelect
-                          :options="type_files"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.type_files"
-                          optionLabel="title"
-                          placeholder="Chọn loại file"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.title }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(index, options.type_files);
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-12 p-0">
-                      <div class="form-group">
-                        <label>Vị trí file</label>
-                        <MultiSelect
-                          :options="is_type_files"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.is_type_files"
-                          optionLabel="title"
-                          placeholder="Chọn vị trí"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.title }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(
-                                          index,
-                                          options.is_type_files
-                                        );
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-12 md:col-12 p-0">
-              <Toolbar
-                class="border-none surface-0 outline-none px-0 pb-0 w-full"
-              >
-                <template #start>
-                  <Button
-                    @click="resetFilter()"
-                    class="p-button-outlined"
-                    label="Bỏ chọn"
-                  ></Button>
-                </template>
-                <template #end>
-                  <Button @click="filter($event)" label="Lọc"></Button>
-                </template>
-              </Toolbar>
-            </div>
-          </div>
-        </OverlayPanel>
+        <h2 class="m-0" :style="{ color: '#0078d4' }"><span>{{  profile.profile_user_name  }}</span></h2>
       </template>
       <template #end>
         <ul class="flex p-0 m-0 mr-2" style="list-style: none">
@@ -2434,6 +2265,7 @@ const onPage = (event) => {
           :popup="true"
           id="overlay_Export"
           ref="menuButs"
+          :style="{ minWidth: '218px !important' }"
         />
         <Button
           @click="
@@ -4842,6 +4674,196 @@ const onPage = (event) => {
             </div>
             <div v-show="options.view === 9" class="f-full">Quyết định</div>
             <div v-show="options.view === 10" class="f-full">
+              <Toolbar class="outline-none surface-0 border-none pb-1">
+                <template #start>
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText
+                      @keypress.enter="searchData()"
+                      v-model="options.search"
+                      type="text"
+                      spellcheck="false"
+                      :placeholder="'Tìm kiếm'"
+                    />
+                  </span>
+                  <Button
+                    v-if="options.view === 10"
+                    @click="toggleFilter($event)"
+                    type="button"
+                    class="ml-2 p-button-outlined p-button-secondary"
+                    aria:haspopup="true"
+                    aria-controls="overlay_panel"
+                  >
+                    <div>
+                      <span class="mr-2"><i class="pi pi-filter"></i></span>
+                      <span class="mr-2">Lọc dữ liệu</span>
+                      <span><i class="pi pi-chevron-down"></i></span>
+                    </div>
+                  </Button>
+                  <OverlayPanel
+                    :showCloseIcon="false"
+                    ref="opfilter"
+                    appendTo="body"
+                    class="p-0 m-0"
+                    id="overlay_panel"
+                    style="width: 400px"
+                  >
+                    <div class="grid formgrid m-0">
+                      <div
+                        class="col-12 md:col-12 p-0"
+                        :style="{
+                          minHeight: 'unset',
+                          maxHeight: 'calc(100vh - 300px)',
+                          overflow: 'auto',
+                        }"
+                      >
+                        <div class="row">
+                          <div class="col-12 md:col-12">
+                            <div class="row">
+                              <div class="col-12 md:col-12 p-0">
+                                <div class="form-group">
+                                  <label>Loại file</label>
+                                  <MultiSelect
+                                    :options="type_files"
+                                    :filter="true"
+                                    :showClear="true"
+                                    :editable="false"
+                                    v-model="options.type_files"
+                                    optionLabel="title"
+                                    placeholder="Chọn loại file"
+                                    class="w-full limit-width"
+                                    style="min-height: 36px"
+                                    panelClass="d-design-dropdown"
+                                  >
+                                    <template #value="slotProps">
+                                      <ul
+                                        class="p-ulchip"
+                                        v-if="
+                                          slotProps.value &&
+                                          slotProps.value.length > 0
+                                        "
+                                      >
+                                        <li
+                                          class="p-lichip"
+                                          v-for="(
+                                            value, index
+                                          ) in slotProps.value"
+                                          :key="index"
+                                        >
+                                          <Chip class="mr-2 mb-2 px-3 py-2">
+                                            <div class="flex">
+                                              <div>
+                                                <span>{{ value.title }}</span>
+                                              </div>
+                                              <span
+                                                tabindex="0"
+                                                class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                                @click="
+                                                  removeFilter(
+                                                    index,
+                                                    options.type_files
+                                                  );
+                                                  $event.stopPropagation();
+                                                "
+                                                v-tooltip.top="'Xóa'"
+                                              ></span>
+                                            </div>
+                                          </Chip>
+                                        </li>
+                                      </ul>
+                                      <span v-else>
+                                        {{ slotProps.placeholder }}
+                                      </span>
+                                    </template>
+                                  </MultiSelect>
+                                </div>
+                              </div>
+                              <div class="col-12 md:col-12 p-0">
+                                <div class="form-group">
+                                  <label>Vị trí file</label>
+                                  <MultiSelect
+                                    :options="is_type_files"
+                                    :filter="true"
+                                    :showClear="true"
+                                    :editable="false"
+                                    v-model="options.is_type_files"
+                                    optionLabel="title"
+                                    placeholder="Chọn vị trí"
+                                    class="w-full limit-width"
+                                    style="min-height: 36px"
+                                    panelClass="d-design-dropdown"
+                                  >
+                                    <template #value="slotProps">
+                                      <ul
+                                        class="p-ulchip"
+                                        v-if="
+                                          slotProps.value &&
+                                          slotProps.value.length > 0
+                                        "
+                                      >
+                                        <li
+                                          class="p-lichip"
+                                          v-for="(
+                                            value, index
+                                          ) in slotProps.value"
+                                          :key="index"
+                                        >
+                                          <Chip class="mr-2 mb-2 px-3 py-2">
+                                            <div class="flex">
+                                              <div>
+                                                <span>{{ value.title }}</span>
+                                              </div>
+                                              <span
+                                                tabindex="0"
+                                                class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                                @click="
+                                                  removeFilter(
+                                                    index,
+                                                    options.is_type_files
+                                                  );
+                                                  $event.stopPropagation();
+                                                "
+                                                v-tooltip.top="'Xóa'"
+                                              ></span>
+                                            </div>
+                                          </Chip>
+                                        </li>
+                                      </ul>
+                                      <span v-else>
+                                        {{ slotProps.placeholder }}
+                                      </span>
+                                    </template>
+                                  </MultiSelect>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12 p-0">
+                        <Toolbar
+                          class="border-none surface-0 outline-none px-0 pb-0 w-full"
+                        >
+                          <template #start>
+                            <Button
+                              @click="resetFilter()"
+                              class="p-button-outlined"
+                              label="Bỏ chọn"
+                            ></Button>
+                          </template>
+                          <template #end>
+                            <Button
+                              @click="filter($event)"
+                              label="Lọc"
+                            ></Button>
+                          </template>
+                        </Toolbar>
+                      </div>
+                    </div>
+                  </OverlayPanel>
+                </template>
+                <template #end> </template>
+              </Toolbar>
               <div class="d-lang-table-1 p-2">
                 <DataTable
                   @page="onPage($event)"
@@ -5582,6 +5604,13 @@ const onPage = (event) => {
 }
 </style>
 <style lang="scss" scoped>
+::v-deep(.p-datatable) {
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+}
 ::v-deep(.disable-header) {
   table thead {
     display: none;

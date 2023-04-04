@@ -240,7 +240,7 @@ const initPlaceFilter = (event, type) => {
     });
 };
 onMounted(() => {
-  if (props.model != null) {
+  if (props.displayDialog && props.model != null) {
     initPlaceFilter({ value: props.model.birthplace_name }, 1);
     initPlaceFilter({ value: props.model.birthplace_origin_name }, 2);
     initPlaceFilter({ value: props.model.place_register_permanent_name }, 3);
@@ -862,7 +862,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-64">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Mối quan hệ</label>
                       <Dropdown

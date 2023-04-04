@@ -132,6 +132,7 @@ const bgColor = ref([
 const genders = ref([
   { value: 1, text: "Nam" },
   { value: 2, text: "Nữ" },
+  { value: 3, text: "Khác" },
 ]);
 const places = ref();
 const marital_status = ref([
@@ -188,9 +189,9 @@ const changeView = (view) => {
 };
 
 //Watch
-// watch(selectedNodes, () => {
-//   goProfile(selectedNodes.value);
-// });
+watch(selectedNodes, () => {
+  goProfile(selectedNodes.value);
+});
 
 //Function
 const componentKey = ref({});
@@ -233,13 +234,13 @@ const itemButMores = ref([
       editItem(profile.value, "Chỉnh sửa hồ sơ");
     },
   },
-  {
-    label: "Cập nhật thay đổi thông tin",
-    icon: "pi pi-pencil",
-    command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
-    },
-  },
+  // {
+  //   label: "Cập nhật thay đổi thông tin",
+  //   icon: "pi pi-pencil",
+  //   command: (event) => {
+  //     //editItem(profile.value, "Chỉnh sửa hợp đồng");
+  //   },
+  // },
   {
     label: "Cấp tài khoản truy cập",
     icon: "pi pi-key",
@@ -1364,6 +1365,12 @@ const initData = (ref) => {
           var arr = [];
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((item, i) => {
+              const startDate = moment(item.recruitment_date || new Date());
+              const endDate = moment(new Date());
+              item.duration = moment.duration(endDate.diff(startDate));
+              item.diffyear = item.duration.years();
+              item.diffday = item.duration.days();
+
               item["STT"] = i + 1;
               if (item["created_date"] != null) {
                 item["created_date"] = moment(
@@ -2093,7 +2100,13 @@ onMounted(() => {
           <template #body="slotProps">
             <div style="min-width: 200px">
               <div class="mb-1" v-if="slotProps.data.gender">
-                <span>{{ slotProps.data.gender == 1 ? "Nam" : "Nữ" }}</span>
+                <span>{{
+                  slotProps.data.gender == 1
+                    ? "Nam"
+                    : slotProps.data.gender == 2
+                    ? "Nữ"
+                    : "Khác"
+                }}</span>
               </div>
               <div class="mb-1">
                 <span>{{ slotProps.data.birthday }}</span>
@@ -2153,6 +2166,24 @@ onMounted(() => {
               <div class="mb-1">
                 <span>{{ slotProps.data.department_name }}</span>
               </div>
+            </div>
+          </template>
+        </Column>
+        <Column
+          field="countRecruitment"
+          header="Ngày thâm niên"
+          headerStyle="text-align:center;max-width:200px;height:50px"
+          bodyStyle="text-align:center;max-width:200px;"
+          class="align-items-center justify-content-left text-left"
+        >
+          <template #body="slotProps">
+            <div v-tooltip.top="'Thâm niên công tác'">
+              <span v-if="slotProps.data.diffyear > 0"
+                >{{ slotProps.data.diffyear }} năm
+              </span>
+              <span v-if="slotProps.data.diffday >= 0"
+                >{{ slotProps.data.diffday }} ngày
+              </span>
             </div>
           </template>
         </Column>
@@ -2236,12 +2267,12 @@ onMounted(() => {
         <template #empty>
           <div
             class="align-items-center justify-content-center p-4 text-center m-auto"
-            style="
-              display: flex;
-              width: 100%;
-              height: calc(100vh - 210px);
-              background-color: #fff;
-            "
+            :style="{
+              display: 'flex',
+              width: '100%',
+              height: 'calc(100vh - 210px)',
+              backgroundColor: '#fff',
+            }"
           >
             <div v-if="!options.loading && (!isFirst || options.total == 0)">
               <img src="../../../assets/background/nodata.png" height="144" />
@@ -2259,7 +2290,7 @@ onMounted(() => {
         >
           <tbody v-if="!organization.list || organization.list.length === 0">
             <tr>
-              <td colspan="6">
+              <td colspan="7">
                 <div
                   class="p-3"
                   :style="{
@@ -2278,7 +2309,7 @@ onMounted(() => {
           >
             <tr>
               <td
-                colspan="6"
+                colspan="7"
                 @click="department.isOpen = !(department.isOpen || false)"
                 :style="{ cursor: 'pointer' }"
               >
@@ -2313,7 +2344,7 @@ onMounted(() => {
               v-for="(item, index) in department.list"
               :key="index"
             >
-              <tr class="tr-list">
+              <tr @click="goProfile(item)" class="tr-list">
                 <td
                   :style="{
                     width: '5rem',
@@ -2395,7 +2426,13 @@ onMounted(() => {
                 >
                   <div>
                     <div class="mb-1" v-if="item.gender">
-                      <span>{{ item.gender == 1 ? "Nam" : "Nữ" }}</span>
+                      <span>{{
+                        item.gender == 1
+                          ? "Nam"
+                          : item.gender == 1
+                          ? "Nữ"
+                          : "Khác"
+                      }}</span>
                     </div>
                     <div class="mb-1">
                       <span>{{ item.birthday }}</span>
@@ -2450,6 +2487,17 @@ onMounted(() => {
                       <span>{{ item.department_name }}</span>
                     </div>
                   </div>
+                </td>
+                <td
+                  :style="{
+                    minWidth: '100px',
+                    textAlign: 'left',
+                    borderBottom: 'solid 1px rgba(0,0,0,0.1)',
+                    padding: '0.5rem',
+                  }"
+                >
+                  <span v-if="item.diffyear > 0">{{ item.diffyear }} năm </span>
+                  <span v-if="item.diffday >= 0">{{ item.diffday }} ngày </span>
                 </td>
                 <td
                   :style="{

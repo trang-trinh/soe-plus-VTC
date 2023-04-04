@@ -124,7 +124,7 @@ const changeView = (view) => {
       default:
         break;
     }
-    initData(true);
+    //initData(true);
   } else {
     options.value.view = options.value.view_copy;
   }
@@ -144,10 +144,8 @@ const goMonth = (month) => {
   }
 };
 const goYear = (date) => {
-  if (date && options.value["year"] !== date.getFullYear()) {
-    options.value["year"] = date.getFullYear();
-    initDictionary();
-  }
+  options.value.year = date.getFullYear();
+  initDictionary();
 };
 
 //Function
@@ -310,6 +308,7 @@ const initDictionary = () => {
       }
     })
     .catch((error) => {
+      debugger;
       swal.fire({
         title: "Thông báo!",
         text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
@@ -319,44 +318,223 @@ const initDictionary = () => {
       return;
     });
 };
-const initDay = (start_date, end_date) => {
-  days.value = [];
-  var datebetweens = bindDateBetweenFirstAndLast(
-    new Date(start_date),
-    new Date(end_date)
-  );
-  datebetweens.forEach((day, i) => {
-    days.value.push({
-      day: day,
-      day_name: getDayDate(day).day_name,
-      day_name_short: getDayDate(day).day_name_short,
-      day_string: moment(day).format("DD/MM/YYYY"),
-      day_string_short: moment(day).format("DD/MM"),
-      day_string_date: moment(day).format("DD"),
-      is_today:
-        moment(day).format("DD/MM/YYYY") ==
-        moment(new Date()).format("DD/MM/YYYY"),
-      is_holiday: day.getDay() === 0 || day.getDay() === 6,
-      is_pass: new Date() > day,
-    });
-  });
-  days.value = days.value.sort(function (a, b) {
-    return new Date(a["day"]) - new Date(b["day"]);
-  });
-};
+// const initDay = (start_date, end_date) => {
+//   days.value = [];
+//   var datebetweens = bindDateBetweenFirstAndLast(
+//     new Date(start_date),
+//     new Date(end_date)
+//   );
+//   datebetweens.forEach((day, i) => {
+//     days.value.push({
+//       day: day,
+//       day_name: getDayDate(day).day_name,
+//       day_name_short: getDayDate(day).day_name_short,
+//       day_string: moment(day).format("DD/MM/YYYY"),
+//       day_string_short: moment(day).format("DD/MM"),
+//       day_string_date: moment(day).format("DD"),
+//       is_today:
+//         moment(day).format("DD/MM/YYYY") ==
+//         moment(new Date()).format("DD/MM/YYYY"),
+//       is_holiday: day.getDay() === 0 || day.getDay() === 6,
+//       is_pass: new Date() > day,
+//     });
+//   });
+//   days.value = days.value.sort(function (a, b) {
+//     return new Date(a["day"]) - new Date(b["day"]);
+//   });
+// };
 const refresh = () => {
-  initData(true);
+  //initData(true);
 };
-const initData = (rf) => {};
+const initDay = (start_date, end_date) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  days.value = [];
+  datas.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_timekeep",
+            par: [
+              { par: "profile_id", va: props.profile_id },
+              { par: "year", va: options.value.year },
+              { par: "month", va: options.value.month },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data);
+        if (data != null) {
+          if (data[0] != null && data[0].length > 0) {
+            data[0].forEach((item) => {
+              item.day_name = getDayDate(new Date(item.workday)).day_name;
+              item.day_string_date = moment(new Date(item.workday)).format(
+                "DD"
+              );
+              item.is_holiday =
+                new Date(item.workday).getDay() === 0 ||
+                new Date(item.workday).getDay() === 6;
+            });
+            datas.value = JSON.parse(JSON.stringify(data[0]));
+          }
+          var datebetweens = bindDateBetweenFirstAndLast(
+            new Date(start_date),
+            new Date(end_date)
+          );
+          datebetweens
+            .filter(
+              (a) =>
+                data[0].findIndex(
+                  (b) =>
+                    moment(b["workday"]).format("DD/MM/YYYY") ===
+                    moment(a).format("DD/MM/YYYY")
+                ) === -1
+            )
+            .forEach((day, i) => {
+              data[0].push({
+                day: day,
+                day_name: getDayDate(day).day_name,
+                day_name_short: getDayDate(day).day_name_short,
+                day_string: moment(day).format("DD/MM/YYYY"),
+                day_string_short: moment(day).format("DD/MM"),
+                day_string_date: moment(day).format("DD"),
+                is_today:
+                  moment(day).format("DD/MM/YYYY") ==
+                  moment(new Date()).format("DD/MM/YYYY"),
+                is_holiday: day.getDay() === 0 || day.getDay() === 6,
+                is_pass: new Date() > day,
+              });
+            });
+          data[0] = data[0].sort(function (a, b) {
+            return new Date(a["day"]) - new Date(b["day"]);
+          });
+          days.value = data[0];
+        }
+      }
+      if (isFirst.value) isFirst.value = false;
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 onMounted(() => {
   initDictionary();
 });
 </script>
 <template>
+  <Toolbar>
+    <template #start>
+      <div class="form-group m-0 mr-2" v-if="options.view !== 0">
+        <Calendar
+          v-model="options.tempyear"
+          @date-select="goYear(options.tempyear)"
+          :showIcon="true"
+          inputId="yearpicker"
+          view="year"
+          dateFormat="yy"
+          placeholder="Chọn năm"
+          class="ip36"
+          style="min-width: 170px"
+        />
+      </div>
+      <div class="form-group m-0" v-if="options.view === 2">
+        <Dropdown
+          :options="months"
+          :filter="true"
+          :showClear="false"
+          v-model="options.month"
+          @change="goMonth(options.month)"
+          optionLabel="month"
+          optionValue="month"
+          placeholder="Chọn tháng"
+          class="ip36"
+        >
+          <template #value="slotProps">
+            <div
+              class="country-item country-item-value flex"
+              v-if="slotProps.value"
+            >
+              <i class="pi pi-calendar mr-2 format-flex-center"></i>
+              <div>
+                Tháng {{ slotProps.value }}
+                <!-- ({{
+                  moment(new Date(options["week_start_date"])).format("DD/MM")
+                }}
+                -
+                {{
+                  moment(new Date(options["week_end_date"])).format("DD/MM")
+                }}) -->
+              </div>
+            </div>
+            <span v-else>
+              {{ slotProps.placeholder }}
+            </span>
+          </template>
+          <template #option="slotProps">
+            <div
+              class="country-item country-item-value py-2"
+              v-if="slotProps.option"
+            >
+              <div>Tháng {{ slotProps.option.month }}</div>
+            </div>
+            <span v-else> Chưa có dữ liệu tháng </span>
+          </template>
+        </Dropdown>
+      </div>
+    </template>
+    <template #end>
+      <Button
+        :label="datas.length || '0'"
+        class="mr-2"
+        style="border-radius: 10px"
+        v-tooltip.top="'Ngày đi làm'"
+      />
+      <Button
+        label="30"
+        class="p-button-warning"
+        style="border-radius: 10px"
+        v-tooltip.top="'Tống số ngày'"
+      />
+    </template>
+  </Toolbar>
   <div
     class="d-lang-table p-2"
     :style="{
-      height: 'calc(100vh - 20px)',
+      height: 'calc(100vh - 220px)',
       overflowY: 'auto',
     }"
   >
@@ -364,14 +542,18 @@ onMounted(() => {
       <div
         v-for="(day, day_index) in days"
         class="item-day"
-        :class="{ isPass: day.is_pass, isToday: day.is_today }"
+        :class="{
+          isPass: day.is_pass,
+          isToday: day.is_today,
+          isHoliday: day.is_holiday,
+        }"
       >
         <div class="flex justify-content-between">
           <div>{{ day.day_name }}</div>
           <div>{{ day.day_string_date }}</div>
         </div>
         <div class="format-center h-full">
-            <span :style="{ fontSize: '16px' }">P</span>
+          <span :style="{ fontSize: '16px' }">{{ day.symbol_code }}</span>
         </div>
       </div>
     </div>
@@ -381,13 +563,13 @@ onMounted(() => {
 @import url(./stylehrm.css);
 .list-item {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 0.5rem;
 }
 .item-day {
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 3px;
-  height: 110px;
+  height: 100px;
   padding: 0.5rem;
 }
 .item-day:hover {
@@ -402,6 +584,11 @@ onMounted(() => {
 }
 .isToday {
   background-color: #6fd234;
+  color: #fff;
+}
+
+.isHoliday {
+  background-color: #f1948a;
   color: #fff;
 }
 </style>
