@@ -840,7 +840,7 @@ onMounted(() => {
                       <label class="m-0">Khi cần báo tin cho:</label>
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Họ và tên</label>
                       <InputText
@@ -851,7 +851,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Số điện thoại</label>
                       <InputText
@@ -859,6 +859,25 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.involved_phone"
                         maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-64">
+                    <div class="form-group">
+                      <label>Mối quan hệ</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[11]"
+                        optionLabel="relationship_name"
+                        optionValue="relationship_id"
+                        placeholder="Chọn quan hệ"
+                        v-model="props.model.relationship_id"
+                        class="ip36"
+                        style="
+                          white-space: nowrap;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                        "
                       />
                     </div>
                   </div>
