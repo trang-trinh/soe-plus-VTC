@@ -381,6 +381,7 @@ const caEnectingGroup = () =>
   import("../views/hrm/category/caTags.vue");
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
+const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
 // Request
 const Request_Dashboard = () =>
@@ -1781,6 +1782,11 @@ const router = createRouter({
       path: "/hrm/hrm_training",
       name: "HRM_Training",
       component: HRM_Training,
+    },
+    {
+      path: "/hrm/hrm_reward",
+      name: "HRM_Reward",
+      component: HRM_Reward,
     },
 
     {
