@@ -3,8 +3,8 @@ import { ref, inject, onMounted, watch } from "vue";
 import userList from "../../components/system/user/UserList.vue"
 import userTree from "../../components/system/user/UserTree.vue"
 const emitter = inject("emitter");
-const isViewList = ref(true);
-const isViewTree = ref(false);
+const isViewList = ref(false);
+const isViewTree = ref(true);
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "change_type":

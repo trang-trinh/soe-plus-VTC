@@ -145,6 +145,8 @@ namespace Controllers
                             permClaims.Add(new Claim("rid", user.role_id));
                         if (user.organization_id != null)
                             permClaims.Add(new Claim("dvid", user.organization_id.ToString()));
+                        if (user.organization_child_id != null)
+                            permClaims.Add(new Claim("ctid", user.organization_child_id.ToString()));
                         permClaims.Add(new Claim("fname", tk.full_name));
                         if (user.avatar != null)
                         {
@@ -184,7 +186,8 @@ namespace Controllers
                                 background_image = org?.background_image,
                                 organization_name = org?.organization_name,
                                 organization_id = org?.organization_id,
-                                department_id = user.department_id,
+                                department_id = user?.department_id,
+                                organization_child_id = user?.organization_child_id,
                                 role_name = rol?.role_name,
                                 role_id = rol?.role_id,
                                 is_admin = user.is_admin,
