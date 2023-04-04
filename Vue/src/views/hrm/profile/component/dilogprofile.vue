@@ -50,6 +50,7 @@ const bgColor = ref([
 const listPlaceDetails1 = ref([]);
 const listPlaceDetails2 = ref([]);
 const listPlaceDetails3 = ref([]);
+const listPlaceDetails4 = ref([]);
 
 //function
 const submitted = ref(false);
@@ -124,6 +125,17 @@ const saveModel = (is_continue) => {
       obj["place_register_permanent"] = null;
     } else {
       obj["place_register_permanent"] = obj["select_place_register_permanent"];
+    }
+  }
+  if (obj["place_residence_id"] != null) {
+    var checkname = listPlaceDetails4.value.findIndex(
+      (x) => x["place_details_id"] === (obj["select_place_residence"] || "")
+    );
+    if (checkname === -1) {
+      obj["place_residence_name"] = obj["select_place_residence"] || "";
+      obj["place_residence_id"] = null;
+    } else {
+      obj["place_residence_id"] = obj["select_place_residence"];
     }
   }
   let formData = new FormData();
@@ -244,6 +256,7 @@ onMounted(() => {
     initPlaceFilter({ value: props.model.birthplace_name }, 1);
     initPlaceFilter({ value: props.model.birthplace_origin_name }, 2);
     initPlaceFilter({ value: props.model.place_register_permanent_name }, 3);
+    initPlaceFilter({ value: props.model.place_residence_name }, 4);
   }
 });
 </script>
@@ -478,30 +491,39 @@ onMounted(() => {
               <div class="col-12 md:col-12">
                 <div class="form-group">
                   <label>Nơi đăng ký HKTT</label>
-                  <Dropdown
-                    @filter="initPlaceFilter($event, 3)"
-                    :options="listPlaceDetails3"
-                    :filter="true"
-                    :editable="true"
-                    :showClear="true"
-                    v-model="props.model.select_place_register_permanent"
-                    optionLabel="name"
-                    optionValue="name"
-                    class="ip36"
-                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
-                    panelClass="d-design-dropdown"
-                  />
-                  <!-- <TreeSelect
-                    :options="props.places"
-                    :showClear="true"
-                    :max-height="200"
-                    v-model="props.model.select_place_register_permanent"
-                    placeholder="Chọn nơi đăng ký"
-                    optionLabel="name"
-                    optionValue="place_id"
-                    class="ip36"
-                  >
-                  </TreeSelect> -->
+                </div>
+              </div>
+              <div class="col-12 md:col-12 p-0">
+                <div class="row">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Số nhà/đường phố</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.place_register_permanent_first"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Xã/phường, Quận/Huyện, Tỉnh/Thành phố</label>
+                      <Dropdown
+                        @filter="initPlaceFilter($event, 3)"
+                        :options="listPlaceDetails3"
+                        :filter="true"
+                        :editable="true"
+                        :showClear="true"
+                        v-model="props.model.select_place_register_permanent"
+                        optionLabel="name"
+                        optionValue="name"
+                        class="ip36"
+                        placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                        panelClass="d-design-dropdown"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="col-12 md:col-12 p-0">
@@ -821,7 +843,12 @@ onMounted(() => {
                   </div>
                   <div class="col-12 md:col-12">
                     <div class="form-group">
-                      <label>Thường trú</label>
+                      <label>Chỗ ở hiện nay: </label>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Số nhà/đường phố</label>
                       <InputText
                         spellcheck="false"
                         class="ip36"
@@ -830,14 +857,27 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-12 md:col-12">
+                  <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Chỗ ở hiện nay</label>
-                      <InputText
+                      <label>Xã/phường, Quận/Huyện, Tỉnh/Thành phố</label>
+                      <!-- <InputText
                         spellcheck="false"
                         class="ip36"
                         v-model="props.model.place_residence"
                         maxLength="500"
+                      /> -->
+                      <Dropdown
+                        @filter="initPlaceFilter($event, 4)"
+                        :options="listPlaceDetails4"
+                        :filter="true"
+                        :editable="true"
+                        :showClear="true"
+                        v-model="props.model.select_place_residence"
+                        optionLabel="name"
+                        optionValue="name"
+                        class="ip36"
+                        placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                        panelClass="d-design-dropdown"
                       />
                     </div>
                   </div>
