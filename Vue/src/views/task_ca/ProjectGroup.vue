@@ -48,6 +48,7 @@ const ProjectGroup = ref({
   group_name: "",
   status: true,
   is_order: 1,
+  is_public: false,
 });
 
 const checkDelList = ref(false);
@@ -118,12 +119,9 @@ const addProjectGroup = (str) => {
     group_name: "",
     status: true,
     is_order: sttProjectGroup.value,
+    is_public: false,
   };
-  if (store.state.user.is_super) {
-    ProjectGroup.value.organization_id = 0;
-  } else {
-    ProjectGroup.value.organization_id = store.state.user.organization_id;
-  }
+  ProjectGroup.value.organization_id = store.state.user.organization_id;
   isAdd.value = true;
   issaveProjectGroup.value = false;
   headerAddProjectGroup.value = str;
@@ -251,7 +249,6 @@ const closeDialogProjectGroup = () => {
     is_order: 1,
   };
   displayProjectGroup.value = false;
-  loadCountProjectGroup();
 };
 
 //Thêm bản ghi
@@ -537,7 +534,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
+  <div
+    v-if="store.getters.islogin"
+    class="main-layout true flex-grow-1 p-2"
+  >
     <DataTable
       v-model:first="first"
       :show-gridlines="true"
@@ -700,7 +700,10 @@ onMounted(() => {
           "
           v-if="!isFirst"
         >
-          <img src="../../assets/background/nodata.png" height="144" />
+          <img
+            src="../../assets/background/nodata.png"
+            height="144"
+          />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -722,14 +725,17 @@ onMounted(() => {
           <InputText
             v-model="ProjectGroup.group_name"
             spellcheck="false"
-            class="col-8 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{
               'p-invalid':
                 validateProjectGroup.group_name.$invalid && submitted,
             }"
           />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
+        <div
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
           <div class="col-3 text-left"></div>
           <small
             v-if="
@@ -746,21 +752,39 @@ onMounted(() => {
           </small>
         </div>
 
-        <div style="display: flex" class="col-12 field md:col-12">
-          <div class="field col-6 md:col-6 p-0">
+        <div
+          style="display: flex"
+          class="col-12 field md:col-12"
+        >
+          <div class="field col-6 p-0">
             <label class="col-6 text-left p-0">STT </label>
             <InputNumber
               v-model="ProjectGroup.is_order"
               class="col-6 ip36 p-0"
             />
           </div>
-          <div class="field col-6 md:col-6 p-0">
+          <div class="field col-3 p-0">
             <label
               style="vertical-align: text-bottom"
               class="col-6 text-center p-0"
               >Hiển thị
             </label>
-            <InputSwitch v-model="ProjectGroup.status" class="col-6" />
+            <InputSwitch
+              v-model="ProjectGroup.status"
+              class="col-6"
+            />
+          </div>
+          <div class="field col-3 p-0">
+            <label
+              style="vertical-align: text-bottom"
+              class="col-6 text-center p-0"
+            >
+              Công khai
+            </label>
+            <InputSwitch
+              v-model="ProjectGroup.is_public"
+              class="col-6"
+            />
           </div>
         </div>
       </div>

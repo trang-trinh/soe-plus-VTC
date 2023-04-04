@@ -39,6 +39,7 @@ const taskGroup = ref({
   group_name: "",
   status: null,
   is_order: null,
+  is_public: false,
   organization_id: null,
 });
 const editGroup = ref(false);
@@ -349,6 +350,7 @@ const AddItem = (str) => {
     group_name: "",
     status: true,
     is_order: options.value.totalRecords + 1,
+    is_public: false,
     organization_id: user.is_super ? 1 : user.organization_id,
   };
   if (options.value.totalRecords > 0) {
@@ -1040,7 +1042,7 @@ onMounted(() => {
           <InputText
             v-model="taskGroup.group_name"
             spellcheck="false"
-            class="col-8 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{ 'p-invalid': v$.group_name.$invalid && submitted }"
           />
         </div>
@@ -1075,10 +1077,17 @@ onMounted(() => {
               class="col-6 ip36 p-0"
             />
           </div>
-          <div class="field col-6 md:col-6 p-0 flex align-items-center">
+          <div class="field col-3 md:col-3 p-0 flex align-items-center">
             <label class="col-6 text-center p-0">Trạng thái </label>
             <InputSwitch
               v-model="taskGroup.status"
+              style="justify-content: center; align-items: center"
+            />
+          </div>
+          <div class="field col-3 md:col-3 p-0 flex align-items-center">
+            <label class="col-6 text-center p-0">Công khai</label>
+            <InputSwitch
+              v-model="taskGroup.is_public"
               style="justify-content: center; align-items: center"
             />
           </div>

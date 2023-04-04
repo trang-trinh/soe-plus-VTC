@@ -147,6 +147,8 @@ namespace Controllers
                             permClaims.Add(new Claim("dvid", user.organization_id.ToString()));
                         if (user.organization_child_id != null)
                             permClaims.Add(new Claim("ctid", user.organization_child_id.ToString()));
+                        if (user.organization_child_id != null)
+                            permClaims.Add(new Claim("dept", user.department_id.ToString()));
                         permClaims.Add(new Claim("fname", tk.full_name));
                         if (user.avatar != null)
                         {
