@@ -29,7 +29,7 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  bank_name: {
+  file_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
@@ -45,6 +45,51 @@ const bgColor = ref([
 ]);
 const total_file = ref(0);
 const total_size = ref(0);
+const itemButMores = ref([
+  {
+    label: "Xem thông tin",
+    icon: "pi pi-info-circle",
+    command: (event) => {
+      viewFile(file.value);
+    },
+  },
+  {
+    label: "Tải xuống",
+    icon: "pi pi-download",
+    command: (event) => {
+      downloadFile(file.value);
+    },
+  },
+]);
+const downloadFile = (file)=>{
+  var url = baseURL + file.file_path;
+  var name = file.name_file || "file_download";
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    file.file_path +
+    "&title=" +
+    name;
+  a.download = name;
+  a.target = "_blank";
+  a.click();
+  a.remove();
+}
+const dataDetail = ref();
+const ModalShowFile = ref(false);
+const viewFile = (data)=>{
+  updateView(data.file_id);
+
+  dataDetail.value = data;
+  ModalShowFile.value = true;
+}
+const file = ref();
+const menuButMores = ref();
+const toggleMores = (event, u) => {
+  file.value = u;
+  menuButMores.value.toggle(event);
+};
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -325,7 +370,7 @@ const onFilter = (event) => {
   loadDataSQL();
 };
 const goFile = (item) => {
-  updateView(item.file_id);
+ // updateView(item.file_id);
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -413,6 +458,7 @@ const loadTudien = () => {
     })
     .catch((error) => { });
 };
+const first_module = ref(0);
 const filterTrangthai = ref();
 const clearDetail = ()=>{
   selectedStamps.value = null;
@@ -485,14 +531,36 @@ onMounted(() => {
     </div>
     <div class="flex body-content">
       <div class="flex-1">
-        <DataTable @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" v-model:filters="filters"
+        <!-- <DataTable @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" v-model:filters="filters"
           filterDisplay="menu" filterMode="lenient" :filters="filters" :scrollable="true" scrollHeight="flex"
           :showGridlines="true" columnResizeMode="fit" :lazy="true" :totalRecords="options.totalRecords"
-          :loading="options.loading" :reorderableColumns="true" :value="datalists" removableSort
+          :loading="options.loading" :reorderableColumns="true" :value="datalists" 
           v-model:rows="options.PageSize"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
           :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="file_id" responsiveLayout="scroll"
-          v-model:selection="selectedStamps" :row-hover="true" selectionMode="single">
+          v-model:selection="selectedStamps" :row-hover="true" selectionMode="single"
+          > -->
+          <DataTable
+          class="w-full p-datatable-sm e-sm cursor-pointer"
+          :value="datalists"
+          v-model:filters="filters"
+          :showGridlines="true"
+          filterMode="lenient"
+          :paginator="datalists && datalists.length > 20"
+          :rows="20"
+          filterDisplay="menu"
+          selectionMode="single"
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+          :scrollable="true"
+          scrollHeight="flex"
+          responsiveLayout="scroll"
+          v-model:selection="selectedStamps"
+          :globalFilterFields="[
+            'file_name'
+          ]"
+          v-model:first="first_module"
+        >
           <Column field="file_type" class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
             bodyStyle="text-align:center;max-width:50px;min-width:50px">
@@ -551,7 +619,20 @@ onMounted(() => {
               </div>
             </template>
           </Column>
-
+          <Column field="created_date" header=""
+            headerStyle="text-align:center;max-width:60px;min-width:60px;height:50px"
+            bodyStyle="text-align:center;max-width:60px;min-width:60px;;max-height:50px"
+            class="align-items-center justify-content-center text-center">
+            <template #body="slotProps">
+              <Button
+              icon="pi pi-ellipsis-h"
+              class="p-button-rounded p-button-text p-button-secondary ml-2"
+              @click="toggleMores($event, slotProps.data)"
+              aria-haspopup="true"
+              aria-controls="overlay_More"
+            />
+              </template>
+          </Column>
           <template #empty>
             <div class="
                       align-items-center
@@ -649,31 +730,6 @@ onMounted(() => {
                   <div class="mt-2">Thiết bị: <span class="description">{{ item.from_device }}</span></div>
                 </div>
               </div>
-              <!-- new -->
-              <!-- <div class="col-12 flex">
-                  <div class="col-3">
-                    <Avatar v-bind:label="
-                        item.avatar ? '' : item.last_name.substring(0, 1)
-                      " v-bind:image="basedomainURL + item.avatar" style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 4rem;
-                            height: 4rem;
-                          " :style="{
-                            background: bgColor[index % 7],
-                          }" class="mr-2" size="xlarge" shape="circle" />
-                  </div>
-                  <div class="col-9">
-                    <h3 class="m-0 mb-2">{{ item.full_name }}</h3>
-                    <div class="description mb-2">
-                      <div>{{ item.position_name }}</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="px-5">
-                  <div class="mt-2">IP: <span class="description">{{ item.created_ip }}</span></div>
-                    <div class="mt-2">Thiết bị: <span class="description">{{ item.from_device }}</span></div>
-                </div> -->
             </div>
 
           </div>
@@ -681,6 +737,75 @@ onMounted(() => {
       </div>
     </div>
   </div>
+  <Dialog
+        v-model:visible="ModalShowFile"
+        header="Chi tiết"
+        :modal="true"
+        :closable="true"
+        :style="{ width: '70vw' }"
+        :maximizable="true"
+        :autoZIndex="true"
+      >
+        <div class="grid formgrid m-2 h-full">
+          <div v-if="dataDetail" class="w-full format-center">
+             <img
+              v-if="
+                'gif,jpeg,png,jpg,.gif,.jpeg,.png,.jpg'.includes(dataDetail.file_type.toLowerCase())
+              "
+              style="width: 100%; min-height: 66vh; height: 100%"
+              class="w-full cursor-pointer"
+              :src="
+                dataDetail.file_path
+                  ? basedomainURL + dataDetail.file_path
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              "
+            />
+            <video
+              v-if="
+                'mp4,flv,mov,wmv,.mp4,.flv,.mov,.wmv'.includes(dataDetail.file_type.toLowerCase())
+              "
+              style="width: 100%; min-height: 66vh; height: 100%"
+              controls
+              :src="basedomainURL + dataDetail.file_path"
+            ></video>
+            <audio
+              style="width: 100%; margin: 0px auto"
+              controls
+              v-if="
+                'mp3,wma,aac,flac,alac,wav,.mp3,.wma,.aac,.flac,.alac,.wav'.includes(
+                  dataDetail.file_type.toLowerCase()
+                )
+              "
+            >
+              <source :src="basedomainURL + dataDetail.file_path" />
+            </audio>
+            <iframe
+              v-if="
+                'pptx,ppt,doc,docx,xls,xlsx, pdf, txt, .pptx,.ppt,.doc,.docx,.xls,.xlsx,.pdf,.txt'.includes(
+                  dataDetail.file_type.toLowerCase()
+                )
+              "
+              allowfullscreen
+              :src="
+                basedomainURL +
+                '/Viewer/?title=' +
+                dataDetail.file_name +
+                '&url=' +
+                dataDetail.file_path
+              "
+              style="width: 100%; min-height: 66vh; height: 100%"
+              title="Iframe Example"
+            >
+            </iframe>
+          </div>
+        </div>
+      </Dialog>
+  <Menu
+    id="overlay_More"
+    ref="menuButMores"
+    :model="itemButMores"
+    :popup="true"
+  />
 </template>
     
 <style scoped>
