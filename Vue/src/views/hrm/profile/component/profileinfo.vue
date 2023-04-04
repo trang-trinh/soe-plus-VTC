@@ -1015,11 +1015,16 @@ const initView1 = (rf) => {
         if (tbs[0] != null && tbs[0].length > 0) {
           profile.value = tbs[0][0];
           profile.value["relates"] = JSON.parse(profile.value["relates"]);
-          profile.value["relate"] = profile.value["relates"][0];
-          if (profile.value["relate"]["relate_time"] != null) {
-            profile.value["relate"]["relate_time"] = moment(
-              new Date(profile.value["relate"]["relate_time"])
-            ).format("DD/MM/YYYY");
+          if (
+            profile.value["relates"] != null &&
+            profile.value["relates"].length > 0
+          ) {
+            profile.value["relate"] = profile.value["relates"][0];
+            if (profile.value["relate"]["relate_time"] != null) {
+              profile.value["relate"]["relate_time"] = moment(
+                new Date(profile.value["relate"]["relate_time"])
+              ).format("DD/MM/YYYY");
+            }
           }
           profile.value["gender"] =
             profile.value["gender"] == 1
@@ -2232,7 +2237,9 @@ const onPage = (event) => {
   <div class="surface-100 p-2">
     <Toolbar class="outline-none surface-0 border-none pb-1">
       <template #start>
-        <h2 class="m-0" :style="{ color: '#0078d4' }"><span>{{  profile.profile_user_name  }}</span></h2>
+        <h2 class="m-0" :style="{ color: '#0078d4' }">
+          <span>{{ profile.profile_user_name }}</span>
+        </h2>
       </template>
       <template #end>
         <ul class="flex p-0 m-0 mr-2" style="list-style: none">

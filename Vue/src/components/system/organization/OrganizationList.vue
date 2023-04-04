@@ -79,6 +79,7 @@ const options = ref({
   sortP: "created_date",
 });
 const donvis = ref();
+const data_org = ref();
 const treedonvis = ref();
 const treediadanhs = ref();
 const selectDiadanh = ref();
@@ -291,6 +292,7 @@ const loadDonvi = (rf) => {
           "đơn vị",
         );
         donvis.value = obj.arrChils;
+        data_org.value = data[0];
         if(!store.getters.user.is_super){
           donvis.value.forEach((element) => {
             expandNode(element);
@@ -402,12 +404,7 @@ const handleSubmit = (isFormValid) => {
 };
 
 const addTreeDonvi = (md, type) => {
-  let is_order = donvis.value.length + 1;
-  if (md.children) {
-    is_order = md.children.length + 1;
-  } else {
-    is_order = 1;
-  }
+  let is_order = data_org.value.filter(x => x.parent_id == md.organization_id).length +1;
   selectCapcha.value = {};
   selectCapcha.value[md.organization_id] = true;
   donvi.value = {
@@ -1044,7 +1041,7 @@ onMounted(() => {
             class="p-button-rounded p-button-secondary p-button-outlined"
             style="margin-right: 0.5rem"
             v-tooltip.top="'Thêm đơn vị trực thuộc'"
-            @click="addTreeDonvi(md.node.data,0)"
+            @click="addTreeDonvi(md.node.data,1)"
           ></Button>
           <Button
             type="button"

@@ -1836,7 +1836,7 @@ onMounted(() => {
                       <Button
                         @click="reFilterUser"
                         class="p-button-outlined"
-                        label="Xóa"
+                        label="Bỏ chọn"
                       ></Button>
                     </template>
                     <template #end>
