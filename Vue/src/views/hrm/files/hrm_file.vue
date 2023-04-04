@@ -647,7 +647,7 @@ onMounted(() => {
           </template>
         </DataTable>
       </div>
-      <div style="width: 320px !important; border: 1px solid rgba(0, 0, 0, 0.1)">
+      <div style="width: 320px !important; border: 1px solid rgba(0, 0, 0, 0.1);overflow: hidden;">
         <div v-if="!isDetail">
           <div class="header-rigth w-full format-center" style="
                   back-ground: #f8f9fa;
