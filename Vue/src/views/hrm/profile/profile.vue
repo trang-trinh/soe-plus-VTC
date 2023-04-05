@@ -796,6 +796,7 @@ const openEditDialogHealth = (item, str) => {
   displayDialogHealth.value = true;
 };
 const closeDialogHealth = () => {
+  forceRerender(2);
   displayDialogHealth.value = false;
 };
 
@@ -808,6 +809,7 @@ const openEditDialogRelate = (item, str) => {
   displayDialogRelate.value = true;
 };
 const closeDialogRelate = () => {
+  forceRerender(3);
   displayDialogRelate.value = false;
 };
 
