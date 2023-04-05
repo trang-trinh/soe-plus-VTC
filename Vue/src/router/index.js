@@ -369,19 +369,15 @@ const caClassroom = () => import("../views/hrm/category/caClassroom.vue");
 const caReceipt = () => import("../views/hrm/category/caReceipt.vue");
 const caEnectingGroup = () =>
   import("../views/hrm/category/caEnectingGroup.vue");
-  const caRewardTitle = () =>
-  import("../views/hrm/category/caRewardTitle.vue");
-  const caRewardLevel = () =>
-  import("../views/hrm/category/caRewardLevel.vue");
-  const caDiscipline = () =>
-  import("../views/hrm/category/caDiscipline.vue");
-  const caDisciplineLevel = () =>
+const caRewardTitle = () => import("../views/hrm/category/caRewardTitle.vue");
+const caHospital = () => import("../views/hrm/category/caHospital.vue");
+const caRewardLevel = () => import("../views/hrm/category/caRewardLevel.vue");
+const caDiscipline = () => import("../views/hrm/category/caDiscipline.vue");
+const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
-  const caTags = () =>
-  import("../views/hrm/category/caTags.vue");
-  const caSoefSalary = () =>
-  import("../views/hrm/category/caCoefSalary.vue");
-  
+const caTags = () => import("../views/hrm/category/caTags.vue");
+const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
+
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
@@ -1768,7 +1764,6 @@ const router = createRouter({
       component: caTags,
     },
 
-  
     {
       path: "/hrm/category/ca_rewardrlevel",
       name: "caHRMRewardLevel",
@@ -1778,6 +1773,11 @@ const router = createRouter({
       path: "/hrm/category/ca_rewardrtitle",
       name: "caHRMRewardTitle",
       component: caRewardTitle,
+    },
+    {
+      path: "/hrm/category/ca_hospital",
+      name: "caHRMCaHospital",
+      component: caHospital,
     },
     {
       path: "/hrm/category/soef_salary",
