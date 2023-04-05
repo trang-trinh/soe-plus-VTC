@@ -58,7 +58,7 @@ namespace API.Controllers
                     pg.created_ip = ip;
                     pg.created_token_id = tid;
                     //pg.department_id = helper.Department(claims);
-                    pg.organization_child_id = helper.OrgainzationChild(claims);
+                    pg.organization_child_id = helper.OrgainzationChild(claims) != null ? helper.OrgainzationChild(claims) : helper.Orgainzation(claims);
                     pg.organization_id = helper.Orgainzation(claims);
                     db.task_ca_projectgroup.Add(pg);
                     await db.SaveChangesAsync();

@@ -156,10 +156,10 @@ namespace Controllers
                         model.wrong_pass_count = 0;
                         model.key_encode_data = helper.GenerateRandomKey();
                         MemoryCacheHelper.Add(model.user_id, model.key_encode_data, DateTimeOffset.UtcNow.AddMinutes(30));
-                        if (!ad)
-                        {
-                            model.is_admin = false;
-                        }
+                        // if (!ad)
+                        // {
+                        //     model.is_admin = false;
+                        // }
                         db.sys_users.Add(model);
                         db.SaveChanges();
                         #region  add Log
@@ -441,8 +441,6 @@ namespace Controllers
                         List<sys_users> del = new List<sys_users>();
                         foreach (var da in das)
                         {
-                            if (ad)
-                            {
                                 del.Add(da);
                                 #region  add Log
                                 //helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = da, contents = "" }), domainurl + "Users/Del_Users", ip, tid, "Xoá User " + da.user_id, 1, "Users");
@@ -453,7 +451,6 @@ namespace Controllers
                                 //    paths.Add(HttpContext.Current.Server.MapPath("~/") + da.signature);
                                 //if (!string.IsNullOrWhiteSpace(da.flash_signature))
                                 //    paths.Add(HttpContext.Current.Server.MapPath("~/") + da.flash_signature);
-                            }
                         }
                         if (del.Count == 0)
                         {

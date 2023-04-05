@@ -92,7 +92,7 @@ namespace API.Controllers
                         task_origin.created_ip = ip;
                         task_origin.created_token_id = tid;
                         task_origin.u_department_id = helper.Department(claims);
-                        task_origin.organization_child_id = helper.OrgainzationChild(claims);
+                        task_origin.organization_child_id = helper.OrgainzationChild(claims) != null ? helper.OrgainzationChild(claims) : helper.Orgainzation(claims);
 
                         db.task_origin.Add(task_origin);
 
@@ -396,8 +396,6 @@ namespace API.Controllers
                         task_origin.modified_by = uid;
                         task_origin.modified_date = DateTime.Now;
                         task_origin.modified_ip = ip;
-                        task_origin.u_department_id = helper.Department(claims);
-                        task_origin.organization_child_id = helper.OrgainzationChild(claims);
                         task_origin.modified_token_id = tid; List<task_origin> list_Mod = new List<task_origin>();
                         #region đóng công việc con nếu đóng công việc cha
                         if (task_origin.status == 3)

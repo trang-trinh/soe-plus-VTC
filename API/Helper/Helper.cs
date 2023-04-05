@@ -1882,20 +1882,26 @@ namespace Helper
             return (JSONresult, data_Key);
         }
         #endregion
-        public static int Department(IEnumerable<Claim> claims)
+        public static Nullable<int> Department(IEnumerable<Claim> claims)
         {
             string ctid = claims.Where(p => p.Type == "dept").FirstOrDefault()?.Value;
-            return Convert.ToInt32(ctid);
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
         }
-        public static int OrgainzationChild(IEnumerable<Claim> claims)
+        public static Nullable<int> OrgainzationChild(IEnumerable<Claim> claims)
         {
             string ctid = claims.Where(p => p.Type == "ctid").FirstOrDefault()?.Value;
-            return Convert.ToInt32(ctid);
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
         }
-        public static int Orgainzation(IEnumerable<Claim> claims)
+        public static Nullable<int> Orgainzation(IEnumerable<Claim> claims)
         {
             string ctid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
-            return Convert.ToInt32(ctid);
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
         }
     }
 }

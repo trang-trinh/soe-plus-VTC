@@ -33,7 +33,7 @@ function fkey(e) {
   if (idTaskLoaded.value != null) {
     e = e || window.event;
     if (wasPressed) return;
-    console.log(e);
+
     if (e.keyCode == 116 || (e.keyCode == 65 && e.ctrlKey)) {
       wasPressed = true;
     } else {
@@ -656,7 +656,7 @@ const ChangeFilter = (type, act) => {
     case 5: //theo ngày nhận
       opition.value.sdate = null;
       opition.value.edate = null;
-      debugger
+      debugger;
       itemFilterButs.value
         .filter((x) => x.istype == 5)
         .forEach((t) => {
@@ -2230,7 +2230,6 @@ emitter.on("SideBar", (obj) => {
 const PositionSideBar = ref("right");
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
-  console.log(obj);
 });
 const onRowUnselect = (id) => {};
 
@@ -2430,7 +2429,7 @@ const ChangeShowListCVGroup = (model) => {
                 min-height: calc(100vh - 250px);
                 max-height: calc(100vh - 250px);
                 width: 100%;
-                overflow-x: scroll; ;
+                overflow-x: scroll;
               "
             >
               <ul
@@ -3145,7 +3144,9 @@ const ChangeShowListCVGroup = (model) => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
-              >{{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY HH:mm") }}
+              >{{
+                moment(new Date(data.data.end_date)).format("DD/MM/YYYY HH:mm")
+              }}
             </span>
           </div>
         </template>
@@ -4030,7 +4031,9 @@ const ChangeShowListCVGroup = (model) => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
-              moment(new Date(data.node.data.end_date)).format("DD/MM/YYYY HH:mm")
+              moment(new Date(data.node.data.end_date)).format(
+                "DD/MM/YYYY HH:mm",
+              )
             }}</span>
           </div>
         </template>
@@ -4894,17 +4897,27 @@ const ChangeShowListCVGroup = (model) => {
                 </td>
                 <td
                   class="fixcol left-350 p-3"
-                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa; text-align: center;"
+                  style="
+                    border: 1px solid #e9e9e9;
+                    background-color: #f8f9fa;
+                    text-align: center;
+                  "
                 >
                   {{
                     l.start_date
-                      ? moment(new Date(l.start_date)).format("DD/MM/YYYY HH:mm")
+                      ? moment(new Date(l.start_date)).format(
+                          "DD/MM/YYYY HH:mm",
+                        )
                       : ""
                   }}
                 </td>
                 <td
                   class="fixcol left-450 p-3"
-                  style="border: 1px solid #e9e9e9; background-color: #f8f9fa; text-align: center;"
+                  style="
+                    border: 1px solid #e9e9e9;
+                    background-color: #f8f9fa;
+                    text-align: center;
+                  "
                 >
                   {{
                     l.end_date
@@ -5297,7 +5310,7 @@ const ChangeShowListCVGroup = (model) => {
                   style="text-align: center"
                 >
                   <div
-                    class="align-items-center justify-content-center p-4 text-center m-auto" 
+                    class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
                       min-height: calc(100vh - 215px);
                       max-height: calc(100vh - 215px);
