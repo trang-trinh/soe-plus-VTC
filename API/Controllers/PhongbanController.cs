@@ -362,9 +362,9 @@ namespace Controllers
                     if (das != null)
                     {
                         List<sys_organization> del = new List<sys_organization>();
-                                               foreach (var da in das)
+                        foreach (var da in das)
                         {
-                            var user = db.sys_users.FirstOrDefault(x => x.organization_id == da.organization_id || x.department_id == da.organization_id);
+                            var user = db.sys_users.FirstOrDefault(x => x.organization_id == da.organization_id || x.department_id == da.organization_id || x.organization_child_id == da.organization_id);
                             if (user != null) return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không thể xóa đơn vị do tồn tại dữ liệu liên quan!" });
                             else
                             {
