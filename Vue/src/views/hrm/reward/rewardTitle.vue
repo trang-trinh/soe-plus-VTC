@@ -1288,7 +1288,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-chart-line"></i> Danh sách khen thưởng
+          <i class="pi pi-chart-line"></i> Danh sách khen thưởng/kỷ luật
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>

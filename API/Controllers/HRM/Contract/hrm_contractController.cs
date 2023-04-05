@@ -96,7 +96,7 @@ namespace API.Controllers.Hrn
                         model.created_date = DateTime.Now;
                         model.created_ip = ip;
                         model.created_token_id = tid;
-                        model.organization_id = user_now.organization_child_id;
+                        model.organization_id = user_now.organization_id ?? user_now.organization_parent_id;
                         db.hrm_contract.Add(model);
                     }
                     else
@@ -217,7 +217,7 @@ namespace API.Controllers.Hrn
                         df.created_date = DateTime.Now;
                         df.created_ip = ip;
                         df.created_token_id = tid;
-                        df.organization_id = user_now.organization_child_id;
+                        df.organization_id = user_now.organization_id ?? user_now.organization_parent_id;
                         dfs.Add(df);
                     }
                     if (dfs.Count > 0)

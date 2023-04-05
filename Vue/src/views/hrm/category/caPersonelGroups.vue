@@ -1028,7 +1028,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
@@ -1036,26 +1036,26 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       <div class="grid formgrid m-2">
         
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
+          <label class="col-3 text-left p-0"
             >Loại nhân sự <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="personel_groups.personel_groups_name"
             spellcheck="false"
-            class="col-10 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{
               'p-invalid': v$.personel_groups_name.$invalid && submitted,
             }"
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-2 text-left"></div>
+          <div class="col-3 text-left"></div>
           <small
             v-if="
               (v$.personel_groups_name.$invalid && submitted) ||
               v$.personel_groups_name.$pending.$response
             "
-            class="col-10 p-error"
+            class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
               v$.personel_groups_name.required.$message
@@ -1071,10 +1071,10 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
            
            
             <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div class="col-4 text-left p-0">STT</div>
+              <div class="col-6 text-left p-0">STT</div>
               <InputNumber
                 v-model="personel_groups.is_order"
-                class="col-8 ip36 p-0"
+                class="col-6 ip36 p-0"
               />
             </div>
             <div class="field col-6 md:col-6 p-0 align-items-center flex">
