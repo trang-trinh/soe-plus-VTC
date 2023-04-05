@@ -155,7 +155,7 @@ const LoadData = (rf) => {
             JSON.stringify({
               proc: "task_ca_taskgroup_list",
               par: [
-                { par: "pageno", va: options.value.user },
+                { par: "user_id", va: user.user_id },
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
               ],
@@ -968,35 +968,57 @@ onMounted(() => {
         </template>
       </Column>
       <Column
+        field="status"
+        header="Đơn vị"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px;;max-height:600px"
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <!-- {{ user }} -->
+          {{ data.data }}
+        </template>
+      </Column>
+      <Column
         header="Chức năng"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:200px;height:50px"
         bodyStyle="text-align:center;max-width:200px;;max-height:600px"
-        v-if="store.state.user.is_super == true || user.is_admin"
       >
         <template #body="data">
-          <Button
-            @click="AddChild(data)"
-            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-            type="button"
-            icon="pi pi-plus-circle"
-            v-tooltip="'Thêm nhóm công việc con'"
-          ></Button>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              (user.is_admin &&
+                user.organization_child_id != null &&
+                user.organization_child_id ==
+                  data.data.organization_child_id) ||
+              user.is_admin
+            "
+          >
+            <Button
+              @click="AddChild(data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-plus-circle"
+              v-tooltip="'Thêm nhóm công việc con'"
+            ></Button>
 
-          <Button
-            @click="EditItem(data.node.data)"
-            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-            type="button"
-            icon="pi pi-pencil"
-            v-tooltip="'Sửa'"
-          ></Button>
-          <Button
-            @click="DeleteItem(data.node.data, true)"
-            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-            type="button"
-            v-tooltip="'Xóa'"
-            icon="pi pi-trash"
-          ></Button>
+            <Button
+              @click="EditItem(data.node.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-pencil"
+              v-tooltip="'Sửa'"
+            ></Button>
+            <Button
+              @click="DeleteItem(data.node.data, true)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              v-tooltip="'Xóa'"
+              icon="pi pi-trash"
+            ></Button>
+          </div>
         </template>
       </Column>
       <template #empty>

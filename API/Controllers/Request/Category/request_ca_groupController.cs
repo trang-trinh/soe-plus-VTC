@@ -122,7 +122,7 @@ namespace API.Controllers.Request.Category
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
-        
+
         [HttpPut]
         public async Task<HttpResponseMessage> update_request_ca_group()
         {
@@ -217,7 +217,7 @@ namespace API.Controllers.Request.Category
         }
 
         [HttpDelete]
-        public async Task<HttpResponseMessage> delete_request_ca_group([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
+        public async Task<HttpResponseMessage> delete_request_ca_group([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> id)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -307,7 +307,7 @@ namespace API.Controllers.Request.Category
         }
 
         [HttpPut]
-        public async Task<HttpResponseMessage> update_status_request_ca_group([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
+        public async Task<HttpResponseMessage> update_status_request_ca_group([System.Web.Mvc.Bind(Include = "TextID,BitTrangthai")] Trangthai trangthai)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -328,8 +328,8 @@ namespace API.Controllers.Request.Category
                 {
                     using (DBEntities db = new DBEntities())
                     {
-                        var int_id = int.Parse(trangthai.IntID.ToString());
-                        var das = db.request_ca_group.Where(a => (a.request_group_id == int_id)).FirstOrDefault<request_ca_group>();
+                        //var int_id = int.Parse(trangthai.IntID.ToString());
+                        var das = db.request_ca_group.Where(a => (a.request_group_id == trangthai.TextID)).FirstOrDefault<request_ca_group>();
                         if (das != null)
                         {
                             das.modified_by = uid;
@@ -537,7 +537,7 @@ namespace API.Controllers.Request.Category
 
                 if (WhereSQL.Trim() != "")
                 {
-                    sql += " WHERE (" + WhereSQL + ") and " + checkOrgz 
+                    sql += " WHERE (" + WhereSQL + ") and " + checkOrgz
                         + Environment.NewLine + @"ORDER BY " + filterSQL.sqlO + offSetSQL;
                     sqlCount += " WHERE " + WhereSQL
                         + Environment.NewLine + " and " + checkOrgz;
@@ -551,7 +551,7 @@ namespace API.Controllers.Request.Category
                 }
                 if (!filterSQL.next)//Đảo Sort
                 {
-                    sql = "Select * from (" + sql 
+                    sql = "Select * from (" + sql
                         + Environment.NewLine + @" ORDER BY " + (filterSQL.sqlO.Contains("DESC") ? filterSQL.sqlO.Replace("DESC", "ASC") : filterSQL.sqlO.Replace("ASC", "DESC"))
                         + Environment.NewLine + ") as tbn ";
                 }
