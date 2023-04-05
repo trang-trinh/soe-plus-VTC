@@ -111,7 +111,7 @@ namespace API.Controllers.HRM.Profile
                         model.created_date = DateTime.Now;
                         model.created_ip = ip;
                         model.created_token_id = tid;
-                        model.organization_id = user_now.organization_id;
+                        model.organization_id = user_now.organization_child_id;
                         db.hrm_profile.Add(model);
                     }
                     else
@@ -297,7 +297,7 @@ namespace API.Controllers.HRM.Profile
                             df.created_date = DateTime.Now;
                             df.created_ip = ip;
                             df.created_token_id = tid;
-                            df.organization_id = user_now.organization_id;
+                            df.organization_id = user_now.organization_child_id;
                             dfs.Add(df);
                         }
                     }
@@ -661,42 +661,29 @@ namespace API.Controllers.HRM.Profile
                     var user_now = await db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
                     string profile_id = provider.FormData.GetValues("profile_id").SingleOrDefault();
                     var re = provider.FormData.GetValues("tags").SingleOrDefault();
-                    List<hrm_profile_tags> receipts = JsonConvert.DeserializeObject<List<hrm_profile_tags>>(re);
+                    List<int> tags = JsonConvert.DeserializeObject<List<int>>(re);
                     //var profile = db.hrm_profile.Find(profile_id);
                     var receipt_old = await db.hrm_profile_tags.Where(x => x.profile_id == profile_id).ToListAsync();
                     if (receipt_old.Count > 0)
                     {
-                        var exists = receipts.Select(b => b.tags_id);
-                        var notexists = receipt_old.Where(a => !exists.Contains(a.tags_id)).ToList();
-                        if (notexists.Count > 0)
-                        {
-                            db.hrm_profile_tags.RemoveRange(notexists);
-                        }
+                        db.hrm_profile_tags.RemoveRange(receipt_old);
                     }
-                    if (receipts != null)
+                    if (tags != null)
                     {
                         List<hrm_profile_tags> new_receipts = new List<hrm_profile_tags>();
+                        
                         var stt = 0;
-                        foreach (var receipt in receipts)
+                        foreach (var tags_id in tags)
                         {
-                            if (string.IsNullOrEmpty(receipt.key_id.ToString()) || receipt.key_id == -1)
-                            {
-                                receipt.profile_id = profile_id;
-                                receipt.is_order = stt++;
-                                receipt.created_by = uid;
-                                receipt.created_date = DateTime.Now;
-                                receipt.created_ip = ip;
-                                receipt.created_token_id = tid;
-                                new_receipts.Add(receipt);
-                            }
-                            else
-                            {
-                                var model = await db.hrm_profile_tags.FindAsync(receipt.key_id);
-                                model.modified_by = uid;
-                                model.modified_date = DateTime.Now;
-                                model.modified_ip = ip;
-                                model.modified_token_id = tid;
-                            }
+                            hrm_profile_tags receipt = new hrm_profile_tags();
+                            receipt.tags_id = tags_id;
+                            receipt.profile_id = profile_id;
+                            receipt.is_order = stt++;
+                            receipt.created_by = uid;
+                            receipt.created_date = DateTime.Now;
+                            receipt.created_ip = ip;
+                            receipt.created_token_id = tid;
+                            new_receipts.Add(receipt);
                         }
                         if (new_receipts.Count > 0)
                         {

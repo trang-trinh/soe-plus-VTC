@@ -780,6 +780,7 @@ const openEditDialogReceipt = (item, str) => {
   displayDialogReceipt.value = true;
 };
 const closeDialogReceipt = () => {
+  forceRerender(1);
   displayDialogReceipt.value = false;
 };
 
@@ -816,6 +817,7 @@ const openEditDialogTag = (item, str) => {
   displayDialogTag.value = true;
 };
 const closeDialogTag = () => {
+  forceRerender(4);
   displayDialogTag.value = false;
 };
 
@@ -1453,20 +1455,20 @@ const initData = (ref) => {
 };
 const refresh = () => {
   selectedNodes.value = {};
-  options.value = {
-    loading: true,
-    user_id: store.getters.user.user_id,
-    search: "",
-    pageNo: 1,
-    pageSize: 25,
-    total: 0,
-    sort: "created_date desc",
-    orderBy: "desc",
-    tab: -1,
-    view: 1,
-    view_copy: 1,
-    filterProfile_id: null,
-  };
+  // options.value = {
+  //   loading: true,
+  //   user_id: store.getters.user.user_id,
+  //   search: "",
+  //   pageNo: 1,
+  //   pageSize: 25,
+  //   total: 0,
+  //   sort: "created_date desc",
+  //   orderBy: "desc",
+  //   tab: -1,
+  //   view: 1,
+  //   view_copy: 1,
+  //   filterProfile_id: null,
+  // };
   isFilter.value = false;
   initCount();
   initTreeOrganization();
@@ -2184,8 +2186,7 @@ onMounted(() => {
               </span>
               <span
                 v-if="
-                  (slotProps.data.diffyear > 0 && slotProps.data.diffday > 0) ||
-                  (slotProps.data.diffyear == 0 && slotProps.data.diffday >= 0)
+                  slotProps.data.diffyear >= 0 && slotProps.data.diffday > 0
                 "
                 >{{ slotProps.data.diffday }} ngày
               </span>

@@ -500,9 +500,9 @@ onMounted(() => {});
                   </td>
                   <td align="center">
                     <InputNumber
-                      class="ip33 p-0"
+                      class="ip33 p-0 input-money"
                       v-model="item.money"
-                      style="witdh: 150px"
+                      style="witdh: 150px;"
                     />
                   </td>
                 </tr>
