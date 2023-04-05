@@ -37,6 +37,8 @@ const props = defineProps({
   initData: Function,
 });
 
+const display = ref(props.displayDialog);
+
 //Declare dictionary
 const bgColor = ref([
   "#F8E69A",
@@ -266,10 +268,10 @@ onMounted(() => {
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '72vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">

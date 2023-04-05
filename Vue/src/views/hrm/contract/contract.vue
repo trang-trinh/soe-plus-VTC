@@ -220,6 +220,7 @@ const openAddDialog = (str) => {
   displayDialog.value = true;
 };
 const closeDialog = () => {
+  forceRerender();
   displayDialog.value = false;
 };
 const editItem = (item, str) => {
@@ -261,7 +262,9 @@ const editItem = (item, str) => {
             model.value["sign_user"] = JSON.parse(model.value["sign_users"])[0];
           }
           if (model.value["manager_users"] != null) {
-            model.value["manager_user"] = JSON.parse(model.value["manager_users"])[0];
+            model.value["manager_user"] = JSON.parse(
+              model.value["manager_users"]
+            )[0];
           }
           if (model.value["start_date"] != null) {
             model.value["start_date"] = new Date(model.value["start_date"]);
@@ -317,6 +320,7 @@ const editItem = (item, str) => {
       swal.close();
       if (options.value.loading) options.value.loading = false;
 
+      forceRerender();
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -1869,7 +1873,6 @@ onMounted(() => {
                   color: slotProps.data.text_color,
                 }"
               />
-            
             </div>
             <OverlayPanel
               :showCloseIcon="false"

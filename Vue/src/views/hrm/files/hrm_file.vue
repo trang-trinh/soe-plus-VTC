@@ -63,7 +63,7 @@ const itemButMores = ref([
 ]);
 const downloadFile = (file)=>{
   var url = baseURL + file.file_path;
-  var name = file.name_file || "file_download";
+  var name = file.file_name || "file_download";
   const a = document.createElement("a");
   a.href =
     basedomainURL +
