@@ -111,7 +111,7 @@ namespace API.Controllers.HRM.Profile
                         model.created_date = DateTime.Now;
                         model.created_ip = ip;
                         model.created_token_id = tid;
-                        model.organization_id = user_now.organization_id;
+                        model.organization_id = user_now.organization_id ?? user_now.organization_parent_id;
                         db.hrm_profile.Add(model);
                     }
                     else
@@ -297,7 +297,7 @@ namespace API.Controllers.HRM.Profile
                             df.created_date = DateTime.Now;
                             df.created_ip = ip;
                             df.created_token_id = tid;
-                            df.organization_id = user_now.organization_id;
+                            df.organization_id = user_now.organization_id ?? user_now.organization_parent_id;
                             dfs.Add(df);
                         }
                     }
