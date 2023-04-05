@@ -1792,6 +1792,7 @@ onMounted(() => {
                     optionValue="position_id"
                     placeholder="Chọn chức vụ"
                     class="p-dropdown-sm col-9 p-0"
+                    :filter="true"
                   />
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
@@ -2335,6 +2336,8 @@ onMounted(() => {
             optionLabel="position_name"
             optionValue="position_id"
             placeholder="Chọn chức vụ"
+            :filter="true"
+            :showClear="true"
           />
         </div>
         <div class="field col-12 md:col-12">
