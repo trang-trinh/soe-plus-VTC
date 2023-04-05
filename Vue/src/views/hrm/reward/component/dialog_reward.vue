@@ -910,10 +910,10 @@ const displayBasic = ref(false);
 const listTypeReward = ref([
   { name: "Khen thưởng nhân sự", code: 1 },
   { name: "Khen thưởng phòng ban", code: 2 },
+  { name: "Kỷ luật nhân sự", code: 3 },
 ]);
-const onChangeReward = () => {
-  console.log("sssppp");
-};
+ 
+ 
 onMounted(() => {
   loadData();
   initTudien();
@@ -935,6 +935,7 @@ onMounted(() => {
   >
     <form>
       <div class="grid formgrid m-2 mb-0">
+       
         <div class="field col-12 md:col-12 flex format-center">
           <div class="col-6 p-0">
             <SelectButton
@@ -942,12 +943,12 @@ onMounted(() => {
               :options="listTypeReward"
               optionLabel="name"
               optionValue="code"
-              @change="onChangeReward()"
+          
             />
           </div>
         </div>
         <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
-        <div class="col-12 p-0" v-if="reward.reward_type == 1">
+        <div class="col-12 p-0" v-if="reward.reward_type == 1 ||reward.reward_type == 3">
           <div class="col-12 field flex p-0 align-items-center">
             <div class="w-10rem">
               Nhân sự <span class="redsao pl-1"> (*)</span>
@@ -960,7 +961,8 @@ onMounted(() => {
                     :options="listDropdownUserGive"
                     optionLabel="name"
                     optionValue="code"
-                    placeholder="-------- Chọn người nhận khen thưởng --------"
+                    :placeholder="  reward.reward_type == 1?
+                    '-------- Chọn người nhận khen thưởng --------':'-------- Chọn nhân sự kỷ luật --------'"
                     panelClass="d-design-dropdown"
                     class="w-full p-0 d-tree-input"
                     :class="{
@@ -1066,7 +1068,7 @@ onMounted(() => {
                     optionValue="data.department_id"
                     panelClass="d-design-dropdown"
                     class="w-full d-tree-input "
-                    selectionMode="checkbox"
+                    selectionMode="multiple" :metaKeySelection="false"
                     placeholder="-------- Chọn phòng ban khen thưởng--------"
                     display="chip"
                   >
@@ -1076,7 +1078,7 @@ onMounted(() => {
             </div>
           </div>
           <div
-            class="col-12 p-0 field flex"
+            class="col-12 p-0 field   flex"
             v-if="  Object.keys(reward.reward_name_fake2).length == 0 && submitted"
           >
             <div class="p-0 col-12">
@@ -1091,11 +1093,12 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
+        <div class="col-12 field p-0 flex text-left align-items-center" v-if="reward.reward_type==1|| reward.reward_type==2">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">
+            <div class="w-10rem" >
               Cấp khen thưởng <span class="redsao pl-1"> (*)</span>
             </div>
+       
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 :filter="true"
@@ -1112,8 +1115,8 @@ onMounted(() => {
               />
             </div>
           </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">
+          <div class="col-6 p-0 flex text-left align-items-center"   >
+            <div class="w-10rem pl-3"   >
               Danh hiệu <span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
@@ -1132,6 +1135,51 @@ onMounted(() => {
               />
             </div>
           </div>
+           
+        </div>
+        <div class="col-12 field p-0 flex text-left align-items-center" v-if="reward.reward_type==3">
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem" >
+              Cấp kỷ luật <span class="redsao pl-1"> (*)</span>
+            </div>
+       
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                :filter="true"
+                v-model="reward.reward_level_id"
+                :options="listRewardLevel"
+                optionLabel="name"
+                optionValue="code"
+                class="w-full"
+                panelClass="d-design-dropdown"
+                placeholder="Chọn cấp kỷ luật"
+                :class="{
+                  'p-invalid': reward.reward_level_id == null && submitted,
+                }"
+              />
+            </div>
+          </div>
+          <div class="col-6 p-0 flex text-left align-items-center"   >
+            <div class="w-10rem pl-3"   >
+              Hình thức <span class="redsao pl-1"> (*)</span>
+            </div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                :filter="true"
+                v-model="reward.reward_title_id"
+                :options="listRewardTitle"
+                optionLabel="name"
+                optionValue="code"
+                class="w-full"
+                panelClass="d-design-dropdown"
+                placeholder="Chọn hình thức kỷ luật"
+                :class="{
+                  'p-invalid': reward.reward_title_id == null && submitted,
+                }"
+              />
+            </div>
+          </div>
+           
         </div>
         <div
           class="col-12 p-0 field flex"
@@ -1148,7 +1196,10 @@ onMounted(() => {
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
                 <span style="color: red" class="w-full"
-                  >Cấp khen thưởng không được để trống!</span
+                v-if="reward.reward_type==1|| reward.reward_type==2"    >Cấp khen thưởng không được để trống!</span
+                >
+                     <span style="color: red" class="w-full"
+                v-if="reward.reward_type==3"    >Cấp kỷ luật không được để trống!</span
                 >
               </small>
             </div>
@@ -1161,7 +1212,10 @@ onMounted(() => {
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
                 <span style="color: red" class="w-full"
-                  >Danh hiệu không được để trống!</span
+                v-if="reward.reward_type==1|| reward.reward_type==2"   >Danh hiệu không được để trống!</span
+                >
+                   <span style="color: red" class="w-full"
+                v-if="reward.reward_type==3"    >Hình thức kỷ luật không được để trống!</span
                 >
               </small>
             </div>
