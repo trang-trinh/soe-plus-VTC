@@ -156,8 +156,8 @@ const LoadData = (rf) => {
               proc: "task_ca_taskgroup_list",
               par: [
                 { par: "user_id", va: user.user_id },
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
+                { par: "status", va: options.value.PageNo },
+                { par: "@search", va: options.value.PageSize },
               ],
             }),
             SecretKey,
@@ -280,35 +280,38 @@ const loadDataSQL = () => {
   datalists.value = [];
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/SQL/Filter_TaskGroups", data, config)
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_ca_taskgroup_list",
+            par: [
+              { par: "user_id", va: user.user_id },
+              { par: "status", va: data.sqlS },
+              { par: "search", va: data.Search },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
     .then((response) => {
-      let dt = JSON.parse(response.data.data);
-      let data = dt[0];
-      if (data.length > 0) {
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          let om = { key: element.group_id, data: element };
-          datalists.value.push(om);
-        });
-      } else {
-        datalists.value = [];
-      }
-      if (isFirst.value) isFirst.value = false;
+      let data = JSON.parse(response.data.data)[0];
+      RenderData(data);
       options.value.loading = false;
-      //Show Count nếu có
-      if (dt.length == 2) {
-        options.value.totalRecords = dt[1][0].totalRecords;
-      }
     })
     .catch((error) => {
-      options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-      addLog({
-        title: "Lỗi Console loadData",
-        controller: "SQLView.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
+      options.value.loading = false;
+      // addLog({
+      //   title: "Lỗi Console loadData",
+      //   controller: "datasView.vue",
+      //   logcontent: error.message,
+      //   loai: 2,
+      // });
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",

@@ -23,28 +23,127 @@ using Newtonsoft.Json.Linq;
 namespace API.Controllers.HRM.Category
 {
     [Authorize(Roles = "login")]
-    public class hrm_ca_coef_salaryController : ApiController
+    public class hrm_ca_work_positionController : ApiController
     {
         public string getipaddress()
         {
             return HttpContext.Current.Request.UserHostAddress;
         }
 
+        #region CallProc
 
         [HttpPost]
-        public async Task<HttpResponseMessage> add_hrm_ca_coef_salary()
+        public async Task<HttpResponseMessage> getData([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            string fdca_coef_salary = "";
+            IEnumerable<Claim> claims = identity.Claims;
+            string dataProc = data["str"].ToObject<string>();
+            string des = Codec.DecryptString(dataProc, helper.psKey);
+            sqlProc proc = JsonConvert.DeserializeObject<sqlProc>(des);
+
+            try
+            {
+                string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    var sqlpas = new List<SqlParameter>();
+                    if (proc != null && proc.par != null)
+                    {
+                        foreach (sqlPar p in proc.par)
+                        {
+                            sqlpas.Add(new SqlParameter("@" + p.par, p.va));
+                        }
+                    }
+                    var arrpas = sqlpas.ToArray();
+                    DateTime sdate = DateTime.Now;
+                    var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, proc.proc, arrpas).Tables);
+                    var tables = await task;
+                    DateTime edate = DateTime.Now;
+                    #region add SQLLog
+                    if (helper.wlog)
+                    {
+                        using (DBEntities db = new DBEntities())
+                        {
+                            sql_log log = new sql_log();
+                            log.controller = domainurl + "Proc/CallProc";
+                            log.start_date = sdate;
+                            log.end_date = edate;
+                            log.milliseconds = (int)Math.Ceiling((edate - sdate).TotalMilliseconds);
+                            log.user_id = uid;
+                            log.token_id = tid;
+                            log.created_ip = ip;
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.modified_ip = ip;
+                            log.modified_date = DateTime.Now;
+                            log.modified_by = uid;
+                            log.modified_token_id = tid;
+                            log.full_name = name;
+                            log.title = proc.proc;
+                            log.log_content = JsonConvert.SerializeObject(new { data = proc });
+                            db.sql_log.Add(log);
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                    #endregion
+                    string JSONresult = JsonConvert.SerializeObject(tables);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "Proc/CallProc", ip, tid, "Lỗi khi gọi proc ", 0, "Proc");
+                    if (!helper.debug)
+                    {
+                        contents = helper.logCongtent;
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "Proc/CallProc", ip, tid, "Lỗi khi gọi proc ", 0, "Proc");
+                    if (!helper.debug)
+                    {
+                        contents = helper.logCongtent;
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+
+        }
+        #endregion
+        [HttpPost]
+        public async Task<HttpResponseMessage> add_hrm_ca_work_position()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            string fdca_work_position = "";
             IEnumerable<Claim> claims = identity.Claims;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
             string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-            int dvid = int.Parse(claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value);
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
             string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
 
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
@@ -70,22 +169,17 @@ namespace API.Controllers.HRM.Category
                         {
                             Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
                         }
-                        fdca_coef_salary = provider.FormData.GetValues("hrm_ca_coef_salary").SingleOrDefault();
-                        hrm_ca_coef_salary ca_coef_salary = JsonConvert.DeserializeObject<hrm_ca_coef_salary>(fdca_coef_salary);
+                        fdca_work_position = provider.FormData.GetValues("hrm_ca_work_position").SingleOrDefault();
+                        hrm_ca_work_position ca_work_position = JsonConvert.DeserializeObject<hrm_ca_work_position>(fdca_work_position);
 
-                        var check =   db.hrm_ca_coef_salary.Where(a => a.coef_salary_name == ca_coef_salary.coef_salary_name && a.organization_id==dvid).ToListAsync();
 
-                        if (check != null)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "Hệ số lương đã tồn tại trong hệ thống!" });
-                        }
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        ca_coef_salary.organization_id = super ? 0 : dvid;
-                        ca_coef_salary.created_by = uid;
-                        ca_coef_salary.created_date = DateTime.Now;
-                        ca_coef_salary.created_ip = ip;
-                        ca_coef_salary.created_token_id = tid;
-                        db.hrm_ca_coef_salary.Add(ca_coef_salary);
+                        ca_work_position.organization_id = super ? 0 : int.Parse(dvid);
+                        ca_work_position.created_by = uid;
+                        ca_work_position.created_date = DateTime.Now;
+                        ca_work_position.created_ip = ip;
+                        ca_work_position.created_token_id = tid;
+                        db.hrm_ca_work_position.Add(ca_work_position);
                         db.SaveChanges();
 
                         #region add hrm_log
@@ -93,11 +187,11 @@ namespace API.Controllers.HRM.Category
                         {
 
                             hrm_log log = new hrm_log();
-                            log.title = "Thêm hệ số  lương " + ca_coef_salary.coef_salary_name;
+                            log.title = "Thêm vị trí làm việc  " + ca_work_position.work_position_name;
 
-                            log.log_module = "ca_coef_salary";
+                            log.log_module = "ca_work_position";
                             log.log_type = 0;
-                            log.id_key = ca_coef_salary.coef_salary_id.ToString();
+                            log.id_key = ca_work_position.work_position_id.ToString();
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
                             log.created_token_id = tid;
@@ -115,7 +209,7 @@ namespace API.Controllers.HRM.Category
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_coef_salary, contents }), domainurl + "hrm_ca_coef_salary/Add_ca_coef_salary", ip, tid, "Lỗi khi thêm hệ số  lương", 0, "hệ số  lương");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_work_position, contents }), domainurl + "hrm_ca_work_position/Add_ca_work_position", ip, tid, "Lỗi khi thêm vị trí làm việc ", 0, "vị trí làm việc ");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -126,7 +220,7 @@ namespace API.Controllers.HRM.Category
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_coef_salary, contents }), domainurl + "hrm_ca_coef_salary/Add_ca_coef_salary", ip, tid, "Lỗi khi thêm hệ số  lương", 0, "hệ số  lương  ");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_work_position, contents }), domainurl + "hrm_ca_work_position/Add_ca_work_position", ip, tid, "Lỗi khi thêm vị trí làm việc ", 0, "vị trí làm việc   ");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -136,14 +230,14 @@ namespace API.Controllers.HRM.Category
             }
         }
         [HttpPut]
-        public async Task<HttpResponseMessage> update_hrm_ca_coef_salary()
+        public async Task<HttpResponseMessage> update_hrm_ca_work_position()
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            string fdca_coef_salary = "";
+            string fdca_work_position = "";
             IEnumerable<Claim> claims = identity.Claims;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
@@ -175,19 +269,19 @@ namespace API.Controllers.HRM.Category
                         {
                             Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
                         }
-                        fdca_coef_salary = provider.FormData.GetValues("hrm_ca_coef_salary").SingleOrDefault();
-                        hrm_ca_coef_salary ca_coef_salary = JsonConvert.DeserializeObject<hrm_ca_coef_salary>(fdca_coef_salary);
+                        fdca_work_position = provider.FormData.GetValues("hrm_ca_work_position").SingleOrDefault();
+                        hrm_ca_work_position ca_work_position = JsonConvert.DeserializeObject<hrm_ca_work_position>(fdca_work_position);
 
 
 
 
 
 
-                        ca_coef_salary.modified_by = uid;
-                        ca_coef_salary.modified_date = DateTime.Now;
-                        ca_coef_salary.modified_ip = ip;
-                        ca_coef_salary.modified_token_id = tid;
-                        db.Entry(ca_coef_salary).State = EntityState.Modified;
+                        ca_work_position.modified_by = uid;
+                        ca_work_position.modified_date = DateTime.Now;
+                        ca_work_position.modified_ip = ip;
+                        ca_work_position.modified_token_id = tid;
+                        db.Entry(ca_work_position).State = EntityState.Modified;
                         db.SaveChanges();
 
 
@@ -196,11 +290,11 @@ namespace API.Controllers.HRM.Category
                         {
 
                             hrm_log log = new hrm_log();
-                            log.title = "Sửa hệ số  lương " + ca_coef_salary.coef_salary_name;
+                            log.title = "Sửa vị trí làm việc  " + ca_work_position.work_position_name;
 
-                            log.log_module = "ca_coef_salary";
+                            log.log_module = "ca_work_position";
                             log.log_type = 1;
-                            log.id_key = ca_coef_salary.coef_salary_id.ToString();
+                            log.id_key = ca_work_position.work_position_id.ToString();
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
                             log.created_token_id = tid;
@@ -219,7 +313,7 @@ namespace API.Controllers.HRM.Category
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_coef_salary, contents }), domainurl + "hrm_ca_coef_salary/Update_ca_coef_salary", ip, tid, "Lỗi khi cập nhật ca_coef_salary", 0, "ca_coef_salary");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_work_position, contents }), domainurl + "hrm_ca_work_position/Update_ca_work_position", ip, tid, "Lỗi khi cập nhật ca_work_position", 0, "ca_work_position");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -230,7 +324,7 @@ namespace API.Controllers.HRM.Category
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_coef_salary, contents }), domainurl + "hrm_ca_coef_salary/Update_ca_coef_salary", ip, tid, "Lỗi khi cập nhật ca_coef_salary", 0, "ca_coef_salary");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_work_position, contents }), domainurl + "hrm_ca_work_position/Update_ca_work_position", ip, tid, "Lỗi khi cập nhật ca_work_position", 0, "ca_work_position");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -243,7 +337,7 @@ namespace API.Controllers.HRM.Category
 
 
         [HttpDelete]
-        public async Task<HttpResponseMessage> delete_hrm_ca_coef_salary([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
+        public async Task<HttpResponseMessage> delete_hrm_ca_work_position([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -265,13 +359,14 @@ namespace API.Controllers.HRM.Category
                 {
                     using (DBEntities db = new DBEntities())
                     {
-                        var das = await db.hrm_ca_coef_salary.Where(a => id.Contains(a.coef_salary_id)).ToListAsync();
+                        var das = await db.hrm_ca_work_position.Where(a => id.Contains(a.work_position_id)).ToListAsync();
                         List<string> paths = new List<string>();
                         if (das != null)
                         {
-                            List<hrm_ca_coef_salary> del = new List<hrm_ca_coef_salary>();
+                            List<hrm_ca_work_position> del = new List<hrm_ca_work_position>();
                             foreach (var da in das)
                             {
+
                                 del.Add(da);
 
                                 #region add hrm_log
@@ -279,11 +374,11 @@ namespace API.Controllers.HRM.Category
                                 {
 
                                     hrm_log log = new hrm_log();
-                                    log.title = "Xóa hệ số  lương " + da.coef_salary_name;
+                                    log.title = "Xóa vị trí làm việc  " + da.work_position_name;
 
-                                    log.log_module = "ca_coef_salary";
+                                    log.log_module = "ca_work_position";
                                     log.log_type = 2;
-                                    log.id_key = da.coef_salary_id.ToString();
+                                    log.id_key = da.work_position_id.ToString();
                                     log.created_date = DateTime.Now;
                                     log.created_by = uid;
                                     log.created_token_id = tid;
@@ -293,12 +388,13 @@ namespace API.Controllers.HRM.Category
 
                                 }
                                 #endregion
+
                             }
                             if (del.Count == 0)
                             {
                                 return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
                             }
-                            db.hrm_ca_coef_salary.RemoveRange(del);
+                            db.hrm_ca_work_position.RemoveRange(del);
                         }
                         await db.SaveChangesAsync();
 
@@ -308,7 +404,7 @@ namespace API.Controllers.HRM.Category
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_ca_coef_salary/Delete_ca_coef_salary", ip, tid, "Lỗi khi xoá tem", 0, "ca_coef_salary");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_ca_work_position/Delete_ca_work_position", ip, tid, "Lỗi khi xoá tem", 0, "ca_work_position");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -319,7 +415,7 @@ namespace API.Controllers.HRM.Category
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_ca_coef_salary/Delete_ca_coef_salary", ip, tid, "Lỗi khi xoá tem", 0, "ca_coef_salary");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_ca_work_position/Delete_ca_work_position", ip, tid, "Lỗi khi xoá tem", 0, "ca_work_position");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -337,7 +433,7 @@ namespace API.Controllers.HRM.Category
 
 
         [HttpPut]
-        public async Task<HttpResponseMessage> update_s_hrm_ca_coef_salary([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
+        public async Task<HttpResponseMessage> update_s_hrm_ca_work_position([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -359,7 +455,7 @@ namespace API.Controllers.HRM.Category
                     using (DBEntities db = new DBEntities())
                     {
                         var int_id = int.Parse(trangthai.IntID.ToString());
-                        var das = db.hrm_ca_coef_salary.Where(a => (a.coef_salary_id == int_id)).FirstOrDefault<hrm_ca_coef_salary>();
+                        var das = db.hrm_ca_work_position.Where(a => (a.work_position_id == int_id)).FirstOrDefault<hrm_ca_work_position>();
                         if (das != null)
                         {
                             das.modified_by = uid;
@@ -374,11 +470,11 @@ namespace API.Controllers.HRM.Category
                             {
 
                                 hrm_log log = new hrm_log();
-                                log.title = "Sửa hệ số  lương " + das.coef_salary_name;
+                                log.title = "Sửa vị trí làm việc  " + das.work_position_name;
 
-                                log.log_module = "ca_coef_salary";
+                                log.log_module = "ca_work_position";
                                 log.log_type = 1;
-                                log.id_key = das.coef_salary_id.ToString();
+                                log.id_key = das.work_position_id.ToString();
                                 log.created_date = DateTime.Now;
                                 log.created_by = uid;
                                 log.created_token_id = tid;
@@ -398,7 +494,7 @@ namespace API.Controllers.HRM.Category
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_coef_salary/Update_Trangthaica_coef_salary", ip, tid, "Lỗi khi cập nhật trạng thái ca_coef_salarys", 0, "hrm_ca_coef_salary");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_work_position/Update_Trangthaica_work_position", ip, tid, "Lỗi khi cập nhật trạng thái ca_work_positions", 0, "hrm_ca_work_position");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -409,7 +505,7 @@ namespace API.Controllers.HRM.Category
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_coef_salary/Update_Trangthaica_coef_salary", ip, tid, "Lỗi khi cập nhật trạng thái ca_coef_salarys", 0, "hrm_ca_coef_salary");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_work_position/Update_Trangthaica_work_position", ip, tid, "Lỗi khi cập nhật trạng thái ca_work_positions", 0, "hrm_ca_work_position");
                     if (!helper.debug)
                     {
                         contents = "";
