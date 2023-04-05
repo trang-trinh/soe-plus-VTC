@@ -966,7 +966,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '40vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
@@ -975,7 +975,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Tên danh hiệu <span class="redsao">(*)</span></label
+            >Tên nhãn <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="tags.tags_name"
