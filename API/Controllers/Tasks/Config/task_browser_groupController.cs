@@ -64,7 +64,7 @@ namespace API.Controllers
                     role_Groups.created_token_id = tid;
                     role_Groups.created_ip = ip;
                     role_Groups.department_id = helper.Department(claims);
-                    role_Groups.organization_child_id = helper.OrgainzationChild(claims);
+                    role_Groups.organization_child_id = helper.OrgainzationChild(claims) != null ? helper.OrgainzationChild(claims) : helper.Orgainzation(claims);
                     role_Groups.organization_id = helper.Orgainzation(claims);
                     db.task_browse_group.Add(role_Groups);
                     await db.SaveChangesAsync();

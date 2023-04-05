@@ -102,7 +102,7 @@ namespace API.Controllers
                         projectmain.created_ip = ip;
                         projectmain.created_token_id = tid;
                         projectmain.department_id = helper.Department(claims);
-                        projectmain.organization_child_id = helper.OrgainzationChild(claims);
+                        projectmain.organization_child_id = helper.OrgainzationChild(claims) != null ? helper.OrgainzationChild(claims) : helper.Orgainzation(claims);
                         projectmain.organization_id = helper.Orgainzation(claims);
                         db.project_main.Add(projectmain);
 
@@ -299,8 +299,7 @@ namespace API.Controllers
                         projectmain.modified_ip = ip;
                         projectmain.modified_token_id = tid;
                         projectmain.department_id = helper.Department(claims);
-                        projectmain.organization_child_id = helper.OrgainzationChild(claims);
-                        projectmain.organization_id = helper.Orgainzation(claims);
+         
                         var file = provider.FileData;
 
                         if (file.Count > 0)
