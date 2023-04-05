@@ -1036,26 +1036,26 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       <div class="grid formgrid m-2">
         
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
+          <label class="col-3 text-left p-0"
             >Tên vị trí <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="work_position.work_position_name"
             spellcheck="false"
-            class="col-10 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{
               'p-invalid': v$.work_position_name.$invalid && submitted,
             }"
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-2 text-left"></div>
+          <div class="col-3 text-left"></div>
           <small
             v-if="
               (v$.work_position_name.$invalid && submitted) ||
               v$.work_position_name.$pending.$response
             "
-            class="col-10 p-error"
+            class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
               v$.work_position_name.required.$message
@@ -1071,10 +1071,10 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
            
            
             <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div class="col-4 text-left p-0">STT</div>
+              <div class="col-6 text-left p-0">STT</div>
               <InputNumber
                 v-model="work_position.is_order"
-                class="col-8 ip36 p-0"
+                class="col-6 ip36 p-0"
               />
             </div>
             <div class="field col-6 md:col-6 p-0 align-items-center flex">
