@@ -1,12 +1,14 @@
 <script setup>
 import moment from "moment";
 import { onMounted, inject, ref } from "vue";
+import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
 const toast = useToast();
+const cryoptojs = inject("cryptojs");
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -27,6 +29,7 @@ const props = defineProps({
   dictionarys: Array,
   initData: Function,
 });
+const display = ref(props.displayDialog);
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -36,6 +39,7 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
+const dictionarys = ref([]);
 
 //Declare
 const submitted = ref(false);
@@ -109,7 +113,7 @@ const saveModel = (is_continue) => {
     },
   });
   var obj = { ...props.model };
-  var checkcontract = props.dictionarys[2].findIndex(
+  var checkcontract = dictionarys[2].findIndex(
     (x) => x["type_contract_id"] === (obj["type_contract_id"] || "")
   );
   if (checkcontract === -1) {
@@ -154,7 +158,7 @@ const saveModel = (is_continue) => {
         allowance["formalitys"].length > 0
       ) {
         allowance["formalitys"].forEach((formality) => {
-          var checkformality = props.dictionarys[8].findIndex(
+          var checkformality = dictionarys[8].findIndex(
             (x) =>
               x["allowance_formality_id"] ===
               (formality["allowance_formality_id"] || "")
@@ -175,7 +179,7 @@ const saveModel = (is_continue) => {
       }
       if (allowance["wages"] != null && allowance["wages"].length > 0) {
         allowance["wages"].forEach((wage) => {
-          var checkwage = props.dictionarys[9].findIndex(
+          var checkwage = dictionarys[9].findIndex(
             (x) => x["allowance_wage_id"] === (wage["allowance_wage_id"] || "")
           );
           if (checkwage === -1) {
@@ -354,15 +358,51 @@ const removeAllowanceDetail = (array, idx) => {
   }
 };
 //init
-onMounted(() => {});
+const initDictionary = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_contract_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          dictionarys.value = tbs;
+          if (dictionarys.value[0] && dictionarys.value[0].length > 0) {
+            props.model.employment =
+              dictionarys.value[0] != null
+                ? dictionarys.value[0][0].address
+                : "";
+          }
+        }
+      }
+    });
+};
+onMounted(() => {
+  if (props.displayDialog) {
+    initDictionary();
+  }
+});
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '70vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
@@ -379,7 +419,7 @@ onMounted(() => {});
                 <label>Nhân sự <span class="redsao">(*)</span></label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[1]"
+                  :options="dictionarys[1]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -500,7 +540,7 @@ onMounted(() => {});
                 <label>Tên hợp đồng </label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[2]"
+                  :options="dictionarys[2]"
                   :filter="true"
                   :showClear="true"
                   :editable="true"
@@ -525,7 +565,7 @@ onMounted(() => {});
                 <label>Phòng ban </label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[3]"
+                  :options="dictionarys[3]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -550,7 +590,7 @@ onMounted(() => {});
                 <label>Vị trí </label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[4]"
+                  :options="dictionarys[4]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -575,7 +615,7 @@ onMounted(() => {});
                 <label>Chức vụ </label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[5]"
+                  :options="dictionarys[5]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -600,7 +640,7 @@ onMounted(() => {});
                 <label>Công việc chuyên môn </label>
                 <MultiSelect
                   :disabled="props.isView"
-                  :options="props.dictionarys[11]"
+                  :options="dictionarys[11]"
                   v-model="props.model.professional_works"
                   optionLabel="professional_work_name"
                   optionValue="professional_work_id"
@@ -626,13 +666,13 @@ onMounted(() => {});
                           </span>
                           <span
                             v-if="
-                              props.dictionarys[11].findIndex(
+                              dictionarys[11].findIndex(
                                 (x) => x.professional_work_id === item
                               ) !== -1
                             "
                           >
                             {{
-                              props.dictionarys[11].find(
+                              dictionarys[11].find(
                                 (x) => x["professional_work_id"] == item
                               ).professional_work_name
                             }}
@@ -663,7 +703,7 @@ onMounted(() => {});
                 <label>Hình thức làm việc </label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[6]"
+                  :options="dictionarys[6]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -688,7 +728,7 @@ onMounted(() => {});
                 <label>Ngạch lương </label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[7]"
+                  :options="dictionarys[7]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -713,7 +753,7 @@ onMounted(() => {});
                 <label>Hệ số lương </label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[13]"
+                  :options="dictionarys[13]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -796,7 +836,7 @@ onMounted(() => {});
                 <label>Người ký</label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[8]"
+                  :options="dictionarys[8]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -899,7 +939,7 @@ onMounted(() => {});
                 <label>Người quản lý</label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="props.dictionarys[8]"
+                  :options="dictionarys[8]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -1177,7 +1217,7 @@ onMounted(() => {});
                           <div class="form-group">
                             <Dropdown
                               :disabled="props.isView"
-                              :options="props.dictionarys[9]"
+                              :options="dictionarys[9]"
                               :filter="true"
                               :showClear="true"
                               :editable="true"
@@ -1299,7 +1339,7 @@ onMounted(() => {});
                           <div class="form-group">
                             <Dropdown
                               :disabled="props.isView"
-                              :options="props.dictionarys[10]"
+                              :options="dictionarys[10]"
                               :filter="true"
                               :showClear="true"
                               :editable="true"
