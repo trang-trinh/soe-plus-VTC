@@ -255,14 +255,11 @@ onMounted(() => {
                               ? basedomainURL + slotProps.value.avatar
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
-                          style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 2rem;
-                            height: 2rem;
-                          "
                           :style="{
                             background: bgColor[1 % 7],
+                            color: '#ffffff',
+                            width: '2rem',
+                            height: '2rem',
                           }"
                           class="mr-2 text-avatar"
                           size="xlarge"
@@ -291,15 +288,12 @@ onMounted(() => {
                           ? basedomainURL + slotProps.option.avatar
                           : basedomainURL + '/Portals/Image/noimg.jpg'
                       "
-                      style="
-                        background-color: #2196f3;
-                        color: #ffffff;
-                        width: 3rem;
-                        height: 3rem;
-                        font-size: 1.4rem !important;
-                      "
                       :style="{
                         background: bgColor[slotProps.index % 7],
+                        color: '#ffffff',
+                        width: '3rem',
+                        height: '3rem',
+                        fontSize: '1.4rem !important',
                       }"
                       class="text-avatar"
                       size="xlarge"
