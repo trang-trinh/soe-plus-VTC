@@ -65,7 +65,7 @@ const saveModel = () => {
   }
   let formData = new FormData();
   formData.append("profile_id", props.profile["profile_id"]);
-  formData.append("receipt_status", props.profile["receipt_status"]);
+  formData.append("receipt_status", props.profile["receipt_status"] || 1);
   formData.append("receipts", JSON.stringify(receipts));
   axios
     .put(baseURL + "/api/hrm_profile/update_profile_receipt", formData, config)

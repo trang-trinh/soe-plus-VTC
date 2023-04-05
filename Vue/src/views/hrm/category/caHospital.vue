@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
-
+ 
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -17,43 +17,45 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  leaving_reason_name: {
+  hospital_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
+ 
 });
 const rules = {
-  leaving_reason_name: {
+  hospital_name: {
     required,
     $errors: [
       {
-        $property: "leaving_reason_name",
+        $property: "hospital_name",
         $validator: "required",
-        $message: "Lý do nghỉ việc không được để trống!",
+        $message: "Tên bệnh viện không được để trống!",
       },
     ],
   },
+ 
 };
-
+ 
+ 
 //Lấy số bản ghi
 const loadCount = () => {
   axios
     .post(
-      baseURL + "/api/insurance/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_leaving_reason_count",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
+      baseURL + "/api/hrm_ca_hospital/getData",
+        {
+          str: encr(
+            JSON.stringify({
+        proc: "hrm_ca_hospital_count",
+        par: [
+          { par: "user_id", va: store.getters.user.user_id },
+          { par: "status", va: null },
+        ],
+      }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -62,9 +64,11 @@ const loadCount = () => {
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
-    .catch((error) => {});
+    .catch((error) => {
+      
+    });
 };
-//Lấy dữ liệu leaving_reason
+//Lấy dữ liệu hospital
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -77,25 +81,24 @@ const loadData = (rf) => {
       }
     }
     axios
-      .post(
-        baseURL + "/api/insurance/GetDataProc",
+         .post(
+      baseURL + "/api/hrm_ca_hospital/getData",
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_ca_leaving_reason_list",
-              par: [
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
-                { par: "user_id", va: store.getters.user.user_id },
-                { par: "status", va: null },
-              ],
-            }),
+          proc: "hrm_ca_hospital_list",
+          par: [
+            { par: "pageno", va: options.value.PageNo },
+            { par: "pagesize", va: options.value.PageSize },
+            { par: "user_id", va: store.getters.user.user_id },
+            { par: "status", va: null },
+          ],
+        }),
             SecretKey,
             cryoptojs
           ).toString(),
-        },
-        config
-      )
+        },config
+    )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
@@ -109,7 +112,7 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-
+     
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -137,31 +140,19 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].leaving_reason_id;
+      datalists.value[datalists.value.length - 1].hospital_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].leaving_reason_id;
+    options.value.id = datalists.value[0].hospital_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
-const units = ref([
-  { value: 0, text: "Ngày/ Năm" },
-  { value: 1, text: "Ngày/ Tháng" },
-  { value: 2, text: "Ngày/ Tuần" },
-]);
-const statuss = ref([
-  { value: 1, text: "Hoạt động" },
-  { value: 0, text: "Không hoạt động" },
-]);
-const payrolls = ref([
-  { value: 1, text: "Có" },
-  { value: 0, text: "Không" },
-]);
-const leaving_reason = ref({
-  leaving_reason_name: "",
+
+const hospital = ref({
+  hospital_name: "",
   emote_file: "",
   status: true,
   is_default: false,
@@ -170,7 +161,7 @@ const leaving_reason = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, leaving_reason);
+const v$ = useVuelidate(rules, hospital);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -192,8 +183,9 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  leaving_reason.value = {
-    leaving_reason_name: "",
+  hospital.value = {
+    hospital_name: "",
+    emote_file: "",
     status: true,
     is_default: false,
     is_order: sttStamp.value,
@@ -205,46 +197,71 @@ const openBasic = (str) => {
   headerDialog.value = str;
   displayBasic.value = true;
 };
-
+ 
+const countries = ref([
+  { name: "Nga", code: "US" },
+  { name: "Canada", code: "US" },
+  { name: "Hoa Kỳ", code: "US" },
+  { name: "Trung Quốc", code: "US" },
+  { name: "Brasil", code: "US" },
+  { name: "Úc", code: "US" },
+  { name: "Ấn Độ", code: "US" },
+  { name: " Argentina", code: "US" },
+  { name: "Kazakhstan", code: "US" },
+  { name: "Algérie", code: "US" },
+  { name: "Cộng hòa Dân chủ Congo", code: "US" },
+  { name: "Greenland", code: "US" },
+  { name: "Ả Rập Xê Út", code: "US" },
+  { name: "México", code: "US" },
+  { name: "Indonesia", code: "US" },
+  { name: "Sudan", code: "US" },
+  { name: "Việt Nam", code: "US" },
+  { name: "Nhật Bản", code: "US" },
+  { name: "Thụy Điển", code: "US" },
+  { name: "Thụy Sĩ", code: "US" },
+  { name: "Hàn quốc", code: "US" },
+  { name: "Anh Quốc", code: "US" },
+  { name: "Lào", code: "US" },
+  { name: "Pháp", code: "US" },
+  { name: "Thái lan", code: "US" },
+]);
 const closeDialog = () => {
-  leaving_reason.value = {
-    leaving_reason_name: "",
+  hospital.value = {
+    hospital_name: "",
     emote_file: "",
     status: true,
     is_default: false,
     is_order: 1,
   };
-
+ 
   displayBasic.value = false;
   loadData(true);
 };
-
+ 
+ 
 //Thêm bản ghi
-
+ 
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
     return;
   }
-
-  if (leaving_reason.value.leaving_reason_name.length > 250) {
+ 
+  if (hospital.value.hospital_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Lý do nghỉ việc không được vượt quá 250 ký tự!",
+      text: "Tên bệnh viện không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
     return;
   }
   let formData = new FormData();
-
-  if (leaving_reason.value.countryside_fake)
-    leaving_reason.value.countryside = leaving_reason.value.countryside_fake;
-  formData.append(
-    "hrm_ca_leaving_reason",
-    JSON.stringify(leaving_reason.value)
-  );
+ 
+  if (hospital.value.countryside_fake)
+    hospital.value.countryside = hospital.value.countryside_fake;
+  formData.append("hrm_ca_hospital", JSON.stringify(hospital.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -254,16 +271,16 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_leaving_reason/add_hrm_ca_leaving_reason",
+        baseURL + "/api/hrm_ca_hospital/add_hrm_ca_hospital",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm lý do nghỉ việc thành công!");
+          toast.success("Thêm bệnh viện thành công!");
           loadData(true);
-
+      
           closeDialog();
         } else {
           swal.fire({
@@ -286,15 +303,16 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_leaving_reason/update_hrm_ca_leaving_reason",
+        baseURL + "/api/hrm_ca_hospital/update_hrm_ca_hospital",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa lý do nghỉ việc thành công!");
+          toast.success("Sửa bệnh viện thành công!");
 
+       
           closeDialog();
         } else {
           swal.fire({
@@ -320,17 +338,18 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  leaving_reason.value = dataTem;
-  if (leaving_reason.value.countryside)
-    leaving_reason.value.countryside_fake = leaving_reason.value.countryside;
-  if (leaving_reason.value.is_default) {
+  hospital.value = dataTem;
+  if (hospital.value.countryside)
+    hospital.value.countryside_fake = hospital.value.countryside;
+  if (hospital.value.is_default) {
     checkIsmain.value = false;
   } else {
     checkIsmain.value = true;
   }
-  headerDialog.value = "Sửa lý do nghỉ việc";
+  headerDialog.value = "Sửa bệnh viện";
   isSaveTem.value = true;
   displayBasic.value = true;
+ 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -356,17 +375,17 @@ const delTem = (Tem) => {
 
         axios
           .delete(
-            baseURL + "/api/hrm_ca_leaving_reason/delete_hrm_ca_leaving_reason",
+            baseURL + "/api/hrm_ca_hospital/delete_hrm_ca_hospital",
             {
               headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.leaving_reason_id] : 1,
+              data: Tem != null ? [Tem.hospital_id] : 1,
             }
           )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá lý do nghỉ việc thành công!");
+              toast.success("Xoá bệnh viện thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -390,9 +409,10 @@ const delTem = (Tem) => {
     });
 };
 //Xuất excel
-
+ 
 //Sort
 const onSort = (event) => {
+ 
   options.value.PageNo = 0;
 
   if (event.sortField == null) {
@@ -416,7 +436,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "leaving_reason_id",
+    id: "hospital_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -428,11 +448,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_leaving_reason",
-      data,
-      config
-    )
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_hospital", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -455,7 +471,7 @@ const loadDataSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-
+     
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
@@ -487,7 +503,7 @@ const refreshStamp = () => {
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
-  filterSQL.value = [];
+  filterSQL.value=[];
   loadData(true);
 };
 const onFilter = (event) => {
@@ -527,21 +543,21 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.leaving_reason_id,
-      TextID: value.leaving_reason_id + "",
+      IntID: value.hospital_id,
+      TextID: value.hospital_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_leaving_reason/update_s_hrm_ca_leaving_reason",
+        baseURL + "/api/hrm_ca_hospital/update_s_hrm_ca_hospital",
         data,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái lý do nghỉ việc thành công!");
+          toast.success("Sửa trạng thái bệnh viện thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -564,20 +580,20 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   } else {
     let data1 = {
-      IntID: value.leaving_reason_id,
-      TextID: value.leaving_reason_id + "",
+      IntID: value.hospital_id,
+      TextID: value.hospital_id + "",
       BitMain: value.is_default,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_leaving_reason/Update_DefaultStamp",
+        baseURL + "/api/hrm_ca_hospital/Update_DefaultStamp",
         data1,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái lý do nghỉ việc thành công!");
+          toast.success("Sửa trạng thái bệnh viện thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -606,7 +622,7 @@ const deleteList = () => {
   let checkD = false;
   selectedStamps.value.forEach((item) => {
     if (item.is_default) {
-      toast.error("Không được xóa lý do nghỉ việc mặc định!");
+      toast.error("Không được xóa bệnh viện mặc định!");
       checkD = true;
       return;
     }
@@ -615,7 +631,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá lý do nghỉ việc này không!",
+        text: "Bạn có muốn xoá bệnh viện này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -633,12 +649,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.leaving_reason_id);
+            listId.push(item.hospital_id);
           });
           axios
             .delete(
-              baseURL +
-                "/api/hrm_ca_leaving_reason/delete_hrm_ca_leaving_reason",
+              baseURL + "/api/hrm_ca_hospital/delete_hrm_ca_hospital",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -648,7 +663,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá lý do nghỉ việc thành công!");
+                toast.success("Xoá bệnh viện thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -682,15 +697,15 @@ const trangThai = ref([
   { name: "Hiển thị", code: 1 },
   { name: "Không hiển thị", code: 0 },
 ]);
-
+ 
 const filterTrangthai = ref();
 
 const reFilterEmail = () => {
   filterTrangthai.value = null;
   isDynamicSQL.value = false;
   checkFilter.value = false;
-  filterSQL.value = [];
-  options.value.SearchText = null;
+  filterSQL.value=[];
+  options.value.SearchText=null;
   op.value.hide();
   loadData(true);
 };
@@ -716,10 +731,9 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
-
-onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
+ 
+onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
+     //router.back();
   }
   loadData(true);
   return {
@@ -731,7 +745,7 @@ onMounted(() => {
     openBasic,
     closeDialog,
     basedomainURL,
-
+   
     saveData,
     isFirst,
     searchStamp,
@@ -765,14 +779,14 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="leaving_reason_id"
+      dataKey="hospital_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-building"></i> Danh sách lý do nghỉ việc ({{
+          <i class="pi pi-credit-card"></i> Danh sách bệnh viện ({{
             options.totalRecords
           }})
         </h3>
@@ -858,7 +872,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm lý do nghỉ việc')"
+              @click="openBasic('Thêm bệnh viện')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -904,10 +918,10 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:70px"
         :sortable="true"
       ></Column>
-
+ 
       <Column
-        field="leaving_reason_name"
-        header="Lý do nghỉ việc"
+        field="hospital_name"
+        header="Tên bệnh viện"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -921,7 +935,7 @@ onMounted(() => {
           />
         </template>
       </Column>
-
+ 
       <Column
         field="status"
         header="Trạng thái"
@@ -944,7 +958,7 @@ onMounted(() => {
             @click="onCheckBox(data.data, true, true)"
           /> </template
       ></Column>
-      <Column
+<Column
         field="organization_id"
         header="Hệ thống"
         headerStyle="text-align:center;max-width:125px;height:50px"
@@ -953,7 +967,10 @@ onMounted(() => {
       >
         <template #body="data">
           <div v-if="data.data.organization_id == 0">
-            <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
+            <i
+              class="pi pi-check text-blue-400"
+              style="font-size: 1.5rem"
+            ></i>
           </div>
           <div v-else></div>
         </template>
@@ -1011,73 +1028,73 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '48vw' }"
+    :style="{ width: '30vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left"
-            >Lý do <span class="redsao">(*)</span></label
+          <label class="col-2 text-left p-0"
+            >Mã bệnh viện</label
           >
-          <InputText spellcheck="false" class="col-10 ip36" v-model="leaving_reason.leaving_reason_name"/>
-
-        </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left">Ký hiệu</div>
-            <InputText spellcheck="false" class="col-8 ip36"  v-model="leaving_reason.symbol"/>
-          </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left pl-7">Tối đa</div>
-            <InputNumber class="col-8 ip36 p-0" placeholder="Nhập số ngày" v-model="leaving_reason.max_day"/>
-          </div>
-        </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left">Đơn vị</div>
-            <Dropdown
-              class="col-8 ip36"
-              :options="units"
-              optionLabel="text"
-              optionValue="value"
-              :showClear="true"
-              v-model="leaving_reason.unit"
-            />
-          </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left pl-7">Tính công</div>
-            <Dropdown
-              class="col-8 ip36"
-              :options="payrolls"
-              optionLabel="text"
-              optionValue="value"
-              :showClear="true"
-              v-model="leaving_reason.is_payroll"
-            />
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 flex">
-          <label class="col-2 text-left"
-            >Mô tả</label
-          >
-          <Textarea
-            :autoResize="true"
-            rows="5"
-            class="col-10 ip36"
-            v-model="leaving_reason.description"
+          <InputText
+            v-model="hospital.hospital_code"
+            spellcheck="false"
+            class="col-10 ip36 px-2"
           />
         </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 align-items-center flex p-0">
-            <div class="col-4 text-left">STT</div>
-            <InputNumber class="col-4 ip36 p-0" v-model="leaving_reason.is_order"/>
-          </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left pl-7">Trạng thái</div>
-            <InputSwitch v-model="leaving_reason.status"/>
-          </div>
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left p-0"
+            >Bệnh viện <span class="redsao">(*)</span></label
+          >
+          <InputText
+            v-model="hospital.hospital_name"
+            spellcheck="false"
+            class="col-10 ip36 px-2"
+            :class="{
+              'p-invalid': v$.hospital_name.$invalid && submitted,
+            }"
+          />
+        </div>
+        <div style="display: flex" class="field col-12 md:col-12">
+          <div class="col-2 text-left"></div>
+          <small
+            v-if="
+              (v$.hospital_name.$invalid && submitted) ||
+              v$.hospital_name.$pending.$response
+            "
+            class="col-10 p-error"
+          >
+            <span class="col-12 p-0">{{
+              v$.hospital_name.required.$message
+                .replace("Value", "Tên bệnh viện")
+                .replace("is required", "không được để trống")
+            }}</span>
+          </small>
+        </div>
+
+       
+        <div   class="col-12 field md:col-12 flex" >
+      
+           
+           
+            <div class="field col-6 md:col-6 p-0 align-items-center flex">
+              <div class="col-4 text-left p-0">STT</div>
+              <InputNumber
+                v-model="hospital.is_order"
+                class="col-8 ip36 p-0"
+              />
+            </div>
+            <div class="field col-6 md:col-6 p-0 align-items-center flex">
+              <div
+               
+                class="col-4 text-center p-0"
+                >Trạng thái
+              </div>
+              <InputSwitch v-model="hospital.status" />
+            </div>
+          
         </div>
       </div>
     </form>
@@ -1086,7 +1103,7 @@ onMounted(() => {
         label="Hủy"
         icon="pi pi-times"
         @click="closeDialog"
-        class="p-button-outlined"
+      class="p-button-outlined"
       />
 
       <Button
