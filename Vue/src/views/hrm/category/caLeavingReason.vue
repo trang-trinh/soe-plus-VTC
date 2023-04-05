@@ -1017,21 +1017,17 @@ onMounted(() => {
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12 flex">
+        <div class="field col-12 md:col-12">
           <label class="col-2 text-left"
             >Lý do <span class="redsao">(*)</span></label
           >
-          <Textarea
-            :autoResize="true"
-            rows="5"
-            class="col-10 ip36"
-            v-model="leaving_reason.leaving_reason_name"
-          />
+          <InputText spellcheck="false" class="col-10 ip36" v-model="leaving_reason.leaving_reason_name"/>
+
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-4 text-left">Ký hiệu</div>
-            <InputText spellcheck="false" class="col-8 ip36"              v-model="leaving_reason.symbol"/>
+            <InputText spellcheck="false" class="col-8 ip36"  v-model="leaving_reason.symbol"/>
           </div>
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-4 text-left pl-7">Tối đa</div>
@@ -1062,22 +1058,16 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left">Hoạt động</div>
-            <Dropdown
-              class="col-8 ip36"
-              :options="statuss"
-              optionLabel="text"
-              optionValue="value"
-              :showClear="true"
-              v-model="leaving_reason.is_active"
-            />
-          </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left pl-7">Mô tả</div>
-            <InputText spellcheck="false" class="col-8 ip36" placeholder="Nhập mô tả" v-model="leaving_reason.description"/>
-          </div>
+        <div class="field col-12 md:col-12 flex">
+          <label class="col-2 text-left"
+            >Mô tả</label
+          >
+          <Textarea
+            :autoResize="true"
+            rows="5"
+            class="col-10 ip36"
+            v-model="leaving_reason.description"
+          />
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-6 md:col-6 align-items-center flex p-0">
