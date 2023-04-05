@@ -311,7 +311,7 @@ const toggleFilter = (event) => {
 };
 const filterUser = () => {
   checkFilter.value = true;
-  loadUser(true);
+  loadUser(true,organization_id_label.value ,organization_name_label.value);
 };
 const reFilterUser = () => {
   opition.value.position_id = null;
@@ -319,9 +319,9 @@ const reFilterUser = () => {
   opition.value.status = null;
   opition.value.check_quyen = null;
   checkFilter.value = false;
-  selectCapcha.value = {};
-  selectCapcha.value[-1] = true;
-  loadUser(true);
+  // selectCapcha.value = {};
+  // selectCapcha.value[-1] = true;
+  loadUser(true,organization_id_label.value ,organization_name_label.value);
 };
 watch(opition, () => {
   if (
@@ -1912,7 +1912,6 @@ onMounted(() => {
                     />
                     <Chip
                       class="custom-chip chippb ml-2 mr-1"
-                      @remove="goDonvi()"
                       v-if="opition.department_id || opition.organization_id"
                       :label="opition.organization_name"
                       removable
@@ -1972,7 +1971,7 @@ onMounted(() => {
                         :breakpoints="{ '960px': '20vw' }"
                       >
                         <div class="grid formgrid m-2">
-                          <div
+                          <!-- <div
                             class="field col-12 md:col-12 flex align-items-center"
                           >
                             <div class="col-4 p-0">Đơn vị/Phòng ban:</div>
@@ -1987,7 +1986,7 @@ onMounted(() => {
                               optionValue="organization_id"
                             >
                             </TreeSelect>
-                          </div>
+                          </div> -->
                           <div
                             class="field col-12 md:col-12 flex align-items-center"
                           >
@@ -2000,6 +1999,7 @@ onMounted(() => {
                               optionValue="position_id"
                               placeholder="Chọn chức vụ"
                               class="p-dropdown-sm col-8 p-0"
+                              :filter="true"
                             />
                           </div>
                           <div
@@ -2197,7 +2197,6 @@ onMounted(() => {
                             </h3>
                           </Button>
                           <Chip
-                            @click="goDonvi(slotProps.data)"
                             class="m-1 chippb p-ripple"
                             v-ripple
                             :label="slotProps.data.organization_name"
@@ -2284,7 +2283,6 @@ onMounted(() => {
                         }}</span>
                       </div>
                       <Chip
-                        @click="goDonvi(slotProps.data)"
                         class="ml-2 mr-2 chippb"
                         :label="slotProps.data.organization_name"
                       >
@@ -2582,6 +2580,8 @@ onMounted(() => {
             optionLabel="position_name"
             optionValue="position_id"
             placeholder="Chọn chức vụ"
+            :filter="true"
+            :showClear="true"
           />
         </div>
         <div class="field col-12 md:col-12">

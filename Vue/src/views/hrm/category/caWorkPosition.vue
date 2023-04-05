@@ -17,20 +17,20 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  hospital_name: {
+  work_position_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
  
 });
 const rules = {
-  hospital_name: {
+  work_position_name: {
     required,
     $errors: [
       {
-        $property: "hospital_name",
+        $property: "work_position_name",
         $validator: "required",
-        $message: "Tên bệnh viện không được để trống!",
+        $message: "Tên vị trí làm việc không được để trống!",
       },
     ],
   },
@@ -42,11 +42,11 @@ const rules = {
 const loadCount = () => {
   axios
     .post(
-      baseURL + "/api/hrm_ca_hospital/getData",
+      baseURL + "/api/hrm_ca_work_position/getData",
         {
           str: encr(
             JSON.stringify({
-        proc: "hrm_ca_hospital_count",
+        proc: "hrm_ca_work_position_count",
         par: [
           { par: "user_id", va: store.getters.user.user_id },
           { par: "status", va: null },
@@ -68,7 +68,7 @@ const loadCount = () => {
       
     });
 };
-//Lấy dữ liệu hospital
+//Lấy dữ liệu work_position
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -82,11 +82,11 @@ const loadData = (rf) => {
     }
     axios
          .post(
-      baseURL + "/api/hrm_ca_hospital/getData",
+      baseURL + "/api/hrm_ca_work_position/getData",
         {
           str: encr(
             JSON.stringify({
-          proc: "hrm_ca_hospital_list",
+          proc: "hrm_ca_work_position_list",
           par: [
             { par: "pageno", va: options.value.PageNo },
             { par: "pagesize", va: options.value.PageSize },
@@ -140,19 +140,19 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].hospital_id;
+      datalists.value[datalists.value.length - 1].work_position_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].hospital_id;
+    options.value.id = datalists.value[0].work_position_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const hospital = ref({
-  hospital_name: "",
+const work_position = ref({
+  work_position_name: "",
   emote_file: "",
   status: true,
   is_default: false,
@@ -161,7 +161,7 @@ const hospital = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, hospital);
+const v$ = useVuelidate(rules, work_position);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -183,8 +183,8 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  hospital.value = {
-    hospital_name: "",
+  work_position.value = {
+    work_position_name: "",
     emote_file: "",
     status: true,
     is_default: false,
@@ -226,8 +226,8 @@ const countries = ref([
   { name: "Thái lan", code: "US" },
 ]);
 const closeDialog = () => {
-  hospital.value = {
-    hospital_name: "",
+  work_position.value = {
+    work_position_name: "",
     emote_file: "",
     status: true,
     is_default: false,
@@ -248,10 +248,10 @@ const saveData = (isFormValid) => {
     return;
   }
  
-  if (hospital.value.hospital_name.length > 250) {
+  if (work_position.value.work_position_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên bệnh viện không được vượt quá 250 ký tự!",
+      text: "Tên vị trí làm việc không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -259,9 +259,9 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
  
-  if (hospital.value.countryside_fake)
-    hospital.value.countryside = hospital.value.countryside_fake;
-  formData.append("hrm_ca_hospital", JSON.stringify(hospital.value));
+  if (work_position.value.countryside_fake)
+    work_position.value.countryside = work_position.value.countryside_fake;
+  formData.append("hrm_ca_work_position", JSON.stringify(work_position.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -271,14 +271,14 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_hospital/add_hrm_ca_hospital",
+        baseURL + "/api/hrm_ca_work_position/add_hrm_ca_work_position",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm bệnh viện thành công!");
+          toast.success("Thêm vị trí làm việc thành công!");
           loadData(true);
       
           closeDialog();
@@ -303,14 +303,14 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_hospital/update_hrm_ca_hospital",
+        baseURL + "/api/hrm_ca_work_position/update_hrm_ca_work_position",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa bệnh viện thành công!");
+          toast.success("Sửa vị trí làm việc thành công!");
 
        
           closeDialog();
@@ -338,15 +338,15 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  hospital.value = dataTem;
-  if (hospital.value.countryside)
-    hospital.value.countryside_fake = hospital.value.countryside;
-  if (hospital.value.is_default) {
+  work_position.value = dataTem;
+  if (work_position.value.countryside)
+    work_position.value.countryside_fake = work_position.value.countryside;
+  if (work_position.value.is_default) {
     checkIsmain.value = false;
   } else {
     checkIsmain.value = true;
   }
-  headerDialog.value = "Sửa bệnh viện";
+  headerDialog.value = "Sửa vị trí làm việc";
   isSaveTem.value = true;
   displayBasic.value = true;
  
@@ -375,17 +375,17 @@ const delTem = (Tem) => {
 
         axios
           .delete(
-            baseURL + "/api/hrm_ca_hospital/delete_hrm_ca_hospital",
+            baseURL + "/api/hrm_ca_work_position/delete_hrm_ca_work_position",
             {
               headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.hospital_id] : 1,
+              data: Tem != null ? [Tem.work_position_id] : 1,
             }
           )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá bệnh viện thành công!");
+              toast.success("Xoá vị trí làm việc thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -436,7 +436,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "hospital_id",
+    id: "work_position_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -448,7 +448,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_hospital", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_work_position", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -543,21 +543,21 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.hospital_id,
-      TextID: value.hospital_id + "",
+      IntID: value.work_position_id,
+      TextID: value.work_position_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_hospital/update_s_hrm_ca_hospital",
+        baseURL + "/api/hrm_ca_work_position/update_s_hrm_ca_work_position",
         data,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái bệnh viện thành công!");
+          toast.success("Sửa trạng thái vị trí làm việc thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -580,20 +580,20 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   } else {
     let data1 = {
-      IntID: value.hospital_id,
-      TextID: value.hospital_id + "",
+      IntID: value.work_position_id,
+      TextID: value.work_position_id + "",
       BitMain: value.is_default,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_hospital/Update_DefaultStamp",
+        baseURL + "/api/hrm_ca_work_position/Update_DefaultStamp",
         data1,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái bệnh viện thành công!");
+          toast.success("Sửa trạng thái vị trí làm việc thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -622,7 +622,7 @@ const deleteList = () => {
   let checkD = false;
   selectedStamps.value.forEach((item) => {
     if (item.is_default) {
-      toast.error("Không được xóa bệnh viện mặc định!");
+      toast.error("Không được xóa vị trí làm việc mặc định!");
       checkD = true;
       return;
     }
@@ -631,7 +631,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá bệnh viện này không!",
+        text: "Bạn có muốn xoá vị trí làm việc này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -649,11 +649,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.hospital_id);
+            listId.push(item.work_position_id);
           });
           axios
             .delete(
-              baseURL + "/api/hrm_ca_hospital/delete_hrm_ca_hospital",
+              baseURL + "/api/hrm_ca_work_position/delete_hrm_ca_work_position",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -663,7 +663,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá bệnh viện thành công!");
+                toast.success("Xoá vị trí làm việc thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -779,14 +779,14 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="hospital_id"
+      dataKey="work_position_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-credit-card"></i> Danh sách bệnh viện ({{
+          <i class="pi pi-credit-card"></i> Danh sách vị trí làm việc ({{
             options.totalRecords
           }})
         </h3>
@@ -872,7 +872,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm bệnh viện')"
+              @click="openBasic('Thêm vị trí làm việc')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -920,8 +920,8 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       ></Column>
  
       <Column
-        field="hospital_name"
-        header="Tên bệnh viện"
+        field="work_position_name"
+        header="Tên vị trí làm việc"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -1028,32 +1028,23 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '40vw' }"
+    :style="{ width: '30vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
+        
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Mã số</label
+            >Tên vị trí <span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="hospital.hospital_code"
-            spellcheck="false"
-            class="col-9 ip36 px-2"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Bệnh viện <span class="redsao">(*)</span></label
-          >
-          <InputText
-            v-model="hospital.hospital_name"
+            v-model="work_position.work_position_name"
             spellcheck="false"
             class="col-9 ip36 px-2"
             :class="{
-              'p-invalid': v$.hospital_name.$invalid && submitted,
+              'p-invalid': v$.work_position_name.$invalid && submitted,
             }"
           />
         </div>
@@ -1061,14 +1052,14 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v$.hospital_name.$invalid && submitted) ||
-              v$.hospital_name.$pending.$response
+              (v$.work_position_name.$invalid && submitted) ||
+              v$.work_position_name.$pending.$response
             "
             class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.hospital_name.required.$message
-                .replace("Value", "Tên bệnh viện")
+              v$.work_position_name.required.$message
+                .replace("Value", "Tên vị trí làm việc")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
@@ -1082,7 +1073,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             <div class="field col-6 md:col-6 p-0 align-items-center flex">
               <div class="col-6 text-left p-0">STT</div>
               <InputNumber
-                v-model="hospital.is_order"
+                v-model="work_position.is_order"
                 class="col-6 ip36 p-0"
               />
             </div>
@@ -1092,7 +1083,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
                 class="col-4 text-center p-0"
                 >Trạng thái
               </div>
-              <InputSwitch v-model="hospital.status" />
+              <InputSwitch v-model="work_position.status" />
             </div>
           
         </div>

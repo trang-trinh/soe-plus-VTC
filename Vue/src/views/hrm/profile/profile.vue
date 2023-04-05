@@ -190,9 +190,9 @@ const changeView = (view) => {
 };
 
 //Watch
-watch(selectedNodes, () => {
-  goProfile(selectedNodes.value);
-});
+// watch(selectedNodes, () => {
+//   goProfile(selectedNodes.value);
+// });
 
 //Function
 const componentKey = ref({});
@@ -295,6 +295,7 @@ const itemButMores = ref([
 const toggleMores = (event, item) => {
   profile.value = item;
   menuButMores.value.toggle(event);
+  selectedNodes.value = item;
 };
 
 const menuButMoresPlus = ref();
@@ -310,7 +311,7 @@ const itemButMoresPlus = ref([
     label: "Hợp đồng lao động",
     icon: "pi pi-file",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openAddDialogContract(profile.value, "Thêm mới hợp đồng");
     },
   },
   {
@@ -331,6 +332,7 @@ const itemButMoresPlus = ref([
 const toggleMoresPlus = (event, item) => {
   profile.value = item;
   menuButMoresPlus.value.toggle(event);
+  selectedNodes.value = item;
 };
 const goFile = (file) => {
   window.open(basedomainURL + file.file_path, "_blank");
@@ -362,6 +364,7 @@ const openAddDialog = (str) => {
   displayDialog.value = true;
 };
 const closeDialog = () => {
+  forceRerender(0);
   displayDialog.value = false;
 };
 const editItem = (item, str) => {
@@ -507,7 +510,7 @@ const editItem = (item, str) => {
       }
       swal.close();
       if (options.value.loading) options.value.loading = false;
-
+      forceRerender(0);
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -793,6 +796,7 @@ const openEditDialogHealth = (item, str) => {
   displayDialogHealth.value = true;
 };
 const closeDialogHealth = () => {
+  forceRerender(2);
   displayDialogHealth.value = false;
 };
 
@@ -805,6 +809,7 @@ const openEditDialogRelate = (item, str) => {
   displayDialogRelate.value = true;
 };
 const closeDialogRelate = () => {
+  forceRerender(3);
   displayDialogRelate.value = false;
 };
 
@@ -819,6 +824,47 @@ const openEditDialogTag = (item, str) => {
 const closeDialogTag = () => {
   forceRerender(4);
   displayDialogTag.value = false;
+};
+
+//function contract
+function CreateGuid() {
+  function _p8(s) {
+    var p = (Math.random().toString(16) + "000000000").substr(2, 8);
+    return s ? "-" + p.substr(0, 4) + "-" + p.substr(4, 4) : p;
+  }
+  return _p8() + _p8(true) + _p8(true) + _p8();
+}
+const headerDialogContract = ref();
+const displayDialogContract = ref(false);
+const openAddDialogContract = (item, str) => {
+  forceRerender(5);
+  isAdd.value = true;
+  model.value = {
+    profile: item,
+    sign_user: null,
+    contract_no: "",
+    contract_name: "",
+    employment: "",
+    start_date: new Date(),
+    sign_date: new Date(),
+    status: 0,
+    is_order: options.value.total + 1,
+    allowances: [
+      {
+        allowance_id: CreateGuid(),
+        start_date: new Date(),
+        formalitys: [{}],
+        wages: [{}],
+      },
+    ],
+    files: [],
+  };
+  headerDialogContract.value = str;
+  displayDialogContract.value = true;
+};
+const closeDialogContract = () => {
+  forceRerender(5);
+  displayDialogContract.value = false;
 };
 
 //Init
@@ -1475,7 +1521,7 @@ const refresh = () => {
   //initData(true);
 };
 onMounted(() => {
-  initPlace();
+  //initPlace();
   initDictionary();
   initCount();
   initTreeOrganization();
@@ -1777,7 +1823,7 @@ onMounted(() => {
                     <div class="col-12 md:col-12">
                       <div class="form-group">
                         <label>Nơi sinh</label>
-                        <TreeSelect
+                        <!-- <TreeSelect
                           :options="places"
                           v-model="options.birthplaces"
                           placeholder="Chọn nơi sinh"
@@ -1819,7 +1865,20 @@ onMounted(() => {
                               {{ slotProps.placeholder }}
                             </span>
                           </template>
-                        </TreeSelect>
+                        </TreeSelect> -->
+                        <Dropdown
+                          @filter="initPlaceFilter($event, 1)"
+                          :options="listPlaceDetails1"
+                          :filter="true"
+                          :editable="false"
+                          :showClear="false"
+                          v-model="options.birthplaces"
+                          optionLabel="name"
+                          optionValue="name"
+                          class="ip36"
+                          placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                          panelClass="d-design-dropdown"
+                        />
                       </div>
                     </div>
                     <div class="col-12 md:col-12">
@@ -2010,6 +2069,11 @@ onMounted(() => {
     </div>
     <div v-if="options.view === 1" class="d-lang-table">
       <DataTable
+        @rowSelect="
+          (event) => {
+            goProfile(event.data);
+          }
+        "
         :value="datas"
         :virtualScrollerOptions="{ itemSize: 78 }"
         :scrollable="true"

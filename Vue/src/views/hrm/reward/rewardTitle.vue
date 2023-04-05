@@ -368,7 +368,7 @@ const loadDataSQL = () => {
       options.value.loading = false;
       //Show Count nếu có
       if (dt.length >= 2 && checkLoadCount.value == true) {
-        console.log("Sss", options.value);
+         
         options.value.totalRecords = dt[1][0].totalRecords;
         options.value.totalRecords1 = dt[2][0].totalRecords1;
         options.value.totalRecords2 = dt[3][0].totalRecords2;
@@ -447,13 +447,7 @@ const searchStamp = (event) => {
     }
   }
 };
-const listStatus = ref([
-  { name: "Lên kế hoạch", code: 1 },
-  { name: "Đang thực hiện", code: 2 },
-  { name: "Đã hoàn thành", code: 3 },
-  { name: "Tạm dừng", code: 4 },
-  { name: "Đã hủy", code: 5 },
-]);
+ 
 const refreshStamp = () => {
   options.value.SearchText = null;
   options.value.status_filter = null;
@@ -507,11 +501,9 @@ const onFilter = (event) => {
 };
 const tabs = ref([
   { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
-  { id: 1, title: "Lên kế hoạch", icon: "", total: 0 },
-  { id: 2, title: "Đang thực hiện", icon: "", total: 0 },
-  { id: 3, title: "Đã hoàn thành", icon: "", total: 0 },
-  { id: 4, title: "Tạm dừng", icon: "", total: 0 },
-  { id: 5, title: "Đã hủy", icon: "", total: 0 },
+  { id: 1, title: "Khen thưởng", icon: "", total: 0 },
+  { id: 2, title: "Kỷ luật", icon: "", total: 0 },
+ 
 ]);
 //Checkbox
 const onCheckBox = (value, check) => {
@@ -1296,7 +1288,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 pb-0 pr-0 surface-0">
       <div class="p-3 pb-0">
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-chart-line"></i> Danh sách khen thưởng
+          <i class="pi pi-chart-line"></i> Danh sách khen thưởng/kỷ luật
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1806,89 +1798,128 @@ onMounted(() => {
             >
             </Column>
             <Column
-              field="vacancy_name"
-              header="Đối tượng"
-              headerStyle="text-align:center;max-width:400px;height:50px"
+              field="reward_number"
+              header="Số quyết định"
+              headerStyle="text-align:center;max-width:150px;height:50px"
+              bodyStyle="text-align:center;max-width:150px"
+              class="align-items-center justify-content-center text-center"
+            >  
+            </Column>
+            <Column
+              field="reward_number"
+              header="Loại khen thưởng"
+              headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
             > <template #body="data">
-                <div  >
-                  {{
-                 data.data
-                  }}
+                <div v-if=" data.data.reward_type==1"  >
+                 Cá nhân
+                </div>
+                <div v-else>Phòng ban</div>
+              </template>
+            </Column>
+            <Column
+              field="vacancy_name"
+              header="Đối tượng"
+              headerStyle="text-align:center;max-width:300px;height:50px"
+              bodyStyle="text-align:center;max-width:300px"
+              class="align-items-center justify-content-center text-center"
+            > <template #body="data">
+              <div v-if=" data.data.reward_type==1"  >
+                 
+                <AvatarGroup>
+                    <Avatar
+                      v-for="(item, index) in data.data.listRewards.slice(
+                        0,
+                        4
+                      )"
+                      v-bind:label="
+                        item.avatar
+                          ? ''
+                          : item.full_name.substring(
+                              item.full_name.lastIndexOf(' ') + 1,
+                              item.full_name.lastIndexOf(' ') + 2
+                            )
+                      "   style="color:#fff"
+                      :key="index"
+                      :style="
+                        item.avatar
+                          ? 'background-color: #2196f3'
+                          : 'background:' + bgColor[item.full_name.length % 7]
+                      "
+                      :image="basedomainURL + item.avatar"
+                      class="w-3rem h-3rem text-lg"
+                      shape="circle"
+
+                      v-tooltip.top="item.full_name"
+                    />
+                    <Avatar
+                      v-if="data.data.listRewards.length > 4"
+                      :label="(data.data.listRewards.length - 4).toString()"
+                      shape="circle"
+                      class="w-3rem h-3rem"
+                      style="
+                        background-color: #9c27b0;
+                        color: #fff;
+                        font-size: 12pt !important;
+                      "
+                    />
+                  </AvatarGroup>
+             
+                </div>
+                <div v-else>
+               
+<div    v-for="(item, index) in data.data.listRewards" :key="index">
+ 
+ <Chip :label="item.department_name"/>
+</div>
                 </div>
               </template>
             </Column>
             <Column
-              field="reward_name"
-              header="Tên khen thưởng"
-              :sortable="true"
+              field="reward_content"
+              header="Nội dung khen thưởng"
+     
               headerStyle="text-align:left;height:50px"
               headerClass="align-items-center justify-content-center text-center"
               bodyStyle="text-align:left"
             >
-              <template #filter="{ filterModel }">
-                <InputText
-                  type="text"
-                  v-model="filterModel.value"
-                  class="p-column-filter"
-                  placeholder="Từ khoá"
-                />
-              </template>
-              <template #body="data">
-                <div  >
-                  {{
-                 data.data
-                  }}
-                </div>
-              </template>
+               
+               
             </Column>
             <Column
-              field="vacancy_name"
-              header="Vị trí"
+              field="reward_level_name"
+              header="Cấp khen thưởng"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
             >
             </Column>
             <Column
+              field="reward_title_name"
+              header="Danh hiệu"
+              headerStyle="text-align:center;max-width:200px;height:50px"
+              bodyStyle="text-align:center;max-width:200px"
+              class="align-items-center justify-content-center text-center"
+            >
+              
+            </Column>
+            <Column
               field="start_date"
-              header="Ngày bắt đầu"
+              header="Ngày quyết định"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
-                <div v-if="data.data.start_date">
+                <div v-if="data.data.decision_date">
                   {{
-                    moment(new Date(data.data.start_date)).format("DD/MM/YYYY")
+                    moment(new Date(data.data.decision_date)).format("DD/MM/YYYY")
                   }}
                 </div>
               </template>
             </Column>
-            <Column
-              field="start_date"
-              header="Ngày kết thúc"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="data">
-                <div v-if="data.data.end_date">
-                  {{
-                    moment(new Date(data.data.end_date)).format("DD/MM/YYYY")
-                  }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="num_vacancies"
-              header="Số lượng tuyển"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
-            >
-            </Column>
+            
          
             <Column
               field="created_date"
@@ -1906,7 +1937,7 @@ onMounted(() => {
                   }}</span
                 >
                 <div>
-                  <!-- <Avatar 
+                  <Avatar 
                     v-bind:label="
                       slotProps.data.avatar
                         ? ''
@@ -1931,7 +1962,7 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                     v-tooltip.top="slotProps.data.full_name"
-                  /> -->
+                  />
                 </div>
               </template>
             </Column>
