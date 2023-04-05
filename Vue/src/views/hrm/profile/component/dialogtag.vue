@@ -21,6 +21,7 @@ const props = defineProps({
   closeDialog: Function,
   profile: Object,
 });
+const display = ref(props.displayDialog);
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -30,7 +31,9 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
+const dictionarys = ref([]);
 const tags = ref([]);
+const tagids = ref([]);
 const selectedNodes = ref([]);
 
 //function
@@ -47,13 +50,9 @@ const saveModel = () => {
       swal.showLoading();
     },
   });
-  var tags = [];
-  if (selectedNodes.value != null && selectedNodes.value.length > 0) {
-    tags = [...selectedNodes.value];
-  }
   let formData = new FormData();
   formData.append("profile_id", props.profile["profile_id"]);
-  formData.append("tags", JSON.stringify(tags));
+  formData.append("tags", JSON.stringify(tagids.value));
   axios
     .put(baseURL + "/api/hrm_profile/update_profile_tags", formData, config)
     .then((response) => {
@@ -93,8 +92,41 @@ const saveModel = () => {
     });
   if (submitted.value) submitted.value = true;
 };
+const removeFilter = (idx, array, isTree) => {
+  if (isTree) {
+    array[idx["key"]]["checked"] = false;
+  } else {
+    array.splice(idx, 1);
+  }
+};
 
 //init
+const initDictionary = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_tag_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          dictionarys.value = tbs;
+        }
+      }
+    });
+};
 const initData = (rf) => {
   if (rf) {
     swal.fire({
@@ -104,6 +136,7 @@ const initData = (rf) => {
       },
     });
   }
+  tags.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -125,6 +158,10 @@ const initData = (rf) => {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
           tags.value = tbs[0];
+          tagids.value = tbs[0].map((x) => x.tags_id);
+        } else {
+          tags.value = [];
+          tagids.value = [];
         }
       }
       swal.close();
@@ -154,6 +191,7 @@ const initData = (rf) => {
 };
 onMounted(() => {
   if (props.displayDialog) {
+    initDictionary();
     initData(true);
   }
 });
@@ -161,46 +199,75 @@ onMounted(() => {
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
-    :style="{ width: '50vw' }"
+    v-model:visible="display"
+    :style="{ width: '40vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
       <div class="grid formgrid m-2">
         <div class="col-12 md:col-12">
-          <DataTable
-            :value="tags"
-            :scrollable="true"
-            :lazy="true"
-            :rowHover="true"
-            :showGridlines="true"
-            :globalFilterFields="['tags_name']"
-            v-model:selection="selectedNodes"
-            dataKey="tags_id"
-            scrollHeight="flex"
-            filterDisplay="menu"
-            filterMode="lenient"
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            responsiveLayout="scroll"
-          >
-            <Column
-              selectionMode="multiple"
-              headerStyle="text-align:center;width:50px"
-              bodyStyle="text-align:center;width:50px"
-              class="align-items-center justify-content-center text-center"
-            ></Column>
-            <Column
-              field="tags_name"
-              header="Tên nhãn"
-              headerStyle="max-width:auto;"
+          <div class="form-group">
+            <MultiSelect
+              :options="dictionarys[0]"
+              :filter="true"
+              :showClear="true"
+              :editable="false"
+              v-model="tagids"
+              optionLabel="tags_name"
+              optionValue="tags_id"
+              placeholder="Chọn nhãn"
+              class="w-full limit-width"
+              style="min-height: 36px"
+              panelClass="d-design-dropdown"
             >
-              <template #body="slotProps">
-                <span>{{ slotProps.data.tags_name }}</span>
+              <template #value="slotProps">
+                <div
+                  class="p-dropdown-car-value flex text-justify"
+                  v-if="slotProps.value"
+                >
+                  <div class="text-justify flex format-center">
+                    <ul
+                      class="p-ulchip"
+                      v-if="
+                        slotProps.value &&
+                        slotProps.value.length > 0 &&
+                        dictionarys[0] &&
+                        dictionarys[0].length > 0
+                      "
+                    >
+                      <li
+                        class="p-lichip"
+                        v-for="(item, index) in slotProps.value"
+                        :key="index"
+                      >
+                        <Chip class="mr-2 mb-2 px-3 py-2">
+                          <div class="flex">
+                            <div class="pr-2 text-justify">
+                              <i class="pi pi-tags"></i>
+                            </div>
+                            <div>
+                              <span>
+                                {{
+                                  dictionarys[0].find(
+                                    (x) => x["tags_id"] === item
+                                  ).tags_name
+                                }}</span
+                              >
+                            </div>
+                          </div>
+                        </Chip>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <span v-else>
+                  {{ slotProps.placeholder }}
+                </span>
               </template>
-            </Column>
-          </DataTable>
+            </MultiSelect>
+          </div>
         </div>
       </div>
     </form>
@@ -216,7 +283,25 @@ onMounted(() => {
   </Dialog>
 </template>
 <style scoped>
+@import url(../../profile/component/stylehrm.css);
 .p-overlaypanel {
   z-index: 99999;
+}
+</style>
+<style lang="scss" scoped>
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label,
+  .p-treeselect .p-treeselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-chip img {
+    margin: 0;
+  }
+  .p-avatar-text {
+    font-size: 1rem;
+  }
 }
 </style>
