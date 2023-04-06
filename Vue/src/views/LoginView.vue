@@ -78,7 +78,7 @@ const login = () => {
         if (cookies.get("ck_tabchat") != null) {
           cookies.remove("ck_tabchat");
         }
-        router.push({ path: "/" });
+        router.push({ name: "profile" });
         swal.close();
 
         //socket
