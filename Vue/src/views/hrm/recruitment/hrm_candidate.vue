@@ -74,7 +74,7 @@ const loadCount = () => {
         options.value.totalRecords1 = data1[0].totalRecords1;
         options.value.totalRecords2 = data2[0].totalRecords2;
         options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
+        options.value.totalRecords4 = data4[0].totalRecords4;
 
         sttStamp.value = data[0].totalRecords + 1;
       }

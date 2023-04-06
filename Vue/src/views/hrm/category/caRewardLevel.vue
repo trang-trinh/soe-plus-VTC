@@ -964,7 +964,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '40vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
@@ -1003,10 +1003,10 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
 
         <div class="col-12 field md:col-12 flex">
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-4 text-left p-0">STT</div>
+            <div class="col-9 text-left p-0">STT</div>
             <InputNumber
               v-model="reward_level.is_order"
-              class="col-8 ip36 p-0"
+              class="col-3 ip36 p-0"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">

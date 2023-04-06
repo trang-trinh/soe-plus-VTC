@@ -957,7 +957,7 @@ onMounted(() => {
               store.state.user.is_super == true ||
               store.state.user.user_id == Tem.data.created_by ||
               (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
+                store.state.user.organization_id == Tem.data.organization_id && Tem.data.is_system!=true )
             "
           >
             <Button

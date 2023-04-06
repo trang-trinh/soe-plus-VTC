@@ -78,7 +78,7 @@ namespace API.Controllers.HRM.Reward
                         hrm_reward hrm_Reward = JsonConvert.DeserializeObject<hrm_reward>(fdhrm_Reward);
 
 
-                        hrm_Reward.organization_id = super ? 0 : int.Parse(dvid);
+                        hrm_Reward.organization_id =  int.Parse(dvid);
                         hrm_Reward.created_by = uid;
                         hrm_Reward.created_date = DateTime.Now;
                         hrm_Reward.created_ip = ip;

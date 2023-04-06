@@ -181,7 +181,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -402,7 +402,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -622,7 +622,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -841,7 +841,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -1052,7 +1052,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -1272,7 +1272,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;

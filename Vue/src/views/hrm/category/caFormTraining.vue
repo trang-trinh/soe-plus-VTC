@@ -975,7 +975,7 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Tên hình thức đào tạo <span class="redsao">(*)</span></label
+            >Hình thức <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="form_traning.form_traning_name"
@@ -1004,10 +1004,10 @@ onMounted(() => {
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
+            <div class="col-9 text-left p-0">STT</div>
             <InputNumber
               v-model="form_traning.is_order"
-              class="col-6 ip36 p-0"
+              class="col-3 ip36 p-0"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
