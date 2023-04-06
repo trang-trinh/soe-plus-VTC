@@ -144,6 +144,8 @@ namespace Controllers
                         if (!string.IsNullOrWhiteSpace(user.role_id))
                             permClaims.Add(new Claim("rid", user.role_id));
                         if (user.organization_id != null)
+                            permClaims.Add(new Claim("parent_dvid", user.organization_parent_id.ToString()));
+                        if (user.organization_id != null)
                             permClaims.Add(new Claim("dvid", user.organization_id.ToString()));
                         if (user.organization_child_id != null)
                             permClaims.Add(new Claim("ctid", user.organization_child_id.ToString()));
@@ -187,6 +189,7 @@ namespace Controllers
                                 product_name = org?.product_name,
                                 background_image = org?.background_image,
                                 organization_name = org?.organization_name,
+                                organization_parent_id=user?.organization_parent_id,
                                 organization_id = org?.organization_id,
                                 department_id = user?.department_id,
                                 organization_child_id = user?.organization_child_id,

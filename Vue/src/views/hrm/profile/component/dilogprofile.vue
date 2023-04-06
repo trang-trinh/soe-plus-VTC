@@ -330,22 +330,13 @@ onMounted(() => {
                             class="ip36"
                             v-model="props.model.profile_id"
                             v-bind:disabled="!props.isAdd"
+                            :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                           />
                           <div v-if="!props.model.profile_id && submitted">
                             <small class="p-error">
                               <span>Mã nhân sự không được để trống</span>
                             </small>
                           </div>
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Mã chấm công</label>
-                          <InputText
-                            spellcheck="false"
-                            class="ip36"
-                            v-model="props.model.check_in_id"
-                          />
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
@@ -360,18 +351,6 @@ onMounted(() => {
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
-                          <label>Ngày tuyển dụng</label>
-                          <Calendar
-                            class="ip36"
-                            id="icon"
-                            v-model="props.model.recruitment_date"
-                            :showIcon="true"
-                            placeholder="dd/mm/yyyy"
-                          />
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
                           <label
                             >Họ và tên <span class="redsao">(*)</span></label
                           >
@@ -379,6 +358,7 @@ onMounted(() => {
                             spellcheck="false"
                             class="ip36"
                             v-model="props.model.profile_user_name"
+                            :style="{ fontWeight: 'bold' }"
                           />
                           <div
                             v-if="!props.model.profile_user_name && submitted"
@@ -391,11 +371,11 @@ onMounted(() => {
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
-                          <label>Tên gọi khác</label>
+                          <label>Mã chấm công</label>
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.profile_nick_name"
+                            v-model="props.model.check_in_id"
                           />
                         </div>
                       </div>
@@ -420,6 +400,18 @@ onMounted(() => {
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
+                          <label>Ngày tuyển dụng</label>
+                          <Calendar
+                            class="ip36"
+                            id="icon"
+                            v-model="props.model.recruitment_date"
+                            :showIcon="true"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
                           <label>Giới tính</label>
                           <Dropdown
                             :options="props.genders"
@@ -428,6 +420,16 @@ onMounted(() => {
                             optionValue="value"
                             placeholder="Chọn giới tính"
                             class="ip36"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Tên gọi khác</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.profile_nick_name"
                           />
                         </div>
                       </div>
@@ -916,11 +918,11 @@ onMounted(() => {
                         placeholder="Chọn quan hệ"
                         v-model="props.model.relationship_id"
                         class="ip36"
-                        style="
-                          white-space: nowrap;
-                          overflow: hidden;
-                          text-overflow: ellipsis;
-                        "
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -1030,11 +1032,11 @@ onMounted(() => {
                             placeholder="Chọn quan hệ"
                             v-model="slotProps.data.relationship_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1160,11 +1162,11 @@ onMounted(() => {
                             optionValue="value"
                             placeholder="Chọn trạng thái"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           >
                             <template #option="slotProps">
                               <div class="country-item flex align-items-center">
@@ -1344,11 +1346,11 @@ onMounted(() => {
                             placeholder="Chọn chuyên ngành"
                             v-model="slotProps.data.specialized"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1406,11 +1408,11 @@ onMounted(() => {
                             placeholder="Chọn hình thức"
                             v-model="slotProps.data.form_traning_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1432,11 +1434,11 @@ onMounted(() => {
                             placeholder="Chọn văn bằng"
                             v-model="slotProps.data.certificate_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1629,11 +1631,11 @@ onMounted(() => {
                             placeholder="Chọn chuyên ngành"
                             v-model="slotProps.data.form"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
