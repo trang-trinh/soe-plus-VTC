@@ -592,7 +592,8 @@ const onCheckBox = (value) => {
   if (
     store.state.user.is_super == true ||
     store.state.user.user_id == value.created_by ||
-    (store.state.user.role_id == "admin" &&
+    (store.state.user.is_admin &&
+      value.is_system != true &&
       store.state.user.organization_id == value.organization_id)
   ) {
     axios
@@ -624,7 +625,12 @@ const onCheckBox = (value) => {
   } else {
     swal.fire({
       title: "Thông báo!",
-      text: "Bạn không có quyền chỉnh sửa! Chỉ có Quản trị viên đơn vị hoặc Quản trị viên hệ thống mới có quyền chỉnh sửa mục này",
+      text:
+        "Bạn không có quyền chỉnh sửa! Chỉ có " +
+        (value.is_system
+          ? "Quản trị viên hệ thống"
+          : "Quản trị viên đơn vị hoặc Quản trị viên hệ thống") +
+        " mới có quyền chỉnh sửa mục này",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -1121,6 +1127,7 @@ onMounted(() => {
         field="organization_name"
         header="Đơn vị"
         class="align-items-center justify-content-center text-center max-w-20rem"
+        v-if="store.state.user.is_super == true"
       ></Column>
       <Column
         header="Chức năng"

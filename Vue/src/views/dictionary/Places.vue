@@ -1161,7 +1161,10 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:200px;height:50px"
         bodyStyle="text-align:center;max-width:200px;;max-height:60px"
-        v-if="store.state.user.is_super == true"
+        v-if="
+          store.state.user.is_super == true &&
+          store.state.user.organization_id == null
+        "
       >
         <template #body="Place">
           <div v-if="store.state.user.is_super == true">
