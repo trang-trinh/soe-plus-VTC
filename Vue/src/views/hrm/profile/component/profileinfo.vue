@@ -8,8 +8,9 @@ import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
 import printprofile from "../component/printprofile.vue";
-import diloginsurance from "../../insurance/component/diloginsurance.vue";
+// import diloginsurance from "../../insurance/component/diloginsurance.vue";
 import comptimekeep from "../component/comptimekeep.vue";
+import diloginsurance from "../../profile/component/diloginsurance.vue";
 import moment from "moment";
 
 const route = useRoute();
@@ -120,6 +121,7 @@ const filter = (event) => {
 };
 
 //data view 1
+const isAdd = ref(false);
 const profile = ref({});
 const places = ref([]);
 const marital_status = ref([
@@ -156,7 +158,7 @@ const contract = ref({});
 const headerDialogContract = ref();
 const displayDialogContract = ref(false);
 const openViewDialogContract = (str) => {
-  forceRerender();
+  forceRerender(1);
   isView.value = true;
   options.value.loading = true;
   swal.fire({
@@ -280,6 +282,7 @@ const openViewDialogContract = (str) => {
 };
 const closeDialogContract = () => {
   displayDialogContract.value = false;
+  forceRerender(1);
 };
 
 //data view 6
@@ -337,12 +340,13 @@ const tranning = ref({});
 const headerDialogTranning = ref();
 const displayDialogTranning = ref(false);
 const openViewDialogTranning = (str) => {
-  forceRerender();
+  forceRerender(2);
   headerDialogTranning.value = str;
   displayDialogTranning.value = true;
 };
 const closeDialogTranning = () => {
   displayDialogTranning.value = false;
+  forceRerender(2);
 };
 
 //data view 10
@@ -374,11 +378,13 @@ const formatBytes = (bytes, decimals = 2) => {
 const headerDialogFile = ref();
 const displayDialogFile = ref(false);
 const openViewDialogFile = (str) => {
+  forceRerender(3);
   headerDialogFile.value = str;
   displayDialogFile.value = true;
 };
 const closeDialogFile = () => {
   displayDialogFile.value = false;
+  forceRerender(3);
 };
 
 //data view 11
@@ -427,9 +433,12 @@ const goBack = () => {
 };
 
 //Function
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
 const changeView = (view) => {
   if (view != null) {
@@ -446,7 +455,7 @@ const isType = ref();
 const headerDialog = ref();
 const displayDialog = ref(false);
 const openEditDialog = (type, str) => {
-  forceRerender();
+  forceRerender(0);
   if (type === 1) {
     isType.value = type;
     headerDialog.value = str;
@@ -459,176 +468,192 @@ const openEditDialog = (type, str) => {
 };
 const closeDialog = () => {
   displayDialog.value = false;
+  forceRerender(0);
 };
 
 //Function edit bảo hiểm
-const statuss = ref([
-  { value: 1, text: "Trả" },
-  { value: 2, text: "Sửa" },
-  { value: 3, text: "Chốt" },
-  { value: 4, text: "Xin cấp" },
-  { value: 5, text: "Gộp" },
-  { value: 6, text: "Người lao động giữ sổ" },
-]);
-const hinhthucs = ref([
-  { value: 1, text: "Bao tăng" },
-  { value: 2, text: "Báo giảm" },
-]);
-const insurance_dictionarys = ref([]);
-const initDictionaryInsurance = () => {
-  axios
-    .post(
-      baseURL + "api/insurance/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_insurance_dictionary",
-            par: [{ par: "user_id", va: store.state.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      if (data != null) {
-        insurance_dictionarys.value = data;
-      }
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
+// const statuss = ref([
+//   { value: 1, text: "Trả" },
+//   { value: 2, text: "Sửa" },
+//   { value: 3, text: "Chốt" },
+//   { value: 4, text: "Xin cấp" },
+//   { value: 5, text: "Gộp" },
+//   { value: 6, text: "Người lao động giữ sổ" },
+// ]);
+// const hinhthucs = ref([
+//   { value: 1, text: "Bao tăng" },
+//   { value: 2, text: "Báo giảm" },
+// ]);
+// const insurance_dictionarys = ref([]);
+// const initDictionaryInsurance = () => {
+//   axios
+//     .post(
+//       baseURL + "api/insurance/GetDataProc",
+//       {
+//         str: encr(
+//           JSON.stringify({
+//             proc: "hrm_insurance_dictionary",
+//             par: [{ par: "user_id", va: store.state.user.user_id }],
+//           }),
+//           SecretKey,
+//           cryoptojs
+//         ).toString(),
+//       },
+//       config
+//     )
+//     .then((response) => {
+//       let data = JSON.parse(response.data.data);
+//       if (data != null) {
+//         insurance_dictionarys.value = data;
+//       }
+//     })
+//     .catch((error) => {
+//       toast.error("Tải dữ liệu không thành công!");
+//       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
+//       if (error && error.status === 401) {
+//         swal.fire({
+//           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//           confirmButtonText: "OK",
+//         });
+//         store.commit("gologout");
+//       }
+//     });
+// };
+// const headerDialogInsurance = ref();
+// const displayDialogInsurance = ref(false);
+// const openEditDialogInsurance = (str) => {
+//   axios
+//     .post(
+//       baseURL + "/api/hrm/callProc",
+//       {
+//         str: encr(
+//           JSON.stringify({
+//             proc: "hrm_profile_insurance_edit",
+//             par: [{ par: "profile_id", va: options.value["profile_id"] }],
+//           }),
+//           SecretKey,
+//           cryoptojs
+//         ).toString(),
+//       },
+//       config
+//     )
+//     .then((response) => {
+//       swal.close();
+//       let data = JSON.parse(response.data.data);
+//       if (data.length > 0) {
+//         if (data[0] != null && data[0].length > 0) {
+//           insurance.value = data[0][0];
+//         } else {
+//           insurance.value = {};
+//         }
+//         //get child
+//         if (data[1] != null && data[1].length > 0) {
+//           insurance_pays.value = data[1];
+//           insurance_pays.value.forEach((item) => {
+//             if (item.start_date != null) {
+//               item.start_date = new Date(item.start_date);
+//             }
+//           });
+//         } else {
+//           insurance_pays.value = [];
+//         }
+
+//         if (data[2] != null && data[2].length > 0) {
+//           insurance_resolves.value = data[2];
+//           insurance_resolves.value.forEach((item) => {
+//             if (item.received_file_date != null) {
+//               item.received_file_date = new Date(item.received_file_date);
+//             }
+//             if (item.completed_date != null) {
+//               item.completed_date = new Date(item.completed_date);
+//             }
+//             if (item.received_money_date != null) {
+//               item.received_money_date = new Date(item.received_money_date);
+//             }
+//           });
+//         } else {
+//           insurance_resolves.value = [];
+//         }
+//       }
+//       headerDialogInsurance.value = str;
+//       displayDialogInsurance.value = true;
+//     })
+//     .catch((error) => {
+//       swal.close();
+//       if (options.value.loading) options.value.loading = false;
+//       if (error && error.status === 401) {
+//         swal.fire({
+//           title: "Thông báo!",
+//           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//           icon: "error",
+//           confirmButtonText: "OK",
+//         });
+//         store.commit("gologout");
+//         return;
+//       } else {
+//         swal.fire({
+//           title: "Thông báo!",
+//           text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+//           icon: "error",
+//           confirmButtonText: "OK",
+//         });
+//         return;
+//       }
+//     });
+// };
+// const closeDialogInsurance = () => {
+//   displayDialogInsurance.value = false;
+// };
+// const addRow = (type) => {
+//   //relative
+//   if (type == 1) {
+//     let obj = {
+//       start_date: null,
+//       payment_form: null,
+//       reason: null,
+//       end_date: null,
+//       organization_payment: null,
+//       total_payment: null,
+//       company_payment: null,
+//       member_payment: null,
+//     };
+//     insurance_pays.value.push(obj);
+//   }
+//   if (type == 2) {
+//     let obj = {
+//       type_mode: null,
+//       payment_form: null,
+//       type_mode: null,
+//       completed_date: null,
+//       received_money_date: null,
+//       money: null,
+//     };
+//     insurance_resolves.value.push(obj);
+//   }
+// };
+// const deleteRow = (idx, type) => {
+//   if (type == 1) {
+//     insurance_pays.value.splice(idx, 1);
+//   }
+//   if (type == 2) {
+//     insurance_resolves.value.splice(idx, 1);
+//   }
+// };
+
+//Funtion Insurance
 const headerDialogInsurance = ref();
 const displayDialogInsurance = ref(false);
 const openEditDialogInsurance = (str) => {
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_profile_insurance_edit",
-            par: [{ par: "profile_id", va: options.value["profile_id"] }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      let data = JSON.parse(response.data.data);
-      if (data.length > 0) {
-        if (data[0] != null && data[0].length > 0) {
-          insurance.value = data[0][0];
-        } else {
-          insurance.value = {};
-        }
-        //get child
-        if (data[1] != null && data[1].length > 0) {
-          insurance_pays.value = data[1];
-          insurance_pays.value.forEach((item) => {
-            if (item.start_date != null) {
-              item.start_date = new Date(item.start_date);
-            }
-          });
-        } else {
-          insurance_pays.value = [];
-        }
-
-        if (data[2] != null && data[2].length > 0) {
-          insurance_resolves.value = data[2];
-          insurance_resolves.value.forEach((item) => {
-            if (item.received_file_date != null) {
-              item.received_file_date = new Date(item.received_file_date);
-            }
-            if (item.completed_date != null) {
-              item.completed_date = new Date(item.completed_date);
-            }
-            if (item.received_money_date != null) {
-              item.received_money_date = new Date(item.received_money_date);
-            }
-          });
-        } else {
-          insurance_resolves.value = [];
-        }
-      }
-      headerDialogInsurance.value = str;
-      displayDialogInsurance.value = true;
-    })
-    .catch((error) => {
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-        return;
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    });
+  forceRerender(4);
+  isAdd.value = false;
+  isView.value = false;
+  headerDialogInsurance.value = str;
+  displayDialogInsurance.value = true;
 };
 const closeDialogInsurance = () => {
   displayDialogInsurance.value = false;
-};
-const addRow = (type) => {
-  //relative
-  if (type == 1) {
-    let obj = {
-      start_date: null,
-      payment_form: null,
-      reason: null,
-      end_date: null,
-      organization_payment: null,
-      total_payment: null,
-      company_payment: null,
-      member_payment: null,
-    };
-    insurance_pays.value.push(obj);
-  }
-  if (type == 2) {
-    let obj = {
-      type_mode: null,
-      payment_form: null,
-      type_mode: null,
-      completed_date: null,
-      received_money_date: null,
-      money: null,
-    };
-    insurance_resolves.value.push(obj);
-  }
-};
-const deleteRow = (idx, type) => {
-  if (type == 1) {
-    insurance_pays.value.splice(idx, 1);
-  }
-  if (type == 2) {
-    insurance_resolves.value.splice(idx, 1);
-  }
+  forceRerender(4);
 };
 
 //Function mores
@@ -2217,7 +2242,7 @@ onMounted(() => {
     options.value["key_id"] = route.params.id;
     options.value["profile_id"] = route.query.id;
     initRelate();
-    initDictionaryInsurance();
+    //initDictionaryInsurance();
     initData();
   } else {
     router.back();
@@ -5512,7 +5537,7 @@ const onPage = (event) => {
 
   <!-- Dialog contract -->
   <dialogcontract
-    :key="componentKey"
+    :key="componentKey['0']"
     :headerDialog="headerDialogContract"
     :displayDialog="displayDialogContract"
     :closeDialog="closeDialogContract"
@@ -5521,7 +5546,7 @@ const onPage = (event) => {
     :dictionarys="dictionarys"
   />
   <dialoginfo
-    :key="componentKey"
+    :key="componentKey['1']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
@@ -5530,7 +5555,7 @@ const onPage = (event) => {
     :initData="initView1"
   />
   <dialogtraining
-    :key="componentKey"
+    :key="componentKey['2']"
     :headerDialog="headerDialogTranning"
     :displayBasic="displayDialogTranning"
     :training_emps="options.training_emps"
@@ -5539,28 +5564,21 @@ const onPage = (event) => {
     :view="true"
   />
   <dialogfile
-    :key="componentKey"
+    :key="componentKey['2']"
     :headerDialog="headerDialogFile"
     :displayDialog="displayDialogFile"
     :file="options.file"
     :closeDialog="closeDialogFile"
   />
   <diloginsurance
-    :key="componentKey"
+    :key="componentKey['4']"
     :headerDialog="headerDialogInsurance"
     :displayDialog="displayDialogInsurance"
     :closeDialog="closeDialogInsurance"
-    :isAdd="false"
-    :isView="false"
-    :model="insurance"
-    :addRow="addRow"
-    :deleteRow="deleteRow"
-    :insurance_pays="insurance_pays"
-    :insurance_resolves="insurance_resolves"
-    :statuss="statuss"
-    :hinhthucs="hinhthucs"
-    :dictionarys="insurance_dictionarys"
-    :initData="initView6"
+    :isAdd="isAdd"
+    :isView="isView"
+    :profile="profile"
+    :initData="null"
   />
 </template>
 <style scoped>
