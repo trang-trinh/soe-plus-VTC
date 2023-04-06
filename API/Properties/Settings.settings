@@ -1,9 +1,0 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="API.Properties" GeneratedClassName="Settings">
-  <Profiles />
-  <Settings>
-    <Setting Name="API_MobileCAWS_APWsImplService" Type="(Web Service URL)" Scope="Application">
-      <Value Profile="(Default)">http://mobilepki.viettel-ca.vn:8080/apws.asmx</Value>
-    </Setting>
-  </Settings>
-</SettingsFile>

@@ -72,7 +72,7 @@ const initModule = () => {
       ];
       if (data_menus.length > 0) {
         // if(data_menus.filter(x => x.is_link == route.fullPath).length == 0)
-        //   router.push({ path: "/" });
+        //   router.push({ name: "profile" });
         data_menus
           .filter(
             (x) => x.parent_id == null, //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
@@ -116,6 +116,7 @@ const initModule = () => {
       if (dt.length > 1) {
         let u = store.getters.user;
         u.organization_id = dt[1][0].organization_id;
+        u.organization_parent_id = dt[1][0].organization_parent_id;
         u.role_id = dt[1][0].role_id;
         u.organization_name = dt[1][0].organization_name;
         u.product_name = dt[1][0].product_name;
@@ -124,6 +125,7 @@ const initModule = () => {
         u.user_key = dt[1][0].user_key;
         u.background_image = dt[1][0].background_image;
         u.is_super = dt[1][0].is_super;
+        u.organization_child_id = dt[1][0].organization_child_id;
         store.commit("setuser", u);
         if (u.organization_name)
           document.getElementsByTagName("title")[0].innerText =
@@ -250,12 +252,12 @@ onMounted(() => {
   >
     <template v-slot:footer></template>
     <template v-slot:toggle-icon>
-      <img
+      <!-- <img
         class="vsm--logo"
         :src="basedomainURL + store.getters.user.logo"
-      />
-      <!-- <img class="vsm--logo" src="../../assets/logo_nobg.png" />
-      <h5 class="ml-2 hversion">SmartOffice</h5> -->
+      /> -->
+      <img class="vsm--logo" src="../../assets/logo_nobg.png" />
+      <h5 class="ml-2 hversion">Smart Office</h5>
     </template>
   </sidebar-menu>
 </template>

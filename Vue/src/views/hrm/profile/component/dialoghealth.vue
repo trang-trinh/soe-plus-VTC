@@ -22,6 +22,7 @@ const props = defineProps({
   profile: Object,
   users: Array,
 });
+const display = ref(props.displayDialog);
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -201,16 +202,18 @@ const initData = (rf) => {
     });
 };
 onMounted(() => {
-  initData(true);
+  if (props.displayDialog) {
+    initData(true);
+  }
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '60vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
@@ -474,5 +477,14 @@ onMounted(() => {
 @import url(../../profile/component/stylehrm.css);
 .p-overlaypanel {
   z-index: 99999;
+}
+</style>
+<style lang="scss" scoped>
+::v-deep(.p-datatable) {
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+  }
 }
 </style>

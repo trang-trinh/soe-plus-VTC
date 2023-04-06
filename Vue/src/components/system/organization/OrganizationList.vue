@@ -79,6 +79,7 @@ const options = ref({
   sortP: "created_date",
 });
 const donvis = ref();
+const data_org = ref();
 const treedonvis = ref();
 const treediadanhs = ref();
 const selectDiadanh = ref();
@@ -291,6 +292,7 @@ const loadDonvi = (rf) => {
           "đơn vị",
         );
         donvis.value = obj.arrChils;
+        data_org.value = data[0];
         if(!store.getters.user.is_super){
           donvis.value.forEach((element) => {
             expandNode(element);
@@ -402,12 +404,7 @@ const handleSubmit = (isFormValid) => {
 };
 
 const addTreeDonvi = (md, type) => {
-  let is_order = donvis.value.length + 1;
-  if (md.children) {
-    is_order = md.children.length + 1;
-  } else {
-    is_order = 1;
-  }
+  let is_order = data_org.value.filter(x => x.parent_id == md.organization_id).length +1;
   selectCapcha.value = {};
   selectCapcha.value[md.organization_id] = true;
   donvi.value = {
@@ -725,8 +722,8 @@ const initTreeDV = (rf) => {
       if (isFirst.value) isFirst.value = false;
       data.forEach((element, i) => {
         element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        element.isClosed = false;
-        element.isOpened = true;
+        element.isClosed =  false ;
+        element.isOpened =  true;
         if (data.find(x => x.parent_id == element.organization_id)) {
           element.canExpand = true;
         }
@@ -1044,7 +1041,7 @@ onMounted(() => {
             class="p-button-rounded p-button-secondary p-button-outlined"
             style="margin-right: 0.5rem"
             v-tooltip.top="'Thêm đơn vị trực thuộc'"
-            @click="addTreeDonvi(md.node.data,0)"
+            @click="addTreeDonvi(md.node.data,1)"
           ></Button>
           <Button
             type="button"
@@ -1380,7 +1377,7 @@ onMounted(() => {
             class="col-4 ip36"
             v-model="donvi.phone"
           />
-          <label class="col-2 text-right">Fax</label>
+          <label class="col-2 text-left pl-4">Fax</label>
           <InputText
             spellcheck="false"
             class="col-4 ip36"
@@ -1397,7 +1394,7 @@ onMounted(() => {
             class="col-4 ip36"
             v-model="donvi.is_url"
           />
-          <label class="col-2 text-right">Email</label>
+          <label class="col-2 text-left pl-4">Email</label>
           <InputText
             spellcheck="false"
             class="col-4 ip36"
@@ -1427,9 +1424,9 @@ onMounted(() => {
             class="col-4 ip36"
             v-model="donvi.business_code"
           />
-          <label class="col-2 text-right">Ngày thành lập</label>
+          <label class="col-2 text-left pl-4">Ngày thành lập</label>
           <Calendar
-          class="col-4 ip36"
+          class="col-4 ip36 p-0"
           id="icon"
           foundation_date
           :showIcon="true"

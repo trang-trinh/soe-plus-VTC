@@ -91,6 +91,9 @@ namespace API.Controllers
                         task_origin.modified_date = DateTime.Now;
                         task_origin.created_ip = ip;
                         task_origin.created_token_id = tid;
+                        task_origin.u_department_id = helper.Department(claims);
+                        task_origin.organization_child_id = helper.OrgainzationChild(claims) != null ? helper.OrgainzationChild(claims) : helper.Orgainzation(claims);
+
                         db.task_origin.Add(task_origin);
 
                         var file = provider.FileData;

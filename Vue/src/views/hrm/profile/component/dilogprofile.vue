@@ -37,6 +37,8 @@ const props = defineProps({
   initData: Function,
 });
 
+const display = ref(props.displayDialog);
+
 //Declare dictionary
 const bgColor = ref([
   "#F8E69A",
@@ -50,6 +52,7 @@ const bgColor = ref([
 const listPlaceDetails1 = ref([]);
 const listPlaceDetails2 = ref([]);
 const listPlaceDetails3 = ref([]);
+const listPlaceDetails4 = ref([]);
 
 //function
 const submitted = ref(false);
@@ -58,8 +61,7 @@ const saveModel = (is_continue) => {
   if (
     !props.model.profile_id ||
     !props.model.profile_user_name ||
-    !props.model.birthday ||
-    !props.model.select_birthplace
+    !props.model.birthday
   ) {
     swal.fire({
       title: "Thông báo!",
@@ -124,6 +126,17 @@ const saveModel = (is_continue) => {
       obj["place_register_permanent"] = null;
     } else {
       obj["place_register_permanent"] = obj["select_place_register_permanent"];
+    }
+  }
+  if (obj["place_residence_id"] != null) {
+    var checkname = listPlaceDetails4.value.findIndex(
+      (x) => x["place_details_id"] === (obj["select_place_residence"] || "")
+    );
+    if (checkname === -1) {
+      obj["place_residence_name"] = obj["select_place_residence"] || "";
+      obj["place_residence_id"] = null;
+    } else {
+      obj["place_residence_id"] = obj["select_place_residence"];
     }
   }
   let formData = new FormData();
@@ -225,6 +238,8 @@ const initPlaceFilter = (event, type) => {
               listPlaceDetails2.value = JSON.parse(JSON.stringify(data[0]));
             } else if (type == 3) {
               listPlaceDetails3.value = JSON.parse(JSON.stringify(data[0]));
+            } else if (type == 4) {
+              listPlaceDetails4.value = JSON.parse(JSON.stringify(data[0]));
             }
           } else {
             if (type == 1) {
@@ -233,6 +248,8 @@ const initPlaceFilter = (event, type) => {
               listPlaceDetails2.value = [];
             } else if (type == 3) {
               listPlaceDetails3.value = [];
+            } else if (type == 4) {
+              listPlaceDetails4.value = [];
             }
           }
         }
@@ -240,20 +257,21 @@ const initPlaceFilter = (event, type) => {
     });
 };
 onMounted(() => {
-  if (props.model != null) {
+  if (props.displayDialog && props.model != null) {
     initPlaceFilter({ value: props.model.birthplace_name }, 1);
     initPlaceFilter({ value: props.model.birthplace_origin_name }, 2);
     initPlaceFilter({ value: props.model.place_register_permanent_name }, 3);
+    initPlaceFilter({ value: props.model.place_residence_name }, 4);
   }
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '72vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
@@ -312,22 +330,13 @@ onMounted(() => {
                             class="ip36"
                             v-model="props.model.profile_id"
                             v-bind:disabled="!props.isAdd"
+                            :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                           />
                           <div v-if="!props.model.profile_id && submitted">
                             <small class="p-error">
                               <span>Mã nhân sự không được để trống</span>
                             </small>
                           </div>
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Mã chấm công</label>
-                          <InputText
-                            spellcheck="false"
-                            class="ip36"
-                            v-model="props.model.check_in_id"
-                          />
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
@@ -342,18 +351,6 @@ onMounted(() => {
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
-                          <label>Ngày tuyển dụng</label>
-                          <Calendar
-                            class="ip36"
-                            id="icon"
-                            v-model="props.model.recruitment_date"
-                            :showIcon="true"
-                            placeholder="dd/mm/yyyy"
-                          />
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
                           <label
                             >Họ và tên <span class="redsao">(*)</span></label
                           >
@@ -361,6 +358,7 @@ onMounted(() => {
                             spellcheck="false"
                             class="ip36"
                             v-model="props.model.profile_user_name"
+                            :style="{ fontWeight: 'bold' }"
                           />
                           <div
                             v-if="!props.model.profile_user_name && submitted"
@@ -373,11 +371,11 @@ onMounted(() => {
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
-                          <label>Tên gọi khác</label>
+                          <label>Mã chấm công</label>
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.profile_nick_name"
+                            v-model="props.model.check_in_id"
                           />
                         </div>
                       </div>
@@ -402,6 +400,18 @@ onMounted(() => {
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
+                          <label>Ngày tuyển dụng</label>
+                          <Calendar
+                            class="ip36"
+                            id="icon"
+                            v-model="props.model.recruitment_date"
+                            :showIcon="true"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
                           <label>Giới tính</label>
                           <Dropdown
                             :options="props.genders"
@@ -413,17 +423,29 @@ onMounted(() => {
                           />
                         </div>
                       </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Tên gọi khác</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.profile_nick_name"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 md:col-12">
                 <div class="form-group">
-                  <label>Nơi sinh <span class="redsao">(*)</span></label>
+                  <label>Nơi sinh</label>
                   <Dropdown
                     @filter="initPlaceFilter($event, 1)"
                     :options="listPlaceDetails1"
                     :filter="true"
+                    :editable="true"
+                    :showClear="true"
                     v-model="props.model.select_birthplace"
                     optionLabel="name"
                     optionValue="name"
@@ -451,6 +473,8 @@ onMounted(() => {
                     @filter="initPlaceFilter($event, 2)"
                     :options="listPlaceDetails2"
                     :filter="true"
+                    :editable="true"
+                    :showClear="true"
                     v-model="props.model.select_birthplace_origin"
                     optionLabel="name"
                     optionValue="name"
@@ -472,30 +496,40 @@ onMounted(() => {
                 </div>
               </div>
               <div class="col-12 md:col-12">
-                <div class="form-group">
+                <div class="form-group m-0">
                   <label>Nơi đăng ký HKTT</label>
-                  <Dropdown
-                    @filter="initPlaceFilter($event, 3)"
-                    :options="listPlaceDetails3"
-                    :filter="true"
-                    v-model="props.model.select_place_register_permanent"
-                    optionLabel="name"
-                    optionValue="name"
-                    class="ip36"
-                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
-                    panelClass="d-design-dropdown"
-                  />
-                  <!-- <TreeSelect
-                    :options="props.places"
-                    :showClear="true"
-                    :max-height="200"
-                    v-model="props.model.select_place_register_permanent"
-                    placeholder="Chọn nơi đăng ký"
-                    optionLabel="name"
-                    optionValue="place_id"
-                    class="ip36"
-                  >
-                  </TreeSelect> -->
+                </div>
+              </div>
+              <div class="col-12 md:col-12 p-0">
+                <div class="row">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.place_register_permanent_first"
+                        maxLength="500"
+                        placeholder="Số nhà/đường phố"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <Dropdown
+                        @filter="initPlaceFilter($event, 3)"
+                        :options="listPlaceDetails3"
+                        :filter="true"
+                        :editable="true"
+                        :showClear="true"
+                        v-model="props.model.select_place_register_permanent"
+                        optionLabel="name"
+                        optionValue="name"
+                        class="ip36"
+                        placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                        panelClass="d-design-dropdown"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="col-12 md:col-12 p-0">
@@ -814,24 +848,35 @@ onMounted(() => {
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
+                    <div class="form-group m-0">
+                      <label>Chỗ ở hiện nay </label>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Thường trú</label>
                       <InputText
                         spellcheck="false"
                         class="ip36"
                         v-model="props.model.place_permanent"
                         maxLength="500"
+                        placeholder="Số nhà/đường phố"
                       />
                     </div>
                   </div>
-                  <div class="col-12 md:col-12">
+                  <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Chỗ ở hiện nay</label>
-                      <InputText
-                        spellcheck="false"
+                      <Dropdown
+                        @filter="initPlaceFilter($event, 4)"
+                        :options="listPlaceDetails4"
+                        :filter="true"
+                        :editable="true"
+                        :showClear="true"
+                        v-model="props.model.select_place_residence"
+                        optionLabel="name"
+                        optionValue="name"
                         class="ip36"
-                        v-model="props.model.place_residence"
-                        maxLength="500"
+                        placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                        panelClass="d-design-dropdown"
                       />
                     </div>
                   </div>
@@ -840,7 +885,7 @@ onMounted(() => {
                       <label class="m-0">Khi cần báo tin cho:</label>
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Họ và tên</label>
                       <InputText
@@ -851,7 +896,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Số điện thoại</label>
                       <InputText
@@ -859,6 +904,25 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.involved_phone"
                         maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Mối quan hệ</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[11]"
+                        optionLabel="relationship_name"
+                        optionValue="relationship_id"
+                        placeholder="Chọn quan hệ"
+                        v-model="props.model.relationship_id"
+                        class="ip36"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -968,11 +1032,11 @@ onMounted(() => {
                             placeholder="Chọn quan hệ"
                             v-model="slotProps.data.relationship_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1098,11 +1162,11 @@ onMounted(() => {
                             optionValue="value"
                             placeholder="Chọn trạng thái"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           >
                             <template #option="slotProps">
                               <div class="country-item flex align-items-center">
@@ -1282,11 +1346,11 @@ onMounted(() => {
                             placeholder="Chọn chuyên ngành"
                             v-model="slotProps.data.specialized"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1344,11 +1408,11 @@ onMounted(() => {
                             placeholder="Chọn hình thức"
                             v-model="slotProps.data.form_traning_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1370,11 +1434,11 @@ onMounted(() => {
                             placeholder="Chọn văn bằng"
                             v-model="slotProps.data.certificate_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1567,11 +1631,11 @@ onMounted(() => {
                             placeholder="Chọn chuyên ngành"
                             v-model="slotProps.data.form"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>

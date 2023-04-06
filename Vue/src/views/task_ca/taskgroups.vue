@@ -39,6 +39,7 @@ const taskGroup = ref({
   group_name: "",
   status: null,
   is_order: null,
+  is_public: false,
   organization_id: null,
 });
 const editGroup = ref(false);
@@ -154,9 +155,9 @@ const LoadData = (rf) => {
             JSON.stringify({
               proc: "task_ca_taskgroup_list",
               par: [
-                { par: "pageno", va: options.value.user },
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
+                { par: "user_id", va: user.user_id },
+                { par: "status", va: options.value.PageNo },
+                { par: "@search", va: options.value.PageSize },
               ],
             }),
             SecretKey,
@@ -279,35 +280,38 @@ const loadDataSQL = () => {
   datalists.value = [];
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/SQL/Filter_TaskGroups", data, config)
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_ca_taskgroup_list",
+            par: [
+              { par: "user_id", va: user.user_id },
+              { par: "status", va: data.sqlS },
+              { par: "search", va: data.Search },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
     .then((response) => {
-      let dt = JSON.parse(response.data.data);
-      let data = dt[0];
-      if (data.length > 0) {
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          let om = { key: element.group_id, data: element };
-          datalists.value.push(om);
-        });
-      } else {
-        datalists.value = [];
-      }
-      if (isFirst.value) isFirst.value = false;
+      let data = JSON.parse(response.data.data)[0];
+      RenderData(data);
       options.value.loading = false;
-      //Show Count nếu có
-      if (dt.length == 2) {
-        options.value.totalRecords = dt[1][0].totalRecords;
-      }
     })
     .catch((error) => {
-      options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-      addLog({
-        title: "Lỗi Console loadData",
-        controller: "SQLView.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
+      options.value.loading = false;
+      // addLog({
+      //   title: "Lỗi Console loadData",
+      //   controller: "datasView.vue",
+      //   logcontent: error.message,
+      //   loai: 2,
+      // });
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
@@ -349,6 +353,7 @@ const AddItem = (str) => {
     group_name: "",
     status: true,
     is_order: options.value.totalRecords + 1,
+    is_public: false,
     organization_id: user.is_super ? 1 : user.organization_id,
   };
   if (options.value.totalRecords > 0) {
@@ -966,35 +971,57 @@ onMounted(() => {
         </template>
       </Column>
       <Column
+        field="status"
+        header="Đơn vị"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px;;max-height:600px"
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <!-- {{ user }} -->
+          {{ data.data }}
+        </template>
+      </Column>
+      <Column
         header="Chức năng"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:200px;height:50px"
         bodyStyle="text-align:center;max-width:200px;;max-height:600px"
-        v-if="store.state.user.is_super == true || user.is_admin"
       >
         <template #body="data">
-          <Button
-            @click="AddChild(data)"
-            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-            type="button"
-            icon="pi pi-plus-circle"
-            v-tooltip="'Thêm nhóm công việc con'"
-          ></Button>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              (user.is_admin &&
+                user.organization_child_id != null &&
+                user.organization_child_id ==
+                  data.data.organization_child_id) ||
+              user.is_admin
+            "
+          >
+            <Button
+              @click="AddChild(data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-plus-circle"
+              v-tooltip="'Thêm nhóm công việc con'"
+            ></Button>
 
-          <Button
-            @click="EditItem(data.node.data)"
-            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-            type="button"
-            icon="pi pi-pencil"
-            v-tooltip="'Sửa'"
-          ></Button>
-          <Button
-            @click="DeleteItem(data.node.data, true)"
-            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-            type="button"
-            v-tooltip="'Xóa'"
-            icon="pi pi-trash"
-          ></Button>
+            <Button
+              @click="EditItem(data.node.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-pencil"
+              v-tooltip="'Sửa'"
+            ></Button>
+            <Button
+              @click="DeleteItem(data.node.data, true)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              v-tooltip="'Xóa'"
+              icon="pi pi-trash"
+            ></Button>
+          </div>
         </template>
       </Column>
       <template #empty>
@@ -1040,7 +1067,7 @@ onMounted(() => {
           <InputText
             v-model="taskGroup.group_name"
             spellcheck="false"
-            class="col-8 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{ 'p-invalid': v$.group_name.$invalid && submitted }"
           />
         </div>
@@ -1075,10 +1102,17 @@ onMounted(() => {
               class="col-6 ip36 p-0"
             />
           </div>
-          <div class="field col-6 md:col-6 p-0 flex align-items-center">
+          <div class="field col-3 md:col-3 p-0 flex align-items-center">
             <label class="col-6 text-center p-0">Trạng thái </label>
             <InputSwitch
               v-model="taskGroup.status"
+              style="justify-content: center; align-items: center"
+            />
+          </div>
+          <div class="field col-3 md:col-3 p-0 flex align-items-center">
+            <label class="col-6 text-center p-0">Công khai</label>
+            <InputSwitch
+              v-model="taskGroup.is_public"
               style="justify-content: center; align-items: center"
             />
           </div>

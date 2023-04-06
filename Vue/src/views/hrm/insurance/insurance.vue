@@ -31,7 +31,7 @@ const statuss = ref([
   { value: 6, text: "Người lao động giữ sổ" },
 ]);
 const hinhthucs = ref([
-  { value: 1, text: "Bao tăng" },
+  { value: 1, text: "Báo tăng" },
   { value: 2, text: "Báo giảm" },
 ]);
 const insurance_pays = ref();

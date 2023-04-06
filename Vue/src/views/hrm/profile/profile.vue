@@ -6,7 +6,11 @@ import dilogprofile from "../profile/component/dilogprofile.vue";
 import dialogreceipt from "../profile/component/dialogreceipt.vue";
 import dialoghealth from "../profile/component/dialoghealth.vue";
 import dialogrelate from "../profile/component/dialogrelate.vue";
+import dialogtag from "../profile/component//dialogtag.vue";
+import dialogcontract from "../contract/component/dialogcontract.vue";
+import diloginsurance from "../profile/component/diloginsurance.vue";
 import moment from "moment";
+import { groupBy } from "lodash";
 const router = inject("router");
 const store = inject("store");
 const swal = inject("$swal");
@@ -32,6 +36,8 @@ const options = ref({
   sort: "created_date desc",
   orderBy: "desc",
   tab: -1,
+  view: 1,
+  view_copy: 1,
   filterProfile_id: null,
   organizations: [],
   departments: [],
@@ -49,7 +55,12 @@ const counts = ref([]);
 const profile = ref({});
 const selectedNodes = ref({});
 const dictionarys = ref([]);
+const treeOrganization = ref([]);
 const datachilds = ref([]);
+const groups = ref([
+  { view: 1, icon: "pi pi-list", title: "list" },
+  { view: 2, icon: "pi pi-align-right", title: "tree" },
+]);
 
 //declare dictionary
 const tabs = ref([
@@ -123,6 +134,7 @@ const bgColor = ref([
 const genders = ref([
   { value: 1, text: "Nam" },
   { value: 2, text: "Nữ" },
+  { value: 3, text: "Khác" },
 ]);
 const places = ref();
 const marital_status = ref([
@@ -169,11 +181,19 @@ const filter = (event) => {
   initData(true);
 };
 const changeBirthdayDate = () => {};
+const changeView = (view) => {
+  if (view != null) {
+    options.value.view = view;
+    options.value.view_copy = view;
+  } else {
+    options.value.view = options.value.view_copy;
+  }
+};
 
 //Watch
-watch(selectedNodes, () => {
-  goProfile(selectedNodes.value);
-});
+// watch(selectedNodes, () => {
+//   goProfile(selectedNodes.value);
+// });
 
 //Function
 const componentKey = ref({});
@@ -182,6 +202,30 @@ const forceRerender = (type) => {
     componentKey.value[type] = 0;
   }
   componentKey.value[type] += 1;
+};
+const addToArray = (temp, array, id, lv, od) => {
+  var filter = array.filter((x) => x.parent_id === id);
+  filter = filter.sort((a, b) => {
+    return b[od] - a[od];
+  });
+  if (filter.length > 0) {
+    var sp = "";
+    for (var i = 0; i < lv; i++) {
+      sp += "---";
+    }
+    lv++;
+    filter.forEach((item) => {
+      item.lv = lv;
+      item.close = true;
+      if (!item.ids) {
+        item.ids = "";
+        item.ids += "," + item.organization_id;
+      }
+      if (!item.newname) item.newname = sp + " " + item.organization_name;
+      temp.push(item);
+      addToArray(temp, array, item.organization_id, lv);
+    });
+  }
 };
 const menuButMores = ref();
 const itemButMores = ref([
@@ -192,13 +236,13 @@ const itemButMores = ref([
       editItem(profile.value, "Chỉnh sửa hồ sơ");
     },
   },
-  {
-    label: "Cập nhật thay đổi thông tin",
-    icon: "pi pi-pencil",
-    command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
-    },
-  },
+  // {
+  //   label: "Cập nhật thay đổi thông tin",
+  //   icon: "pi pi-pencil",
+  //   command: (event) => {
+  //     //editItem(profile.value, "Chỉnh sửa hợp đồng");
+  //   },
+  // },
   {
     label: "Cấp tài khoản truy cập",
     icon: "pi pi-key",
@@ -224,7 +268,7 @@ const itemButMores = ref([
     label: "Gán nhãn",
     icon: "pi pi-tags",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openEditDialogTag(profile.value, "Gán nhãn");
     },
   },
   {
@@ -252,6 +296,7 @@ const itemButMores = ref([
 const toggleMores = (event, item) => {
   profile.value = item;
   menuButMores.value.toggle(event);
+  selectedNodes.value = item;
 };
 
 const menuButMoresPlus = ref();
@@ -267,14 +312,17 @@ const itemButMoresPlus = ref([
     label: "Hợp đồng lao động",
     icon: "pi pi-file",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openAddDialogContract(profile.value, "Thêm mới hợp đồng");
     },
   },
   {
     label: "Bảo hiểm",
     icon: "pi pi-book",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openAddDialogInsurance(
+        profile.value,
+        "Cập nhật thay đổi thông tin bảo hiểm"
+      );
     },
   },
   {
@@ -288,6 +336,7 @@ const itemButMoresPlus = ref([
 const toggleMoresPlus = (event, item) => {
   profile.value = item;
   menuButMoresPlus.value.toggle(event);
+  selectedNodes.value = item;
 };
 const goFile = (file) => {
   window.open(basedomainURL + file.file_path, "_blank");
@@ -302,6 +351,7 @@ const goProfile = (profile) => {
 
 //Function update model
 const isAdd = ref(false);
+const isView = ref(false);
 const submitted = ref(false);
 const model = ref({});
 const files = ref([]);
@@ -320,6 +370,7 @@ const openAddDialog = (str) => {
 };
 const closeDialog = () => {
   displayDialog.value = false;
+  forceRerender(0);
 };
 const editItem = (item, str) => {
   datachilds.value = [];
@@ -464,7 +515,7 @@ const editItem = (item, str) => {
       }
       swal.close();
       if (options.value.loading) options.value.loading = false;
-
+      forceRerender(0);
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -701,7 +752,7 @@ const setStar = (item) => {
       }
       swal.close();
       toast.success("Cập nhật thành công!");
-      initData(true);
+      //initData(true);
     })
     .catch((error) => {
       swal.close();
@@ -738,6 +789,7 @@ const openEditDialogReceipt = (item, str) => {
 };
 const closeDialogReceipt = () => {
   displayDialogReceipt.value = false;
+  forceRerender(1);
 };
 
 //function helth
@@ -750,6 +802,7 @@ const openEditDialogHealth = (item, str) => {
 };
 const closeDialogHealth = () => {
   displayDialogHealth.value = false;
+  forceRerender(2);
 };
 
 //function relate
@@ -762,8 +815,78 @@ const openEditDialogRelate = (item, str) => {
 };
 const closeDialogRelate = () => {
   displayDialogRelate.value = false;
+  forceRerender(3);
 };
 
+//function tag
+const headerDialogTag = ref();
+const displayDialogTag = ref(false);
+const openEditDialogTag = (item, str) => {
+  forceRerender(4);
+  headerDialogTag.value = str;
+  displayDialogTag.value = true;
+};
+const closeDialogTag = () => {
+  displayDialogTag.value = false;
+  forceRerender(4);
+};
+
+//function contract
+function CreateGuid() {
+  function _p8(s) {
+    var p = (Math.random().toString(16) + "000000000").substr(2, 8);
+    return s ? "-" + p.substr(0, 4) + "-" + p.substr(4, 4) : p;
+  }
+  return _p8() + _p8(true) + _p8(true) + _p8();
+}
+const headerDialogContract = ref();
+const displayDialogContract = ref(false);
+const openAddDialogContract = (item, str) => {
+  forceRerender(5);
+  isAdd.value = true;
+  model.value = {
+    profile: item,
+    sign_user: null,
+    contract_no: "",
+    contract_name: "",
+    employment: "",
+    start_date: new Date(),
+    sign_date: new Date(),
+    status: 0,
+    is_order: options.value.total + 1,
+    allowances: [
+      {
+        allowance_id: CreateGuid(),
+        start_date: new Date(),
+        formalitys: [{}],
+        wages: [{}],
+      },
+    ],
+    files: [],
+  };
+  headerDialogContract.value = str;
+  displayDialogContract.value = true;
+};
+const closeDialogContract = () => {
+  displayDialogContract.value = false;
+  forceRerender(5);
+};
+
+//Funtion Insurance
+const headerDialogInsurance = ref();
+const displayDialogInsurance = ref(false);
+const openAddDialogInsurance = (item, str) => {
+  profile.value = item;
+  forceRerender(6);
+  isAdd.value = false;
+  isView.value = false;
+  headerDialogInsurance.value = str;
+  displayDialogInsurance.value = true;
+};
+const closeDialogInsurance = () => {
+  displayDialogInsurance.value = false;
+  forceRerender(6);
+};
 //Init
 const initPlace = () => {
   axios
@@ -861,6 +984,17 @@ const initDictionary = () => {
         if (data != null) {
           let tbs = JSON.parse(data);
           dictionarys.value = tbs;
+          // if (
+          //   dictionarys.value[20] != null &&
+          //   dictionarys.value[20].length > 0
+          // ) {
+          //   treeOrganization.value = JSON.parse(
+          //     JSON.stringify(dictionarys.value[20])
+          //   );
+          //   var temp = [];
+          //   addToArray(temp, treeOrganization.value, null, 0, "is_order");
+          //   treeOrganization.value = temp;
+          // }
         }
       }
     });
@@ -1213,6 +1347,51 @@ const initDataFilter = () => {
       }
     });
 };
+const initTreeOrganization = () => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  treeOrganization.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_treeOrganization",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            treeOrganization.value = JSON.parse(JSON.stringify(tbs[0]));
+            // treeOrganization.value.push({
+            //   organization_id: -1,
+            //   organization_name: "Chưa phân đơn vị",
+            //   parent_id: null,
+            //   is_order: -1,
+            // });
+            var temp = [];
+            addToArray(temp, treeOrganization.value, null, 0, "is_order");
+            treeOrganization.value = temp;
+          }
+          initData(true);
+        }
+      }
+    });
+};
 const initData = (ref) => {
   if (ref) {
     swal.fire({
@@ -1226,6 +1405,7 @@ const initData = (ref) => {
     initDataFilter();
     return;
   }
+  datas.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1251,8 +1431,15 @@ const initData = (ref) => {
       if (response != null && response.data != null) {
         let data = JSON.parse(response.data.data);
         if (data != null) {
+          var arr = [];
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((item, i) => {
+              const startDate = moment(item.recruitment_date || new Date());
+              const endDate = moment(new Date());
+              item.duration = moment.duration(endDate.diff(startDate));
+              item.diffyear = item.duration.years();
+              item.diffday = item.duration.days();
+
               item["STT"] = i + 1;
               if (item["created_date"] != null) {
                 item["created_date"] = moment(
@@ -1283,13 +1470,26 @@ const initData = (ref) => {
               }
             });
             datas.value = data[0];
+            var temp = groupBy(data[0], "department_id");
+            for (let k in temp) {
+              var obj = {
+                department_id: k,
+                department_name: temp[k][0].department_name,
+                organization_id: temp[k][0].organization_id,
+                list: temp[k],
+              };
+              arr.push(obj);
+            }
             if (data[1] != null && data[1].length > 0) {
               options.value.total = data[1][0].total;
             }
           } else {
-            datas.value = [];
+            arr = [];
             options.value.total = 0;
           }
+          treeOrganization.value.forEach((o) => {
+            o.list = arr.filter((dp) => dp.department_id == o.organization_id);
+          });
         }
       }
       if (isFirst.value) isFirst.value = false;
@@ -1321,27 +1521,31 @@ const initData = (ref) => {
 };
 const refresh = () => {
   selectedNodes.value = {};
-  options.value = {
-    loading: true,
-    user_id: store.getters.user.user_id,
-    search: "",
-    pageNo: 1,
-    pageSize: 25,
-    total: 0,
-    sort: "created_date desc",
-    orderBy: "desc",
-    tab: -1,
-    filterProfile_id: null,
-  };
+  // options.value = {
+  //   loading: true,
+  //   user_id: store.getters.user.user_id,
+  //   search: "",
+  //   pageNo: 1,
+  //   pageSize: 25,
+  //   total: 0,
+  //   sort: "created_date desc",
+  //   orderBy: "desc",
+  //   tab: -1,
+  //   view: 1,
+  //   view_copy: 1,
+  //   filterProfile_id: null,
+  // };
   isFilter.value = false;
   initCount();
-  initData(true);
+  initTreeOrganization();
+  //initData(true);
 };
 onMounted(() => {
-  initPlace();
+  //initPlace();
   initDictionary();
   initCount();
-  initData(true);
+  initTreeOrganization();
+  //initData(true);
 });
 // const test = () => {
 //   var str = encr(
@@ -1639,7 +1843,7 @@ onMounted(() => {
                     <div class="col-12 md:col-12">
                       <div class="form-group">
                         <label>Nơi sinh</label>
-                        <TreeSelect
+                        <!-- <TreeSelect
                           :options="places"
                           v-model="options.birthplaces"
                           placeholder="Chọn nơi sinh"
@@ -1681,7 +1885,20 @@ onMounted(() => {
                               {{ slotProps.placeholder }}
                             </span>
                           </template>
-                        </TreeSelect>
+                        </TreeSelect> -->
+                        <Dropdown
+                          @filter="initPlaceFilter($event, 1)"
+                          :options="listPlaceDetails1"
+                          :filter="true"
+                          :editable="false"
+                          :showClear="false"
+                          v-model="options.birthplaces"
+                          optionLabel="name"
+                          optionValue="name"
+                          class="ip36"
+                          placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                          panelClass="d-design-dropdown"
+                        />
                       </div>
                     </div>
                     <div class="col-12 md:col-12">
@@ -1820,7 +2037,7 @@ onMounted(() => {
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
-          class="p-button-outlined p-button-secondary"
+          class="p-button-outlined p-button-secondary mr-2"
           aria-haspopup="true"
           aria-controls="overlay_Export"
         >
@@ -1835,6 +2052,21 @@ onMounted(() => {
           id="overlay_Export"
           ref="menuButs"
         />
+        <SelectButton
+          v-model="options.view"
+          :options="groups"
+          @change="changeView(options.view)"
+          optionValue="view"
+          optionLabel="view"
+          dataKey="view"
+          aria-labelledby="custom"
+        >
+          <template #option="slotProps">
+            <div v-tooptip.top="slotProps.option.title">
+              <i :class="slotProps.option.icon"></i>
+            </div>
+          </template>
+        </SelectButton>
       </template>
     </Toolbar>
     <div class="tabview">
@@ -1855,8 +2087,13 @@ onMounted(() => {
         </ul>
       </div>
     </div>
-    <div class="d-lang-table">
+    <div v-if="options.view === 1" class="d-lang-table">
       <DataTable
+        @rowSelect="
+          (event) => {
+            goProfile(event.data);
+          }
+        "
         :value="datas"
         :virtualScrollerOptions="{ itemSize: 78 }"
         :scrollable="true"
@@ -1943,14 +2180,20 @@ onMounted(() => {
         <Column
           field="profile_user_name"
           header="Họ và tên"
-          headerStyle="text-align:center;max-width:150px;height:50px"
-          bodyStyle="text-align:center;max-width:150px;"
+          headerStyle="text-align:center;max-width:300px;height:50px"
+          bodyStyle="text-align:center;max-width:300px;"
           class="align-items-center justify-content-left text-left"
         >
           <template #body="slotProps">
             <div style="min-width: 200px">
               <div class="mb-1" v-if="slotProps.data.gender">
-                <span>{{ slotProps.data.gender == 1 ? "Nam" : "Nữ" }}</span>
+                <span>{{
+                  slotProps.data.gender == 1
+                    ? "Nam"
+                    : slotProps.data.gender == 2
+                    ? "Nữ"
+                    : "Khác"
+                }}</span>
               </div>
               <div class="mb-1">
                 <span>{{ slotProps.data.birthday }}</span>
@@ -2010,6 +2253,27 @@ onMounted(() => {
               <div class="mb-1">
                 <span>{{ slotProps.data.department_name }}</span>
               </div>
+            </div>
+          </template>
+        </Column>
+        <Column
+          field="countRecruitment"
+          header="Ngày thâm niên"
+          headerStyle="text-align:center;max-width:100px;height:50px"
+          bodyStyle="text-align:center;max-width:100px;"
+          class="align-items-center justify-content-left text-left"
+        >
+          <template #body="slotProps">
+            <div v-tooltip.top="'Thâm niên công tác'">
+              <span v-if="slotProps.data.diffyear > 0"
+                >{{ slotProps.data.diffyear }} năm
+              </span>
+              <span
+                v-if="
+                  slotProps.data.diffyear >= 0 && slotProps.data.diffday > 0
+                "
+                >{{ slotProps.data.diffday }} ngày
+              </span>
             </div>
           </template>
         </Column>
@@ -2093,12 +2357,12 @@ onMounted(() => {
         <template #empty>
           <div
             class="align-items-center justify-content-center p-4 text-center m-auto"
-            style="
-              display: flex;
-              width: 100%;
-              height: calc(100vh - 210px);
-              background-color: #fff;
-            "
+            :style="{
+              display: 'flex',
+              width: '100%',
+              height: 'calc(100vh - 210px)',
+              backgroundColor: '#fff',
+            }"
           >
             <div v-if="!options.loading && (!isFirst || options.total == 0)">
               <img src="../../../assets/background/nodata.png" height="144" />
@@ -2107,6 +2371,294 @@ onMounted(() => {
           </div>
         </template>
       </DataTable>
+    </div>
+    <div v-else-if="options.view === 2" class="d-lang-table">
+      <table :style="{ width: '100%', borderSpacing: '0px' }">
+        <template
+          v-for="(organization, organizationindex) in treeOrganization"
+          :key="organizationindex"
+        >
+          <tbody v-if="!organization.list || organization.list.length === 0">
+            <tr>
+              <td colspan="7">
+                <div
+                  class="p-3"
+                  :style="{
+                    color: '#005a9e',
+                    backgroundColor: '#f8f9fa',
+                  }"
+                >
+                  <b>{{ organization.newname }} (0)</b>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tbody
+            v-for="(department, departmentindex) in organization.list"
+            :key="departmentindex"
+          >
+            <tr>
+              <td
+                colspan="7"
+                @click="department.isOpen = !(department.isOpen || false)"
+                :style="{ cursor: 'pointer' }"
+              >
+                <div
+                  class="p-3 flex"
+                  :style="{
+                    color: '#005a9e',
+                    backgroundColor: '#f8f9fa',
+                  }"
+                >
+                  <div class="mr-3 format-center">
+                    <i
+                      :class="[
+                        department.isOpen
+                          ? 'pi pi-chevron-down'
+                          : 'pi pi-chevron-right',
+                      ]"
+                    ></i>
+                  </div>
+                  <div>
+                    <b
+                      >{{ organization.newname }} ({{
+                        department.list.length
+                      }})</b
+                    >
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <template
+              v-if="department.isOpen"
+              v-for="(item, index) in department.list"
+              :key="index"
+            >
+              <tr @click="goProfile(item)" class="tr-list">
+                <td
+                  :style="{
+                    width: '5rem',
+                    textAlign: 'center',
+                    borderBottom: 'solid 1px rgba(0,0,0,0.1)',
+                    padding: '0.5rem',
+                  }"
+                >
+                  <div class="relative mr-3">
+                    <Avatar
+                      v-bind:label="
+                        item.avatar
+                          ? ''
+                          : (item.profile_user_name ?? '')
+                              .substring(0, 1)
+                              .toUpperCase()
+                      "
+                      v-bind:image="
+                        item.avatar
+                          ? basedomainURL + item.avatar
+                          : basedomainURL + '/Portals/Image/noimg.jpg'
+                      "
+                      :style="{
+                        background: bgColor[index % 7],
+                        color: '#ffffff',
+                        width: '5rem',
+                        height: '5rem',
+                        fontSize: '1.5rem !important',
+                        borderRadius: '5px',
+                      }"
+                      size="xlarge"
+                      class="border-radius"
+                    />
+                    <span
+                      v-if="item.isEdit"
+                      class="is-sign"
+                      v-tooltip="'Đã hiệu chỉnh hồ sơ'"
+                    >
+                      <font-awesome-icon
+                        icon="fa-solid fa-circle-check"
+                        style="font-size: 16px; display: block; color: #f4b400"
+                      />
+                    </span>
+                  </div>
+                </td>
+                <td
+                  :style="{
+                    minWidth: '200px',
+                    textAlign: 'left',
+                    borderBottom: 'solid 1px rgba(0,0,0,0.1)',
+                    padding: '0.5rem',
+                  }"
+                >
+                  <div>
+                    <div class="mb-2">
+                      <b>{{ item.profile_user_name }}</b>
+                    </div>
+                    <div class="mb-1">
+                      <span
+                        >{{ item.superior_id }}
+                        <span v-if="item.superior_id && item.profile_id"
+                          >|</span
+                        >
+                        {{ item.profile_id }}</span
+                      >
+                    </div>
+                    <div class="mb-1" v-if="item.recruitment_date">
+                      {{ item.recruitment_date }}
+                    </div>
+                  </div>
+                </td>
+                <td
+                  :style="{
+                    minWidth: '200px',
+                    textAlign: 'left',
+                    borderBottom: 'solid 1px rgba(0,0,0,0.1)',
+                    padding: '0.5rem',
+                  }"
+                >
+                  <div>
+                    <div class="mb-1" v-if="item.gender">
+                      <span>{{
+                        item.gender == 1
+                          ? "Nam"
+                          : item.gender == 1
+                          ? "Nữ"
+                          : "Khác"
+                      }}</span>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ item.birthday }}</span>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ item.birthplace_name }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  :style="{
+                    minWidth: '200px',
+                    textAlign: 'left',
+                    borderBottom: 'solid 1px rgba(0,0,0,0.1)',
+                    padding: '0.5rem',
+                  }"
+                >
+                  <div>
+                    <div class="mb-1">
+                      <span
+                        >{{ item.phone }}
+                        <span v-if="item.phone != null && item.email != null"
+                          >|</span
+                        >
+                        {{ item.email }}</span
+                      >
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ item.identity_papers_code }}</span>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ item.place_residence }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  :style="{
+                    minWidth: '200px',
+                    textAlign: 'left',
+                    borderBottom: 'solid 1px rgba(0,0,0,0.1)',
+                    padding: '0.5rem',
+                  }"
+                >
+                  <div>
+                    <div class="mb-1">
+                      <b>{{ item.position_name }}</b>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ item.work_position_name }}</span>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ item.department_name }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  :style="{
+                    minWidth: '100px',
+                    textAlign: 'left',
+                    borderBottom: 'solid 1px rgba(0,0,0,0.1)',
+                    padding: '0.5rem',
+                  }"
+                >
+                  <span v-if="item.diffyear > 0">{{ item.diffyear }} năm </span>
+                  <span v-if="item.diffday >= 0">{{ item.diffday }} ngày </span>
+                </td>
+                <td
+                  :style="{
+                    width: '100px',
+                    textAlign: 'center',
+                    borderBottom: 'solid 1px rgba(0,0,0,0.1)',
+                    padding: '0.5rem',
+                  }"
+                >
+                  <ul class="flex p-0" style="list-style: none">
+                    <li class="format-center mr-2">
+                      <div
+                        :style="{
+                          borderRadius: '50%',
+                          border: item.bg_color,
+                          backgroundColor: item.bg_color,
+                          color: item.text_color,
+                          width: '15px',
+                          height: '15px',
+                        }"
+                        v-tooltip.top="item.status_name"
+                      ></div>
+                    </li>
+                    <li>
+                      <Button
+                        :icon="item.is_star ? 'pi pi-star-fill' : 'pi pi-star'"
+                        :class="{ 'icon-star': item.is_star }"
+                        class="p-button-rounded p-button-text"
+                        @click="
+                          setStar(item);
+                          $event.stopPropagation();
+                        "
+                        aria-haspopup="true"
+                        aria-controls="overlay_MorePlus"
+                        v-tooltip.top="item.is_star ? 'Hồ sơ cần lưu ý' : ''"
+                        style="font-size: 15px; color: #000"
+                      />
+                    </li>
+                    <li>
+                      <Button
+                        icon="pi pi-plus-circle"
+                        class="p-button-rounded p-button-text"
+                        @click="
+                          toggleMoresPlus($event, item);
+                          $event.stopPropagation();
+                        "
+                        aria-haspopup="true"
+                        aria-controls="overlay_MorePlus"
+                        v-tooltip.top="'Nhập bổ sung hồ sơ'"
+                      />
+                    </li>
+                    <li style="text-align: center">
+                      <Button
+                        icon="pi pi-ellipsis-h"
+                        class="p-button-rounded p-button-text"
+                        @click="
+                          toggleMores($event, item);
+                          $event.stopPropagation();
+                        "
+                        aria-haspopup="true"
+                        aria-controls="overlay_More"
+                        v-tooltip.top="'Tác vụ'"
+                      />
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </template>
+      </table>
     </div>
   </div>
 
@@ -2156,6 +2708,37 @@ onMounted(() => {
     :profile="profile"
     :users="dictionarys[24]"
   />
+  <dialogtag
+    :key="componentKey['4']"
+    :headerDialog="headerDialogTag"
+    :displayDialog="displayDialogTag"
+    :closeDialog="closeDialogTag"
+    :profile="profile"
+  />
+  <dialogcontract
+    :key="componentKey['5']"
+    :headerDialog="headerDialogContract"
+    :displayDialog="displayDialogContract"
+    :closeDialog="closeDialogContract"
+    :isAdd="isAdd"
+    :isView="false"
+    :model="model"
+    :files="files"
+    :selectFile="selectFile"
+    :removeFile="removeFile"
+    :dictionarys="dictionarys"
+    :initData="initData"
+  />
+  <diloginsurance
+    :key="componentKey['6']"
+    :headerDialog="headerDialogInsurance"
+    :displayDialog="displayDialogInsurance"
+    :closeDialog="closeDialogInsurance"
+    :isAdd="isAdd"
+    :isView="isView"
+    :profile="profile"
+    :initData="null"
+  />
   <Menu
     id="overlay_More"
     ref="menuButMores"
@@ -2187,6 +2770,9 @@ onMounted(() => {
   background-color: #fff;
   right: -5px !important;
   bottom: 0;
+}
+.tr-list:hover td {
+  background-color: aliceblue;
 }
 </style>
 <style lang="scss" scoped>

@@ -22,6 +22,7 @@ const props = defineProps({
   profile: Object,
   users: Array,
 });
+const display = ref(props.displayDialog);
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -202,16 +203,18 @@ const initData = (rf) => {
     });
 };
 onMounted(() => {
-  initData(true);
+  if (props.displayDialog) {
+    initData(true);
+  }
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '40vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
@@ -252,14 +255,11 @@ onMounted(() => {
                               ? basedomainURL + slotProps.value.avatar
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
-                          style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 2rem;
-                            height: 2rem;
-                          "
                           :style="{
                             background: bgColor[1 % 7],
+                            color: '#ffffff',
+                            width: '2rem',
+                            height: '2rem',
                           }"
                           class="mr-2 text-avatar"
                           size="xlarge"
@@ -288,15 +288,12 @@ onMounted(() => {
                           ? basedomainURL + slotProps.option.avatar
                           : basedomainURL + '/Portals/Image/noimg.jpg'
                       "
-                      style="
-                        background-color: #2196f3;
-                        color: #ffffff;
-                        width: 3rem;
-                        height: 3rem;
-                        font-size: 1.4rem !important;
-                      "
                       :style="{
                         background: bgColor[slotProps.index % 7],
+                        color: '#ffffff',
+                        width: '3rem',
+                        height: '3rem',
+                        fontSize: '1.4rem !important',
                       }"
                       class="text-avatar"
                       size="xlarge"
