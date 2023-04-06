@@ -1062,7 +1062,10 @@ onMounted(() => {
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
-              v-if="store.state.user.is_super"
+              v-if="
+                store.state.user.is_super &&
+                store.state.user.organization_id == null
+              "
             />
             <Button
               @click="reload"
