@@ -156,7 +156,6 @@ const title = ref({
   title_name: "",
   emote_file: "",
   status: true,
-  is_default: false,
   is_order: 1,
 });
 
@@ -188,9 +187,8 @@ const openBasic = (str) => {
     title_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
+    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
   };
 
   checkIsmain.value = false;
@@ -204,7 +202,6 @@ const closeDialog = () => {
     title_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: 1,
   };
 
@@ -929,7 +926,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system== true">
             <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
           </div>
           <div v-else></div>
@@ -1028,15 +1025,26 @@ onMounted(() => {
           />
         </div>
         <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
-            <InputNumber v-model="title.is_order" class="col-6 ip36 p-0" />
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-4 text-left p-0">STT</div>
+            <InputNumber
+              v-model="title.is_order"
+              class="col-8 ip36 p-0"
+            />
           </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
             <InputSwitch v-model="title.status" />
           </div>
+          <div
+            class="field col-4 md:col-4 p-0 align-items-center flex"
+            v-if="store.getters.user.is_super"
+          >
+            <div class="col-6 text-center p-0">Hệ thống</div>
+            <InputSwitch v-model="title.is_system" />
+          </div>
         </div>
+         
       </div>
     </form>
     <template #footer>
