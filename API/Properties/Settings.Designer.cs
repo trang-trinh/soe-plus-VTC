@@ -22,15 +22,5 @@ namespace API.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.WebServiceUrl)]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://mobilepki.viettel-ca.vn:8080/apws.asmx")]
-        public string API_MobileCAWS_APWsImplService {
-            get {
-                return ((string)(this["API_MobileCAWS_APWsImplService"]));
-            }
-        }
     }
 }
