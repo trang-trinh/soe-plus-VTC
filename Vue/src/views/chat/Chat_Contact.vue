@@ -174,6 +174,13 @@ const reloadDataChat = (dataChat, isGetRealtime) => {
 						}						
 						if (el.files != null){
 							el.files = JSON.parse(el.files);
+							if (el.files.length > 0) {
+								el.files.forEach((fi) => {
+									if (fi.type_save_file != null) {
+										fi.type_save_file = parseInt(fi.type_save_file);
+									}
+								});
+							}
 						}						
 						if (el.sticks != null){
 							el.sticks = JSON.parse(el.sticks);

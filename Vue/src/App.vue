@@ -120,13 +120,28 @@ const passModuleToSidebar = () => {
       }
     });
 };
+const getPortalFile = () => {
+  axios
+    .post(
+      baseURL + "/api/Cache/getPortalFile",
+      {},
+      {
+        headers: { Authorization: `Bearer ${store.getters.token}` },
+      },
+    )
+    .then((response) => {
+      if (response.data.err == "0") {
+        cookies.set("porFi", response.data.portF);        
+      }
+    });
+};
 //Vue App
 onMounted(() => {
   if ("Notification" in window) {
     // yêu cầu quyền thông báo
     Notification.requestPermission().then(function (result) {});
   }
-
+  getPortalFile();
   watch(router, () => {
     if (router.fullPath && router.fullPath.length > 1 && store.getters.islogin)
       passModuleToSidebar();
