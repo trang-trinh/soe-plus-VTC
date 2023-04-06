@@ -31,12 +31,13 @@ const position = ref({
   position_name: "",
   status: true,
   is_order: 1,
+  is_system: false,
 });
 const selectedPositions = ref();
 const submitted = ref(false);
 const v$ = useVuelidate(rules, position);
 const issavePosition = ref(false);
-const datalists = ref();
+const datalists = ref([]);
 const toast = useToast();
 const basedomainURL = fileURL;
 const checkDelList = ref(false);
@@ -75,7 +76,6 @@ const loadCount = () => {
 
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
-        sttPosition.value = options.value.totalRecords + 1;
       }
     })
     .catch((error) => {
@@ -124,6 +124,8 @@ const loadData = (rf) => {
         });
         if (isFirst.value) isFirst.value = false;
         datalists.value = data;
+        sttPosition.value =
+          data.length > 0 ? data[data.length - 1].is_order + 1 : 1;
         options.value.loading = false;
       })
       .catch((error) => {
@@ -199,8 +201,8 @@ const openBasic = (str) => {
     position_name: "",
     is_order: sttPosition.value,
     status: true,
-    organization_id:
-      store.state.user.is_super == true ? 0 : store.state.user.organization_id,
+    organization_id: store.state.user.organization_id,
+    is_system: store.state.user.is_super == true ? true : false,
   };
 
   issavePosition.value = false;
@@ -214,7 +216,6 @@ const closeDialog = () => {
     status: true,
   };
   displayBasic.value = false;
-  loadData(true);
 };
 
 //Thêm bản ghi
@@ -312,13 +313,8 @@ const isChirlden = ref(false);
 //Sửa bản ghi
 const editPosition = (dataPlace) => {
   submitted.value = false;
-  position.value = dataPlace;
-  position.value.organization_id =
-    store.state.user.is_super == true ? 0 : store.state.user.organization_id;
+  position.value = JSON.parse(JSON.stringify(dataPlace));
   isChirlden.value = false;
-  if (dataPlace.parent_id != null) {
-    isChirlden.value = true;
-  }
   headerDialog.value = "Sửa chức vụ";
   issavePosition.value = true;
   displayBasic.value = true;
@@ -1069,41 +1065,33 @@ onMounted(() => {
       ></template>
       <Column
         selectionMode="multiple"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-3rem"
         v-if="store.state.user.is_super == true"
       ></Column>
       <Column
         field="STT"
         header="STT"
         :sortable="true"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-4rem"
       >
       </Column>
       <Column
         field="position_id"
         header="Mã chức vụ"
         :sortable="true"
-        headerStyle="text-align:center;jusst;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-10rem"
       ></Column>
       <Column
         field="position_name"
         header="Tên chức vụ"
         :sortable="true"
-        headerStyle="height:50px place-content: center;place-items: center;height: 50px"
-        bodyStyle="max-height:60px"
+        headerClass="align-items-center justify-content-center text-center "
+        class=""
       ></Column>
       <Column
         field="status"
         header="Hiển thị"
-        headerStyle="text-align:center;jusst;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           <Checkbox
@@ -1113,15 +1101,14 @@ onMounted(() => {
           />
         </template>
       </Column>
+
       <Column
-        field="organization_id"
+        field="is_system"
         header="Hệ thống"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system == true">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
@@ -1130,20 +1117,23 @@ onMounted(() => {
           <div v-else></div>
         </template>
       </Column>
-
+      <Column
+        field="organization_name"
+        header="Đơn vị"
+        class="align-items-center justify-content-center text-center max-w-20rem"
+      ></Column>
       <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:240px;height:50px"
-        bodyStyle="text-align:center;max-width:240px;max-height:60px"
+        class="align-items-center justify-content-center text-center max-w-9rem"
       >
         <template #body="data">
           <div
             v-if="
               store.state.user.is_super == true ||
               store.state.user.user_id == data.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == data.data.organization_id)
+              (store.state.user.is_admin &&
+                data.data.is_system != true &&
+                data.data.organization_id == store.state.user.organization_id)
             "
           >
             <Button
@@ -1192,7 +1182,7 @@ onMounted(() => {
           <InputText
             v-model="position.position_name"
             spellcheck="false"
-            class="col-8 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{ 'p-invalid': v$.position_name.$invalid && submitted }"
           />
         </div>
@@ -1219,20 +1209,36 @@ onMounted(() => {
           style="display: flex"
           class="col-12 field md:col-12"
         >
-          <div class="field col-6 md:col-6 p-0">
+          <div
+            class="field col-6 md:col-6 p-0 flex justify-content-center align-items-center"
+          >
             <label class="col-6 text-left p-0">STT </label>
             <InputNumber
               v-model="position.is_order"
               class="col-6 ip36 p-0"
             />
           </div>
-          <div class="field col-6 md:col-6 p-0">
+          <div
+            class="flex field col-3 md:col-3 p-0 align-items-center justify-content-center"
+          >
             <label
               style="vertical-align: text-bottom"
               class="col-6 text-center p-0"
               >Trạng thái
             </label>
             <InputSwitch v-model="position.status" />
+          </div>
+          <div
+            class="flex align-items-center justify-content-center field col-3 md:col-3 p-0"
+            v-if="store.state.user.is_super"
+          >
+            <label
+              style="vertical-align: text-bottom"
+              class="col-6 text-center p-0"
+            >
+              Hệ thống
+            </label>
+            <InputSwitch v-model="position.is_system" />
           </div>
         </div>
       </div>
