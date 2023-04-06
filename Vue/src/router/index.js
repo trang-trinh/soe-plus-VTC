@@ -1694,7 +1694,7 @@ const router = createRouter({
     {
       path: "/hrm/category/ca_title",
       name: "caHRMTitle",
-      component: caHRMTitle,
+      component: CaPosition,
     },
     {
       path: "/hrm/category/ca_typeContract",
