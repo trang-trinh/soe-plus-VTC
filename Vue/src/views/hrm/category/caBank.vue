@@ -183,7 +183,7 @@ const openBasic = (str) => {
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
+    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
   };
 
   checkIsmain.value = false;
@@ -967,33 +967,33 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Tên ngân hàng <span class="redsao">(*)</span></label
+          <label class="col-2 text-left p-0"
+            >Ngân hàng <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="bank.bank_name"
             spellcheck="false"
-            class="col-9 ip36 px-2"
+            class="col-10 ip36 px-2"
             :class="{
               'p-invalid': v$.bank_name.$invalid && submitted,
             }"
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-3 text-left"></div>
+          <div class="col-2 text-left"></div>
           <small
             v-if="
               (v$.bank_name.$invalid && submitted) ||
               v$.bank_name.$pending.$response
             "
-            class="col-9 p-error"
+            class="col-10 p-error"
           >
             <span class="col-12 p-0">{{
               v$.bank_name.required.$message

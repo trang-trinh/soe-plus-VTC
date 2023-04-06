@@ -975,7 +975,7 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Tên lý luận chính trị <span class="redsao">(*)</span></label
+            >Lý luận <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="political_theory.political_theory_name"
@@ -1004,10 +1004,10 @@ onMounted(() => {
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-4 text-left p-0">STT</div>
+            <div class="col-9 text-left p-0">STT</div>
             <InputNumber
               v-model="political_theory.is_order"
-              class="col-8 ip36 p-0"
+              class="col-3 ip36 p-0"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">

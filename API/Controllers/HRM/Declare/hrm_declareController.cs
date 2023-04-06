@@ -73,7 +73,7 @@ namespace API.Controllers.HRM.Declare
                         fddeclare = provider.FormData.GetValues("hrm_declare").SingleOrDefault();
                         hrm_declare declare = JsonConvert.DeserializeObject<hrm_declare>(fddeclare);
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        declare.organization_id = super ? 0 : int.Parse(dvid);
+                        declare.organization_id =  int.Parse(dvid);
                         declare.created_by = uid;
                         declare.created_date = DateTime.Now;
                         declare.created_ip = ip;

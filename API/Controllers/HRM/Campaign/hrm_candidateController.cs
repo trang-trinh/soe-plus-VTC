@@ -84,7 +84,7 @@ namespace API.Controllers.HRM.Campaign
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã ứng viên đã tồn tại! Vui lòng nhập lại", err = "1" });
                         }
-                        candidate.organization_id = super ? 0 : int.Parse(dvid);
+                        candidate.organization_id =   int.Parse(dvid);
                         candidate.created_by = uid;
                         candidate.created_date = DateTime.Now;
                         candidate.created_ip = ip;
@@ -101,7 +101,7 @@ namespace API.Controllers.HRM.Campaign
                         foreach (var item in hrm_Users_Trainings)
                         {
                             item.candidate_id = candidate.candidate_id;
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id =  int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;
@@ -116,7 +116,7 @@ namespace API.Controllers.HRM.Campaign
                         foreach (var item in hrm_Class_Schedules)
                         {
                             item.candidate_id = candidate.candidate_id;
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id =   int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;
@@ -131,7 +131,7 @@ namespace API.Controllers.HRM.Campaign
                         foreach (var item in hrm_Candidate_Experience)
                         {
                             item.candidate_id = candidate.candidate_id;
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id =  int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;
@@ -399,7 +399,7 @@ namespace API.Controllers.HRM.Campaign
                         foreach (var item in hrm_Candidate_Experience)
                         {
                             item.candidate_id = candidate.candidate_id;
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id =  int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;

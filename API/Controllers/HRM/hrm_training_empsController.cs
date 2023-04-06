@@ -83,7 +83,7 @@ namespace API.Controllers.HRM
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã số đã tồn tại! Vui lòng nhập lại", err = "1" });
                         }
-                        training_emps.organization_id = super ? 0 : int.Parse(dvid);
+                        training_emps.organization_id =  int.Parse(dvid);
                         training_emps.created_by = uid;
                         training_emps.created_date = DateTime.Now;
                         training_emps.created_ip = ip;
@@ -100,7 +100,7 @@ namespace API.Controllers.HRM
                         foreach (var item in hrm_Users_Trainings)
                         {
                             item.training_emps_id = training_emps.training_emps_id;
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id = int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;
@@ -115,7 +115,7 @@ namespace API.Controllers.HRM
                         foreach (var item in hrm_Class_Schedules)
                         {
                             item.training_emps_id = training_emps.training_emps_id;
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id =  int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;
