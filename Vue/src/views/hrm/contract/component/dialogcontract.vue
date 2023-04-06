@@ -411,7 +411,7 @@ onMounted(() => {
           <div class="row">
             <div class="col-12 md:col-12">
               <div class="form-group">
-                <h3 class="m-0">Thông tin</h3>
+                <h3 class="m-0">Thông tin chung</h3>
               </div>
             </div>
             <div class="col-12 md:col-12">
@@ -698,7 +698,7 @@ onMounted(() => {
                 />
               </div>
             </div>
-            <div class="col-12 md:col-12">
+            <div class="col-6 md:col-6">
               <div class="form-group">
                 <label>Hình thức làm việc </label>
                 <Dropdown
@@ -717,6 +717,31 @@ onMounted(() => {
                     <div class="country-item flex align-items-center">
                       <div class="pt-1 pl-2">
                         {{ slotProps.option.formality_name }}
+                      </div>
+                    </div>
+                  </template>
+                </Dropdown>
+              </div>
+            </div>
+            <div class="col-6 md:col-6">
+              <div class="form-group">
+                <label>Loại nhân sự </label>
+                <Dropdown
+                  :disabled="props.isView"
+                  :options="dictionarys[14]"
+                  :filter="true"
+                  :showClear="true"
+                  :editable="false"
+                  v-model="props.model.personel_groups_id"
+                  optionLabel="personel_groups_name"
+                  optionValue="personel_groups_id"
+                  placeholder="Chọn loại nhân sự"
+                  class="ip36"
+                >
+                  <template #option="slotProps">
+                    <div class="country-item flex align-items-center">
+                      <div class="pt-1 pl-2">
+                        {{ slotProps.option.personel_groups_name }}
                       </div>
                     </div>
                   </template>
@@ -816,124 +841,7 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="col-4 md:col-4">
-              <div class="form-group">
-                <label>Ngày ký</label>
-                <div>
-                  <Calendar
-                    :disabled="props.isView"
-                    :showIcon="true"
-                    class="ip36"
-                    autocomplete="on"
-                    inputId="time24"
-                    v-model="props.model.sign_date"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="col-8 md:col-8">
-              <div class="form-group">
-                <label>Người ký</label>
-                <Dropdown
-                  :disabled="props.isView"
-                  :options="dictionarys[8]"
-                  :filter="true"
-                  :showClear="true"
-                  :editable="false"
-                  optionLabel="full_name"
-                  placeholder="Chọn người ký"
-                  v-model="props.model.sign_user"
-                  class="ip36"
-                  style="height: auto; min-height: 36px"
-                >
-                  <template #value="slotProps">
-                    <div class="mt-2" v-if="slotProps.value">
-                      <Chip
-                        :image="slotProps.value.avatar"
-                        :label="slotProps.value.full_name"
-                        class="mr-2 mb-2 pl-0"
-                      >
-                        <div class="flex">
-                          <div class="format-flex-center">
-                            <Avatar
-                              v-bind:label="
-                                slotProps.value.avatar
-                                  ? ''
-                                  : (slotProps.value.last_name ?? '').substring(
-                                      0,
-                                      1
-                                    )
-                              "
-                              v-bind:image="
-                                slotProps.value.avatar
-                                  ? basedomainURL + slotProps.value.avatar
-                                  : basedomainURL + '/Portals/Image/noimg.jpg'
-                              "
-                              style="
-                                background-color: #2196f3;
-                                color: #ffffff;
-                                width: 2rem;
-                                height: 2rem;
-                              "
-                              :style="{
-                                background:
-                                  bgColor[slotProps.value.is_order % 7],
-                              }"
-                              class="mr-2 text-avatar"
-                              size="xlarge"
-                              shape="circle"
-                            />
-                          </div>
-                          <div class="format-flex-center">
-                            <span>{{ slotProps.value.full_name }}</span>
-                          </div>
-                        </div>
-                      </Chip>
-                    </div>
-                    <span v-else> {{ slotProps.placeholder }} </span>
-                  </template>
-                  <template #option="slotProps">
-                    <div v-if="slotProps.option" class="flex">
-                      <div class="format-center">
-                        <Avatar
-                          v-bind:label="
-                            slotProps.option.avatar
-                              ? ''
-                              : slotProps.option.last_name.substring(0, 1)
-                          "
-                          v-bind:image="
-                            slotProps.option.avatar
-                              ? basedomainURL + slotProps.option.avatar
-                              : basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                          style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 3rem;
-                            height: 3rem;
-                            font-size: 1.4rem !important;
-                          "
-                          :style="{
-                            background: bgColor[slotProps.option.is_order % 7],
-                          }"
-                          class="text-avatar"
-                          size="xlarge"
-                          shape="circle"
-                        />
-                      </div>
-                      <div class="ml-3">
-                        <div class="mb-1">{{ slotProps.option.full_name }}</div>
-                        <div class="description">
-                          <div>{{ slotProps.option.position_name }}</div>
-                          <div>{{ slotProps.option.department_name }}</div>
-                        </div>
-                      </div>
-                    </div>
-                    <span v-else> Chưa có dữ liệu </span>
-                  </template>
-                </Dropdown>
-              </div>
-            </div>
+
             <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Người quản lý</label>
@@ -1412,7 +1320,7 @@ onMounted(() => {
             </div>
             <div class="col-12 md:col-12">
               <div class="form-group">
-                <label><h3 class="m-0">Tài liệu đính kèm</h3></label>
+                <label><h3 class="m-0">Tài liệu đính kèm (quyết định,...)</h3></label>
                 <FileUpload
                   v-if="!props.isView"
                   :multiple="true"
@@ -1494,6 +1402,141 @@ onMounted(() => {
                   :autoResize="true"
                   rows="5"
                   cols="30"
+                />
+              </div>
+            </div>
+            <div class="col-12 md:col-12">
+              <div class="form-group">
+                <h3 class="m-0">Thông tin ký</h3>
+              </div>
+            </div>
+            <div class="col-4 md:col-4">
+              <div class="form-group">
+                <label>Ngày ký</label>
+                <div>
+                  <Calendar
+                    :disabled="props.isView"
+                    :showIcon="true"
+                    class="ip36"
+                    autocomplete="on"
+                    inputId="time24"
+                    v-model="props.model.sign_date"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="col-8 md:col-8">
+              <div class="form-group">
+                <label>Người ký</label>
+                <Dropdown
+                  :disabled="props.isView"
+                  :options="dictionarys[8]"
+                  :filter="true"
+                  :showClear="true"
+                  :editable="false"
+                  optionLabel="full_name"
+                  placeholder="Chọn người ký"
+                  v-model="props.model.sign_user"
+                  class="ip36"
+                  style="height: auto; min-height: 36px"
+                >
+                  <template #value="slotProps">
+                    <div class="mt-2" v-if="slotProps.value">
+                      <Chip
+                        :image="slotProps.value.avatar"
+                        :label="slotProps.value.full_name"
+                        class="mr-2 mb-2 pl-0"
+                      >
+                        <div class="flex">
+                          <div class="format-flex-center">
+                            <Avatar
+                              v-bind:label="
+                                slotProps.value.avatar
+                                  ? ''
+                                  : (slotProps.value.last_name ?? '').substring(
+                                      0,
+                                      1
+                                    )
+                              "
+                              v-bind:image="
+                                slotProps.value.avatar
+                                  ? basedomainURL + slotProps.value.avatar
+                                  : basedomainURL + '/Portals/Image/noimg.jpg'
+                              "
+                              style="
+                                background-color: #2196f3;
+                                color: #ffffff;
+                                width: 2rem;
+                                height: 2rem;
+                              "
+                              :style="{
+                                background:
+                                  bgColor[slotProps.value.is_order % 7],
+                              }"
+                              class="mr-2 text-avatar"
+                              size="xlarge"
+                              shape="circle"
+                            />
+                          </div>
+                          <div class="format-flex-center">
+                            <span>{{ slotProps.value.full_name }}</span>
+                          </div>
+                        </div>
+                      </Chip>
+                    </div>
+                    <span v-else> {{ slotProps.placeholder }} </span>
+                  </template>
+                  <template #option="slotProps">
+                    <div v-if="slotProps.option" class="flex">
+                      <div class="format-center">
+                        <Avatar
+                          v-bind:label="
+                            slotProps.option.avatar
+                              ? ''
+                              : slotProps.option.last_name.substring(0, 1)
+                          "
+                          v-bind:image="
+                            slotProps.option.avatar
+                              ? basedomainURL + slotProps.option.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 3rem;
+                            height: 3rem;
+                            font-size: 1.4rem !important;
+                          "
+                          :style="{
+                            background: bgColor[slotProps.option.is_order % 7],
+                          }"
+                          class="text-avatar"
+                          size="xlarge"
+                          shape="circle"
+                        />
+                      </div>
+                      <div class="ml-3">
+                        <div class="mb-1">{{ slotProps.option.full_name }}</div>
+                        <div class="description">
+                          <div>{{ slotProps.option.position_name }}</div>
+                          <div>{{ slotProps.option.department_name }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <span v-else> Chưa có dữ liệu </span>
+                  </template>
+                </Dropdown>
+              </div>
+            </div>
+            <div class="col-12 md:col-12">
+              <div class="form-group">
+                <label>Địa điểm </label>
+                <InputText
+                  :disabled="props.isView"
+                  v-model="props.model.sign_address"
+                  spellcheck="false"
+                  class="ip36"
+                  maxLangth="500"
                 />
               </div>
             </div>

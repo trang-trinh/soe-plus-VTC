@@ -304,7 +304,7 @@ const listRewardLevel= ref([]);
 const listPosition = ref([]);
 const listRewardTitle = ref([]);
 const listDepartmentTree = ref();
-const listAcademic_level = ref([]);
+const listDisciplineTitle = ref([]);
 const listSpecialization = ref([]);
 const listExperience = ref([]);
 const listLanguage_level = ref([]);
@@ -600,7 +600,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_academic_level_list",
+            proc: "hrm_ca_discipline_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -616,11 +616,11 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listAcademic_level.value = [];
+      listDisciplineTitle.value = [];
       data.forEach((element, i) => {
-        listAcademic_level.value.push({
-          name: element.academic_level_name,
-          code: element.academic_level_id,
+        listDisciplineTitle.value.push({
+          name: element.discipline_name,
+          code: element.discipline_id,
         });
       });
     })
@@ -1123,7 +1123,7 @@ onMounted(() => {
               <Dropdown
                 :filter="true"
                 v-model="reward.reward_title_id"
-                :options="listRewardTitle"
+                :options="listRewardLevel"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
@@ -1147,7 +1147,7 @@ onMounted(() => {
               <Dropdown
                 :filter="true"
                 v-model="reward.reward_level_id"
-                :options="listRewardLevel"
+                :options="listDisciplineTitle"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"

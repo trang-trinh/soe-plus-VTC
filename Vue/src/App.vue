@@ -56,21 +56,24 @@ if (cookies.get("tk") != null) {
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
-axios.interceptors.response.use(response => {
-    if(response.data.dataKey){
-      let dataKey = decr(response.data.dataKey, SecretKey, cryoptojs);
-      let arr_list = dataKey.split("26$#");
-      if(arr_list.length>1){
-        let check_endcode = arr_list[0].toString() == '1111' ? true: false,
-        key = arr_list[1];
-        if(check_endcode)
-        response.data.data = decr(response.data.data, key, cryoptojs);
-      }
-    }
-    return response;
- }, error => {
-   return error;
- });
+// axios.interceptors.response.use(
+//   (response) => {
+//     if (response.data.dataKey) {
+//       let dataKey = decr(response.data.dataKey, SecretKey, cryoptojs);
+//       let arr_list = dataKey.split("26$#");
+//       if (arr_list.length > 1) {
+//         let check_endcode = arr_list[0].toString() == "1111" ? true : false,
+//           key = arr_list[1];
+//         if (check_endcode)
+//           response.data.data = decr(response.data.data, key, cryoptojs);
+//       }
+//     }
+//     return response;
+//   },
+//   (error) => {
+//     return error;
+//   },
+// );
 const passModuleToSidebar = () => {
   var link = router.fullPath;
   if (!link) return false;
@@ -113,7 +116,7 @@ const passModuleToSidebar = () => {
         data[1].filter((x) => x.is_link == root_path).length == 0 &&
         !path_system.includes(root_path)
       )
-        route.push({ path: "/" });
+        route.push({ name: "profile" });
       else if (data[0].length > 0) {
         cookies.set("max_length_file", data[0][0].max_length_file);
         emitter.emit("emitData", { type: "moduleFromUrl", data: data[0][0] });

@@ -405,7 +405,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: "/",
+      name: "profile",
       name: "homeview",
       component: HomeView,
     },
@@ -419,11 +419,6 @@ const router = createRouter({
       name: "table",
       component: SQLTableView,
     },
-    {
-      path: "/organization",
-      name: "organization",
-      component: Organization,
-    },
     //Canva
     // {
     //   path: "/canva",
@@ -432,42 +427,42 @@ const router = createRouter({
     // },
     //Hệ thống
     {
-      path: "/module",
+      path: "/system/module",
       name: "module",
       component: ModulesView,
     },
     {
-      path: "/user",
+      path: "/system/user",
       name: "user",
       component: UserView,
     },
     {
-      path: "/history",
+      path: "/system/history",
       name: "history",
       component: WebAcessView,
     },
     {
-      path: "/logs",
+      path: "/system/logs",
       name: "logs",
       component: LogsView,
     },
     {
-      path: "/testcase",
+      path: "/system/testcase",
       name: "testcase",
       component: TestCaseView,
     },
     {
-      path: "/config",
+      path: "/system/config",
       name: "config",
       component: ConfigView,
     },
     {
-      path: "/sql",
+      path: "/system/sql",
       name: "sql",
       component: SQLView,
     },
     {
-      path: "/role",
+      path: "/system/role",
       name: "role",
       component: RolesView,
     },
@@ -502,12 +497,12 @@ const router = createRouter({
       component: UploadView,
     },
     {
-      path: "/options",
+      path: "/system/options",
       name: "options",
       component: OptionsAccount,
     },
     {
-      path: "/data-using",
+      path: "/system/data-using",
       name: "data-using",
       component: DataUsing,
     },
@@ -525,6 +520,11 @@ const router = createRouter({
       path: "/sys/sys_process",
       name: "sys_sys_process",
       component: ConfigProcess,
+    },
+    {
+      path: "/system/organization",
+      name: "organization",
+      component: Organization,
     },
     //Danh mục
     {
@@ -1394,12 +1394,12 @@ const router = createRouter({
     //     component: TaskPersonConfig,
     // },
     {
-      path: "/config_screentv",
+      path: "/system/config_screentv",
       name: "ConfigScreenTV",
       component: ConfigScreenTV,
     },
     {
-      path: "/screen_tivi",
+      path: "/system/screen_tivi",
       name: "ScreenTV",
       component: ScreenTV,
     },
