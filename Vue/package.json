@@ -4,7 +4,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview --port 5050",
+        "preview": "vite preview --port 5050a",
         "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
         "clean": "rmdir /s /q node_modules",
         "reinstall": "npm run clean && npm install",
