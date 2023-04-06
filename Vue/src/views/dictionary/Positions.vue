@@ -37,7 +37,7 @@ const selectedPositions = ref();
 const submitted = ref(false);
 const v$ = useVuelidate(rules, position);
 const issavePosition = ref(false);
-const datalists = ref();
+const datalists = ref([]);
 const toast = useToast();
 const basedomainURL = fileURL;
 const checkDelList = ref(false);
@@ -76,7 +76,6 @@ const loadCount = () => {
 
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
-        sttPosition.value = options.value.totalRecords + 1;
       }
     })
     .catch((error) => {
@@ -125,6 +124,8 @@ const loadData = (rf) => {
         });
         if (isFirst.value) isFirst.value = false;
         datalists.value = data;
+        sttPosition.value =
+          data.length > 0 ? data[data.length - 1].is_order + 1 : 1;
         options.value.loading = false;
       })
       .catch((error) => {
@@ -200,9 +201,7 @@ const openBasic = (str) => {
     position_name: "",
     is_order: sttPosition.value,
     status: true,
-    organization_id:
-      store.state.user.organization_id ??
-      store.state.user.organization_parent_id,
+    organization_id: store.state.user.organization_id,
     is_system: store.state.user.is_super == true ? true : false,
   };
 
