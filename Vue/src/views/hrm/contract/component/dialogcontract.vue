@@ -113,7 +113,7 @@ const saveModel = (is_continue) => {
     },
   });
   var obj = { ...props.model };
-  var checkcontract = dictionarys[2].findIndex(
+  var checkcontract = dictionarys.value[2].findIndex(
     (x) => x["type_contract_id"] === (obj["type_contract_id"] || "")
   );
   if (checkcontract === -1) {
@@ -158,7 +158,7 @@ const saveModel = (is_continue) => {
         allowance["formalitys"].length > 0
       ) {
         allowance["formalitys"].forEach((formality) => {
-          var checkformality = dictionarys[8].findIndex(
+          var checkformality = dictionarys.value[8].findIndex(
             (x) =>
               x["allowance_formality_id"] ===
               (formality["allowance_formality_id"] || "")
@@ -179,7 +179,7 @@ const saveModel = (is_continue) => {
       }
       if (allowance["wages"] != null && allowance["wages"].length > 0) {
         allowance["wages"].forEach((wage) => {
-          var checkwage = dictionarys[9].findIndex(
+          var checkwage = dictionarys.value[9].findIndex(
             (x) => x["allowance_wage_id"] === (wage["allowance_wage_id"] || "")
           );
           if (checkwage === -1) {
