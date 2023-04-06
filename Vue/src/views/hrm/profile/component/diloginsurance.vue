@@ -15,13 +15,15 @@ const basedomainURL = baseURL;
 
 //Get arguments
 const props = defineProps({
-  key: Number,
   headerDialog: String,
   displayDialog: Boolean,
   closeDialog: Function,
+  isAdd: Boolean,
+  isView: Boolean,
   profile: Object,
-  users: Array,
+  initData: Function,
 });
+const isAdd = ref(props.isAdd);
 const display = ref(props.displayDialog);
 const bgColor = ref([
   "#F8E69A",
@@ -32,34 +34,22 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
+const statuss = ref([
+  { value: 1, text: "Trả" },
+  { value: 2, text: "Sửa" },
+  { value: 3, text: "Chốt" },
+  { value: 4, text: "Xin cấp" },
+  { value: 5, text: "Gộp" },
+  { value: 6, text: "Người lao động giữ sổ" },
+]);
+const hinhthucs = ref([
+  { value: 1, text: "Bao tăng" },
+  { value: 2, text: "Báo giảm" },
+]);
 const dictionarys = ref([]);
-const injections = ref([
-  { id: 1, title: "Mũi 1" },
-  { id: 2, title: "Mũi 2" },
-  { id: 3, title: "Mũi 3" },
-  { id: 4, title: "Mũi 4" },
-  { id: 5, title: "Mũi 5" },
-  { id: 6, title: "Mũi 6" },
-  { id: 7, title: "Mũi 7" },
-  { id: 8, title: "Mũi 8" },
-  { id: 9, title: "Mũi 9" },
-  { id: 10, title: "Mũi 10" },
-]);
-const type_vaccines = ref([
-  { id: "Vaccine Abdala (AICA-Cuba)", title: "Vaccine Abdala (AICA-Cuba)" },
-  { id: "Vaccine Hayat-Vax", title: "Vaccine Hayat-Vax" },
-  { id: "Covit-19 Vaccine Janssen", title: "Covit-19 Vaccine Janssen" },
-  {
-    id: "Spikevax (Covit-19 vaccine Modena)",
-    title: "Spikevax (Covit-19 vaccine Modena)",
-  },
-  { id: "Comirnaty (Pfizer BioNtech)", title: "Comirnaty (Pfizer BioNtech)" },
-  { id: "Vero-cell (của Sinopharm)", title: "Vero-cell (của Sinopharm)" },
-  { id: "AZD1222 (của AstraZeneca)", title: "AZD1222 (của AstraZeneca)" },
-  { id: "Sputnik-V (của Gamalaya)", title: "Sputnik-V (của Gamalaya)" },
-]);
-const health = ref({});
-const vaccines = ref([]);
+const insurance = ref({});
+const insurance_pays = ref([]);
+const insurance_resolves = ref([]);
 
 //function
 const opstatus = ref();
@@ -75,20 +65,32 @@ const saveModel = () => {
       swal.showLoading();
     },
   });
-  var vaccine = vaccines.value;
-  vaccine.forEach((x) => {
-    if (x["injection_date"] != null) {
-      x["injection_date"] = moment(x["injection_date"]).format(
-        "YYYY-MM-DDTHH:mm:ssZZ"
-      );
-    }
-  });
+
+  if (!insurance.value.insurance_id || !insurance.value.insurance_code) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng nhập đầy đủ thông tin trường bôi đỏ!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+
+  var obj = JSON.parse(JSON.stringify(insurance.value));
+  var pays = JSON.parse(JSON.stringify(insurance_pays.value));
+  var resolves = JSON.parse(JSON.stringify(insurance_resolves.value));
+
   let formData = new FormData();
-  formData.append("profile_id", props.profile["profile_id"]);
-  formData.append("health", JSON.stringify(health.value));
-  formData.append("vaccines", JSON.stringify(vaccine));
+  formData.append("isAdd", isAdd.value);
+  formData.append("insurance", JSON.stringify(obj));
+  formData.append("insurance_pay", JSON.stringify(pays));
+  formData.append("insurance_resolve", JSON.stringify(resolves));
   axios
-    .put(baseURL + "/api/hrm_profile/update_profile_health", formData, config)
+    .put(
+      baseURL + "/api/hrm_profile/update_profile_insurance",
+      formData,
+      config
+    )
     .then((response) => {
       if (response.data.err === "1") {
         swal.fire({
@@ -126,12 +128,40 @@ const saveModel = () => {
     });
   if (submitted.value) submitted.value = true;
 };
-const addRow = () => {
-  var obj = { vaccine_id: -1 };
-  vaccines.value.push(obj);
+const addRow = (type) => {
+  //relative
+  if (type == 1) {
+    let obj = {
+      start_date: null,
+      payment_form: null,
+      reason: null,
+      end_date: null,
+      organization_payment: null,
+      total_payment: null,
+      company_payment: null,
+      member_payment: null,
+    };
+    insurance_pays.value.push(obj);
+  }
+  if (type == 2) {
+    let obj = {
+      type_mode: null,
+      payment_form: null,
+      type_mode: null,
+      completed_date: null,
+      received_money_date: null,
+      money: null,
+    };
+    insurance_resolves.value.push(obj);
+  }
 };
-const deleteRow = (idx) => {
-  vaccines.value.splice(idx, 1);
+const deleteRow = (idx, type) => {
+  if (type == 1) {
+    insurance_pays.value.splice(idx, 1);
+  }
+  if (type == 2) {
+    insurance_resolves.value.splice(idx, 1);
+  }
 };
 //init
 const initDictionary = () => {
@@ -175,8 +205,8 @@ const initData = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_insurance_get",
-            par: [{ par: "insurance_id", va: dataTem.insurance_id }],
+            proc: "hrm_profile_insurance_edit",
+            par: [{ par: "profile_id", va: props.profile.profile_id }],
           }),
           SecretKey,
           cryoptojs
@@ -189,19 +219,41 @@ const initData = (rf) => {
       if (data != null) {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
-          health.value = tbs[0][0];
+          insurance.value = tbs[0][0];
         } else {
-          health.value = {};
+          insurance.value = {};
         }
+        if(insurance.value.insurance_id == null){
+          isAdd.value = true;
+        }
+        insurance.value.profile_id = props.profile.profile_id;
+        //get child
         if (tbs[1] != null && tbs[1].length > 0) {
-          tbs[1].forEach((x) => {
-            if (x["injection_date"] != null) {
-              x["injection_date"] = new Date(x["injection_date"]);
+          insurance_pays.value = tbs[1];
+          insurance_pays.value.forEach((item) => {
+            if (item.start_date != null) {
+              item.start_date = new Date(item.start_date);
             }
           });
-          vaccines.value = tbs[1];
         } else {
-          vaccines.value = [{ vaccine_id: -1 }];
+          insurance_pays.value = [];
+        }
+
+        if (tbs[2] != null && tbs[2].length > 0) {
+          insurance_resolves.value = tbs[2];
+          insurance_resolves.value.forEach((item) => {
+            if (item.received_file_date != null) {
+              item.received_file_date = new Date(item.received_file_date);
+            }
+            if (item.completed_date != null) {
+              item.completed_date = new Date(item.completed_date);
+            }
+            if (item.received_money_date != null) {
+              item.received_money_date = new Date(item.received_money_date);
+            }
+          });
+        } else {
+          insurance_resolves.value = [];
         }
       }
       swal.close();
@@ -253,75 +305,92 @@ onMounted(() => {
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Chiều cao</label>
+            <label>Số sổ bảo hiểm <span class="redsao">(*)</span></label>
             <InputText
               spellcheck="false"
               class="ip36"
-              v-model="health.height"
+              v-model="insurance.insurance_id"
               maxLength="50"
             />
           </div>
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Cân nặng</label>
+            <label>Số thẻ BHYT <span class="redsao">(*)</span></label>
             <InputText
-              v-model="health.weight"
               spellcheck="false"
               class="ip36"
+              v-model="insurance.insurance_code"
               maxLength="50"
             />
           </div>
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Nhóm máu</label>
-            <InputText
-              spellcheck="false"
+            <label>Trạng thái</label>
+            <Dropdown
               class="ip36"
-              v-model="health.blood_group"
-              maxLength="50"
+              v-model="insurance.status"
+              :options="statuss"
+              optionLabel="text"
+              optionValue="value"
+              placeholder="Chọn trạng thái"
+              :showClear="true"
             />
           </div>
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Huyết áp</label>
-            <InputText
-              spellcheck="false"
+            <label>Pháp nhân đóng</label>
+            <Dropdown
               class="ip36"
-              v-model="health.blood_pressure"
-              maxLength="50"
+              v-model="insurance.organization_payment"
+              :options="dictionarys[0]"
+              optionLabel="organization_name"
+              optionValue="organization_name"
+              :editable="true"
+              placeholder="Chọn pháp nhân"
             />
           </div>
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Nhịp tim</label>
-            <InputText
-              spellcheck="false"
+            <label>Mã tỉnh cấp</label>
+            <Dropdown
               class="ip36"
-              v-model="health.heartbeat"
-              maxLength="50"
+              v-model="insurance.insurance_province_id"
+              :options="dictionarys[1]"
+              optionLabel="insurance_province_name"
+              optionValue="insurance_province_id"
+              placeholder="Mã tỉnh"
+              :showClear="true"
             />
           </div>
         </div>
-        <div class="col-12 md:col-12">
+        <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Ghi chú</label>
-            <Textarea :autoResize="true" rows="4" v-model="health.note" />
+            <label>Nơi đăng ký</label>
+            <Dropdown
+              class="ip36"
+              v-model="insurance.hospital_name"
+              :options="dictionarys[2]"
+              optionLabel="hospital_name"
+              optionValue="hospital_name"
+              :editable="true"
+              placeholder="Chọn nơi đăng ký"
+            />
           </div>
         </div>
         <div class="col-12 md:col-12">
           <div class="form-group">
             <div class="flex justify-content-between">
               <div>
-                <h3 class="m-0">2. Thông tin tiêm Vắc xin</h3>
+                <h3 class="m-0">2. Lịch sử đóng bảo hiểm</h3>
               </div>
               <div>
                 <a
                   @click="
-                    addRow();
+                    addRow(1);
                     $event.stopPropagation();
                   "
                   class="hover"
@@ -339,13 +408,14 @@ onMounted(() => {
         </div>
         <div class="col-12 md:col-12">
           <DataTable
-            :value="vaccines"
+            :value="insurance_pays"
             :scrollable="true"
             :lazy="true"
             :rowHover="true"
             :showGridlines="true"
             scrollDirection="both"
-            ><Column
+          >
+            <Column
               header=""
               headerStyle="text-align:center;width:50px"
               bodyStyle="text-align:center;width:50px"
@@ -353,7 +423,7 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <a
-                  @click="deleteRow(slotProps.index)"
+                  @click="deleteRow(slotProps.index, 1)"
                   class="hover"
                   v-tooltip.top="'Xóa'"
                 >
@@ -362,8 +432,26 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="injection_id"
-              header="Mũi"
+              field="start_date"
+              header="Từ tháng, năm"
+              headerStyle="text-align:center;width:120px;height:50px"
+              bodyStyle="text-align:center;width:120px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <Calendar
+                  v-model="slotProps.data.start_date"
+                  :showIcon="false"
+                  view="month"
+                  dateFormat="mm/yy"
+                  class="ip36"
+                  placeholder="mm/yyyy"
+                />
+              </template>
+            </Column>
+            <Column
+              field="payment_form"
+              header="Hình thức"
               headerStyle="text-align:center;width:150px;height:50px"
               bodyStyle="text-align:center;width:150px;"
               class="align-items-center justify-content-center text-center"
@@ -371,59 +459,228 @@ onMounted(() => {
               <template #body="slotProps">
                 <div class="form-group m-0">
                   <Dropdown
-                    :options="injections"
-                    v-model="slotProps.data.injection_id"
-                    optionLabel="title"
-                    optionValue="id"
-                    placeholder="Chọn mũi tiêm"
+                    :options="hinhthucs"
+                    v-model="slotProps.data.payment_form"
+                    optionLabel="text"
+                    optionValue="text"
+                    placeholder="Chọn hình thức"
                     class="ip36"
                   />
                 </div>
               </template>
             </Column>
             <Column
-              field="injection_date"
-              header="Ngày tiêm"
+              field="reason"
+              header="Lý do"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <InputText
+                  spellcheck="false"
+                  class="ip36"
+                  v-model="slotProps.data.reason"
+                  maxLength="250"
+                />
+              </template>
+            </Column>
+            <Column
+              field="payment_form"
+              header="Công ty đóng"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <div class="form-group m-0">
+                  <Dropdown
+                    :options="dictionarys[0]"
+                    v-model="slotProps.data.organization_payment"
+                    optionLabel="organization_name"
+                    optionValue="organization_name"
+                    placeholder="Chọn pháp nhân"
+                    class="ip36"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
+                  />
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="total_payment"
+              header="Mức đóng"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <InputText
+                  spellcheck="false"
+                  class="ip36"
+                  v-model="slotProps.data.total_payment"
+                  maxLength="250"
+                />
+              </template>
+            </Column>
+            <Column
+              field="reason"
+              header="Công ty đóng"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <InputText
+                  spellcheck="false"
+                  class="ip36"
+                  v-model="slotProps.data.company_payment"
+                  maxLength="250"
+                />
+              </template>
+            </Column>
+            <Column
+              field="reason"
+              header="NLĐ đóng"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <InputText
+                  spellcheck="false"
+                  class="ip36"
+                  v-model="slotProps.data.member_payment"
+                  maxLength="250"
+                />
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <div class="flex justify-content-between">
+              <div>
+                <h3 class="m-0">3. Lịch sử giải quyết chế độ</h3>
+              </div>
+              <div>
+                <a
+                  @click="
+                    addRow(2);
+                    $event.stopPropagation();
+                  "
+                  class="hover"
+                  v-tooltip.top="'Thêm mới'"
+                >
+                  <i
+                    class="pi pi-plus-circle"
+                    data-v-62364173=""
+                    style="font-size: 18px"
+                  ></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <DataTable
+            :value="insurance_resolves"
+            :scrollable="true"
+            :lazy="true"
+            :rowHover="true"
+            :showGridlines="true"
+            scrollDirection="both"
+          >
+            <Column
+              header=""
+              headerStyle="text-align:center;width:50px"
+              bodyStyle="text-align:center;width:50px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <a
+                  @click="deleteRow(slotProps.index, 2)"
+                  class="hover"
+                  v-tooltip.top="'Xóa'"
+                >
+                  <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                </a>
+              </template>
+            </Column>
+            <Column
+              field="payment_form"
+              header="Loại chế độ"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <div class="form-group m-0">
+                  <Dropdown
+                    :options="dictionarys[3]"
+                    v-model="slotProps.data.type_mode"
+                    optionLabel="insurance_type_mode_name"
+                    optionValue="insurance_type_mode_name"
+                    placeholder="Chọn loại chế độ"
+                    class="ip36"
+                  />
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="received_file_date"
+              header="Ngày nhận hồ sơ"
               headerStyle="text-align:center;width:150px;height:50px"
               bodyStyle="text-align:center;width:150px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
                 <Calendar
+                  v-model="slotProps.data.received_file_date"
+                  :showIcon="false"
                   class="ip36"
-                  id="icon"
-                  v-model="slotProps.data.injection_date"
-                  :showIcon="true"
                   placeholder="dd/mm/yyyy"
                 />
               </template>
             </Column>
             <Column
-              field="type_vaccine"
-              header="Loại vắc xin"
-              headerStyle="text-align:center;width:250px;height:50px"
-              bodyStyle="text-align:center;width:250px;"
+              field="completed_date"
+              header="Ngày hoàn thiện thủ tục"
+              headerStyle="text-align:center;width:160px;height:50px"
+              bodyStyle="text-align:center;width:160px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
-                <div class="form-group m-0">
-                  <Dropdown
-                    :filter="true"
-                    :editable="true"
-                    :options="type_vaccines"
-                    v-model="slotProps.data.type_vaccine"
-                    optionLabel="title"
-                    optionValue="id"
-                    placeholder="Chọn loại vắc xin"
-                    class="ip36"
-                    maxLength="500"
-                  />
-                </div>
+                <Calendar
+                  v-model="slotProps.data.completed_date"
+                  :showIcon="false"
+                  class="ip36"
+                  placeholder="dd/mm/yyyy"
+                />
               </template>
             </Column>
             <Column
-              field="lot_number"
-              header="Số lô"
+              field="received_money_date"
+              header="Ngày nhận tiền BH trả"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <Calendar
+                  v-model="slotProps.data.received_money_date"
+                  :showIcon="false"
+                  class="ip36"
+                  placeholder="dd/mm/yyyy"
+                />
+              </template>
+            </Column>
+            <Column
+              field="total_payment"
+              header="Số tiền"
               headerStyle="text-align:center;width:150px;height:50px"
               bodyStyle="text-align:center;width:150px;"
               class="align-items-center justify-content-center text-center"
@@ -432,57 +689,8 @@ onMounted(() => {
                 <InputText
                   spellcheck="false"
                   class="ip36"
-                  v-model="slotProps.data.lot_number"
-                  maxLength="50"
-                />
-              </template>
-            </Column>
-            <Column
-              field="vaccination_facility"
-              header="Cơ sở tiêm chủng"
-              headerStyle="text-align:center;width:250px;height:50px"
-              bodyStyle="text-align:center;width:250px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Textarea
-                  :autoResize="true"
-                  rows="1"
-                  class="ip36"
-                  v-model="slotProps.data.vaccination_facility"
-                  maxLength="500"
-                />
-              </template>
-            </Column>
-            <Column
-              field="sign_user"
-              header="Người ký"
-              headerStyle="text-align:center;width:200px;height:50px"
-              bodyStyle="text-align:center;width:200px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputText
-                  spellcheck="false"
-                  class="ip36"
-                  v-model="slotProps.data.sign_user"
+                  v-model="slotProps.data.total_payment"
                   maxLength="250"
-                />
-              </template>
-            </Column>
-            <Column
-              field="sign_user_position"
-              header="Chức vụ"
-              headerStyle="text-align:center;width:200px;height:50px"
-              bodyStyle="text-align:center;width:200px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputText
-                  spellcheck="false"
-                  class="ip36"
-                  v-model="slotProps.data.sign_user_position"
-                  maxLength="50"
                 />
               </template>
             </Column>
@@ -513,6 +721,74 @@ onMounted(() => {
     border-collapse: collapse;
     min-width: 100%;
     table-layout: fixed;
+  }
+
+  .p-datatable-thead .justify-content-center .p-column-header-content {
+    justify-content: center !important;
+  }
+
+  .p-datatable-thead .justify-content-left .p-column-header-content {
+    justify-content: left !important;
+  }
+
+  .p-datatable-thead .justify-content-right .p-column-header-content {
+    justify-content: right !important;
+  }
+}
+::v-deep(.disable-header) {
+  table thead {
+    display: none;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+}
+::v-deep(.padding-0) {
+  .p-accordion-content {
+    padding: 0 !important;
+  }
+}
+::v-deep(.empty-full) {
+  .p-datatable-emptymessage td {
+    width: 100% !important;
+  }
+}
+::v-deep(.border-none) {
+  .p-accordion-header a {
+    border: none !important;
+  }
+  .p-accordion-content {
+    border: none !important;
+  }
+  .p-datatable-table tr th,
+  .p-datatable-table tr td {
+    border: none !important;
+  }
+}
+::v-deep(.selectbutton-custom) {
+  .p-button.p-highlight {
+    // color: #ffffff;
+    // background: #64748b;
+    // border: 1px solid #64748b;
+    color: #000;
+    background: #d3e3f8;
+    border: 1px solid #d3e3f8;
+  }
+}
+::v-deep(.border-radius) {
+  img {
+    border-radius: 5px;
+  }
+}
+::v-deep(.header-padding-y-0) {
+  .p-accordion-header-link {
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 </style>

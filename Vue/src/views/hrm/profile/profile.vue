@@ -8,6 +8,7 @@ import dialoghealth from "../profile/component/dialoghealth.vue";
 import dialogrelate from "../profile/component/dialogrelate.vue";
 import dialogtag from "../profile/component//dialogtag.vue";
 import dialogcontract from "../contract/component/dialogcontract.vue";
+import diloginsurance from "../profile/component/diloginsurance.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
 const router = inject("router");
@@ -318,7 +319,10 @@ const itemButMoresPlus = ref([
     label: "Bảo hiểm",
     icon: "pi pi-book",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openAddDialogInsurance(
+        profile.value,
+        "Cập nhật thay đổi thông tin bảo hiểm"
+      );
     },
   },
   {
@@ -347,6 +351,7 @@ const goProfile = (profile) => {
 
 //Function update model
 const isAdd = ref(false);
+const isView = ref(false);
 const submitted = ref(false);
 const model = ref({});
 const files = ref([]);
@@ -364,8 +369,8 @@ const openAddDialog = (str) => {
   displayDialog.value = true;
 };
 const closeDialog = () => {
-  forceRerender(0);
   displayDialog.value = false;
+  forceRerender(0);
 };
 const editItem = (item, str) => {
   datachilds.value = [];
@@ -747,7 +752,7 @@ const setStar = (item) => {
       }
       swal.close();
       toast.success("Cập nhật thành công!");
-      initData(true);
+      //initData(true);
     })
     .catch((error) => {
       swal.close();
@@ -783,8 +788,8 @@ const openEditDialogReceipt = (item, str) => {
   displayDialogReceipt.value = true;
 };
 const closeDialogReceipt = () => {
-  forceRerender(1);
   displayDialogReceipt.value = false;
+  forceRerender(1);
 };
 
 //function helth
@@ -796,8 +801,8 @@ const openEditDialogHealth = (item, str) => {
   displayDialogHealth.value = true;
 };
 const closeDialogHealth = () => {
-  forceRerender(2);
   displayDialogHealth.value = false;
+  forceRerender(2);
 };
 
 //function relate
@@ -809,8 +814,8 @@ const openEditDialogRelate = (item, str) => {
   displayDialogRelate.value = true;
 };
 const closeDialogRelate = () => {
-  forceRerender(3);
   displayDialogRelate.value = false;
+  forceRerender(3);
 };
 
 //function tag
@@ -822,8 +827,8 @@ const openEditDialogTag = (item, str) => {
   displayDialogTag.value = true;
 };
 const closeDialogTag = () => {
-  forceRerender(4);
   displayDialogTag.value = false;
+  forceRerender(4);
 };
 
 //function contract
@@ -863,10 +868,25 @@ const openAddDialogContract = (item, str) => {
   displayDialogContract.value = true;
 };
 const closeDialogContract = () => {
-  forceRerender(5);
   displayDialogContract.value = false;
+  forceRerender(5);
 };
 
+//Funtion Insurance
+const headerDialogInsurance = ref();
+const displayDialogInsurance = ref(false);
+const openAddDialogInsurance = (item, str) => {
+  profile.value = item;
+  forceRerender(6);
+  isAdd.value = false;
+  isView.value = false;
+  headerDialogInsurance.value = str;
+  displayDialogInsurance.value = true;
+};
+const closeDialogInsurance = () => {
+  displayDialogInsurance.value = false;
+  forceRerender(6);
+};
 //Init
 const initPlace = () => {
   axios
@@ -2708,6 +2728,16 @@ onMounted(() => {
     :removeFile="removeFile"
     :dictionarys="dictionarys"
     :initData="initData"
+  />
+  <diloginsurance
+    :key="componentKey['6']"
+    :headerDialog="headerDialogInsurance"
+    :displayDialog="displayDialogInsurance"
+    :closeDialog="closeDialogInsurance"
+    :isAdd="isAdd"
+    :isView="isView"
+    :profile="profile"
+    :initData="null"
   />
   <Menu
     id="overlay_More"
