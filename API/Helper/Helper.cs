@@ -1804,7 +1804,8 @@ namespace Helper
                     {
                         System.IO.File.Delete(fileData.LocalFileName);
                     }
-                    if (!string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["Portals"]))
+                    var PortalsConfig = ConfigurationManager.AppSettings["Portals"];
+                    if (!string.IsNullOrWhiteSpace(PortalsConfig) && (PortalsConfig.Contains("ftp") || PortalsConfig.Contains("http")))
                     {
                         if (System.IO.File.Exists(root + newFileName))
                         {
