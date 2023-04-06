@@ -76,9 +76,9 @@ const opition = ref({
   user_id: store.getters.user.user_id,
   status: null,
   is_role: false,
-  organization_id: store.getters.user.organization_id,
+  organization_parent_id: store.getters.user.organization_parent_id,
   department_id: store.getters.user.department_id,
-  organization_child_id: store.getters.user.organization_child_id,
+  organization_id: store.getters.user.organization_id,
 });
 const bgColor = ref([
   "#F8E69A",
@@ -91,11 +91,11 @@ const bgColor = ref([
 ]);
 const selectCapcha = ref();
 // selectCapcha.value = {};
-// selectCapcha.value[store.getters.user.organization_id] = true;
+// selectCapcha.value[store.getters.user.organization_parent_id] = true;
 const selectCap = ref();
 selectCap.value = {};
 selectCap.value[
-  store.getters.user.is_super ? -1 : store.getters.user.organization_id
+  store.getters.user.is_super ? -1 : store.getters.user.organization_parent_id
 ] = true;
 const users = ref();
 const isShowBtnDel = ref(false);
@@ -390,8 +390,8 @@ const initModuleFunctions = () => {
             proc: "sys_functions_module_list",
             par: [
               {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
+                par: "organization_parent_id",
+                va: store.getters.user.organization_parent_id,
               },
             ],
           }),
@@ -481,7 +481,7 @@ const showModalAddUser = () => {
     is_booking: true,
   };
   // selectCapcha.value = {};
-  // selectCapcha.value[user.value.organization_id || "-1"] = true;
+  // selectCapcha.value[user.value.organization_parent_id || "-1"] = true;
   isAdd.value = true;
   displayAddUser.value = true;
   if (document.querySelector("#AnhUser"))
@@ -652,8 +652,8 @@ const loadCount = (f) => {
               { par: "search", va: opition.value.search },
               { par: "user_id", va: opition.value.user_id },
               { par: "role_id", va: opition.value.role_id },
-              { par: "organization_id", va: opition.value.organization_id },
-              { par: "department_id", va: opition.value.organization_child_id || opition.value.department_id },
+              { par: "organization_parent_id", va: opition.value.organization_parent_id },
+              { par: "department_id", va: opition.value.organization_id || opition.value.department_id },
               { par: "position_id", va: opition.value.position_id },
               { par: "filter_department", va: opition.value.filter_department },
               { par: "filter_permission", va: opition.value.check_quyen },
@@ -695,14 +695,14 @@ const goDonvi = (u) => {
   selectCapcha.value = {};
   if (u) {
     opition.value.department_id = u.department_id;
-    opition.value.organization_id = u.organization_id;
+    opition.value.organization_parent_id = u.organization_parent_id;
     opition.value.organization_name = u.organization_name;
     selectCapcha.value[opition.value.department_id] = true;
   } else {
     opition.value.department_id = null;
     opition.value.organization_name = null;
-    opition.value.organization_id = null;
-    selectCapcha.value[store.getters.user.organization_id] = true;
+    opition.value.organization_parent_id = null;
+    selectCapcha.value[store.getters.user.organization_parent_id] = true;
   }
   opition.value.PageNo = 1;
   loadUser(true);
@@ -768,9 +768,9 @@ const resetopition = () => {
     opition.value.text_color = u.text_color;
     opition.value.background_color = u.background_color;
   }
-  if (opition.value.organization_id && !opition.value.organization_name) {
+  if (opition.value.organization_parent_id && !opition.value.organization_name) {
     opition.value.organization_name = users.value.find(
-      (x) => x.organization_id == opition.value.organization_id
+      (x) => x.organization_parent_id == opition.value.organization_parent_id
     ).organization_name;
   }
   if (opition.value.status && !opition.value.tenstatus) {
@@ -825,8 +825,8 @@ const loadUser = (rf, rfpb) => {
               { par: "search", va: opition.value.search },
               { par: "user_id", va: opition.value.user_id },
               { par: "role_id", va: opition.value.role_id },
-              { par: "organization_id", va: opition.value.organization_id },
-              { par: "department_id", va: opition.value.organization_child_id || opition.value.department_id },
+              { par: "organization_parent_id", va: opition.value.organization_parent_id },
+              { par: "department_id", va: opition.value.organization_id || opition.value.department_id },
               { par: "position_id", va: opition.value.position_id },
               { par: "filter_department", va: opition.value.filter_department },
               { par: "filter_permission", va: opition.value.check_quyen },
@@ -916,7 +916,7 @@ const editUser = (md) => {
         }
         getInfoPass(user.value);
         selectCapcha.value = {};
-        selectCapcha.value[user.value.department_id || user.value.organization_child_id || user.value.organization_id || "-1"] = true;
+        selectCapcha.value[user.value.department_id || user.value.organization_id || user.value.organization_parent_id || "-1"] = true;
       }
     })
     .catch((error) => {
@@ -978,11 +978,20 @@ const handleSubmit = (isFormValid) => {
     });
     return;
   }
+  if (!selectCapcha.value) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng chọn đơn vị hoặc phòng ban!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   let id_key = parseInt(Object.keys(selectCapcha.value)[0]);
   if (id_key == -1) {
     user.value.department_id = null;
+    user.value.organization_parent_id = null;
     user.value.organization_id = null;
-    user.value.organization_child_id = null;
   } else {
     //get organization_parent and child
     let obj = data_organization.filter((x) => x.organization_id == id_key);
@@ -991,37 +1000,40 @@ const handleSubmit = (isFormValid) => {
         .slice(0, -1)
         .split("/")
         .map((item) => (parseInt(item) ? parseInt(item) : item));
-      user.value.organization_id = list_id[0];
+      user.value.organization_parent_id = list_id[0];
       user.value.department_id = list_id[list_id.length - 1];
       list_id.forEach((id) => {
         let org = data_organization.filter((x) => x.organization_id == id);
         if (org.length > 0 && org[0].organization_type == 0) {
-          user.value.organization_child_id = id;
+          user.value.organization_id = id;
         }
       });
       //check
-      if (user.value.department_id == user.value.organization_child_id) {
+      if (user.value.department_id == user.value.organization_id) {
         user.value.department_id = null;
       }
-      if (user.value.organization_id == user.value.department_id) {
+      if (user.value.organization_parent_id == user.value.department_id) {
         user.value.department_id = null;
-        user.value.organization_child_id = null;
+        user.value.organization_id = null;
       }
-      if (user.value.organization_id == user.value.organization_child_id) {
-        user.value.organization_child_id = null;
+      if (user.value.organization_parent_id == user.value.organization_id) {
+        user.value.organization_id = null;
       }
-      if (user.value.is_admin && user.value.organization_child_id !== null)
+      if (user.value.is_admin && user.value.organization_id !== null)
         user.value.is_admin_child = true;
+      if (user.value.organization_id == null) {
+        user.value.organization_id = user.value.organization_parent_id;
+      }
     }
   }
   // user.value.department_id = keys[0];
   // if (user.value.department_id == -1) {
   //   user.value.department_id = null;
-  //   user.value.organization_id = null;
+  //   user.value.organization_parent_id = null;
   // }
   // if (user.value.department_id) {
   //   const result = getParent(treedonvis.value, user.value.department_id, "key");
-  //   user.value.organization_id = result.key;
+  //   user.value.organization_parent_id = result.key;
   // }
   if (user.value.full_name) {
     user.value.last_name = user.value.full_name.split(" ").slice(-1).join(" ");
@@ -1214,7 +1226,7 @@ const exportUser = (method) => {
           { par: "search", va: opition.value.search },
           { par: "user_id", va: opition.value.user_id },
           { par: "role_id", va: opition.value.role_id },
-          { par: "organization_id", va: opition.value.organization_id },
+          { par: "organization_parent_id", va: opition.value.organization_parent_id },
           { par: "department_id", va: opition.value.department_id },
           { par: "position_id", va: opition.value.position_id },
           { par: "filter_department", va: opition.value.filter_department },
@@ -1568,7 +1580,7 @@ const initUserPhongban = () => {
       });
     }
     //if (dv.data.IsDonvi == false) {
-    let us = users.value.filter((x) => x.organization_id == dv.key);
+    let us = users.value.filter((x) => x.organization_parent_id == dv.key);
     if (us.length > 0) {
       if (!dv.children) dv.children = [];
       dv.children = [];
@@ -1709,7 +1721,7 @@ onMounted(() => {
           <Chip
             class="custom-chip chippb ml-2 mr-1"
             @remove="goDonvi()"
-            v-if="(opition.department_id || opition.organization_id) && isfilter"
+            v-if="(opition.department_id || opition.organization_parent_id) && isfilter"
             :label="opition.organization_name"
             removable
           />
@@ -2283,7 +2295,7 @@ onMounted(() => {
                   "This field should be at least",
                   "Mật khẩu không được ít hơn"
                 )
-                .replace("long", "ký tự")
+                .replace("characters long", "ký tự")
             }}</span>
           </div>
         </small>
@@ -2305,7 +2317,7 @@ onMounted(() => {
           </div>
         </small>
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Đơn vị</label>
+          <label class="col-2 text-left">Đơn vị <span class="redsao">(*)</span></label>
           <TreeSelect
             class="col-10 ip32"
             v-model="selectCapcha"
@@ -2487,7 +2499,7 @@ onMounted(() => {
           <label class="col-2 text-right">Admin</label>
           <InputSwitch class="col-1" v-model="user.is_admin" />
              <label class="col-1" v-if="user.is_super"></label>
-            <label class="col-2 text-right" v-if="user.is_super">Is Super</label>
+            <label class="col-2 text-right" v-if="store.getters.user.is_super">Is Super</label>
             <InputSwitch v-model="user.is_super" v-if="user.is_super"/>
         </div>
                   <Accordion class="w-full p-2" >
@@ -2505,7 +2517,7 @@ onMounted(() => {
           <label class="col-2 text-right">Ban hành</label>
           <InputSwitch class="col-1" v-model="user.calendar_enact" />
                      <label class="col-1"></label>
-                    <label class="col-2 text-right">Tổng hợp CV</label>
+              <label class="col-2 text-right">Tổng hợp CV</label>
           <InputSwitch class="col-1" v-model="user.is_task" />
         </div>
               </AccordionTab>
