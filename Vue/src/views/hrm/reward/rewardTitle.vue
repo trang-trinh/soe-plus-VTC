@@ -59,11 +59,16 @@ const loadCount = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-    
+      let data1 = JSON.parse(response.data.data)[1];
+      let data2 = JSON.parse(response.data.data)[2];
+      let data3 = JSON.parse(response.data.data)[3];
       if (data.length > 0) {
-        options.value.totalRecords = data[0].totalRecords;
          
-
+        options.value.totalRecords = data[0].totalRecords;
+        options.value.totalRecords1 = data1[0].totalRecords;
+        options.value.totalRecords2 = data2[0].totalRecords;
+        options.value.totalRecords3 = data3[0].totalRecords;
+        
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
@@ -72,36 +77,7 @@ const loadCount = () => {
 
 const reward = ref({
   reward_name: null,
-  is_recruitment_proposal: null,
-  user_verify: null,
-  user_follows: null,
-  num_vacancies: null,
-  expected_cost: null,
-  start_date: null,
-  end_date: null,
-  rec_vacancies: null,
-  rec_position_id: null,
-  rec_formality_id: null,
-  rec_salary_from: null,
-  rec_workplace: null,
-  rec_salary_to: null,
-  rec_recruitment_deadline: null,
-  rec_number_vacancies: null,
-  rec_candidate_sheet_id: null,
-  can_academic_level_id: null,
- 
- 
-  can_specialization_id: null,
-  can_experience_id: null,
-  can_language_level_id: null,
-  can_age_from: null,
-  can_age_to: null,
-  can_gender: null,
-  can_height_from: null,
-  can_height_to: null,
-  can_weight_to: null,
-  can_weight_from: null,
-  job_description: null,
+  is_recruitment_proposal: null
 });
 //Lấy dữ liệu reward
 const loadData = (rf) => {
@@ -204,8 +180,6 @@ const options = ref({
   totalRecords1: 0,
   totalRecords2: 0,
   totalRecords3: 0,
-  totalRecords4: 0,
-  totalRecords5: 0,
   totalRecordsExport:50,
   pagenoExport:1
 });
@@ -246,13 +220,65 @@ const closeDialog = () => {
   loadData(true);
 };
 const sttStamp = ref(1);
-
+const listFilesS=ref([]);
 //Sửa bản ghi
 const editTem = (dataTem) => {
-  reward.value = dataTem;
-  headerDialog.value = "Sửa khen thưởng";
+
+
+  axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_reward_get",
+              par: [
+                {
+                  par: "reward_id",
+                  va:dataTem.reward_id,
+                },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        let data1 = JSON.parse(response.data.data)[1];
+        if (data) {
+          reward.value = data[0];
+ if(reward.value.reward_type==1||reward.value.reward_type==3 ){
+  reward.value.reward_name_fake1= reward.value.reward_name.split(",");
+  reward.value.reward_name_fake2=null;
+ }else{
+
+  reward.value.reward_name_fake2={};
+  reward.value.reward_name.split(",").forEach(element => {
+    reward.value.reward_name_fake2[element]=true;
+  });
+
+ }
+ 
+          if (reward.value.decision_date)
+            reward.value.decision_date = new Date(reward.value.decision_date);
+          if (reward.value.effective_date)
+            reward.value.effective_date = new Date(reward.value.effective_date);
+ 
+        }
+ 
+        if (data1) {
+          listFilesS.value = data1;
+        }
+        headerDialog.value = "Sửa khen thưởng";
   isSaveTem.value = false;
   displayBasic.value = true;
+      })
+      .catch((error) => {});
+
+
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -355,8 +381,9 @@ const loadDataSQL = () => {
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.li_user_verify) {
-            element.li_user_verify = JSON.parse(element.li_user_verify);
+        
+          if(element.listRewards){
+            element.listRewards=JSON.parse(element.listRewards);
           }
         });
 
@@ -370,11 +397,10 @@ const loadDataSQL = () => {
       if (dt.length >= 2 && checkLoadCount.value == true) {
          
         options.value.totalRecords = dt[1][0].totalRecords;
-        options.value.totalRecords1 = dt[2][0].totalRecords1;
-        options.value.totalRecords2 = dt[3][0].totalRecords2;
-        options.value.totalRecords3 = dt[4][0].totalRecords3;
-        options.value.totalRecords4 = dt[5][0].totalRecords4;
-        options.value.totalRecords5 = dt[6][0].totalRecords5;
+        options.value.totalRecords1 = dt[2][0].totalRecords;
+        options.value.totalRecords2 = dt[3][0].totalRecords;
+        options.value.totalRecords3 = dt[4][0].totalRecords;
+        
       }
     })
     .catch((error) => {
@@ -501,9 +527,9 @@ const onFilter = (event) => {
 };
 const tabs = ref([
   { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
-  { id: 1, title: "Khen thưởng", icon: "", total: 0 },
-  { id: 2, title: "Kỷ luật", icon: "", total: 0 },
- 
+  { id: 1, title: "Khen thưởng cá nhân", icon: "", total: 0 },
+  { id: 2, title: "Khen thưởng phòng ban", icon: "", total: 0 },
+  { id: 3, title: "Kỷ luật", icon: "", total: 0 },
 ]);
 //Checkbox
 const onCheckBox = (value, check) => {
@@ -692,7 +718,7 @@ const activeTab = (tab) => {
     let filterS1 = {
       filterconstraints: [{ value: tab.id, matchMode: "equals" }],
       filteroperator: "and",
-      key: "status",
+      key: "reward_type",
     };
 
     filterSQL.value.push(filterS1);
@@ -1119,50 +1145,19 @@ const loadUser = () => {
     });
 };
 
-const listPosition = ref([]);
-const listClasroom = ref([]);
+const listLevels= ref([]);
+const listTitles = ref([]);
 
 const initTudien = () => {
+  listLevels.value=[];
+  listTitles.value=[];
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "ca_positions_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listPosition.value = [];
-      data.forEach((element, i) => {
-        listPosition.value.push({
-          name: element.position_name,
-          code: element.position_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_academic_level_list",
+            proc: "hrm_ca_reward_level_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -1178,24 +1173,25 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listAcademic_level.value = [];
-      data.forEach((element, i) => {
-        listAcademic_level.value.push({
-          name: element.academic_level_name,
-          code: element.academic_level_id,
+ 
+      data.forEach(element => {
+        listLevels.value.push({
+          name: element.reward_level_name,
+          code: element.reward_level_id,
         });
       });
     })
     .catch((error) => {
       console.log(error);
     });
+  
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
+            proc: "hrm_ca_reward_title_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -1211,11 +1207,12 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listVacancies.value = [];
+     
       data.forEach((element, i) => {
-        listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
+        
+  listTitles.value.push({
+          name: element.reward_title_name,
+          code: element.reward_title_id,
         });
       });
     })
@@ -1228,7 +1225,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_classroom_list",
+            proc: "hrm_ca_discipline_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -1244,24 +1241,54 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listClasroom.value = [];
-      data.forEach((element) => {
-        listClasroom.value.push({
-          name: element.classroom_name,
-          code: element.classroom_id,
+    
+      data.forEach((element, i) => {
+        listTitles.value.push({
+          name: element.discipline_name,
+          code: element.discipline_id,
         });
       });
     })
     .catch((error) => {
       console.log(error);
     });
-  loadUser();
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_discipline_level_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+    
+      data.forEach((element, i) => {
+        listLevels.value.push({
+          name: element.discipline_level_name,
+          code: element.discipline_level_id,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 };
 const listAcademic_level = ref([]);
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   initTudien();
   loadData(true);
 
@@ -1345,16 +1372,16 @@ onMounted(() => {
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <div class="py-2">Vị trí tuyển dụng</div>
+                              <div class="py-2">Cấp khen thưởng/kỷ luật</div>
                               <MultiSelect
-                                :options="listVacancies"
+                                :options="listLevels"
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
                                 v-model="options.rec_vacancies"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn vị trí tuyển dụng"
+                                placeholder="Chọn cấp"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1364,7 +1391,7 @@ onMounted(() => {
                           </div>
                           <div class="col-12 p-0 md:col-12">
                             <div class="form-group m-0 py-2">
-                              <div>Ngày bắt đầu</div>
+                              <div>Ngày quyết định</div>
                             </div>
                           </div>
                           <div class="col-12 p-0 flex">
@@ -1393,7 +1420,7 @@ onMounted(() => {
                               </div>
                             </div>
                           </div>
-                          <div class="col-12 md:col-12 p-0">
+                          <!-- <div class="col-12 md:col-12 p-0">
                             <div class="col-12 p-0">
                               <div class="py-2">Người phụ trách</div>
                             </div>
@@ -1498,17 +1525,17 @@ onMounted(() => {
                               >
                               </MultiSelect>
                             </div>
-                          </div>
+                          </div> -->
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="row">
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <div class="py-2">Trình độ</div>
+                              <div class="py-2">Hình thức khen thưởng/kỷ luật</div>
 
                               <MultiSelect
-                                :options="listAcademic_level"
+                                :options="listTitles"
                                 :filter="false"
                                 :showClear="true"
                                 :editable="false"
@@ -1516,7 +1543,7 @@ onMounted(() => {
                                 optionLabel="name"
                                 optionValue="code"
                                 display="chip"
-                                placeholder="Chọn trình độ"
+                                placeholder="Chọn hình thức"
                                 class="w-full limit-width"
                                 style="min-height: 36px"
                                 panelClass="d-design-dropdown"
@@ -1524,127 +1551,11 @@ onMounted(() => {
                               </MultiSelect>
                             </div>
                           </div>
-                          <div class="col-12 p-0 md:col-12">
-                            <div class="form-group m-0 py-2">
-                              <div>Ngày kết thúc</div>
-                            </div>
-                          </div>
-                          <div class="col-12 p-0 flex">
-                            <div class="col-6 p-0 md:col-6">
-                              <div class="form-group">
-                                <Calendar
-                                  :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
-                                  inputId="time24"
-                                  v-model="options.start_dateD"
-                                  placeholder="Từ ngày"
-                                />
-                              </div>
-                            </div>
-                            <div class="col-6  p-0 pl-2 md:col-6">
-                              <div class="form-group">
-                                <Calendar
-                                  :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
-                                  inputId="time24"
-                                  v-model="options.end_dateD"
-                                  placeholder="Đến ngày"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="col-12 p-0 pt-2">
-                              <label>Người theo dõi</label>
-                            </div>
-                            <MultiSelect
-                              :options="listDropdownUser"
-                              :filter="true"
-                              :showClear="true"
-                              :editable="false"
-                              display="chip"
-                              v-model="options.user_follows"
-                              optionLabel="name"
-                              placeholder="Chọn người theo dõi"
-                              style="min-height: 36px"
-                              panelClass="d-design-dropdown  d-tree-input"
-                              class="col-12 p-0  mt-2"
-                            >
-                              <template #option="slotProps">
-                                <div
-                                  class="country-item flex align-items-center"
-                                >
-                                  <div class="grid w-full p-0">
-                                    <div
-                                      class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
-                                    >
-                                      <div
-                                        class="col-1 mx-2 p-0 align-items-center"
-                                      >
-                                        <Avatar   style="color:#fff"
-                                          v-bind:label=" 
-                                            slotProps.option.avatar
-                                              ? ''
-                                              : slotProps.option.name.substring(
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 1,
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 2
-                                                )
-                                          "
-                                          :image="
-                                            basedomainURL +
-                                            slotProps.option.avatar
-                                          "
-                                          size="small"
-                                          :style="
-                                            slotProps.option.avatar
-                                              ? 'background-color: #2196f3'
-                                              : 'background:' +
-                                                bgColor[
-                                                  slotProps.option.name.length %
-                                                    7
-                                                ]
-                                          "
-                                          shape="circle"
-                                          @error="
-                                            $event.target.src =
-                                              basedomainURL +
-                                              '/Portals/Image/nouser1.png'
-                                          "
-                                        />
-                                      </div>
-                                      <div
-                                        class="col-11 p-0 ml-3 align-items-center"
-                                      >
-                                        <div class="pt-2">
-                                          <div class="font-bold">
-                                            {{ slotProps.option.name }}
-                                          </div>
-                                          <div
-                                            class="flex w-full text-sm font-italic text-500"
-                                          >
-                                            <div>
-                                              {{
-                                                slotProps.option.position_name
-                                              }}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </template>
-                            </MultiSelect>
-                          </div>
+                          
+                          
                           <div class="col-12 md:col-12 p-0">
                             <div class="form-group">
-                              <div class="py-2">Trạng thái</div>
+                              <div class="py-2">Loại khen thưởng/kỷ luật</div>
                               <MultiSelect
                                 :options="listStatus"
                                 v-model="options.status_filter"
@@ -1654,7 +1565,7 @@ onMounted(() => {
                                 display="chip"
                                 optionLabel="name"
                                 optionValue="code"
-                                placeholder="Chọn trạng thái"
+                                placeholder="Chọn loại"
                                 class="w-full limit-width"
                                 panelClass="d-design-dropdown"
                               >
@@ -1771,7 +1682,7 @@ onMounted(() => {
             filterMode="lenient"
             :filters="filters"
             :scrollable="true"
-            scrollHeight="flex" selectionMode="single"
+            scrollHeight="flex"  
             :showGridlines="true"
             columnResizeMode="fit"
             :lazy="true"
@@ -1788,7 +1699,13 @@ onMounted(() => {
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
             :row-hover="true"
-          >
+          >    <Column
+              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;max-width:70px;height:50px"
+              bodyStyle="text-align:center;max-width:70px"
+              selectionMode="multiple"
+            >
+            </Column>
             <Column
               field="STT"
               header="STT"
@@ -1807,7 +1724,7 @@ onMounted(() => {
             </Column>
             <Column
               field="reward_number"
-              header="Loại khen thưởng"
+              header="Loại"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
@@ -1815,7 +1732,8 @@ onMounted(() => {
                 <div v-if=" data.data.reward_type==1"  >
                  Cá nhân
                 </div>
-                <div v-else>Phòng ban</div>
+                <div v-else-if=" data.data.reward_type==2">Phòng ban</div>
+                <div v-else >Kỷ luật</div>
               </template>
             </Column>
             <Column
@@ -1825,7 +1743,8 @@ onMounted(() => {
               bodyStyle="text-align:center;max-width:300px"
               class="align-items-center justify-content-center text-center"
             > <template #body="data">
-              <div v-if=" data.data.reward_type==1"  >
+             
+              <div v-if=" data.data.reward_type==1 ||data.data.reward_type==3  "  >
                  
                 <AvatarGroup>
                     <Avatar
@@ -1878,7 +1797,7 @@ onMounted(() => {
             </Column>
             <Column
               field="reward_content"
-              header="Nội dung khen thưởng"
+              header="Nội dung"
      
               headerStyle="text-align:left;height:50px"
               headerClass="align-items-center justify-content-center text-center"
@@ -1889,7 +1808,7 @@ onMounted(() => {
             </Column>
             <Column
               field="reward_level_name"
-              header="Cấp khen thưởng"
+              header="Cấp khen thưởng/kỷ luật"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
@@ -1897,11 +1816,11 @@ onMounted(() => {
             </Column>
             <Column
               field="reward_title_name"
-              header="Danh hiệu"
+              header="Hình thức"
               headerStyle="text-align:center;max-width:200px;height:50px"
               bodyStyle="text-align:center;max-width:200px"
               class="align-items-center justify-content-center text-center"
-            >
+            >  
               
             </Column>
             <Column
@@ -1966,7 +1885,7 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-            <Column
+            <!-- <Column
               field="status"
               header="Trạng thái"
               headerStyle="text-align:center;max-width:11rem;height:50px"
@@ -2039,7 +1958,7 @@ onMounted(() => {
                   </div>
                 </OverlayPanel>
               </template>
-            </Column>
+            </Column> -->
 
             <Column
               header=""
@@ -2078,8 +1997,9 @@ onMounted(() => {
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
         :reward="reward"
-        :checkadd="isSaveTem"
+        :files="listFilesS"
         :view="false"
+        :checkadd="isSaveTem"
         :closeDialog="closeDialog"
       />
     </div>

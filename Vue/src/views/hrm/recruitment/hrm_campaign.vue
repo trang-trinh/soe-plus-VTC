@@ -70,7 +70,7 @@ const loadCount = () => {
         options.value.totalRecords3 = data3[0].totalRecords3;
         options.value.totalRecords4 = data4[0].totalRecords4;
         options.value.totalRecords5 = data5[0].totalRecords5;
-        debugger
+         
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
