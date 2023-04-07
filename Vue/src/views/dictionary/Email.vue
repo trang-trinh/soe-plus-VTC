@@ -328,12 +328,9 @@ const openBasic = (str) => {
     email_group_name: "",
     is_order: sttEmailGroup.value,
     status: true,
+    organization_id: store.state.user.organization_id,
+    is_system: store.state.user.is_super == true ? true : false,
   };
-  if (store.state.user.is_super) {
-    EmailGroup.value.organization_id = 0;
-  } else {
-    EmailGroup.value.organization_id = store.state.user.organization_id;
-  }
   issaveEmailGroup.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -343,6 +340,8 @@ const closeDialog = () => {
     email_group_name: "",
     is_order: 1,
     status: true,
+    organization_id: store.state.user.organization_id,
+    is_system: store.state.user.is_super == true ? true : false,
   };
   displayBasic.value = false;
   loadData(true);
@@ -1620,26 +1619,18 @@ onMounted(() => {
               class="p-0 m-0"
               :showCloseIcon="false"
               id="overlay_panel"
-              :style="
-                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
-              "
+              :style="'width:400px'"
             >
               <div class="grid formgrid m-0">
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-3 text-left pt-2 p-0'"
                     style="text-align: left"
                   >
                     Phân loại
                   </div>
 
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-9'">
                     <TreeSelect
                       v-model="filterPhanloai_EG"
                       :options="treedonvis"
@@ -1662,18 +1653,12 @@ onMounted(() => {
                 </div>
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-3 text-left pt-2 p-0'"
                     style="text-align: center,justify-content:center"
                   >
                     Trạng thái
                   </div>
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-9'">
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterTrangthai_EG"
@@ -1747,34 +1732,27 @@ onMounted(() => {
       </template>
       <Column
         selectionMode="multiple"
-        headerStyle="text-align:center;max-width:4rem;height:3.125rem"
-        bodyStyle="text-align:center;max-width:4rem; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-3rem"
         v-if="store.state.user.is_super == true"
       ></Column>
       <Column
         field="STT"
         header="STT"
         :sortable="true"
-        headerStyle="text-align:center;max-width:6rem;height:3.125rem"
-        bodyStyle="text-align:center;max-width:6rem; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-5rem"
       >
       </Column>
       <Column
         field="email_group_name"
         header="Nhóm Email"
         :sortable="true"
-        headerStyle="height:3.125rem"
-        bodyStyle=" "
+        headerClass="align-items-center justify-content-center text-center"
       >
       </Column>
       <Column
         field="email_count"
         header="Số email"
-        headerStyle="text-align:center;max-width:150px;height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-6rem"
       >
         <template #body="data">
           <div>
@@ -1791,9 +1769,7 @@ onMounted(() => {
       <Column
         field="status"
         header="Hiển thị"
-        headerStyle="text-align:center;max-width:7.5rem;height:3.125rem"
-        bodyStyle="text-align:center;max-width:7.5rem; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-6rem"
       >
         <template #body="data">
           <Checkbox
@@ -1807,12 +1783,10 @@ onMounted(() => {
         v-if="!isShowEmail"
         field="organization_id"
         header="Hệ thống"
-        headerStyle="text-align:center;max-width:7.5rem;height:3.125rem"
-        bodyStyle="text-align:center;max-width:7.5rem; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-7rem"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system == 1">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
@@ -1823,16 +1797,14 @@ onMounted(() => {
       </Column>
       <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:7.5rem;height:3.125rem;min-width:9.375rem;"
-        bodyStyle="text-align:center;max-width:7.5rem ;min-width:9.375rem"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           <div
             v-if="
               store.state.user.is_super == true ||
               store.state.user.user_id == data.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
+              (store.state.user.is_admin &&
                 store.state.user.organization_id == data.data.organization_id)
             "
           >
@@ -1889,7 +1861,6 @@ onMounted(() => {
       <DataTable
         :lazy="true"
         @page="onPageEmail($event)"
-        @filter="onFilterEmail($event)"
         @sort="onSortEmail($event)"
         :value="emailList"
         :loading="optionsEmail.loading"
@@ -2056,22 +2027,15 @@ onMounted(() => {
         </template>
         <Column
           selectionMode="multiple"
-          headerStyle="text-align:center;max-width:5rem;height:50px"
-          bodyStyle="text-align:center;max-width:5rem;"
-          class="align-items-center justify-content-center text-center"
-          v-if="
-            store.state.user.is_super == true ||
-            store.state.user.role_id == 'admin'
-          "
+          class="align-items-center justify-content-center text-center max-w-3rem"
+          v-if="store.state.user.is_super == true"
         >
         </Column>
         <Column
           field="STT"
           header="STT"
           :sortable="true"
-          headerStyle="text-align:center;max-width:5rem;height:50px"
-          bodyStyle="text-align:center;max-width:5rem;"
-          class="align-items-center justify-content-center text-center"
+          class="align-items-center justify-content-center text-center max-w-5rem"
         >
         </Column>
 
@@ -2079,8 +2043,6 @@ onMounted(() => {
           field="email_name"
           header="Email"
           :sortable="true"
-          headerStyle="text-align:center;max-width:23rem;height:50px"
-          bodyStyle="text-align:center;max-width:23rem;"
           class="align-items-center justify-content-center text-center"
         >
         </Column>
@@ -2089,8 +2051,6 @@ onMounted(() => {
           field="full_name"
           header="Họ và tên"
           :sortable="true"
-          headerStyle="text-align:center;max-width:23rem;height:50px"
-          bodyStyle="text-align:center;max-width:23rem;"
           class="align-items-center justify-content-center text-center"
         >
         </Column>
@@ -2146,7 +2106,7 @@ onMounted(() => {
               v-if="
                 store.state.user.is_super == true ||
                 store.state.user.user_id == data.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
+                (store.state.user.is_admin &&
                   store.state.user.organization_id == data.data.organization_id)
               "
             >
@@ -2162,7 +2122,7 @@ onMounted(() => {
                 class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                 type="button"
                 icon="pi pi-trash"
-                v-tooltip="'Xóa'"
+                v-tooltip.bottom="'Xóa'"
               ></Button>
             </div>
           </template>
@@ -2197,7 +2157,7 @@ onMounted(() => {
           <InputText
             v-model="EmailGroup.email_group_name"
             spellcheck="false"
-            class="col-8 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{ 'p-invalid': v$.email_group_name.$invalid && submitted }"
           />
         </div>
@@ -2224,21 +2184,34 @@ onMounted(() => {
           style="display: flex"
           class="col-12 field md:col-12"
         >
-          <div class="field col-6 md:col-6 p-0">
-            <label class="col-6 text-left p-0">STT </label>
+          <div
+            class="flex field col-6 md:col-6 p-0 align-items-center justify-content-center"
+          >
+            <label class="col-6 text-left p-0 align-items-center">STT </label>
             <InputNumber
               v-model="EmailGroup.is_order"
               class="col-6 ip36 p-0"
             />
           </div>
-          <div class="field col-6 md:col-6 p-0">
+          <div class="field col-3 md:col-3 align-items-center">
             <label
               style="vertical-align: text-bottom"
-              class="col-6 text-center p-0"
+              class="col-6"
               >Trạng thái
             </label>
             <InputSwitch
               v-model="EmailGroup.status"
+              class="col-6"
+            />
+          </div>
+          <div class="field col-3 md:col-3 align-items-center">
+            <label
+              style="vertical-align: text-bottom"
+              class="col-6"
+              >Hệ thống
+            </label>
+            <InputSwitch
+              v-model="EmailGroup.is_system"
               class="col-6"
             />
           </div>
