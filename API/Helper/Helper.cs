@@ -1916,5 +1916,12 @@ namespace Helper
                 return Convert.ToInt32(ctid);
             else return null;
         }
+        public static Nullable<int> OrgainzationParent(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "parent_dvid").FirstOrDefault()?.Value;
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
+        }
     }
 }
