@@ -92,6 +92,7 @@ namespace API.Controllers.Hrn
                         }
                         model.contract_id = helper.GenKey();
                         model.is_order = model.is_order ?? (db.hrm_contract.Count() + 1);
+                        model.status = 0;
                         model.created_by = uid;
                         model.created_date = DateTime.Now;
                         model.created_ip = ip;
