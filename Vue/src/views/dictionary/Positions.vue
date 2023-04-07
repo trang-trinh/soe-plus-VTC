@@ -158,7 +158,10 @@ const loadDonvi = () => {
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
-          JSON.stringify({ proc: "sys_org_list" }),
+          JSON.stringify({
+            proc: "sys_organization_list_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
           SecretKey,
           cryoptojs,
         ).toString(),
@@ -191,7 +194,7 @@ const loadDonvi = () => {
       }
     });
 };
-const treedonvis = ref();
+const treedonvis = ref([]);
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
