@@ -2085,7 +2085,7 @@ namespace Controllers
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from ca_positions where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) AS organization_name from ca_positions ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
