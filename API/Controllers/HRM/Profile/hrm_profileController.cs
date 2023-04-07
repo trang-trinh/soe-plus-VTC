@@ -1374,10 +1374,8 @@ namespace API.Controllers.HRM.Profile
                     string profile_id = provider.FormData.GetValues("profile_id").SingleOrDefault();
                     string str_object = provider.FormData.GetValues("object").SingleOrDefault();
                     string srt_datas = provider.FormData.GetValues("datas").SingleOrDefault();
-
                     obj de_object = JsonConvert.DeserializeObject<obj>(str_object);
                     List<hrm_profile_status> de_datas = JsonConvert.DeserializeObject<List<hrm_profile_status>>(srt_datas);
-
                     List<hrm_profile_status> new_datas = new List<hrm_profile_status>();
                     if (de_object != null)
                     {

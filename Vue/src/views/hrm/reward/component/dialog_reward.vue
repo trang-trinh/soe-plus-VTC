@@ -24,7 +24,7 @@ const props = defineProps({
   files: Array,
   closeDialog: Function,
   view: Boolean,
-  checkadd:Boolean
+  checkadd: Boolean,
 });
 const bgColor = ref([
   "#F8E69A",
@@ -76,18 +76,17 @@ const reward = ref({
   reward_name_fake2: {},
 });
 const submitted = ref(false);
- 
-const saveData = ( ) => {
+
+const saveData = () => {
   submitted.value = true;
-   
-  
+
   if (
     reward.value.reward_level_id == null ||
     reward.value.reward_title_id == null
   ) {
     return;
   }
-  if (reward.value.reward_type == 1 ||reward.value.reward_type == 3) {
+  if (reward.value.reward_type == 1 || reward.value.reward_type == 3) {
     if (reward.value.reward_name_fake1.length == 0) {
       return;
     }
@@ -96,21 +95,21 @@ const saveData = ( ) => {
       return;
     }
 
-  if (reward.value.reward_type == 1||reward.value.reward_type == 3)
+  if (reward.value.reward_type == 1 || reward.value.reward_type == 3)
     if (reward.value.reward_name_fake1.length > 0)
       reward.value.reward_name = reward.value.reward_name_fake1.toString();
   if (reward.value.reward_type == 2) {
     reward.value.reward_name = "";
-    let str="";
+    let str = "";
     if (reward.value.reward_name_fake2)
       Object.keys(reward.value.reward_name_fake2).forEach((key) => {
-        reward.value.reward_name += str+ key;
-        str=",";
+        reward.value.reward_name += str + key;
+        str = ",";
         return;
       });
   }
   let formData = new FormData();
-  
+
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
     formData.append("image", file);
@@ -181,17 +180,14 @@ const saveData = ( ) => {
   }
 };
 const listDropdownUserGive = ref();
- 
- 
-const listRewardLevel= ref([]);
- 
+
+const listRewardLevel = ref([]);
+
 const listRewardTitle = ref([]);
 const listDepartmentTree = ref();
 const listDisciplineTitle = ref([]);
 const listDisciplineLevel = ref([]);
- 
- 
- 
+
 const deleteFileH = (value) => {
   listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
 };
@@ -360,7 +356,7 @@ const initTudien = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       listRewardLevel.value = [];
-      data.forEach(element => {
+      data.forEach((element) => {
         listRewardLevel.value.push({
           name: element.reward_level_name,
           code: element.reward_level_id,
@@ -370,7 +366,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  
+
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -470,8 +466,6 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-
-   
 };
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -570,7 +564,6 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
- 
 
 const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
@@ -635,48 +628,44 @@ const displayBasic = ref(false);
 const listTypeReward = ref([
   { name: "Khen thưởng", code: 1 },
   { name: "Kỷ luật", code: 2 },
- 
 ]);
- 
- const reward_type=ref(1);
 
- const reward_type_1=ref(true);
- 
- const reward_type_2=ref(false);
- const onChangeTypeR=()=>{
-  if(reward_type.value==2){
-    reward.value.reward_type=3;
-  }
-  else{
-    reward.value.reward_type=1;
-  }
- };
+const reward_type = ref(1);
 
- const onChangeSwType1=()=>{
-  if(reward_type_1.value==true){
-    reward.value.reward_type=1;
-    reward_type_2.value=false;
+const reward_type_1 = ref(true);
+
+const reward_type_2 = ref(false);
+const onChangeTypeR = () => {
+  if (reward_type.value == 2) {
+    reward.value.reward_type = 3;
+  } else {
+    reward.value.reward_type = 1;
   }
-  else{
-    reward.value.reward_type=2;
-    reward_type_2.value=true;
+};
+
+const onChangeSwType1 = () => {
+  if (reward_type_1.value == true) {
+    reward.value.reward_type = 1;
+    reward_type_2.value = false;
+  } else {
+    reward.value.reward_type = 2;
+    reward_type_2.value = true;
   }
- };
- const onChangeSwType2=()=>{
-  if(reward_type_2.value==true){
-    reward.value.reward_type=2;
-    reward_type_1.value=false;
+};
+const onChangeSwType2 = () => {
+  if (reward_type_2.value == true) {
+    reward.value.reward_type = 2;
+    reward_type_1.value = false;
+  } else {
+    reward.value.reward_type = 1;
+    reward_type_1.value = true;
   }
-  else{
-    reward.value.reward_type=1;
-    reward_type_1.value=true;
-  }
- };
+};
 onMounted(() => {
   reward.value = props.reward;
- listFilesS.value=props.files;
+  listFilesS.value = props.files;
   initTudien();
- 
+
   loadUserProfiles();
   displayBasic.value = props.displayBasic;
   return {};
@@ -694,57 +683,92 @@ onMounted(() => {
   >
     <form>
       <div class="grid formgrid m-2 mb-0">
-       
         <div class="field col-12 md:col-12 flex format-center">
           <div class="col-6 p-0">
             <SelectButton
-              v-model=" reward_type"
+              v-model="reward_type"
               :options="listTypeReward"
               optionLabel="name"
               optionValue="code"
-          @change="onChangeTypeR"
+              @change="onChangeTypeR"
             />
           </div>
         </div>
         <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
 
-        <div class="col-12 field p-0 text-lg flex  " v-if="reward.reward_type !=3">
+        <div
+          class="col-12 field p-0 text-lg flex"
+          v-if="reward.reward_type != 3"
+        >
           <div class="col-2 p-0"></div>
-            <div class="col-4 flex p-0 align-items-center text-align-center format-center">
-              <InputSwitch v-model="reward_type_1" @change="onChangeSwType1()"    class="w-4rem lck-checked " /> <div class="pl-2">Khen thưởng nhân sự</div>
-            </div>
-            <div class="col-4 flex p-0 align-items-center format-center">
-              <InputSwitch v-model="reward_type_2"  @change="onChangeSwType2()"  class="w-4rem lck-checked" /> <div class="pl-2"> Khen thưởng phòng ban</div>
-            </div>
-            <div class="col-2 p-0"></div>
+          <div
+            class="col-4 flex p-0 align-items-center text-align-center format-center"
+          >
+            <InputSwitch
+              v-model="reward_type_1"
+              @change="onChangeSwType1()"
+              class="w-4rem lck-checked"
+            />
+            <div class="pl-2">Khen thưởng nhân sự</div>
+          </div>
+          <div class="col-4 flex p-0 align-items-center format-center">
+            <InputSwitch
+              v-model="reward_type_2"
+              @change="onChangeSwType2()"
+              class="w-4rem lck-checked"
+            />
+            <div class="pl-2">Khen thưởng phòng ban</div>
+          </div>
+          <div class="col-2 p-0"></div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
-            <div class="w-10rem">Số quyết định <span class="redsao pl-1"> (*)</span></div>
+          <div class="col-6   p-0 flex text-left align-items-center">
+            <div class="w-10rem">
+              Số quyết định <span class="redsao pl-1"> (*)</span>
+            </div>
             <div style="width: calc(100% - 10rem)">
               <InputText
                 class="w-full px-2"
                 v-model="reward.reward_number"
-                 
                 :class="{
-                      'p-invalid':
-                        reward.reward_number== null && submitted,
-                    }"
+                  'p-invalid': reward.reward_number == null && submitted,
+                }"
               />
             </div>
           </div>
-          <div
-              class="col-12 field p-0 flex"
-              v-if="(reward.reward_number == null || reward.reward_number == '' ) && submitted"
-            >
-              <div class="w-10rem"></div>
-              <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                  >Số quyết định không được để trống!</span
-                >
-                    
-              </small>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">Ngày quyết định</div>
+            <div style="width: calc(100% - 10rem)">
+              <Calendar
+                class="w-full"
+                id="basic_purchase_date"
+                v-model="reward.decision_date"
+                autocomplete="off"
+                :showIcon="true"
+                placeholder="dd/mm/yyyy"
+              />
             </div>
-        <div class="col-12 p-0" v-if="reward.reward_type == 1 ||reward.reward_type == 3">
+          </div>
+        </div>
+
+        <div
+          class="col-12 field p-0 flex"
+          v-if="
+            (reward.reward_number == null || reward.reward_number == '') &&
+            submitted
+          "
+        >
+          <div class="w-10rem"></div>
+          <small style="width: calc(100% - 10rem)">
+            <span style="color: red" class="w-full"
+              >Số quyết định không được để trống!</span
+            >
+          </small>
+        </div>
+        <div
+          class="col-12 p-0"
+          v-if="reward.reward_type == 1 || reward.reward_type == 3"
+        >
           <div class="col-12 field flex p-0 align-items-center">
             <div class="w-10rem">
               Nhân sự <span class="redsao pl-1"> (*)</span>
@@ -752,14 +776,16 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <div class="col-12 p-0">
                 <div class="p-inputgroup">
-          
                   <MultiSelect
                     v-model="reward.reward_name_fake1"
                     :options="listDataUsers"
                     optionLabel="profile_user_name"
                     optionValue="code"
-                    :placeholder="  reward.reward_type == 1?
-                    '-------- Chọn người nhận khen thưởng --------':'-------- Chọn nhân sự kỷ luật --------'"
+                    :placeholder="
+                      reward.reward_type == 1
+                        ? '-------- Chọn người nhận khen thưởng --------'
+                        : '-------- Chọn nhân sự kỷ luật --------'
+                    "
                     panelClass="d-design-dropdown"
                     class="w-full p-0 d-tree-input"
                     :class="{
@@ -767,6 +793,7 @@ onMounted(() => {
                         reward.reward_name_fake1.length == 0 && submitted,
                     }"
                     display="chip"
+                    :filter="true"
                   >
                     <template #option="slotProps">
                       <div class="country-item flex align-items-center w-full">
@@ -776,24 +803,29 @@ onMounted(() => {
                           >
                             <div class="w-1rem mx-2 p-0 align-items-center">
                               <Avatar
-                                style="color: #fff"
+                                style="color: #fff; width: 2rem; height: 2rem"
                                 v-bind:label="
                                   slotProps.option.avatar
                                     ? ''
                                     : slotProps.option.profile_user_name.substring(
-                                        slotProps.option.profile_user_name.lastIndexOf(' ') +
-                                          1,
-                                        slotProps.option.profile_user_name.lastIndexOf(' ') +
-                                          2
+                                        slotProps.option.profile_user_name.lastIndexOf(
+                                          ' '
+                                        ) + 1,
+                                        slotProps.option.profile_user_name.lastIndexOf(
+                                          ' '
+                                        ) + 2
                                       )
                                 "
                                 :image="basedomainURL + slotProps.option.avatar"
-                                size="small"
+                                size="xlarge"
                                 :style="
                                   slotProps.option.avatar
                                     ? 'background-color: #2196f3'
                                     : 'background:' +
-                                      bgColor[slotProps.option.profile_user_name.length % 7]
+                                      bgColor[
+                                        slotProps.option.profile_user_name
+                                          .length % 7
+                                      ]
                                 "
                                 shape="circle"
                                 @error="
@@ -811,7 +843,7 @@ onMounted(() => {
                                   {{ slotProps.option.profile_user_name }}
                                 </div>
                                 <div
-                                  class="flex w-full text-sm font-italic text-500"
+                                  class="flex w-full text-sm   text-500"
                                 >
                                   <div>
                                     {{ slotProps.option.position_name }}
@@ -857,15 +889,17 @@ onMounted(() => {
                     :options="listDepartmentTree"
                     :class="{
                       'p-invalid':
-                       Object.keys(reward.reward_name_fake2).length == 0 && submitted,
+                        Object.keys(reward.reward_name_fake2).length == 0 &&
+                        submitted,
                     }"
                     :showClear="true"
                     :max-height="200"
                     optionLabel="data.organization_name"
                     optionValue="data.department_id"
                     panelClass="d-design-dropdown"
-                    class="w-full d-tree-input "
-                    selectionMode="multiple" :metaKeySelection="false"
+                    class="w-full d-tree-input"
+                    selectionMode="multiple"
+                    :metaKeySelection="false"
                     placeholder="-------- Chọn phòng ban khen thưởng--------"
                     display="chip"
                   >
@@ -875,8 +909,10 @@ onMounted(() => {
             </div>
           </div>
           <div
-            class="col-12 p-0 field   flex"
-            v-if="  Object.keys(reward.reward_name_fake2).length == 0 && submitted"
+            class="col-12 p-0 field flex"
+            v-if="
+              Object.keys(reward.reward_name_fake2).length == 0 && submitted
+            "
           >
             <div class="p-0 col-12">
               <div class="col-12 p-0 flex">
@@ -890,12 +926,15 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 field p-0 flex text-left align-items-center" v-if="reward.reward_type==1|| reward.reward_type==2">
+        <div
+          class="col-12 field p-0 flex text-left align-items-center"
+          v-if="reward.reward_type == 1 || reward.reward_type == 2"
+        >
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem" >
+            <div class="w-10rem">
               Cấp khen thưởng <span class="redsao pl-1"> (*)</span>
             </div>
-       
+
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 :filter="true"
@@ -912,8 +951,8 @@ onMounted(() => {
               />
             </div>
           </div>
-          <div class="col-6 p-0 flex text-left align-items-center"   >
-            <div class="w-10rem pl-3"   >
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">
               Danh hiệu <span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
@@ -932,14 +971,16 @@ onMounted(() => {
               />
             </div>
           </div>
-           
         </div>
-        <div class="col-12 field p-0 flex text-left align-items-center" v-if="reward.reward_type==3">
+        <div
+          class="col-12 field p-0 flex text-left align-items-center"
+          v-if="reward.reward_type == 3"
+        >
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem" >
+            <div class="w-10rem">
               Cấp kỷ luật <span class="redsao pl-1"> (*)</span>
             </div>
-       
+
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 :filter="true"
@@ -956,8 +997,8 @@ onMounted(() => {
               />
             </div>
           </div>
-          <div class="col-6 p-0 flex text-left align-items-center"   >
-            <div class="w-10rem pl-3"   >
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">
               Hình thức <span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
@@ -976,7 +1017,6 @@ onMounted(() => {
               />
             </div>
           </div>
-           
         </div>
         <div
           class="col-12 p-0 field flex"
@@ -992,11 +1032,17 @@ onMounted(() => {
             >
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                v-if="reward.reward_type==1|| reward.reward_type==2"    >Cấp khen thưởng không được để trống!</span
+                <span
+                  style="color: red"
+                  class="w-full"
+                  v-if="reward.reward_type == 1 || reward.reward_type == 2"
+                  >Cấp khen thưởng không được để trống!</span
                 >
-                     <span style="color: red" class="w-full"
-                v-if="reward.reward_type==3"    >Cấp kỷ luật không được để trống!</span
+                <span
+                  style="color: red"
+                  class="w-full"
+                  v-if="reward.reward_type == 3"
+                  >Cấp kỷ luật không được để trống!</span
                 >
               </small>
             </div>
@@ -1008,11 +1054,17 @@ onMounted(() => {
             >
               <div class="w-10rem"></div>
               <small style="width: calc(100% - 10rem)">
-                <span style="color: red" class="w-full"
-                v-if="reward.reward_type==1|| reward.reward_type==2"   >Danh hiệu không được để trống!</span
+                <span
+                  style="color: red"
+                  class="w-full"
+                  v-if="reward.reward_type == 1 || reward.reward_type == 2"
+                  >Danh hiệu không được để trống!</span
                 >
-                   <span style="color: red" class="w-full"
-                v-if="reward.reward_type==3"    >Hình thức kỷ luật không được để trống!</span
+                <span
+                  style="color: red"
+                  class="w-full"
+                  v-if="reward.reward_type == 3"
+                  >Hình thức kỷ luật không được để trống!</span
                 >
               </small>
             </div>
@@ -1021,20 +1073,7 @@ onMounted(() => {
 
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">Ngày quyết định</div>
-            <div style="width: calc(100% - 10rem)">
-              <Calendar
-                class="w-full"
-                id="basic_purchase_date"
-                v-model="reward.decision_date"
-                autocomplete="off"
-                :showIcon="true"
-                placeholder="dd/mm/yyyy"
-              />
-            </div>
-          </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Ngày hiệu lực</div>
+            <div class="w-10rem  ">Ngày hiệu lực</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
@@ -1042,33 +1081,31 @@ onMounted(() => {
                 id="basic_purchase_date"
                 v-model="reward.effective_date"
                 autocomplete="off"
-               
                 :showIcon="true"
               />
             </div>
           </div>
-        </div>
-        <div class="col-12 field p-0 flex text-left align-items-center" v-if="reward.reward_type!=3">
-         
-        
-            <div class="w-10rem  ">Giá trị</div>
-            <div style="width: calc(100% - 10rem)">
-              <InputNumber
-                class="w-full"
-                v-model="reward.reward_cost"
-                
-                suffix=" VNĐ"
-              />
-        
+          <div
+          class="col-6   p-0 flex text-left align-items-center"
+          v-if="reward.reward_type != 3"
+        >
+          <div class="w-10rem pl-3">Giá trị</div>
+          <div style="width: calc(100% - 10rem)">
+            <InputNumber
+              class="w-full"
+              v-model="reward.reward_cost"
+              suffix=" VNĐ"
+            />
           </div>
         </div>
+        </div>
+       
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="w-10rem">Nội dung</div>
           <div style="width: calc(100% - 10rem)">
             <Textarea
               :autoResize="true"
               rows="3"
-             
               cols="30"
               v-model="reward.reward_content"
               class="w-full"
@@ -1078,13 +1115,15 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="col-12 field p-0 flex text-left align-items-center" v-if="reward.reward_type==3">
+        <div
+          class="col-12 field p-0 flex text-left align-items-center"
+          v-if="reward.reward_type == 3"
+        >
           <div class="w-10rem">Ghi chú</div>
           <div style="width: calc(100% - 10rem)">
             <Textarea
               :autoResize="true"
               rows="1"
-          
               cols="30"
               v-model="reward.reward_note"
               class="w-full"
@@ -1194,12 +1233,7 @@ onMounted(() => {
           class="p-button-outlined"
         />
 
-        <Button
-          label="Lưu"
-          icon="pi pi-check"
-          @click="saveData()"
-          autofocus
-        />
+        <Button label="Lưu" icon="pi pi-check" @click="saveData()" autofocus />
       </div>
     </template>
   </Dialog>

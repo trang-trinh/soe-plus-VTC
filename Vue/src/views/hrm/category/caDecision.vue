@@ -136,8 +136,7 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].decision_id;
+    options.value.id = datalists.value[datalists.value.length - 1].decision_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
@@ -187,8 +186,8 @@ const openBasic = (str) => {
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
   };
-  checkDisabled.value=false;
-  listFilesS.value=[];
+  checkDisabled.value = false;
+  listFilesS.value = [];
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
@@ -338,10 +337,13 @@ const editTem = (dataTem) => {
       let data1 = JSON.parse(response.data.data)[1];
       if (data) {
         decision.value = data[0];
-        if(decision.value.is_system==true&& (store.getters.user.is_super==false || store.getters.user.is_super== null)){
-
-checkDisabled.value=true;
-}
+        if (
+          decision.value.is_system == true &&
+          (store.getters.user.is_super == false ||
+            store.getters.user.is_super == null)
+        ) {
+          checkDisabled.value = true;
+        }
         if (data1) {
           listFilesS.value = data1;
         }
@@ -352,7 +354,8 @@ checkDisabled.value=true;
       displayBasic.value = true;
     })
     .catch((error) => {});
-};const checkDisabled=ref(false);
+};
+const checkDisabled = ref(false);
 //Xóa bản ghi
 const delTem = (Tem) => {
   swal
@@ -376,13 +379,10 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(
-            baseURL + "/api/hrm_ca_decision/delete_hrm_ca_decision",
-            {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.decision_id] : 1,
-            }
-          )
+          .delete(baseURL + "/api/hrm_ca_decision/delete_hrm_ca_decision", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: Tem != null ? [Tem.decision_id] : 1,
+          })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
@@ -614,13 +614,10 @@ const deleteList = () => {
             listId.push(item.decision_id);
           });
           axios
-            .delete(
-              baseURL + "/api/hrm_ca_decision/delete_hrm_ca_decision",
-              {
-                headers: { Authorization: `Bearer ${store.getters.token}` },
-                data: listId != null ? listId : 1,
-              }
-            )
+            .delete(baseURL + "/api/hrm_ca_decision/delete_hrm_ca_decision", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: listId != null ? listId : 1,
+            })
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
@@ -957,7 +954,68 @@ onMounted(() => {
           />
         </template>
       </Column>
-
+      <Column
+        field="decision_name"
+        header="File mẫu"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:100px;height:50px"
+        bodyStyle="text-align:center;max-width:100px"
+      >
+        <template #body="item">
+          <div>
+            <div v-if="item.data.file_path">
+              <a
+                :href="basedomainURL + item.data.file_path"
+                download
+                class="w-full no-underline cursor-pointer text-900"
+              >
+                <div class="align-items-center flex">
+                  <div>
+                    <img
+                      :src="
+                        basedomainURL +
+                        '/Portals/Image/file/' +
+                        item.data.file_path.substring(
+                          item.data.file_path.lastIndexOf('.') + 1
+                        ) +
+                        '.png'
+                      "
+                      style="width: 70px; height: 50px; object-fit: contain"
+                      alt=""
+                    />
+                  </div>
+                   
+                </div>
+              </a>
+            </div>
+            <div  v-else-if="item.data.file_path_sys">
+              <a
+                :href="basedomainURL + item.data.file_path_sys"
+                download
+                class="w-full no-underline cursor-pointer text-900"
+              >
+                <div class="align-items-center flex">
+                  <div>
+                    <img
+                      :src="
+                        basedomainURL +
+                        '/Portals/Image/file/' +
+                        item.data.file_path_sys.substring(
+                          item.data.file_path_sys.lastIndexOf('.') + 1
+                        ) +
+                        '.png'
+                      "
+                      style="width: 70px; height: 50px; object-fit: contain"
+                      alt=""
+                    />
+                  </div>
+                   
+                </div>
+              </a>
+            </div>
+          </div>
+        </template>
+      </Column>
       <Column
         field="status"
         header="Trạng thái"
@@ -1062,9 +1120,7 @@ onMounted(() => {
             :class="{
               'p-invalid': v$.decision_name.$invalid && submitted,
             }"
-            :disabled="
-            checkDisabled
-            "
+            :disabled="checkDisabled"
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
@@ -1089,19 +1145,12 @@ onMounted(() => {
             <InputNumber
               v-model="decision.is_order"
               class="col-3 ip36 p-0"
-              :disabled="
-              checkDisabled
-              "
+              :disabled="checkDisabled"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch
-              v-model="decision.status"
-              :disabled="
-            checkDisabled
-              "
-            />
+            <InputSwitch v-model="decision.status" :disabled="checkDisabled" />
           </div>
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
@@ -1112,7 +1161,10 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == true).length>0">
+        <div
+          class="col-12 p-0"
+          v-if="listFilesS.filter((x) => x.is_system == true).length > 0"
+        >
           <DataTable
             :value="listFilesS.filter((x) => x.is_system == true)"
             filterDisplay="menu"
@@ -1125,7 +1177,10 @@ onMounted(() => {
           >
             <Column field="code" header="File mẫu hệ thống">
               <template #body="item">
-                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
+                <div
+                  class="p-0 d-style-hover"
+                  style="width: 100%; border-radius: 10px"
+                >
                   <div class="w-full flex align-items-center">
                     <div class="flex w-full text-900">
                       <div
@@ -1188,7 +1243,7 @@ onMounted(() => {
                     >
                       <Button
                         icon="pi pi-times"
-                        class="p-button-rounded  bg-red-300 border-none"
+                        class="p-button-rounded bg-red-300 border-none"
                         @click="deleteFileH(item.data)"
                       />
                     </div>
@@ -1207,8 +1262,10 @@ onMounted(() => {
           </div> -->
         </div>
 
-
-        <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == false).length>0">
+        <div
+          class="col-12 p-0"
+          v-if="listFilesS.filter((x) => x.is_system == false).length > 0"
+        >
           <DataTable
             :value="listFilesS.filter((x) => x.is_system == false)"
             filterDisplay="menu"
@@ -1221,7 +1278,10 @@ onMounted(() => {
           >
             <Column field="code" header="  File mẫu Đơn vị">
               <template #body="item">
-                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
+                <div
+                  class="p-0 d-style-hover"
+                  style="width: 100%; border-radius: 10px"
+                >
                   <div class="w-full flex align-items-center">
                     <div class="flex w-full text-900">
                       <div
@@ -1273,20 +1333,20 @@ onMounted(() => {
                             </div>
                             <div class="ml-2" style="word-break: break-all">
                               <div class="ml-2" style="word-break: break-all">
-                          <div style="word-break: break-all">
-                            {{ item.data.file_name }}
-                          </div>
-                          <div
-                            v-if="store.getters.user.is_super"
-                            style="
-                              word-break: break-all;
-                              font-size: 11px;
-                              font-style: italic;
-                            "
-                          >
-                            {{ item.data.organization_name }}
-                          </div>
-                        </div>
+                                <div style="word-break: break-all">
+                                  {{ item.data.file_name }}
+                                </div>
+                                <div
+                                  v-if="store.getters.user.is_super"
+                                  style="
+                                    word-break: break-all;
+                                    font-size: 11px;
+                                    font-style: italic;
+                                  "
+                                >
+                                  {{ item.data.organization_name }}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </a>
@@ -1295,12 +1355,13 @@ onMounted(() => {
                     <div
                       class="w-3rem align-items-center d-style-hover-1"
                       v-if="
-                    store.getters.user.organization_id == item.data.organization_id
-                  "
+                        store.getters.user.organization_id ==
+                        item.data.organization_id
+                      "
                     >
                       <Button
                         icon="pi pi-times"
-                        class="p-button-rounded  bg-red-300 border-none"
+                        class="p-button-rounded bg-red-300 border-none"
                         @click="deleteFileH(item.data)"
                       />
                     </div>
@@ -1309,17 +1370,15 @@ onMounted(() => {
               </template>
             </Column>
           </DataTable>
-
-          
         </div>
-         
-         
-        <div class="w-full col-12 field p-0">
+
+        <div class="col-12 field">File mẫu</div>
+        <div class="w-full col-12 field">
           <FileUpload
             chooseLabel="Chọn File"
             :showUploadButton="false"
             :showCancelButton="false"
-            :multiple="false"
+            :multiple="false"    accept=".doc,.docx"
             :maxFileSize="524288000"
             @select="onUploadFile"
             @remove="removeFile"
@@ -1351,7 +1410,6 @@ onMounted(() => {
 </template>
     
     <style scoped>
-
 .inputanh {
   border: 1px solid #ccc;
   width: 8rem;

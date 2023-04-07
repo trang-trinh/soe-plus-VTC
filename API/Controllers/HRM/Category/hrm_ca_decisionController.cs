@@ -108,14 +108,15 @@ namespace API.Controllers.HRM.Category
                                 fileName = Path.GetFileName(fileName);
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Decision", fileName);
-                            fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Decision", fileName);
-                            }
+                            fileInfo = new FileInfo(newFileName);
+                            newFileName = Path.Combine(root + "/" + dvid + "/Decision", helper.newFileName(fileInfo, newFileName, 1, root, int.Parse(dvid)));
+                            //if (fileInfo.Exists)
+                            //{
+                            //    fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //    fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            //    newFileName = Path.Combine(root + "/" + dvid + "/Decision", fileName);
+                            //}
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -315,13 +316,16 @@ namespace API.Controllers.HRM.Category
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Decision", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            newFileName = Path.Combine(root + "/" + dvid + "/Decision", helper.newFileName(fileInfo, newFileName, 1, root, dvid));
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Decision", fileName);
-                            }
+                           
+                            //if (fileInfo.Exists)
+                            //{
+                            //    fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //    fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+
+                            //    newFileName = Path.Combine(root + "/" + dvid + "/Decision", fileName);
+                            //}
                             ffileData = fileData;
                             if (fileInfo != null)
                             {

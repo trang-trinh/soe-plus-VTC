@@ -707,10 +707,12 @@ onMounted(() => {
           </template>
           </DataTable>
           <div
-            ref="target"
             class="col-12 p-0 overflow-y-auto grid-9"
             style="height: calc(100vh - 115px)"
           >
+          <div class="header-top">
+            <span class="font-bold flex ml-5 text-lg">Danh sách files</span>
+          </div>
           <DataView
             v-if="layout== 'grid'"
             class="w-full h-full e-sm flex flex-column p-dataview-unset"
@@ -796,7 +798,7 @@ onMounted(() => {
                     text-center
                   "
                 >
-                  <img src="../../assets/background/nodata.png" height="144" />
+                  <img src="../../../assets/background/nodata.png" height="144" />
                   <h3 class="m-1">Không có dữ liệu</h3>
                 </div>
               </template>
@@ -962,6 +964,14 @@ onMounted(() => {
 </template>
     
 <style scoped>
+  .header-top{
+    height:50px; 
+    border-top: 1px solid #e9ecef!important;
+    border-bottom: 1px solid #e9ecef!important;
+    display: flex;
+    align-items: center;
+
+  }
 .item-hover:hover{
   background-color: #f0f8ff!important;
 }

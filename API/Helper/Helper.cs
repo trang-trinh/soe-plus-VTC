@@ -186,7 +186,19 @@ namespace Helper
                 return name;
             }
         }
+        public static string newFileName(FileInfo path,string filename,int i, string root, int dvid)
+        {
 
+            if (path.Exists)
+            {
+                filename = path.Name.Replace(path.Extension, "");
+                filename = filename +"(" + i + ")" + path.Extension;
+                var newPath = Path.Combine(root + "/" + dvid + "/Decision", filename);
+                  var  newInfor = new FileInfo(newPath);
+                newFileName(newInfor, filename, i++, root, dvid);
+            }
+         return filename;
+        }
         public static string convertToUnSign(string s)
         {
             string stFormD = s.Normalize(NormalizationForm.FormD);

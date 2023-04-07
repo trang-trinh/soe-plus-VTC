@@ -96,11 +96,11 @@
 }
 .d-style-hover:hover{
   cursor: pointer;
-  color: blue !important;
+  color: #2196F3 !important;
 }
 .d-style-hover:hover a{
    
-  color: blue !important;
+  color: #2196F3 !important;
 }
 .d-style-hover:hover .d-style-hover-1{
       display: block;
