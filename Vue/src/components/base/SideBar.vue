@@ -56,7 +56,6 @@ const initModule = () => {
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       data_menus = dt[0];
-      debugger
       //  if(store.getters.listModule.length==0){
 
       //    store.commit("setlistModule",data_menus);
