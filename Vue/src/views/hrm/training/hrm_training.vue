@@ -1286,7 +1286,7 @@ onMounted(() => {
                                                 flex
                                                 w-full
                                                 text-sm
-                                                font-italic
+                                              
                                                 text-500
                                               "
                                             >
@@ -1457,7 +1457,7 @@ onMounted(() => {
                                                 flex
                                                 w-full
                                                 text-sm
-                                                font-italic
+                                           
                                                 text-500
                                               "
                                             >

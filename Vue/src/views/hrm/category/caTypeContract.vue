@@ -959,7 +959,68 @@ onMounted(() => {
           />
         </template>
       </Column>
-
+      <Column
+        field="decision_name"
+        header="File mẫu"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:100px;height:50px"
+        bodyStyle="text-align:center;max-width:100px"
+      >
+        <template #body="item">
+          <div>
+            <div v-if="item.data.file_path">
+              <a
+                :href="basedomainURL + item.data.file_path"
+                download
+                class="w-full no-underline cursor-pointer text-900"
+              >
+                <div class="align-items-center flex">
+                  <div>
+                    <img
+                      :src="
+                        basedomainURL +
+                        '/Portals/Image/file/' +
+                        item.data.file_path.substring(
+                          item.data.file_path.lastIndexOf('.') + 1
+                        ) +
+                        '.png'
+                      "
+                      style="width: 70px; height: 50px; object-fit: contain"
+                      alt=""
+                    />
+                  </div>
+                   
+                </div>
+              </a>
+            </div>
+            <div  v-else-if="item.data.file_path_sys">
+              <a
+                :href="basedomainURL + item.data.file_path_sys"
+                download
+                class="w-full no-underline cursor-pointer text-900"
+              >
+                <div class="align-items-center flex">
+                  <div>
+                    <img
+                      :src="
+                        basedomainURL +
+                        '/Portals/Image/file/' +
+                        item.data.file_path_sys.substring(
+                          item.data.file_path_sys.lastIndexOf('.') + 1
+                        ) +
+                        '.png'
+                      "
+                      style="width: 70px; height: 50px; object-fit: contain"
+                      alt=""
+                    />
+                  </div>
+                   
+                </div>
+              </a>
+            </div>
+          </div>
+        </template>
+      </Column>
       <Column
         field="status"
         header="Trạng thái"
@@ -1314,7 +1375,7 @@ onMounted(() => {
 
           
         </div>
-         
+        <div class="col-12 field   ">File mẫu</div>
          
         <div class="w-full col-12 field p-0">
           <FileUpload
@@ -1322,9 +1383,11 @@ onMounted(() => {
             :showUploadButton="false"
             :showCancelButton="false"
             :multiple="false"
+            accept=".doc,.docx"
             :maxFileSize="524288000"
             @select="onUploadFile"
             @remove="removeFile"
+
             :fileLimit="1"
 
             :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
