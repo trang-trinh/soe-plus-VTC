@@ -89,6 +89,23 @@
 .min-w-30rem {
   min-width: 30rem !important;
 }
+/* Duy design List File */
+.d-style-hover-1{
+
+  display: none;
+}
+.d-style-hover:hover{
+  cursor: pointer;
+  color: blue !important;
+}
+.d-style-hover:hover a{
+   
+  color: blue !important;
+}
+.d-style-hover:hover .d-style-hover-1{
+      display: block;
+   
+}
 /*Style chung cho min-w-Xrem*/
 html {
   font-size: 14px;

@@ -373,7 +373,7 @@ onMounted(() => {
       <div class="grid mt-0 p-0 m-0 ">
 
 
-        <div class="col-12 field   p-0">
+        <div class="col-12 field   p-0" v-if="configUserCodeMain.length>0">
           <DataTable :value="configUserCodeMain">
             <Column   label="">
               <template #body="data">

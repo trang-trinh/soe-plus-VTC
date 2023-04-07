@@ -967,7 +967,7 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >

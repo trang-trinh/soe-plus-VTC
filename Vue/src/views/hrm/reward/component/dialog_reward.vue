@@ -181,82 +181,10 @@ const saveData = ( ) => {
   }
 };
 const listDropdownUserGive = ref();
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
-const listUsers = ref([]);
-const loadUser = () => {
-  listUsers.value = [];
-  listDropdownUser.value = [];
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-
-          avatar: element.avatar,
-          department_name: element.department_name,
-          department_id: element.department_id,
-          role_name: element.role_name,
-          position_name: element.position_name,
-          phone_number: element.phone,
-          organization_id: element.organization_id,
-        });
-        listUsers.value.push({ data: element, active: false });
-      });
-      listUsers.value = data;
-      listDropdownUserGive.value = listDropdownUser.value;
-      listDropdownUserCheck.value = listDropdownUser.value.filter(
-        (x) => x.code != store.getters.user.user_id
-      );
-    })
-    .catch((error) => {
-      console.log(error);
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
+ 
  
 const listRewardLevel= ref([]);
-const listPosition = ref([]);
+ 
 const listRewardTitle = ref([]);
 const listDepartmentTree = ref();
 const listDisciplineTitle = ref([]);
@@ -677,17 +605,7 @@ const loadUserProfiles = () => {
       data.forEach((element, i) => {
         listDataUsers.value.push({
           profile_user_name: element.profile_user_name,
-          code: {
-            profile_id: element.profile_id,
-            avatar: element.avatar,
-            profile_user_name: element.profile_user_name,
-            department_name: element.department_name,
-            department_id: element.department_id,
-            work_position_name: element.work_position_name,
-            position_name: element.position_name,
-            position_id: element.position_id,
-            work_position_id: element.work_position_id,
-          },
+          code: element.profile_id,
           avatar: element.avatar,
           department_name: element.department_name,
           department_id: element.department_id,
@@ -715,17 +633,50 @@ const loadUserProfiles = () => {
 const displayBasic = ref(false);
 
 const listTypeReward = ref([
-  { name: "Khen thưởng nhân sự", code: 1 },
-  { name: "Khen thưởng phòng ban", code: 2 },
-  { name: "Kỷ luật nhân sự", code: 3 },
+  { name: "Khen thưởng", code: 1 },
+  { name: "Kỷ luật", code: 2 },
+ 
 ]);
  
+ const reward_type=ref(1);
+
+ const reward_type_1=ref(true);
  
+ const reward_type_2=ref(false);
+ const onChangeTypeR=()=>{
+  if(reward_type.value==2){
+    reward.value.reward_type=3;
+  }
+  else{
+    reward.value.reward_type=1;
+  }
+ };
+
+ const onChangeSwType1=()=>{
+  if(reward_type_1.value==true){
+    reward.value.reward_type=1;
+    reward_type_2.value=false;
+  }
+  else{
+    reward.value.reward_type=2;
+    reward_type_2.value=true;
+  }
+ };
+ const onChangeSwType2=()=>{
+  if(reward_type_2.value==true){
+    reward.value.reward_type=2;
+    reward_type_1.value=false;
+  }
+  else{
+    reward.value.reward_type=1;
+    reward_type_1.value=true;
+  }
+ };
 onMounted(() => {
   reward.value = props.reward;
  listFilesS.value=props.files;
   initTudien();
-  loadUser();
+ 
   loadUserProfiles();
   displayBasic.value = props.displayBasic;
   return {};
@@ -747,15 +698,26 @@ onMounted(() => {
         <div class="field col-12 md:col-12 flex format-center">
           <div class="col-6 p-0">
             <SelectButton
-              v-model="reward.reward_type"
+              v-model=" reward_type"
               :options="listTypeReward"
               optionLabel="name"
               optionValue="code"
-          
+          @change="onChangeTypeR"
             />
           </div>
         </div>
         <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
+
+        <div class="col-12 field p-0 text-lg flex  " v-if="reward.reward_type !=3">
+          <div class="col-2 p-0"></div>
+            <div class="col-4 flex p-0 align-items-center text-align-center format-center">
+              <InputSwitch v-model="reward_type_1" @change="onChangeSwType1()"    class="w-4rem lck-checked " /> <div class="pl-2">Khen thưởng nhân sự</div>
+            </div>
+            <div class="col-4 flex p-0 align-items-center format-center">
+              <InputSwitch v-model="reward_type_2"  @change="onChangeSwType2()"  class="w-4rem lck-checked" /> <div class="pl-2"> Khen thưởng phòng ban</div>
+            </div>
+            <div class="col-2 p-0"></div>
+        </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
             <div class="w-10rem">Số quyết định <span class="redsao pl-1"> (*)</span></div>
             <div style="width: calc(100% - 10rem)">
@@ -790,10 +752,11 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <div class="col-12 p-0">
                 <div class="p-inputgroup">
+          
                   <MultiSelect
                     v-model="reward.reward_name_fake1"
-                    :options="listDropdownUserGive"
-                    optionLabel="name"
+                    :options="listDataUsers"
+                    optionLabel="profile_user_name"
                     optionValue="code"
                     :placeholder="  reward.reward_type == 1?
                     '-------- Chọn người nhận khen thưởng --------':'-------- Chọn nhân sự kỷ luật --------'"
@@ -817,10 +780,10 @@ onMounted(() => {
                                 v-bind:label="
                                   slotProps.option.avatar
                                     ? ''
-                                    : slotProps.option.name.substring(
-                                        slotProps.option.name.lastIndexOf(' ') +
+                                    : slotProps.option.profile_user_name.substring(
+                                        slotProps.option.profile_user_name.lastIndexOf(' ') +
                                           1,
-                                        slotProps.option.name.lastIndexOf(' ') +
+                                        slotProps.option.profile_user_name.lastIndexOf(' ') +
                                           2
                                       )
                                 "
@@ -830,7 +793,7 @@ onMounted(() => {
                                   slotProps.option.avatar
                                     ? 'background-color: #2196f3'
                                     : 'background:' +
-                                      bgColor[slotProps.option.name.length % 7]
+                                      bgColor[slotProps.option.profile_user_name.length % 7]
                                 "
                                 shape="circle"
                                 @error="
@@ -845,7 +808,7 @@ onMounted(() => {
                             >
                               <div class="pt-2">
                                 <div class="font-bold">
-                                  {{ slotProps.option.name }}
+                                  {{ slotProps.option.profile_user_name }}
                                 </div>
                                 <div
                                   class="flex w-full text-sm font-italic text-500"
@@ -957,7 +920,7 @@ onMounted(() => {
               <Dropdown
                 :filter="true"
                 v-model="reward.reward_title_id"
-                :options="listRewardLevel"
+                :options="listRewardTitle"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"

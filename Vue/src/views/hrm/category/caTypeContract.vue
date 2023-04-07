@@ -187,7 +187,7 @@ const openBasic = (str) => {
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
   };
-
+  listFilesS.value=[];
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
@@ -316,7 +316,7 @@ const editTem = (dataTem) => {
           JSON.stringify({
             proc: "hrm_type_contract_get",
             par: [
-            {
+              {
                 par: "user_id",
                 va: store.getters.user.user_id,
               },
@@ -748,7 +748,7 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
-const listFilesS = ref();
+const listFilesS = ref([]);
 onMounted(() => {
   if (!checkURL(window.location.pathname, store.getters.listModule)) {
     //router.back();
@@ -780,10 +780,10 @@ onMounted(() => {
       @sort="onSort($event)"
       @filter="onFilter($event)"
       v-model:filters="filters"
-      filterDisplay="menu"
-      filterMode="lenient"
       :filters="filters"
       :scrollable="true"
+      filterDisplay="menu"
+      filterMode="lenient"
       scrollHeight="flex"
       :showGridlines="true"
       columnResizeMode="fit"
@@ -797,10 +797,10 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
+      :row-hover="true"
       dataKey="type_contract_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
-      :row-hover="true"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
@@ -997,10 +997,7 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px"
       >
         <template #body="Tem">
-          <div
-        
-          >
-     
+          <div>
             <Button
               @click="editTem(Tem.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
@@ -1008,10 +1005,10 @@ onMounted(() => {
               icon="pi pi-pencil"
               v-tooltip.top="'Sửa'"
               v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == Tem.data.created_by ||
-            store.state.user.is_admin 
-            "
+                store.state.user.is_super == true ||
+                store.state.user.user_id == Tem.data.created_by ||
+                store.state.user.is_admin
+              "
             ></Button>
             <Button
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
@@ -1020,11 +1017,11 @@ onMounted(() => {
               @click="delTem(Tem.data)"
               v-tooltip.top="'Xóa'"
               v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == Tem.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
-            "
+                store.state.user.is_super == true ||
+                store.state.user.user_id == Tem.data.created_by ||
+                (store.state.user.role_id == 'admin' &&
+                  store.state.user.organization_id == Tem.data.organization_id)
+              "
             ></Button>
           </div>
         </template>
@@ -1061,7 +1058,11 @@ onMounted(() => {
             :class="{
               'p-invalid': v$.type_contract_name.$invalid && submitted,
             }"
-            :disabled="type_contract.is_system && store.getters.user.is_super?false:true"
+            :disabled="
+              type_contract.is_system && store.getters.user.is_super
+                ? false
+                : true
+            "
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
@@ -1085,13 +1086,24 @@ onMounted(() => {
             <div class="col-9 text-left p-0">STT</div>
             <InputNumber
               v-model="type_contract.is_order"
-              class="col-3 ip36 p-0"  :disabled="type_contract.is_system && store.getters.user.is_super?false:true"
+              class="col-3 ip36 p-0"
+              :disabled="
+                type_contract.is_system && store.getters.user.is_super
+                  ? false
+                  : true
+              "
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="type_contract.status" 
-             :disabled="type_contract.is_system && store.getters.user.is_super?false:true" />
+            <InputSwitch
+              v-model="type_contract.status"
+              :disabled="
+                type_contract.is_system && store.getters.user.is_super
+                  ? false
+                  : true
+              "
+            />
           </div>
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
@@ -1101,163 +1113,209 @@ onMounted(() => {
             <InputSwitch v-model="type_contract.is_system" />
           </div>
         </div>
-        <div class="col-12 field p-0 text-lg font-bold" v-if="listFilesS.filter(
-              (x) => x.is_system == true
-            ).length>0">File hệ thống</div>
-        <div class="col-12 p-0">
-          <div
-            class="p-0 w-full flex"
-            v-for="(item, index) in listFilesS.filter(
-              (x) => x.is_system == true
-            )"
-            :key="index"
+
+        <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == true).length>0">
+          <DataTable
+            :value="listFilesS.filter((x) => x.is_system == true)"
+            filterDisplay="menu"
+            filterMode="lenient"
+            scrollHeight="flex"
+            :showGridlines="true"
+            :paginator="false"
+            :row-hover="true"
+            columnResizeMode="fit"
           >
-            <div class="p-0" style="width: 100%; border-radius: 10px">
-              <div class="w-full py-3 flex align-items-center">
-                <div class="flex w-full">
-                  <div v-if="item.is_image" class="align-items-center flex">
-                    <Image
-                      :src="basedomainURL + item.file_path"
-                      alt=""
-                      width="70"
-                      height="50"
-                      style="
-                        object-fit: contain;
-                        border: 1px solid #ccc;
-                        width: 70px;
-                        height: 50px;
-                      "
-                      preview
-                      class="pr-2"
-                    />
-                    <div class="ml-2" style="word-break: break-all">
-                      {{ item.file_name }}
-                    </div>
-                  </div>
-                  <div v-else>
-                    <a
-                      :href="basedomainURL + item.file_path"
-                      download
-                      class="w-full no-underline cursor-pointer"
-                    >
-                      <div class="align-items-center flex">
-                        <div>
-                          <img
-                            :src="
-                              basedomainURL +
-                              '/Portals/Image/file/' +
-                              item.file_path.substring(
-                                item.file_path.lastIndexOf('.') + 1
-                              ) +
-                              '.png'
-                            "
-                            style="
-                              width: 70px;
-                              height: 50px;
-                              object-fit: contain;
-                            "
-                            alt=""
-                          />
-                        </div>
+            <Column field="code" header="File mẫu hệ thống">
+              <template #body="item">
+                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
+                  <div class="w-full flex align-items-center">
+                    <div class="flex w-full text-900">
+                      <div
+                        v-if="item.data.is_image"
+                        class="align-items-center flex"
+                      >
+                        <Image
+                          :src="basedomainURL + item.data.file_path"
+                          alt=""
+                          width="70"
+                          height="50"
+                          style="
+                            object-fit: contain;
+                            border: 1px solid #ccc;
+                            width: 70px;
+                            height: 50px;
+                          "
+                          preview
+                          class="pr-2"
+                        />
                         <div class="ml-2" style="word-break: break-all">
-                          {{ item.file_name }}
+                          {{ item.data.file_name }}
                         </div>
                       </div>
-                    </a>
-                  </div>
-                </div>
-                <div class="w-3rem align-items-center" v-if="store.getters.user.is_super">
-                  <Button
-                    icon="pi pi-times"
-                    class="p-button-rounded p-button-danger"
-                    @click="deleteFileH(item)"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 field p-0 text-lg font-bold" v-if="listFilesS.filter(
-              (x) => x.is_system == false
-            ).length>0">File Đơn vị</div>
-        <div class="col-12 p-0">
-          <div
-            class="p-0 w-full flex"
-            v-for="(item, index) in listFilesS.filter(
-              (x) => x.is_system == false
-            )"
-            :key="index"
-          >
-            <div class="p-0" style="width: 100%; border-radius: 10px">
-              <div class="w-full py-3 flex align-items-center">
-                <div class="flex w-full">
-                  <div v-if="item.is_image" class="align-items-center flex">
-                    <Image
-                      :src="basedomainURL + item.file_path"
-                      alt=""
-                      width="70"
-                      height="50"
-                      style="
-                        object-fit: contain;
-                        border: 1px solid #ccc;
-                        width: 70px;
-                        height: 50px;
-                      "
-                      preview
-                      class="pr-2"
-                    />
-                    <div class="ml-2" style="word-break: break-all">
-                      {{ item.file_name }}
+                      <div v-else>
+                        <a
+                          :href="basedomainURL + item.data.file_path"
+                          download
+                          class="w-full no-underline cursor-pointer text-900"
+                        >
+                          <div class="align-items-center flex">
+                            <div>
+                              <img
+                                :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  item.data.file_path.substring(
+                                    item.data.file_path.lastIndexOf('.') + 1
+                                  ) +
+                                  '.png'
+                                "
+                                style="
+                                  width: 70px;
+                                  height: 50px;
+                                  object-fit: contain;
+                                "
+                                alt=""
+                              />
+                            </div>
+                            <div class="ml-2" style="word-break: break-all">
+                              {{ item.data.file_name }}
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                    <div
+                      class="w-3rem align-items-center d-style-hover-1"
+                      v-if="store.getters.user.is_super"
+                    >
+                      <Button
+                        icon="pi pi-times"
+                        class="p-button-rounded  bg-red-300 border-none"
+                        @click="deleteFileH(item.data)"
+                      />
                     </div>
                   </div>
-                  <div v-else>
-                    <a
-                      :href="basedomainURL + item.file_path"
-                      download
-                      class="w-full no-underline cursor-pointer"
-                    >
-                      <div class="align-items-center flex">
-                        <div>
-                          <img
-                            :src="
-                              basedomainURL +
-                              '/Portals/Image/file/' +
-                              item.file_path.substring(
-                                item.file_path.lastIndexOf('.') + 1
-                              ) +
-                              '.png'
-                            "
-                            style="
-                              width: 70px;
-                              height: 50px;
-                              object-fit: contain;
-                            "
-                            alt=""
-                          />
-                        </div>
+                </div>
+              </template>
+            </Column>
+          </DataTable>
+
+          <!-- <div
+            class="p-0 w-full flex"
+            v-for="(item, index) in "
+            :key="index"
+          >
+           
+          </div> -->
+        </div>
+
+
+        <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == false).length>0">
+          <DataTable
+            :value="listFilesS.filter((x) => x.is_system == false)"
+            filterDisplay="menu"
+            filterMode="lenient"
+            scrollHeight="flex"
+            :showGridlines="true"
+            :paginator="false"
+            :row-hover="true"
+            columnResizeMode="fit"
+          >
+            <Column field="code" header="  File mẫu Đơn vị">
+              <template #body="item">
+                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
+                  <div class="w-full flex align-items-center">
+                    <div class="flex w-full text-900">
+                      <div
+                        v-if="item.data.is_image"
+                        class="align-items-center flex"
+                      >
+                        <Image
+                          :src="basedomainURL + item.data.file_path"
+                          alt=""
+                          width="70"
+                          height="50"
+                          style="
+                            object-fit: contain;
+                            border: 1px solid #ccc;
+                            width: 70px;
+                            height: 50px;
+                          "
+                          preview
+                          class="pr-2"
+                        />
                         <div class="ml-2" style="word-break: break-all">
-                          <div    style="word-break: break-all">
-                          {{ item.file_name }}
-                        </div>
-                        <div  v-if="store.getters.user.is_super"   style="word-break: break-all; font-size: 11px;font-style: italic;">
-                          {{ item.organization_name }}
-                        </div>
+                          {{ item.data.file_name }}
                         </div>
                       </div>
-                    </a>
+                      <div v-else>
+                        <a
+                          :href="basedomainURL + item.data.file_path"
+                          download
+                          class="w-full no-underline cursor-pointer text-900"
+                        >
+                          <div class="align-items-center flex">
+                            <div>
+                              <img
+                                :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  item.data.file_path.substring(
+                                    item.data.file_path.lastIndexOf('.') + 1
+                                  ) +
+                                  '.png'
+                                "
+                                style="
+                                  width: 70px;
+                                  height: 50px;
+                                  object-fit: contain;
+                                "
+                                alt=""
+                              />
+                            </div>
+                            <div class="ml-2" style="word-break: break-all">
+                              <div class="ml-2" style="word-break: break-all">
+                          <div style="word-break: break-all">
+                            {{ item.data.file_name }}
+                          </div>
+                          <div
+                            v-if="store.getters.user.is_super"
+                            style="
+                              word-break: break-all;
+                              font-size: 11px;
+                              font-style: italic;
+                            "
+                          >
+                            {{ item.data.organization_name }}
+                          </div>
+                        </div>
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                    <div
+                      class="w-3rem align-items-center d-style-hover-1"
+                      v-if="
+                    store.getters.user.organization_id == item.data.organization_id
+                  "
+                    >
+                      <Button
+                        icon="pi pi-times"
+                        class="p-button-rounded  bg-red-300 border-none"
+                        @click="deleteFileH(item.data)"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div class="w-3rem align-items-center"  v-if="store.getters.user.organization_id== item.organization_id">
-                  <Button
-                    icon="pi pi-times"
-                    class="p-button-rounded p-button-danger"
-                    @click="deleteFileH(item)"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+              </template>
+            </Column>
+          </DataTable>
+
+          
         </div>
+         
+         
         <div class="w-full col-12 field p-0">
           <FileUpload
             chooseLabel="Chọn File"
@@ -1267,6 +1325,8 @@ onMounted(() => {
             :maxFileSize="524288000"
             @select="onUploadFile"
             @remove="removeFile"
+            :fileLimit="1"
+
             :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
           >
             <template #empty>
@@ -1295,6 +1355,7 @@ onMounted(() => {
 </template>
     
     <style scoped>
+
 .inputanh {
   border: 1px solid #ccc;
   width: 8rem;
