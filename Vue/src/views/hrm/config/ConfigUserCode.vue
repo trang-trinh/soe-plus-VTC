@@ -357,10 +357,7 @@ const saveDeConfig = () => {
 
  
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
-
+  
    
   loadUser();
   return {
