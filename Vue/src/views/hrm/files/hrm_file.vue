@@ -16,7 +16,8 @@ const isDynamicSQL = ref(false);
 const isDetail = ref(false);
 const file_detail = ref();
 const data_log = ref();
-
+const layout = ref("list");
+const first = ref(0);
 const list_types = ref([
   { img: "/Portals/file/pdf.png", label: "PDF", type: 1 },
   { img: "/Portals/file/png.png", label: "Ảnh", type: 2 },
@@ -63,7 +64,7 @@ const itemButMores = ref([
 ]);
 const downloadFile = (file)=>{
   var url = baseURL + file.file_path;
-  var name = file.file_name || "file_download";
+  var name = file.file_name || ("file_download"+ file.file_type);
   const a = document.createElement("a");
   a.href =
     basedomainURL +
@@ -157,8 +158,23 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+        data.forEach((item, i) => {
+          item.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          item.file_name_grid = item.file_name;
+          if (item.file_name.length > 30)
+          item.file_name_grid = item.file_name.substring(0, 30) + "...";
+          //context label
+          item.capacityMB = formatBytes(item.file_size)
+          item.labelContext =
+          item.file_name +
+          (item.full_name ? "\nNgười tạo: " + item.full_name : "") +
+          "\nNgày sửa cuối: " +
+          moment(new Date(item.modified_date || item.created_date)).format(
+            "DD/MM/YYYY hh:mm"
+          ) +
+          (item.capacityMB
+            ? ""
+            : "\nSize: " + item.capacityMB);
         });
         datalists.value = data;
 
@@ -369,7 +385,9 @@ const onFilter = (event) => {
   isDynamicSQL.value = true;
   loadDataSQL();
 };
+const itemclick = ref()
 const goFile = (item) => {
+  itemclick.value = item.file_id;
  // updateView(item.file_id);
   axios
     .post(
@@ -460,9 +478,17 @@ const loadTudien = () => {
 };
 const first_module = ref(0);
 const filterTrangthai = ref();
+const item_hover = ref();
+const hoverItem = (id)=>{
+  item_hover.value = id;
+}
+const leaveItem = ()=>{
+  item_hover.value = null;
+}
 const clearDetail = ()=>{
   selectedStamps.value = null;
   isDetail.value = false;
+  itemclick.value = null;
 }
 watch(selectedStamps, () => {
   if(selectedStamps.value){
@@ -492,55 +518,77 @@ onMounted(() => {
 </script>
 <template>
   <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <div class="header-bar">
-      <div class="flex w-full p-3">
-        <div class="w-15rem mr-2">
-          <Dropdown v-model="filterType" :options="list_types" optionLabel="label" placeholder="Kho dữ liệu"
-            class="w-full" showClear="true" @change="loadData(true)">
-            <template #value="slotProps">
-              <div class="flex align-items-center" v-if="slotProps.value">
-                <img class="icon-modules" v-bind:src="basedomainURL + slotProps.value.img" />
-                <div class="ml-2">
-                  {{ slotProps.value.label }}
-                </div>
-              </div>
-              <span v-else>
-                {{ slotProps.placeholder }}
-              </span>
-            </template>
-            <template #option="slotProps">
-              <div class="country-item flex">
-                <img class="icon-modules" v-bind:src="basedomainURL + slotProps.option.img" />
-                <div style="margin-left: 5px">
-                  {{ slotProps.option.label }}
-                </div>
-              </div>
-            </template>
-          </Dropdown>
-        </div>
-        <div class="w-15rem mr-2">
-          <div class="w-full flex">
-            <span class="w-full p-input-icon-left ">
-              <i class="pi pi-search" />
-              <InputText type="text" style="height:32px" v-model="options.search" spellcheck="false"
-                @keyup.enter="loadData(true)" placeholder="Tìm kiếm" />
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="flex body-content">
-      <div class="flex-1">
-        <!-- <DataTable @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" v-model:filters="filters"
-          filterDisplay="menu" filterMode="lenient" :filters="filters" :scrollable="true" scrollHeight="flex"
-          :showGridlines="true" columnResizeMode="fit" :lazy="true" :totalRecords="options.totalRecords"
-          :loading="options.loading" :reorderableColumns="true" :value="datalists" 
-          v-model:rows="options.PageSize"
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="file_id" responsiveLayout="scroll"
-          v-model:selection="selectedStamps" :row-hover="true" selectionMode="single"
-          > -->
+      <div class="flex-1" v-if="datalists">
+        <Toolbar class="w-full custoolbar">
+            <template #start>
+              <div class="header-bar">
+                <div class="flex w-full p-3">
+                  <div class="w-15rem mr-2">
+                    <Dropdown v-model="filterType" :options="list_types" optionLabel="label" placeholder="Kho dữ liệu"
+                      class="w-full" showClear="true" @change="loadData(true)">
+                      <template #value="slotProps">
+                        <div class="flex align-items-center" v-if="slotProps.value">
+                          <img class="icon-modules" v-bind:src="basedomainURL + slotProps.value.img" />
+                          <div class="ml-2">
+                            {{ slotProps.value.label }}
+                          </div>
+                        </div>
+                        <span v-else>
+                          {{ slotProps.placeholder }}
+                        </span>
+                      </template>
+                      <template #option="slotProps">
+                        <div class="country-item flex">
+                          <img class="icon-modules" v-bind:src="basedomainURL + slotProps.option.img" />
+                          <div style="margin-left: 5px">
+                            {{ slotProps.option.label }}
+                          </div>
+                        </div>
+                      </template>
+                    </Dropdown>
+                  </div>
+                  <div class="w-15rem mr-2">
+                    <div class="w-full flex">
+                      <span class="w-full p-input-icon-left ">
+                        <i class="pi pi-search" />
+                        <InputText type="text" style="height:32px" v-model="options.search" spellcheck="false"
+                          @keyup.enter="loadData(true)" placeholder="Tìm kiếm" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template #end>
+                <!-- <DataViewLayoutOptions v-model="layout" /> -->
+                <div class="p-dataview-layout-options p-selectbutton p-buttonset">
+                  <button class="p-button p-button-icon-only" :class="layout== 'list'?'p-highlight':''" type="button" @click="changeView(layout = 'list')">
+                    <i class="pi pi-bars"></i>
+                  </button>
+                  <button class="p-button p-button-icon-only" :class="layout== 'grid'?'p-highlight':''"  type="button" @click="changeView(layout = 'grid')">
+                    <i class="pi pi-th-large"></i>
+                  </button>
+                  <!-- <Button
+                  class="p-button-outlined p-button-secondary"
+                  icon="pi pi-bars"
+                  @click="onRefresh"
+                   />
+                  <Button
+                    class="p-button-outlined p-button-secondary"
+                    icon="pi pi-th-large"
+                    @click="onRefresh"
+                  /> -->
+                </div>
+                <Button
+                  class="mr-2 ml-2 p-button-outlined p-button-secondary"
+                  icon="pi pi-refresh"
+                  @click="onRefresh"
+                />
+              </template>
+          </Toolbar>
           <DataTable
+          v-if="layout== 'list'"
           class="w-full p-datatable-sm e-sm cursor-pointer"
           :value="datalists"
           v-model:filters="filters"
@@ -561,6 +609,18 @@ onMounted(() => {
           ]"
           v-model:first="first_module"
         >
+        <!-- <DataView
+          class=""
+          :value="datalists"
+          :layout="layout"
+          paginator="false"
+          :rows="layout == 'grid' ? '36' : '10'"
+          responsiveLayout="scroll"
+          :scrollable="false"
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+          v-model:first="first"
+        > -->
+
           <Column field="file_type" class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
             bodyStyle="text-align:center;max-width:50px;min-width:50px">
@@ -608,14 +668,14 @@ onMounted(() => {
                     ? basedomainURL + slotProps.data.avatar
                     : basedomainURL + '/Portals/Image/noimg.jpg'
                 " style="
-                          background-color: #2196f3;
-                          color: #ffffff;
-                          width: 2rem;
-                          height: 2rem;
-                          font-size: 1rem !important;
-                        " :style="{
-                          background: bgColor[slotProps.data.is_order % 7],
-                        }" class="text-avatar" size="xlarge" shape="circle" v-tooltip.top="slotProps.data.full_name" />
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 2rem;
+                      height: 2rem;
+                      font-size: 1rem !important;
+                    " :style="{
+                      background: bgColor[slotProps.data.is_order % 7],
+                    }" class="text-avatar" size="xlarge" shape="circle" v-tooltip.top="slotProps.data.full_name" />
               </div>
             </template>
           </Column>
@@ -626,7 +686,7 @@ onMounted(() => {
             <template #body="slotProps">
               <Button
               icon="pi pi-ellipsis-h"
-              class="p-button-rounded p-button-text p-button-secondary ml-2"
+              class="p-button-text p-button-secondary ml-2"
               @click="toggleMores($event, slotProps.data)"
               aria-haspopup="true"
               aria-controls="overlay_More"
@@ -635,24 +695,117 @@ onMounted(() => {
           </Column>
           <template #empty>
             <div class="
-                      align-items-center
-                      justify-content-center
-                      p-4
-                      text-center
-                      m-auto
-                    " v-if="!isFirst">
+                align-items-center
+                justify-content-center
+                p-4
+                text-center
+                m-auto
+              " v-if="!isFirst">
               <img src="../../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </template>
-        </DataTable>
+          </DataTable>
+          <div
+            ref="target"
+            class="col-12 p-0 overflow-y-auto grid-9"
+            style="height: calc(100vh - 115px)"
+          >
+          <DataView
+            v-if="layout== 'grid'"
+            class="w-full h-full e-sm flex flex-column p-dataview-unset"
+            :value="datalists"
+            :layout="layout"
+            :paginator="datalists.length > 20"
+            rows="36"
+            responsiveLayout="scroll"
+            :scrollable="false"
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            v-model:first="first"
+            >
+            <template #grid="slotProps">
+                <div
+                  style="width: 100%"
+                  class="md:col-2 col-2 card-content cursor-pointer relative"
+                  :title="slotProps.data.labelContext"
+                  @click="goFile(slotProps.data)"
+                  @mouseover="hoverItem(slotProps.data.file_id)"
+                  @mouseleave="leaveItem()"
+                >
+                 <Button
+                    v-show="slotProps.data.file_id == item_hover"
+                    icon="pi pi-ellipsis-h"
+                    class="p-button-rounded p-button-text absolute btn-more"
+                    @click="toggleMores($event, slotProps.data)"
+                    aria-haspopup="true"
+                    style=""
+                    aria-controls="overlay_More"
+                  />
+                  <Card class="no-paddcontent p-0 item-hover" :class="itemclick== slotProps.data.file_id? 'item-click':''">
+                    <template #title>
+                      <div class="grid-item">
+                        <Image
+                          v-if="slotProps.data.is_image"
+                          height="110"
+                          class="w-full cursor-pointer"
+                          v-bind:src="
+                            slotProps.data.is_filepath
+                              ? basedomainURL + slotProps.data.file_path
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                        />
+                        <img
+                          v-else
+                          class="w-full cursor-pointer"
+                          style="height: 110px; object-fit: contain"
+                          v-bind:src="
+                            basedomainURL +
+                            '/Portals/file/' +
+                            slotProps.data.file_type.replace('.','') +
+                            '.png'
+                          "
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                        />
+                      </div>
+                    </template>
+                    <template #content>
+                      <div
+                        class="
+                          format-center
+                          font-semibold
+                          mx-2
+                          text-3line text-title
+                          my-2
+                        "
+                      >
+                        {{ slotProps.data.file_name_grid }}
+                      </div>
+                    </template>
+                  </Card>
+                </div>
+              </template>
+              <template #empty>
+                <div
+                  class="
+                    align-items-center
+                    justify-content-center
+                    p-4
+                    text-center
+                  "
+                >
+                  <img src="../../assets/background/nodata.png" height="144" />
+                  <h3 class="m-1">Không có dữ liệu</h3>
+                </div>
+              </template>
+          </DataView>
+          </div>
       </div>
-      <div style="width: 320px !important; border: 1px solid rgba(0, 0, 0, 0.1);overflow: hidden;">
+      <div style="width: 320px !important; border-left: 1px solid rgba(0, 0, 0, 0.1);overflow: hidden;">
         <div v-if="!isDetail">
-          <div class="header-rigth w-full format-center" style="
-                  back-ground: #f8f9fa;
-                  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-                ">
+          <div class="header-bar w-full format-center" style="border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
             <h3>Kho số hóa: {{ total_file }} files</h3>
           </div>
           <div class="body-right format-center">
@@ -738,13 +891,13 @@ onMounted(() => {
     </div>
   </div>
   <Dialog
-        v-model:visible="ModalShowFile"
-        header="Chi tiết"
-        :modal="true"
-        :closable="true"
-        :style="{ width: '70vw' }"
-        :maximizable="true"
-        :autoZIndex="true"
+    v-model:visible="ModalShowFile"
+    header="Chi tiết"
+    :modal="true"
+    :closable="true"
+    :style="{ width: '70vw' }"
+    :maximizable="true"
+    :autoZIndex="true"
       >
         <div class="grid formgrid m-2 h-full">
           <div v-if="dataDetail" class="w-full format-center">
@@ -809,6 +962,21 @@ onMounted(() => {
 </template>
     
 <style scoped>
+.item-hover:hover{
+  background-color: #f0f8ff!important;
+}
+.item-click{
+  background-color: #cce9ff!important;
+}
+.btn-more{
+  right:2px;
+   top:2px; 
+   border-radius: 50%;
+   color:#607D8B;
+  border:1px solid #607D8B;
+  width: 22px !important;
+  height:22px !important;
+}
 .scroll {
   overflow: auto;
   max-height: calc(100vh - 408px);
@@ -821,12 +989,13 @@ onMounted(() => {
 
 .header-bar {
   background-color: #fff !important;
+  height: 57px !important;
 }
 
 .body-content {
   background: #fff;
-  min-height: calc(100vh - 130px);
-  max-height: calc(100vh - 130px);
+  min-height: calc(100vh - 70px);
+  max-height: calc(100vh - 70px);
   overflow: auto;
 }
 
@@ -897,6 +1066,67 @@ onMounted(() => {
 
   th {
     background: #fff !important;
+  }
+}
+::v-deep(.p-datatable-header) {
+  padding: 0px !important;
+  background: #fff !important;
+  border-width: 0px !important;
+}
+.p-toolbar{
+  padding: 0px !important;
+}
+::v-deep(.grid-9) {
+  .grid {
+    grid-template-columns: repeat(9, 1fr);
+  }
+}
+::v-deep(.p-dataview-content) {
+  .grid {
+    display: grid !important;
+  }
+}
+::v-deep(.grid-item) {
+  img {
+    width: 100%;
+    object-fit: contain;
+  }
+}
+
+::v-deep(.p-card) {
+    box-shadow: none!important;
+    background: #fff;
+    height: 100%;
+  .p-card-body {
+    padding: 0.5rem !important;
+  }
+
+  .p-card-title {
+    margin-bottom: 0 !important;
+  }
+}
+
+::v-deep(.vue-simple-context-menu) {
+  .vue-simple-context-menu__item {
+    min-width: 130px !important;
+    font-size: 14px;
+  }
+}
+
+::v-deep(.p-dataview) {
+  .p-dataview-header {
+    padding: 0 0 !important;
+  }
+
+  .p-breadcrumb {
+    padding: 0 !important;
+    border-left: 4px solid rgb(0 122 212) !important;
+  }
+}
+
+::v-deep(.p-dataview-content) {
+  .grid {
+    display: grid !important;
   }
 }
 </style>
