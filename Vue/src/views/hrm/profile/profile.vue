@@ -9,6 +9,7 @@ import dialogrelate from "../profile/component/dialogrelate.vue";
 import dialogtag from "../profile/component//dialogtag.vue";
 import dialogcontract from "../contract/component/dialogcontract.vue";
 import diloginsurance from "../profile/component/diloginsurance.vue";
+import dialogstatus from "../profile/component/dialogstatus.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
 const router = inject("router");
@@ -285,7 +286,7 @@ const itemButMores = ref([
     label: "Thiết lập trạng thái",
     icon: "pi pi-cog",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openAddDialogStatus(profile.value, "Thiết lập trạng thái");
     },
   },
   {
@@ -890,6 +891,23 @@ const closeDialogInsurance = () => {
   displayDialogInsurance.value = false;
   forceRerender(6);
 };
+
+//Function Status
+const headerDialogStatus = ref();
+const displayDialogStatus = ref(false);
+const openAddDialogStatus = (item, str) => {
+  profile.value = item;
+  forceRerender(7);
+  isAdd.value = false;
+  isView.value = false;
+  headerDialogStatus.value = str;
+  displayDialogStatus.value = true;
+};
+const closeDialogStatus = () => {
+  displayDialogStatus.value = false;
+  forceRerender(7);
+};
+
 //Init
 const initPlace = () => {
   axios
@@ -2306,7 +2324,7 @@ onMounted(() => {
                     "
                     >|</span
                   >
-                  {{ slotProps.data.profile_id }}</span
+                  {{ slotProps.data.profile_code }}</span
                 >
               </div>
               <div class="mb-1" v-if="slotProps.data.recruitment_date">
@@ -2397,8 +2415,8 @@ onMounted(() => {
         <Column
           field="countRecruitment"
           header="Ngày thâm niên"
-          headerStyle="text-align:center;max-width:100px;height:50px"
-          bodyStyle="text-align:center;max-width:100px;"
+          headerStyle="text-align:center;max-width:120px;height:50px"
+          bodyStyle="text-align:center;max-width:120px;"
           class="align-items-center justify-content-left text-left"
         >
           <template #body="slotProps">
@@ -2572,7 +2590,7 @@ onMounted(() => {
               v-for="(item, index) in department.list"
               :key="index"
             >
-              <tr @click="goProfile(item)" class="tr-list">
+              <tr @click="goProfile(item)" class="tr-list cursor-pointer">
                 <td
                   :style="{
                     width: '5rem',
@@ -2636,7 +2654,7 @@ onMounted(() => {
                         <span v-if="item.superior_id && item.profile_id"
                           >|</span
                         >
-                        {{ item.profile_id }}</span
+                        {{ item.profile_code }}</span
                       >
                     </div>
                     <div class="mb-1" v-if="item.recruitment_date">
@@ -2874,6 +2892,14 @@ onMounted(() => {
     :closeDialog="closeDialogInsurance"
     :isAdd="isAdd"
     :isView="isView"
+    :profile="profile"
+    :initData="null"
+  />
+  <dialogstatus
+    :key="componentKey['7']"
+    :headerDialog="headerDialogStatus"
+    :displayDialog="displayDialogStatus"
+    :closeDialog="closeDialogStatus"
     :profile="profile"
     :initData="null"
   />
