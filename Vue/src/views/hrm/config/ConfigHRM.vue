@@ -57,7 +57,7 @@ const organization = ref();
 const loadOrg = () => {
   axios
     .post(
-      baseURL + "/api/DocProc/CallProc",
+      baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({

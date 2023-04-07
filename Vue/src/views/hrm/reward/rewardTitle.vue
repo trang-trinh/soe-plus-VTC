@@ -1286,9 +1286,65 @@ const initTudien = () => {
       console.log(error);
     });
 };
-const listAcademic_level = ref([]);
+const listDataUsers = ref([]);
+const listDataUsersSave = ref([]);
+const loadUserProfiles = () => {
+  listDataUsers.value = [];
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_list_filter",
+            par: [
+              { par: "search", va: null },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "work_position_id", va: null },
+              { par: "position_id", va: null },
+              { par: "department_id", va: null },
+              { par: "status", va: 1 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      data.forEach((element, i) => {
+        listDataUsers.value.push({
+          profile_user_name: element.profile_user_name,
+          code: element.profile_id,
+          avatar: element.avatar,
+          department_name: element.department_name,
+          department_id: element.department_id,
+          work_position_name: element.work_position_name,
+          position_name: element.position_name,
+
+          organization_id: element.organization_id,
+        });
+      });
+      listDataUsersSave.value = [...listDataUsers.value];
+    })
+    .catch((error) => {
+      console.log(error);
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
 onMounted(() => {
- 
+  loadUserProfiles();
   initTudien();
   loadData(true);
 

@@ -358,6 +358,9 @@ const caHRMSpecialization = () =>
 const caHRMTitle = () => import("../views/hrm/category/caTitle.vue");
 const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
+
+  const caHRMDecision = () =>
+  import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
 const caLeavingReason = () =>
@@ -1701,6 +1704,11 @@ const router = createRouter({
       path: "/hrm/category/ca_typeContract",
       name: "caHRMTypeContract",
       component: caHRMTypeContract,
+    },
+    {
+      path: "/hrm/category/ca_decision",
+      name: "caHRMDecision",
+      component: caHRMDecision,
     },
     {
       path: "/hrm/category/ca_vacancy",
