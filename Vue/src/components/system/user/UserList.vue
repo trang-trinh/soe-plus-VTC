@@ -2500,7 +2500,7 @@ onMounted(() => {
           <InputSwitch class="col-1" v-model="user.is_admin" />
              <label class="col-1" v-if="user.is_super"></label>
             <label class="col-2 text-right" v-if="store.getters.user.is_super">Is Super</label>
-            <InputSwitch v-model="user.is_super" v-if="user.is_super"/>
+            <InputSwitch v-model="user.is_super" v-if="store.getters.user.is_super"/>
         </div>
                   <Accordion class="w-full p-2" >
             <!-- 1. Thông tin chung -->

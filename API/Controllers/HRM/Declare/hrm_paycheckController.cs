@@ -83,7 +83,7 @@ namespace API.Controllers.HRM.Declare
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã số đã tồn tại! Vui lòng nhập lại", err = "1" });
                         }
 
-                        paycheck.organization_id = super ? 0 : int.Parse(dvid);
+                        paycheck.organization_id =  int.Parse(dvid);
                         paycheck.created_by = uid;
                         paycheck.created_date = DateTime.Now;
                         paycheck.created_ip = ip;

@@ -21,9 +21,10 @@ const props = defineProps({
   headerDialog: String,
   displayBasic: Boolean,
   reward: Object,
-  checkadd: Boolean,
+  files: Array,
   closeDialog: Function,
   view: Boolean,
+  checkadd:Boolean
 });
 const bgColor = ref([
   "#F8E69A",
@@ -75,54 +76,7 @@ const reward = ref({
   reward_name_fake2: {},
 });
 const submitted = ref(false);
-const list_users_training = ref([]);
-const list_schedule = ref([]);
-const loadData = () => {
-  if (props.checkadd == true) {
-    list_users_training.value = [];
-    list_schedule.value = [];
-    reward.value = props.reward;
-  } else {
-    axios
-      .post(
-        baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "hrm_reward_get",
-              par: [
-                {
-                  par: "reward_id",
-                  va: props.reward.reward_id,
-                },
-              ],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        let data1 = JSON.parse(response.data.data)[1];
-        if (data) {
-          reward.value = data[0];
-
-          if (reward.value.decision_date)
-            reward.value.decision_date = new Date(reward.value.decision_date);
-          if (reward.value.effective_date)
-            reward.value.effective_date = new Date(reward.value.effective_date);
  
-        }
-
-        if (data1) {
-          listFilesS.value = data1;
-        }
-      })
-      .catch((error) => {});
-  }
-};
 const saveData = ( ) => {
   submitted.value = true;
    
@@ -133,7 +87,7 @@ const saveData = ( ) => {
   ) {
     return;
   }
-  if (reward.value.reward_type == 1) {
+  if (reward.value.reward_type == 1 ||reward.value.reward_type == 3) {
     if (reward.value.reward_name_fake1.length == 0) {
       return;
     }
@@ -142,7 +96,7 @@ const saveData = ( ) => {
       return;
     }
 
-  if (reward.value.reward_type == 1)
+  if (reward.value.reward_type == 1||reward.value.reward_type == 3)
     if (reward.value.reward_name_fake1.length > 0)
       reward.value.reward_name = reward.value.reward_name_fake1.toString();
   if (reward.value.reward_type == 2) {
@@ -156,6 +110,7 @@ const saveData = ( ) => {
       });
   }
   let formData = new FormData();
+  
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
     formData.append("image", file);
@@ -299,57 +254,16 @@ const loadUser = () => {
       }
     });
 };
-const v$ = useVuelidate(rules, reward);
+ 
 const listRewardLevel= ref([]);
 const listPosition = ref([]);
 const listRewardTitle = ref([]);
 const listDepartmentTree = ref();
 const listDisciplineTitle = ref([]);
-const listSpecialization = ref([]);
-const listExperience = ref([]);
-const listLanguage_level = ref([]);
-
-const listStatus = ref([
-  { name: "Lên kế hoạch", code: 1 },
-  { name: "Đang thực hiện", code: 2 },
-  { name: "Đã hoàn thành", code: 3 },
-  { name: "Tạm dừng", code: 4 },
-  { name: "Đã hủy", code: 5 },
-]);
-const listGender = ref([
-  { name: "Nam", code: 1 },
-  { name: "Nữ", code: 2 },
-  { name: "Khác", code: 3 },
-]);
-
-const checkShow = ref(false);
-const checkShow2 = ref(false);
-const checkShow3 = ref(false);
-
-const showHidePanel = (type) => {
-  if (type == 1) {
-    if (checkShow.value == true) {
-      checkShow.value = false;
-    } else {
-      checkShow.value = true;
-    }
-  }
-  if (type == 2) {
-    if (checkShow2.value == true) {
-      checkShow2.value = false;
-    } else {
-      checkShow2.value = true;
-    }
-  }
-  if (type == 3) {
-    if (checkShow3.value == true) {
-      checkShow3.value = false;
-    } else {
-      checkShow3.value = true;
-    }
-  }
-};
-
+const listDisciplineLevel = ref([]);
+ 
+ 
+ 
 const deleteFileH = (value) => {
   listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
 };
@@ -528,39 +442,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "ca_positions_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listPosition.value = [];
-      data.forEach((element, i) => {
-        listPosition.value.push({
-          name: element.position_name,
-          code: element.position_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
+  
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -633,7 +515,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_specialization_list",
+            proc: "hrm_ca_discipline_level_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -649,11 +531,11 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listSpecialization.value = [];
+      listDisciplineLevel.value = [];
       data.forEach((element, i) => {
-        listSpecialization.value.push({
-          name: element.specialization_name,
-          code: element.specialization_id,
+        listDisciplineLevel.value.push({
+          name: element.discipline_level_name,
+          code: element.discipline_level_id,
         });
       });
     })
@@ -661,72 +543,7 @@ const initTudien = () => {
       console.log(error);
     });
 
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_language_level_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listLanguage_level.value = [];
-      data.forEach((element, i) => {
-        listLanguage_level.value.push({
-          name: element.language_level_name,
-          code: element.language_level_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_experience_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listExperience.value = [];
-      data.forEach((element, i) => {
-        listExperience.value.push({
-          name: element.experience_name,
-          code: element.experience_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+   
 };
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -825,17 +642,7 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
-
-const listLimit = ref([
-  {
-    name: "Nội bộ",
-    code: 1,
-  },
-  {
-    name: "Bên ngoài",
-    code: 2,
-  },
-]);
+ 
 
 const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
@@ -915,7 +722,8 @@ const listTypeReward = ref([
  
  
 onMounted(() => {
-  loadData();
+  reward.value = props.reward;
+ listFilesS.value=props.files;
   initTudien();
   loadUser();
   loadUserProfiles();
@@ -948,6 +756,32 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
+        <div class="col-12 field p-0 flex text-left align-items-center">
+            <div class="w-10rem">Số quyết định <span class="redsao pl-1"> (*)</span></div>
+            <div style="width: calc(100% - 10rem)">
+              <InputText
+                class="w-full px-2"
+                v-model="reward.reward_number"
+                 
+                :class="{
+                      'p-invalid':
+                        reward.reward_number== null && submitted,
+                    }"
+              />
+            </div>
+          </div>
+          <div
+              class="col-12 field p-0 flex"
+              v-if="(reward.reward_number == null || reward.reward_number == '' ) && submitted"
+            >
+              <div class="w-10rem"></div>
+              <small style="width: calc(100% - 10rem)">
+                <span style="color: red" class="w-full"
+                  >Số quyết định không được để trống!</span
+                >
+                    
+              </small>
+            </div>
         <div class="col-12 p-0" v-if="reward.reward_type == 1 ||reward.reward_type == 3">
           <div class="col-12 field flex p-0 align-items-center">
             <div class="w-10rem">
@@ -1147,7 +981,7 @@ onMounted(() => {
               <Dropdown
                 :filter="true"
                 v-model="reward.reward_level_id"
-                :options="listDisciplineTitle"
+                :options="listDisciplineLevel"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
@@ -1167,7 +1001,7 @@ onMounted(() => {
               <Dropdown
                 :filter="true"
                 v-model="reward.reward_title_id"
-                :options="listRewardTitle"
+                :options="listDisciplineTitle"
                 optionLabel="name"
                 optionValue="code"
                 class="w-full"
@@ -1251,27 +1085,18 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem">Số quyết định</div>
-            <div style="width: calc(100% - 10rem)">
-              <InputText
-                class="w-full px-2"
-                v-model="reward.reward_number"
-                placeholder="Nhập số quyết định"
-              />
-            </div>
-          </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Giá trị</div>
+        <div class="col-12 field p-0 flex text-left align-items-center" v-if="reward.reward_type!=3">
+         
+        
+            <div class="w-10rem  ">Giá trị</div>
             <div style="width: calc(100% - 10rem)">
               <InputNumber
                 class="w-full"
                 v-model="reward.reward_cost"
-                placeholder="Nhập giá trị khen thưởng"
+                
                 suffix=" VNĐ"
               />
-            </div>
+        
           </div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
@@ -1280,7 +1105,7 @@ onMounted(() => {
             <Textarea
               :autoResize="true"
               rows="3"
-              placeholder="Nhập nội dung khen thưởng"
+             
               cols="30"
               v-model="reward.reward_content"
               class="w-full"
@@ -1290,7 +1115,22 @@ onMounted(() => {
             />
           </div>
         </div>
-
+        <div class="col-12 field p-0 flex text-left align-items-center" v-if="reward.reward_type==3">
+          <div class="w-10rem">Ghi chú</div>
+          <div style="width: calc(100% - 10rem)">
+            <Textarea
+              :autoResize="true"
+              rows="1"
+          
+              cols="30"
+              v-model="reward.reward_note"
+              class="w-full"
+              :style="
+                reward.reward_note ? 'background-color:white !important' : ''
+              "
+            />
+          </div>
+        </div>
         <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
         <div class="w-full col-12 field p-0">
           <FileUpload

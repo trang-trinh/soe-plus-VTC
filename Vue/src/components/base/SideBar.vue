@@ -56,7 +56,6 @@ const initModule = () => {
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       data_menus = dt[0];
-      
       //  if(store.getters.listModule.length==0){
 
       //    store.commit("setlistModule",data_menus);
@@ -78,7 +77,8 @@ const initModule = () => {
             (x) => x.parent_id == null, //&& (x.IsVitri == null || x.IsVitri.includes("Menu"))
           )
           .forEach((md) => {
-            let obj = {
+            if(md.is_view_parent == true){
+              let obj = {
               title: md.module_name,
               icon: md.icon,
               href: md.is_link,
@@ -111,6 +111,49 @@ const initModule = () => {
             }
 
             menu.value.push(obj);
+            }
+            else{  
+              var data =  data_menus; 
+              data
+                .filter(
+                  (x) =>
+                    x.parent_id == md.module_id )
+                .forEach((mds) => {
+                  let obj = {
+                    title: mds.module_name,
+                    icon: mds.icon,
+                    href: mds.is_link,
+                  };
+                  //list con cap 3
+                  let childs = data.filter(
+                    (x) =>
+                      x.parent_id == mds.module_id );
+                    if (childs.length > 0) {
+                    obj.child = [];
+                    childs.forEach((md1) => {
+                      let obj1 = {
+                        title: md1.module_name,
+                        icon: md1.icon,
+                        href: md1.is_link,
+                      };
+                      childs = data.filter((x) => x.parent_id == md1.module_id);
+                      if (childs.length > 0) {
+                        obj1.child = [];
+                        childs.forEach((md2) => {
+                          let obj2 = {
+                            title: md2.module_name,
+                            icon: md2.icon,
+                            href: md2.is_link,
+                          };
+                          obj1.child.push(obj2);
+                        });
+                      }
+                      obj.child.push(obj1);
+                    });
+                  }
+                  menu.value.push(obj);
+                });         
+            }
           });
       }
       if (dt.length > 1) {

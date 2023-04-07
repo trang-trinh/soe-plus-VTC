@@ -78,7 +78,7 @@ namespace API.Controllers.HRM.Recruitment_proposal
                         hrm_recruitment_proposal hrm_Recruitment_proposal = JsonConvert.DeserializeObject<hrm_recruitment_proposal>(fdhrm_Recruitment_proposal);
 
 
-                        hrm_Recruitment_proposal.organization_id = super ? 0 : int.Parse(dvid);
+                        hrm_Recruitment_proposal.organization_id =  int.Parse(dvid);
                         hrm_Recruitment_proposal.created_by = uid;
                         hrm_Recruitment_proposal.created_date = DateTime.Now;
                         hrm_Recruitment_proposal.created_ip = ip;

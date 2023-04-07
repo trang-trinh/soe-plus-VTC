@@ -378,7 +378,8 @@ const caDisciplineLevel = () =>
 const caTags = () => import("../views/hrm/category/caTags.vue");
 const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
 const caWorkPosition = () => import("../views/hrm/category/caWorkPosition.vue");
-const caPersonelGroups  = () => import("../views/hrm/category/caPersonelGroups.vue");
+const caPersonelGroups = () =>
+  import("../views/hrm/category/caPersonelGroups.vue");
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
@@ -1694,7 +1695,7 @@ const router = createRouter({
     {
       path: "/hrm/category/ca_title",
       name: "caHRMTitle",
-      component: caHRMTitle,
+      component: Positions,
     },
     {
       path: "/hrm/category/ca_typeContract",

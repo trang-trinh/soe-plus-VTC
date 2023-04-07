@@ -22,6 +22,9 @@ namespace API.Helper
                 string portals = "";
                 bool isHttp = false;
                 bool isFtp = false;
+                //Portals = "ftp://123.31.12.70:21/PublishSOE2020/Vue2022/VTCPLUS/api/Portals";
+                //Portals = "https://apivtc.soe.vn/";
+                newFileName = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/");
                 string nameFileGet = root + newFileName;
                 var pathFileTransfer = "";
                 if (File.Exists(fileData.LocalFileName))
@@ -58,10 +61,18 @@ namespace API.Helper
                     {
                         portals = Portals + "\\Portals";
                     }
+                    if (isHttp || isFtp)
+                    {
+                        if (Portals.Contains("Portals") && newFileName.IndexOf("/Portals/") == 0)
+                        {
+                            newFileName = newFileName.Substring(9);
+                        }
+                    }
                     if (!isHttp && !isFtp)
                     {
-                        newFileName = portals + newFileName.Replace("/", "\\");
-                        newFileName.Replace("Portals\\Portals", "Portals");
+                        newFileName = portals + "/" + newFileName;
+                        newFileName = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/");
+                        newFileName = newFileName.Replace("Portals/Portals/", "Portals/");
                         string directory = Path.GetDirectoryName(newFileName);
                         if (!Directory.Exists(directory))
                             Directory.CreateDirectory(directory);
@@ -107,8 +118,8 @@ namespace API.Helper
                         //string json = System.IO.File.ReadAllText(HttpContext.Current.Server.MapPath("~/Config/Config.json"));
                         string json = System.IO.File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/Config/Config.json");
                         settings deJson = JsonConvert.DeserializeObject<settings>(json);
-                        var usAccess = deJson.userftp != null ? Codec.DecryptString(deJson.userftp, helper.psKey) : "";
-                        var psAccess = deJson.psftp != null ? Codec.DecryptString(deJson.psftp, helper.psKey) : "";
+                        var usAccess = deJson.userftp != null ? Codec.DecryptString(deJson.userftp, helper.psKey) : ""; // "os";
+                        var psAccess = deJson.psftp != null ? Codec.DecryptString(deJson.psftp, helper.psKey) : ""; // "#Os1234567BiBi";
 
                         string url = portals + newFileName;
                         string directoryAddFtp = Path.GetDirectoryName(newFileName).Replace("\\", "/");

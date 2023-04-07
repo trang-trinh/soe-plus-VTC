@@ -85,7 +85,7 @@ namespace API.Controllers.HRM.Declare
                             foreach (var item in paycheck_form_details)
                         {
            
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id =  int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;

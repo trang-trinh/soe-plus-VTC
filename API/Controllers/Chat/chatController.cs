@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Validation;
@@ -716,6 +717,44 @@ namespace API.Controllers
                                         //File.Move(ffileData.LocalFileName, root + pathEdit_1);
                                         //listPathFileUp.Add(ffileData.LocalFileName);
                                         helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
+                                        //System.Threading.Tasks.Task.Run(() =>
+                                        //{
+                                            var Portals = ConfigurationManager.AppSettings["Portals"];
+                                            sys_file_mapping fm = new sys_file_mapping();
+                                            fm.file_key_id = helper.GenKey();
+                                            fm.file_id = fileMes.file_id;
+                                            fm.file_path = fileMes.file_path;
+                                            fm.file_name = fileMes.file_name;
+                                            fm.file_size = fileMes.file_size;
+                                            fm.file_title = fileMes.file_name;
+                                            fm.file_table = "chat_file";
+                                            if (string.IsNullOrWhiteSpace(Portals))
+                                            {
+                                                fm.type_path = 0;
+                                            }
+                                            else if (Portals.Contains("ftp"))
+                                            {
+                                                fm.type_path = 1;
+                                            }
+                                            else if (Portals.Contains("http"))
+                                            {
+                                                fm.type_path = 2;
+                                            }
+                                            fm.module_key = "M8";
+                                            fm.role_access = null;
+                                            var memberChat = db.chat_member.AsNoTracking().Where(z => z.chat_group_id == chatGroupNow.chat_group_id).Select(c => c.user_join).ToList();
+                                            fm.user_access = "";
+                                            foreach (var userID in memberChat)
+                                            {
+                                                fm.user_access += (fm.user_access != "" ? "," : "") + userID;
+                                            }
+                                            fm.deny_access = null;
+                                            fm.created_by = uid;
+                                            fm.created_date = fileMes.created_date;
+                                            fm.created_ip = ip;
+                                            fm.created_token_id = tid;
+                                            db.sys_file_mapping.Add(fm);
+                                        //});
                                     }
                                 }
                                 if (listMessage.Count > 0)

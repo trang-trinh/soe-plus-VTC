@@ -2435,13 +2435,17 @@ const onPage = (event) => {
                   >
                     <AccordionTab>
                       <template #header>
-                        <Toolbar class="w-full custoolbar p-0 font-bold py-0">
+                        <Toolbar
+                          class="w-full custoolbar p-0 font-bold py-0"
+                          :style="{ minHeight: '40px' }"
+                        >
                           <template #start>
                             <!-- <i class="pi pi-users mr-2"></i> -->
                             <span>1. Thông tin chung</span>
                           </template>
                           <template #end>
                             <div
+                              v-if="profile.relate"
                               class="relative relative-hover"
                               :style="{ margin: '0.5rem 0' }"
                             >
@@ -2475,8 +2479,9 @@ const onPage = (event) => {
                                 class="absolute"
                                 :style="{
                                   color: 'red',
-                                  bottom: '-3px',
-                                  right: '-3px',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
                                 }"
                                 ><i class="pi pi-heart-fill"></i
                               ></span>

@@ -531,7 +531,7 @@ namespace API.Controllers
                                                 break;
                                             case "organization":
                                                 var temp_id = db.sys_organization.Where(x => GetNameOrg.ToString().Contains(x.organization_name)).FirstOrDefault();
-                                                dv.organization_id = vl.ToString().ToUpper() == "HỆ THỐNG" ? 0 : Convert.ToInt32(temp_id.organization_id);
+                                                dv.organization_id = Convert.ToInt32(temp_id.organization_id);
                                                 break;
                                         }
                                     }
@@ -539,6 +539,7 @@ namespace API.Controllers
                                     dv.created_date = DateTime.Now;
                                     dv.created_ip = ip;
                                     dv.created_token_id = tid;
+                                    if (sp == true) dv.is_system = true;
                                     dvs.Add(dv);
                                 }
                                 if (dvs.Count > 0)

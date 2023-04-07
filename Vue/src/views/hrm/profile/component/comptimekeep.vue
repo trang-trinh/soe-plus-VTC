@@ -308,7 +308,6 @@ const initDictionary = () => {
       }
     })
     .catch((error) => {
-      debugger;
       swal.fire({
         title: "Thông báo!",
         text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",

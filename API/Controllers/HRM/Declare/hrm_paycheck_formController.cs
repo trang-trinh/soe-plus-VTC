@@ -80,7 +80,7 @@ namespace API.Controllers.HRM.Declare
 
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        paycheck_form.organization_id = super ? 0 : int.Parse(dvid);
+                        paycheck_form.organization_id =  int.Parse(dvid);
                         paycheck_form.created_by = uid;
                         paycheck_form.created_date = DateTime.Now;
                         paycheck_form.created_ip = ip;

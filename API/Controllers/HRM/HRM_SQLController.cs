@@ -181,7 +181,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -402,7 +402,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -622,7 +622,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -841,7 +841,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -1052,7 +1052,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -1266,13 +1266,37 @@ namespace API.Controllers.HRM
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + " hcal.* ,su.full_name,su.avatar ,hcv.vacancy_name " +
- " from hrm_reward hcal LEFT JOIN hrm_ca_vacancy hcv ON hcv.vacancy_id = hcal.vacancy_id  " +
- " LEFT JOIN sys_users su ON hcal.created_by = su.user_id";
+
+
+
+
+
+
+                sql = selectStr + "   hcal.*,su.full_name,su.avatar, " +
+"  CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 3 THEN(select distinct '[' + STUFF(( " +
+    "   SELECT ',{\"full_name\":\"' + cast(ISNULL(hcs.full_name, '') as nvarchar(150)) + '\"' " +
+     "     + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(250)) + '\"' + '}' " +
+
+
+  "    FROM sys_users   hcs  WHERE hcs.user_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type) " +
+ "  .value('.', 'nvarchar(max)'), 1, 1, '')  +']'   ) " +
+
+  "  WHEN hcal.reward_type = 2 THEN(select distinct '[' + STUFF((" +
+  "    SELECT     ',{\"department_name\":\"' + cast(ISNULL(hcs.organization_name, '') as nvarchar(150)) + '\"' + '}' " +
+  "   FROM sys_organization hcs  WHERE hcs.organization_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type).value('.', 'nvarchar(max)'), 1, 1, '')  +']'   )  " +
+" END as listRewards  ,  " +
+" CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
+" (SELECT hcrt1.reward_title_name FROM hrm_ca_reward_title hcrt1 WHERE hcrt1.reward_title_id = hcal.reward_title_id)  " +
+" WHEN hcal.reward_type = 3 THEN  " +
+"  (SELECT hcd.discipline_name FROM hrm_ca_discipline hcd   WHERE hcd.discipline_id = hcal.reward_title_id) END as reward_title_name ,  " +
+" CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
+" (SELECT hcrl.reward_level_name FROM hrm_ca_reward_level hcrl     WHERE hcrl.reward_level_id = hcal.reward_level_id)  WHEN hcal.reward_type = 3 THEN  " +
+ "    (SELECT hcd.discipline_level_name FROM hrm_ca_discipline_level hcd   WHERE hcd.discipline_level_id = hcal.reward_level_id) END as reward_level_name  " +
+" from hrm_reward hcal LEFT JOIN sys_users su ON su.user_id = hcal.created_by  ";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg("+dvid+") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -1400,12 +1424,13 @@ namespace API.Controllers.HRM
                     sql += " WHERE (" + WhereSQL + ") and " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
                     sqlCount += " WHERE " + WhereSQL + "  and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords1 from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.status=1 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords2 from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.status=2 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords3 from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.status=3 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords4 from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.status=4 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords5 from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.status=5 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords6 from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.status=6 and " + checkOrgz;
+
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.reward_type=1 and " + checkOrgz;
+
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.reward_type=2    and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.reward_type=3    and " + checkOrgz;
+              
+            
                 }
                 else
                 {
@@ -1413,12 +1438,10 @@ namespace API.Controllers.HRM
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
 
                     sqlCount += " WHERE  " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords1 from hrm_reward  hcal WHERE hcal.status=1 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords2 from hrm_reward  hcal WHERE hcal.status=2 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords3 from hrm_reward  hcal WHERE hcal.status=3 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords4 from hrm_reward  hcal WHERE hcal.status=4 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords5 from hrm_reward  hcal WHERE hcal.status=5 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords6 from hrm_reward  hcal WHERE hcal.status=6 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE hcal.reward_type=1 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE hcal.reward_type=2 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE hcal.reward_type=3 and " + checkOrgz;
+               
                 }
                 if (!filterSQL.next)//Đảo Sort
                 {

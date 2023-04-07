@@ -174,7 +174,7 @@ namespace API.Controllers.HRM.Category
 
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        ca_personel_groups.organization_id = super ? 0 : int.Parse(dvid);
+                        ca_personel_groups.organization_id =  int.Parse(dvid);
                         ca_personel_groups.created_by = uid;
                         ca_personel_groups.created_date = DateTime.Now;
                         ca_personel_groups.created_ip = ip;

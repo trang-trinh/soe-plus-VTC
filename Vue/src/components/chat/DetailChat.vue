@@ -8,7 +8,7 @@ import { useCookies } from "vue3-cookies";
 import { VuemojiPicker } from "vuemoji-picker";
 //import { forEach } from "jszip";
 //import DetailBoxChat from "../../components/chat/BoxChat.vue";
-import { encr, change_unsigned } from "../../util/function.js";
+import { encr, change_unsigned, decr } from "../../util/function.js";
 import treeuser from "../../components/user/treeuser.vue";
 const cryoptojs = inject("cryptojs");
 //const emitter = inject("emitter"); 
@@ -102,15 +102,30 @@ const listFileTailieu = () => {
 			listActiveTabInfoChat.value = [4];
 			if (tailieus.value[0].length > 0){
 				listActiveTabInfoChat.value.push(0);
+				tailieus.value[0].forEach((fi) => {
+					if (fi.type_save_file == 2) {
+						fi.file_path_link = decr(cookies.get("porFi"), SecretKey, cryoptojs) + fi.file_path;
+					}
+				});
 			}
 			if (tailieus.value[1].length > 0){
 				listActiveTabInfoChat.value.push(1);
+				tailieus.value[1].forEach((fi) => {
+					if (fi.type_save_file == 2) {
+						fi.file_path_link = decr(cookies.get("porFi"), SecretKey, cryoptojs) + fi.file_path;
+					}
+				});
 			}
 			if (tailieus.value[2].length > 0){
 				listActiveTabInfoChat.value.push(2);
 			}
 			if (tailieus.value[3].length > 0){
 				listActiveTabInfoChat.value.push(3);
+				tailieus.value[3].forEach((fi) => {
+					if (fi.type_save_file == 2) {
+						fi.file_path_link = decr(cookies.get("porFi"), SecretKey, cryoptojs) + fi.file_path;
+					}
+				});
 			}
 		})
 		.catch((error) => {
@@ -1824,6 +1839,52 @@ const pasteFile = (evt) => {
         //$scope.$apply();
     }
 };
+
+const listCallFile = [];
+const callViewFile = (file) => {
+	if (file.type_save_file == 1 || file.type_save_file == 2) {
+		if (!listCallFile.includes(file.file_key_id)) {
+			listCallFile.push(file.file_key_id);
+			axios
+				.post(
+					baseUrlCheck + "api/Cache/CallViewFile",
+					{
+						str: encr(JSON.stringify({
+							file_key_id: file.file_key_id,
+							path_file: file.file_path,
+							type_save_file: file.type_save_file,
+						}), SecretKey, cryoptojs
+						).toString()
+					},
+					config
+				).then((response) => {
+					if (response.data.err != "1") {
+						if (file.type_save_file == 1) {
+							return basedomainURL + file.file_path;
+						}
+						else if (file.type_save_file == 2) {
+							return decr(cookies.get("porFi"), SecretKey, cryoptojs) + file.file_path;
+						}
+					}
+					else {
+						return basedomainURL + file.file_path;
+					}
+				})
+				.catch((error) => {
+
+				});
+		}
+		else {
+			if (file.type_save_file == 1) {
+				return basedomainURL + file.file_path;
+			}
+			else if (file.type_save_file == 2) {
+				return decr(cookies.get("porFi"), SecretKey, cryoptojs) + file.file_path;
+			}
+		}
+	}
+};
+
 onMounted(() => {
 	listFileTailieu();
 	loadEmote();
@@ -1978,11 +2039,15 @@ onMounted(() => {
 											{{ u.strCreateDate }}
 										</span>
 									</div>
-									<div v-if="u.messtitle" class="message-feed media noidungchat" style="overflow: -webkit-paged-y;display: inline-block;width: 100%;float: left">											
+									<div v-if="u.messtitle" class="message-feed media noidungchat" 
+										style="overflow: -webkit-paged-y;display: inline-block;width: 100%;float: left">											
 										<a :href="f.content_message" target="_blank" v-if="u.content_message.includes('http://%') || u.content_message.includes('https://%')">
 											<span v-html="f.content_message"></span>
 										</a>
-										<span v-else v-html="u.content_message" class="spandatechat mt-1" style="width: max-content; background-color: transparent; color: #aaa; max-width: 300px; white-space: normal; overflow: hidden; text-overflow: ellipsis; "></span>
+										<span v-else v-html="u.content_message" 
+											class="spandatechat mt-1" 
+											style="width: max-content; background-color: transparent; color: #aaa; max-width: 300px; white-space: normal; overflow: hidden; text-overflow: ellipsis; "
+										></span>
 										<span class="borderchat" style="width:0"></span>
 									</div>
 									<div v-if="!u.messtitle" class="row-comment" style="padding: 15px 0px 8px 0px; background-color: #fff;" 
@@ -2009,20 +2074,24 @@ onMounted(() => {
 										<div class="r-cbox m-0"
 											:class="{ 'classMsgActiveSearch': msgActiveSearch == u.chat_message_id }"
 											style="position: relative;max-width: 80%;"
-											:style="(!(u.files != null && u.files.length > 0) || u.IsEdit) ? 'padding: 0.5rem 0.5rem 1rem;' + (u.IsMe ? 'background: #DBF1FF;' : '') :  (u.IsMe ? 'background: #DBF1FF;' : '')"
+											:style="(!(u.files != null && u.files.length > 0) || u.IsEdit) ? 
+														'padding: 0.5rem 0.5rem 1rem;' + (u.IsMe ? 'background: #DBF1FF;' : '') : 
+														(u.IsMe ? 'background: #DBF1FF;' : '')"
 										>
 											<div class="r-cname mx-1" style="color: #aaa;">
 												<span v-if="(props.detailChat.is_group_chat && !u.IsMe && !(u.files != null && u.files.length > 0))">{{u.full_name}}</span>
 											</div>
 											<div v-if="u.type_message == 1 && (u.files != null && u.files.length > 0)" class="r-cm p-0 m-0">
-												<div class="image_preview_chat" style="max-width: 300px;" v-for="(imageFile, idxImg) in u.files" :key="idxImg">
+												<div class="image_preview_chat" style="max-width: 300px;" 
+													v-for="(imageFile, idxImg) in u.files" 
+													:key="idxImg">													
 													<Image v-if="imageFile.is_image == '1'"
 														class="flex"
-														:src="basedomainURL + (imageFile.file_path ||'/Portals/Image/noimg.jpg')"
+														:src="imageFile.type_save_file == 0 ? (basedomainURL + (imageFile.file_path ||'/Portals/Image/noimg.jpg')) : callViewFile(imageFile)"
 														style="width: 100%; height: 100%; object-fit: contain;"
 														preview
 													/>
-													<div class="pt-1 pb-3 123" v-if="imageFile.is_image == '1'">
+													<div class="pt-1 pb-3" v-if="imageFile.is_image == '1'">
 														<span class="r-cdate fw-400">
 															{{ u.created_date ? moment(new Date(u.created_date)).format("HH:mm DD/MM") : '' }}
 														</span>
@@ -2036,14 +2105,6 @@ onMounted(() => {
 													<div>
 														<div class="content-reply flex">
 															<font-awesome-icon icon="fa-solid fa-quote-right" style="font-size: 1rem; color: gray;padding-bottom: 5px;" />
-															<!-- <div style="display: inline-block; padding: 5px 10px;" class="bind-chat-html" v-html="u.ParentComment.content_message"></div>
-															<div v-if="u.ParentComment.file_path" class="r-cm p-0 m-0">
-																<div style="max-width: 150px;">
-																	<a v-bind:href="basedomainURL+u.ParentComment.file_path" data-fancybox :data-caption="u.ParentComment.file_name">
-																		<img v-bind:src="basedomainURL + (u.ParentComment.file_path ||'/Portals/Image/noimg.jpg')" on-error="/Portals/Image/noimg.jpg" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;" />
-																	</a>
-																</div>
-															</div> -->
 															<div style="display: inline-block; padding: 0px 10px 5px;" class="bind-chat-html" 
 																v-html="u.ParentComment.content_message" 
 																v-if="u.ParentComment.type_message == 0"
@@ -2177,7 +2238,9 @@ onMounted(() => {
 											</div>
 										</div>
 									</div>
-									<div v-if="u.seens && u.seens.length > 0 && (u.IsMe || props.detailChat.is_group_chat)" class="pB-5" style="display: flex;flex-direction: column;padding-right: 8px;align-items: end;">
+									<div v-if="u.seens && u.seens.length > 0 && (u.IsMe || props.detailChat.is_group_chat)" 
+										class="pB-5" 
+										style="display: flex;flex-direction: column;padding-right: 8px;align-items: end;">
 										<span class="format_center" style="font-size: 12px;">Đã xem</span>
 										<div class="card-users m-0">
 											<ul class="format_center" style="margin:0.25rem 0 0;" @click="showModalUserSeen(u)">
@@ -2522,14 +2585,11 @@ onMounted(() => {
 										<div style="min-height: unset; max-height: 320px !important; overflow-y: auto; ">
 											<div class="r-file" v-if="tailieus.length > 0 && tailieus[0].length>0" style="padding:0">
 												<ul class="my-2" style="display:grid; grid-template-columns: repeat(3, 33%);">
-													<li v-for="(f, idxFile) in tailieus[0]" :key="idxFile" class="format_center p-0 position-relative items-file items-file-img" style="width: auto;">
+													<li v-for="(f, idxFile) in tailieus[0]" :key="idxFile" class="format_center p-0 position-relative items-file items-file-img" style="width: auto; border:none;">
 														<div class="r-fbox image_file_chat" :class="{'p-2' : f.is_image!='1'}">
-															<!-- <a @click="openFile(f,f.file_path)" v-if="f.is_image!='1' && f.file_type!='pdf'">
-																<img width="32" v-bind:src="basedomainURL+'/Portals/Image/file/'+f.file_type+'.png'" v-if="f.is_image!='1' && f.file_type!='pdf'" style="width: 50% !important; height: 50% !important;" />
-															</a> -->
 															<Image v-if="f.is_image=='1'"
 																class="flex"
-																:src="basedomainURL+f.file_path"
+																:src="f.type_save_file == 0 ? (basedomainURL+f.file_path) : callViewFile(f)"
 																@error="$event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'"
 																style="width: 100%; height: 100%; object-fit: contain;"
 																preview

@@ -58,8 +58,13 @@ namespace API.Controllers.HRM.Category
                         throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
                     }
 
+
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
 
+                    string strPath = root + "/" + dvid + "/TypeContract";
+                    bool exists = Directory.Exists(strPath);
+                    if (!exists)
+                        Directory.CreateDirectory(strPath);
                     var provider = new MultipartFormDataStreamProvider(root);
 
                     // Read the form data and return an async task.
@@ -75,13 +80,87 @@ namespace API.Controllers.HRM.Category
 
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        ca_type_contract.organization_id = super ? 0 : int.Parse(dvid);
+                        ca_type_contract.organization_id = int.Parse(dvid);
                         ca_type_contract.created_by = uid;
                         ca_type_contract.created_date = DateTime.Now;
                         ca_type_contract.created_ip = ip;
                         ca_type_contract.created_token_id = tid;
                         db.hrm_ca_type_contract.Add(ca_type_contract);
                         db.SaveChanges();
+                        // This illustrates how to get thefile names.
+                        FileInfo fileInfo = null;
+                        MultipartFileData ffileData = null;
+                        string newFileName = "";
+                        foreach (MultipartFileData fileData in provider.FileData)
+                        {
+                            string fileName = "";
+                            if (string.IsNullOrEmpty(fileData.Headers.ContentDisposition.FileName))
+                            {
+                                fileName = Guid.NewGuid().ToString();
+                            }
+                            fileName = fileData.Headers.ContentDisposition.FileName;
+                            if (fileName.StartsWith("\"") && fileName.EndsWith("\""))
+                            {
+                                fileName = fileName.Trim('"');
+                            }
+                            if (fileName.Contains(@"/") || fileName.Contains(@"\"))
+                            {
+                                fileName = Path.GetFileName(fileName);
+                            }
+                            newFileName = Path.Combine(root + "/" + dvid + "/TypeContract", fileName);
+                            fileInfo = new FileInfo(newFileName);
+                            if (fileInfo.Exists)
+                            {
+                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+
+                                newFileName = Path.Combine(root + "/" + dvid + "/TypeContract", fileName);
+                            }
+                            ffileData = fileData;
+                            if (fileInfo != null)
+                            {
+                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                {
+                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                }
+                                File.Move(ffileData.LocalFileName, newFileName);
+
+                            }
+                            hrm_file hrm_File = new hrm_file();
+                            hrm_File.file_name = Path.GetFileName(newFileName);
+                            hrm_File.key_id = ca_type_contract.type_contract_id.ToString();
+                            hrm_File.file_path = "/Portals/" + dvid + "/TypeContract/" + fileName;
+                            hrm_File.file_type = helper.GetFileExtension(fileName);
+                            var file_info = new FileInfo(strPath + "/" + fileName);
+                            hrm_File.file_size = file_info.Length;
+                            if (helper.IsImageFileName(newFileName))
+                            {
+                                hrm_File.is_image = true;
+                            }
+                            else
+                            {
+                                hrm_File.is_image = false;
+                            }
+                            hrm_File.is_type = 8;
+                            if (super == true)
+                            {
+                                hrm_File.is_system = true;
+                            }
+                            else
+                            {
+                                hrm_File.is_system = false;
+                            }
+                            hrm_File.status = true;
+                            hrm_File.created_by = uid;
+                            hrm_File.created_date = DateTime.Now;
+                            hrm_File.organization_id = int.Parse(dvid);
+                            hrm_File.created_ip = ip;
+                            hrm_File.created_token_id = tid;
+                            db.hrm_file.Add(hrm_File);
+
+                        }
+
+
 
                         #region add hrm_log
                         if (helper.wlog)
@@ -143,7 +222,7 @@ namespace API.Controllers.HRM.Category
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
             string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            int dvid = int.Parse(claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value);
             string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
             bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
@@ -157,9 +236,12 @@ namespace API.Controllers.HRM.Category
                     {
                         throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
                     }
-
+                    bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
-
+                    string strPath = root + "/" + dvid + "/TypeContract";
+                    bool exists = Directory.Exists(strPath);
+                    if (!exists)
+                        Directory.CreateDirectory(strPath);
                     var provider = new MultipartFormDataStreamProvider(root);
 
                     // Read the form data and return an async task.
@@ -184,7 +266,137 @@ namespace API.Controllers.HRM.Category
                         ca_type_contract.modified_token_id = tid;
                         db.Entry(ca_type_contract).State = EntityState.Modified;
                         db.SaveChanges();
+                        var hrm_Files = "";
+                        List<string> paths = new List<string>();
+                        hrm_Files = provider.FormData.GetValues("hrm_files").SingleOrDefault();
+                        List<hrm_file> hrm_File_S = JsonConvert.DeserializeObject<List<hrm_file>>(hrm_Files);
+                        var arc = hrm_File_S.FindAll(x => x.organization_id == dvid).ToList();
+                        var id = ca_type_contract.type_contract_id.ToString();
+                        var hrmfile_Delete = new List<hrm_file>();
+                        var hrm_file_Olds = db.hrm_file.Where(s => s.is_type == 8 && s.key_id == id && s.organization_id == dvid).ToArray<hrm_file>();
+                        foreach (var item in hrm_file_Olds)
+                        {
+                            var check = false;
+                            foreach (var element in arc)
+                            {
+                                if (element.key_id == item.key_id && element.file_name == item.file_name)
+                                    check = true;
 
+                            }
+                            if (check == false)
+                            {
+                                paths.Add(item.file_path);
+                                hrmfile_Delete.Add(item);
+
+                            }
+
+                        }
+                        db.hrm_file.RemoveRange(hrmfile_Delete);
+                        db.SaveChanges();
+                        // This illustrates how to get thefile names.
+                        FileInfo fileInfo = null;
+                        MultipartFileData ffileData = null;
+                        string newFileName = "";
+                        foreach (MultipartFileData fileData in provider.FileData)
+                        {
+                            string fileName = "";
+                            if (string.IsNullOrEmpty(fileData.Headers.ContentDisposition.FileName))
+                            {
+                                fileName = Guid.NewGuid().ToString();
+                            }
+                            fileName = fileData.Headers.ContentDisposition.FileName;
+                            if (fileName.StartsWith("\"") && fileName.EndsWith("\""))
+                            {
+                                fileName = fileName.Trim('"');
+                            }
+                            if (fileName.Contains(@"/") || fileName.Contains(@"\"))
+                            {
+                                fileName = Path.GetFileName(fileName);
+                            }
+                            newFileName = Path.Combine(root + "/" + dvid + "/TypeContract", fileName);
+                            fileInfo = new FileInfo(newFileName);
+                            if (fileInfo.Exists)
+                            {
+                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+
+                                newFileName = Path.Combine(root + "/" + dvid + "/TypeContract", fileName);
+                            }
+                            ffileData = fileData;
+                            if (fileInfo != null)
+                            {
+                                if (!Directory.Exists(fileInfo.Directory.FullName))
+                                {
+                                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                                }
+                                File.Move(ffileData.LocalFileName, newFileName);
+
+                            }
+                            var hrmfile_Dels = new List<hrm_file>();
+                            if (super == true)
+                            {
+                                var hrm_file_dels = db.hrm_file.Where(s => s.is_type == 8 && s.key_id == id && s.organization_id == dvid && s.is_system==true).ToArray<hrm_file>();
+                                foreach (var item in hrm_file_dels)
+                                {
+                                    paths.Add(item.file_path);
+                                    hrmfile_Dels.Add(item);
+                                }
+                                db.hrm_file.RemoveRange(hrmfile_Dels);
+                                db.SaveChanges();
+                            }
+                            else
+                            {
+                                var hrm_file_dels = db.hrm_file.Where(s => s.is_type == 8 && s.key_id == id && s.organization_id == dvid).ToArray<hrm_file>();
+                                foreach (var item in hrm_file_dels)
+                                {
+                                    paths.Add(item.file_path);
+                                    hrmfile_Dels.Add(item);
+                                }
+                                db.hrm_file.RemoveRange(hrmfile_Dels);
+                                db.SaveChanges();
+                            }
+                            hrm_file hrm_File = new hrm_file();
+                            hrm_File.key_id = ca_type_contract.type_contract_id.ToString();
+                            hrm_File.file_name = Path.GetFileName(newFileName);
+                            hrm_File.file_path = "/Portals/" + dvid + "/TypeContract/" + fileName;
+                            hrm_File.file_type = helper.GetFileExtension(fileName);
+                            var file_info = new FileInfo(strPath + "/" + fileName);
+                            hrm_File.file_size = file_info.Length;
+                            if (helper.IsImageFileName(newFileName))
+                            {
+                                hrm_File.is_image = true;
+                            }
+                            else
+                            {
+                                hrm_File.is_image = false;
+                            }
+                            if (super == true)
+                            {
+                                hrm_File.is_system = true;
+                            }
+                            else
+                            {
+                                hrm_File.is_system = false;
+                            }
+                            hrm_File.is_type = 8;
+                            hrm_File.status = true;
+                            hrm_File.created_by = uid;
+                            hrm_File.created_date = DateTime.Now;
+                            hrm_File.created_ip = ip; hrm_File.organization_id = dvid;
+                            hrm_File.created_token_id = tid;
+                            db.hrm_file.Add(hrm_File);
+
+                        }
+
+
+
+                        foreach (string strP in paths)
+                        {
+
+                            bool exists = File.Exists(root + "/" + dvid + "/TypeContract/" + Path.GetFileName(strP));
+                            if (exists)
+                                System.IO.File.Delete(root + "/" + dvid + "/TypeContract/" + Path.GetFileName(strP));
+                        }
 
                         #region add hrm_log
                         if (helper.wlog)
@@ -262,13 +474,38 @@ namespace API.Controllers.HRM.Category
                     {
                         var das = await db.hrm_ca_type_contract.Where(a => id.Contains(a.type_contract_id)).ToListAsync();
                         List<string> paths = new List<string>();
+                        string root = HttpContext.Current.Server.MapPath("~/Portals");
                         if (das != null)
                         {
                             List<hrm_ca_type_contract> del = new List<hrm_ca_type_contract>();
                             foreach (var da in das)
                             {
                                 del.Add(da);
+                                var arr = new List<String>();
+                                foreach (var item in id)
+                                {
+                                    arr.Add(item.ToString());
+                                }
+                                var das3 = await db.hrm_file.Where(a => arr.Contains(a.key_id) && a.is_type == 8).ToListAsync();
 
+
+                                foreach (var item in das3)
+                                {
+
+
+                                    if (!string.IsNullOrWhiteSpace(item.file_path))
+                                        paths.Add(item.file_path.Substring(8));
+
+                                }
+                                db.hrm_file.RemoveRange(das3);
+
+                                foreach (string strP in paths)
+                                {
+
+                                    bool exists = File.Exists(root + "/" + dvid + "/TypeContract/" + Path.GetFileName(strP));
+                                    if (exists)
+                                        System.IO.File.Delete(root + "/" + dvid + "/TypeContract/" + Path.GetFileName(strP));
+                                }
                                 #region add hrm_log
                                 if (helper.wlog)
                                 {

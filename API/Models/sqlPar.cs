@@ -242,4 +242,11 @@ namespace API.Models
         public string tag { get; set; }
         public string url { get; set; }
     }
+
+    public class MappingFile
+    {
+        public string file_key_id { get; set; }
+        public string path_file { get; set; }
+        public int type_save_file { get; set; }
+    }
 }
