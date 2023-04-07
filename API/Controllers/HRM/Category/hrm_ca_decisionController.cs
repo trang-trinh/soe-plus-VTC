@@ -141,7 +141,7 @@ namespace API.Controllers.HRM.Category
                             {
                                 hrm_File.is_image = false;
                             }
-                            hrm_File.is_type = 8;
+                            hrm_File.is_type = 9;
                             if (super == true)
                             {
                                 hrm_File.is_system = true;
@@ -273,7 +273,7 @@ namespace API.Controllers.HRM.Category
                         var arc = hrm_File_S.FindAll(x => x.organization_id == dvid).ToList();
                         var id = ca_decision.decision_id.ToString();
                         var hrmfile_Delete = new List<hrm_file>();
-                        var hrm_file_Olds = db.hrm_file.Where(s => s.is_type == 8 && s.key_id == id && s.organization_id == dvid).ToArray<hrm_file>();
+                        var hrm_file_Olds = db.hrm_file.Where(s => s.is_type == 9 && s.key_id == id && s.organization_id == dvid).ToArray<hrm_file>();
                         foreach (var item in hrm_file_Olds)
                         {
                             var check = false;
@@ -335,7 +335,7 @@ namespace API.Controllers.HRM.Category
                             var hrmfile_Dels = new List<hrm_file>();
                             if (super == true)
                             {
-                                var hrm_file_dels = db.hrm_file.Where(s => s.is_type == 8 && s.key_id == id && s.organization_id == dvid && s.is_system == true).ToArray<hrm_file>();
+                                var hrm_file_dels = db.hrm_file.Where(s => s.is_type == 9 && s.key_id == id && s.organization_id == dvid && s.is_system == true).ToArray<hrm_file>();
                                 foreach (var item in hrm_file_dels)
                                 {
                                     paths.Add(item.file_path);
@@ -346,7 +346,7 @@ namespace API.Controllers.HRM.Category
                             }
                             else
                             {
-                                var hrm_file_dels = db.hrm_file.Where(s => s.is_type == 8 && s.key_id == id && s.organization_id == dvid).ToArray<hrm_file>();
+                                var hrm_file_dels = db.hrm_file.Where(s => s.is_type == 9 && s.key_id == id && s.organization_id == dvid).ToArray<hrm_file>();
                                 foreach (var item in hrm_file_dels)
                                 {
                                     paths.Add(item.file_path);
@@ -378,7 +378,7 @@ namespace API.Controllers.HRM.Category
                             {
                                 hrm_File.is_system = false;
                             }
-                            hrm_File.is_type = 8;
+                            hrm_File.is_type = 9;
                             hrm_File.status = true;
                             hrm_File.created_by = uid;
                             hrm_File.created_date = DateTime.Now;
@@ -486,7 +486,7 @@ namespace API.Controllers.HRM.Category
                                 {
                                     arr.Add(item.ToString());
                                 }
-                                var das3 = await db.hrm_file.Where(a => arr.Contains(a.key_id) && a.is_type == 8).ToListAsync();
+                                var das3 = await db.hrm_file.Where(a => arr.Contains(a.key_id) && a.is_type == 9).ToListAsync();
 
 
                                 foreach (var item in das3)
