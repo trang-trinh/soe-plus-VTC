@@ -17,19 +17,19 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  type_contract_name: {
+  decision_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
 const rules = {
-  type_contract_name: {
+  decision_name: {
     required,
     $errors: [
       {
-        $property: "type_contract_name",
+        $property: "decision_name",
         $validator: "required",
-        $message: "Tên loại hợp đồng không được để trống!",
+        $message: "Tên quyết định không được để trống!",
       },
     ],
   },
@@ -43,7 +43,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_type_contract_count",
+            proc: "hrm_ca_decision_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -64,7 +64,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu type_contract
+//Lấy dữ liệu decision
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -82,7 +82,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_ca_type_contract_list",
+              proc: "hrm_ca_decision_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -137,19 +137,19 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].type_contract_id;
+      datalists.value[datalists.value.length - 1].decision_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].type_contract_id;
+    options.value.id = datalists.value[0].decision_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const type_contract = ref({
-  type_contract_name: "",
+const decision = ref({
+  decision_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -157,7 +157,7 @@ const type_contract = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, type_contract);
+const v$ = useVuelidate(rules, decision);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -179,8 +179,8 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  type_contract.value = {
-    type_contract_name: "",
+  decision.value = {
+    decision_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
@@ -196,8 +196,8 @@ const openBasic = (str) => {
 };
 
 const closeDialog = () => {
-  type_contract.value = {
-    type_contract_name: "",
+  decision.value = {
+    decision_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -216,10 +216,10 @@ const saveData = (isFormValid) => {
     return;
   }
 
-  if (type_contract.value.type_contract_name.length > 250) {
+  if (decision.value.decision_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên loại hợp đồng không được vượt quá 250 ký tự!",
+      text: "Tên quyết định không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -232,7 +232,7 @@ const saveData = (isFormValid) => {
   }
 
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
-  formData.append("hrm_ca_type_contract", JSON.stringify(type_contract.value));
+  formData.append("hrm_ca_decision", JSON.stringify(decision.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -242,14 +242,14 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_type_contract/add_hrm_ca_type_contract",
+        baseURL + "/api/hrm_ca_decision/add_hrm_ca_decision",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm loại hợp đồng thành công!");
+          toast.success("Thêm quyết định thành công!");
           loadData(true);
 
           closeDialog();
@@ -274,14 +274,14 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_type_contract/update_hrm_ca_type_contract",
+        baseURL + "/api/hrm_ca_decision/update_hrm_ca_decision",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa loại hợp đồng thành công!");
+          toast.success("Sửa quyết định thành công!");
 
           closeDialog();
         } else {
@@ -315,15 +315,15 @@ const editTem = (dataTem) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_type_contract_get",
+            proc: "hrm_decision_get",
             par: [
               {
                 par: "user_id",
                 va: store.getters.user.user_id,
               },
               {
-                par: "type_contract_id",
-                va: dataTem.type_contract_id,
+                par: "decision_id",
+                va: dataTem.decision_id,
               },
             ],
           }),
@@ -337,23 +337,22 @@ const editTem = (dataTem) => {
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
       if (data) {
-        type_contract.value = data[0];
-         
-if(type_contract.value.is_system==true&& (store.getters.user.is_super==false || store.getters.user.is_super== null)){
+        decision.value = data[0];
+        if(decision.value.is_system==true&& (store.getters.user.is_super==false || store.getters.user.is_super== null)){
 
-  checkDisabled.value=true;
+checkDisabled.value=true;
 }
         if (data1) {
           listFilesS.value = data1;
         }
       }
 
-      headerDialog.value = "Sửa loại hợp đồng";
+      headerDialog.value = "Sửa quyết định";
       isSaveTem.value = true;
       displayBasic.value = true;
     })
     .catch((error) => {});
-};
+};const checkDisabled=ref(false);
 //Xóa bản ghi
 const delTem = (Tem) => {
   swal
@@ -378,17 +377,17 @@ const delTem = (Tem) => {
 
         axios
           .delete(
-            baseURL + "/api/hrm_ca_type_contract/delete_hrm_ca_type_contract",
+            baseURL + "/api/hrm_ca_decision/delete_hrm_ca_decision",
             {
               headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.type_contract_id] : 1,
+              data: Tem != null ? [Tem.decision_id] : 1,
             }
           )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá loại hợp đồng thành công!");
+              toast.success("Xoá quyết định thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -411,7 +410,6 @@ const delTem = (Tem) => {
       }
     });
 };
-const checkDisabled=ref(false);
 //Xuất excel
 
 const deleteFileH = (value) => {
@@ -442,7 +440,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "type_contract_id",
+    id: "decision_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -454,7 +452,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_type_contract", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_decision", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -549,21 +547,21 @@ const onFilter = (event) => {
 const onCheckBox = (value, check) => {
   if (check) {
     let data = {
-      IntID: value.type_contract_id,
-      TextID: value.type_contract_id + "",
+      IntID: value.decision_id,
+      TextID: value.decision_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_type_contract/update_s_hrm_ca_type_contract",
+        baseURL + "/api/hrm_ca_decision/update_s_hrm_ca_decision",
         data,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái loại hợp đồng thành công!");
+          toast.success("Sửa trạng thái quyết định thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -595,7 +593,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá loại hợp đồng này không!",
+        text: "Bạn có muốn xoá quyết định này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -613,11 +611,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.type_contract_id);
+            listId.push(item.decision_id);
           });
           axios
             .delete(
-              baseURL + "/api/hrm_ca_type_contract/delete_hrm_ca_type_contract",
+              baseURL + "/api/hrm_ca_decision/delete_hrm_ca_decision",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -627,7 +625,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá loại hợp đồng thành công!");
+                toast.success("Xoá quyết định thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -804,13 +802,13 @@ onMounted(() => {
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
       :row-hover="true"
-      dataKey="type_contract_id"
+      dataKey="decision_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách loại hợp đồng ({{
+          <i class="pi pi-book"></i> Danh sách quyết định ({{
             options.totalRecords
           }})
         </h3>
@@ -896,7 +894,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm loại hợp đồng')"
+              @click="openBasic('Thêm quyết định')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -944,8 +942,8 @@ onMounted(() => {
       ></Column>
 
       <Column
-        field="type_contract_name"
-        header="Tên loại hợp đồng"
+        field="decision_name"
+        header="Tên quyết định"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -1055,17 +1053,17 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Loại hợp đồng <span class="redsao">(*)</span></label
+            >Quyết định<span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="type_contract.type_contract_name"
+            v-model="decision.decision_name"
             spellcheck="false"
             class="col-9 ip36 px-2"
             :class="{
-              'p-invalid': v$.type_contract_name.$invalid && submitted,
+              'p-invalid': v$.decision_name.$invalid && submitted,
             }"
-            :disabled="checkDisabled
-             
+            :disabled="
+            checkDisabled
             "
           />
         </div>
@@ -1073,14 +1071,14 @@ onMounted(() => {
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v$.type_contract_name.$invalid && submitted) ||
-              v$.type_contract_name.$pending.$response
+              (v$.decision_name.$invalid && submitted) ||
+              v$.decision_name.$pending.$response
             "
             class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.type_contract_name.required.$message
-                .replace("Value", "Tên loại hợp đồng")
+              v$.decision_name.required.$message
+                .replace("Value", "Tên quyết định")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
@@ -1089,7 +1087,7 @@ onMounted(() => {
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-9 text-left p-0">STT</div>
             <InputNumber
-              v-model="type_contract.is_order"
+              v-model="decision.is_order"
               class="col-3 ip36 p-0"
               :disabled="
               checkDisabled
@@ -1099,9 +1097,9 @@ onMounted(() => {
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
             <InputSwitch
-              v-model="type_contract.status"
+              v-model="decision.status"
               :disabled="
-              checkDisabled
+            checkDisabled
               "
             />
           </div>
@@ -1110,7 +1108,7 @@ onMounted(() => {
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="type_contract.is_system" />
+            <InputSwitch v-model="decision.is_system" />
           </div>
         </div>
 
@@ -1325,8 +1323,6 @@ onMounted(() => {
             :maxFileSize="524288000"
             @select="onUploadFile"
             @remove="removeFile"
-            :fileLimit="1"
-
             :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
           >
             <template #empty>
