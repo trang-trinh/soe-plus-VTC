@@ -525,6 +525,7 @@ onMounted(() => {
                   v-model="props.model.contract_no"
                   spellcheck="false"
                   class="ip36"
+                  :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                 />
                 <div v-if="!props.model.contract_no && submitted">
                   <small class="p-error">

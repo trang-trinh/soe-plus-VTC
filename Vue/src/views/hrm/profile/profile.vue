@@ -47,6 +47,7 @@ const options = ref({
   genders: [],
   birthday_start_date: null,
   birthday_end_date: null,
+  tags: [],
 });
 const isFilter = ref(false);
 const isFirst = ref(true);
@@ -61,6 +62,7 @@ const groups = ref([
   { view: 1, icon: "pi pi-list", title: "list" },
   { view: 2, icon: "pi pi-align-right", title: "tree" },
 ]);
+const listPlaceDetails1 = ref([]);
 
 //declare dictionary
 const tabs = ref([
@@ -162,10 +164,11 @@ const resetFilter = () => {
   options.value.departments = [];
   options.value.work_positions = [];
   options.value.professional_works = [];
-  options.value.birthplaces = {};
+  options.value.birthplaces = [];
   options.value.genders = [];
   options.value.birthday_start_date = null;
   options.value.birthday_end_date = null;
+  options.value.tags = [];
 };
 const removeFilter = (idx, array, isTree) => {
   if (isTree) {
@@ -962,6 +965,47 @@ const renderPlace = (response) => {
   });
   places.value = list1;
 };
+const initPlaceFilter = (event, type) => {
+  var stc = event.value;
+  if (event.value == "") {
+    stc = null;
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "ca_place_details_list",
+            par: [
+              { par: "search", va: stc },
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 50 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data);
+        if (data != null) {
+          if (data[0] != null && data[0].length > 0) {
+            if (type == 1) {
+              listPlaceDetails1.value = JSON.parse(JSON.stringify(data[0]));
+            }
+          } else {
+            if (type == 1) {
+              listPlaceDetails1.value = [];
+            }
+          }
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -1036,30 +1080,22 @@ const initCountFilter = () => {
       .map((x) => x["professional_work_id"])
       .join(",");
   }
-  // var birthplaces = null;
-  // if (
-  //   options.value.birthplaces != null &&
-  //   Object.keys(options.value.birthplaces).length > 0
-  // ) {
-  //   birthplaces = Object.keys(options.value.birthplaces)
-  //     .filter(
-  //       (a) =>
-  //         Object.entries(options.value.birthplaces).findIndex(
-  //           (b) => b[0] == a && b[1]["checked"]
-  //         ) !== -1
-  //     )
-  //     .map((x) => x)
-  //     .join(",");
-  // }
+  var birthplaces = null;
   if (
     options.value.birthplaces != null &&
-    Object.keys(options.value.birthplaces).length > 0
+    options.value.birthplaces.length > 0
   ) {
-    options.value.birthplace_id = Object.keys(options.value.birthplaces)[0];
+    birthplaces = options.value.birthplaces
+      .map((x) => x["place_details_id"])
+      .join(",");
   }
   var genders = null;
   if (options.value.genders != null && options.value.genders.length > 0) {
     genders = options.value.genders.map((x) => x["gender"]).join(",");
+  }
+  var tags = null;
+  if (options.value.tags != null && options.value.tags.length > 0) {
+    tags = options.value.tags.map((x) => x["tags_id"]).join(",");
   }
   tabs.value.forEach((x) => {
     x["total"] = 0;
@@ -1070,7 +1106,7 @@ const initCountFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_count_filter",
+            proc: "hrm_profile_count_filter_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1078,13 +1114,14 @@ const initCountFilter = () => {
               { par: "departments", va: departments },
               { par: "work_positions", va: work_positions },
               { par: "professional_works", va: professional_works },
-              { par: "birthplace_id", va: options.value.birthplace_id },
+              { par: "birthplaces", va: birthplaces },
               { par: "genders", va: genders },
               {
                 par: "birthday_start_date",
                 va: options.value.birthday_start_date,
               },
               { par: "birthday_end_date", va: options.value.birthday_end_date },
+              { par: "tags", va: tags },
             ],
           }),
           SecretKey,
@@ -1218,30 +1255,22 @@ const initDataFilter = () => {
       .map((x) => x["professional_work_id"])
       .join(",");
   }
-  // var birthplaces = null;
-  // if (
-  //   options.value.birthplaces != null &&
-  //   Object.keys(options.value.birthplaces).length > 0
-  // ) {
-  //   birthplaces = Object.keys(options.value.birthplaces)
-  //     .filter(
-  //       (a) =>
-  //         Object.entries(options.value.birthplaces).findIndex(
-  //           (b) => b[0] == a && b[1]["checked"]
-  //         ) !== -1
-  //     )
-  //     .map((x) => x)
-  //     .join(",");
-  // }
+  var birthplaces = null;
   if (
     options.value.birthplaces != null &&
-    Object.keys(options.value.birthplaces).length > 0
+    options.value.birthplaces.length > 0
   ) {
-    options.value.birthplace_id = Object.keys(options.value.birthplaces)[0];
+    birthplaces = options.value.birthplaces
+      .map((x) => x["place_details_id"])
+      .join(",");
   }
   var genders = null;
   if (options.value.genders != null && options.value.genders.length > 0) {
     genders = options.value.genders.map((x) => x["gender"]).join(",");
+  }
+  var tags = null;
+  if (options.value.tags != null && options.value.tags.length > 0) {
+    tags = options.value.tags.map((x) => x["tags_id"]).join(",");
   }
   axios
     .post(
@@ -1249,7 +1278,7 @@ const initDataFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter_2",
+            proc: "hrm_profile_list_filter_3",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1260,13 +1289,14 @@ const initDataFilter = () => {
               { par: "departments", va: departments },
               { par: "work_positions", va: work_positions },
               { par: "professional_works", va: professional_works },
-              { par: "birthplace_id", va: options.value.birthplace_id },
+              { par: "birthplaces", va: birthplaces },
               { par: "genders", va: genders },
               {
                 par: "birthday_start_date",
                 va: options.value.birthday_start_date,
               },
               { par: "birthday_end_date", va: options.value.birthday_end_date },
+              { par: "tags", va: tags },
             ],
           }),
           SecretKey,
@@ -1886,19 +1916,75 @@ onMounted(() => {
                             </span>
                           </template>
                         </TreeSelect> -->
-                        <Dropdown
+                        <!-- <Dropdown
                           @filter="initPlaceFilter($event, 1)"
                           :options="listPlaceDetails1"
                           :filter="true"
                           :editable="false"
-                          :showClear="false"
+                          :showClear="true"
                           v-model="options.birthplaces"
                           optionLabel="name"
-                          optionValue="name"
+                          optionValue="place_details_id"
                           class="ip36"
                           placeholder="Xã phường, Quận huyện, Tỉnh thành"
                           panelClass="d-design-dropdown"
-                        />
+                          :style="{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }"
+                        /> -->
+                        <MultiSelect
+                          @filter="initPlaceFilter($event, 1)"
+                          :options="listPlaceDetails1"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.birthplaces"
+                          optionLabel="name"
+                          placeholder="Chọn nơi sinh"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(
+                                          index,
+                                          options.birthplaces
+                                        );
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
                       </div>
                     </div>
                     <div class="col-12 md:col-12">
@@ -1984,6 +2070,58 @@ onMounted(() => {
                           @input="changeBirthdayDate()"
                           placeholder="Đến ngày"
                         />
+                      </div>
+                    </div>
+                    <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Nhãn</label>
+                        <MultiSelect
+                          :options="dictionarys[25]"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.tags"
+                          optionLabel="tags_name"
+                          placeholder="Chọn nhãn"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.tags_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.tags);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
                       </div>
                     </div>
                   </div>
