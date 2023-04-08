@@ -265,6 +265,7 @@ const TaskPersonConfig = () =>
 //hrm
 // const Interview = () =>
 //     import ("../views/hrm/category/Interview.vue");
+const HrmHome = () => import("../views/hrm/home/home.vue");
 const HrmTool = () => import("../views/hrm/profile/tool/toollayout.vue");
 const HrmTool2 = () => import("../views/hrm/profile/tool/DocTempView.vue");
 const HrmIframe = () => import("../views/hrm/profile/tool/iframedoc.vue");
@@ -1519,6 +1520,11 @@ const router = createRouter({
     //     name: "Interview",
     //     component: Interview,
     // },
+    {
+      path: "/hrm/home",
+      name: "hrmhome",
+      component: HrmHome,
+    },
     {
       path: "/hrm/hrm_profile",
       name: "Hrm_Info",

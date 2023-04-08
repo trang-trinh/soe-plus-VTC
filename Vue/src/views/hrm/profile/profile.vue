@@ -194,6 +194,78 @@ const changeView = (view) => {
   }
 };
 
+//Xuất excel
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      importExcel(event);
+    },
+  },
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportData("ExportExcel");
+    },
+  },
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
+const exportData = (method) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/Excel/ExportExcel",
+      {
+        excelname: "DANH SÁCH PHÒNG HỌP",
+        proc: "calendar_ca_boardroom_listexport",
+        par: [
+          { par: "organization_id", va: store.getters.user.organization_id },
+          { par: "search", va: options.value.search },
+        ],
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
+        swal.close();
+
+        toast.success("Kết xuất Data thành công!");
+        if (response.data.path != null) {
+          window.open(baseURL + response.data.path);
+        }
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      }
+    });
+};
+
 //Watch
 // watch(selectedNodes, () => {
 //   goProfile(selectedNodes.value);
@@ -277,14 +349,14 @@ const itemButMores = ref([
   },
   {
     label: "Xác nhận là vợ/chồng",
-    icon: "pi pi-check",
+    icon: "pi pi-users",
     command: (event) => {
       openEditDialogRelate(profile.value, "Xác nhận kết hôn với");
     },
   },
   {
     label: "Thiết lập trạng thái",
-    icon: "pi pi-cog",
+    icon: "pi pi-sync",
     command: (event) => {
       openAddDialogStatus(profile.value, "Thiết lập trạng thái");
     },
@@ -1486,6 +1558,7 @@ const initData = (ref) => {
               const endDate = moment(new Date());
               item.duration = moment.duration(endDate.diff(startDate));
               item.diffyear = item.duration.years();
+              item.diffmonth = item.duration.months();
               item.diffday = item.duration.days();
 
               item["STT"] = i + 1;
@@ -1538,6 +1611,7 @@ const initData = (ref) => {
           treeOrganization.value.forEach((o) => {
             o.list = arr.filter((dp) => dp.department_id == o.organization_id);
           });
+          console.log(treeOrganization.value);
         }
       }
       if (isFirst.value) isFirst.value = false;
@@ -2228,18 +2302,27 @@ onMounted(() => {
     <div class="tabview">
       <div class="tableview-nav-content">
         <ul class="tableview-nav">
-          <li
-            v-for="(tab, key) in tabs"
-            :key="key"
-            @click="activeTab(tab)"
-            class="tableview-header"
-            :class="{ highlight: options.tab === tab.status }"
-          >
-            <a>
-              <i :class="tab.icon"></i>
-              <span>{{ tab.title }} ({{ tab.total }})</span>
-            </a>
-          </li>
+          <template v-if="options.view === 1">
+            <li
+              v-for="(tab, key) in tabs"
+              :key="key"
+              @click="activeTab(tab)"
+              class="tableview-header"
+              :class="{ highlight: options.tab === tab.status }"
+            >
+              <a>
+                <i :class="tab.icon"></i>
+                <span>{{ tab.title }} ({{ tab.total }})</span>
+              </a>
+            </li>
+          </template>
+          <template v-else-if="options.view === 2">
+            <li class="format-center py-0">
+              <h3 class="m-0">
+                <i class="pi pi-list"></i> Danh sách nhân sự theo cơ cấu tổ chức
+              </h3>
+            </li>
+          </template>
         </ul>
       </div>
     </div>
@@ -2415,21 +2498,24 @@ onMounted(() => {
         <Column
           field="countRecruitment"
           header="Ngày thâm niên"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
           class="align-items-center justify-content-left text-left"
         >
           <template #body="slotProps">
             <div v-tooltip.top="'Thâm niên công tác'">
-              <span v-if="slotProps.data.diffyear > 0"
-                >{{ slotProps.data.diffyear }} năm
+              <span v-if="slotProps.data.diffyear > 0">
+                {{ slotProps.data.diffyear }} năm
               </span>
-              <span
+              <span v-if="slotProps.data.diffmonth > 0">
+                {{ slotProps.data.diffmonth }} tháng
+              </span>
+              <!-- <span
                 v-if="
                   slotProps.data.diffyear >= 0 && slotProps.data.diffday > 0
                 "
                 >{{ slotProps.data.diffday }} ngày
-              </span>
+              </span> -->
             </div>
           </template>
         </Column>
@@ -2544,7 +2630,7 @@ onMounted(() => {
                     backgroundColor: '#f8f9fa',
                   }"
                 >
-                  <b>{{ organization.newname }} (0)</b>
+                  <b>{{ organization.newname }} ({{ organization.total }})</b>
                 </div>
               </td>
             </tr>
@@ -2742,8 +2828,12 @@ onMounted(() => {
                     padding: '0.5rem',
                   }"
                 >
-                  <span v-if="item.diffyear > 0">{{ item.diffyear }} năm </span>
-                  <span v-if="item.diffday >= 0">{{ item.diffday }} ngày </span>
+                  <span v-if="item.diffyear > 0">
+                    {{ item.diffyear }} năm
+                  </span>
+                  <span v-if="item.diffmonth > 0">
+                    {{ item.diffmonth }} tháng
+                  </span>
                 </td>
                 <td
                   :style="{

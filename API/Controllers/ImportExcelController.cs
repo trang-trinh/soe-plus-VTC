@@ -540,6 +540,7 @@ namespace API.Controllers
                                     dv.created_ip = ip;
                                     dv.created_token_id = tid;
                                     if (sp == true) dv.is_system = true;
+                                    else dv.is_system=false;
                                     dvs.Add(dv);
                                 }
                                 if (dvs.Count > 0)

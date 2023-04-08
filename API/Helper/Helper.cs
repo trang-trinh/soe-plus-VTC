@@ -186,7 +186,29 @@ namespace Helper
                 return name;
             }
         }
+        public static string newFileName(FileInfo path, string filepath, string filename,int i, string root, int dvid)
+        {
 
+            if (path.Exists)
+            {
+                filename = path.Name.Replace(path.Extension, "");
+                if (i == 1)
+                {
+                    filename = filename + "(" + i + ")";
+                }
+                else
+                {
+                    filename = filename.Substring(0,filename.Length-2)+ i + ")";
+                }
+
+                filename+= path.Extension;
+                var newPath = Path.Combine(filepath, filename);
+                  var  newInfor = new FileInfo(newPath);
+                i++;
+                filename = newFileName(newInfor, filepath, filename, i, root, dvid);
+            }
+         return filename;
+        }
         public static string convertToUnSign(string s)
         {
             string stFormD = s.Normalize(NormalizationForm.FormD);
@@ -1900,6 +1922,13 @@ namespace Helper
         public static Nullable<int> Orgainzation(IEnumerable<Claim> claims)
         {
             string ctid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
+        }
+        public static Nullable<int> OrgainzationParent(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "parent_dvid").FirstOrDefault()?.Value;
             if (ctid != null)
                 return Convert.ToInt32(ctid);
             else return null;

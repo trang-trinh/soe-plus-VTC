@@ -451,15 +451,12 @@ onMounted(() => {
                                   ? basedomainURL + slotProps.value.avatar
                                   : basedomainURL + '/Portals/Image/noimg.jpg'
                               "
-                              style="
-                                background-color: #2196f3;
-                                color: #ffffff;
-                                width: 2rem;
-                                height: 2rem;
-                              "
                               :style="{
                                 background:
                                   bgColor[slotProps.value.is_order % 7],
+                                color: '#ffffff',
+                                width: '2rem',
+                                height: '2rem',
                               }"
                               class="mr-2 text-avatar"
                               size="xlarge"
@@ -506,9 +503,19 @@ onMounted(() => {
                           shape="circle"
                         />
                       </div>
-                      <div class="ml-3 format-center">
-                        <div class="mb-1">
-                          {{ slotProps.option.profile_user_name }}
+                      <div class="format-center text-left ml-3">
+                        <div>
+                          <div class="mb-1">
+                            {{ slotProps.option.profile_user_name }}
+                          </div>
+                          <div class="description">
+                            <div>
+                              <span>{{ slotProps.option.profile_code }}</span
+                              ><span v-if="slotProps.option.department_name">
+                                | {{ slotProps.option.department_name }}</span
+                              >
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -852,7 +859,7 @@ onMounted(() => {
                   :filter="true"
                   :showClear="true"
                   :editable="false"
-                  optionLabel="full_name"
+                  optionLabel="profile_user_name"
                   placeholder="Chọn người quản lý"
                   v-model="props.model.manager_user"
                   class="ip36"
@@ -871,25 +878,22 @@ onMounted(() => {
                               v-bind:label="
                                 slotProps.value.avatar
                                   ? ''
-                                  : (slotProps.value.last_name ?? '').substring(
-                                      0,
-                                      1
-                                    )
+                                  : (
+                                      slotProps.value.profile_user_name ?? ''
+                                    ).substring(0, 1)
                               "
                               v-bind:image="
                                 slotProps.value.avatar
                                   ? basedomainURL + slotProps.value.avatar
                                   : basedomainURL + '/Portals/Image/noimg.jpg'
                               "
-                              style="
-                                background-color: #2196f3;
-                                color: #ffffff;
-                                width: 2rem;
-                                height: 2rem;
-                              "
+                              style="background-color: #2196f3"
                               :style="{
                                 background:
                                   bgColor[slotProps.value.is_order % 7],
+                                color: '#ffffff',
+                                width: '2rem',
+                                height: '2rem',
                               }"
                               class="mr-2 text-avatar"
                               size="xlarge"
@@ -897,7 +901,7 @@ onMounted(() => {
                             />
                           </div>
                           <div class="format-flex-center">
-                            <span>{{ slotProps.value.full_name }}</span>
+                            <span>{{ slotProps.value.profile_user_name }}</span>
                           </div>
                         </div>
                       </Chip>
@@ -911,33 +915,42 @@ onMounted(() => {
                           v-bind:label="
                             slotProps.option.avatar
                               ? ''
-                              : slotProps.option.last_name.substring(0, 1)
+                              : slotProps.option.profile_user_name.substring(
+                                  0,
+                                  1
+                                )
                           "
                           v-bind:image="
                             slotProps.option.avatar
                               ? basedomainURL + slotProps.option.avatar
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
-                          style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 3rem;
-                            height: 3rem;
-                            font-size: 1.4rem !important;
-                          "
+                          style="background-color: #2196f3"
                           :style="{
                             background: bgColor[slotProps.option.is_order % 7],
+                            color: '#ffffff',
+                            width: '3rem',
+                            height: '3rem',
+                            fontSize: '1.4rem !important',
                           }"
                           class="text-avatar"
                           size="xlarge"
                           shape="circle"
                         />
                       </div>
-                      <div class="ml-3">
-                        <div class="mb-1">{{ slotProps.option.full_name }}</div>
-                        <div class="description">
-                          <div>{{ slotProps.option.position_name }}</div>
-                          <div>{{ slotProps.option.department_name }}</div>
+                      <div class="format-center text-left ml-3">
+                        <div>
+                          <div class="mb-1">
+                            {{ slotProps.option.profile_user_name }}
+                          </div>
+                          <div class="description">
+                            <div>
+                              <span>{{ slotProps.option.profile_code }}</span
+                              ><span v-if="slotProps.option.department_name">
+                                | {{ slotProps.option.department_name }}</span
+                              >
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1321,7 +1334,11 @@ onMounted(() => {
             </div>
             <div class="col-12 md:col-12">
               <div class="form-group">
-                <label><h3 class="m-0">Tài liệu đính kèm (quyết định,...)</h3></label>
+                <label
+                  ><h3 class="m-0">
+                    Tài liệu đính kèm (quyết định,...)
+                  </h3></label
+                >
                 <FileUpload
                   v-if="!props.isView"
                   :multiple="true"
@@ -1435,7 +1452,7 @@ onMounted(() => {
                   :filter="true"
                   :showClear="true"
                   :editable="false"
-                  optionLabel="full_name"
+                  optionLabel="profile_user_name"
                   placeholder="Chọn người ký"
                   v-model="props.model.sign_user"
                   class="ip36"
@@ -1454,25 +1471,22 @@ onMounted(() => {
                               v-bind:label="
                                 slotProps.value.avatar
                                   ? ''
-                                  : (slotProps.value.last_name ?? '').substring(
-                                      0,
-                                      1
-                                    )
+                                  : (
+                                      slotProps.value.profile_user_name ?? ''
+                                    ).substring(0, 1)
                               "
                               v-bind:image="
                                 slotProps.value.avatar
                                   ? basedomainURL + slotProps.value.avatar
                                   : basedomainURL + '/Portals/Image/noimg.jpg'
                               "
-                              style="
-                                background-color: #2196f3;
-                                color: #ffffff;
-                                width: 2rem;
-                                height: 2rem;
-                              "
+                              style="background-color: #2196f3"
                               :style="{
                                 background:
                                   bgColor[slotProps.value.is_order % 7],
+                                color: '#ffffff',
+                                width: '2rem',
+                                height: '2rem',
                               }"
                               class="mr-2 text-avatar"
                               size="xlarge"
@@ -1480,7 +1494,7 @@ onMounted(() => {
                             />
                           </div>
                           <div class="format-flex-center">
-                            <span>{{ slotProps.value.full_name }}</span>
+                            <span>{{ slotProps.value.profile_user_name }}</span>
                           </div>
                         </div>
                       </Chip>
@@ -1494,33 +1508,42 @@ onMounted(() => {
                           v-bind:label="
                             slotProps.option.avatar
                               ? ''
-                              : slotProps.option.last_name.substring(0, 1)
+                              : slotProps.option.profile_user_name.substring(
+                                  0,
+                                  1
+                                )
                           "
                           v-bind:image="
                             slotProps.option.avatar
                               ? basedomainURL + slotProps.option.avatar
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
-                          style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 3rem;
-                            height: 3rem;
-                            font-size: 1.4rem !important;
-                          "
+                          style="background-color: #2196f3"
                           :style="{
                             background: bgColor[slotProps.option.is_order % 7],
+                            color: '#ffffff',
+                            width: '3rem',
+                            height: '3rem',
+                            fontSize: '1.4rem !important',
                           }"
                           class="text-avatar"
                           size="xlarge"
                           shape="circle"
                         />
                       </div>
-                      <div class="ml-3">
-                        <div class="mb-1">{{ slotProps.option.full_name }}</div>
-                        <div class="description">
-                          <div>{{ slotProps.option.position_name }}</div>
-                          <div>{{ slotProps.option.department_name }}</div>
+                      <div class="format-center text-left ml-3">
+                        <div>
+                          <div class="mb-1">
+                            {{ slotProps.option.profile_user_name }}
+                          </div>
+                          <div class="description">
+                            <div>
+                              <span>{{ slotProps.option.profile_code }}</span
+                              ><span v-if="slotProps.option.department_name">
+                                | {{ slotProps.option.department_name }}</span
+                              >
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

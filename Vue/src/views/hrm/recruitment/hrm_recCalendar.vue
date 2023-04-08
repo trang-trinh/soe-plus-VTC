@@ -1170,7 +1170,7 @@ onMounted(() => {
                                             {{ slotProps.option.name }}
                                           </div>
                                           <div
-                                            class="flex w-full text-sm font-italic text-500"
+                                            class="flex w-full text-sm   text-500"
                                           >
                                             <div>
                                               {{

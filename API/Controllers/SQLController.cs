@@ -2074,18 +2074,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= "+helper.OrgainzationParent(claims)));
                 }
                 else
                 {
                     WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                                        (" ((organization_id = "+ helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")");
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from ca_positions where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) AS organization_name from ca_positions ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"

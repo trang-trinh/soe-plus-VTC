@@ -50,6 +50,7 @@ const loadCount = () => {
         par: [
           { par: "user_id", va: store.getters.user.user_id },
           { par: "status", va: null },
+          { par: "reward_type", va: 1 },
         ],
       }),
             SecretKey,
@@ -92,6 +93,7 @@ const loadData = (rf) => {
             { par: "pagesize", va: options.value.PageSize },
             { par: "user_id", va: store.getters.user.user_id },
             { par: "status", va: null },
+            { par: "reward_type", va: 1 },
           ],
         }),
             SecretKey,
@@ -229,8 +231,8 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
  
-  if (reward_title.value.countryside_fake)
-    reward_title.value.countryside = reward_title.value.countryside_fake;
+ 
+  reward_title.value.reward_type=1;
   formData.append("hrm_ca_reward_title", JSON.stringify(reward_title.value));
   swal.fire({
     width: 110,

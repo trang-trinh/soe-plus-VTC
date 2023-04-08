@@ -158,7 +158,10 @@ const loadDonvi = () => {
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
-          JSON.stringify({ proc: "sys_org_list" }),
+          JSON.stringify({
+            proc: "sys_organization_list_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
           SecretKey,
           cryoptojs,
         ).toString(),
@@ -191,7 +194,7 @@ const loadDonvi = () => {
       }
     });
 };
-const treedonvis = ref();
+const treedonvis = ref([]);
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
@@ -945,26 +948,18 @@ onMounted(() => {
               class="p-0 m-0"
               :showCloseIcon="false"
               id="overlay_panel"
-              :style="
-                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
-              "
+              :style="'width:400px'"
             >
               <div class="grid formgrid m-0">
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-3 text-left pt-2 p-0'"
                     style="text-align: left"
                   >
                     Phân loại
                   </div>
 
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-9'">
                     <TreeSelect
                       v-model="filterPhanloai"
                       :options="treedonvis"
@@ -973,6 +968,7 @@ onMounted(() => {
                       placeholder="Chọn đơn vị"
                       class="col-12 p-0 m-0 md:col-12"
                       v-if="store.state.user.is_super == 1"
+                      panelClass="d-design-dropdown"
                     />
                     <Dropdown
                       class="col-12 p-0 m-0"
@@ -987,18 +983,12 @@ onMounted(() => {
                 </div>
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-3 text-left pt-2 p-0'"
                     style="text-align: center,justify-content:center"
                   >
                     Trạng thái
                   </div>
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-9'">
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterTrangthai"
@@ -1309,14 +1299,4 @@ onMounted(() => {
 </template>
 
 <style scoped></style>
-<style>
-.p-treeselect-panel {
-  max-width: 30vw !important;
-}
-.p-treeselect-items-wrapper .p-tree {
-  max-height: 17vh !important;
-}
-.p-dropdown-item {
-  white-space: normal !important;
-}
-</style>
+<style></style>
