@@ -855,7 +855,7 @@ onMounted(() => {
                 <label>Người quản lý</label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="dictionarys[1]"
+                  :options="dictionarys[8]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
@@ -1448,11 +1448,11 @@ onMounted(() => {
                 <label>Người ký</label>
                 <Dropdown
                   :disabled="props.isView"
-                  :options="dictionarys[1]"
+                  :options="dictionarys[8]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
-                  optionLabel="full_name"
+                  optionLabel="profile_user_name"
                   placeholder="Chọn người ký"
                   v-model="props.model.sign_user"
                   class="ip36"
