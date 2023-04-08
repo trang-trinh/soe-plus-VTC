@@ -37,7 +37,7 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
- 
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -47,9 +47,10 @@ const loadCount = () => {
         str: encr(
           JSON.stringify({
             proc: "hrm_reward_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id },
-            { par: "status", va: null },
-          ],
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -63,12 +64,11 @@ const loadCount = () => {
       let data2 = JSON.parse(response.data.data)[2];
       let data3 = JSON.parse(response.data.data)[3];
       if (data.length > 0) {
-         
         options.value.totalRecords = data[0].totalRecords;
         options.value.totalRecords1 = data1[0].totalRecords;
         options.value.totalRecords2 = data2[0].totalRecords;
         options.value.totalRecords3 = data3[0].totalRecords;
-        
+
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
@@ -77,7 +77,7 @@ const loadCount = () => {
 
 const reward = ref({
   reward_name: null,
-  is_recruitment_proposal: null
+  is_recruitment_proposal: null,
 });
 //Lấy dữ liệu reward
 const loadData = (rf) => {
@@ -102,7 +102,7 @@ const loadData = (rf) => {
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
-                { par: "status", va: null},
+                { par: "status", va: null },
               ],
             }),
             SecretKey,
@@ -117,8 +117,8 @@ const loadData = (rf) => {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
-          if(element.listRewards){
-            element.listRewards=JSON.parse(element.listRewards);
+          if (element.listRewards) {
+            element.listRewards = JSON.parse(element.listRewards);
           }
         });
 
@@ -180,8 +180,8 @@ const options = ref({
   totalRecords1: 0,
   totalRecords2: 0,
   totalRecords3: 0,
-  totalRecordsExport:50,
-  pagenoExport:1
+  totalRecordsExport: 50,
+  pagenoExport: 1,
 });
 
 //Hiển thị dialog
@@ -190,14 +190,14 @@ const displayBasic = ref(false);
 const openBasic = (str) => {
   reward.value = {
     reward_name: null,
-    reward_type:1 ,
+    reward_type: 1,
     status: 1,
     reward_code: null,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
- 
-  reward_name_fake1:[],
-  reward_name_fake2:{}
+
+    reward_name_fake1: [],
+    reward_name_fake2: {},
   };
 
   isSaveTem.value = true;
@@ -213,72 +213,21 @@ const closeDialog = () => {
     status: true,
     is_default: false,
     is_order: 1,
-    reward_type:1
+    reward_type: 1,
   };
 
   displayBasic.value = false;
   loadData(true);
 };
 const sttStamp = ref(1);
-const listFilesS=ref([]);
+const listFilesS = ref([]);
 //Sửa bản ghi
 const editTem = (dataTem) => {
+  reward.value = dataTem;
 
-
-  axios
-      .post(
-        baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "hrm_reward_get",
-              par: [
-                {
-                  par: "reward_id",
-                  va:dataTem.reward_id,
-                },
-              ],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        let data1 = JSON.parse(response.data.data)[1];
-        if (data) {
-          reward.value = data[0];
- if(reward.value.reward_type==1||reward.value.reward_type==3 ){
-  reward.value.reward_name_fake1= reward.value.reward_name.split(",");
-  reward.value.reward_name_fake2=null;
- }else{
-
-  reward.value.reward_name_fake2={};
-  reward.value.reward_name.split(",").forEach(element => {
-    reward.value.reward_name_fake2[element]=true;
-  });
-
- }
- 
-          if (reward.value.decision_date)
-            reward.value.decision_date = new Date(reward.value.decision_date);
-          if (reward.value.effective_date)
-            reward.value.effective_date = new Date(reward.value.effective_date);
- 
-        }
- 
-        if (data1) {
-          listFilesS.value = data1;
-        }
-        headerDialog.value = "Sửa khen thưởng";
+  headerDialog.value = "Sửa khen thưởng";
   isSaveTem.value = false;
   displayBasic.value = true;
-      })
-      .catch((error) => {});
-
-
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -381,9 +330,9 @@ const loadDataSQL = () => {
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        
-          if(element.listRewards){
-            element.listRewards=JSON.parse(element.listRewards);
+
+          if (element.listRewards) {
+            element.listRewards = JSON.parse(element.listRewards);
           }
         });
 
@@ -395,12 +344,10 @@ const loadDataSQL = () => {
       options.value.loading = false;
       //Show Count nếu có
       if (dt.length >= 2 && checkLoadCount.value == true) {
-         
         options.value.totalRecords = dt[1][0].totalRecords;
         options.value.totalRecords1 = dt[2][0].totalRecords;
         options.value.totalRecords2 = dt[3][0].totalRecords;
         options.value.totalRecords3 = dt[4][0].totalRecords;
-        
       }
     })
     .catch((error) => {
@@ -473,7 +420,7 @@ const searchStamp = (event) => {
     }
   }
 };
- 
+
 const refreshStamp = () => {
   options.value.SearchText = null;
   options.value.status_filter = null;
@@ -606,12 +553,10 @@ const onCheckBox = (value, check) => {
 const exportExcelR = () => {
   showExport.value = false;
 
- 
-    exportData("ExportExcel");
- 
+  exportData("ExportExcel");
 };
 
-const headerExport=ref("Cấu hình xuất Excel");
+const headerExport = ref("Cấu hình xuất Excel");
 const menuButs = ref();
 const showExport = ref(false);
 const itemButs = ref([
@@ -619,10 +564,7 @@ const itemButs = ref([
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-
-     
-        showExport.value = true;
-     
+      showExport.value = true;
     },
   },
 ]);
@@ -636,7 +578,7 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
- 
+
   axios
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
@@ -646,26 +588,51 @@ const exportData = (method) => {
         par: [
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "rec_position_id", va:options.value.rec_position_id?
-           options.value.rec_position_id.toString():null },
-          { par: "user_verify", va:options.value.user_verify_list? options.value.user_verify_list.toString():null },
-          { par: "user_follows", va:options.value.user_follows_list?
-           options.value.user_follows_list.toString():null },
-          { par: "can_academic_level_id", va: options.value.can_academic_level_id?
-           options.value.can_academic_level_id.toString():null },
-          { par: "rec_vacancies", va: options.value.rec_vacancies?
-           options.value.rec_vacancies.toString():null },
-          { par: "status ", va: options.value.status_filter?
-          options.value.status_filter.toString():null },
+          {
+            par: "rec_position_id",
+            va: options.value.rec_position_id
+              ? options.value.rec_position_id.toString()
+              : null,
+          },
+          {
+            par: "user_verify",
+            va: options.value.user_verify_list
+              ? options.value.user_verify_list.toString()
+              : null,
+          },
+          {
+            par: "user_follows",
+            va: options.value.user_follows_list
+              ? options.value.user_follows_list.toString()
+              : null,
+          },
+          {
+            par: "can_academic_level_id",
+            va: options.value.can_academic_level_id
+              ? options.value.can_academic_level_id.toString()
+              : null,
+          },
+          {
+            par: "rec_vacancies",
+            va: options.value.rec_vacancies
+              ? options.value.rec_vacancies.toString()
+              : null,
+          },
+          {
+            par: "status ",
+            va: options.value.status_filter
+              ? options.value.status_filter.toString()
+              : null,
+          },
           { par: "start_dateI", va: options.value.start_dateI },
           { par: "end_dateI", va: options.value.end_dateI },
           { par: "start_dateD", va: options.value.start_dateD },
           { par: "end_dateD", va: options.value.end_dateD },
           { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.pagenoExport-1 },
+          { par: "pageno", va: options.value.pagenoExport - 1 },
           { par: "pagesize", va: options.value.totalRecordsExport },
         ],
-      }, 
+      },
       config
     )
     .then((response) => {
@@ -745,8 +712,8 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   reward.value = item;
-  selectedStamps.value=[];
- 
+  selectedStamps.value = [];
+
   selectedStamps.value.push(item);
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
@@ -828,7 +795,7 @@ const reFilter = () => {
   options.value.start_dateD = null;
   options.value.end_dateD = null;
   options.value.can_academic_level_id = null;
-  
+
   options.value.rec_position_id = null;
   options.value.status_filter = null;
   checkLoadCount.value = true;
@@ -863,7 +830,6 @@ const filterFileds = () => {
     }
   }
 
-  
   if (options.value.rec_position_id) {
     let filterS2 = {
       filterconstraints: [],
@@ -943,7 +909,7 @@ const filterFileds = () => {
   }
 
   onDayClick();
-   
+
   loadDataSQL();
   op.value.hide();
 };
@@ -958,7 +924,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateI
     ) {
       let sDate = new Date(options.value.start_dateI);
-   
+
       options.value.start_dateI = sDate;
       let filterS = {
         filterconstraints: [
@@ -974,7 +940,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateI
     ) {
       let eDate = new Date(options.value.end_dateI);
-     
+
       options.value.end_dateI = eDate;
       let filterS = {
         filterconstraints: [
@@ -1008,8 +974,6 @@ const onDayClick = () => {
     }
   }
 
-
-
   if (options.value.start_dateD != null) {
     if (!options.value.end_dateD)
       options.value.end_dateD = options.value.start_dateD;
@@ -1019,7 +983,7 @@ const onDayClick = () => {
       options.value.start_dateD != options.value.end_dateD
     ) {
       let sDate = new Date(options.value.start_dateD);
-   
+
       options.value.start_dateD = sDate;
       let filterS = {
         filterconstraints: [
@@ -1035,7 +999,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateD
     ) {
       let eDate = new Date(options.value.end_dateD);
-     
+
       options.value.end_dateD = eDate;
       let filterS = {
         filterconstraints: [
@@ -1145,12 +1109,15 @@ const loadUser = () => {
     });
 };
 
-const listLevels= ref([]);
-const listTitles = ref([]);
-
+const listRewardLevels = ref([]);
+const listDisciplineLevels = ref([]);
+const listDisciplineTitles = ref([]);
+const listRewardTitles = ref([]);
 const initTudien = () => {
-  listLevels.value=[];
-  listTitles.value=[];
+  listRewardLevels.value = [];
+  listDisciplineTitles.value = [];
+  listDisciplineLevels.value = [];
+  listRewardTitles.value = [];
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -1173,9 +1140,9 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
- 
-      data.forEach(element => {
-        listLevels.value.push({
+
+      data.forEach((element) => {
+        listRewardLevels.value.push({
           name: element.reward_level_name,
           code: element.reward_level_id,
         });
@@ -1184,7 +1151,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  
+
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -1207,10 +1174,9 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-     
+
       data.forEach((element, i) => {
-        
-  listTitles.value.push({
+        listRewardTitles.value.push({
           name: element.reward_title_name,
           code: element.reward_title_id,
         });
@@ -1241,9 +1207,9 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-    
+
       data.forEach((element, i) => {
-        listTitles.value.push({
+        listDisciplineLevels.value.push({
           name: element.discipline_name,
           code: element.discipline_id,
         });
@@ -1274,9 +1240,9 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-    
+
       data.forEach((element, i) => {
-        listLevels.value.push({
+        listDisciplineTitles.value.push({
           name: element.discipline_level_name,
           code: element.discipline_level_id,
         });
@@ -1424,211 +1390,144 @@ onMounted(() => {
                     "
                   >
                     <div class="flex">
-                      <div class="col-6 md:col-6">
+                      <div class="col-12 md:col-12">
                         <div class="row">
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Cấp khen thưởng/kỷ luật</div>
-                              <MultiSelect
-                                :options="listLevels"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.rec_vacancies"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn cấp"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                          <div class="col-12 p-0 md:col-12">
-                            <div class="form-group m-0 py-2">
-                              <div>Ngày quyết định</div>
-                            </div>
-                          </div>
-                          <div class="col-12 p-0 flex">
-                            <div class="col-6 p-0 md:col-6">
+                          <div class="col-12 md:col-12 flex">
+                            <div class="col-6 md:col-6 p-0">
                               <div class="form-group">
-                                <Calendar
-                                  :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
-                                  inputId="time24"
-                                  v-model="options.start_dateI"
-                                  placeholder="Từ ngày"
-                                />
-                              </div>
-                            </div>
-                            <div class="col-6  p-0 pl-2 md:col-6">
-                              <div class="form-group">
-                                <Calendar
-                                  :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
-                                  inputId="time24"
-                                  v-model="options.end_dateI"
-                                  placeholder="Đến ngày"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <!-- <div class="col-12 md:col-12 p-0">
-                            <div class="col-12 p-0">
-                              <div class="py-2">Người phụ trách</div>
-                            </div>
-                            <MultiSelect
-                              :options="listDropdownUser"
-                              :filter="true"
-                              :showClear="true"
-                              :editable="false"
-                              display="chip"
-                              v-model="options.user_verify"
-                              optionLabel="name"
-                              placeholder="Chọn người phụ trách"
-                              panelClass="d-design-dropdown  d-tree-input"
-                              class="col-12 p-0"
-                              style="min-height: 36px"
-                            >
-                              <template #option="slotProps">
-                                <div
-                                  class="country-item flex align-items-center"
+                                <div class="py-2">Cấp khen thưởng</div>
+                                <MultiSelect
+                                  :options="listRewardLevels"
+                                  :filter="true"
+                                  :showClear="true"
+                                  :editable="false"
+                                  v-model="options.rec_vacancies"
+                                  optionLabel="name"
+                                  optionValue="code"
+                                  placeholder="Chọn cấp"
+                                  class="w-full limit-width"
+                                  style="min-height: 36px"
+                                  panelClass="d-design-dropdown"
                                 >
-                                  <div class="grid w-full p-0">
-                                    <div
-                                      class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
-                                    >
-                                      <div
-                                        class="col-1 mx-2 p-0 align-items-center"
-                                      >
-                                        <Avatar   style="color:#fff"
-                                          v-bind:label="
-                                            slotProps.option.avatar
-                                              ? ''
-                                              : slotProps.option.name.substring(
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 1,
-                                                  slotProps.option.name.lastIndexOf(
-                                                    ' '
-                                                  ) + 2
-                                                )
-                                          "
-                                          :image="
-                                            basedomainURL +
-                                            slotProps.option.avatar
-                                          "
-                                          size="small"
-                                          :style="
-                                            slotProps.option.avatar
-                                              ? 'background-color: #2196f3'
-                                              : 'background:' +
-                                                bgColor[
-                                                  slotProps.option.name.length %
-                                                    7
-                                                ]
-                                          "
-                                          shape="circle"
-                                          @error="
-                                            $event.target.src =
-                                              basedomainURL +
-                                              '/Portals/Image/nouser1.png'
-                                          "
-                                        />
-                                      </div>
-                                      <div
-                                        class="col-11 p-0 ml-3 align-items-center"
-                                      >
-                                        <div class="pt-2">
-                                          <div class="font-bold">
-                                            {{ slotProps.option.name }}
-                                          </div>
-                                          <div
-                                            class="flex w-full text-sm font-italic text-500"
-                                          >
-                                            <div>
-                                              {{
-                                                slotProps.option.position_name
-                                              }}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
+                                </MultiSelect>
+                              </div>
+                            </div>
+                            <div class="col-6 md:col-6 p-0 ml-2">
+                              <div class="form-group">
+                                <div class="py-2">Cấp kỷ luật</div>
+                                <MultiSelect
+                                  :options="listDisciplineLevels"
+                                  :filter="true"
+                                  :showClear="true"
+                                  :editable="false"
+                                  v-model="options.rec_vacancies"
+                                  optionLabel="name"
+                                  optionValue="code"
+                                  placeholder="Chọn cấp"
+                                  class="w-full limit-width"
+                                  style="min-height: 36px"
+                                  panelClass="d-design-dropdown"
+                                >
+                                </MultiSelect>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12 flex">
+                            <div class="col-6 md:col-6 p-0">
+                              <div class="form-group">
+                                <div class="py-2">Hình thức khen thưởng</div>
+
+                                <MultiSelect
+                                  :options="listRewardTitles"
+                                  :filter="false"
+                                  :showClear="true"
+                                  :editable="false"
+                                  v-model="options.can_academic_level_id"
+                                  optionLabel="name"
+                                  optionValue="code"
+                                  display="chip"
+                                  placeholder="Chọn hình thức"
+                                  class="w-full limit-width"
+                                  style="min-height: 36px"
+                                  panelClass="d-design-dropdown"
+                                >
+                                </MultiSelect>
+                              </div>
+                            </div>
+                            <div class="col-6 md:col-6 p-0 ml-2">
+                              <div class="form-group">
+                                <div class="py-2">Hình thức kỷ luật</div>
+
+                                <MultiSelect
+                                  :options="listDisciplineTitles"
+                                  :filter="false"
+                                  :showClear="true"
+                                  :editable="false"
+                                  v-model="options.can_academic_level_id"
+                                  optionLabel="name"
+                                  optionValue="code"
+                                  display="chip"
+                                  placeholder="Chọn hình thức"
+                                  class="w-full limit-width"
+                                  style="min-height: 36px"
+                                  panelClass="d-design-dropdown"
+                                >
+                                </MultiSelect>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12 flex">
+                            <div class="col-6 md:col-6 p-0">
+                              <div class="form-group">
+                                <div class="py-2">Loại khen thưởng</div>
+                                <MultiSelect
+                                  :options="listStatus"
+                                  v-model="options.status_filter"
+                                  :filter="true"
+                                  :showClear="true"
+                                  :editable="false"
+                                  display="chip"
+                                  optionLabel="name"
+                                  optionValue="code"
+                                  placeholder="Chọn loại"
+                                  class="w-full limit-width"
+                                  panelClass="d-design-dropdown"
+                                >
+                                </MultiSelect>
+                              </div>
+                            </div>
+                            <div class="col-6 md:col-6 p-0 ml-2">
+                              <div class="form-group">
+                                <div class="py-2">Ngày quyết định</div>
+                                <div class="col-12 p-0 flex">
+                                  <div class="col-6 p-0 md:col-6">
+                                    <div class="form-group">
+                                      <Calendar
+                                        :showIcon="true"
+                                        class="ip36"
+                                        autocomplete="on"
+                                        inputId="time24"
+                                        v-model="options.start_dateI"
+                                        placeholder="Từ ngày"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-6 p-0 pl-2 md:col-6">
+                                    <div class="form-group">
+                                      <Calendar
+                                        :showIcon="true"
+                                        class="ip36"
+                                        autocomplete="on"
+                                        inputId="time24"
+                                        v-model="options.end_dateI"
+                                        placeholder="Đến ngày"
+                                      />
                                     </div>
                                   </div>
                                 </div>
-                              </template>
-                            </MultiSelect>
-                          </div>
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Chức vụ</div>
-                              <MultiSelect
-                                :options="listPosition"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.rec_position_id"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn chức vụ"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div> -->
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="row">
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Hình thức khen thưởng/kỷ luật</div>
-
-                              <MultiSelect
-                                :options="listTitles"
-                                :filter="false"
-                                :showClear="true"
-                                :editable="false"
-                                v-model="options.can_academic_level_id"
-                                optionLabel="name"
-                                optionValue="code"
-                                display="chip"
-                                placeholder="Chọn hình thức"
-                                class="w-full limit-width"
-                                style="min-height: 36px"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
+                              </div>
                             </div>
                           </div>
-                          
-                          
-                          <div class="col-12 md:col-12 p-0">
-                            <div class="form-group">
-                              <div class="py-2">Loại khen thưởng/kỷ luật</div>
-                              <MultiSelect
-                                :options="listStatus"
-                                v-model="options.status_filter"
-                                :filter="true"
-                                :showClear="true"
-                                :editable="false"
-                                display="chip"
-                                optionLabel="name"
-                                optionValue="code"
-                                placeholder="Chọn loại"
-                                class="w-full limit-width"
-                                panelClass="d-design-dropdown"
-                              >
-                              </MultiSelect>
-                            </div>
-                          </div>
-                          
                         </div>
                       </div>
                     </div>
@@ -1738,7 +1637,7 @@ onMounted(() => {
             filterMode="lenient"
             :filters="filters"
             :scrollable="true"
-            scrollHeight="flex"  
+            scrollHeight="flex"
             :showGridlines="true"
             columnResizeMode="fit"
             :lazy="true"
@@ -1755,7 +1654,8 @@ onMounted(() => {
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
             :row-hover="true"
-          >    <Column
+          >
+            <Column
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
@@ -1776,7 +1676,7 @@ onMounted(() => {
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
-            >  
+            >
             </Column>
             <Column
               field="reward_number"
@@ -1784,12 +1684,11 @@ onMounted(() => {
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
               class="align-items-center justify-content-center text-center"
-            > <template #body="data">
-                <div v-if=" data.data.reward_type==1"  >
-                 Cá nhân
-                </div>
-                <div v-else-if=" data.data.reward_type==2">Phòng ban</div>
-                <div v-else >Kỷ luật</div>
+            >
+              <template #body="data">
+                <div v-if="data.data.reward_type == 1">Cá nhân</div>
+                <div v-else-if="data.data.reward_type == 2">Phòng ban</div>
+                <div v-else>Kỷ luật</div>
               </template>
             </Column>
             <Column
@@ -1798,16 +1697,16 @@ onMounted(() => {
               headerStyle="text-align:center;max-width:300px;height:50px"
               bodyStyle="text-align:center;max-width:300px"
               class="align-items-center justify-content-center text-center"
-            > <template #body="data">
-             
-              <div v-if=" data.data.reward_type==1 ||data.data.reward_type==3  "  >
-                 
-                <AvatarGroup>
+            >
+              <template #body="data">
+                <div
+                  v-if="
+                    data.data.reward_type == 1 || data.data.reward_type == 3
+                  "
+                >
+                  <AvatarGroup>
                     <Avatar
-                      v-for="(item, index) in data.data.listRewards.slice(
-                        0,
-                        4
-                      )"
+                      v-for="(item, index) in data.data.listRewards.slice(0, 4)"
                       v-bind:label="
                         item.avatar
                           ? ''
@@ -1815,7 +1714,8 @@ onMounted(() => {
                               item.full_name.lastIndexOf(' ') + 1,
                               item.full_name.lastIndexOf(' ') + 2
                             )
-                      "   style="color:#fff"
+                      "
+                      style="color: #fff"
                       :key="index"
                       :style="
                         item.avatar
@@ -1825,7 +1725,6 @@ onMounted(() => {
                       :image="basedomainURL + item.avatar"
                       class="w-3rem h-3rem text-lg"
                       shape="circle"
-
                       v-tooltip.top="item.full_name"
                     />
                     <Avatar
@@ -1840,27 +1739,24 @@ onMounted(() => {
                       "
                     />
                   </AvatarGroup>
-             
                 </div>
                 <div v-else>
-               
-<div    v-for="(item, index) in data.data.listRewards" :key="index">
- 
- <Chip :label="item.department_name"/>
-</div>
+                  <div
+                    v-for="(item, index) in data.data.listRewards"
+                    :key="index"
+                  >
+                    <Chip :label="item.department_name" />
+                  </div>
                 </div>
               </template>
             </Column>
             <Column
               field="reward_content"
               header="Nội dung"
-     
               headerStyle="text-align:left;height:50px"
               headerClass="align-items-center justify-content-center text-center"
               bodyStyle="text-align:left"
             >
-               
-               
             </Column>
             <Column
               field="reward_level_name"
@@ -1876,8 +1772,7 @@ onMounted(() => {
               headerStyle="text-align:center;max-width:200px;height:50px"
               bodyStyle="text-align:center;max-width:200px"
               class="align-items-center justify-content-center text-center"
-            >  
-              
+            >
             </Column>
             <Column
               field="start_date"
@@ -1889,13 +1784,14 @@ onMounted(() => {
               <template #body="data">
                 <div v-if="data.data.decision_date">
                   {{
-                    moment(new Date(data.data.decision_date)).format("DD/MM/YYYY")
+                    moment(new Date(data.data.decision_date)).format(
+                      "DD/MM/YYYY"
+                    )
                   }}
                 </div>
               </template>
             </Column>
-            
-         
+
             <Column
               field="created_date"
               header="Ngày/Người lập"
@@ -1912,7 +1808,7 @@ onMounted(() => {
                   }}</span
                 >
                 <div>
-                  <Avatar 
+                  <Avatar
                     v-bind:label="
                       slotProps.data.avatar
                         ? ''
@@ -2048,7 +1944,6 @@ onMounted(() => {
       </div>
     </div>
     <div v-if="displayBasic == true">
-  
       <dialogReward
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
@@ -2083,7 +1978,12 @@ onMounted(() => {
       <div class="col-12 field flex">
         <div class="col-6 p-0">Trang bắt đầu:</div>
         <div class="col-6 p-0">
-          <InputNumber class="w-full" :min="1" :max="Math.ceil(options.totalRecords/options.totalRecordsExport)" v-model="options.pagenoExport" />
+          <InputNumber
+            class="w-full"
+            :min="1"
+            :max="Math.ceil(options.totalRecords / options.totalRecordsExport)"
+            v-model="options.pagenoExport"
+          />
         </div>
       </div>
       <div class="col-12 p-0">

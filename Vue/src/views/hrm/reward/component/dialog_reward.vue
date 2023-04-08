@@ -662,8 +662,67 @@ const onChangeSwType2 = () => {
   }
 };
 onMounted(() => {
-  reward.value = props.reward;
-  listFilesS.value = props.files;
+ 
+if(props.checkadd){
+reward.value = props.reward;
+  listFilesS.value = [];
+}
+else{
+  axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_reward_get",
+              par: [
+                {
+                  par: "reward_id",
+                  va:props.reward.reward_id,
+                },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        let data1 = JSON.parse(response.data.data)[1];
+        if (data) {
+          reward.value = data[0];
+ if(reward.value.reward_type==1||reward.value.reward_type==3 ){
+  reward.value.reward_name_fake1= reward.value.reward_name.split(",");
+  reward.value.reward_name_fake2=null;
+ }else{
+
+  reward.value.reward_name_fake2={};
+  reward.value.reward_name.split(",").forEach(element => {
+    reward.value.reward_name_fake2[element]=true;
+  });
+
+ }
+ 
+          if (reward.value.decision_date)
+            reward.value.decision_date = new Date(reward.value.decision_date);
+          if (reward.value.effective_date)
+            reward.value.effective_date = new Date(reward.value.effective_date);
+ 
+        }
+ 
+        if (data1) {
+          listFilesS.value = data1;
+        }
+      
+      })
+      .catch((error) => {});
+}
+
+
+
+
   initTudien();
 
   loadUserProfiles();

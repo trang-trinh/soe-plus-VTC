@@ -15,7 +15,9 @@ using System.Web;
 using System.Web.Http;
 using API.Helper;
 using API.Models;
+using GemBox.Document;
 using Helper;
+using HtmlAgilityPack;
 using Microsoft.ApplicationBlocks.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -110,7 +112,7 @@ namespace API.Controllers.HRM.Category
                             newFileName = Path.Combine(root + "/" + dvid + "/Decision", fileName);
 
                             fileInfo = new FileInfo(newFileName);
-                            newFileName = Path.Combine(root + "/" + dvid + "/Decision", helper.newFileName(fileInfo, newFileName, 1, root, int.Parse(dvid)));
+                            newFileName = Path.Combine(root + "/" + dvid + "/Decision", helper.newFileName(fileInfo, root + "/" + dvid + "/Decision", newFileName, 1, root, int.Parse(dvid)));
                             //if (fileInfo.Exists)
                             //{
                             //    fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
@@ -130,9 +132,9 @@ namespace API.Controllers.HRM.Category
                             hrm_file hrm_File = new hrm_file();
                             hrm_File.file_name = Path.GetFileName(newFileName);
                             hrm_File.key_id = ca_decision.decision_id.ToString();
-                            hrm_File.file_path = "/Portals/" + dvid + "/Decision/" + fileName;
-                            hrm_File.file_type = helper.GetFileExtension(fileName);
-                            var file_info = new FileInfo(strPath + "/" + fileName);
+                            hrm_File.file_path = newFileName;
+                            hrm_File.file_type = helper.GetFileExtension(newFileName);
+                            var file_info = new FileInfo(strPath + "/" + Path.GetFileName(newFileName));
                             hrm_File.file_size = file_info.Length;
                             if (helper.IsImageFileName(newFileName))
                             {
@@ -158,6 +160,57 @@ namespace API.Controllers.HRM.Category
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
+                            try
+                            {
+                                string FilePath = newFileName;
+
+                                var fileHtml = new FileInfo(newFileName);
+                                var newFileHTML = Path.GetFileName(newFileName).Substring(0, Path.GetFileName(newFileName).LastIndexOf("."));
+                                newFileHTML += ".html";
+
+                                newFileHTML = Path.Combine(root + "/" + dvid + "/TypeContract", helper.newFileName(fileInfo, root + "/" + dvid + "/TypeContract", newFileHTML, 1, root, int.Parse(dvid)));
+                                if (!File.Exists(newFileHTML))
+                                {
+                                    var newFilehtm = File.Create(newFileHTML);
+                                    newFilehtm.Close();
+                                }
+                                if (Path.GetFileName(newFileName).Contains(".pdf"))
+                                {
+                                    //string html = GetText(FilePath).Replace("@$", "");
+                                    //System.IO.File.WriteAllText(newFileHTML, html);
+                                }
+                                else
+                                {
+                                    ComponentInfo.SetLicense("DTZX-HTZ5-B7Q6-2GA6");
+                                    DocumentModel.Load(FilePath).Save(newFileHTML, SaveOptions.HtmlDefault);
+                                }
+                                HtmlDocument doc = new HtmlDocument();
+                                using (var stream = new FileStream(path: newFileHTML, mode: FileMode.Open))
+                                {
+                                    doc.Load(stream, System.Text.Encoding.UTF8);
+                                    var html = doc.DocumentNode.OuterHtml.Trim();
+                                    var text = doc.DocumentNode.InnerText;
+                                    ca_decision.content = html;
+                                    db.Entry(ca_decision).State = EntityState.Modified;
+                                    db.SaveChanges();
+                                }
+                                try
+                                {
+                                    System.IO.File.Delete(newFileHTML);
+                                    //System.IO.File.Delete(htmlpath);
+                                }
+                                catch (Exception)
+                                {
+
+                                }
+                               
+                            }
+                            catch (Exception e)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = e.Message, err = "1" });
+
+                            }
+
 
                         }
 
@@ -316,9 +369,9 @@ namespace API.Controllers.HRM.Category
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Decision", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            newFileName = Path.Combine(root + "/" + dvid + "/Decision", helper.newFileName(fileInfo, newFileName, 1, root, dvid));
+                            newFileName = Path.Combine(root + "/" + dvid + "/Decision", helper.newFileName(fileInfo, root + "/" + dvid + "/Decision", newFileName, 1, root, dvid));
 
-                           
+
                             //if (fileInfo.Exists)
                             //{
                             //    fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
@@ -362,9 +415,9 @@ namespace API.Controllers.HRM.Category
                             hrm_file hrm_File = new hrm_file();
                             hrm_File.key_id = ca_decision.decision_id.ToString();
                             hrm_File.file_name = Path.GetFileName(newFileName);
-                            hrm_File.file_path = "/Portals/" + dvid + "/Decision/" + fileName;
-                            hrm_File.file_type = helper.GetFileExtension(fileName);
-                            var file_info = new FileInfo(strPath + "/" + fileName);
+                            hrm_File.file_path = newFileName;
+                            hrm_File.file_type = helper.GetFileExtension(newFileName);
+                            var file_info = new FileInfo(strPath + "/" + Path.GetFileName(newFileName));
                             hrm_File.file_size = file_info.Length;
                             if (helper.IsImageFileName(newFileName))
                             {
@@ -389,6 +442,55 @@ namespace API.Controllers.HRM.Category
                             hrm_File.created_ip = ip; hrm_File.organization_id = dvid;
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
+                            try
+                            {
+                                string FilePath = newFileName;
+
+                                var fileHtml = new FileInfo(newFileName);
+                                var newFileHTML = Path.GetFileName(newFileName).Substring(0, Path.GetFileName(newFileName).LastIndexOf("."));
+                                newFileHTML += ".html";
+
+                                newFileHTML = Path.Combine(root + "/" + dvid + "/TypeContract", helper.newFileName(fileInfo, root + "/" + dvid + "/TypeContract", newFileHTML, 1, root, dvid));
+                                if (!File.Exists(newFileHTML))
+                                {
+                                    var newFilehtm = File.Create(newFileHTML);
+                                    newFilehtm.Close();
+                                }
+                                if (Path.GetFileName(newFileName).Contains(".pdf"))
+                                {
+                                    //string html = GetText(FilePath).Replace("@$", "");
+                                    //System.IO.File.WriteAllText(newFileHTML, html);
+                                }
+                                else
+                                {
+                                    ComponentInfo.SetLicense("DTZX-HTZ5-B7Q6-2GA6");
+                                    DocumentModel.Load(FilePath).Save(newFileHTML, SaveOptions.HtmlDefault);
+                                }
+                                HtmlDocument doc = new HtmlDocument();
+                                using (var stream = new FileStream(path: newFileHTML, mode: FileMode.Open))
+                                {
+                                    doc.Load(stream, System.Text.Encoding.UTF8);
+                                    var html = doc.DocumentNode.OuterHtml.Trim();
+                                    var text = doc.DocumentNode.InnerText;
+                                    ca_decision.content = html;
+                                    db.Entry(ca_decision).State = EntityState.Modified;
+                                    db.SaveChanges();
+                                }
+                                try
+                                {
+                                    System.IO.File.Delete(newFileHTML);
+                                    //System.IO.File.Delete(htmlpath);
+                                }
+                                catch (Exception)
+                                {
+
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = e.Message, err = "1" });
+
+                            }
 
                         }
 
