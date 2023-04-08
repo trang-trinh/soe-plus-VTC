@@ -1538,6 +1538,7 @@ const initData = (ref) => {
           treeOrganization.value.forEach((o) => {
             o.list = arr.filter((dp) => dp.department_id == o.organization_id);
           });
+          console.log(treeOrganization.value);
         }
       }
       if (isFirst.value) isFirst.value = false;
@@ -2228,18 +2229,27 @@ onMounted(() => {
     <div class="tabview">
       <div class="tableview-nav-content">
         <ul class="tableview-nav">
-          <li
-            v-for="(tab, key) in tabs"
-            :key="key"
-            @click="activeTab(tab)"
-            class="tableview-header"
-            :class="{ highlight: options.tab === tab.status }"
-          >
-            <a>
-              <i :class="tab.icon"></i>
-              <span>{{ tab.title }} ({{ tab.total }})</span>
-            </a>
-          </li>
+          <template v-if="options.view === 1">
+            <li
+              v-for="(tab, key) in tabs"
+              :key="key"
+              @click="activeTab(tab)"
+              class="tableview-header"
+              :class="{ highlight: options.tab === tab.status }"
+            >
+              <a>
+                <i :class="tab.icon"></i>
+                <span>{{ tab.title }} ({{ tab.total }})</span>
+              </a>
+            </li>
+          </template>
+          <template v-else-if="options.view === 2">
+            <li class="format-center py-0">
+              <h3 class="m-0">
+                <i class="pi pi-list"></i> Danh sách nhân sự theo cơ cấu tổ chức
+              </h3>
+            </li>
+          </template>
         </ul>
       </div>
     </div>
@@ -2544,7 +2554,7 @@ onMounted(() => {
                     backgroundColor: '#f8f9fa',
                   }"
                 >
-                  <b>{{ organization.newname }} (0)</b>
+                  <b>{{ organization.newname }} ({{ organization.total }})</b>
                 </div>
               </td>
             </tr>
