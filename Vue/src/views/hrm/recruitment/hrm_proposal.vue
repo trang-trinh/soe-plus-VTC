@@ -118,6 +118,17 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+
+          if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+          }
         });
 
         datalists.value = data;
@@ -1812,12 +1823,18 @@ onMounted(() => {
                       font-size: 1rem !important;
                     "
                     :style="{
-                      background: bgColor[slotProps.data.created_is_order % 7],
+                      background: bgColor[slotProps.data.full_name.length % 7],
                     }"
                     class="text-avatar"
                     size="xlarge"
                     shape="circle"
-                    v-tooltip.top="slotProps.data.full_name"
+                    v-tooltip.top="{
+                      value:
+                        slotProps.data.full_name +
+                        slotProps.data.position_name +
+                        slotProps.data.department_name,
+                      escape: true,
+                    }"
                   />
                 </div>
               </template>
@@ -1839,8 +1856,8 @@ onMounted(() => {
                   aria:haspopup="true"
                   aria-controls="overlay_panel_status"
                 >
-                  <Button
-                    :label="
+                <Button
+                :label="
                       slotProps.data.status == 1
                         ? 'Chờ duyệt'
                         : slotProps.data.status == 2
@@ -1855,25 +1872,44 @@ onMounted(() => {
                         ? 'Hủy bỏ'
                         : 'Lên kế hoạch'
                     "
-                    :style="
-                      slotProps.data.status == 1
-                        ? 'backgroundColor:#00CCCC; border:#00CCCC'
-                        : slotProps.data.status == 2
-                        ? 'backgroundColor:#ff8b4e; border:#ff8b4e'
-                        : slotProps.data.status == 3
-                        ? ' backgroundColor: #2196f3; border:#2196f3'
-                        : slotProps.data.status == 4
-                        ? 'backgroundColor:var(--green-500); border:var(--green-500)'
-                        : slotProps.data.status == 5
-                        ? 'backgroundColor:var(--purple-500); border:var(--purple-500)'
-                        : slotProps.data.status == 6
-                        ? 'backgroundColor:red; border:red'
-                        : 'backgroundColor:#bbbbbb; border:#bbbbbb'
-                    "
                     icon="pi pi-chevron-down"
                     iconPos="right"
-                    class="px-2 w-10rem d-design-left"
+                    class="p-button-outlined"
+                    :style="{
+                      borderColor:
+                      slotProps.data.status == 1
+                        ? '#00CCCC'
+                        : slotProps.data.status == 2
+                        ? '#ff8b4e'
+                        : slotProps.data.status == 3
+                        ? '#2196f3'
+                        : slotProps.data.status == 4
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 5
+                        ? 'var(--purple-500)'
+                        : slotProps.data.status == 6
+                        ? 'red'
+                        : '#bbbbbb',
+                      // backgroundColor: slotProps.data.bg_color,
+                      color:
+                      slotProps.data.status == 1
+                        ? '#00CCCC'
+                        : slotProps.data.status == 2
+                        ? '#ff8b4e'
+                        : slotProps.data.status == 3
+                        ? '#2196f3'
+                        : slotProps.data.status == 4
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 5
+                        ? 'var(--purple-500)'
+                        : slotProps.data.status == 6
+                        ? 'red'
+                        : '#bbbbbb',
+                      borderRadius: '15px',
+                      padding: '0.3rem 0.75rem !important',
+                    }"
                   />
+                 
                 </div>
                 <OverlayPanel
                   :showCloseIcon="false"

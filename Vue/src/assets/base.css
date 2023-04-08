@@ -90,6 +90,12 @@
   min-width: 30rem !important;
 }
 /* Duy design List File */
+
+.description {
+  color: #aaa;
+  font-size: 12px;
+}
+
 .d-style-hover-1{
 
   display: none;
