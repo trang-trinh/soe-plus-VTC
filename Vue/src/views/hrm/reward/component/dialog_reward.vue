@@ -333,6 +333,10 @@ const initTudien = () => {
     })
     .catch((error) => {});
 
+    listRewardLevel.value = [];
+  listDisciplineTitle.value = [];
+  listDisciplineLevel.value = [];
+  listRewardTitle.value = [];
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -345,6 +349,7 @@ const initTudien = () => {
               { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: true },
+              { par: "reward_type", va: 1 },
             ],
           }),
           SecretKey,
@@ -355,12 +360,21 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listRewardLevel.value = [];
+
       data.forEach((element) => {
-        listRewardLevel.value.push({
+        if (element.reward_type == 1) {
+      
+          listRewardLevel.value.push({
           name: element.reward_level_name,
           code: element.reward_level_id,
         });
+        } else if (element.reward_type == 2) {
+        
+          listDisciplineLevel.value.push({
+          name: element.reward_level_name,
+          code: element.reward_level_id,
+        });
+        }
       });
     })
     .catch((error) => {
@@ -379,6 +393,7 @@ const initTudien = () => {
               { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: true },
+              { par: "reward_type", va: null },
             ],
           }),
           SecretKey,
@@ -389,78 +404,19 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      listRewardTitle.value = [];
+
       data.forEach((element, i) => {
-        listRewardTitle.value.push({
-          name: element.reward_title_name,
-          code: element.reward_title_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_discipline_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listDisciplineTitle.value = [];
-      data.forEach((element, i) => {
-        listDisciplineTitle.value.push({
-          name: element.discipline_name,
-          code: element.discipline_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_discipline_level_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listDisciplineLevel.value = [];
-      data.forEach((element, i) => {
-        listDisciplineLevel.value.push({
-          name: element.discipline_level_name,
-          code: element.discipline_level_id,
-        });
+        if (element.reward_type == 1) {
+          listRewardTitle.value.push({
+            name: element.reward_title_name,
+            code: element.reward_title_id,
+          });
+        } else if (element.reward_type == 2) {
+          listDisciplineTitle.value.push({
+            name: element.reward_title_name,
+            code: element.reward_title_id,
+          });
+        }
       });
     })
     .catch((error) => {
