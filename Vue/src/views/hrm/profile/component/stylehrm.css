@@ -521,8 +521,8 @@ div[contentEditable="true"]:empty:not(:focus):before {
 
 .tableview-nav li.highlight {
     background: #ffffff;
-    border-color: #3b82f6;
-    color: #3b82f6;
+    border-color: #316AB7;
+    color: #316AB7;
 }
 
 .tableview-nav li:not(.highlight):hover {

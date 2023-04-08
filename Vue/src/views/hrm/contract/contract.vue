@@ -1557,7 +1557,7 @@ onMounted(() => {
                           :filter="true"
                           :showClear="true"
                           :editable="false"
-                          optionLabel="full_name"
+                          optionLabel="profile_user_name"
                           placeholder="Chọn người ký"
                           class="w-full limit-width"
                           style="min-height: 36px"
@@ -1577,7 +1577,7 @@ onMounted(() => {
                               >
                                 <Chip
                                   :image="value.avatar"
-                                  :label="value.full_name"
+                                  :label="value.profile_user_name"
                                   class="mr-2 mb-2 px-3 py-2"
                                 >
                                   <div class="flex">
@@ -1586,10 +1586,9 @@ onMounted(() => {
                                         v-bind:label="
                                           value.avatar
                                             ? ''
-                                            : (value.last_name ?? '').substring(
-                                                0,
-                                                1
-                                              )
+                                            : (
+                                                value.profile_user_name ?? ''
+                                              ).substring(0, 1)
                                         "
                                         v-bind:image="
                                           value.avatar
@@ -1597,15 +1596,12 @@ onMounted(() => {
                                             : basedomainURL +
                                               '/Portals/Image/noimg.jpg'
                                         "
-                                        style="
-                                          background-color: #2196f3;
-                                          color: #ffffff;
-                                          width: 2rem;
-                                          height: 2rem;
-                                        "
                                         :style="{
                                           background:
                                             bgColor[value.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '2rem',
+                                          height: '2rem',
                                         }"
                                         class="mr-2 text-avatar"
                                         size="xlarge"
@@ -1613,7 +1609,7 @@ onMounted(() => {
                                       />
                                     </div>
                                     <div class="format-flex-center text-left">
-                                      <span>{{ value.full_name }}</span>
+                                      <span>{{ value.profile_user_name }}</span>
                                     </div>
                                     <span
                                       tabindex="0"
@@ -1639,7 +1635,7 @@ onMounted(() => {
                                   v-bind:label="
                                     slotProps.option.avatar
                                       ? ''
-                                      : slotProps.option.last_name.substring(
+                                      : slotProps.option.profile_user_name.substring(
                                           0,
                                           1
                                         )
@@ -1650,32 +1646,38 @@ onMounted(() => {
                                       : basedomainURL +
                                         '/Portals/Image/noimg.jpg'
                                   "
-                                  style="
-                                    background-color: #2196f3;
-                                    color: #ffffff;
-                                    width: 3rem;
-                                    height: 3rem;
-                                    font-size: 1.4rem !important;
-                                  "
                                   :style="{
                                     background:
                                       bgColor[slotProps.option.is_order % 7],
+                                    color: '#ffffff',
+                                    width: '3rem',
+                                    height: '3rem',
+                                    fontSize: '1.4rem !important',
                                   }"
-                                  class="text-avatar"
+                                  class="text-avatar m-0"
                                   size="xlarge"
                                   shape="circle"
                                 />
                               </div>
-                              <div class="ml-3">
-                                <div class="mb-1">
-                                  {{ slotProps.option.full_name }}
-                                </div>
-                                <div class="description">
-                                  <div>
-                                    {{ slotProps.option.position_name }}
+                              <div class="format-center text-left ml-3">
+                                <div>
+                                  <div class="mb-1">
+                                    {{ slotProps.option.profile_user_name }}
                                   </div>
-                                  <div>
-                                    {{ slotProps.option.department_name }}
+                                  <div class="description">
+                                    <div>
+                                      <span>{{
+                                        slotProps.option.profile_code
+                                      }}</span
+                                      ><span
+                                        v-if="slotProps.option.department_name"
+                                      >
+                                        |
+                                        {{
+                                          slotProps.option.department_name
+                                        }}</span
+                                      >
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -2131,7 +2133,6 @@ onMounted(() => {
                     'pi pi-star-fill icon-star': slotProps.data.is_star,
                     'pi pi-star': !slotProps.data.is_star,
                   }"
-                  
                 ></i>
               </a>
             </div>

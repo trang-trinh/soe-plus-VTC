@@ -194,6 +194,78 @@ const changeView = (view) => {
   }
 };
 
+//Xuất excel
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      importExcel(event);
+    },
+  },
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportData("ExportExcel");
+    },
+  },
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
+const exportData = (method) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/Excel/ExportExcel",
+      {
+        excelname: "DANH SÁCH PHÒNG HỌP",
+        proc: "calendar_ca_boardroom_listexport",
+        par: [
+          { par: "organization_id", va: store.getters.user.organization_id },
+          { par: "search", va: options.value.search },
+        ],
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
+        swal.close();
+
+        toast.success("Kết xuất Data thành công!");
+        if (response.data.path != null) {
+          window.open(baseURL + response.data.path);
+        }
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      }
+    });
+};
+
 //Watch
 // watch(selectedNodes, () => {
 //   goProfile(selectedNodes.value);
@@ -277,14 +349,14 @@ const itemButMores = ref([
   },
   {
     label: "Xác nhận là vợ/chồng",
-    icon: "pi pi-check",
+    icon: "pi pi-users",
     command: (event) => {
       openEditDialogRelate(profile.value, "Xác nhận kết hôn với");
     },
   },
   {
     label: "Thiết lập trạng thái",
-    icon: "pi pi-cog",
+    icon: "pi pi-sync",
     command: (event) => {
       openAddDialogStatus(profile.value, "Thiết lập trạng thái");
     },
