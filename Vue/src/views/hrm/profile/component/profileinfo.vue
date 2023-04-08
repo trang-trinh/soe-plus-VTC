@@ -30,18 +30,19 @@ const basedomainURL = baseURL;
 
 //Declare
 const views = ref([
-  { view: 1, title: "Sơ yếu", icon: "fa-regular fa-address-card" },
-  { view: 2, title: "Phân công", icon: "fa-solid fa-list-check" },
-  { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
-  { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
-  { view: 5, title: "Lương", icon: "a-solid fa-money-check-dollar" },
-  { view: 6, title: "Bảo hiểm", icon: "fa-solid fa-file-shield" },
-  { view: 7, title: "Phép", icon: "fa-regular fa-calendar-days" },
-  { view: 8, title: "Đào tạo", icon: "fa-solid fa-person-chalkboard" },
-  { view: 9, title: "Quyết định", icon: "fa-solid fa-envelope-open" },
-  { view: 10, title: "File", icon: "fa-solid fa-paperclip" },
-  { view: 11, title: "Tiếp nhận", icon: "fa-regular fa-file" },
-  { view: 12, title: "Sức khỏe", icon: "fa-solid fa-briefcase-medical" },
+  { view: 1, title: "Sơ yếu", icon: "pi pi-id-card" },
+  { view: 2, title: "Phân công", icon: "pi pi-check-circle" },
+  { view: 3, title: "Hợp đồng", icon: "pi pi-envelope" },
+  { view: 4, title: "Chấm công", icon: "pi pi-calendar-times" },
+  { view: 5, title: "Lương", icon: "pi pi-dollar" },
+  { view: 6, title: "Bảo hiểm", icon: "pi pi-shield" },
+  { view: 7, title: "Phép", icon: "pi pi-calendar-minus" },
+  { view: 8, title: "Đào tạo", icon: "pi pi-book" },
+  { view: 9, title: "Quyết định", icon: "pi pi-bookmark" },
+  { view: 15, title: "Khen thưởng/kỷ luật", icon: "pi pi-bolt" },
+  { view: 10, title: "File", icon: "pi pi-paperclip" },
+  { view: 11, title: "Tiếp nhận", icon: "pi pi-box" },
+  { view: 12, title: "Sức khỏe", icon: "pi pi-heart" },
 ]);
 const options = ref({
   loading: true,
@@ -2351,7 +2352,10 @@ const onPage = (event) => {
             :class="{ highlight: options.view === item.view }"
             @click="changeView(item.view)"
           >
-            <div class="mb-1"><font-awesome-icon :icon="item.icon" /></div>
+            <div class="mb-1">
+              <!-- <font-awesome-icon :icon="item.icon" /> -->
+              <i :class="item.icon"></i>
+            </div>
             <div>
               <span> {{ item.title }} </span>
             </div>
@@ -5189,6 +5193,9 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
+            <div v-show="options.view === 15" class="f-full">
+              
+            </div>
           </div>
         </div>
         <div
@@ -5573,9 +5580,6 @@ const onPage = (event) => {
 .form-grid-center {
   display: grid;
   justify-content: center;
-}
-.nav {
-  
 }
 .nav-item {
   padding: 5px 10px !important;
