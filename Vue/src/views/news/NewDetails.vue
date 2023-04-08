@@ -257,15 +257,16 @@ const onloadNewsViews = () => {
             proc: "news_main_list",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
+              
               { par: "category_id", va: options.value.category_id },
 
               { par: "news_type", va: 0 },
               { par: "key_words", va: options.value.key_words },
               { par: "search", va: options.value.search },
               { par: "status", va: 2 },
-              { par: "is_hot", va: true },
+              { par: "is_hot", va: null },
               { par: "is_notify", va: options.value.is_notify },
-              { par: "datefilter", va: 0 },
+              { par: "datefilter", va: 1 },
               { par: "pageno", va: options.value.pageno1 },
               { par: "pagesize", va: options.value.pagesize1 },
               { par: "start_date", va: options.value.start_date },
@@ -1108,7 +1109,7 @@ onMounted(() => {
                         class="surface-0 flex text-2xl font-bold px-2 text-align-center w-full m-0"
                         style="border-left: 3px solid #0078d4"
                       >
-                        <i class="pi pi-image mx-2 text-2xl" /> Tin nổi bật
+                        <i class="pi pi-image mx-2 text-2xl" /> Tin xem nhiều
                       </div>
                       <div></div>
                     </div>

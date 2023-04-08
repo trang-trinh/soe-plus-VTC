@@ -186,16 +186,26 @@ namespace Helper
                 return name;
             }
         }
-        public static string newFileName(FileInfo path,string filename,int i, string root, int dvid)
+        public static string newFileName(FileInfo path, string filepath, string filename,int i, string root, int dvid)
         {
 
             if (path.Exists)
             {
                 filename = path.Name.Replace(path.Extension, "");
-                filename = filename +"(" + i + ")" + path.Extension;
-                var newPath = Path.Combine(root + "/" + dvid + "/Decision", filename);
+                if (i == 1)
+                {
+                    filename = filename + "(" + i + ")";
+                }
+                else
+                {
+                    filename = filename.Substring(0,filename.Length-2)+ i + ")";
+                }
+
+                filename+= path.Extension;
+                var newPath = Path.Combine(filepath, filename);
                   var  newInfor = new FileInfo(newPath);
-                newFileName(newInfor, filename, i++, root, dvid);
+                i++;
+                filename = newFileName(newInfor, filepath, filename, i, root, dvid);
             }
          return filename;
         }
