@@ -102,8 +102,7 @@ const saveModel = () => {
   submitted.value = true;
   if (
     (!object.value.status && object.value.status !== 0) ||
-    !object.value.start_date ||
-    (!object.value.end_date && object.value.status !== 1)
+    !object.value.start_date
   ) {
     swal.fire({
       title: "Thông báo!",
@@ -313,10 +312,7 @@ onMounted(() => {
         </div>
         <div class="col-4 md-col-4">
           <div class="form-group">
-            <label
-              >Đến ngày
-              <span v-if="object.status !== 1" class="redsao">(*)</span></label
-            >
+            <label>Đến ngày</label>
             <Calendar
               class="ip36"
               id="icon"
@@ -324,11 +320,6 @@ onMounted(() => {
               :showIcon="true"
               placeholder="dd/mm/yyyy"
             />
-            <div v-if="!object.end_date && object.status !== 1 && submitted">
-              <small class="p-error">
-                <span>Ngày đến không được để trống</span>
-              </small>
-            </div>
           </div>
         </div>
         <div class="col-12 md:col-12">
@@ -343,12 +334,15 @@ onMounted(() => {
             :lazy="true"
             :rowHover="true"
             :showGridlines="true"
-            scrollDirection="both"
+            scrollHeight="flex"
+            filterDisplay="menu"
+            filterMode="lenient"
+            responsiveLayout="scroll"
           >
             <Column
               header=""
-              headerStyle="text-align:center;width:30px"
-              bodyStyle="text-align:center;width:30px"
+              headerStyle="text-align:center;width:50px"
+              bodyStyle="text-align:center;width:50px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -364,8 +358,8 @@ onMounted(() => {
             <Column
               field="status"
               header="Trạng thái"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
+              headerStyle="text-align:center;height:50px"
+              bodyStyle="text-align:center;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -413,8 +407,8 @@ onMounted(() => {
             <Column
               field="end_date"
               header="Đến ngày"
-              headerStyle="text-align:center;width:160px;height:50px"
-              bodyStyle="text-align:center;width:160px;"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
