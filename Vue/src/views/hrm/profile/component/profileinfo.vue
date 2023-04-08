@@ -2260,7 +2260,7 @@ const onPage = (event) => {
 </script>
 <template>
   <div class="surface-100 p-2">
-    <Toolbar class="outline-none surface-0 border-none pb-1">
+    <Toolbar class="outline-none surface-0 border-none">
       <template #start>
         <h2 class="m-0" :style="{ color: '#0078d4' }">
           <span>{{ profile.profile_user_name }}</span>
@@ -2341,87 +2341,25 @@ const onPage = (event) => {
         </OverlayPanel>
       </template>
     </Toolbar>
-    <Toolbar class="outline-none surface-0 border-none pt-0">
-      <template #start>
-        <div style="height: 36px; display: flex; align-items: center">
-          <SelectButton
-            :options="views"
-            v-model="options.view"
-            @change="changeView(options.view)"
-            optionValue="view"
-            optionLabel="view"
-            dataKey="view"
-            aria-labelledby="custom"
-            class="selectbutton-custom"
+    <div class="tabview" :style="{ borderTop: 'solid 1px rgba(0,0,0,.1) !important' }">
+      <div class="tableview-nav-content">
+        <ul class="tableview-nav nav">
+          <li
+            class="nav-item tableview-header"
+            v-for="(item, index) in views"
+            :key="index"
+            :class="{ highlight: options.view === item.view }"
+            @click="changeView(item.view)"
           >
-            <template #option="slotProps">
-              <b>
-                <span
-                  v-if="slotProps.option.icon != null"
-                  :class="{ 'mr-2': slotProps.option.title != null }"
-                >
-                  <font-awesome-icon :icon="slotProps.option.icon" />
-                </span>
-                <span> {{ slotProps.option.title }}</span>
-              </b>
-            </template>
-          </SelectButton>
-          <!-- <span class="p-buttonset">
-            <Button
-              @click="
-                toggleMores($event);
-                $event.stopPropagation();
-              "
-              :class="{
-                'p-button-outlined p-button-secondary p-button-custom':
-                  options.view < 11 || options.view > 12,
-              }"
-              :style="{
-                background:
-                  options.view < 11 || options.view > 12 ? '#ffffff' : '',
-                borderColor:
-                  options.view < 11 || options.view > 12 ? '#ced4da' : '',
-                color: options.view < 11 || options.view > 12 ? '#495057' : '',
-                transition:
-                  'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
-                height: '30px',
-              }"
-            >
-              <font-awesome-icon icon="fa-solid fa-ellipsis" />
-            </Button>
-          </span>
-          <OverlayPanel
-            :showCloseIcon="false"
-            ref="menuButMores"
-            appendTo="body"
-            class="p-0 m-0"
-            id="overlay_More"
-            style="min-width: max-content"
-          >
-            <ul class="m-0 p-0" style="list-style: none">
-              <li
-                v-for="(value, key) in itemButMores"
-                :key="key"
-                @click="changeView(value.view)"
-                class="item-menu"
-                :class="{
-                  'item-menu-highlight': value.view === options.view,
-                }"
-              >
-                <div>
-                  <span :class="{ 'mr-2': value.label != null }"
-                    ><font-awesome-icon :icon="value.icon"
-                  /></span>
-                  <span>{{ value.label }}</span>
-                </div>
-              </li>
-            </ul>
-          </OverlayPanel> -->
-        </div>
-      </template>
-      <template #end> </template>
-    </Toolbar>
-    <div class="d-lang-table" style="border-top: solid 1px rgba(0, 0, 0, 0.1)">
+            <div class="mb-1"><font-awesome-icon :icon="item.icon" /></div>
+            <div>
+              <span> {{ item.title }} </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="d-lang-table">
       <div class="flex">
         <div class="flex-1">
           <div class="d-lang-table-1">
@@ -5631,6 +5569,20 @@ const onPage = (event) => {
 }
 .relative-hover:hover .absolute-hover {
   display: block;
+}
+.form-grid-center {
+  display: grid;
+  justify-content: center;
+}
+.nav {
+  
+}
+.nav-item {
+  padding: 5px 10px !important;
+  min-width: 80px;
+  text-align: center;
+  display: grid;
+  justify-content: center;
 }
 </style>
 <style lang="scss" scoped>
