@@ -1558,6 +1558,7 @@ const initData = (ref) => {
               const endDate = moment(new Date());
               item.duration = moment.duration(endDate.diff(startDate));
               item.diffyear = item.duration.years();
+              item.diffmonth = item.duration.months();
               item.diffday = item.duration.days();
 
               item["STT"] = i + 1;
@@ -2497,21 +2498,24 @@ onMounted(() => {
         <Column
           field="countRecruitment"
           header="Ngày thâm niên"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
           class="align-items-center justify-content-left text-left"
         >
           <template #body="slotProps">
             <div v-tooltip.top="'Thâm niên công tác'">
-              <span v-if="slotProps.data.diffyear > 0"
-                >{{ slotProps.data.diffyear }} năm
+              <span v-if="slotProps.data.diffyear > 0">
+                {{ slotProps.data.diffyear }} năm
               </span>
-              <span
+              <span v-if="slotProps.data.diffmonth > 0">
+                {{ slotProps.data.diffmonth }} tháng
+              </span>
+              <!-- <span
                 v-if="
                   slotProps.data.diffyear >= 0 && slotProps.data.diffday > 0
                 "
                 >{{ slotProps.data.diffday }} ngày
-              </span>
+              </span> -->
             </div>
           </template>
         </Column>
@@ -2824,8 +2828,12 @@ onMounted(() => {
                     padding: '0.5rem',
                   }"
                 >
-                  <span v-if="item.diffyear > 0">{{ item.diffyear }} năm </span>
-                  <span v-if="item.diffday >= 0">{{ item.diffday }} ngày </span>
+                  <span v-if="item.diffyear > 0">
+                    {{ item.diffyear }} năm
+                  </span>
+                  <span v-if="item.diffmonth > 0">
+                    {{ item.diffmonth }} tháng
+                  </span>
                 </td>
                 <td
                   :style="{
