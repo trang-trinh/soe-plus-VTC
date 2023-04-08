@@ -559,6 +559,15 @@ namespace API.Controllers.Hrn
                                 model.liquidation_content = content;
                                 model.liquidation_date = date;
                             }
+
+                            var profile = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_id == model.profile_id);
+                            if (profile != null)
+                            {
+                                if (model.status == 1)
+                                {
+                                    profile.status = 1;
+                                }
+                            }
                         }
                         await db.SaveChangesAsync();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
