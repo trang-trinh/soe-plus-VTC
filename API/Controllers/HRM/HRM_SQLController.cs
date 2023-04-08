@@ -1274,11 +1274,11 @@ namespace API.Controllers.HRM
 
                 sql = selectStr + "   hcal.*,su.full_name,su.avatar, " +
 "  CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 3 THEN(select distinct '[' + STUFF(( " +
-    "   SELECT ',{\"full_name\":\"' + cast(ISNULL(hcs.full_name, '') as nvarchar(150)) + '\"' " +
+    "   SELECT ',{\"full_name\":\"' + cast(ISNULL(hcs.profile_user_name, '') as nvarchar(150)) + '\"' " +
      "     + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(250)) + '\"' + '}' " +
 
 
-  "    FROM sys_users   hcs  WHERE hcs.user_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type) " +
+  "    FROM hrm_profile   hcs  WHERE hcs.profile_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type) " +
  "  .value('.', 'nvarchar(max)'), 1, 1, '')  +']'   ) " +
 
   "  WHEN hcal.reward_type = 2 THEN(select distinct '[' + STUFF((" +
@@ -1425,9 +1425,9 @@ namespace API.Controllers.HRM
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
                     sqlCount += " WHERE " + WhereSQL + "  and " + checkOrgz;
 
-                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.reward_type=1 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and ( hcal.reward_type=1 or hcal.reward_type=2 ) and " + checkOrgz;
 
-                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.reward_type=2    and " + checkOrgz;
+     
                     sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.reward_type=3    and " + checkOrgz;
               
             
@@ -1438,8 +1438,8 @@ namespace API.Controllers.HRM
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
 
                     sqlCount += " WHERE  " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE hcal.reward_type=1 and " + checkOrgz;
-                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE hcal.reward_type=2 and " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE   ( hcal.reward_type=1 or hcal.reward_type=2 ) and " + checkOrgz;
+             
                     sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE hcal.reward_type=3 and " + checkOrgz;
                
                 }

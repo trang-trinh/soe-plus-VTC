@@ -62,12 +62,11 @@ const loadCount = () => {
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
       let data2 = JSON.parse(response.data.data)[2];
-      let data3 = JSON.parse(response.data.data)[3];
+
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
         options.value.totalRecords1 = data1[0].totalRecords;
         options.value.totalRecords2 = data2[0].totalRecords;
-        options.value.totalRecords3 = data3[0].totalRecords;
 
         sttStamp.value = data[0].totalRecords + 1;
       }
@@ -119,6 +118,30 @@ const loadData = (rf) => {
 
           if (element.listRewards) {
             element.listRewards = JSON.parse(element.listRewards);
+            if (element.reward_type == 1 || element.reward_type == 3) {
+              element.listRewards.forEach((item) => {
+                if (!item.position_name) {
+                  item.position_name = "";
+                } else {
+                  item.position_name = " </br>" + item.position_name;
+                }
+                if (!item.department_name) {
+                  item.department_name = "";
+                } else {
+                  item.department_name = " </br>" + item.department_name;
+                }
+              });
+            }
+          }
+          if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name = " </br>" + element.position_name;
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name = " </br>" + element.department_name;
           }
         });
 
@@ -347,7 +370,6 @@ const loadDataSQL = () => {
         options.value.totalRecords = dt[1][0].totalRecords;
         options.value.totalRecords1 = dt[2][0].totalRecords;
         options.value.totalRecords2 = dt[3][0].totalRecords;
-        options.value.totalRecords3 = dt[4][0].totalRecords;
       }
     })
     .catch((error) => {
@@ -473,10 +495,8 @@ const onFilter = (event) => {
   loadDataSQL();
 };
 const tabs = ref([
-  { id: 0, title: "Tất cả", icon: "", total: options.value.totalRecords },
-  { id: 1, title: "Khen thưởng cá nhân", icon: "", total: 0 },
-  { id: 2, title: "Khen thưởng phòng ban", icon: "", total: 0 },
-  { id: 3, title: "Kỷ luật", icon: "", total: 0 },
+  { id: 0, title: "Khen thưởng", icon: "", total: 0 },
+  { id: 1, title: "Kỷ luật", icon: "", total: 0 },
 ]);
 //Checkbox
 const onCheckBox = (value, check) => {
@@ -680,10 +700,22 @@ const activeTab = (tab) => {
   options.value.tab = tab.id;
 
   reFilter();
-  if (tab.id) {
+  if (tab.id == 0) {
     checkLoadCount.value = false;
     let filterS1 = {
-      filterconstraints: [{ value: tab.id, matchMode: "equals" }],
+      filterconstraints: [
+        { value: 1, matchMode: "equals" },
+        { value: 2, matchMode: "equals" },
+      ],
+      filteroperator: "or",
+      key: "reward_type",
+    };
+
+    filterSQL.value.push(filterS1);
+  } else if (tab.id == 1) {
+    checkLoadCount.value = false;
+    let filterS1 = {
+      filterconstraints: [{ value: 3, matchMode: "equals" }],
       filteroperator: "and",
       key: "reward_type",
     };
@@ -1130,6 +1162,7 @@ const initTudien = () => {
               { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: true },
+              { par: "reward_type", va: 1 },
             ],
           }),
           SecretKey,
@@ -1142,10 +1175,17 @@ const initTudien = () => {
       let data = JSON.parse(response.data.data)[0];
 
       data.forEach((element) => {
-        listRewardLevels.value.push({
-          name: element.reward_level_name,
-          code: element.reward_level_id,
-        });
+        if (element.reward_type == 1) {
+          listRewardLevels.value.push({
+            name: element.reward_level_name,
+            code: element.reward_level_id,
+          });
+        } else if (element.reward_type == 2) {
+          listDisciplineLevels.value.push({
+            name: element.reward_level_name,
+            code: element.reward_level_id,
+          });
+        }
       });
     })
     .catch((error) => {
@@ -1164,6 +1204,7 @@ const initTudien = () => {
               { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: true },
+              { par: "reward_type", va: null },
             ],
           }),
           SecretKey,
@@ -1176,76 +1217,17 @@ const initTudien = () => {
       let data = JSON.parse(response.data.data)[0];
 
       data.forEach((element, i) => {
-        listRewardTitles.value.push({
-          name: element.reward_title_name,
-          code: element.reward_title_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_discipline_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      data.forEach((element, i) => {
-        listDisciplineLevels.value.push({
-          name: element.discipline_name,
-          code: element.discipline_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_ca_discipline_level_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: true },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      data.forEach((element, i) => {
-        listDisciplineTitles.value.push({
-          name: element.discipline_level_name,
-          code: element.discipline_level_id,
-        });
+        if (element.reward_type == 1) {
+          listRewardTitles.value.push({
+            name: element.reward_title_name,
+            code: element.reward_title_id,
+          });
+        } else if (element.reward_type == 2) {
+          listDisciplineTitles.value.push({
+            name: element.reward_title_name,
+            code: element.reward_title_id,
+          });
+        }
       });
     })
     .catch((error) => {
@@ -1608,16 +1590,10 @@ onMounted(() => {
                 <i :class="tab.icon"></i>
                 <span
                   >{{ tab.title }} ({{
-                    tab.id == 1
+                    tab.id == 0
                       ? options.totalRecords1
-                      : tab.id == 2
+                      : tab.id == 1
                       ? options.totalRecords2
-                      : tab.id == 3
-                      ? options.totalRecords3
-                      : tab.id == 4
-                      ? options.totalRecords4
-                      : tab.id == 5
-                      ? options.totalRecords5
                       : options.totalRecords
                   }})</span
                 >
@@ -1715,7 +1691,13 @@ onMounted(() => {
                               item.full_name.lastIndexOf(' ') + 2
                             )
                       "
-                      style="color: #fff"
+                      style="
+                        background-color: #2196f3;
+                        color: #fff;
+                        width: 2rem;
+                        height: 2rem;
+                        font-size: 1rem !important;
+                      "
                       :key="index"
                       :style="
                         item.avatar
@@ -1723,9 +1705,18 @@ onMounted(() => {
                           : 'background:' + bgColor[item.full_name.length % 7]
                       "
                       :image="basedomainURL + item.avatar"
-                      class="w-3rem h-3rem text-lg"
+                      class="text-avatar cursor-auto"
+                      size="xlarge"
                       shape="circle"
-                      v-tooltip.top="item.full_name"
+                      v-tooltip.top="{
+                        value:
+                          item.full_name +
+                         
+                          item.position_name +
+                         
+                          item.department_name,
+                        escape: true,
+                      }"
                     />
                     <Avatar
                       v-if="data.data.listRewards.length > 4"
@@ -1832,86 +1823,17 @@ onMounted(() => {
                     class="text-avatar"
                     size="xlarge"
                     shape="circle"
-                    v-tooltip.top="slotProps.data.full_name"
+                    v-tooltip.top="{
+                      value:
+                        slotProps.data.full_name +
+                        slotProps.data.position_name +
+                        slotProps.data.department_name,
+                      escape: true,
+                    }"
                   />
                 </div>
               </template>
             </Column>
-            <!-- <Column
-              field="status"
-              header="Trạng thái"
-              headerStyle="text-align:center;max-width:11rem;height:50px"
-              bodyStyle="text-align:center;max-width:11rem"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div
-                  class="m-2"
-                  @click="
-                    toggleStatus(slotProps.data, $event);
-                    $event.stopPropagation();
-                  "
-                  aria:haspopup="true"
-                  aria-controls="overlay_panel_status"
-                >
-                  <Button
-                    :label="
-                      slotProps.data.status == 2
-                        ? 'Đang thực hiện'
-                        : slotProps.data.status == 3
-                        ? 'Đã hoàn thành'
-                        : slotProps.data.status == 4
-                        ? 'Tạm dừng'
-                        : slotProps.data.status == 5
-                        ? 'Đã hủy'
-                        : 'Lên kế hoạch'
-                    "
-                    :style="
-                      slotProps.data.status == 2
-                        ? ' backgroundColor: #2196f3; border:#2196f3'
-                        : slotProps.data.status == 3
-                        ? 'backgroundColor:var(--green-500); border:var(--green-500)'
-                        : slotProps.data.status == 4
-                        ? 'backgroundColor:#ff8b4e; border:#ff8b4e'
-                        : slotProps.data.status == 5
-                        ? 'backgroundColor:red; border:red'
-                        : 'backgroundColor:#bbbbbb; border:#bbbbbb'
-                    "
-                    icon="pi pi-chevron-down"
-                    iconPos="right"
-                    class="px-2 w-10rem d-design-left"
-                  />
-                </div>
-                <OverlayPanel
-                  :showCloseIcon="false"
-                  ref="opstatus"
-                  appendTo="body"
-                  class="p-0 m-0"
-                  id="overlay_panel_status"
-                  style="width: 200px"
-                >
-                  <div class="form-group">
-                    <div class="col-12 p-0 field">Chọn trạng thái</div>
-                    <div class="col-12 p-0">
-                      <Dropdown
-                        :options="listStatus"
-                        :filter="false"
-                        :showClear="false"
-                        :editable="false"
-                        v-model="reward.status"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Chọn trạng thái"
-                        class="w-full"
-                        @change="setStatus(reward)"
-                      >
-                      </Dropdown>
-                    </div>
-                  </div>
-                </OverlayPanel>
-              </template>
-            </Column> -->
-
             <Column
               header=""
               headerStyle="text-align:center;max-width:50px"

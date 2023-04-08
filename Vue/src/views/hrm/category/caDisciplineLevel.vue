@@ -17,18 +17,18 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  discipline_level_name: {
+  reward_level_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
  
 });
 const rules = {
-  discipline_level_name: {
+  reward_level_name: {
     required,
     $errors: [
       {
-        $property: "discipline_level_name",
+        $property: "reward_level_name",
         $validator: "required",
         $message: "Tên cấp kỉ luật không được để trống!",
       },
@@ -46,10 +46,11 @@ const loadCount = () => {
         {
           str: encr(
             JSON.stringify({
-        proc: "hrm_ca_discipline_level_count",
+        proc: "hrm_ca_reward_level_count",
         par: [
           { par: "user_id", va: store.getters.user.user_id },
           { par: "status", va: null },
+          { par: "reward_type", va: 2 },
         ],
       }),
             SecretKey,
@@ -68,7 +69,7 @@ const loadCount = () => {
       
     });
 };
-//Lấy dữ liệu discipline_level
+//Lấy dữ liệu reward_level
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -86,12 +87,13 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-          proc: "hrm_ca_discipline_level_list",
+          proc: "hrm_ca_reward_level_list",
           par: [
             { par: "pageno", va: options.value.PageNo },
             { par: "pagesize", va: options.value.PageSize },
             { par: "user_id", va: store.getters.user.user_id },
             { par: "status", va: null },
+            { par: "reward_type", va: 2 },
           ],
         }),
             SecretKey,
@@ -140,19 +142,19 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].discipline_level_id;
+      datalists.value[datalists.value.length - 1].reward_level_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].discipline_level_id;
+    options.value.id = datalists.value[0].reward_level_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const discipline_level = ref({
-  discipline_level_name: "",
+const reward_level = ref({
+  reward_level_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -160,7 +162,7 @@ const discipline_level = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, discipline_level);
+const v$ = useVuelidate(rules, reward_level);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -182,8 +184,8 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  discipline_level.value = {
-    discipline_level_name: "",
+  reward_level.value = {
+    reward_level_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
@@ -197,8 +199,8 @@ const openBasic = (str) => {
 };
   
 const closeDialog = () => {
-  discipline_level.value = {
-    discipline_level_name: "",
+  reward_level.value = {
+    reward_level_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -218,7 +220,7 @@ const saveData = (isFormValid) => {
     return;
   }
  
-  if (discipline_level.value.discipline_level_name.length > 250) {
+  if (reward_level.value.reward_level_name.length > 250) {
     swal.fire({
       title: "Error!",
       text: "Tên cấp kỉ luật không được vượt quá 250 ký tự!",
@@ -229,9 +231,8 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
  
-  if (discipline_level.value.countryside_fake)
-    discipline_level.value.countryside = discipline_level.value.countryside_fake;
-  formData.append("hrm_ca_discipline_level", JSON.stringify(discipline_level.value));
+  reward_level.value.reward_type=2;
+  formData.append("hrm_ca_reward_level", JSON.stringify(reward_level.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -241,7 +242,7 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_discipline_level/add_hrm_ca_discipline_level",
+        baseURL + "/api/hrm_ca_reward_level/add_hrm_ca_reward_level",
         formData,
         config
       )
@@ -273,7 +274,7 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_discipline_level/update_hrm_ca_discipline_level",
+        baseURL + "/api/hrm_ca_reward_level/update_hrm_ca_reward_level",
         formData,
         config
       )
@@ -308,10 +309,10 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  discipline_level.value = dataTem;
-  if (discipline_level.value.countryside)
-    discipline_level.value.countryside_fake = discipline_level.value.countryside;
-  if (discipline_level.value.is_default) {
+  reward_level.value = dataTem;
+  if (reward_level.value.countryside)
+    reward_level.value.countryside_fake = reward_level.value.countryside;
+  if (reward_level.value.is_default) {
     checkIsmain.value = false;
   } else {
     checkIsmain.value = true;
@@ -345,10 +346,10 @@ const delTem = (Tem) => {
 
         axios
           .delete(
-            baseURL + "/api/hrm_ca_discipline_level/delete_hrm_ca_discipline_level",
+            baseURL + "/api/hrm_ca_reward_level/delete_hrm_ca_reward_level",
             {
               headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.discipline_level_id] : 1,
+              data: Tem != null ? [Tem.reward_level_id] : 1,
             }
           )
           .then((response) => {
@@ -404,9 +405,15 @@ const filterSQL = ref([]);
 const isFirst = ref(true);
 const loadDataSQL = () => {
   datalists.value = [];
+  let filterS = {
+    filterconstraints: [{ value: 2, matchMode: "equals" }],
+    filteroperator: "and",
+    key: "reward_type",
+  };
+  filterSQL.value.push(filterS);
 
   let data = {
-    id: "discipline_level_id",
+    id: "reward_level_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -418,7 +425,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_discipline_level", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_reward_level", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -513,14 +520,14 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.discipline_level_id,
-      TextID: value.discipline_level_id + "",
+      IntID: value.reward_level_id,
+      TextID: value.reward_level_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_discipline_level/update_s_hrm_ca_discipline_level",
+        baseURL + "/api/hrm_ca_reward_level/update_s_hrm_ca_reward_level",
         data,
         config
       )
@@ -585,11 +592,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.discipline_level_id);
+            listId.push(item.reward_level_id);
           });
           axios
             .delete(
-              baseURL + "/api/hrm_ca_discipline_level/delete_hrm_ca_discipline_level",
+              baseURL + "/api/hrm_ca_reward_level/delete_hrm_ca_reward_level",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -715,7 +722,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="discipline_level_id"
+      dataKey="reward_level_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
@@ -856,7 +863,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       ></Column>
  
       <Column
-        field="discipline_level_name"
+        field="reward_level_name"
         header="Tên cấp kỉ luật"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
@@ -976,11 +983,11 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             >Cấp kỉ luật <span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="discipline_level.discipline_level_name"
+            v-model="reward_level.reward_level_name"
             spellcheck="false"
             class="col-9 ip36 px-2"
             :class="{
-              'p-invalid': v$.discipline_level_name.$invalid && submitted,
+              'p-invalid': v$.reward_level_name.$invalid && submitted,
             }"
           />
         </div>
@@ -988,13 +995,13 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v$.discipline_level_name.$invalid && submitted) ||
-              v$.discipline_level_name.$pending.$response
+              (v$.reward_level_name.$invalid && submitted) ||
+              v$.reward_level_name.$pending.$response
             "
             class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.discipline_level_name.required.$message
+              v$.reward_level_name.required.$message
                 .replace("Value", "Tên cấp kỉ luật")
                 .replace("is required", "không được để trống")
             }}</span>
@@ -1005,20 +1012,20 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-9 text-left p-0">STT</div>
             <InputNumber
-              v-model="discipline_level.is_order"
+              v-model="reward_level.is_order"
               class="col-3 ip36 p-0"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="discipline_level.status" />
+            <InputSwitch v-model="reward_level.status" />
           </div>
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="discipline_level.is_system" />
+            <InputSwitch v-model="reward_level.is_system" />
           </div>
         </div>
       
