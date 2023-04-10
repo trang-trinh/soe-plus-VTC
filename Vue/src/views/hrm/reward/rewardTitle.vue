@@ -123,12 +123,18 @@ const loadData = (rf) => {
                 if (!item.position_name) {
                   item.position_name = "";
                 } else {
-                  item.position_name = " </br>" + item.position_name;
+                  item.position_name =
+                    " </br> <span class='text-sm'>" +
+                    item.position_name +
+                    "</span>";
                 }
                 if (!item.department_name) {
                   item.department_name = "";
                 } else {
-                  item.department_name = " </br>" + item.department_name;
+                  item.department_name =
+                    " </br> <span class='text-sm'>" +
+                    item.department_name +
+                    "</span>";
                 }
               });
             }
@@ -136,12 +142,12 @@ const loadData = (rf) => {
           if (!element.position_name) {
             element.position_name = "";
           } else {
-            element.position_name = " </br>" + element.position_name;
+            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
           }
           if (!element.department_name) {
             element.department_name = "";
           } else {
-            element.department_name = " </br>" + element.department_name;
+            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
           }
         });
 
@@ -1077,69 +1083,7 @@ const toggle = (event) => {
   op.value.toggle(event);
 };
 
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
-
-const loadUser = () => {
-  listDropdownUser.value = [];
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          role_name: element.role_name,
-          position_name: element.position_name,
-        });
-      });
-
-      listDropdownUserCheck.value = [...listDropdownUser.value];
-    })
-    .catch((error) => {
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
+ 
 
 const listRewardLevels = ref([]);
 const listDisciplineLevels = ref([]);
@@ -1670,8 +1614,8 @@ onMounted(() => {
             <Column
               field="vacancy_name"
               header="Đối tượng"
-              headerStyle="text-align:center;max-width:300px;height:50px"
-              bodyStyle="text-align:center;max-width:300px"
+              headerStyle="text-align:center;max-width:200px;height:50px"
+              bodyStyle="text-align:center;max-width:200px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
@@ -1711,9 +1655,7 @@ onMounted(() => {
                       v-tooltip.top="{
                         value:
                           item.full_name +
-                         
                           item.position_name +
-                         
                           item.department_name,
                         escape: true,
                       }"
@@ -1722,11 +1664,12 @@ onMounted(() => {
                       v-if="data.data.listRewards.length > 4"
                       :label="(data.data.listRewards.length - 4).toString()"
                       shape="circle"
-                      class="w-3rem h-3rem"
                       style="
-                        background-color: #9c27b0;
+                        background-color: #2196f3;
                         color: #fff;
-                        font-size: 12pt !important;
+                        width: 2rem;
+                        height: 2rem;
+                        font-size: 1rem !important;
                       "
                     />
                   </AvatarGroup>
@@ -1736,7 +1679,8 @@ onMounted(() => {
                     v-for="(item, index) in data.data.listRewards"
                     :key="index"
                   >
-                    <Chip :label="item.department_name" />
+                    <!-- <Chip :label="item.department_name" /> -->
+                    {{ item.department_name }}
                   </div>
                 </div>
               </template>

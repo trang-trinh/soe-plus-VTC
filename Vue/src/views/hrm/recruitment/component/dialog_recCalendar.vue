@@ -312,6 +312,64 @@ const loadUser = () => {
       }
     });
 };
+const listDataUsers = ref([]);
+const listDataUsersSave = ref([]);
+const loadUserProfiles = () => {
+  listDataUsers.value = [];
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_list_filter",
+            par: [
+              { par: "search", va: null },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "work_position_id", va: null },
+              { par: "position_id", va: null },
+              { par: "department_id", va: null },
+              { par: "status", va: 1 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      data.forEach((element, i) => {
+        listDataUsers.value.push({
+          profile_user_name: element.profile_user_name,
+          code: element.profile_id,
+          avatar: element.avatar,
+          department_name: element.department_name,
+          department_id: element.department_id,
+          work_position_name: element.work_position_name,
+          position_name: element.position_name,
+          profile_code: element.profile_code,
+          organization_id: element.organization_id,
+        });
+      });
+      listDataUsersSave.value = [...listDataUsers.value];
+    })
+    .catch((error) => {
+      console.log(error);
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
 const v$ = useVuelidate(rules, recCalendar);
 
 const checkShow = ref(false);
@@ -1015,9 +1073,7 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
-
-const listDataUsers = ref([]);
-const listDataUsersSave = ref([]);
+ 
 
 const delRow_Item = (item, type) => {
   if (type == 1) {
@@ -1040,6 +1096,7 @@ onMounted(() => {
   initTudien();
   loadData();
   loadUser();
+  loadUserProfiles();
   displayBasic.value = props.displayBasic;
   return {};
 });
@@ -1210,8 +1267,8 @@ onMounted(() => {
           <div style="width: calc(100% - 11rem)">
             <MultiSelect
               v-model="recCalendar.interviewers_fake"
-              :options="listDropdownUserGive"
-              optionLabel="name"
+              :options="listDataUsers"
+              optionLabel="profile_user_name"
               optionValue="code"
               placeholder="Chọn người phỏng vấn "
               panelClass="d-design-dropdown"
@@ -1219,54 +1276,66 @@ onMounted(() => {
               :class="{
                 'p-invalid': recCalendar.interviewers_fake == null && submitted,
               }"
+              :filter="true"
               display="chip"
             >
-              <template #option="slotProps">
-                <div class="country-item flex align-items-center">
-                  <div class="grid w-full p-0">
-                    <div
-                      class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
-                    >
-                      <div class="col-1 mx-2 p-0 align-items-center">
-                        <Avatar
-                          style="color: #fff"
-                          v-bind:label="
-                            slotProps.option.avatar
-                              ? ''
-                              : slotProps.option.name.substring(
-                                  slotProps.option.name.lastIndexOf(' ') + 1,
-                                  slotProps.option.name.lastIndexOf(' ') + 2
-                                )
-                          "
-                          :image="basedomainURL + slotProps.option.avatar"
-                          size="small"
-                          :style="
-                            slotProps.option.avatar
-                              ? 'background-color: #2196f3'
-                              : 'background:' +
-                                bgColor[slotProps.option.name.length % 7]
-                          "
-                          shape="circle"
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/nouser1.png'
-                          "
-                        />
-                      </div>
-                      <div class="col-11 p-0 ml-3 align-items-center">
-                        <div class="pt-2">
-                          <div class="font-bold">
-                            {{ slotProps.option.name }}
-                          </div>
-                          <div class="flex w-full text-sm   text-500">
-                            <div>{{ slotProps.option.position_name }}</div>
+             <template #option="slotProps">
+                      <div v-if="slotProps.option" class="flex">
+                        <div class="format-center">
+                          <Avatar
+                            v-bind:label="
+                              slotProps.option.avatar
+                                ? ''
+                                : slotProps.option.profile_user_name.substring(
+                                    0,
+                                    1
+                                  )
+                            "
+                            v-bind:image="
+                              slotProps.option.avatar
+                                ? basedomainURL + slotProps.option.avatar
+                                : basedomainURL + '/Portals/Image/noimg.jpg'
+                            "
+                            style="
+                              color: #ffffff;
+                              width: 3rem;
+                              height: 3rem;
+                              font-size: 1.4rem !important;
+                            "
+                            :style="{
+                              background:
+                                bgColor[
+                                  slotProps.option.profile_user_name.length % 7
+                                ],
+                            }"
+                            size="xlarge"
+                            shape="circle"
+                          />
+                        </div>
+                        <div class="format-center text-left ml-3">
+                          <div>
+                            <div class="mb-1 font-bold">
+                              {{ slotProps.option.profile_user_name }}
+                            </div>
+                            <div class="description">
+                              <div>
+                                <span v-if="slotProps.option.position_name">{{
+                                  slotProps.option.position_name
+                                }}</span>
+                                <span v-else>{{
+                                  slotProps.option.profile_code
+                                }}</span>
+
+                                <span v-if="slotProps.option.department_name">
+                                  | {{ slotProps.option.department_name }}</span
+                                >
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </template>
+                      <span v-else> Chưa có dữ liệu </span>
+                    </template>
             </MultiSelect>
           </div>
         </div>
