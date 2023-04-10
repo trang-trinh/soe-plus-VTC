@@ -7,7 +7,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 //Khai báo
-
+const router = inject("router");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -122,7 +122,6 @@ const loadCount = () => {
 };
 //Lấy dữ liệu
 const loadData = (rf) => {
-  debugger
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -177,7 +176,6 @@ const loadData = (rf) => {
             : "\nSize: " + item.capacityMB);
         });
         datalists.value = data;
-
         options.value.loading = false;
       })
       .catch((error) => {
@@ -490,6 +488,16 @@ const clearDetail = ()=>{
   isDetail.value = false;
   itemclick.value = null;
 }
+const goProfile = (item) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: generateUUID()},
+    query: { id: item.profile_id_key },
+  });
+};
+const changeView = (item)=>{
+  layout.value = item;
+}
 watch(selectedStamps, () => {
   if(selectedStamps.value){
     goFile(selectedStamps.value);
@@ -510,6 +518,28 @@ const formatBytes = (bytes, decimals = 2) => {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 };
+function generateUUID() {
+  // Public Domain/MIT
+  var d = new Date().getTime(); //Timestamp
+  var d2 =
+    (typeof performance !== "undefined" &&
+      performance.now &&
+      performance.now() * 1000) ||
+    0; //Time in microseconds since page-load or 0 if unsupported
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16; //random number between 0 and 16
+    if (d > 0) {
+      //Use timestamp until depleted
+      r = (d + r) % 16 | 0;
+      d = Math.floor(d / 16);
+    } else {
+      //Use microseconds since page-load if supported
+      r = (d2 + r) % 16 | 0;
+      d2 = Math.floor(d2 / 16);
+    }
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
 onMounted(() => {
   loadData(true);
   loadTudien();
@@ -563,10 +593,10 @@ onMounted(() => {
             <template #end>
                 <!-- <DataViewLayoutOptions v-model="layout" /> -->
                 <div class="p-dataview-layout-options p-selectbutton p-buttonset">
-                  <button class="p-button p-button-icon-only" :class="layout== 'list'?'p-highlight':''" type="button" @click="changeView(layout = 'list')">
+                  <button class="p-button p-button-icon-only" :class="layout== 'list'?'p-highlight':''" type="button" @click="changeView('list')">
                     <i class="pi pi-bars"></i>
                   </button>
-                  <button class="p-button p-button-icon-only" :class="layout== 'grid'?'p-highlight':''"  type="button" @click="changeView(layout = 'grid')">
+                  <button class="p-button p-button-icon-only" :class="layout== 'grid'?'p-highlight':''"  type="button" @click="changeView('grid')">
                     <i class="pi pi-th-large"></i>
                   </button>
                   <!-- <Button
@@ -589,7 +619,7 @@ onMounted(() => {
           </Toolbar>
           <DataTable
           v-if="layout== 'list'"
-          class="w-full p-datatable-sm e-sm cursor-pointer"
+          class="w-full p-datatable-sm e-sm cursor-pointer over-scroll"
           :value="datalists"
           v-model:filters="filters"
           :showGridlines="true"
@@ -608,6 +638,7 @@ onMounted(() => {
             'file_name'
           ]"
           v-model:first="first_module"
+          v-on:dblclick="viewFile(selectedStamps)"
         >
         <!-- <DataView
           class=""
@@ -647,7 +678,13 @@ onMounted(() => {
           <Column field="profile_name" header="Nhân sự"
             headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px"
             bodyStyle="text-align:center;max-width:200px;min-width:150px;"
-            class="align-items-center justify-content-center text-center"></Column>
+            class="align-items-center justify-content-center text-center">
+            <template #body="slotProps">
+            <b @click="goProfile(slotProps.data)" class="hover">{{
+              slotProps.data.profile_name
+            }}</b>
+          </template>
+          </Column>
           <Column field="created_date" header="Ngày/ Người tạo"
             headerStyle="text-align:center;max-width:200px;min-width:200px;height:50px"
             bodyStyle="text-align:center;max-width:200px;min-width:200px;;max-height:60px"
@@ -667,13 +704,7 @@ onMounted(() => {
                   slotProps.data.avatar
                     ? basedomainURL + slotProps.data.avatar
                     : basedomainURL + '/Portals/Image/noimg.jpg'
-                " style="
-                      background-color: #2196f3;
-                      color: #ffffff;
-                      width: 2rem;
-                      height: 2rem;
-                      font-size: 1rem !important;
-                    " :style="{
+                " style="background-color: #2196f3;color: #ffffff;width: 2rem;height: 2rem;font-size: 1rem !important;" :style="{
                       background: bgColor[slotProps.data.is_order % 7],
                     }" class="text-avatar" size="xlarge" shape="circle" v-tooltip.top="slotProps.data.full_name" />
               </div>
@@ -707,15 +738,14 @@ onMounted(() => {
           </template>
           </DataTable>
           <div
+          v-if="layout== 'grid'"
             class="col-12 p-0 overflow-y-auto grid-9"
-            style="height: calc(100vh - 115px)"
           >
           <div class="header-top">
             <span class="font-bold flex ml-5 text-lg">Danh sách files</span>
           </div>
           <DataView
-            v-if="layout== 'grid'"
-            class="w-full h-full e-sm flex flex-column p-dataview-unset"
+            class="w-full h-full e-sm flex flex-column p-dataview-unset over-scroll"
             :value="datalists"
             :layout="layout"
             :paginator="datalists.length > 20"
@@ -733,6 +763,7 @@ onMounted(() => {
                   @click="goFile(slotProps.data)"
                   @mouseover="hoverItem(slotProps.data.file_id)"
                   @mouseleave="leaveItem()"
+                  v-on:dblclick="viewFile(slotProps.data)"
                 >
                  <Button
                     v-show="slotProps.data.file_id == item_hover"
@@ -777,7 +808,6 @@ onMounted(() => {
                       <div
                         class="
                           format-center
-                          font-semibold
                           mx-2
                           text-3line text-title
                           my-2
@@ -856,7 +886,7 @@ onMounted(() => {
             </div>
           </div>
           <div class="field col-12 font-bold text-lg pl-0 pb-3">Thông tin truy cập</div>
-          <div class="scroll">
+          <div class="scroll-right">
             <div v-for="(item, index) in data_log" :key="index" class="flex mb-3"
               :style="(index == data_log.length - 1) ? '' : 'border-bottom:2px solid #eee'">
               <div class="log-image">
@@ -987,12 +1017,14 @@ onMounted(() => {
   width: 22px !important;
   height:22px !important;
 }
-.scroll {
+.scroll-right {
   overflow: auto;
-  max-height: calc(100vh - 408px);
-  min-height: calc(100vh - 408px);
+  max-height: calc(100vh - 350px);
+  min-height: calc(100vh - 350px);
 }
-
+.hover:hover {
+  color: #0078d4;
+}
 .text-bold {
   color: #000000;
 }
@@ -1004,11 +1036,12 @@ onMounted(() => {
 
 .body-content {
   background: #fff;
+}
+.over-scroll{
   min-height: calc(100vh - 70px);
   max-height: calc(100vh - 70px);
   overflow: auto;
 }
-
 .icon-modules {
   width: 16px;
   height: 16px;
