@@ -2543,7 +2543,7 @@ const onPage = (event) => {
                                     <b
                                       class="m-0"
                                       :style="{ color: '#2ECC71' }"
-                                      >{{ profile.profile_id }}</b
+                                      >{{ profile.profile_code }}</b
                                     >
                                   </label>
                                 </div>

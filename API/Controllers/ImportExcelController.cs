@@ -530,8 +530,15 @@ namespace API.Controllers
                                                 dv.status = vl.ToString().ToUpper() == "HIỂN THỊ" ? true : false;
                                                 break;
                                             case "organization":
-                                                var temp_id = db.sys_organization.Where(x => GetNameOrg.ToString().Contains(x.organization_name)).FirstOrDefault();
-                                                dv.organization_id = Convert.ToInt32(temp_id.organization_id);
+                                                if (sp == true)
+                                                {
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    var temp_id = db.sys_organization.Where(x => GetNameOrg.ToString().Contains(x.organization_name)).FirstOrDefault();
+                                                    dv.organization_id = Convert.ToInt32(temp_id.organization_id);
+                                                }
                                                 break;
                                         }
                                     }
@@ -539,8 +546,12 @@ namespace API.Controllers
                                     dv.created_date = DateTime.Now;
                                     dv.created_ip = ip;
                                     dv.created_token_id = tid;
-                                    if (sp == true) dv.is_system = true;
-                                    else dv.is_system=false;
+                                    if (sp == true)
+                                    {
+                                        dv.is_system = true;
+                                        dv.organization_id = helper.OrgainzationParent(claims);
+                                    }
+                                    else dv.is_system = false;
                                     dvs.Add(dv);
                                 }
                                 if (dvs.Count > 0)
