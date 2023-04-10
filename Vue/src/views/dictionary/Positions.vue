@@ -407,11 +407,19 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
-  if (filterPhanloai.value == undefined) {
-    options.value.filter_Org = 1;
-  } else if (filterPhanloai.value == 0) {
-    options.value.filter_Org = 3; //list hệ thống
-  } else options.value.filter_Org = 2; // list đơn vị
+  if (store.state.user.is_super == true) {
+    if (Object.keys(filterPhanloai.value)[0] == undefined) {
+      options.value.filter_Org = 1;
+    } else if (Object.keys(filterPhanloai.value)[0] == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  } else {
+    if (filterPhanloai.value == undefined) {
+      options.value.filter_Org = 1;
+    } else if (filterPhanloai.value == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  }
   filterTrangthai.value =
     filterTrangthai.value != null
       ? filterTrangthai.value == 1
@@ -428,6 +436,23 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
+  console.log({
+    excelname: "DANH SÁCH CHỨC VỤ",
+    proc: "ca_positions_listexport",
+    par: [
+      { par: "search", va: options.value.SearchText },
+      { par: "status", va: filterTrangthai.value },
+      { par: "user_id", va: store.state.user.user_id },
+      {
+        par: "s_org",
+        va:
+          filterPhanloai.value != null
+            ? Object.keys(filterPhanloai.value)[0]
+            : null,
+      },
+      { par: "filter_Org", va: options.value.filter_Org },
+    ],
+  });
   axios
     .post(
       baseURL + "/api/Excel/ExportExcel",
@@ -438,7 +463,13 @@ const exportData = (method) => {
           { par: "search", va: options.value.SearchText },
           { par: "status", va: filterTrangthai.value },
           { par: "user_id", va: store.state.user.user_id },
-          { par: "s_org", va: filterPhanloai.value },
+          {
+            par: "s_org",
+            va:
+              filterPhanloai.value != null
+                ? Object.keys(filterPhanloai.value)[0]
+                : null,
+          },
           { par: "filter_Org", va: options.value.filter_Org },
         ],
       },
@@ -970,6 +1001,7 @@ onMounted(() => {
                       v-if="store.state.user.is_super == 1"
                       panelClass="d-design-dropdown"
                     />
+
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterPhanloai"
@@ -979,6 +1011,7 @@ onMounted(() => {
                       placeholder="Phân loại"
                       v-else
                     />
+                    {{ filterPhanloai }}
                   </div>
                 </div>
                 <div class="flex field col-12 p-0">
