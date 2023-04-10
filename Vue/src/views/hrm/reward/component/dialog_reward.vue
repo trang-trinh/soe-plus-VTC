@@ -738,7 +738,7 @@ onMounted(() => {
                 v-model="reward.reward_number"
                 :class="{
                   'p-invalid': reward.reward_number == null && submitted,
-                }"
+                }"   :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
               />
             </div>
           </div>

@@ -819,7 +819,7 @@ onMounted(() => {
                   class="w-full"
                   :class="{
                     'p-invalid': v$.training_emps_code.$invalid && submitted,
-                  }"
+                  }"   :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                   placeholder="Nhập mã đào tạo"
                 />
               </div>
