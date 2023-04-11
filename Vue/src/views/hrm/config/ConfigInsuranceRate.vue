@@ -485,8 +485,10 @@ onMounted(() => {
                   suffix=" %"
                   v-model="slotProps.data.social_ins_percent"
                   @update:modelValue="onchangeInsurance(slotProps.data, 1)"
+                  v-tooltip.top="'Mức đóng'"
                 />
                 <InputNumber
+                v-tooltip.top="'Công ty đóng'"
                   spellcheck="false"
                   :max="100"
                   suffix=" %"
@@ -497,6 +499,7 @@ onMounted(() => {
                   @update:modelValue="onchangeInsurance(slotProps.data, 1)"
                 />
                 <InputNumber
+                v-tooltip.top="'Nhân viên đóng'"
                   spellcheck="false"
                   class="w-4rem ml-2"
                   inputClass="format-center"
@@ -637,13 +640,15 @@ onMounted(() => {
             </Column>
           </DataTable>
         </div>
-        <div class="col-12 style-vb-3 p-0 py-2">
+        <div class="col-12 style-vb-3 p-0 py-2 align-items-center flex">
           <Checkbox v-model="ins_checked" :binary="true" />
-
-          <span> Tự động tính toán lại bảo hiểm từ tháng hiện tại</span>
+<div class="pl-1">
+          <span> Tự động tính toán lại bảo hiểm từ tháng hiện tại</span></div>
         </div>
         <div class="col-12 style-vb-3 p-0 py-3">
-          <InputText spellcheck="false" class="w-4rem" placeholder="CTY" />
+          <InputText spellcheck="false" class="w-4rem  " style="    background-color: white;
+    color: black;
+    opacity: 1;" disabled placeholder="CTY" />
           <InputText
             spellcheck="false"
             class="w-4rem ml-2"

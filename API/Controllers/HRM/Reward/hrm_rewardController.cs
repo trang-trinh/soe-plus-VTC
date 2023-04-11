@@ -158,7 +158,7 @@ namespace API.Controllers.HRM.Reward
                                 hrm_File.profile_id = hrm_Reward.reward_name;
                             }
                             db.hrm_file.Add(hrm_File);
-
+                            db.SaveChanges();
                         }
 
 
@@ -369,7 +369,7 @@ namespace API.Controllers.HRM.Reward
                                 hrm_File.profile_id = hrm_Reward.reward_name;
                             }
                             db.hrm_file.Add(hrm_File);
-
+                            db.SaveChanges();
                         }
 
 
