@@ -91,7 +91,7 @@ namespace API.Controllers.HRM.ConfigUserCode
                                 item.created_by = uid;
                                 item.created_date = DateTime.Now;
                                 item.created_ip = ip;
-                                if(ins_checked=="True")
+                                if(ins_checked=="true")
                                 item.is_auto = true ;
                                 else
                                     item.is_auto = false;
@@ -119,7 +119,7 @@ namespace API.Controllers.HRM.ConfigUserCode
                             }
                             else
                             {
-                                if (ins_checked == "True")
+                                if (ins_checked == "true")
                                     item.is_auto = true;
                                 else
                                     item.is_auto = false;
