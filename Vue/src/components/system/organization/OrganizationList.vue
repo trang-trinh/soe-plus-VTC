@@ -1615,6 +1615,7 @@ onMounted(() => {
 }
 </style>
 <style scoped>
+
 .text-error {
   color: red !important;
 }
@@ -1674,6 +1675,11 @@ span.donvitrue {
 ::v-deep(.col-12) {
   .p-inputswitch {
     top: 6px;
+  }
+}
+::v-deep(.p-avatar) {
+  img {
+    object-fit: contain !important;
   }
 }
 </style>
