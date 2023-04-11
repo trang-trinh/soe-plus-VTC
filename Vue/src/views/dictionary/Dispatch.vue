@@ -65,6 +65,7 @@ const dispatch = ref({
   status: true,
   is_order: 1,
   code: "",
+  is_system: false,
 });
 
 const selectedDispatchs = ref();
@@ -131,7 +132,7 @@ const loadCount = () => {
 const minDate = ref();
 const loadData = (rf) => {
   if (rf) {
-    if (isDynamicSQL.value) {
+    if (isDynamicSQL.value == true) {
       loadDataSQL();
       return;
     }
@@ -205,7 +206,10 @@ const loadDonvi1 = () => {
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
-          JSON.stringify({ proc: "sys_org_list" }),
+          JSON.stringify({
+            proc: "sys_organization_list_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
           SecretKey,
           cryoptojs,
         ).toString(),
@@ -215,6 +219,8 @@ const loadDonvi1 = () => {
     .then((response) => {
       treedonvis.value = [];
       let data = JSON.parse(response.data.data)[0];
+      let sys = { key: 0, label: "Hệ thống", data: { organization_id: 0 } };
+      treedonvis.value.push(sys);
 
       if (data.length > 0) {
         data.forEach((x) => {
@@ -240,9 +246,46 @@ const loadDonvi1 = () => {
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
-  data
-    .filter((x) => x.parent_id == null)
-    .forEach((m, i) => {
+
+  if (store.state.user.is_super == true) {
+    data
+      .filter((x) => x.parent_id == null)
+      .forEach((m, i) => {
+        m.IsOrder = i + 1;
+        let om = { key: m[id], data: m };
+        const rechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em) => {
+              let om1 = { key: em[id], data: em };
+              rechildren(om1, em[id]);
+              mm.children.push(om1);
+            });
+          }
+        };
+        rechildren(om, m[id]);
+        arrChils.push(om);
+        //
+        om = { key: m[id], data: m[id], label: m[name] };
+        const retreechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em) => {
+              let om1 = { key: em[id], data: em, label: em[name] };
+              retreechildren(om1, em[id]);
+              mm.children.push(om1);
+            });
+          }
+        };
+        retreechildren(om, m[id]);
+        arrtreeChils.push(om);
+      });
+
+    return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+  } else {
+    data.forEach((m, i) => {
       m.IsOrder = i + 1;
       let om = { key: m[id], data: m };
       const rechildren = (mm, pid) => {
@@ -275,7 +318,8 @@ const renderTree = (data, id, name, title) => {
       arrtreeChils.push(om);
     });
 
-  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+    return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+  }
 };
 const treedonvis = ref();
 const loadDonvi = () => {
@@ -399,9 +443,13 @@ const openBasic = (str) => {
     code: "",
   };
 
-  dispatch.value.organization_id = store.state.user.is_super
-    ? 1
-    : store.state.user.organization_id;
+  dispatch.value.organization_id =
+    store.state.user.is_super == true
+      ? store.state.user.organization_parent_id != null
+        ? store.state.user.organization_parent_id
+        : store.state.user.organization_id
+      : store.state.user.organization_id;
+  dispatch.value.is_system = store.state.user.is_super ? true : false;
   issaveDispatch.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -613,6 +661,22 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
+  if (store.state.user.is_super == true) {
+    if (
+      filterPhanloai.value == undefined ||
+      Object.keys(filterPhanloai.value)[0] == undefined
+    ) {
+      options.value.filter_Org = 1;
+    } else if (Object.keys(filterPhanloai.value)[0] == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  } else {
+    if (filterPhanloai.value == undefined) {
+      options.value.filter_Org = 1;
+    } else if (filterPhanloai.value == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  }
   filterTrangthai.value =
     filterTrangthai.value != null
       ? filterTrangthai.value == 1
@@ -635,7 +699,14 @@ const exportData = (method) => {
           { par: "search", va: options.value.SearchText },
           { par: "status", va: filterTrangthai.value },
           { par: "user_id", va: store.state.user.user_id },
-          { par: "s_org", va: filterPhanloai.value },
+          {
+            par: "s_org",
+            va:
+              filterPhanloai.value != null
+                ? Object.keys(filterPhanloai.value)[0]
+                : null,
+          },
+          { par: "filter_Org", va: options.value.filter_Org },
         ],
       },
       config,
@@ -686,18 +757,32 @@ const filterPhanloai = ref();
 const filterSQL = ref([]);
 const isFirst = ref(true);
 const loadDataSQL = () => {
+  if (filterTrangthai.value == undefined) {
+    filterTrangthai.value = null;
+  }
+  if (filterPhanloai.value == undefined) {
+    filterPhanloai.value = null;
+  }
   let fpl;
   if (filterPhanloai.value != undefined && store.state.user.is_super) {
     fpl = parseInt(Object.keys(filterPhanloai.value)[0]);
+  } else {
+    fpl =
+      filterPhanloai.value != undefined && filterPhanloai.value != null
+        ? store.state.user.is_super
+          ? filterPhanloai.value
+          : filterPhanloai.value == 0
+          ? 0
+          : store.state.user.organization_id
+        : null;
   }
-
   let data = {
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
     PageNo: options.value.PageNo,
     PageSize: options.value.PageSize,
-    sqlF: store.state.user.is_super ? fpl : store.state.user.organization_id,
+    sqlF: fpl,
   };
   options.value.loading = true;
   axios
@@ -768,10 +853,13 @@ const onCheckBox = (value) => {
     IntTrangthai: 1,
     BitTrangthai: value.status,
   };
+  console.log(store.state.user.is_super);
   if (
     store.state.user.is_super == true ||
     store.state.user.user_id == value.created_by ||
-    store.state.user.role_id == "admin"
+    (store.state.user.is_admin &&
+      value.is_system != true &&
+      store.state.user.organization_id == value.organization_id)
   ) {
     axios
       .put(
@@ -806,7 +894,12 @@ const onCheckBox = (value) => {
   } else {
     swal.fire({
       title: "Thông báo!",
-      text: "Bạn không có quyền chỉnh sửa!",
+      text:
+        "Bạn không có quyền chỉnh sửa! Chỉ có " +
+        (value.is_system
+          ? "Quản trị viên hệ thống"
+          : "Quản trị viên đơn vị hoặc Quản trị viên hệ thống") +
+        " mới có quyền chỉnh sửa mục này",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -884,7 +977,10 @@ const trangThai = ref([
   { name: "Hiển thị", code: 1 },
   { name: "Không hiển thị", code: 0 },
 ]);
-
+const phanLoai = ref([
+  { name: "Hệ thống", code: 0 },
+  { name: "Đơn vị", code: 1 },
+]);
 const filterTrangthai = ref();
 const first = ref();
 const reFilterEmail = (event) => {
@@ -907,6 +1003,7 @@ const reFilterEmail = (event) => {
 const checkFilter = ref(false);
 const filterEmails = (event) => {
   styleObj.value = style.value;
+  isDynamicSQL.value = true;
   loadDataSQL();
 };
 watch(selectedDispatchs, () => {
@@ -1015,10 +1112,13 @@ const ChangeSharedStatus = (value) => {
     BitTrangthai: value.is_shared,
     check: true,
   };
+
   if (
     store.state.user.is_super == true ||
     store.state.user.user_id == value.created_by ||
-    store.state.user.role_id == "admin"
+    (store.state.user.is_admin &&
+      value.is_system != true &&
+      store.state.user.organization_id == value.organization_id)
   ) {
     axios
       .put(
@@ -1097,7 +1197,6 @@ onMounted(() => {
           <i class="pi pi-file-pdf"></i>
           Danh sách khối cơ quan ({{ options.totalRecords }})
         </h3>
-
         <Toolbar class="w-full custoolbar">
           <template #start>
             <span class="p-input-icon-left">
@@ -1125,29 +1224,18 @@ onMounted(() => {
               class="overlay-panel-setup p-0 m-0"
               :showCloseIcon="false"
               id="overlay_panel"
-              :style="
-                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
-              "
+              :style="'width:400px'"
             >
               <div class="grid formgrid m-0">
-                <div
-                  class="flex field col-12 p-0"
-                  v-if="store.state.user.is_super"
-                >
+                <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-4 text-left pt-2 p-0'"
                     style="text-align: left"
                   >
                     Phân loại
                   </div>
 
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-8'">
                     <TreeSelect
                       v-model="filterPhanloai"
                       :options="treedonvis"
@@ -1156,24 +1244,28 @@ onMounted(() => {
                       placeholder="Chọn đơn vị"
                       class="col-12 p-0 m-0 md:col-12"
                       v-if="store.state.user.is_super == 1"
+                      panelClass="d-design-dropdown"
+                    />
+                    <Dropdown
+                      class="col-12 p-0 m-0"
+                      v-model="filterPhanloai"
+                      :options="phanLoai"
+                      optionLabel="name"
+                      optionValue="code"
+                      placeholder="Phân loại"
+                      v-else
                     />
                   </div>
                 </div>
 
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-4 text-left pt-2 p-0'"
                     style="text-align: center,justify-content:center"
                   >
                     Trạng thái
                   </div>
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-8'">
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterTrangthai"
@@ -1247,19 +1339,15 @@ onMounted(() => {
       </template>
       <Column
         selectionMode="multiple"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-        v-if="store.state.user.is_admin == true"
+        class="align-items-center justify-content-center text-center max-w-3rem"
+        v-if="store.state.user.is_super == true"
       >
       </Column>
       <Column
         field="STT"
         header="STT"
         :sortable="true"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-4rem"
       >
       </Column>
 
@@ -1267,41 +1355,32 @@ onMounted(() => {
         field="dispatch_book_name"
         header="Tên khối"
         :sortable="true"
-        headerStyle="height:50px"
-        bodyStyle="max-height:60px"
+        headerClass="align-items-center justify-content-center text-center"
       >
       </Column>
       <Column
         field="year"
         header="Năm"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
+        class="align-items-center justify-content-center text-center max-w-6rem"
       >
       </Column>
       <Column
         field="current_num"
         header="Số hiện tại"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
       </Column>
       <Column
         field="tracking_place"
         header="Nơi theo dõi"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        class="align-items-center justify-content-center text-center max-w-10rem"
       >
       </Column>
 
       <Column
         field="status"
         header="Hiển thị"
-        headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           <Checkbox
@@ -1314,9 +1393,7 @@ onMounted(() => {
       <Column
         field="is_shared"
         header="Chia sẻ"
-        headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           <Checkbox
@@ -1327,27 +1404,39 @@ onMounted(() => {
         </template>
       </Column>
       <Column
+        field="is_system"
+        header="Hệ thống"
+        class="align-items-center justify-content-center text-center max-w-8rem"
+      >
+        <template #body="data">
+          <div v-if="data.data.is_system == true">
+            <i
+              class="pi pi-check text-blue-400"
+              style="font-size: 1.5rem"
+            ></i>
+          </div>
+          <div v-else></div>
+        </template>
+      </Column>
+      <Column
+        field="organization_name"
+        header="Đơn vị"
+        class="align-items-center justify-content-center text-center max-w-20rem"
+      >
+      </Column>
+      <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="Dispatch">
-          <!-- //is_super: adm tổng -->
-          <!-- <div
-            v-if="
-              (store.state.user.IsSupper == true &&
-                store.state.user.is_admin == 1) ||
-              store.state.user.organization_id ==
-                Dispatch.data.organization_id ||
-              store.state.user.user_id == Dispatch.data.created_by
-            "
-          > -->
           <div
             v-if="
               store.state.user.is_super == true ||
               store.state.user.user_id == Dispatch.data.created_by ||
-              store.state.user.role_id == 'admin'
+              (store.state.user.is_admin &&
+                Dispatch.data.is_system != true &&
+                Dispatch.data.organization_id ==
+                  store.state.user.organization_id)
             "
           >
             <Button
@@ -1502,26 +1591,16 @@ onMounted(() => {
 
             <div class="col-12 p-0 my-3 flex">
               <div class="pb-2 col-2 p-0 line-height-4">Phòng ban</div>
-              <!-- <Dropdown
-                v-model="dispatch.department_id"
-                :options="departmentOptions"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="Chọn phòng ban"
-                :filter="true"
-                :editable="true"
-                class="col-3"
-              />
-              <br /> -->
 
               <TreeSelect
                 v-model="select"
-                :options="donvis"
+                :options="donvis[0].children"
                 optionLabel="data.organization_name"
                 optionValue="data.organization_id"
                 placeholder="Chọn đơn vị"
                 class="col-10 md:col-10"
                 :scrollable="true"
+                :metaKeySelection="false"
               />
             </div>
 
@@ -1563,10 +1642,20 @@ onMounted(() => {
                   class="col-8 p-0 ip36"
                 />
               </div>
-              <div class="col-6 flex p-0">
-                <div class="pb-2 col-4 p-0 line-height-4 px-2">Trạng thái</div>
+              <div class="col-3 flex p-0">
+                <div class="pb-2 col-6 p-0 line-height-4 px-2">Trạng thái</div>
                 <InputSwitch
                   v-model="dispatch.status"
+                  class="p-0 ip36"
+                />
+              </div>
+              <div
+                class="col-3 flex p-0"
+                v-if="store.state.user.is_super"
+              >
+                <div class="pb-2 col-6 p-0 line-height-4 px-2">Hệ thống</div>
+                <InputSwitch
+                  v-model="dispatch.is_system"
                   class="p-0 ip36"
                 />
               </div>
@@ -1633,16 +1722,4 @@ onMounted(() => {
     <!-- Chức năng đang chỉnh sửa vui lòng liên hệ quản trị viên phần mềm -->
   </Dialog>
 </template>
-
-<style>
-.p-treeselect-panel {
-  max-width: 30vw !important;
-}
-.p-treeselect-panel .p-treeselect-items-wrapper .p-tree {
-  max-height: 17vh !important;
-}
-.p-dropdown-item {
-  white-space: normal !important;
-}
-</style>
 <style lang="scss" scoped></style>

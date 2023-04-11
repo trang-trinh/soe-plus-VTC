@@ -1148,7 +1148,7 @@ onMounted(() => {
               :showCloseIcon="false"
               id="overlay_panel"
               :style="
-                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
+                store.state.user.is_super == 1 ? 'width:40vw' : 'width:400px'
               "
             >
               <div class="grid formgrid m-0">
