@@ -22,7 +22,7 @@ const plugins = [ChartDataLabels];
 
 //Declare
 const bgColor = ref([
-  "#0078d4",
+  "#FF6633",
   "#AFDFCF",
   "#F4B2A3",
   "#9A97EC",
@@ -519,7 +519,7 @@ onMounted(() => {
                 :options="lightOptions"
                 :plugins="plugins"
                 class="w-full"
-                :style="{ width: '80% !important' }"
+                :style="{ width: '75% !important' }"
               />
             </div>
             <div

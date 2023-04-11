@@ -5485,24 +5485,24 @@ const onPage = (event) => {
     </div>
   </div>
 
-  <!-- Dialog contract -->
-  <dialogcontract
-    :key="componentKey['0']"
-    :headerDialog="headerDialogContract"
-    :displayDialog="displayDialogContract"
-    :closeDialog="closeDialogContract"
-    :isView="isView"
-    :model="contract"
-    :dictionarys="dictionarys"
-  />
+  <!-- Dialog -->
   <dialoginfo
-    :key="componentKey['1']"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
     :profile_id="options.profile_id"
     :isType="isType"
     :initData="initView1"
+  />
+  <dialogcontract
+    :key="componentKey['1']"
+    :headerDialog="headerDialogContract"
+    :displayDialog="displayDialogContract"
+    :closeDialog="closeDialogContract"
+    :isView="isView"
+    :model="contract"
+    :dictionarys="dictionarys"
   />
   <dialogtraining
     :key="componentKey['2']"
