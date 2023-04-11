@@ -215,6 +215,7 @@ const loadOrganization = () => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
         data.forEach((element) => {
+          ins_checked.value=element.is_auto;
           element.from_month = new Date(element.from_month);
         });
         datalists.value = [...data];
@@ -224,22 +225,8 @@ const loadOrganization = () => {
       options.value.loading = false;
     });
 };
-const configUserCodeMain = ref([]);
-const datalistsDSave = ref();
-const expandListD = (data) => {
-  for (let node of data) {
-    expandedKeys.value[node.key] = true;
-    expandNode(node);
-  }
-};
-const expandNode = (node) => {
-  if (node.children && node.children.length) {
-    expandedKeys.value[node.key] = true;
-    for (let child of node.children) {
-      expandNode(child);
-    }
-  }
-};
+ 
+ 
 const displayDialogUser = ref(false);
 
  
@@ -335,7 +322,13 @@ const onchangeInsurance = (data, check) => {
 
 
 const delRow_Item = (item) => {
- 
+ if(!item.insurance_rate_id){
+
+
+datalists.value=datalists.value.filter(x=>x!=item);
+
+ }
+ else{
   swal
     .fire({
       title: "Thông báo",
@@ -387,7 +380,7 @@ const delRow_Item = (item) => {
           });
       }
     });
- 
+  }
  
 };
 onMounted(() => {
@@ -492,8 +485,10 @@ onMounted(() => {
                   suffix=" %"
                   v-model="slotProps.data.social_ins_percent"
                   @update:modelValue="onchangeInsurance(slotProps.data, 1)"
+                  v-tooltip.top="'Mức đóng'"
                 />
                 <InputNumber
+                v-tooltip.top="'Công ty đóng'"
                   spellcheck="false"
                   :max="100"
                   suffix=" %"
@@ -504,6 +499,7 @@ onMounted(() => {
                   @update:modelValue="onchangeInsurance(slotProps.data, 1)"
                 />
                 <InputNumber
+                v-tooltip.top="'Nhân viên đóng'"
                   spellcheck="false"
                   class="w-4rem ml-2"
                   inputClass="format-center"
@@ -644,13 +640,15 @@ onMounted(() => {
             </Column>
           </DataTable>
         </div>
-        <div class="col-12 style-vb-3 p-0 py-2">
+        <div class="col-12 style-vb-3 p-0 py-2 align-items-center flex">
           <Checkbox v-model="ins_checked" :binary="true" />
-
-          <span> Tự động tính toán lại bảo hiểm từ tháng hiện tại</span>
+<div class="pl-1">
+          <span> Tự động tính toán lại bảo hiểm từ tháng hiện tại</span></div>
         </div>
         <div class="col-12 style-vb-3 p-0 py-3">
-          <InputText spellcheck="false" class="w-4rem" placeholder="CTY" />
+          <InputText spellcheck="false" class="w-4rem  " style="    background-color: white;
+    color: black;
+    opacity: 1;" disabled placeholder="CTY" />
           <InputText
             spellcheck="false"
             class="w-4rem ml-2"

@@ -99,7 +99,7 @@ const onTabOpen=(event)=>{
   activeIndex.value=event.index;
  
 }
-const activeIndex=ref(3);
+const activeIndex=ref(0);
 onMounted(() => {
   loadOrg();
   return {};
@@ -117,6 +117,7 @@ onMounted(() => {
       >
         {{ organization.organization_name }}
       </div>
+      <div style=";overflow-y: scroll; height: calc(100vh - 150px);">
       <div style="margin: 0 12%">
         <Accordion :multiple="false" :activeIndex="activeIndex"  @tab-open="onTabOpen($event)">
           <AccordionTab >
@@ -148,7 +149,7 @@ onMounted(() => {
           <AccordionTab  >
             <template #header>
                 <div class="text-xl">
-               Tỷ lệ bảo hiểm
+               Tỷ lệ đóng bảo hiểm
                 </div>
             </template>
             <div class="check-scroll-2"   v-if="activeIndex==3">
@@ -158,7 +159,7 @@ onMounted(() => {
           
           
         </Accordion>
-      </div>
+      </div></div>
     </div>
   </div>
 </template>
