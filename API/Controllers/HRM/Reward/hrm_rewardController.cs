@@ -153,6 +153,10 @@ namespace API.Controllers.HRM.Reward
                             hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
+                            if(hrm_Reward.reward_type==1|| hrm_Reward.reward_type == 3)
+                            {
+                                hrm_File.profile_id = hrm_Reward.reward_name;
+                            }
                             db.hrm_file.Add(hrm_File);
 
                         }
@@ -360,6 +364,10 @@ namespace API.Controllers.HRM.Reward
                             hrm_File.created_date = DateTime.Now;
                             hrm_File.created_ip = ip; hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_token_id = tid;
+                            if (hrm_Reward.reward_type == 1 || hrm_Reward.reward_type == 3)
+                            {
+                                hrm_File.profile_id = hrm_Reward.reward_name;
+                            }
                             db.hrm_file.Add(hrm_File);
 
                         }

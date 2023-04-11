@@ -1257,7 +1257,7 @@ const renderTree = (data, id, name, title) => {
     .filter(
       (x) =>
         x.parent_id == null &&
-        arrr.find((xs) => xs.module_id == x.module_id) != null
+        x.module_key=="M13"
     )
     .forEach((m, i) => {
       m.IsOrder = i + 1;

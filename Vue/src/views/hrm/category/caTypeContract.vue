@@ -177,6 +177,7 @@ const options = ref({
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
+const listTypeContract=ref([]);
 const openBasic = (str) => {
   submitted.value = false;
   type_contract.value = {
@@ -187,6 +188,51 @@ const openBasic = (str) => {
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
   };
+listTypeContract.value=[];
+  axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "smartreport_list ",
+              par: [
+           
+                { par: "user_id", va: store.getters.user.user_id },
+         
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        if (isFirst.value) isFirst.value = false;
+        data.forEach((element, i) => {
+          listTypeContract.value.push({
+            name:element.report_name,
+            code:element.report_key
+          })
+        });
+     
+
+        options.value.loading = false;
+      })
+      .catch((error) => {
+        toast.error("Tải dữ liệu không thành công!");
+        options.value.loading = false;
+
+        if (error && error.status === 401) {
+          swal.fire({
+            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            confirmButtonText: "OK",
+          });
+          store.commit("gologout");
+        }
+      });
   checkDisabled.value=false;
   listFilesS.value=[];
   checkIsmain.value = false;
@@ -1174,7 +1220,22 @@ onMounted(() => {
             <InputSwitch v-model="type_contract.is_system" />
           </div>
         </div>
-
+        <div class="field col-12 md:col-12">
+          <label class="col-3 text-left p-0"
+            >Mẫu hợp đồng </label
+          >
+          <Dropdown
+                :filter="true"
+                v-model="type_contract.report_key"
+                :options="listTypeContract"
+                optionLabel="name"
+                optionValue="code"
+                class="col-9"
+                panelClass="d-design-dropdown"
+                placeholder="Chọn mẫu hợp đồng"
+        
+              />
+        </div>
         <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == true).length>0">
           <DataTable
             :value="listFilesS.filter((x) => x.is_system == true)"
@@ -1377,7 +1438,7 @@ onMounted(() => {
         </div>
         <div class="col-12 field   ">File mẫu</div>
          
-        <div class="w-full col-12 field p-0">
+        <div class="w-full col-12 field  ">
           <FileUpload
             chooseLabel="Chọn File"
             :showUploadButton="false"

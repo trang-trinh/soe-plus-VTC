@@ -1860,7 +1860,7 @@ onMounted(() => {
           </div>
 
           <div class="w-full p-0" v-if="checkShow2 == true">
-            <div v-if="list_users_family.length > 0">
+            <div >
               <DataTable
                 :value="list_users_family"
                 :scrollable="true"
@@ -2010,12 +2010,7 @@ onMounted(() => {
                     </a>
                   </template>
                 </Column>
-                <template #empty>
-                  <div
-                    class="align-items-center justify-content-center p-4 text-center m-auto"
-                    style="display: flex; width: 100%; min-height: 200px"
-                  ></div>
-                </template>
+              
               </DataTable>
             </div>
           </div>
@@ -2057,7 +2052,7 @@ onMounted(() => {
           <div class="w-full px-0 pt-0" v-if="checkShow3 == true">
             <div
               style="overflow-x: scroll"
-              v-if="list_academic_level.length > 0"
+            
             >
               <DataTable
                 :value="list_academic_level"
@@ -2224,12 +2219,7 @@ onMounted(() => {
                     </a>
                   </template>
                 </Column>
-                <template #empty>
-                  <div
-                    class="align-items-center justify-content-center p-4 text-center m-auto"
-                    style="display: flex; width: 100%; min-height: 200px"
-                  ></div>
-                </template>
+               
               </DataTable>
             </div>
           </div>
@@ -2271,7 +2261,7 @@ onMounted(() => {
           <div class="w-full px-0 pt-0" v-if="checkShow4 == true">
             <div
               style="overflow-x: scroll"
-              v-if="list_work_experience.length > 0"
+            
             >
               <DataTable
                 :value="list_work_experience"
@@ -2447,12 +2437,7 @@ onMounted(() => {
                     </a>
                   </template>
                 </Column>
-                <template #empty>
-                  <div
-                    class="align-items-center justify-content-center p-4 text-center m-auto"
-                    style="display: flex; width: 100%; min-height: 200px"
-                  ></div>
-                </template>
+                
               </DataTable>
             </div>
           </div>

@@ -262,13 +262,13 @@ const options = ref({
 var dataCol = [];
 const chartDatapie = ref({
   labels: ["Pdf", "Ảnh", "Word, Excel", "Khác"],
-  datasets: [
-    {
-      data: [],
-      backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
-      hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
-    },
-  ],
+  // datasets: [
+  //   {
+  //     data: [],
+  //     backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
+  //     hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+  //   },
+  // ],
 });
 const lightOptions = ref({
   plugins: {
@@ -453,6 +453,7 @@ const updateView = (id) => {
   // .then((response) => {
   // });
 }
+const displayChart = ref(true);
 const loadTudien = () => {
   axios
     .post(
@@ -492,8 +493,19 @@ const loadTudien = () => {
         dataCol[3] = data[0].find((x) => x.file_type == "More")
           ? data[0].find((x) => x.file_type == "More").count_type
           : 0;
-        chartDatapie.value.datasets[0].data = dataCol;
+        chartDatapie.value.datasets = [];
+          displayChart.value= true;
+          setTimeout(() => {
+          lightOptions.value.plugins.legend.display = true;
+          chartDatapie.value.datasets.push({
+            data: [],
+            backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
+            hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+          });
+          chartDatapie.value.datasets[0].data = dataCol;
+        }, 100);          
       }
+      else displayChart.value= false;
       if (data[1].length > 0) {
         total_file.value = data[1][0].total_file;
       }
@@ -1020,8 +1032,6 @@ onMounted(() => {
                           autocomplete="on"
                           inputId="time24"
                           v-model="options.start_date"
-                          @date-select="changeStartDate()"
-                          @input="changeStartDate()"
                           placeholder="Từ ngày"
                         />
                       </div>
@@ -1034,8 +1044,6 @@ onMounted(() => {
                           autocomplete="on"
                           inputId="time24"
                           v-model="options.end_date"
-                          @date-select="changeStartDate()"
-                          @input="changeStartDate()"
                           placeholder="Đến ngày"
                         />
                       </div>
@@ -1341,11 +1349,10 @@ onMounted(() => {
           <div class="header-bar w-full format-center" style="border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
             <h3>Kho số hóa: {{ total_file || 0}} files</h3>
           </div>
-          {{chartDatapie}}
-          <div class="body-right format-center">
+          <div class="body-right format-center" v-if="displayChart">
             <Chart type="pie" style="width: 90% !important" :data="chartDatapie" :options="lightOptions" />
           </div>
-          <div class=" format-center w-full ">
+          <div class=" format-center w-full" v-if="displayChart">
             <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
           </div>
         </div>
@@ -1604,17 +1611,24 @@ onMounted(() => {
 <style lang="scss" scoped>
 ::v-deep(.p-datatable-wrapper) {
 
-  th,
-  td {
+  th {
     height: 50px;
     border: none !important;
     border-top: 1px solid #e9ecef !important;
     border-bottom: 1px solid #e9ecef !important;
-  }
-
-  th {
     background: #fff !important;
   }
+}
+
+::v-deep(.p-selectable-row) {
+
+  td {
+  height: 50px;
+  border: none !important;
+  border-top: 1px solid #e9ecef !important;
+  border-bottom: 1px solid #e9ecef !important;
+}
+
 }
 ::v-deep(.p-datatable-header) {
   padding: 0px !important;
