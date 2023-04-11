@@ -374,7 +374,7 @@ const initTudien = () => {
           });
         }
       });
-      debugger
+      
     })
     .catch((error) => {
       console.log(error);

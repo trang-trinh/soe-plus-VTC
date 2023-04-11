@@ -485,8 +485,10 @@ onMounted(() => {
                   suffix=" %"
                   v-model="slotProps.data.social_ins_percent"
                   @update:modelValue="onchangeInsurance(slotProps.data, 1)"
+                  v-tooltip.top="'Mức đóng'"
                 />
                 <InputNumber
+                v-tooltip.top="'Công ty đóng'"
                   spellcheck="false"
                   :max="100"
                   suffix=" %"
@@ -497,6 +499,7 @@ onMounted(() => {
                   @update:modelValue="onchangeInsurance(slotProps.data, 1)"
                 />
                 <InputNumber
+                v-tooltip.top="'Nhân viên đóng'"
                   spellcheck="false"
                   class="w-4rem ml-2"
                   inputClass="format-center"
