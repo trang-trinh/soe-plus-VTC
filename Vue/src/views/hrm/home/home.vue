@@ -426,7 +426,7 @@ onMounted(() => {
           <div class="card-header" style="cursor: pointer">
             <span>.</span>
           </div>
-          <div class="card-body carousel-hidden-p-link" style="height: 400px">
+          <div class="card-body carousel-hidden-p-link" style="height: 415px">
             <Carousel
               v-show="[].length > 0"
               :value="[]"
@@ -519,7 +519,7 @@ onMounted(() => {
                 :options="lightOptions"
                 :plugins="plugins"
                 class="w-full"
-                :style="{ width: '90% !important' }"
+                :style="{ width: '80% !important' }"
               />
             </div>
             <div
@@ -537,9 +537,9 @@ onMounted(() => {
           <div class="format-center justify-content-between p-3">
             <template v-for="(item, index) in genders">
               <div>
-                <h3 class="m-0">
-                  {{ item.title }}: <span>{{ item.total_name }}</span>
-                </h3>
+                <h1 class="m-0">
+                  <span class="description">{{ item.title }} :</span> <span>{{ item.total_name }}</span>
+                </h1>
               </div>
             </template>
           </div>
@@ -566,7 +566,7 @@ onMounted(() => {
               filterMode="lenient"
               paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
               responsiveLayout="scroll"
-              class="border-none"
+              class="border-none padding-new"
             >
               <Column
                 field="note_name"
@@ -582,7 +582,7 @@ onMounted(() => {
                 class="align-items-center justify-content-center text-center"
               >
                 <template #body="slotProps">
-                  <div class="flex justify-content-center">
+                  <div class="flex" :style="{ justifyContent: 'right' }">
                     <AvatarGroup
                       v-if="
                         slotProps.data.members &&
@@ -993,6 +993,11 @@ span.online {
   .p-datatable-table tr th,
   .p-datatable-table tr td {
     border: none;
+  }
+}
+::v-deep(.padding-new) {
+  .p-datatable-table tr td {
+    padding: 0.5rem 1rem !important;
   }
 }
 </style>
