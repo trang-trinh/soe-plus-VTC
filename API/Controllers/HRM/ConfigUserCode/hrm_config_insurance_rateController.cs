@@ -131,7 +131,6 @@ namespace API.Controllers.HRM.ConfigUserCode
 
                                     hrm_log log = new hrm_log();
                                     log.title = "Cập nhật cấu hình tỷ lệ bảo hiểm ";
-
                                     log.log_module = "hrm_config_insurance_rate";
                                     log.log_type = 1;
                                     log.id_key = null;
