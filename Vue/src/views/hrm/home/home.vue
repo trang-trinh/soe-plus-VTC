@@ -31,6 +31,15 @@ const bgColor = ref([
   "#CCADD7",
   "#B0DE09",
 ]);
+const bgColors = ref([
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+  "#B0DE09",
+]);
 const colors = ref([
   "#CB4335",
   "#FF6600",
@@ -260,7 +269,11 @@ const initOrganization = () => {
 
             tbs[0].forEach((item, index) => {
               animateNumber(item.total, 3000, 0, function (number) {
-                const formattedNumber = number.toLocaleString();
+                const formattedNumber = number.toLocaleString("vi-vN", {
+                  style: "decimal",
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 20,
+                });
                 document.getElementById("counter" + index).innerText =
                   formattedNumber;
               });
@@ -487,7 +500,7 @@ onMounted(() => {
       <div class="col-4 md:col-4">
         <div class="card m-1">
           <div class="card-header" style="cursor: pointer">
-            <span>.</span>
+            <span>Thống kê nhân sự theo độ tuổi</span>
           </div>
           <div class="card-body carousel-hidden-p-link" style="height: 360px">
             <div
@@ -553,6 +566,7 @@ onMounted(() => {
               filterMode="lenient"
               paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
               responsiveLayout="scroll"
+              class="border-none"
             >
               <Column
                 field="note_name"
@@ -603,8 +617,11 @@ onMounted(() => {
                         shape="circle"
                         class="cursor-pointer"
                         :style="{
-                          backgroundColor: bgColor[index % 7],
+                          backgroundColor: bgColors[index % 7],
                           color: 'white',
+                          width: '2.3rem',
+                          height: '2.3rem',
+                          fontSize: '10px !important',
                         }"
                       />
                       <Avatar
@@ -970,6 +987,12 @@ span.online {
   }
   .p-datatable-thead .justify-content-right .p-column-header-content {
     justify-content: right !important;
+  }
+}
+::v-deep(.border-none) {
+  .p-datatable-table tr th,
+  .p-datatable-table tr td {
+    border: none;
   }
 }
 </style>
