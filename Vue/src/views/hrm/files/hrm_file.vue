@@ -18,6 +18,8 @@ const file_detail = ref();
 const data_log = ref();
 const layout = ref("list");
 const first = ref(0);
+const list_users= ref([]);
+const list_profiles= ref([]);
 const list_types = ref([
   { img: "/Portals/file/pdf.png", label: "PDF", type: 1 },
   { img: "/Portals/file/png.png", label: "Ảnh", type: 2 },
@@ -79,9 +81,10 @@ const downloadFile = (file)=>{
 }
 const dataDetail = ref();
 const ModalShowFile = ref(false);
+const fileNamDetail = ref('File số hóa');
 const viewFile = (data)=>{
   updateView(data.file_id);
-
+  fileNamDetail.value = data.file_name;
   dataDetail.value = data;
   ModalShowFile.value = true;
 }
@@ -99,10 +102,15 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_file_count",
+            proc: "hrm_file_count1",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: null },
+                { par: "search", va: options.value.search },
+                { par: "type_files", va: type_files.value },
+                { par: "profiles", va: profiles.value },
+                { par: "users", va: users.value },
+                { par: "start_date", va: options.value.start_date },
+                { par: "end_date", va: options.value.end_date },
             ],
           }),
           SecretKey,
@@ -121,31 +129,43 @@ const loadCount = () => {
     .catch((error) => { });
 };
 //Lấy dữ liệu
-const loadData = (rf) => {
+const loadData = (rf, is_filter) => {
+  if (options.value.users != null && options.value.users.length > 0) {
+    users.value = options.value.users.map((x) => x["user_id"]).join(",");
+    }
+    else  users.value = null;
+    if (options.value.profiles != null && options.value.profiles.length > 0) {
+      profiles.value = options.value.profiles.map((x) => x["profile_id"]).join(",");
+    } else profiles.value = null;
+    if (options.value.type_files != null && options.value.type_files.length > 0) {
+      type_files.value = options.value.type_files.map((x) => x["type"]).join(",");
+    } else type_files.value = null;
+  if(is_filter) loadTudien();
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
       return false;
     }
     if (rf) {
-      if (options.value.PageNo == 0) {
         loadCount();
-      }
     }
-    options.value.type = filterType.value ? filterType.value.type : null;
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_file_list1",
+              proc: "hrm_file_list2",
               par: [
                 { par: "user_id", va: store.getters.user.user_id },
                 { par: "search", va: options.value.search },
-                { par: "type", va: options.value.type },
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
+                { par: "type_files", va: type_files.value },
+                { par: "profiles", va: profiles.value },
+                { par: "users", va: users.value },
+                { par: "start_date", va: options.value.start_date },
+                { par: "end_date", va: options.value.end_date },
+                { par: "pageNo", va: options.value.PageNo },
+                { par: "pageSize", va: options.value.PageSize },
               ],
             }),
             SecretKey,
@@ -157,7 +177,8 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        data.forEach((item, i) => {
+        if(data.length>0){
+          data.forEach((item, i) => {
           item.STT = options.value.PageNo * options.value.PageSize + i + 1;
           item.file_name_grid = item.file_name;
           if (item.file_name.length > 30)
@@ -176,6 +197,8 @@ const loadData = (rf) => {
             : "\nSize: " + item.capacityMB);
         });
         datalists.value = data;
+        }
+        else datalists.value = [];
         options.value.loading = false;
       })
       .catch((error) => {
@@ -239,13 +262,13 @@ const options = ref({
 var dataCol = [];
 const chartDatapie = ref({
   labels: ["Pdf", "Ảnh", "Word, Excel", "Khác"],
-  datasets: [
-    {
-      data: [],
-      backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
-      hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
-    },
-  ],
+  // datasets: [
+  //   {
+  //     data: [],
+  //     backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
+  //     hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+  //   },
+  // ],
 });
 const lightOptions = ref({
   plugins: {
@@ -430,6 +453,7 @@ const updateView = (id) => {
   // .then((response) => {
   // });
 }
+const displayChart = ref(true);
 const loadTudien = () => {
   axios
     .post(
@@ -437,8 +461,16 @@ const loadTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_file_dictionary",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_file_dictionary1",
+            par: [
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "search", va: options.value.search },
+                { par: "type_files", va: type_files.value },
+                { par: "profiles", va: profiles.value },
+                { par: "users", va: users.value },
+                { par: "start_date", va: options.value.start_date },
+                { par: "end_date", va: options.value.end_date },
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -447,32 +479,49 @@ const loadTudien = () => {
       config
     )
     .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (data.length > 0) {
-        dataCol[0] = data.find((x) => x.file_type == "Pdf")
-          ? data.find((x) => x.file_type == "Pdf").count_type
+      let data = JSON.parse(response.data.data);
+      if (data[0].length > 0) {
+        dataCol[0] = data[0].find((x) => x.file_type == "Pdf")
+          ? data[0].find((x) => x.file_type == "Pdf").count_type
           : 0;
-        dataCol[1] = data.find((x) => x.file_type == "Image")
-          ? data.find((x) => x.file_type == "Image").count_type
+        dataCol[1] = data[0].find((x) => x.file_type == "Image")
+          ? data[0].find((x) => x.file_type == "Image").count_type
           : 0;
-        dataCol[2] = data.find((x) => x.file_type == "Word")
-          ? data.find((x) => x.file_type == "Word").count_type
+        dataCol[2] = data[0].find((x) => x.file_type == "Word")
+          ? data[0].find((x) => x.file_type == "Word").count_type
           : 0;
-        dataCol[3] = data.find((x) => x.file_type == "More")
-          ? data.find((x) => x.file_type == "More").count_type
+        dataCol[3] = data[0].find((x) => x.file_type == "More")
+          ? data[0].find((x) => x.file_type == "More").count_type
           : 0;
-        chartDatapie.value.datasets[0].data = dataCol;
+        chartDatapie.value.datasets = [];
+          displayChart.value= true;
+          setTimeout(() => {
+          lightOptions.value.plugins.legend.display = true;
+          chartDatapie.value.datasets.push({
+            data: [],
+            backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
+            hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+          });
+          chartDatapie.value.datasets[0].data = dataCol;
+        }, 100);          
       }
-      let data2 = JSON.parse(response.data.data)[1];
-      if (data.length > 0) {
-        total_file.value = data2[0].total_file;
+      else displayChart.value= false;
+      if (data[1].length > 0) {
+        total_file.value = data[1][0].total_file;
       }
-      let data3 = JSON.parse(response.data.data)[2];
-      if (data.length > 0) {
-        total_size.value = data2[0].total_size;
+      if (data[1].length > 0) {
+        total_size.value = data[1][0].total_size;
+      }
+      if (data[2].length > 0) {
+        list_users.value = data[2];
+      }
+      if (data[3].length > 0) {
+        list_profiles.value = data[3];
       }
     })
-    .catch((error) => { });
+    .catch((error) => { 
+      debugger
+    });
 };
 const first_module = ref(0);
 const filterTrangthai = ref();
@@ -503,9 +552,50 @@ watch(selectedStamps, () => {
     goFile(selectedStamps.value);
   }
 });
-const op = ref();
-const toggle = (event) => {
-  op.value.toggle(event);
+// const op = ref();
+// const toggle = (event) => {
+//   op.value.toggle(event);
+// };
+const onRefresh = ()=>{
+   options.value = {
+  IsNext: true,
+  sort: "created_date",
+  search: "",
+  PageNo: 0,
+  PageSize: 20,
+  loading: true,
+  totalRecords: null,
+  type: null,
+  type_files: [],
+  users: [],
+  profiles: [],
+  start_date: null,
+  end_date: null,
+  };
+  layout.value = 'list'
+  loadData(true, true);
+}
+//filter
+const opfilter = ref();
+const toggleFilter = (event) => {
+  opfilter.value.toggle(event);
+};
+const resetFilter = () => {
+  options.value.type_files = [];
+  options.value.users = [];
+  options.value.profiles = [];
+  options.value.start_date = null;
+  options.value.end_date = null;
+};
+const removeFilter = (idx, array) => {
+  array.splice(idx, 1);
+};
+const users = ref(null);
+const profiles = ref(null);
+const type_files = ref(null);
+const filter = (event) => {
+  opfilter.value.toggle(event);
+  loadData(true, true);
 };
 const formatBytes = (bytes, decimals = 2) => {
   if (bytes === 0) return "0 Bytes";
@@ -553,7 +643,436 @@ onMounted(() => {
         <Toolbar class="w-full custoolbar">
             <template #start>
               <div class="header-bar">
-                <div class="flex w-full p-3">
+                <Toolbar class="outline-none surface-0 border-none pb-1 ml-3">
+                <template #start>
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText
+                      @keyup.enter="loadData(true)"
+                      v-model="options.search"
+                      type="text"
+                      spellcheck="false"
+                      :placeholder="'Tìm kiếm'"
+                    />
+                  </span>
+                  <Button
+                    @click="toggleFilter($event)"
+                    type="button"
+                    class="ml-2 p-button-outlined p-button-secondary"
+                    aria:haspopup="true"
+                    aria-controls="overlay_panel"
+                  >
+                    <div>
+                      <span class="mr-2"><i class="pi pi-filter"></i></span>
+                      <span class="mr-2">Lọc dữ liệu</span>
+                      <span><i class="pi pi-chevron-down"></i></span>
+                    </div>
+                  </Button>
+                  <OverlayPanel
+                    :showCloseIcon="false"
+                    ref="opfilter"
+                    appendTo="body"
+                    class="p-0 m-0"
+                    id="overlay_panel"
+                    style="width: 400px"
+                  >
+                  <div class="grid formgrid m-0">
+                    <div
+                      class="col-12 md:col-12 p-0"
+                      :style="{
+                        minHeight: 'unset',
+                        maxheight: 'calc(100vh - 300px)',
+                        overflow: 'auto',
+                      }"
+                    > 
+                    <div class="row">
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label>Loại</label>
+                          <MultiSelect
+                            :options="list_types"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.type_files"
+                            optionLabel="label"
+                            placeholder="Chọn loại"
+                            class="w-full limit-width"
+                            style="min-height: 36px"
+                            panelClass="d-design-dropdown"
+                          >
+                            <template #value="slotProps">
+                              <ul
+                                class="p-ulchip"
+                                v-if="
+                                  slotProps.value && slotProps.value.length > 0
+                                "
+                              >
+                                <li
+                                  class="p-lichip"
+                                  v-for="(value, index) in slotProps.value"
+                                  :key="index"
+                                >
+                                  <Chip class="mr-2 mb-2 px-3 py-2">
+                                    <div class="flex">
+                                      <div>
+                                        <span>{{ value.label }}</span>
+                                      </div>
+                                      <span
+                                        tabindex="0"
+                                        class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                        @click="
+                                          removeFilter(
+                                            index,
+                                            options.type_files
+                                          );
+                                          $event.stopPropagation();
+                                        "
+                                        v-tooltip.top="'Xóa'"
+                                      ></span>
+                                    </div>
+                                  </Chip>
+                                </li>
+                              </ul>
+                              <span v-else>
+                                {{ slotProps.placeholder }}
+                              </span>
+                            </template>
+                          </MultiSelect>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Người tạo</label>
+                        <MultiSelect
+                          :options="list_users"
+                          v-model="options.users"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          optionLabel="full_name"
+                          placeholder="Chọn người tạo"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip
+                                  :image="value.avatar"
+                                  :label="value.full_name"
+                                  class="mr-2 mb-2 px-3 py-2"
+                                >
+                                  <div class="flex">
+                                    <div class="format-flex-center">
+                                      <Avatar
+                                        v-bind:label="
+                                          value.avatar
+                                            ? ''
+                                            : (
+                                                value.last_name ?? ''
+                                              ).substring(0, 1)
+                                        "
+                                        v-bind:image="
+                                          value.avatar
+                                            ? basedomainURL + value.avatar
+                                            : basedomainURL +
+                                              '/Portals/Image/noimg.jpg'
+                                        "
+                                        :style="{
+                                          background:
+                                            bgColor[value.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '2rem',
+                                          height: '2rem',
+                                        }"
+                                        class="mr-2 text-avatar"
+                                        size="xlarge"
+                                        shape="circle"
+                                      />
+                                    </div>
+                                    <div class="format-flex-center text-left">
+                                      <span>{{ value.full_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.users);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                          <template #option="slotProps">
+                            <div v-if="slotProps.option" class="flex">
+                              <div class="format-center">
+                                <Avatar
+                                  v-bind:label="
+                                    slotProps.option.avatar
+                                      ? ''
+                                      : slotProps.option.profile_user_name.substring(
+                                          0,
+                                          1
+                                        )
+                                  "
+                                  v-bind:image="
+                                    slotProps.option.avatar
+                                      ? basedomainURL + slotProps.option.avatar
+                                      : basedomainURL +
+                                        '/Portals/Image/noimg.jpg'
+                                  "
+                                  :style="{
+                                    background:
+                                      bgColor[slotProps.option.is_order % 7],
+                                    color: '#ffffff',
+                                    width: '3rem',
+                                    height: '3rem',
+                                    fontSize: '1.4rem !important',
+                                  }"
+                                  class="text-avatar m-0"
+                                  size="xlarge"
+                                  shape="circle"
+                                />
+                              </div>
+                              <div class="format-center text-left ml-3">
+                                <div>
+                                  <div class="mb-1">
+                                    {{ slotProps.option.full_name }}
+                                  </div>
+                                  <div class="description">
+                                    <div>
+                                      <span>{{
+                                        slotProps.option.user_id
+                                      }}</span
+                                      ><span
+                                        v-if="slotProps.option.department_name"
+                                      >
+                                        |
+                                        {{
+                                          slotProps.option.department_name
+                                        }}</span
+                                      >
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <span v-else> Chưa có dữ liệu </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Nhân sự</label>
+                        <MultiSelect
+                          :options="list_profiles"
+                          v-model="options.profiles"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          optionLabel="profile_user_name"
+                          placeholder="Chọn nhân sự"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip
+                                  :image="value.avatar"
+                                  :label="value.profile_user_name"
+                                  class="mr-2 mb-2 px-3 py-2"
+                                >
+                                  <div class="flex">
+                                    <div class="format-flex-center">
+                                      <Avatar
+                                        v-bind:label="
+                                          value.avatar
+                                            ? ''
+                                            : (
+                                                value.profile_user_name ?? ''
+                                              ).substring(0, 1)
+                                        "
+                                        v-bind:image="
+                                          value.avatar
+                                            ? basedomainURL + value.avatar
+                                            : basedomainURL +
+                                              '/Portals/Image/noimg.jpg'
+                                        "
+                                        :style="{
+                                          background:
+                                            bgColor[value.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '2rem',
+                                          height: '2rem',
+                                        }"
+                                        class="mr-2 text-avatar"
+                                        size="xlarge"
+                                        shape="circle"
+                                      />
+                                    </div>
+                                    <div class="format-flex-center text-left">
+                                      <span>{{ value.profile_user_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.profiles);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                          <template #option="slotProps">
+                            <div v-if="slotProps.option" class="flex">
+                              <div class="format-center">
+                                <Avatar
+                                  v-bind:label="
+                                    slotProps.option.avatar
+                                      ? ''
+                                      : slotProps.option.profile_user_name.substring(
+                                          0,
+                                          1
+                                        )
+                                  "
+                                  v-bind:image="
+                                    slotProps.option.avatar
+                                      ? basedomainURL + slotProps.option.avatar
+                                      : basedomainURL +
+                                        '/Portals/Image/noimg.jpg'
+                                  "
+                                  :style="{
+                                    background:
+                                      bgColor[slotProps.option.is_order % 7],
+                                    color: '#ffffff',
+                                    width: '3rem',
+                                    height: '3rem',
+                                    fontSize: '1.4rem !important',
+                                  }"
+                                  class="text-avatar m-0"
+                                  size="xlarge"
+                                  shape="circle"
+                                />
+                              </div>
+                              <div class="format-center text-left ml-3">
+                                <div>
+                                  <div class="mb-1">
+                                    {{ slotProps.option.profile_user_name }}
+                                  </div>
+                                  <div class="description">
+                                    <div>
+                                      <span>{{
+                                        slotProps.option.profile_code
+                                      }}</span
+                                      ><span
+                                        v-if="slotProps.option.department_name"
+                                      >
+                                        |
+                                        {{
+                                          slotProps.option.department_name
+                                        }}</span
+                                      >
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <span v-else> Chưa có dữ liệu </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                      <div class="form-group m-0">
+                        <label>Ngày tạo</label>
+                      </div>
+                    </div>
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <Calendar
+                          :showIcon="true"
+                          class="ip36"
+                          autocomplete="on"
+                          inputId="time24"
+                          v-model="options.start_date"
+                          placeholder="Từ ngày"
+                        />
+                      </div>
+                    </div>
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <Calendar
+                          :showIcon="true"
+                          class="ip36"
+                          autocomplete="on"
+                          inputId="time24"
+                          v-model="options.end_date"
+                          placeholder="Đến ngày"
+                        />
+                      </div>
+                    </div>
+                    </div>
+                    <div class="col-12 md:col-12 p-0">
+                      <Toolbar
+                          class="border-none surface-0 outline-none px-0 pb-0 w-full"
+                        >
+                          <template #start>
+                            <Button
+                              @click="resetFilter()"
+                              class="p-button-outlined"
+                              label="Bỏ chọn"
+                            ></Button>
+                          </template>
+                          <template #end>
+                            <Button @click="filter($event)" label="Lọc"></Button>
+                          </template>
+                        </Toolbar>
+                      </div>
+                    </div>
+                    </div>                         
+                  </OverlayPanel>
+                </template>
+                <template #end>
+                </template>
+              </Toolbar>
+                <!-- <div class="flex w-full p-3">
                   <div class="w-15rem mr-2">
                     <Dropdown v-model="filterType" :options="list_types" optionLabel="label" placeholder="Kho dữ liệu"
                       class="w-full" showClear="true" @change="loadData(true)">
@@ -587,7 +1106,7 @@ onMounted(() => {
                       </span>
                     </div>
                   </div>
-                </div>
+                </div> -->
               </div>
             </template>
             <template #end>
@@ -599,21 +1118,11 @@ onMounted(() => {
                   <button class="p-button p-button-icon-only" :class="layout== 'grid'?'p-highlight':''"  type="button" @click="changeView('grid')">
                     <i class="pi pi-th-large"></i>
                   </button>
-                  <!-- <Button
-                  class="p-button-outlined p-button-secondary"
-                  icon="pi pi-bars"
-                  @click="onRefresh"
-                   />
-                  <Button
-                    class="p-button-outlined p-button-secondary"
-                    icon="pi pi-th-large"
-                    @click="onRefresh"
-                  /> -->
                 </div>
                 <Button
                   class="mr-2 ml-2 p-button-outlined p-button-secondary"
                   icon="pi pi-refresh"
-                  @click="onRefresh"
+                  @click="onRefresh()"
                 />
               </template>
           </Toolbar>
@@ -748,7 +1257,7 @@ onMounted(() => {
             class="w-full h-full e-sm flex flex-column p-dataview-unset over-scroll"
             :value="datalists"
             :layout="layout"
-            :paginator="datalists.length > 20"
+            :paginator="datalists.length > 36"
             rows="36"
             responsiveLayout="scroll"
             :scrollable="false"
@@ -838,12 +1347,12 @@ onMounted(() => {
       <div style="width: 320px !important; border-left: 1px solid rgba(0, 0, 0, 0.1);overflow: hidden;">
         <div v-if="!isDetail">
           <div class="header-bar w-full format-center" style="border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
-            <h3>Kho số hóa: {{ total_file }} files</h3>
+            <h3>Kho số hóa: {{ total_file || 0}} files</h3>
           </div>
-          <div class="body-right format-center">
+          <div class="body-right format-center" v-if="displayChart">
             <Chart type="pie" style="width: 90% !important" :data="chartDatapie" :options="lightOptions" />
           </div>
-          <div class=" format-center w-full ">
+          <div class=" format-center w-full" v-if="displayChart">
             <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
           </div>
         </div>
@@ -924,7 +1433,7 @@ onMounted(() => {
   </div>
   <Dialog
     v-model:visible="ModalShowFile"
-    header="Chi tiết"
+    :header="fileNamDetail"
     :modal="true"
     :closable="true"
     :style="{ width: '70vw' }"
@@ -994,6 +1503,8 @@ onMounted(() => {
 </template>
     
 <style scoped>
+  @import url(../profile/component/stylehrm.css);
+
   .header-top{
     height:50px; 
     border-top: 1px solid #e9ecef!important;
@@ -1032,6 +1543,7 @@ onMounted(() => {
 .header-bar {
   background-color: #fff !important;
   height: 57px !important;
+  display:flex;
 }
 
 .body-content {
@@ -1099,17 +1611,24 @@ onMounted(() => {
 <style lang="scss" scoped>
 ::v-deep(.p-datatable-wrapper) {
 
-  th,
-  td {
+  th {
     height: 50px;
     border: none !important;
     border-top: 1px solid #e9ecef !important;
     border-bottom: 1px solid #e9ecef !important;
-  }
-
-  th {
     background: #fff !important;
   }
+}
+
+::v-deep(.p-selectable-row) {
+
+  td {
+  height: 50px;
+  border: none !important;
+  border-top: 1px solid #e9ecef !important;
+  border-bottom: 1px solid #e9ecef !important;
+}
+
 }
 ::v-deep(.p-datatable-header) {
   padding: 0px !important;
@@ -1170,6 +1689,21 @@ onMounted(() => {
 ::v-deep(.p-dataview-content) {
   .grid {
     display: grid !important;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label,
+  .p-treeselect .p-treeselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-chip img {
+    margin: 0;
+  }
+  .p-avatar-text {
+    font-size: 1rem;
   }
 }
 </style>
