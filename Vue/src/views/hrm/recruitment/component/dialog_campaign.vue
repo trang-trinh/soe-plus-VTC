@@ -893,15 +893,11 @@ onMounted(() => {
             <div class="col-12 p-0">
               <div class="p-inputgroup">
                 <InputText
-                
-              placeholder="Nhập mã chiến dịch"
+                 
+           
                   v-model="campaign.campaign_code"
                   class="w-full"
-                  :style="
-                    campaign.campaign_code
-                      ? 'background-color:white !important'
-                      : ''
-                  "
+                  :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                   :class="{
                     'p-invalid': v$.campaign_code.$invalid && submitted,
                   }"

@@ -1614,8 +1614,8 @@ onMounted(() => {
             <Column
               field="vacancy_name"
               header="Đối tượng"
-              headerStyle="text-align:center;max-width:200px;height:50px"
-              bodyStyle="text-align:center;max-width:200px"
+              headerStyle="text-align:center;max-width:250px;height:50px"
+              bodyStyle="text-align:center;max-width:250px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
@@ -1638,8 +1638,8 @@ onMounted(() => {
                       style="
                         background-color: #2196f3;
                         color: #fff;
-                        width: 2rem;
-                        height: 2rem;
+                        width: 3rem;
+                        height: 3rem;
                         font-size: 1rem !important;
                       "
                       :key="index"

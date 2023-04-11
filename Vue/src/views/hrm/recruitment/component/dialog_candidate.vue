@@ -1317,12 +1317,8 @@ onMounted(() => {
                         <InputText
                           v-model="candidate.candidate_code"
                           class="w-full"
-                          placeholder="Nhập mã ứng viên"
-                          :style="
-                            candidate.candidate_code
-                              ? 'background-color:white !important'
-                              : ''
-                          "
+                     
+                          :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                           :class="{
                             'p-invalid':
                               v$.candidate_code.$invalid && submitted,
