@@ -1385,7 +1385,7 @@ onMounted(() => {
           </div>
 
           <div class="w-full p-0" v-if="checkShow == true">
-            <div v-if="list_users_training.length > 0">
+            <div >
               <DataTable
                 :value="list_users_training"
                 :scrollable="true"
@@ -1636,16 +1636,7 @@ onMounted(() => {
                   </template>
                 </Column>
                 <template #empty>
-                  <div
-                    class="
-                      align-items-center
-                      justify-content-center
-                      p-4
-                      text-center
-                      m-auto
-                    "
-                    style="display: flex; width: 100%; min-height: 200px"
-                  ></div>
+         
                 </template>
               </DataTable>
             </div>
@@ -1689,7 +1680,7 @@ onMounted(() => {
           </div>
 
           <div class="w-full px-0 pt-0" v-if="checkShow2 == true">
-            <div style="overflow-x: scroll" v-if="list_schedule.length > 0">
+            <div style="overflow-x: scroll" >
               <DataTable
                 :value="list_schedule"
                 :scrollable="true"
@@ -2012,18 +2003,7 @@ onMounted(() => {
                     </a>
                   </template>
                 </Column>
-                <template #empty>
-                  <div
-                    class="
-                      align-items-center
-                      justify-content-center
-                      p-4
-                      text-center
-                      m-auto
-                    "
-                    style="display: flex; width: 100%; min-height: 200px"
-                  ></div>
-                </template>
+            
               </DataTable>
             </div>
           </div>

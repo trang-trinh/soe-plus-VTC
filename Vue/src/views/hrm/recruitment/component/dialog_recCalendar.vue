@@ -1411,7 +1411,7 @@ onMounted(() => {
           </div>
 
           <div class="w-full p-0" v-if="checkShow2 == true">
-            <div v-if="list_users_recCalendar.length > 0">
+            <div  >
               <DataTable
                 :value="list_users_recCalendar"
                 :scrollable="true"
@@ -1528,12 +1528,7 @@ onMounted(() => {
                     </a>
                   </template>
                 </Column>
-                <template #empty>
-                  <div
-                    class="align-items-center justify-content-center p-4 text-center m-auto"
-                    style="display: flex; width: 100%; min-height: 200px"
-                  ></div>
-                </template>
+           
               </DataTable>
             </div>
           </div>

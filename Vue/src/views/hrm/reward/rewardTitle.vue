@@ -142,12 +142,18 @@ const loadData = (rf) => {
           if (!element.position_name) {
             element.position_name = "";
           } else {
-            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+            element.position_name =
+              " </br> <span class='text-sm'>" +
+              element.position_name +
+              "</span>";
           }
           if (!element.department_name) {
             element.department_name = "";
           } else {
-            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+            element.department_name =
+              " </br> <span class='text-sm'>" +
+              element.department_name +
+              "</span>";
           }
         });
 
@@ -1082,8 +1088,6 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
-
- 
 
 const listRewardLevels = ref([]);
 const listDisciplineLevels = ref([]);
