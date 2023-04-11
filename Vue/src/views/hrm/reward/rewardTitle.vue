@@ -7,6 +7,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 import dialogReward from "./component/dialog_reward.vue";
+import router from "@/router";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -828,7 +829,14 @@ const deleteList = () => {
       });
   }
 };
-
+const goProfile = (profile) => {
+   
+  router.push({
+    name: "profileinfo",
+    params: { id:profile.profile_code},
+    query: { id: profile.profile_id },
+  });
+};
 //Filter
 const reFilter = () => {
   options.value.user_follows = null;
@@ -1653,7 +1661,7 @@ onMounted(() => {
                           : 'background:' + bgColor[item.full_name.length % 7]
                       "
                       :image="basedomainURL + item.avatar"
-                      class="text-avatar cursor-auto"
+                      class="text-avatar cursor-pointer"
                       size="xlarge"
                       shape="circle"
                       v-tooltip.top="{
@@ -1663,6 +1671,7 @@ onMounted(() => {
                           item.department_name,
                         escape: true,
                       }"
+                      @click="goProfile(item)"
                     />
                     <Avatar
                       v-if="data.data.listRewards.length > 4"

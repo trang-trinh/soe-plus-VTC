@@ -1276,7 +1276,7 @@ namespace API.Controllers.HRM
 "  CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 3 THEN(select distinct '[' + STUFF(( " +
     "   SELECT ',{\"full_name\":\"' + cast(ISNULL(hcs.profile_user_name, '') as nvarchar(150)) + '\"' " +
      "     + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(250)) + '\"' + '}' " +
-
+      "     + ',\"profile_id\":\"' + cast(ISNULL(hcs.profile_id, '') as nvarchar(100)) + '\"' + '}' " +
 
   "    FROM hrm_profile   hcs  WHERE hcs.profile_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type) " +
  "  .value('.', 'nvarchar(max)'), 1, 1, '')  +']'   ) " +

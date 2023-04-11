@@ -223,7 +223,7 @@ namespace API.Controllers.Hrn
                     }
                     if (dfs.Count > 0)
                     {
-                        db.hrm_file.AddRange(dfs);
+                        db.hrm_file.AddRange(dfs);db.SaveChanges();
                     }
                     #endregion
                     await db.SaveChangesAsync();

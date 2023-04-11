@@ -95,7 +95,10 @@
   color: #aaa;
   font-size: 12px;
 }
- 
+ .d-design-disabled.p-inputtext{
+  background-color: #eee;
+ cursor: default;
+ }
 .d-style-hover-1{
 
   display: none;
