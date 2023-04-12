@@ -159,7 +159,7 @@ namespace API.Controllers.HRM.Category
                             hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
-                            db.hrm_file.Add(hrm_File);
+                            db.hrm_file.Add(hrm_File);db.SaveChanges();
                             try
                             {
                                 string FilePath = newFileName;
@@ -441,7 +441,7 @@ namespace API.Controllers.HRM.Category
                             hrm_File.created_date = DateTime.Now;
                             hrm_File.created_ip = ip; hrm_File.organization_id = dvid;
                             hrm_File.created_token_id = tid;
-                            db.hrm_file.Add(hrm_File);
+                            db.hrm_file.Add(hrm_File);db.SaveChanges();
                             try
                             {
                                 string FilePath = newFileName;

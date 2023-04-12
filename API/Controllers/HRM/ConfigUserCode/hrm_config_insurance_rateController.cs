@@ -86,7 +86,16 @@ namespace API.Controllers.HRM.ConfigUserCode
                             var das =   db.hrm_config_insurance_rate.AsNoTracking().Where(a => a.insurance_rate_id==item.insurance_rate_id).FirstOrDefault();
                             if (das == null)
                             {
-                        
+
+                                var dasw = db.hrm_config_insurance_rate.AsNoTracking().Where(a => a.from_month.Value.Month == item.from_month.Value.Month
+                                && a.from_month.Value.Year == item.from_month.Value.Year
+                                && a.organization_id == dv  ).FirstOrDefault();
+
+                                if (dasw != null)
+                                {
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Không được thêm 2 tháng trùng tỷ lệ đóng bảo hiểm", err = "1" });
+
+                                }
                                 item.organization_id = int.Parse(dvid);
                                 item.created_by = uid;
                                 item.created_date = DateTime.Now;

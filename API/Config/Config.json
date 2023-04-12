@@ -9,7 +9,7 @@
   "publictoken": "TiXaxJ1/u6DxEoLsEqP4YzpJ2IcBQmrMQQ0PGkUkr8rLbiug4nhtKkx9yFbPyVg4tnzIf4Or2bMn43/Cyj7CtsqhO5m4nts4siYbSwrxq2vppnidhiHpceuKF+4EuhKbiJ2qEMoAYGG01AWVoUyzEQ==",
   "wrongAcceptPass": 5,
   "wrongAcceptIP": 5,
-  "isBlockIP": true,
+  "isBlockIP": false,
   "pathBlockIP": "/Config/BlockIP.json",
   "apiBHBQP": "https://home.soe.vn/",
   "tokenBHBQP": "3CAB0CC9-CE13-4948-866B-124F25352A57",

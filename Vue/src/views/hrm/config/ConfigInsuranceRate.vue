@@ -195,7 +195,9 @@ const onFilterUserDropdown = (value) => {
 const ins_checked = ref(false);
 const datalistsD = ref();
 const datalists = ref([]);
+const arrDisabled=ref([]);
 const loadOrganization = () => {
+  arrDisabled.value=[];
   axios
     .post(
       baseURL + "/api/device_card/getData",
@@ -217,6 +219,7 @@ const loadOrganization = () => {
         data.forEach((element) => {
           ins_checked.value=element.is_auto;
           element.from_month = new Date(element.from_month);
+          arrDisabled.value.push(   element.from_month);
         });
         datalists.value = [...data];
       }
@@ -250,9 +253,10 @@ const saveDeConfig = () => {
         toast.success("Cập nhật tỷ lệ bảo hiểm thành công!");
         loadOrganization();
       } else {
+        loadOrganization();
         swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra vui lòng thử lại sau",
+          title: "Thông báo",
+          text: response.data.ms,
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -398,15 +402,18 @@ onMounted(() => {
     <div class="p-0 surface-0">
       <div class="grid mt-0 p-0 m-0">
         <div class="col-12 field p-0 font-bold">
-          <div class="col-12 p-0 format-center text-xl">Tỷ lệ bảo hiểm</div>
+          <div class="col-12 p-0 format-center text-xl">Tỷ lệ đóng bảo hiểm</div>
         </div>
         <div class="col-12 field format-center p-0 font-bold">
-          <div class="col-6 p-0 format-center text-xl">
-            <div class="col-11 p-0 format-center text-xl"></div>
-            <div class="col-1 p-0 format-center text-xl">
-              <Button @click="add_Item" icon="pi pi-plus" />
-            </div>
-          </div>
+          <Toolbar class="w-full custoolbar">
+
+            <template #end>
+              <div>
+                <Button @click="add_Item" icon="pi pi-plus" />
+              </div>
+            </template>
+          </Toolbar>
+        
         </div>
 
         <div class="col-12 field p-0">
@@ -417,6 +424,7 @@ onMounted(() => {
             :rowHover="true"
             :showGridlines="true"
             scrollDirection="both"
+            :disabledDates="arrDisabled"
           >
             <!-- <Column
                   field="card_number"
@@ -448,6 +456,7 @@ onMounted(() => {
                   :showIcon="true"
                   view="month"
                   placeholder="mm/yyyy"
+                  :disabledDates="arrDisabled"
                 />
               </template>
             </Column>
@@ -463,7 +472,7 @@ onMounted(() => {
                 <InputNumber
                   v-model="slotProps.data.ins_premium"
                   class="w-full"
-                  suffix=" VNĐ"
+                
                 />
               </template>
             </Column>
@@ -488,6 +497,7 @@ onMounted(() => {
                   v-tooltip.top="'Mức đóng'"
                 />
                 <InputNumber
+                
                 v-tooltip.top="'Công ty đóng'"
                   spellcheck="false"
                   :max="100"
@@ -502,11 +512,11 @@ onMounted(() => {
                 v-tooltip.top="'Nhân viên đóng'"
                   spellcheck="false"
                   class="w-4rem ml-2"
-                  inputClass="format-center"
+                  inputClass="format-center d-design-disabled"
                   :max="100"
                   suffix=" %"
                   :useGrouping="false"
-                  disabled
+                 
                   v-model="slotProps.data.social_ins_employee"
                 />
               </template>
@@ -525,12 +535,12 @@ onMounted(() => {
                   class="w-4rem"
                   :max="100"
                   suffix=" %"
-                  placeholder="%"
+                  placeholder="%"      v-tooltip.top="'Mức đóng'"
                   v-model="slotProps.data.accident_ins_percent"
                 />
                 <InputNumber
                   spellcheck="false"
-                  :max="100"
+                  :max="100"            v-tooltip.top="'Công ty đóng'"
                   suffix=" %"
                   class="w-4rem ml-2 format-center"
                   placeholder="CTY"
@@ -538,14 +548,14 @@ onMounted(() => {
                   v-model="slotProps.data.accident_ins_company"
                   @update:modelValue="onchangeInsurance(slotProps.data, 2)"
                 />
-                <InputNumber
+                <InputNumber   v-tooltip.top="'Nhân viên đóng'"
                   spellcheck="false"
-                  class="w-4rem ml-2 format-center"
-                  :max="100"
+                  class="w-4rem ml-2 "
+                  :max="100"    inputClass="format-center d-design-disabled"
                   placeholder="NLĐ"
                   suffix=" %"
                   :useGrouping="false"
-                  disabled
+                   
                   v-model="slotProps.data.accident_ins_employee"
                   @update:modelValue="onchangeInsurance(slotProps.data, 2)"
                 />
@@ -563,8 +573,8 @@ onMounted(() => {
                 <InputNumber
                   spellcheck="false"
                   class="w-4rem"
-                  :max="100"
-                  suffix=" %"
+                  :max="100" 
+                  suffix=" %"     v-tooltip.top="'Mức đóng'"
                   inputClass="format-center"
                   v-model="slotProps.data.health_ins_percent"
                   @update:modelValue="onchangeInsurance(slotProps.data, 3)"
@@ -573,7 +583,7 @@ onMounted(() => {
                   spellcheck="false"
                   class="w-4rem ml-2"
                   :max="100"
-                  suffix=" %"
+                  suffix=" %"            v-tooltip.top="'Công ty đóng'"
                   inputClass="format-center"
                   v-model="slotProps.data.health_ins_company"
                   @update:modelValue="onchangeInsurance(slotProps.data, 3)"
@@ -582,16 +592,16 @@ onMounted(() => {
                   spellcheck="false"
                   :max="100"
                   class="w-4rem ml-2"
-                  suffix=" %"
-                  inputClass="format-center"
-                  disabled
+                  suffix=" %"   v-tooltip.top="'Nhân viên đóng'"
+                  inputClass="format-center d-design-disabled" 
+                   
                   v-model="slotProps.data.health_ins_employee"
                 />
               </template>
             </Column>
             <Column
               field="transfer_place"
-              header="Bảo hiểm thất nghiệp"
+              header="Bảo hiểm thất nghiệp" 
               headerStyle="text-align:center;width:15rem ;height:50px"
               bodyStyle="text-align:center ;width:15rem;"
               class="align-items-center justify-content-center text-center"
@@ -599,7 +609,7 @@ onMounted(() => {
               <template #body="slotProps">
                 <InputNumber
                   spellcheck="false"
-                  class="w-4rem"
+                  class="w-4rem"     v-tooltip.top="'Mức đóng'"
                   suffix=" %"
                   inputClass="format-center"
                   v-model="slotProps.data.unemployment_ins_percent"
@@ -609,16 +619,16 @@ onMounted(() => {
                   spellcheck="false"
                   class="w-4rem ml-2"
                   suffix=" %"
-                  inputClass="format-center"
+                  inputClass="format-center"            v-tooltip.top="'Công ty đóng'"
                   v-model="slotProps.data.unemployment_ins_company"
                   @update:modelValue="onchangeInsurance(slotProps.data, 4)"
                 />
                 <InputNumber
                   spellcheck="false"
                   class="w-4rem ml-2"
-                  suffix=" %"
-                  inputClass="format-center"
-                  disabled
+                  suffix=" %"    inputClass="format-center d-design-disabled"
+                  v-tooltip.top="'Nhân viên đóng'"
+                   
                   v-model="slotProps.data.unemployment_ins_employee"
                 />
               </template>

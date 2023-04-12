@@ -148,7 +148,7 @@ const loadData = (rf) => {
         }
       });
   }
-  if (store.state.user.is_super == 1) {
+  if (store.state.user.is_super == true) {
     loadDonvi();
   }
 };
@@ -204,7 +204,12 @@ const openBasic = (str) => {
     position_name: "",
     is_order: sttPosition.value,
     status: true,
-    organization_id: store.state.user.organization_id,
+    organization_id:
+      store.state.user.is_super == true
+        ? store.state.user.organization_parent_id != null
+          ? store.state.user.organization_parent_id
+          : store.state.user.organization_id
+        : store.state.user.organization_id,
     is_system: store.state.user.is_super == true ? true : false,
   };
 
@@ -392,7 +397,7 @@ const itemButs = ref([
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportData("ExportExcel");
+      exportDaexportData("ExportExcel");
     },
   },
   {
@@ -408,7 +413,10 @@ const toggleExport = (event) => {
 };
 const exportData = (method) => {
   if (store.state.user.is_super == true) {
-    if (Object.keys(filterPhanloai.value)[0] == undefined) {
+    if (
+      filterPhanloai.value == undefined ||
+      Object.keys(filterPhanloai.value)[0] == undefined
+    ) {
       options.value.filter_Org = 1;
     } else if (Object.keys(filterPhanloai.value)[0] == 0) {
       options.value.filter_Org = 3; //list hệ thống
@@ -425,10 +433,6 @@ const exportData = (method) => {
       ? filterTrangthai.value == 1
         ? true
         : false
-      : null;
-  filterPhanloai.value =
-    filterPhanloai.value != null && filterPhanloai.value != ""
-      ? filterPhanloai.value
       : null;
   swal.fire({
     width: 110,
@@ -1011,7 +1015,6 @@ onMounted(() => {
                       placeholder="Phân loại"
                       v-else
                     />
-                    {{ filterPhanloai }}
                   </div>
                 </div>
                 <div class="flex field col-12 p-0">

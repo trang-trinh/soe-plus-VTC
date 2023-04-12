@@ -2018,7 +2018,7 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <div
-                  class="m-2"
+                  class="w-full m-0 p-0"
                   @click="
                     toggleStatus(slotProps.data, $event);
                     $event.stopPropagation();
@@ -2044,37 +2044,36 @@ onMounted(() => {
                     :style="{
                       borderColor:
                       slotProps.data.status == 1
-                        ? '#00CCCC'
+                        ? '#bbbbbb'
                         : slotProps.data.status == 2
-                        ? '#ff8b4e'
-                        : slotProps.data.status == 3
                         ? '#2196f3'
-                        : slotProps.data.status == 4
+                        : slotProps.data.status == 3
                         ? 'var(--green-500)'
+                        : slotProps.data.status == 4
+                        ? '#ff8b4e'
                         : slotProps.data.status == 5
-                        ? 'var(--purple-500)'
-                        : slotProps.data.status == 6
                         ? 'red'
+                   
                         : '#bbbbbb',
                       // backgroundColor: slotProps.data.bg_color,
                       color:
                       slotProps.data.status == 1
-                        ? '#00CCCC'
+                        ? '#bbbbbb'
                         : slotProps.data.status == 2
-                        ? '#ff8b4e'
-                        : slotProps.data.status == 3
                         ? '#2196f3'
-                        : slotProps.data.status == 4
+                        : slotProps.data.status == 3
                         ? 'var(--green-500)'
+                        : slotProps.data.status == 4
+                        ? '#ff8b4e'
                         : slotProps.data.status == 5
-                        ? 'var(--purple-500)'
-                        : slotProps.data.status == 6
                         ? 'red'
+                     
                         : '#bbbbbb',
                       borderRadius: '15px',
-                      padding: '0.3rem 0.75rem !important',
+                      padding: '0.3rem 0.75rem !important', width:'100% !important'
                     }"
                   />
+       
                 </div>
                 <OverlayPanel
                   :showCloseIcon="false"
