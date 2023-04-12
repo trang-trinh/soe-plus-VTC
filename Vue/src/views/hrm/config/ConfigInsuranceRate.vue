@@ -253,9 +253,10 @@ const saveDeConfig = () => {
         toast.success("Cập nhật tỷ lệ bảo hiểm thành công!");
         loadOrganization();
       } else {
+        loadOrganization();
         swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra vui lòng thử lại sau",
+          title: "Thông báo",
+          text: response.data.ms,
           icon: "error",
           confirmButtonText: "OK",
         });

@@ -1848,7 +1848,7 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <div
-                  class="m-2"
+                  class="w-full m-0"
                   @click="
                     toggleStatus(slotProps.data, $event);
                     $event.stopPropagation();
@@ -1880,7 +1880,7 @@ onMounted(() => {
                       slotProps.data.status == 1
                         ? '#00CCCC'
                         : slotProps.data.status == 2
-                        ? '#ff8b4e'
+                        ? 'var(--teal-500)'
                         : slotProps.data.status == 3
                         ? '#2196f3'
                         : slotProps.data.status == 4
@@ -1895,7 +1895,7 @@ onMounted(() => {
                       slotProps.data.status == 1
                         ? '#00CCCC'
                         : slotProps.data.status == 2
-                        ? '#ff8b4e'
+                        ? 'var(--teal-500)'
                         : slotProps.data.status == 3
                         ? '#2196f3'
                         : slotProps.data.status == 4
@@ -1906,9 +1906,10 @@ onMounted(() => {
                         ? 'red'
                         : '#bbbbbb',
                       borderRadius: '15px',
-                      padding: '0.3rem 0.75rem !important',
+                      padding: '0.3rem 0.75rem !important',   width:'100% !important'
                     }"
                   />
+               
                  
                 </div>
                 <OverlayPanel

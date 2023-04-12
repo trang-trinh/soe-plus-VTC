@@ -1439,8 +1439,17 @@ onMounted(() => {
                   "
                   aria:haspopup="true"
                   aria-controls="overlay_panel_status"
+                  class="m-0 w-full"
                 >
+           
                 <Button
+                v-tooltip.top=" slotProps.data.status == 1
+                        ? 'Trúng tuyển'
+                        : slotProps.data.status == 2
+                        ? 'Không trúng tuyển'
+                        : slotProps.data.status == 3
+                        ? 'Đã chuyển HSNS'
+                        : 'Ứng tuyển'"
                 :label="
                       slotProps.data.status == 1
                         ? 'Trúng tuyển'
@@ -1456,9 +1465,9 @@ onMounted(() => {
                     :style="{
                       borderColor:
                       slotProps.data.status == 1
-                        ? '#00CCCC'
+                        ? 'var(--green-500)'
                         : slotProps.data.status == 2
-                        ? '#ff8b4e'
+                        ? 'red'
                         : slotProps.data.status == 3
                         ? '#2196f3'
                         : slotProps.data.status == 4
@@ -1471,9 +1480,9 @@ onMounted(() => {
                       // backgroundColor: slotProps.data.bg_color,
                       color:
                       slotProps.data.status == 1
-                        ? '#00CCCC'
+                        ? 'var(--green-500)'
                         : slotProps.data.status == 2
-                        ? '#ff8b4e'
+                        ? 'red'
                         : slotProps.data.status == 3
                         ? '#2196f3'
                         : slotProps.data.status == 4
@@ -1484,7 +1493,7 @@ onMounted(() => {
                         ? 'red'
                         : '#bbbbbb',
                       borderRadius: '15px',
-                      padding: '0.3rem 0.75rem !important',
+                      padding: '0.3rem 0.75rem !important',  width:'100% !important'
                     }"
                   />
                  
