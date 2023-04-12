@@ -1611,7 +1611,6 @@ const initData = (ref) => {
           treeOrganization.value.forEach((o) => {
             o.list = arr.filter((dp) => dp.department_id == o.organization_id);
           });
-          console.log(treeOrganization.value);
         }
       }
       if (isFirst.value) isFirst.value = false;
