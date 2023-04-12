@@ -1272,9 +1272,9 @@ onMounted(() => {
           </template>
           </Column>
           <Column field="created_date" header="Ngày/ Người tạo"
-            headerStyle="text-align:center;max-width:200px;min-width:200px;height:50px"
-            bodyStyle="text-align:center;max-width:200px;min-width:200px;;max-height:60px"
-            class="align-items-center justify-content-center text-center">
+            headerStyle="text-align:left;max-width:170px;min-width:170px;height:50px"
+            bodyStyle="text-align:left;max-width:170px;min-width:170px;;max-height:60px"
+            class="">
             <template #body="slotProps">
               <span class="mr-2">{{
                 moment(new Date(slotProps.data.created_date)).format(
