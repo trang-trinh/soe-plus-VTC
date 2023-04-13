@@ -29,7 +29,7 @@ const rules = {
       {
         $property: "type_decision_name",
         $validator: "required",
-        $message: "Tên quyết định không được để trống!",
+        $message: "Tên loại quyết định không được để trống!",
       },
     ],
   },
@@ -136,7 +136,8 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].type_decision_id;
+    options.value.id =
+      datalists.value[datalists.value.length - 1].type_decision_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
@@ -176,6 +177,7 @@ const options = ref({
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
+const listTypeContract = ref([]);
 const openBasic = (str) => {
   submitted.value = false;
   type_decision.value = {
@@ -218,7 +220,7 @@ const saveData = (isFormValid) => {
   if (type_decision.value.type_decision_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên quyết định không được vượt quá 250 ký tự!",
+      text: "Tên loại quyết định không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -229,7 +231,7 @@ const saveData = (isFormValid) => {
     let file = filesList.value[i];
     formData.append("image", file);
   }
-
+ 
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
   formData.append("hrm_ca_type_decision", JSON.stringify(type_decision.value));
   swal.fire({
@@ -248,7 +250,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm quyết định thành công!");
+          toast.success("Thêm loại quyết định thành công!");
           loadData(true);
 
           closeDialog();
@@ -280,7 +282,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa quyết định thành công!");
+          toast.success("Sửa loại quyết định thành công!");
 
           closeDialog();
         } else {
@@ -337,6 +339,7 @@ const editTem = (dataTem) => {
       let data1 = JSON.parse(response.data.data)[1];
       if (data) {
         type_decision.value = data[0];
+
         if (
           type_decision.value.is_system == true &&
           (store.getters.user.is_super == false ||
@@ -349,13 +352,12 @@ const editTem = (dataTem) => {
         }
       }
 
-      headerDialog.value = "Sửa quyết định";
+      headerDialog.value = "Sửa loại quyết định";
       isSaveTem.value = true;
       displayBasic.value = true;
     })
     .catch((error) => {});
 };
-const checkDisabled = ref(false);
 //Xóa bản ghi
 const delTem = (Tem) => {
   swal
@@ -379,15 +381,18 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.type_decision_id] : 1,
-          })
+          .delete(
+            baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.type_decision_id] : 1,
+            }
+          )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá quyết định thành công!");
+              toast.success("Xoá loại quyết định thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -410,6 +415,7 @@ const delTem = (Tem) => {
       }
     });
 };
+const checkDisabled = ref(false);
 //Xuất excel
 
 const deleteFileH = (value) => {
@@ -561,7 +567,7 @@ const onCheckBox = (value, check) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái quyết định thành công!");
+          toast.success("Sửa trạng thái loại quyết định thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -593,7 +599,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá quyết định này không!",
+        text: "Bạn có muốn xoá loại quyết định này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -614,15 +620,18 @@ const deleteList = () => {
             listId.push(item.type_decision_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
+            .delete(
+              baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision",
+              {
+                headers: { Authorization: `Bearer ${store.getters.token}` },
+                data: listId != null ? listId : 1,
+              }
+            )
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá quyết định thành công!");
+                toast.success("Xoá loại quyết định thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -749,11 +758,64 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
+const initTuDien = () => {
+  listTypeContract.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smartreport_list ",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      var arrGroups = [];
+      data.forEach((element) => {
+        var strchk = arrGroups.find((x) => x == element.report_group);
+        if (strchk == null) {
+          arrGroups.push(element.report_group);
+        }
+      });
+      arrGroups.forEach((item) => {
+        var ardf = {
+          label: item,
+          items: [],
+        };
+        data
+          .filter((x) => x.report_group == item)
+          .forEach((z) => {
+            ardf.items.push({ label: z.report_name, value: z.report_key });
+          });
+          listTypeContract.value.push(ardf);
+      });
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
 const listFilesS = ref([]);
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+  initTuDien();
   loadData(true);
   return {
     datalists,
@@ -805,7 +867,7 @@ onMounted(() => {
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách quyết định ({{
+          <i class="pi pi-book"></i> Danh sách loại quyết định ({{
             options.totalRecords
           }})
         </h3>
@@ -891,7 +953,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm quyết định')"
+              @click="openBasic('Thêm loại quyết định')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -940,7 +1002,7 @@ onMounted(() => {
 
       <Column
         field="type_decision_name"
-        header="Tên quyết định"
+        header="Tên loại quyết định"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -954,8 +1016,8 @@ onMounted(() => {
           />
         </template>
       </Column>
-      <Column
-        field="type_decision_name"
+      <!-- <Column
+        field="decision_name"
         header="File mẫu"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:100px;height:50px"
@@ -1015,7 +1077,7 @@ onMounted(() => {
             </div>
           </div>
         </template>
-      </Column>
+      </Column> -->
       <Column
         field="status"
         header="Trạng thái"
@@ -1111,7 +1173,7 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Quyết định<span class="redsao">(*)</span></label
+            >Loại quyết định <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="type_decision.type_decision_name"
@@ -1134,7 +1196,7 @@ onMounted(() => {
           >
             <span class="col-12 p-0">{{
               v$.type_decision_name.required.$message
-                .replace("Value", "Tên quyết định")
+                .replace("Value", "Tên loại quyết định")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
@@ -1150,7 +1212,10 @@ onMounted(() => {
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="type_decision.status" :disabled="checkDisabled" />
+            <InputSwitch
+              v-model="type_decision.status"
+              :disabled="checkDisabled"
+            />
           </div>
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
@@ -1160,11 +1225,22 @@ onMounted(() => {
             <InputSwitch v-model="type_decision.is_system" />
           </div>
         </div>
-
-        <div
-          class="col-12 p-0"
-          v-if="listFilesS.filter((x) => x.is_system == true).length > 0"
-        >
+        <div class="field col-12 md:col-12">
+          <label class="col-3 text-left p-0">Mẫu quyết định </label>
+          <Dropdown
+            :filter="true"
+            v-model="type_decision.report_key"
+            :options="listTypeContract"
+            optionLabel="label"
+            optionValue="value"
+            optionGroupLabel="label" optionGroupChildren="items"
+            class="col-9"
+            panelClass="d-design-dropdown"
+            placeholder="Chọn mẫu quyết định"
+      
+          />
+        </div>
+        <!-- <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == true).length>0">
           <DataTable
             :value="listFilesS.filter((x) => x.is_system == true)"
             filterDisplay="menu"
@@ -1177,10 +1253,7 @@ onMounted(() => {
           >
             <Column field="code" header="File mẫu hệ thống">
               <template #body="item">
-                <div
-                  class="p-0 d-style-hover"
-                  style="width: 100%; border-radius: 10px"
-                >
+                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
                   <div class="w-full flex align-items-center">
                     <div class="flex w-full text-900">
                       <div
@@ -1243,7 +1316,7 @@ onMounted(() => {
                     >
                       <Button
                         icon="pi pi-times"
-                        class="p-button-rounded bg-red-300 border-none"
+                        class="p-button-rounded  bg-red-300 border-none"
                         @click="deleteFileH(item.data)"
                       />
                     </div>
@@ -1252,20 +1325,8 @@ onMounted(() => {
               </template>
             </Column>
           </DataTable>
-
-          <!-- <div
-            class="p-0 w-full flex"
-            v-for="(item, index) in "
-            :key="index"
-          >
-           
-          </div> -->
         </div>
-
-        <div
-          class="col-12 p-0"
-          v-if="listFilesS.filter((x) => x.is_system == false).length > 0"
-        >
+        <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == false).length>0">
           <DataTable
             :value="listFilesS.filter((x) => x.is_system == false)"
             filterDisplay="menu"
@@ -1278,10 +1339,7 @@ onMounted(() => {
           >
             <Column field="code" header="  File mẫu Đơn vị">
               <template #body="item">
-                <div
-                  class="p-0 d-style-hover"
-                  style="width: 100%; border-radius: 10px"
-                >
+                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
                   <div class="w-full flex align-items-center">
                     <div class="flex w-full text-900">
                       <div
@@ -1333,20 +1391,20 @@ onMounted(() => {
                             </div>
                             <div class="ml-2" style="word-break: break-all">
                               <div class="ml-2" style="word-break: break-all">
-                                <div style="word-break: break-all">
-                                  {{ item.data.file_name }}
-                                </div>
-                                <div
-                                  v-if="store.getters.user.is_super"
-                                  style="
-                                    word-break: break-all;
-                                    font-size: 11px;
-                                    font-style: italic;
-                                  "
-                                >
-                                  {{ item.data.organization_name }}
-                                </div>
-                              </div>
+                          <div style="word-break: break-all">
+                            {{ item.data.file_name }}
+                          </div>
+                          <div
+                            v-if="store.getters.user.is_super"
+                            style="
+                              word-break: break-all;
+                              font-size: 11px;
+                              font-style: italic;
+                            "
+                          >
+                            {{ item.data.organization_name }}
+                          </div>
+                        </div>
                             </div>
                           </div>
                         </a>
@@ -1355,13 +1413,12 @@ onMounted(() => {
                     <div
                       class="w-3rem align-items-center d-style-hover-1"
                       v-if="
-                        store.getters.user.organization_id ==
-                        item.data.organization_id
-                      "
+                    store.getters.user.organization_id == item.data.organization_id
+                  "
                     >
                       <Button
                         icon="pi pi-times"
-                        class="p-button-rounded bg-red-300 border-none"
+                        class="p-button-rounded  bg-red-300 border-none"
                         @click="deleteFileH(item.data)"
                       />
                     </div>
@@ -1371,24 +1428,27 @@ onMounted(() => {
             </Column>
           </DataTable>
         </div>
-
-        <div class="col-12 field">File mẫu</div>
-        <div class="w-full col-12 field">
+        <div class="col-12 field   ">File mẫu</div>    
+        <div class="w-full col-12 field  ">
           <FileUpload
             chooseLabel="Chọn File"
             :showUploadButton="false"
             :showCancelButton="false"
-            :multiple="false"    accept=".doc,.docx"
+            :multiple="false"
+            accept=".doc,.docx"
             :maxFileSize="524288000"
             @select="onUploadFile"
             @remove="removeFile"
+
+            :fileLimit="1"
+
             :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
           >
             <template #empty>
               <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
             </template>
           </FileUpload>
-        </div>
+        </div> -->
       </div>
     </form>
     <template #footer>

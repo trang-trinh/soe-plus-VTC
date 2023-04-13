@@ -336,24 +336,26 @@ namespace API.Controllers.HRM.Category
                         }
                         fdca_type_contract = provider.FormData.GetValues("hrm_ca_type_contract").SingleOrDefault();
                         hrm_ca_type_contract ca_type_contract = JsonConvert.DeserializeObject<hrm_ca_type_contract>(fdca_type_contract);
-
-
-
-
-
-
-               
-
                         if (!super)
                         {
+                            var ca_type_contract_old = db.hrm_ca_type_contract.AsNoTracking().Where(s => s.type_contract_id == ca_type_contract.type_contract_id ).FirstOrDefault();
                             var sytx = ca_type_contract.report_key;
-                            ca_type_contract.report_key = null;
+                            if(ca_type_contract_old!=null)
+                            ca_type_contract.report_key = ca_type_contract_old.report_key;
+                            else
+                                ca_type_contract.report_key = null;
                             ca_type_contract.modified_by = uid;
                             ca_type_contract.modified_date = DateTime.Now;
                             ca_type_contract.modified_ip = ip;
+
                             ca_type_contract.modified_token_id = tid;
                             db.Entry(ca_type_contract).State = EntityState.Modified;
                             db.SaveChanges();
+
+                            var hrm_smartreport_link_old = db.hrm_smartreport_link.AsNoTracking().Where(s => s.report_type==1 &&
+                            s.key_id ==ca_type_contract.type_contract_id && s.organization_id == dvid).FirstOrDefault();
+                            if (hrm_smartreport_link_old == null)
+                            { 
                             hrm_smartreport_link hrm_Smartreport_Link = new hrm_smartreport_link();
                             hrm_Smartreport_Link.key_id = ca_type_contract.type_contract_id;
                             hrm_Smartreport_Link.report_key = sytx;
@@ -365,6 +367,18 @@ namespace API.Controllers.HRM.Category
                             hrm_Smartreport_Link.created_token_id = tid;
                             db.hrm_smartreport_link.Add(hrm_Smartreport_Link);
                             db.SaveChanges();
+                            }
+                            else
+                            {
+                                hrm_smartreport_link_old.report_key = sytx;
+                                hrm_smartreport_link_old.modified_by = uid;
+                                hrm_smartreport_link_old.modified_date = DateTime.Now;
+                                hrm_smartreport_link_old.modified_ip = ip;
+                                hrm_smartreport_link_old.modified_token_id = tid;
+                                db.Entry(hrm_smartreport_link_old).State = EntityState.Modified;
+                                db.SaveChanges();
+
+                            }
                         }
                         else
                         {
