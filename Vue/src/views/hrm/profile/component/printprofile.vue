@@ -36,7 +36,11 @@ onMounted(() => {
     let url = encodeURIComponent(
       encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
     );
-    url = "https://doconline.soe.vn/report/" + url.replaceAll("%", "==");
+    url =
+      "https://doconline.soe.vn/report/" +
+      url.replaceAll("%", "==") +
+      "?v=" +
+      (new Date().getTime().toString());
     document.getElementById("IframeDoc1").src = url;
   }
 });
