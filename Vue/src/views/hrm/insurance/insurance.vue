@@ -864,8 +864,8 @@ onMounted(() => {
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
               <InputText
-                v-model="options.SearchText"
-                @keyup="initData()"
+                v-model="options.searchStamp"
+                v-on:keyup.enter="initData(true)"
                 type="text"
                 spellcheck="false"
                 placeholder="Tìm kiếm"
