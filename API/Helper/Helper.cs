@@ -24,7 +24,12 @@ using System.Xml;
 using System.Security.Cryptography.Xml;
 using SocketIOClient;
 using System.Net.Sockets;
-
+using API.Helper;
+using System.Net.Http;
+using System.Configuration;
+using System.Runtime.Caching;
+using System.Security.Claims;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helper
 {
@@ -37,6 +42,7 @@ namespace Helper
         //public static string passkey = "1012198815021989";
         public static string psKey = "1012198815021989";
         public static string keyConnect = "1502198910121988";
+        public static bool isEncodeProc = false;
         public static bool socket = true;
         public static bool debug = true;
         public static string logCongtent = "Có lỗi xảy ra, vui lòng thử lại!";
@@ -180,7 +186,29 @@ namespace Helper
                 return name;
             }
         }
+        public static string newFileName(FileInfo path, string filepath, string filename,int i, string root, int dvid)
+        {
 
+            if (path.Exists)
+            {
+                filename = path.Name.Replace(path.Extension, "");
+                if (i == 1)
+                {
+                    filename = filename + "(" + i + ")";
+                }
+                else
+                {
+                    filename = filename.Substring(0,filename.Length-2)+ i + ")";
+                }
+
+                filename+= path.Extension;
+                var newPath = Path.Combine(filepath, filename);
+                  var  newInfor = new FileInfo(newPath);
+                i++;
+                filename = newFileName(newInfor, filepath, filename, i, root, dvid);
+            }
+         return filename;
+        }
         public static string convertToUnSign(string s)
         {
             string stFormD = s.Normalize(NormalizationForm.FormD);
@@ -1772,8 +1800,8 @@ namespace Helper
             for (int i = 0; i <= sqlCheckList.Length - 1; i++)
             {
                 if ((CheckString.IndexOf(sqlCheckList[i], StringComparison.OrdinalIgnoreCase) >= 0))
-                { 
-                    isSQLInjection = true; 
+                {
+                    isSQLInjection = true;
                 }
             }
             return isSQLInjection;
@@ -1784,6 +1812,126 @@ namespace Helper
         {
             string de_str = Codec.DecryptString(conn, keyConnect);
             return de_str;
+        }
+
+        public static void UploadFileToDestination(string jwtcookie, string root, MultipartFileData fileData, string newFileName, int? rswidth, int? rsheight) // rswidth, rsheight: size thumb image
+        {
+            Upload upload = new Upload();
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    await upload.UpdateFile(jwtcookie, root, fileData, newFileName, rswidth, rsheight);
+                    if (System.IO.File.Exists(fileData.LocalFileName))
+                    {
+                        System.IO.File.Delete(fileData.LocalFileName);
+                    }
+                    var PortalsConfig = ConfigurationManager.AppSettings["Portals"];
+                    if (!string.IsNullOrWhiteSpace(PortalsConfig) && (PortalsConfig.Contains("ftp") || PortalsConfig.Contains("http")))
+                    {
+                        if (System.IO.File.Exists(root + newFileName))
+                        {
+                            System.IO.File.Delete(root + newFileName);
+                        }
+                    }
+                }
+                catch { }
+            });
+        }
+        #region encode data proc 
+        public class MemoryCacheHelper
+        {
+            public static string GetValue(string key)
+            {
+                return (string)MemoryCache.Default.Get(key);
+            }
+            public static bool Add(string key, object value, DateTimeOffset absExpiration)
+            {
+                return MemoryCache.Default.Add(key, value, absExpiration);
+            }
+            public static void Set(string key, object value, DateTimeOffset absExpiration)
+            {
+                MemoryCache.Default.Set(key, value, absExpiration);
+
+
+            }
+            public static void Delete(string key)
+            {
+                MemoryCache memoryCache = MemoryCache.Default;
+                if (memoryCache.Contains(key))
+                {
+                    memoryCache.Remove(key);
+                }
+            }
+        }
+        public static string GenerateRandomKey()
+        {
+            const int keyLength = 16;
+            const string allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var rng = new RNGCryptoServiceProvider();
+            var result = new char[keyLength];
+            var bytes = new byte[sizeof(uint)];
+
+            for (int i = 0; i < keyLength; i++)
+            {
+                rng.GetBytes(bytes);
+                uint value = BitConverter.ToUInt32(bytes, 0);
+                result[i] = allowedChars[(int)(value % (uint)allowedChars.Length)];
+            }
+
+            return new string(result);
+        }
+        public static (string, string) checkEncodeData(string JSONresult, string user_id, string EncriptKey)
+        {
+            string key_code = helper.psKey;
+            if (helper.isEncodeProc)
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    // key_code = db.sys_users.FirstOrDefault(e => e.user_id == user_id).key_encode_data;
+                    //  key_code = MemoryCacheHelper.GetValue(user_id).ToString();
+                    key_code = MemoryCacheHelper.GetValue(user_id);
+                    if (key_code == null)
+                    {
+                        key_code = db.sys_users.FirstOrDefault(e => e.user_id == user_id).key_encode_data;
+                        if (key_code != null) MemoryCacheHelper.Add(user_id, key_code, DateTimeOffset.UtcNow.AddMinutes(30));
+                    }
+                    if (key_code == null) key_code = helper.psKey;
+                    JSONresult = Codec.EncryptString(JSONresult, key_code);
+                }
+            }
+            string data_Key = Codec.EncryptString((helper.isEncodeProc ? "1111" : "0000") + "26$#" + key_code, EncriptKey);
+
+            return (JSONresult, data_Key);
+        }
+        #endregion
+        public static Nullable<int> Department(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "dept").FirstOrDefault()?.Value;
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
+        }
+        public static Nullable<int> OrgainzationChild(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "ctid").FirstOrDefault()?.Value;
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
+        }
+        public static Nullable<int> Orgainzation(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
+        }
+        public static Nullable<int> OrgainzationParent(IEnumerable<Claim> claims)
+        {
+            string ctid = claims.Where(p => p.Type == "parent_dvid").FirstOrDefault()?.Value;
+            if (ctid != null)
+                return Convert.ToInt32(ctid);
+            else return null;
         }
     }
 }

@@ -78,7 +78,7 @@ namespace API.Controllers.HRM.Campaign
                         hrm_campaign hrm_Campaign = JsonConvert.DeserializeObject<hrm_campaign>(fdhrm_Campaign);
                        
                       
-                        hrm_Campaign.organization_id = super ? 0 : int.Parse(dvid);
+                        hrm_Campaign.organization_id =   int.Parse(dvid);
                         hrm_Campaign.created_by = uid;
                         hrm_Campaign.created_date = DateTime.Now;
                         hrm_Campaign.created_ip = ip;
@@ -154,7 +154,7 @@ namespace API.Controllers.HRM.Campaign
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
-
+db.SaveChanges();
                         }
 
 
@@ -361,7 +361,7 @@ namespace API.Controllers.HRM.Campaign
                             hrm_File.created_ip = ip; hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
-
+db.SaveChanges();
                         }
 
 

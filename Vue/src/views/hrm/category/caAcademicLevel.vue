@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
- 
+
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -21,7 +21,6 @@ const filters = ref({
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
- 
 });
 const rules = {
   academic_level_name: {
@@ -34,28 +33,27 @@ const rules = {
       },
     ],
   },
- 
 };
- 
- 
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
     .post(
       baseURL + "/api/hrm_ca_academic_level/getData",
-        {
-          str: encr(
-            JSON.stringify({
-        proc: "hrm_ca_academic_level_count",
-        par: [
-          { par: "user_id", va: store.getters.user.user_id },
-          { par: "status", va: null },
-        ],
-      }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },config
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_academic_level_count",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -64,9 +62,7 @@ const loadCount = () => {
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
-    .catch((error) => {
-      
-    });
+    .catch((error) => {});
 };
 //Lấy dữ liệu academic_level
 const loadData = (rf) => {
@@ -81,24 +77,25 @@ const loadData = (rf) => {
       }
     }
     axios
-         .post(
-      baseURL + "/api/hrm_ca_academic_level/getData",
+      .post(
+        baseURL + "/api/hrm_ca_academic_level/getData",
         {
           str: encr(
             JSON.stringify({
-          proc: "hrm_ca_academic_level_list",
-          par: [
-            { par: "pageno", va: options.value.PageNo },
-            { par: "pagesize", va: options.value.PageSize },
-            { par: "user_id", va: store.getters.user.user_id },
-            { par: "status", va: null },
-          ],
-        }),
+              proc: "hrm_ca_academic_level_list",
+              par: [
+                { par: "pageno", va: options.value.PageNo },
+                { par: "pagesize", va: options.value.PageSize },
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "status", va: null },
+              ],
+            }),
             SecretKey,
             cryoptojs
           ).toString(),
-        },config
-    )
+        },
+        config
+      )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
@@ -112,7 +109,7 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-     
+
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -155,7 +152,6 @@ const academic_level = ref({
   academic_level_name: "",
   emote_file: "",
   status: true,
-  is_default: false,
   is_order: 1,
 });
 
@@ -187,9 +183,9 @@ const openBasic = (str) => {
     academic_level_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super?true:false,
   };
 
   checkIsmain.value = false;
@@ -198,56 +194,27 @@ const openBasic = (str) => {
   displayBasic.value = true;
 };
  
-const countries = ref([
-  { name: "Nga", code: "US" },
-  { name: "Canada", code: "US" },
-  { name: "Hoa Kỳ", code: "US" },
-  { name: "Trung Quốc", code: "US" },
-  { name: "Brasil", code: "US" },
-  { name: "Úc", code: "US" },
-  { name: "Ấn Độ", code: "US" },
-  { name: " Argentina", code: "US" },
-  { name: "Kazakhstan", code: "US" },
-  { name: "Algérie", code: "US" },
-  { name: "Cộng hòa Dân chủ Congo", code: "US" },
-  { name: "Greenland", code: "US" },
-  { name: "Ả Rập Xê Út", code: "US" },
-  { name: "México", code: "US" },
-  { name: "Indonesia", code: "US" },
-  { name: "Sudan", code: "US" },
-  { name: "Việt Nam", code: "US" },
-  { name: "Nhật Bản", code: "US" },
-  { name: "Thụy Điển", code: "US" },
-  { name: "Thụy Sĩ", code: "US" },
-  { name: "Hàn quốc", code: "US" },
-  { name: "Anh Quốc", code: "US" },
-  { name: "Lào", code: "US" },
-  { name: "Pháp", code: "US" },
-  { name: "Thái lan", code: "US" },
-]);
 const closeDialog = () => {
   academic_level.value = {
     academic_level_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: 1,
   };
- 
+
   displayBasic.value = false;
   loadData(true);
 };
- 
- 
+
 //Thêm bản ghi
- 
+
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
     return;
   }
- 
+
   if (academic_level.value.academic_level_name.length > 250) {
     swal.fire({
       title: "Error!",
@@ -258,10 +225,13 @@ const saveData = (isFormValid) => {
     return;
   }
   let formData = new FormData();
- 
+
   if (academic_level.value.countryside_fake)
     academic_level.value.countryside = academic_level.value.countryside_fake;
-  formData.append("hrm_ca_academic_level", JSON.stringify(academic_level.value));
+  formData.append(
+    "hrm_ca_academic_level",
+    JSON.stringify(academic_level.value)
+  );
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -280,7 +250,7 @@ const saveData = (isFormValid) => {
           swal.close();
           toast.success("Thêm trình độ học vấn thành công!");
           loadData(true);
-      
+
           closeDialog();
         } else {
           swal.fire({
@@ -312,7 +282,6 @@ const saveData = (isFormValid) => {
           swal.close();
           toast.success("Sửa trình độ học vấn thành công!");
 
-       
           closeDialog();
         } else {
           swal.fire({
@@ -349,7 +318,6 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa trình độ học vấn";
   isSaveTem.value = true;
   displayBasic.value = true;
- 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -409,10 +377,9 @@ const delTem = (Tem) => {
     });
 };
 //Xuất excel
- 
+
 //Sort
 const onSort = (event) => {
- 
   options.value.PageNo = 0;
 
   if (event.sortField == null) {
@@ -448,7 +415,11 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_academic_level", data, config)
+    .post(
+      baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_academic_level",
+      data,
+      config
+    )
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -471,7 +442,7 @@ const loadDataSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-     
+
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
@@ -503,7 +474,7 @@ const refreshStamp = () => {
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
-  filterSQL.value=[];
+  filterSQL.value = [];
   loadData(true);
 };
 const onFilter = (event) => {
@@ -653,7 +624,8 @@ const deleteList = () => {
           });
           axios
             .delete(
-              baseURL + "/api/hrm_ca_academic_level/delete_hrm_ca_academic_level",
+              baseURL +
+                "/api/hrm_ca_academic_level/delete_hrm_ca_academic_level",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -697,15 +669,15 @@ const trangThai = ref([
   { name: "Hiển thị", code: 1 },
   { name: "Không hiển thị", code: 0 },
 ]);
- 
+
 const filterTrangthai = ref();
 
 const reFilterEmail = () => {
   filterTrangthai.value = null;
   isDynamicSQL.value = false;
   checkFilter.value = false;
-  filterSQL.value=[];
-  options.value.SearchText=null;
+  filterSQL.value = [];
+  options.value.SearchText = null;
   op.value.hide();
   loadData(true);
 };
@@ -731,9 +703,10 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
- 
-onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-     //router.back();
+
+onMounted(() => {
+  if (!checkURL(window.location.pathname, store.getters.listModule)) {
+    //router.back();
   }
   loadData(true);
   return {
@@ -745,7 +718,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     openBasic,
     closeDialog,
     basedomainURL,
-   
+
     saveData,
     isFirst,
     searchStamp,
@@ -918,7 +891,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         bodyStyle="text-align:center;max-width:70px"
         :sortable="true"
       ></Column>
- 
+
       <Column
         field="academic_level_name"
         header="Tên trình độ học vấn"
@@ -935,7 +908,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           />
         </template>
       </Column>
- 
+
       <Column
         field="status"
         header="Trạng thái"
@@ -958,7 +931,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             @click="onCheckBox(data.data, true, true)"
           /> </template
       ></Column>
-<Column
+      <Column
         field="organization_id"
         header="Hệ thống"
         headerStyle="text-align:center;max-width:125px;height:50px"
@@ -966,11 +939,8 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
-            <i
-              class="pi pi-check text-blue-400"
-              style="font-size: 1.5rem"
-            ></i>
+          <div v-if="data.data.is_system == true">
+            <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
           </div>
           <div v-else></div>
         </template>
@@ -987,7 +957,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
               store.state.user.is_super == true ||
               store.state.user.user_id == Tem.data.created_by ||
               (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
+                store.state.user.organization_id == Tem.data.organization_id && Tem.data.is_system!=true )
             "
           >
             <Button
@@ -1009,13 +979,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       </Column>
       <template #empty>
         <div
-          class="
-            align-items-center
-            justify-content-center
-            p-4
-            text-center
-            m-auto
-          "
+          class="align-items-center justify-content-center p-4 text-center m-auto"
           v-if="!isFirst"
         >
           <img src="../../../assets/background/nodata.png" height="144" />
@@ -1028,13 +992,12 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
-        
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left p-0"
             >Trình độ <span class="redsao">(*)</span></label
@@ -1065,27 +1028,25 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           </small>
         </div>
 
-       
-        <div   class="col-12 field md:col-12 flex" >
-      
-           
-           
-            <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div class="col-4 text-left p-0">STT</div>
-              <InputNumber
-                v-model="academic_level.is_order"
-                class="col-8 ip36 p-0"
-              />
-            </div>
-            <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div
-               
-                class="col-4 text-center p-0"
-                >Trạng thái
-              </div>
-              <InputSwitch v-model="academic_level.status" />
-            </div>
-          
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">STT</div>
+            <InputNumber
+              v-model="academic_level.is_order"
+              class="col-6 ip36 p-0"
+            />
+          </div>
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-6 text-center p-0">Trạng thái</div>
+            <InputSwitch v-model="academic_level.status" />
+          </div>
+          <div
+            class="field col-4 md:col-4 p-0 align-items-center flex"
+            v-if="store.getters.user.is_super"
+          >
+            <div class="col-6 text-center p-0">Hệ thống</div>
+            <InputSwitch v-model="academic_level.is_system" />
+          </div>
         </div>
       </div>
     </form>
@@ -1094,7 +1055,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         label="Hủy"
         icon="pi pi-times"
         @click="closeDialog"
-      class="p-button-outlined"
+        class="p-button-outlined"
       />
 
       <Button

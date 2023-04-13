@@ -78,7 +78,7 @@ const login = () => {
         if (cookies.get("ck_tabchat") != null) {
           cookies.remove("ck_tabchat");
         }
-        router.push({ path: "/" });
+        router.push({ name: "profile" });
         swal.close();
 
         //socket
@@ -270,7 +270,7 @@ onMounted(() => {
         {{ store.getters.user.organization_name }}
       </h3>
     </div>
-    <div class="login-product-container">
+    <div class="login-product-container" v-if="store.getters.user.product_name ">
       <div class="login-product">
         <h3 class="
                 product-name

@@ -1520,18 +1520,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "(is_system=1 and organization_id= " + helper.OrgainzationParent(claims) + ")") :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                     (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_stamps where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) AS organization_name  from doc_ca_stamps ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -1634,18 +1634,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_positions where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_positions ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -1856,18 +1856,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_tags where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_tags ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -1970,18 +1970,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_receive_places where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_receive_places ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -2074,18 +2074,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= "+helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from ca_positions where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) AS organization_name from ca_positions ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -2186,18 +2186,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_types where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_types ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -2520,16 +2520,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (" (organization_id= " + int.Parse(dvid) + ")"));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
-                { WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + " organization_id is not null"; }
-
+                {
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
+                }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_signers where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_signers ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -2631,18 +2633,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_send_ways where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_send_ways ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -2744,18 +2746,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_security where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_security ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -2857,18 +2859,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_urgency where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_urgency ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -2971,18 +2973,19 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "(is_system=1 and organization_id= " + helper.OrgainzationParent(claims) + ")") :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                     (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select *,(select max(z.is_order) from doc_ca_issue_places z where z.parent_id=p.issue_place_id And z.organization_id=" + (uid == "administrator" ? 0 : int.Parse(dvid)) + ") AS maxIsOrder from doc_ca_issue_places p where " + WhereSQL;
+                    sql = @" select *,(select max(z.is_order) from doc_ca_issue_places z where z.parent_id=p.issue_place_id And z.organization_id=" + (uid == "administrator" ? 0 : int.Parse(dvid)) + ") AS maxIsOrder"+
+                        ",(SELECT organization_name FROM sys_organization so WHERE so.organization_id=p.organization_id) AS organization_name  from doc_ca_issue_places p where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -3083,18 +3086,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" : 
+                                        (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_fields where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) as organization_name from doc_ca_fields ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -3196,18 +3199,19 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)) :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
                 {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                      (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
                 }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select *,(SELECT count(dce.email_group_id) FROM doc_ca_emails AS dce WHERE dce.email_group_id=dceg.email_group_id) email_count from doc_ca_email_groups dceg where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=dceg.organization_id) AS organization_name ,
+(SELECT count(dce.email_group_id) FROM doc_ca_emails AS dce WHERE dce.email_group_id=dceg.email_group_id) email_count from doc_ca_email_groups dceg where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -3420,16 +3424,18 @@ namespace Controllers
                 {
                     WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
                                 (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (" (organization_id= " + int.Parse(dvid) + ")"));
+                                  (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(filterSQL.sqlF) + ")") : "(is_system=1 and organization_id= " + helper.OrgainzationParent(claims)+")") :
+                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : "is_system=1 and organization_id= " + helper.OrgainzationParent(claims)));
                 }
                 else
-                { WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + " organization_id is not null"; }
-
+                {
+                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + (super == "True" ? " ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id in (select * from udf_list_org(" + int.Parse(dvid) + ")))" :
+                     (" ((organization_id = " + helper.OrgainzationParent(claims) + " and is_system=1)or organization_id = " + int.Parse(dvid) + ")"));
+                }
                 if (WhereSQL.Trim() != "")
                 {
                     sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select * from doc_ca_dispatch_books where " + WhereSQL;
+                    sql = @" select *,(SELECT organization_name FROM sys_organization so WHERE so.organization_id=ca.organization_id) AS organization_name from doc_ca_dispatch_books ca where " + WhereSQL;
                 }
                 string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
                 sql += @"
@@ -8320,121 +8326,6 @@ namespace Controllers
             {
                 string contents = helper.ExceptionMessage(e);
                 helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = sql, contents }), domainurl + "/SQL/Filter_device_follows_all", ip, tid, "Lỗi khi gọi proc Filter_device_follows_all", 0, "SQL");
-                if (!helper.debug)
-                {
-                    contents = "";
-                }
-                Log.Error(contents);
-                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1", sql });
-            }
-            //}
-            //catch (Exception)
-            //{
-            //    return Request.CreateResponse(HttpStatusCode.BadRequest);
-            //}
-        }
-        #endregion
-        #region Công việc
-
-        [HttpPost]
-        public async Task<HttpResponseMessage> Filter_TaskGroups([System.Web.Mvc.Bind(Include = "Search,sqlS,sqlF,sqlO")][FromBody] FilterSQL filterSQL)
-        {
-            var identity = User.Identity as ClaimsIdentity;
-            IEnumerable<Claim> claims = identity.Claims;
-            //try
-            //{
-            if (identity == null)
-            {
-                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
-            }
-            //}
-            //catch
-            //{
-            //    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
-            //}
-            //try
-            //{
-            string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
-            string ip = getipaddress();
-            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
-            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value; string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
-            string dvid = claims.Where(x => x.Type == "dvid").FirstOrDefault()?.Value;
-            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-            string sql = "";
-            try
-            {
-                string sqlCount = @"select count(group_id) as totalRecords from task_ca_taskgroup";
-                string WhereSQL = "";
-                if (!string.IsNullOrWhiteSpace(filterSQL.Search))
-                {
-
-                    WhereSQL += (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "") + " group_name like N'%" + filterSQL.Search + "%'";
-
-                }
-                if (WhereSQL.StartsWith(" and "))
-                {
-                    WhereSQL = WhereSQL.Substring(4);
-                }
-                else if (WhereSQL.StartsWith(" or "))
-                {
-                    WhereSQL = WhereSQL.Substring(3);
-                }
-                if (!string.IsNullOrWhiteSpace(filterSQL.sqlS))
-                {
-                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + " status=" + int.Parse(filterSQL.sqlS);
-                }
-                else
-                {
-                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") + " status is not null";
-                }
-                if (!string.IsNullOrWhiteSpace(filterSQL.sqlF))
-                {
-                    WhereSQL += (WhereSQL.Trim() != "" ? " And " : " ") +
-                                (super == "True" ?
-                                (" organization_id = " + int.Parse(filterSQL.sqlF)) :
-                                (int.Parse(filterSQL.sqlF) != 0 ? (" (organization_id= " + int.Parse(dvid) + ")") : " organization_id=0 "));
-                }
-                else
-                {
-                    WhereSQL += super == "True" ? "" : (WhereSQL.Trim() != "" ? " And " : " ") +
-                                        (" (organization_id = 0 or organization_id = " + int.Parse(dvid) + ")");
-                }
-                if (WhereSQL.Trim() != "")
-                {
-                    sqlCount += " WHERE " + WhereSQL;
-                    sql = @" select *, (select avatar from sys_users s WHERE s.user_id=t.created_by) as avt,
-                                            (select full_name from sys_users s WHERE s.user_id=t.created_by) as fullname from task_ca_taskgroup t where " + WhereSQL;
-                }
-                //string OFFSET = @"(" + filterSQL.PageNo + @") * (" + filterSQL.PageSize + @")";
-
-                sql += @" ORDER BY " + (filterSQL.sqlO != null ? filterSQL.sqlO : "is_order asc  ");
-                //+ @"OFFSET " + OFFSET + " ROWS FETCH NEXT " + filterSQL.PageSize + " ROWS ONLY ";
-                sql += sqlCount;
-                sql = sql.Replace("\r", " ").Replace("\n", " ").Replace("   ", " ").Trim();
-                sql = Regex.Replace(sql, @"\s+", " ").Trim();
-                var task = Task.Run(() => SqlHelper.ExecuteDataset(Connection, System.Data.CommandType.Text, sql).Tables);
-                var tables = await task;
-                string JSONresult = JsonConvert.SerializeObject(tables);
-                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, sql, err = "0" });
-            }
-            catch (DbEntityValidationException e)
-            {
-                string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = sql, contents }),
-                    domainurl + "/SQL/Filter_TaskGroup", ip, tid, "Lỗi khi gọi Filter_TaskGroup", 0, "SQL");
-                if (!helper.debug)
-                {
-                    contents = "";
-                }
-                Log.Error(contents);
-                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1", sql });
-            }
-            catch (Exception e)
-            {
-                string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = sql, contents }),
-                   domainurl + "/SQL/Filter_TaskGroup", ip, tid, "Lỗi khi gọi Filter_TaskGroup", 0, "SQL");
                 if (!helper.debug)
                 {
                     contents = "";

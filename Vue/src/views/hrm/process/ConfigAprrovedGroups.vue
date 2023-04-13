@@ -707,7 +707,7 @@ const loadData = (rf) => {
               { par: "pagesize", va: options.value.pagesize },
               { par: "user_id", va: store.getters.user.user_id },
     
-              { par: "module_id", va: 235 },
+              { par: "module_key", va: "M13" },
               { par: "status", va: null },
             ],
           }),
@@ -748,8 +748,7 @@ const loadData = (rf) => {
                   ilem.department_id=Number(ilem.department_id);
                   if(ilem.avatar=="")
                   ilem.avatar=null;
-                  else
-                  ilem.avatar= ilem.avatar;
+             
                   
              
                 });
@@ -1258,7 +1257,7 @@ const renderTree = (data, id, name, title) => {
     .filter(
       (x) =>
         x.parent_id == null &&
-        arrr.find((xs) => xs.module_id == x.module_id) != null
+        x.module_key=="M13"
     )
     .forEach((m, i) => {
       m.IsOrder = i + 1;

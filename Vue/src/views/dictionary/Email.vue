@@ -139,7 +139,10 @@ const loadDonvi = () => {
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
-          JSON.stringify({ proc: "sys_org_list" }),
+          JSON.stringify({
+            proc: "sys_organization_list_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
           SecretKey,
           cryoptojs,
         ).toString(),
@@ -328,24 +331,20 @@ const openBasic = (str) => {
     email_group_name: "",
     is_order: sttEmailGroup.value,
     status: true,
+    organization_id:
+      store.state.user.is_super == true
+        ? store.state.user.organization_parent_id != null
+          ? store.state.user.organization_parent_id
+          : store.state.user.organization_id
+        : store.state.user.organization_id,
+    is_system: store.state.user.is_super == true ? true : false,
   };
-  if (store.state.user.is_super) {
-    EmailGroup.value.organization_id = 0;
-  } else {
-    EmailGroup.value.organization_id = store.state.user.organization_id;
-  }
   issaveEmailGroup.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
 };
 const closeDialog = () => {
-  EmailGroup.value = {
-    email_group_name: "",
-    is_order: 1,
-    status: true,
-  };
   displayBasic.value = false;
-  loadData(true);
 };
 const closeDialogEmail = () => {
   Email.value = {
@@ -538,11 +537,6 @@ const editEmailGroup = (dataEmailGroup) => {
   headerDialog.value = "Sửa nhóm email";
   issaveEmailGroup.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_super) {
-    EmailGroup.value.organization_id = 0;
-  } else {
-    EmailGroup.value.organization_id = store.state.user.organization_id;
-  }
 };
 const editEmail = (dataEmail) => {
   submitted.value = false;
@@ -770,13 +764,24 @@ const exportDataEmail = (method) => {
     });
 };
 const exportData = (method) => {
-  if (filterPhanloai_EG.value == undefined || filterPhanloai_EG.value == null) {
-    options.value.filter_Org = 1;
-  } else if (filterPhanloai_EG.value == 0) {
-    options.value.filter_Org = 3;
-  } else options.value.filter_Org = 2;
+  if (store.state.user.is_super == true) {
+    if (
+      filterPhanloai_EG.value == undefined ||
+      Object.keys(filterPhanloai_EG.value)[0] == undefined
+    ) {
+      options.value.filter_Org = 1;
+    } else if (Object.keys(filterPhanloai_EG.value)[0] == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  } else {
+    if (filterPhanloai_EG.value == undefined) {
+      options.value.filter_Org = 1;
+    } else if (filterPhanloai_EG.value == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  }
   filterTrangthai_EG.value =
-    filterPhanloai_EG.value != null
+    filterTrangthai_EG.value != null
       ? filterTrangthai_EG.value == 1
         ? true
         : false
@@ -787,6 +792,7 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
+
   axios
     .post(
       baseURL + "/api/Excel/ExportExcel",
@@ -797,7 +803,14 @@ const exportData = (method) => {
           { par: "search", va: options.value.SearchText },
           { par: "status", va: filterTrangthai_EG.value },
           { par: "user_id", va: store.state.user.user_id },
-          { par: "s_org", va: filterPhanloai_EG.value },
+          {
+            par: "s_org",
+            va:
+              filterPhanloai_EG.value != null
+                ? Object.keys(filterPhanloai_EG.value)[0]
+                : null,
+          },
+          { par: "filter_Org", va: options.value.filter_Org },
         ],
       },
       config,
@@ -1007,7 +1020,9 @@ const onCheckBox = (value) => {
   if (
     store.state.user.is_super == true ||
     store.state.user.user_id == value.created_by ||
-    store.state.user.role_id == "admin"
+    (store.state.user.is_admin &&
+      value.is_system != true &&
+      store.state.user.organization_id == value.organization_id)
   ) {
     axios
       .put(
@@ -1042,7 +1057,12 @@ const onCheckBox = (value) => {
   } else {
     swal.fire({
       title: "Thông báo!",
-      text: "Bạn không có quyền chỉnh sửa! Chỉ có Quản trị viên đơn vị hoặc Quản trị viên hệ thống mới có quyền chỉnh sửa mục này",
+      text:
+        "Bạn không có quyền chỉnh sửa! Chỉ có " +
+        (value.is_system
+          ? "Quản trị viên hệ thống"
+          : "Quản trị viên đơn vị hoặc Quản trị viên hệ thống") +
+        " mới có quyền chỉnh sửa mục này",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -1423,7 +1443,7 @@ const refresh = () => {
     PageSize: 20,
   };
   options.value.loading = true;
-  filterPhanloai.value = "";
+  filterPhanloai_EG.value = "";
   filterTrangthai.value = "";
   isDynamicSQL.value = false;
   selectedEmailGroups.value = [];
@@ -1513,6 +1533,7 @@ const Upload = () => {
       )
       .then((response) => {
         if (response.data.err != "1") {
+          swal.close();
           toast.success("Nhập dữ liệu thành công");
           isDynamicSQL.value = false;
           if (!isShowEmail.value) loadData(true);
@@ -1620,26 +1641,18 @@ onMounted(() => {
               class="p-0 m-0"
               :showCloseIcon="false"
               id="overlay_panel"
-              :style="
-                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
-              "
+              :style="'width:400px'"
             >
               <div class="grid formgrid m-0">
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-3 text-left pt-2 p-0'"
                     style="text-align: left"
                   >
                     Phân loại
                   </div>
 
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-9'">
                     <TreeSelect
                       v-model="filterPhanloai_EG"
                       :options="treedonvis"
@@ -1648,6 +1661,7 @@ onMounted(() => {
                       placeholder="Chọn đơn vị"
                       class="col-12 p-0 m-0 md:col-12"
                       v-if="store.state.user.is_super == 1"
+                      panelClass="d-design-dropdown"
                     />
                     <Dropdown
                       class="col-12 p-0 m-0"
@@ -1662,18 +1676,12 @@ onMounted(() => {
                 </div>
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-3 text-left pt-2 p-0'"
                     style="text-align: center,justify-content:center"
                   >
                     Trạng thái
                   </div>
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-9'">
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterTrangthai_EG"
@@ -1747,34 +1755,27 @@ onMounted(() => {
       </template>
       <Column
         selectionMode="multiple"
-        headerStyle="text-align:center;max-width:4rem;height:3.125rem"
-        bodyStyle="text-align:center;max-width:4rem; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-3rem"
         v-if="store.state.user.is_super == true"
       ></Column>
       <Column
         field="STT"
         header="STT"
         :sortable="true"
-        headerStyle="text-align:center;max-width:6rem;height:3.125rem"
-        bodyStyle="text-align:center;max-width:6rem; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-5rem"
       >
       </Column>
       <Column
         field="email_group_name"
         header="Nhóm Email"
         :sortable="true"
-        headerStyle="height:3.125rem"
-        bodyStyle=" "
+        headerClass="align-items-center justify-content-center text-center"
       >
       </Column>
       <Column
         field="email_count"
         header="Số email"
-        headerStyle="text-align:center;max-width:150px;height:3.125rem"
-        bodyStyle="text-align:center;max-width:150px; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-6rem"
       >
         <template #body="data">
           <div>
@@ -1791,9 +1792,7 @@ onMounted(() => {
       <Column
         field="status"
         header="Hiển thị"
-        headerStyle="text-align:center;max-width:7.5rem;height:3.125rem"
-        bodyStyle="text-align:center;max-width:7.5rem; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-6rem"
       >
         <template #body="data">
           <Checkbox
@@ -1804,15 +1803,12 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        v-if="!isShowEmail"
-        field="organization_id"
+        field="is_system"
         header="Hệ thống"
-        headerStyle="text-align:center;max-width:7.5rem;height:3.125rem"
-        bodyStyle="text-align:center;max-width:7.5rem; "
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-7rem"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system == 1">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
@@ -1822,18 +1818,23 @@ onMounted(() => {
         </template>
       </Column>
       <Column
+        field="organization_name"
+        header="Đơn vị"
+        class="align-items-center justify-content-center text-center max-w-30rem"
+      >
+      </Column>
+      <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:7.5rem;height:3.125rem;min-width:9.375rem;"
-        bodyStyle="text-align:center;max-width:7.5rem ;min-width:9.375rem"
+        class="align-items-center justify-content-center text-center max-w-10rem"
       >
         <template #body="data">
           <div
             v-if="
               store.state.user.is_super == true ||
               store.state.user.user_id == data.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == data.data.organization_id)
+              (store.state.user.is_admin &&
+                data.data.is_system != true &&
+                data.data.organization_id == store.state.user.organization_id)
             "
           >
             <Button
@@ -1870,12 +1871,7 @@ onMounted(() => {
   <Sidebar
     v-model:visible="isShowEmail"
     position="right"
-    class="main-layout p-sidebar-lg py-0 overflow-hidden true flex-grow-1 p-2"
-    :style="
-      width < 1900
-        ? 'width: 86vw; min-height: 100vh !important'
-        : 'width: 70vw; min-height: 100vh !important'
-    "
+    :style="'width: 70vw; min-height: 100vh !important'"
     :showCloseIcon="false"
     @hide="hideall()"
   >
@@ -1889,7 +1885,6 @@ onMounted(() => {
       <DataTable
         :lazy="true"
         @page="onPageEmail($event)"
-        @filter="onFilterEmail($event)"
         @sort="onSortEmail($event)"
         :value="emailList"
         :loading="optionsEmail.loading"
@@ -1946,28 +1941,9 @@ onMounted(() => {
                   class="p-0 m-0"
                   :showCloseIcon="false"
                   id="overlay_panel"
-                  :style="'width:300px'"
+                  :style="'width:400px'"
                 >
                   <div class="grid formgrid m-0">
-                    <!-- <div class="flex field col-12 p-0">
-                      <div
-                        :class="'col-4 text-left pt-2 p-0'"
-                        style="text-align: left"
-                      >
-                        Phân loại
-                      </div>
-
-                      <div :class="'col-8'">
-                        <Dropdown
-                          class="col-12 p-0 m-0"
-                          v-model="filterPhanloai"
-                          :options="phanLoai"
-                          optionLabel="name"
-                          optionValue="code"
-                          placeholder="Phân loại"
-                        />
-                      </div>
-                    </div> -->
                     <div class="flex field col-12 p-0">
                       <div
                         :class="'col-4 text-left pt-2 p-0'"
@@ -2056,22 +2032,15 @@ onMounted(() => {
         </template>
         <Column
           selectionMode="multiple"
-          headerStyle="text-align:center;max-width:5rem;height:50px"
-          bodyStyle="text-align:center;max-width:5rem;"
-          class="align-items-center justify-content-center text-center"
-          v-if="
-            store.state.user.is_super == true ||
-            store.state.user.role_id == 'admin'
-          "
+          class="align-items-center justify-content-center text-center max-w-3rem"
+          v-if="store.state.user.is_super == true"
         >
         </Column>
         <Column
           field="STT"
           header="STT"
           :sortable="true"
-          headerStyle="text-align:center;max-width:5rem;height:50px"
-          bodyStyle="text-align:center;max-width:5rem;"
-          class="align-items-center justify-content-center text-center"
+          class="align-items-center justify-content-center text-center max-w-5rem"
         >
         </Column>
 
@@ -2079,8 +2048,6 @@ onMounted(() => {
           field="email_name"
           header="Email"
           :sortable="true"
-          headerStyle="text-align:center;max-width:23rem;height:50px"
-          bodyStyle="text-align:center;max-width:23rem;"
           class="align-items-center justify-content-center text-center"
         >
         </Column>
@@ -2089,26 +2056,21 @@ onMounted(() => {
           field="full_name"
           header="Họ và tên"
           :sortable="true"
-          headerStyle="text-align:center;max-width:23rem;height:50px"
-          bodyStyle="text-align:center;max-width:23rem;"
-          class="align-items-center justify-content-center text-center"
+          class="align-items-center justify-content-center text-center max-w-20rem"
         >
         </Column>
 
         <Column
           field="description"
           header="Mô tả"
-          headerStyle="text-align:center;height:50px"
-          bodyStyle=""
-          class="align-items-center justify-content-center text-justify"
+          headerClass="align-items-center justify-content-center text-center"
+          class="max-w-12rem"
         >
         </Column>
         <Column
           field="status"
           header="Hiển thị"
-          headerStyle="text-align:center;max-width:5rem;height:50px"
-          bodyStyle="text-align:center;max-width:5rem;"
-          class="align-items-center justify-content-center text-center"
+          class="align-items-center justify-content-center text-center max-w-7rem"
         >
           <template #body="data">
             <Checkbox
@@ -2118,35 +2080,17 @@ onMounted(() => {
             />
           </template>
         </Column>
-        <!-- <Column
-          field="organization_id"
-          header="Hệ thống"
-          headerStyle="text-align:center;max-width:5rem;height:50px"
-          bodyStyle="text-align:center;max-width:5rem;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="data">
-            <div v-if="data.data.organization_id == 0">
-              <i
-                class="pi text-blue-400 pi-check"
-                style="font-size: 1.5rem"
-              ></i>
-            </div>
-            <div v-else></div>
-          </template>
-        </Column> -->
+
         <Column
           header="Chức năng"
-          headerStyle="text-align:center;max-width:7em;height:50px"
-          bodyStyle="text-align:center;max-width:7rem;"
-          class="align-items-center justify-content-center text-center"
+          class="align-items-center justify-content-center text-center max-w-8rem"
         >
           <template #body="data">
             <div
               v-if="
                 store.state.user.is_super == true ||
                 store.state.user.user_id == data.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
+                (store.state.user.is_admin &&
                   store.state.user.organization_id == data.data.organization_id)
               "
             >
@@ -2162,7 +2106,7 @@ onMounted(() => {
                 class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                 type="button"
                 icon="pi pi-trash"
-                v-tooltip="'Xóa'"
+                v-tooltip.bottom="'Xóa'"
               ></Button>
             </div>
           </template>
@@ -2197,7 +2141,7 @@ onMounted(() => {
           <InputText
             v-model="EmailGroup.email_group_name"
             spellcheck="false"
-            class="col-8 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{ 'p-invalid': v$.email_group_name.$invalid && submitted }"
           />
         </div>
@@ -2224,21 +2168,37 @@ onMounted(() => {
           style="display: flex"
           class="col-12 field md:col-12"
         >
-          <div class="field col-6 md:col-6 p-0">
-            <label class="col-6 text-left p-0">STT </label>
+          <div
+            class="flex field col-6 md:col-6 p-0 align-items-center justify-content-center"
+          >
+            <label class="col-6 text-left p-0 align-items-center">STT </label>
             <InputNumber
               v-model="EmailGroup.is_order"
               class="col-6 ip36 p-0"
             />
           </div>
-          <div class="field col-6 md:col-6 p-0">
+          <div class="field col-3 md:col-3 align-items-center">
             <label
               style="vertical-align: text-bottom"
-              class="col-6 text-center p-0"
+              class="col-6"
               >Trạng thái
             </label>
             <InputSwitch
               v-model="EmailGroup.status"
+              class="col-6"
+            />
+          </div>
+          <div
+            class="field col-3 md:col-3 align-items-center"
+            v-if="store.state.user.is_super"
+          >
+            <label
+              style="vertical-align: text-bottom"
+              class="col-6"
+              >Hệ thống
+            </label>
+            <InputSwitch
+              v-model="EmailGroup.is_system"
               class="col-6"
             />
           </div>
@@ -2462,16 +2422,5 @@ onMounted(() => {
   background: #2196f3 !important;
   border-color: #fde3e3;
   color: #574949;
-}
-</style>
-<style>
-.p-treeselect-panel {
-  max-width: 30vw !important;
-}
-.p-treeselect-panel .p-treeselect-items-wrapper .p-tree {
-  max-height: 17vh !important;
-}
-.p-dropdown-item {
-  white-space: normal !important;
 }
 </style>

@@ -29,7 +29,7 @@ const rules = {
       {
         $property: "vacancy_name",
         $validator: "required",
-        $message: "Tên vị trí tuyển dụng không được để trống!",
+        $message: "Tên trường đào tạo không được để trống!",
       },
     ],
   },
@@ -151,7 +151,6 @@ const vacancy = ref({
   vacancy_name: "",
   emote_file: "",
   status: true,
-  is_default: false,
   is_order: 1,
 });
 
@@ -183,9 +182,8 @@ const openBasic = (str) => {
     vacancy_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
+    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
   };
 
   checkIsmain.value = false;
@@ -199,7 +197,6 @@ const closeDialog = () => {
     vacancy_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: 1,
   };
 
@@ -219,7 +216,7 @@ const saveData = (isFormValid) => {
   if (vacancy.value.vacancy_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên vị trí tuyển dụng không được vượt quá 250 ký tự!",
+      text: "Tên trường đào tạo không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -242,7 +239,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm vị trí tuyển dụng thành công!");
+          toast.success("Thêm trường đào tạo thành công!");
           loadData(true);
 
           closeDialog();
@@ -270,7 +267,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa vị trí tuyển dụng thành công!");
+          toast.success("Sửa trường đào tạo thành công!");
 
           closeDialog();
         } else {
@@ -305,7 +302,7 @@ const editTem = (dataTem) => {
   } else {
     checkIsmain.value = true;
   }
-  headerDialog.value = "Sửa vị trí tuyển dụng";
+  headerDialog.value = "Sửa trường đào tạo";
   isSaveTem.value = true;
   displayBasic.value = true;
   
@@ -341,7 +338,7 @@ const delTem = (Tem) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá vị trí tuyển dụng thành công!");
+              toast.success("Xoá trường đào tạo thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -508,7 +505,7 @@ const onCheckBox = (value, check, checkIsmain) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái vị trí tuyển dụng thành công!");
+          toast.success("Sửa trạng thái trường đào tạo thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -540,7 +537,7 @@ const onCheckBox = (value, check, checkIsmain) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái vị trí tuyển dụng thành công!");
+          toast.success("Sửa trạng thái trường đào tạo thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -569,7 +566,7 @@ const deleteList = () => {
   let checkD = false;
   selectedStamps.value.forEach((item) => {
     if (item.is_default) {
-      toast.error("Không được xóa vị trí tuyển dụng mặc định!");
+      toast.error("Không được xóa trường đào tạo mặc định!");
       checkD = true;
       return;
     }
@@ -578,7 +575,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá vị trí tuyển dụng này không!",
+        text: "Bạn có muốn xoá trường đào tạo này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -607,7 +604,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá vị trí tuyển dụng thành công!");
+                toast.success("Xoá trường đào tạo thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -731,7 +728,7 @@ onMounted(() => {
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-send"></i> Danh sách vị trí tuyển dụng ({{
+          <i class="pi pi-building"></i> Danh sách trường đào tạo ({{
             options.totalRecords
           }})
         </h3>
@@ -817,7 +814,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm vị trí tuyển dụng')"
+              @click="openBasic('Thêm trường đào tạo')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -866,7 +863,7 @@ onMounted(() => {
 
       <Column
         field="vacancy_name"
-        header="Tên vị trí tuyển dụng"
+        header="Tên trường đào tạo"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -911,7 +908,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system== true">
             <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
           </div>
           <div v-else></div>
@@ -970,7 +967,7 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
@@ -978,7 +975,7 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Vị trí tuyển dụng <span class="redsao">(*)</span></label
+            >Trường đào tạo <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="vacancy.vacancy_name"
@@ -1000,22 +997,32 @@ onMounted(() => {
           >
             <span class="col-12 p-0">{{
               v$.vacancy_name.required.$message
-                .replace("Value", "Tên vị trí tuyển dụng")
+                .replace("Value", "Tên trường đào tạo")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
-
         <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
-            <InputNumber v-model="vacancy.is_order" class="col-6 ip36 p-0" />
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-9 text-left p-0">STT</div>
+            <InputNumber
+              v-model="vacancy.is_order"
+              class="col-3 ip36 p-0"
+            />
           </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
             <InputSwitch v-model="vacancy.status" />
           </div>
+          <div
+            class="field col-4 md:col-4 p-0 align-items-center flex"
+            v-if="store.getters.user.is_super"
+          >
+            <div class="col-6 text-center p-0">Hệ thống</div>
+            <InputSwitch v-model="vacancy.is_system" />
+          </div>
         </div>
+     
       </div>
     </form>
     <template #footer>

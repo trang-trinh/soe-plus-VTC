@@ -148,6 +148,9 @@ namespace Controllers
                         model.modified_by = uid;
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;
+                        var parent = db.sys_organization.FirstOrDefault(x => x.organization_id == model.parent_id);
+                        if (parent == null && parent.is_level == null) model.is_level = 0;
+                        else model.is_level = parent.is_level + 1;
                         db.sys_organization.Add(model);
                         db.SaveChanges();
                         //Add ảnh
@@ -286,6 +289,9 @@ namespace Controllers
                         model.modified_by = uid;
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;
+                        var parent = db.sys_organization.FirstOrDefault(x => x.organization_id == model.parent_id);
+                        if (parent == null && parent.is_level == null) model.is_level = 0;
+                        else model.is_level = parent.is_level + 1;
                         db.Entry(model).State = EntityState.Modified;
                         db.SaveChanges();
                         //Add ảnh
@@ -358,17 +364,22 @@ namespace Controllers
                         List<sys_organization> del = new List<sys_organization>();
                         foreach (var da in das)
                         {
-                            if (ad)
+                            var user = db.sys_users.FirstOrDefault(x => x.organization_id == da.organization_id || x.department_id == da.organization_id || x.organization_child_id == da.organization_id);
+                            if (user != null) return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không thể xóa đơn vị do tồn tại dữ liệu liên quan!" });
+                            else
                             {
                                 del.Add(da);
                                 if (!string.IsNullOrWhiteSpace(da.logo))
                                     paths.Add(HttpContext.Current.Server.MapPath("~/") + da.logo);
+                                if (!string.IsNullOrWhiteSpace(da.background_image))
+                                    paths.Add(HttpContext.Current.Server.MapPath("~/") + da.background_image);
                             }
+
                         }
-                        if (del.Count == 0)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa đơn vị này." });
-                        }
+                        //if (del.Count == 0)
+                        //{
+                        //    return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa đơn vị này." });
+                        //}
                         db.sys_organization.RemoveRange(del);
                     }
                     await db.SaveChangesAsync();
@@ -438,10 +449,8 @@ namespace Controllers
                         for (int i = 0; i < das.Count; i++)
                         {
                             var da = das[i];
-                            if (ad)
-                            {
+                      
                                 da.status = tts[i];
-                            }
                         }
                         await db.SaveChangesAsync();
                     }

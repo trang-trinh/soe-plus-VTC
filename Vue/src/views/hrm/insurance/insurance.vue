@@ -6,6 +6,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 
+const router = inject("router");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -31,7 +32,7 @@ const statuss = ref([
   { value: 6, text: "Người lao động giữ sổ" },
 ]);
 const hinhthucs = ref([
-  { value: 1, text: "Bao tăng" },
+  { value: 1, text: "Báo tăng" },
   { value: 2, text: "Báo giảm" },
 ]);
 const insurance_pays = ref();
@@ -50,8 +51,11 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_insurance_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_insurance_count_1",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "date", va: options.value.date },
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -120,12 +124,14 @@ const initData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_insurance_list",
+              proc: "hrm_insurance_list_1",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
                 { par: "status", va: null },
+                { par: "search", va: options.value.searchStamp },
+                { par: "date", va: options.value.date },
               ],
             }),
             SecretKey,
@@ -211,6 +217,7 @@ const options = ref({
   PageSize: 20,
   loading: true,
   totalRecords: null,
+  date : null
 });
 
 //Hiển thị dialog
@@ -258,6 +265,7 @@ const openBasic = (str) => {
 const closeDialog = () => {
   displayBasic.value = false;
   initData(true);
+  forceRerender();
 };
 
 //Thêm bản ghi
@@ -364,8 +372,11 @@ const editTem = (dataTem) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_insurance_get",
-            par: [{ par: "insurance_id", va: dataTem.insurance_id }],
+            proc: "hrm_insurance_get_1",
+            par: [
+              { par: "insurance_id", va: dataTem.insurance_id },
+              { par: "date", va: options.value.date },
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -559,7 +570,9 @@ const searchStamp = (event) => {
   }
 };
 const refreshStamp = () => {
-  options.value.SearchText = null;
+  options.value.searchStamp = null;
+  options.value.date = null;
+  monthPickerFilter.value = null;
   filterTrangthai.value = null;
   options.value.loading = true;
   selectedStamps.value = [];
@@ -633,10 +646,10 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.bank_id);
+            listId.push(item.insurance_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_ca_bank/delete_hrm_ca_bank", {
+            .delete(baseURL + "/api/insurance/del_insurance", {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: listId != null ? listId : 1,
             })
@@ -727,9 +740,49 @@ const deleteRow = (idx, type) => {
     insurance_resolves.value.splice(idx, 1);
   }
 };
+const goProfile = (item) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: generateUUID()},
+    query: { id: item.profile_id },
+  });
+};
+//filter date
+const monthPickerFilter = ref();
+const onFilterMonth = ()=>{
+  options.value.date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
+  initData(true);
+}
+const onCleanFilterMonth = () => {
+  if (monthPickerFilter.value) monthPickerFilter.value = null;
+  options.value.date  = null;
+  initData(true);
+};
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
+}
+function generateUUID() {
+  // Public Domain/MIT
+  var d = new Date().getTime(); //Timestamp
+  var d2 =
+    (typeof performance !== "undefined" &&
+      performance.now &&
+      performance.now() * 1000) ||
+    0; //Time in microseconds since page-load or 0 if unsupported
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16; //random number between 0 and 16
+    if (d > 0) {
+      //Use timestamp until depleted
+      r = (d + r) % 16 | 0;
+      d = Math.floor(d / 16);
+    } else {
+      //Use microseconds since page-load if supported
+      r = (d2 + r) % 16 | 0;
+      d2 = Math.floor(d2 / 16);
+    }
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
 }
 function formatNumber(a, b, c, d) {
   var e = isNaN((b = Math.abs(b))) ? 2 : b;
@@ -811,13 +864,13 @@ onMounted(() => {
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
               <InputText
-                v-model="options.SearchText"
-                @keyup="searchStamp"
+                v-model="options.searchStamp"
+                v-on:keyup.enter="initData(true)"
                 type="text"
                 spellcheck="false"
                 placeholder="Tìm kiếm"
               />
-              <Button
+              <!-- <Button
                 type="button"
                 class="ml-2"
                 icon="pi pi-filter"
@@ -875,11 +928,31 @@ onMounted(() => {
                     </Toolbar>
                   </div>
                 </div>
-              </OverlayPanel>
+              </OverlayPanel> -->
             </span>
           </template>
 
           <template #end>
+            <Datepicker
+              @closed="onFilterMonth(false)"
+              class="mr-2"
+              locale="vi"
+              selectText="Thực hiện"
+              cancelText="Hủy"
+              placeholder=" Lọc theo tháng"
+              v-model="monthPickerFilter"
+              monthPicker
+              ><template #clear-icon>
+                <Button
+                  @click="onCleanFilterMonth"
+                  icon="pi pi-times"
+                  class="p-button-rounded p-button-text"
+                />
+              </template>
+              <template #input-icon>
+                <Button icon="pi pi-calendar" class="p-button-text" />
+              </template>
+            </Datepicker>
             <Button
               v-if="checkDelList"
               @click="deleteList()"
@@ -887,12 +960,12 @@ onMounted(() => {
               icon="pi pi-trash"
               class="mr-2 p-button-danger"
             />
-            <Button
-              @click="openBasic('Thêm thẻ bảo hiểm')"
+            <!-- <Button
+               @click="openBasic('Cập nhật thẻ bảo hiểm')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
-            />
+            />  -->
             <Button
               @click="refreshStamp"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -900,7 +973,7 @@ onMounted(() => {
               v-tooltip="'Tải lại'"
             />
 
-            <!-- <Button
+            <Button
               label="Tiện ích"
               icon="pi pi-file-excel"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -913,7 +986,7 @@ onMounted(() => {
               ref="menuButs"
               :model="itemButs"
               :popup="true"
-            /> -->
+            /> 
           </template>
         </Toolbar></template
       >
@@ -926,30 +999,28 @@ onMounted(() => {
       >
       </Column>
 
-      <Column
-        field="STT"
-        header="STT"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:50px;height:50px"
-        bodyStyle="text-align:center;max-width:50px"
-        :sortable="true"
-      ></Column>
 
-      <Column
+      <!-- <Column
         field="profile_id"
         header="Mã nhân sự"
         headerStyle="text-align:center;max-width:100px;height:50px"
         bodyStyle="text-align:center;max-width:100px"
         class="align-items-center justify-content-center text-center"
       >
-      </Column>
+      </Column> -->
 
       <Column
         field="profile_user_name"
         header="Họ và tên"
-        headerStyle="text-align:left;height:50px"
-        bodyStyle="text-align:left"
+        headerStyle="text-align:center;height:50px"
+        bodyStyle="text-align:center"
+        class="align-items-center justify-content-center text-center"
       >
+      <template #body="slotProps">
+            <b @click="goProfile(slotProps.data)" class="hover cursor-pointer">{{
+              slotProps.data.profile_user_name
+            }}</b>
+          </template>
       </Column>
       <Column
         field="organization_name"
@@ -974,12 +1045,15 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
       >
+      <template #body="{ data }">
+          <span v-if="data.recruitment_date"> {{ moment(new Date(data.recruitment_date)).format("DD/MM/YYYY ") }}</span>
+        </template>
       </Column>
       <Column
         field="insurance_id"
         header="Số sổ"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        headerStyle="text-align:center;max-width:100px;height:50px"
+        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
@@ -999,15 +1073,14 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
         <template #body="{ data }">
-          {{ moment(new Date(data.batdaudong)).format("MM/YYYY ") }}
+          <span v-if="data.batdaudong">{{ moment(new Date(data.batdaudong)).format("MM/YYYY ") }}</span>
         </template>
       </Column>
       <Column
         field="mucdong"
         header="Mức đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;max-height:60px"
-        class="align-items-center justify-content-end text-right"
+        headerStyle="text-align:center;max-width:150px;height:50px;justify-content:center"
+        bodyStyle="text-align:center;max-width:150px;max-height:60px;justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.mucdong, 0, ".", ".") }}
@@ -1016,9 +1089,8 @@ onMounted(() => {
       <Column
         field="congtydong"
         header="Công ty đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-end text-right"
+        headerStyle="text-align:center;max-width:150px;height:50px;justify-content:center"
+        bodyStyle="text-align:center;max-width:150px;;max-height:60px; justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.congtydong, 0, ".", ".") }}
@@ -1027,9 +1099,8 @@ onMounted(() => {
       <Column
         field="nhanviendong"
         header="Người lao động đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-end text-right"
+        headerStyle="text-align:center;max-width:150px;height:50px;justify-content:center"
+        bodyStyle="text-align:right;max-width:150px;max-height:60px;justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.nhanviendong, 0, ".", ".") }}
@@ -1094,10 +1165,14 @@ onMounted(() => {
     :hinhthucs="hinhthucs"
     :dictionarys="dictionarys"
     :initData="initData"
+    :datefilter="options.date"
   />
 </template>
     
     <style scoped>
+    .hover:hover {
+  color: #0078d4;
+}
 .ip33 {
   height: 33px !important;
 }

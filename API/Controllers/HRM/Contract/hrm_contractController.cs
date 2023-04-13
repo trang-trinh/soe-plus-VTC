@@ -92,11 +92,12 @@ namespace API.Controllers.Hrn
                         }
                         model.contract_id = helper.GenKey();
                         model.is_order = model.is_order ?? (db.hrm_contract.Count() + 1);
+                        model.status = 0;
                         model.created_by = uid;
                         model.created_date = DateTime.Now;
                         model.created_ip = ip;
                         model.created_token_id = tid;
-                        model.organization_id = user_now.organization_id;
+                        model.organization_id = user_now.organization_id ?? user_now.organization_parent_id;
                         db.hrm_contract.Add(model);
                     }
                     else
@@ -217,12 +218,12 @@ namespace API.Controllers.Hrn
                         df.created_date = DateTime.Now;
                         df.created_ip = ip;
                         df.created_token_id = tid;
-                        df.organization_id = user_now.organization_id;
+                        df.organization_id = user_now.organization_id ?? user_now.organization_parent_id;
                         dfs.Add(df);
                     }
                     if (dfs.Count > 0)
                     {
-                        db.hrm_file.AddRange(dfs);
+                        db.hrm_file.AddRange(dfs);db.SaveChanges();
                     }
                     #endregion
                     await db.SaveChangesAsync();
@@ -557,6 +558,15 @@ namespace API.Controllers.Hrn
                             {
                                 model.liquidation_content = content;
                                 model.liquidation_date = date;
+                            }
+
+                            var profile = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_id == model.profile_id);
+                            if (profile != null)
+                            {
+                                if (model.status == 1)
+                                {
+                                    profile.status = 1;
+                                }
                             }
                         }
                         await db.SaveChangesAsync();

@@ -31,12 +31,13 @@ const position = ref({
   position_name: "",
   status: true,
   is_order: 1,
+  is_system: false,
 });
 const selectedPositions = ref();
 const submitted = ref(false);
 const v$ = useVuelidate(rules, position);
 const issavePosition = ref(false);
-const datalists = ref();
+const datalists = ref([]);
 const toast = useToast();
 const basedomainURL = fileURL;
 const checkDelList = ref(false);
@@ -75,7 +76,6 @@ const loadCount = () => {
 
       if (data.length > 0) {
         options.value.totalRecords = data[0].totalRecords;
-        sttPosition.value = options.value.totalRecords + 1;
       }
     })
     .catch((error) => {
@@ -124,6 +124,8 @@ const loadData = (rf) => {
         });
         if (isFirst.value) isFirst.value = false;
         datalists.value = data;
+        sttPosition.value =
+          data.length > 0 ? data[data.length - 1].is_order + 1 : 1;
         options.value.loading = false;
       })
       .catch((error) => {
@@ -146,7 +148,7 @@ const loadData = (rf) => {
         }
       });
   }
-  if (store.state.user.is_super == 1) {
+  if (store.state.user.is_super == true) {
     loadDonvi();
   }
 };
@@ -156,7 +158,10 @@ const loadDonvi = () => {
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
-          JSON.stringify({ proc: "sys_org_list" }),
+          JSON.stringify({
+            proc: "sys_organization_list_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
           SecretKey,
           cryoptojs,
         ).toString(),
@@ -189,7 +194,7 @@ const loadDonvi = () => {
       }
     });
 };
-const treedonvis = ref();
+const treedonvis = ref([]);
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
@@ -200,7 +205,12 @@ const openBasic = (str) => {
     is_order: sttPosition.value,
     status: true,
     organization_id:
-      store.state.user.is_super == true ? 0 : store.state.user.organization_id,
+      store.state.user.is_super == true
+        ? store.state.user.organization_parent_id != null
+          ? store.state.user.organization_parent_id
+          : store.state.user.organization_id
+        : store.state.user.organization_id,
+    is_system: store.state.user.is_super == true ? true : false,
   };
 
   issavePosition.value = false;
@@ -214,7 +224,6 @@ const closeDialog = () => {
     status: true,
   };
   displayBasic.value = false;
-  loadData(true);
 };
 
 //Thêm bản ghi
@@ -312,13 +321,8 @@ const isChirlden = ref(false);
 //Sửa bản ghi
 const editPosition = (dataPlace) => {
   submitted.value = false;
-  position.value = dataPlace;
-  position.value.organization_id =
-    store.state.user.is_super == true ? 0 : store.state.user.organization_id;
+  position.value = JSON.parse(JSON.stringify(dataPlace));
   isChirlden.value = false;
-  if (dataPlace.parent_id != null) {
-    isChirlden.value = true;
-  }
   headerDialog.value = "Sửa chức vụ";
   issavePosition.value = true;
   displayBasic.value = true;
@@ -408,20 +412,27 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
-  if (filterPhanloai.value == undefined) {
-    options.value.filter_Org = 1;
-  } else if (filterPhanloai.value == 0) {
-    options.value.filter_Org = 3; //list hệ thống
-  } else options.value.filter_Org = 2; // list đơn vị
+  if (store.state.user.is_super == true) {
+    if (
+      filterPhanloai.value == undefined ||
+      Object.keys(filterPhanloai.value)[0] == undefined
+    ) {
+      options.value.filter_Org = 1;
+    } else if (Object.keys(filterPhanloai.value)[0] == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  } else {
+    if (filterPhanloai.value == undefined) {
+      options.value.filter_Org = 1;
+    } else if (filterPhanloai.value == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  }
   filterTrangthai.value =
     filterTrangthai.value != null
       ? filterTrangthai.value == 1
         ? true
         : false
-      : null;
-  filterPhanloai.value =
-    filterPhanloai.value != null && filterPhanloai.value != ""
-      ? filterPhanloai.value
       : null;
   swal.fire({
     width: 110,
@@ -429,6 +440,7 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
+
   axios
     .post(
       baseURL + "/api/Excel/ExportExcel",
@@ -439,7 +451,13 @@ const exportData = (method) => {
           { par: "search", va: options.value.SearchText },
           { par: "status", va: filterTrangthai.value },
           { par: "user_id", va: store.state.user.user_id },
-          { par: "s_org", va: filterPhanloai.value },
+          {
+            par: "s_org",
+            va:
+              filterPhanloai.value != null
+                ? Object.keys(filterPhanloai.value)[0]
+                : null,
+          },
           { par: "filter_Org", va: options.value.filter_Org },
         ],
       },
@@ -596,7 +614,8 @@ const onCheckBox = (value) => {
   if (
     store.state.user.is_super == true ||
     store.state.user.user_id == value.created_by ||
-    (store.state.user.role_id == "admin" &&
+    (store.state.user.is_admin &&
+      value.is_system != true &&
       store.state.user.organization_id == value.organization_id)
   ) {
     axios
@@ -628,7 +647,12 @@ const onCheckBox = (value) => {
   } else {
     swal.fire({
       title: "Thông báo!",
-      text: "Bạn không có quyền chỉnh sửa! Chỉ có Quản trị viên đơn vị hoặc Quản trị viên hệ thống mới có quyền chỉnh sửa mục này",
+      text:
+        "Bạn không có quyền chỉnh sửa! Chỉ có " +
+        (value.is_system
+          ? "Quản trị viên hệ thống"
+          : "Quản trị viên đơn vị hoặc Quản trị viên hệ thống") +
+        " mới có quyền chỉnh sửa mục này",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -943,26 +967,18 @@ onMounted(() => {
               class="p-0 m-0"
               :showCloseIcon="false"
               id="overlay_panel"
-              :style="
-                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
-              "
+              :style="'width:400px'"
             >
               <div class="grid formgrid m-0">
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-3 text-left pt-2 p-0'"
                     style="text-align: left"
                   >
                     Phân loại
                   </div>
 
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-9'">
                     <TreeSelect
                       v-model="filterPhanloai"
                       :options="treedonvis"
@@ -971,7 +987,9 @@ onMounted(() => {
                       placeholder="Chọn đơn vị"
                       class="col-12 p-0 m-0 md:col-12"
                       v-if="store.state.user.is_super == 1"
+                      panelClass="d-design-dropdown"
                     />
+
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterPhanloai"
@@ -985,18 +1003,12 @@ onMounted(() => {
                 </div>
                 <div class="flex field col-12 p-0">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 p-0'
-                        : 'col-4 text-left pt-2 p-0'
-                    "
+                    :class="'col-3 text-left pt-2 p-0'"
                     style="text-align: center,justify-content:center"
                   >
                     Trạng thái
                   </div>
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-9'">
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterTrangthai"
@@ -1069,41 +1081,33 @@ onMounted(() => {
       ></template>
       <Column
         selectionMode="multiple"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-3rem"
         v-if="store.state.user.is_super == true"
       ></Column>
       <Column
         field="STT"
         header="STT"
         :sortable="true"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-4rem"
       >
       </Column>
       <Column
         field="position_id"
         header="Mã chức vụ"
         :sortable="true"
-        headerStyle="text-align:center;jusst;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-10rem"
       ></Column>
       <Column
         field="position_name"
         header="Tên chức vụ"
         :sortable="true"
-        headerStyle="height:50px place-content: center;place-items: center;height: 50px"
-        bodyStyle="max-height:60px"
+        headerClass="align-items-center justify-content-center text-center "
+        class=""
       ></Column>
       <Column
         field="status"
         header="Hiển thị"
-        headerStyle="text-align:center;jusst;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           <Checkbox
@@ -1113,15 +1117,14 @@ onMounted(() => {
           />
         </template>
       </Column>
+
       <Column
-        field="organization_id"
+        field="is_system"
         header="Hệ thống"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system == true">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
@@ -1130,20 +1133,24 @@ onMounted(() => {
           <div v-else></div>
         </template>
       </Column>
-
+      <Column
+        field="organization_name"
+        header="Đơn vị"
+        class="align-items-center justify-content-center text-center max-w-20rem"
+        v-if="store.state.user.is_super == true"
+      ></Column>
       <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:240px;height:50px"
-        bodyStyle="text-align:center;max-width:240px;max-height:60px"
+        class="align-items-center justify-content-center text-center max-w-9rem"
       >
         <template #body="data">
           <div
             v-if="
               store.state.user.is_super == true ||
               store.state.user.user_id == data.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == data.data.organization_id)
+              (store.state.user.is_admin &&
+                data.data.is_system != true &&
+                data.data.organization_id == store.state.user.organization_id)
             "
           >
             <Button
@@ -1192,7 +1199,7 @@ onMounted(() => {
           <InputText
             v-model="position.position_name"
             spellcheck="false"
-            class="col-8 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{ 'p-invalid': v$.position_name.$invalid && submitted }"
           />
         </div>
@@ -1219,20 +1226,36 @@ onMounted(() => {
           style="display: flex"
           class="col-12 field md:col-12"
         >
-          <div class="field col-6 md:col-6 p-0">
+          <div
+            class="field col-6 md:col-6 p-0 flex justify-content-center align-items-center"
+          >
             <label class="col-6 text-left p-0">STT </label>
             <InputNumber
               v-model="position.is_order"
               class="col-6 ip36 p-0"
             />
           </div>
-          <div class="field col-6 md:col-6 p-0">
+          <div
+            class="flex field col-3 md:col-3 p-0 align-items-center justify-content-center"
+          >
             <label
               style="vertical-align: text-bottom"
               class="col-6 text-center p-0"
               >Trạng thái
             </label>
             <InputSwitch v-model="position.status" />
+          </div>
+          <div
+            class="flex align-items-center justify-content-center field col-3 md:col-3 p-0"
+            v-if="store.state.user.is_super"
+          >
+            <label
+              style="vertical-align: text-bottom"
+              class="col-6 text-center p-0"
+            >
+              Hệ thống
+            </label>
+            <InputSwitch v-model="position.is_system" />
           </div>
         </div>
       </div>
@@ -1296,14 +1319,4 @@ onMounted(() => {
 </template>
 
 <style scoped></style>
-<style>
-.p-treeselect-panel {
-  max-width: 30vw !important;
-}
-.p-treeselect-items-wrapper .p-tree {
-  max-height: 17vh !important;
-}
-.p-dropdown-item {
-  white-space: normal !important;
-}
-</style>
+<style></style>

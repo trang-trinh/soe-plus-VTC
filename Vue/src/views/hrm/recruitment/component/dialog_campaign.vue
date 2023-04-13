@@ -383,7 +383,40 @@ const deleteFileH = (value) => {
   listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
 };
 const treedonvis = ref();
+const listProposal = ref([]);
 const initTudien = () => {
+  axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_rec_proposal_list_all",
+              par: [
+            
+                { par: "status", va:2 },
+                { par: "user_id", va: store.getters.user.user_id },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        listProposal.value=[];
+        data.forEach(element => {
+          listProposal.value.push({name:element.recruitment_proposal_name, code:element.recruitment_proposal_id});
+        });
+ 
+      })
+      .catch((error) => {
+   console.log(error);
+      });
+
+  
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -852,6 +885,7 @@ onMounted(() => {
           Thông tin chiến dịch
         </div>
         <div class="col-12 field flex p-0 align-items-center">
+        <div class="col-6   flex p-0 align-items-center">
           <div class="w-10rem">
             Mã chiến dịch<span class="redsao pl-1"> (*)</span>
           </div>
@@ -859,21 +893,33 @@ onMounted(() => {
             <div class="col-12 p-0">
               <div class="p-inputgroup">
                 <InputText
-                
-              placeholder="Nhập mã chiến dịch"
+                 
+           
                   v-model="campaign.campaign_code"
                   class="w-full"
-                  :style="
-                    campaign.campaign_code
-                      ? 'background-color:white !important'
-                      : ''
-                  "
+                  :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                   :class="{
                     'p-invalid': v$.campaign_code.$invalid && submitted,
                   }"
                 />
               </div>
             </div>
+          </div>
+        </div>
+        <div class="col-6    flex p-0 align-items-center">
+         
+            <div class="w-10rem pl-3">Đề xuất</div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                  v-model="campaign.recruitment_proposal_id"
+                  :options="listProposal"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  panelClass="d-design-dropdown"
+                  placeholder="Đề xuất tuyển dụng"
+                />
+              </div>
           </div>
         </div>
         <div
@@ -998,7 +1044,7 @@ onMounted(() => {
                               {{ slotProps.option.name }}
                             </div>
                             <div
-                              class="flex w-full text-sm font-italic text-500"
+                              class="flex w-full text-sm   text-500"
                             >
                               <div>{{ slotProps.option.position_name }}</div>
                             </div>
@@ -1061,7 +1107,7 @@ onMounted(() => {
                               {{ slotProps.option.name }}
                             </div>
                             <div
-                              class="flex w-full text-sm font-italic text-500"
+                              class="flex w-full text-sm   text-500"
                             >
                               <div>{{ slotProps.option.position_name }}</div>
                             </div>
@@ -1112,7 +1158,7 @@ onMounted(() => {
               <InputNumber
                 v-model="campaign.expected_cost"
                 class="w-full"
-                suffix=" VND"
+                inputId="locale-german" locale="de-DE"  
                 placeholder="Nhập chi phí dự kiến"
               />
             </div>
@@ -1262,7 +1308,7 @@ onMounted(() => {
                   v-model="campaign.rec_salary_from"
                   :min="0"
                   class="w-full d-input-design-number"
-                  suffix=" VND"
+                  inputId="locale-german" locale="de-DE"  
                   placeholder="Từ"
                 />
               </div>
@@ -1280,7 +1326,7 @@ onMounted(() => {
                       : null
                   "
                   class="w-full d-input-design-number"
-                  suffix=" VND"
+                  inputId="locale-german" locale="de-DE"  
                   placeholder="Đến"
                 />
               </div>
@@ -1565,80 +1611,115 @@ onMounted(() => {
             </template>
           </FileUpload>
 
-          <div class="col-12 p-0">
-            <div
-              class="p-0 w-full flex"
-              v-for="(item, index) in listFilesS"
-              :key="index"
-            >
-              <div
-                class="p-0"
-                style="width: 100%; border-radius: 10px"
+          <div class="col-12 p-0" v-if="listFilesS.length > 0">
+              <DataTable
+                :value="listFilesS"
+                filterDisplay="menu"
+                filterMode="lenient"
+                scrollHeight="flex"
+                :showGridlines="true"
+                :paginator="false"
+                :row-hover="true"
+                columnResizeMode="fit"
               >
-                <div class="w-full py-3 flex align-items-center ">
-                  <div class="flex w-full">
-                    <div v-if="item.is_image" class="align-items-center flex ">
-                      <Image
-                        :src="basedomainURL + item.file_path"
-                        :alt="item.file_name"
-                        width="70"
-                        height="50"
-                        style="
-                          object-fit: contain;
-                          border: 1px solid #ccc;
-                          width: 70px;
-                          height: 50px;
-                        "
-                        preview
-                        class="pr-2"
-                      />
-                      <div class="ml-2 " style="word-break: break-all;">
-                        {{ item.file_name }}
-                      </div>
-                    </div>
-                    <div v-else>
-                      <a
-                        :href="basedomainURL + item.file_path"
-                        download
-                        class="w-full no-underline cursor-pointer"
-                      >
-                        <div class="align-items-center flex">
-                          <div>
-                            <img
-                              :src="
-                                basedomainURL +
-                                '/Portals/Image/file/' +
-                                item.file_path.substring(
-                                  item.file_path.lastIndexOf('.') + 1
-                                ) +
-                                '.png'
-                              "
+                <Column field="code" header="  File đính kèm">
+                  <template #body="item">
+                    <div
+                      class="p-0 d-style-hover"
+                      style="width: 100%; border-radius: 10px"
+                    >
+                      <div class="w-full flex align-items-center">
+                        <div class="flex w-full text-900">
+                          <div
+                            v-if="item.data.is_image"
+                            class="align-items-center flex"
+                          >
+                            <Image
+                              :src="basedomainURL + item.data.file_path"
+                              alt=""
+                              width="70"
+                              height="50"
                               style="
+                                object-fit: contain;
+                                border: 1px solid #ccc;
                                 width: 70px;
                                 height: 50px;
-                                object-fit: contain;
                               "
-                              :alt="item.file_name"
+                              preview
+                              class="pr-2"
                             />
+                            <div class="ml-2" style="word-break: break-all">
+                              {{ item.data.file_name }}
+                            </div>
                           </div>
-                          <div class="ml-2" style="word-break: break-all;">
-                            {{ item.file_name }}
+                          <div v-else>
+                            <a
+                              :href="basedomainURL + item.data.file_path"
+                              download
+                              class="w-full no-underline cursor-pointer text-900"
+                            >
+                              <div class="align-items-center flex">
+                                <div>
+                                  <img
+                                    :src="
+                                      basedomainURL +
+                                      '/Portals/Image/file/' +
+                                      item.data.file_path.substring(
+                                        item.data.file_path.lastIndexOf('.') + 1
+                                      ) +
+                                      '.png'
+                                    "
+                                    style="
+                                      width: 70px;
+                                      height: 50px;
+                                      object-fit: contain;
+                                    "
+                                    alt=""
+                                  />
+                                </div>
+                                <div class="ml-2" style="word-break: break-all">
+                                  <div
+                                    class="ml-2"
+                                    style="word-break: break-all"
+                                  >
+                                    <div style="word-break: break-all">
+                                      {{ item.data.file_name }}
+                                    </div>
+                                    <div
+                                      v-if="store.getters.user.is_super"
+                                      style="
+                                        word-break: break-all;
+                                        font-size: 11px;
+                                        font-style: italic;
+                                      "
+                                    >
+                                      {{ item.data.organization_name }}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </a>
                           </div>
                         </div>
-                      </a>
+                        <div
+                          class="w-3rem align-items-center d-style-hover-1"
+                          v-if="
+                            store.getters.user.organization_id ==
+                            item.data.organization_id
+                          "
+                        >
+                          <Button
+                            icon="pi pi-times"
+                            class="p-button-rounded bg-red-300 border-none"
+                            @click="deleteFileH(item.data)"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div class="w-3rem align-items-center ">
-                    <Button
-                      icon="pi pi-times"
-                      class="p-button-rounded p-button-danger"
-                      @click="deleteFileH(item)"
-                    />
-                  </div>
-                </div>
-              </div>
+                  </template>
+                </Column>
+              </DataTable>
             </div>
-          </div>
         </div>
       </div>
     </form>

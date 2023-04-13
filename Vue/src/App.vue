@@ -11,6 +11,7 @@ import { useRouter, useRoute } from "vue-router";
 import { decr, encr } from "./util/function";
 import { useToast } from "vue-toastification";
 import { useCookies } from "vue3-cookies";
+
 const { cookies } = useCookies();
 
 //Khai báo biến
@@ -36,7 +37,6 @@ store.commit("setisframe", window === window.parent ? false : true);
 //     store.commit("setuser", JSON.parse(u));
 //   }
 // }
-
 // if (localStorage.getItem("tk") != null) {
 //   store.commit(
 //     "settoken",
@@ -56,6 +56,24 @@ if (cookies.get("tk") != null) {
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
+// axios.interceptors.response.use(
+//   (response) => {
+//     if (response.data.dataKey) {
+//       let dataKey = decr(response.data.dataKey, SecretKey, cryoptojs);
+//       let arr_list = dataKey.split("26$#");
+//       if (arr_list.length > 1) {
+//         let check_endcode = arr_list[0].toString() == "1111" ? true : false,
+//           key = arr_list[1];
+//         if (check_endcode)
+//           response.data.data = decr(response.data.data, key, cryoptojs);
+//       }
+//     }
+//     return response;
+//   },
+//   (error) => {
+//     return error;
+//   },
+// );
 const passModuleToSidebar = () => {
   var link = router.fullPath;
   if (!link) return false;
@@ -73,12 +91,12 @@ const passModuleToSidebar = () => {
             ],
           }),
           SecretKey,
-          cryoptojs
+          cryoptojs,
         ).toString(),
       },
       {
         headers: { Authorization: `Bearer ${store.getters.token}` },
-      }
+      },
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -98,10 +116,25 @@ const passModuleToSidebar = () => {
         data[1].filter((x) => x.is_link == root_path).length == 0 &&
         !path_system.includes(root_path)
       )
-        route.push({ path: "/" });
+        route.push({ path: "/"});
       else if (data[0].length > 0) {
         cookies.set("max_length_file", data[0][0].max_length_file);
         emitter.emit("emitData", { type: "moduleFromUrl", data: data[0][0] });
+      }
+    });
+};
+const getPortalFile = () => {
+  axios
+    .post(
+      baseURL + "/api/Cache/getPortalFile",
+      {},
+      {
+        headers: { Authorization: `Bearer ${store.getters.token}` },
+      },
+    )
+    .then((response) => {
+      if (response.data.err == "0") {
+        cookies.set("porFi", response.data.portF);        
       }
     });
 };
@@ -111,7 +144,7 @@ onMounted(() => {
     // yêu cầu quyền thông báo
     Notification.requestPermission().then(function (result) {});
   }
-
+  getPortalFile();
   watch(router, () => {
     if (router.fullPath && router.fullPath.length > 1 && store.getters.islogin)
       passModuleToSidebar();
@@ -205,7 +238,7 @@ if (currentLink.value.includes("/forgetpss/")) {
     .substring(window.location.href.lastIndexOf("/forgetpss/") + 11)
     .replaceAll("tun", "+");
   data_props.value = JSON.parse(
-    decr(str, SecretKey, cryoptojs).replaceAll('"', "").replaceAll("'", '"')
+    decr(str, SecretKey, cryoptojs).replaceAll('"', "").replaceAll("'", '"'),
   );
 }
 </script>
@@ -218,13 +251,22 @@ if (currentLink.value.includes("/forgetpss/")) {
   >
     <div class="construct-title format-center h-full">
       <div class="text-left">
-        <div class="font-bold" style="font-size: 8em; color: #141b51">
+        <div
+          class="font-bold"
+          style="font-size: 8em; color: #141b51"
+        >
           Stop!
         </div>
-        <div class="font-bold" style="font-size: 4em; color: #141b51">
+        <div
+          class="font-bold"
+          style="font-size: 4em; color: #141b51"
+        >
           developer tools
         </div>
-        <div class="mt-5" style="font-size: 1.5em; color: #b4b4b9">
+        <div
+          class="mt-5"
+          style="font-size: 1.5em; color: #b4b4b9"
+        >
           Tính nắng chỉ dành cho nhà phát triển vui lòng quay lại!
         </div>
       </div>
@@ -237,7 +279,10 @@ if (currentLink.value.includes("/forgetpss/")) {
       />
     </div>
   </div>
-  <div v-else class="flex flex-column flex-grow-1 h-full">
+  <div
+    v-else
+    class="flex flex-column flex-grow-1 h-full"
+  >
     <HeadBar
       v-if="store.getters.islogin && !store.getters.isframe && !is_forgetpass"
     />

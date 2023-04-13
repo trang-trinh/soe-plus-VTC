@@ -164,7 +164,6 @@ const leaving_reason = ref({
   leaving_reason_name: "",
   emote_file: "",
   status: true,
-  is_default: false,
   is_order: 1,
 });
 
@@ -195,9 +194,8 @@ const openBasic = (str) => {
   leaving_reason.value = {
     leaving_reason_name: "",
     status: true,
-    is_default: false,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
+    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
   };
 
   checkIsmain.value = false;
@@ -211,7 +209,6 @@ const closeDialog = () => {
     leaving_reason_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: 1,
   };
 
@@ -952,7 +949,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system== true">
             <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
           </div>
           <div v-else></div>
@@ -1017,21 +1014,17 @@ onMounted(() => {
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12 flex">
+        <div class="field col-12 md:col-12">
           <label class="col-2 text-left"
             >Lý do <span class="redsao">(*)</span></label
           >
-          <Textarea
-            :autoResize="true"
-            rows="5"
-            class="col-10 ip36"
-            v-model="leaving_reason.leaving_reason_name"
-          />
+          <InputText spellcheck="false" class="col-10 ip36" v-model="leaving_reason.leaving_reason_name"/>
+
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-4 text-left">Ký hiệu</div>
-            <InputText spellcheck="false" class="col-8 ip36"              v-model="leaving_reason.symbol"/>
+            <InputText spellcheck="false" class="col-8 ip36"  v-model="leaving_reason.symbol"/>
           </div>
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-4 text-left pl-7">Tối đa</div>
@@ -1062,33 +1055,38 @@ onMounted(() => {
             />
           </div>
         </div>
+        <div class="field col-12 md:col-12 flex">
+          <label class="col-2 text-left"
+            >Mô tả</label
+          >
+          <Textarea
+            :autoResize="true"
+            rows="5"
+            class="col-10 ip36"
+            v-model="leaving_reason.description"
+          />
+        </div>
         <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left">Hoạt động</div>
-            <Dropdown
-              class="col-8 ip36"
-              :options="statuss"
-              optionLabel="text"
-              optionValue="value"
-              :showClear="true"
-              v-model="leaving_reason.is_active"
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">STT</div>
+            <InputNumber
+              v-model="leaving_reason.is_order"
+              class="col-6 ip36 p-0"
             />
           </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left pl-7">Mô tả</div>
-            <InputText spellcheck="false" class="col-8 ip36" placeholder="Nhập mô tả" v-model="leaving_reason.description"/>
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-6 text-center p-0">Trạng thái</div>
+            <InputSwitch v-model="leaving_reason.status" />
+          </div>
+          <div
+            class="field col-4 md:col-4 p-0 align-items-center flex"
+            v-if="store.getters.user.is_super"
+          >
+            <div class="col-6 text-center p-0">Hệ thống</div>
+            <InputSwitch v-model="leaving_reason.is_system" />
           </div>
         </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 align-items-center flex p-0">
-            <div class="col-4 text-left">STT</div>
-            <InputNumber class="col-4 ip36 p-0" v-model="leaving_reason.is_order"/>
-          </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left pl-7">Trạng thái</div>
-            <InputSwitch v-model="leaving_reason.status"/>
-          </div>
-        </div>
+        
       </div>
     </form>
     <template #footer>

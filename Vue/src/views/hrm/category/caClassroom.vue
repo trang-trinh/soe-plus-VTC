@@ -30,7 +30,7 @@ const rules = {
       {
         $property: "classroom_name",
         $validator: "required",
-        $message: "Tên phòng họp không được để trống!",
+        $message: "Tên phòng học không được để trống!",
       },
     ],
   },
@@ -155,7 +155,6 @@ const classroom = ref({
   classroom_name: "",
   emote_file: "",
   status: true,
-  is_default: false,
   is_order: 1,
 });
 
@@ -187,9 +186,8 @@ const openBasic = (str) => {
     classroom_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
+    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
   };
 
   checkIsmain.value = false;
@@ -203,7 +201,6 @@ const closeDialog = () => {
     classroom_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: 1,
   };
  
@@ -224,7 +221,7 @@ const saveData = (isFormValid) => {
   if (classroom.value.classroom_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên phòng họp không được vượt quá 250 ký tự!",
+      text: "Tên phòng học không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -251,7 +248,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm phòng họp thành công!");
+          toast.success("Thêm phòng học thành công!");
           loadData(true);
       
           closeDialog();
@@ -283,7 +280,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa phòng họp thành công!");
+          toast.success("Sửa phòng học thành công!");
 
        
           closeDialog();
@@ -319,7 +316,7 @@ const editTem = (dataTem) => {
   } else {
     checkIsmain.value = true;
   }
-  headerDialog.value = "Sửa phòng họp";
+  headerDialog.value = "Sửa phòng học";
   isSaveTem.value = true;
   displayBasic.value = true;
  
@@ -358,7 +355,7 @@ const delTem = (Tem) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá phòng họp thành công!");
+              toast.success("Xoá phòng học thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -530,7 +527,7 @@ const onCheckBox = (value, check, checkIsmain) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái phòng họp thành công!");
+          toast.success("Sửa trạng thái phòng học thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -562,7 +559,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá phòng họp này không!",
+        text: "Bạn có muốn xoá phòng học này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -594,7 +591,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá phòng họp thành công!");
+                toast.success("Xoá phòng học thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -710,7 +707,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-credit-card"></i> Danh sách phòng họp ({{
+          <i class="pi pi-credit-card"></i> Danh sách phòng học ({{
             options.totalRecords
           }})
         </h3>
@@ -796,7 +793,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm phòng họp')"
+              @click="openBasic('Thêm phòng học')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -845,7 +842,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
  
       <Column
         field="classroom_name"
-        header="Tên phòng họp"
+        header="Tên phòng học"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -890,7 +887,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system== true">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
@@ -952,7 +949,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
@@ -983,34 +980,33 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           >
             <span class="col-12 p-0">{{
               v$.classroom_name.required.$message
-                .replace("Value", "Tên phòng họp")
+                .replace("Value", "Tên phòng học")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
 
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-9 text-left p-0">STT</div>
+            <InputNumber
+              v-model="classroom.is_order"
+              class="col-3 ip36 p-0"
+            />
+          </div>
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-6 text-center p-0">Trạng thái</div>
+            <InputSwitch v-model="classroom.status" />
+          </div>
+          <div
+            class="field col-4 md:col-4 p-0 align-items-center flex"
+            v-if="store.getters.user.is_super"
+          >
+            <div class="col-6 text-center p-0">Hệ thống</div>
+            <InputSwitch v-model="classroom.is_system" />
+          </div>
+        </div> 
        
-        <div   class="col-12 field md:col-12 flex" >
-      
-           
-           
-            <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div class="col-6 text-left p-0">STT</div>
-              <InputNumber
-                v-model="classroom.is_order"
-                class="col-6 ip36 p-0"
-              />
-            </div>
-            <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div
-               
-                class="col-4 text-center p-0"
-                >Trạng thái
-              </div>
-              <InputSwitch v-model="classroom.status" />
-            </div>
-          
-        </div>
       </div>
     </form>
     <template #footer>

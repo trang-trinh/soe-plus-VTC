@@ -79,7 +79,7 @@ const loadCount = () => {
         options.value.totalRecords1 = data1[0].totalRecords1;
         options.value.totalRecords2 = data2[0].totalRecords2;
         options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
+        options.value.totalRecords4 = data4[0].totalRecords4;
         options.value.totalRecords5 = data5[0].totalRecords5;
 
         sttStamp.value = data[0].totalRecords + 1;
@@ -126,7 +126,46 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
           if (element.li_user_verify) {
             element.li_user_verify = JSON.parse(element.li_user_verify);
+
+            element.li_user_verify.forEach((item) => {
+                if (!item.position_name) {
+                  item.position_name = "";
+                } else {
+                  item.position_name =
+                    " </br> <span class='text-sm'>" +
+                    item.position_name +
+                    "</span>";
+                }
+                if (!item.department_name) {
+                  item.department_name = "";
+                } else {
+                  item.department_name =
+                    " </br> <span class='text-sm'>" +
+                    item.department_name +
+                    "</span>";
+                }
+              });
+
+
+
+
+
+
+
+
           } else element.li_user_verify = [];
+
+
+          if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+          }
         });
 
         datalists.value = data;
@@ -211,8 +250,8 @@ const openBasic = (str) => {
     training_place: null,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-    user_follows_fake: [],
-    user_verify_fake: [],
+    user_follows_fake: null,
+    user_verify_fake: null,
     organization_training_fake: {},
   };
 
@@ -1286,7 +1325,7 @@ onMounted(() => {
                                                 flex
                                                 w-full
                                                 text-sm
-                                                font-italic
+                                              
                                                 text-500
                                               "
                                             >
@@ -1457,7 +1496,7 @@ onMounted(() => {
                                                 flex
                                                 w-full
                                                 text-sm
-                                                font-italic
+                                           
                                                 text-500
                                               "
                                             >
@@ -1752,13 +1791,20 @@ onMounted(() => {
                             )
                       "
                       :key="index"
+                      style="
+                      background-color: #2196f3;
+                      color: #fff;
+                      width: 3rem;
+                      height: 3rem;
+                      font-size: 1rem !important;
+                    "
                       :style="
                         item.avatar
                           ? 'background-color: #2196f3'
                           : 'background:' + bgColor[item.full_name.length % 7]
                       "
                       :image="basedomainURL + item.avatar"
-                      class="w-3rem h-3rem text-lg"
+                    
                       shape="circle"
 
                       v-tooltip.top="item.full_name"
@@ -1862,16 +1908,17 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <div
-                  class="m-2"
+                  class="m-0 w-full"
                   @click="
                     toggleStatus(slotProps.data, $event);
                     $event.stopPropagation();
                   "
                   aria:haspopup="true"
                   aria-controls="overlay_panel_status"
+              
                 >
-                  <Button
-                    :label="
+                <Button
+                :label="
                       slotProps.data.status == 1
                         ? 'Lên kế hoạch'
                         : slotProps.data.status == 2
@@ -1882,6 +1929,41 @@ onMounted(() => {
                         ? 'Tạm dừng'
                         : 'Đã hủy'
                     "
+                    icon="pi pi-chevron-down"
+                    iconPos="right"
+                    class="p-button-outlined"
+                    :style="{
+                      borderColor:
+                      slotProps.data.status == 1
+                        ? '#bbbbbb'
+                        : slotProps.data.status == 2
+                        ? '#2196f3'
+                        : slotProps.data.status == 3
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 4
+                        ? '#ff8b4e'
+                        : slotProps.data.status == 5
+                        ? 'red': '#bbbbbb',
+                      // backgroundColor: slotProps.data.bg_color,
+                      color:
+                      slotProps.data.status == 1
+                        ? '#bbbbbb'
+                        : slotProps.data.status == 2
+                        ? '#2196f3'
+                        : slotProps.data.status == 3
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 4
+                        ? '#ff8b4e'
+                        : slotProps.data.status == 5
+                        ? 'red': '#bbbbbb',
+                      borderRadius: '15px',
+                      padding: '0.3rem 0.75rem !important',
+                      width:'100% !important'
+                    }"
+                  />
+ 
+                  <!-- <Button
+             
                     :class="
                       slotProps.data.status == 1
                         ? 'bg-blue-500'
@@ -1896,7 +1978,7 @@ onMounted(() => {
                     icon="pi pi-chevron-down"
                     iconPos="right"
                     class="px-2 w-10rem"
-                  />
+                  /> -->
                 </div>
                 <OverlayPanel
                   :showCloseIcon="false"

@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, inject, ref } from "vue";
+import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
 const store = inject("store");
@@ -9,6 +10,7 @@ const toast = useToast();
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
+const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
 
 //Get arguments
@@ -35,6 +37,8 @@ const props = defineProps({
   initData: Function,
 });
 
+const display = ref(props.displayDialog);
+
 //Declare dictionary
 const bgColor = ref([
   "#F8E69A",
@@ -45,16 +49,19 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
+const listPlaceDetails1 = ref([]);
+const listPlaceDetails2 = ref([]);
+const listPlaceDetails3 = ref([]);
+const listPlaceDetails4 = ref([]);
 
 //function
 const submitted = ref(false);
 const saveModel = (is_continue) => {
   submitted.value = true;
   if (
-    !props.model.profile_id ||
+    !props.model.profile_code ||
     !props.model.profile_user_name ||
-    !props.model.birthday ||
-    !props.model.select_birthplace
+    !props.model.birthday
   ) {
     swal.fire({
       title: "Thông báo!",
@@ -72,22 +79,65 @@ const saveModel = (is_continue) => {
   });
   var obj = { ...props.model };
   if (obj["select_birthplace"] != null) {
-    obj["birthplace_id"] =
-      Object.keys(obj["select_birthplace"])[0] == -1
-        ? null
-        : Object.keys(obj["select_birthplace"])[0];
+    // obj["birthplace_id"] =
+    //   Object.keys(obj["select_birthplace"])[0] == -1
+    //     ? null
+    //     : Object.keys(obj["select_birthplace"])[0];
+    var checkname = listPlaceDetails1.value.findIndex(
+      (x) => x["place_details_id"] === (obj["select_birthplace"] || "")
+    );
+    if (checkname === -1) {
+      obj["birthplace_name"] = obj["select_birthplace"] || "";
+      obj["birthplace_id"] = null;
+    } else {
+      obj["birthplace_id"] = obj["select_birthplace"];
+    }
   }
   if (obj["select_birthplace_origin"] != null) {
-    obj["birthplace_origin_id"] =
-      Object.keys(obj["select_birthplace_origin"])[0] == -1
-        ? null
-        : Object.keys(obj["select_birthplace_origin"])[0];
+    // obj["birthplace_origin_id"] =
+    //   Object.keys(obj["select_birthplace_origin"])[0] == -1
+    //     ? null
+    //     : Object.keys(obj["select_birthplace_origin"])[0];
+    var checkname = listPlaceDetails2.value.findIndex(
+      (x) => x["place_details_id"] === (obj["select_birthplace_origin"] || "")
+    );
+    if (checkname === -1) {
+      obj["birthplace_origin_name"] = obj["select_birthplace_origin"] || "";
+      obj["birthplace_origin_id"] = null;
+    } else {
+      obj["birthplace_origin_id"] = obj["select_birthplace_origin"];
+    }
   }
   if (obj["select_place_register_permanent"] != null) {
-    obj["place_register_permanent"] =
-      Object.keys(obj["select_place_register_permanent"])[0] == -1
-        ? null
-        : Object.keys(obj["select_place_register_permanent"])[0];
+    // obj["place_register_permanent"] =
+    //   Object.keys(obj["select_place_register_permanent"])[0] == -1
+    //     ? null
+    //     : Object.keys(obj["select_place_register_permanent"])[0];
+    // obj["place_register_permanent_name"] = Object.keys(
+    //   obj["select_place_register_permanent"]
+    // )[1];
+    var checkname = listPlaceDetails3.value.findIndex(
+      (x) =>
+        x["place_details_id"] === (obj["select_place_register_permanent"] || "")
+    );
+    if (checkname === -1) {
+      obj["place_register_permanent_name"] =
+        obj["select_place_register_permanent"] || "";
+      obj["place_register_permanent"] = null;
+    } else {
+      obj["place_register_permanent"] = obj["select_place_register_permanent"];
+    }
+  }
+  if (obj["place_residence_id"] != null) {
+    var checkname = listPlaceDetails4.value.findIndex(
+      (x) => x["place_details_id"] === (obj["select_place_residence"] || "")
+    );
+    if (checkname === -1) {
+      obj["place_residence_name"] = obj["select_place_residence"] || "";
+      obj["place_residence_id"] = null;
+    } else {
+      obj["place_residence_id"] = obj["select_place_residence"];
+    }
   }
   let formData = new FormData();
   formData.append("isAdd", props.isAdd);
@@ -153,15 +203,75 @@ const saveModel = (is_continue) => {
 };
 
 //init
-onMounted(() => {});
+const initPlaceFilter = (event, type) => {
+  var stc = event.value;
+  if (event.value == "") {
+    stc = null;
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "ca_place_details_list",
+            par: [
+              { par: "search", va: stc },
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 50 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data);
+        if (data != null) {
+          if (data[0] != null && data[0].length > 0) {
+            if (type == 1) {
+              listPlaceDetails1.value = JSON.parse(JSON.stringify(data[0]));
+            } else if (type == 2) {
+              listPlaceDetails2.value = JSON.parse(JSON.stringify(data[0]));
+            } else if (type == 3) {
+              listPlaceDetails3.value = JSON.parse(JSON.stringify(data[0]));
+            } else if (type == 4) {
+              listPlaceDetails4.value = JSON.parse(JSON.stringify(data[0]));
+            }
+          } else {
+            if (type == 1) {
+              listPlaceDetails1.value = [];
+            } else if (type == 2) {
+              listPlaceDetails2.value = [];
+            } else if (type == 3) {
+              listPlaceDetails3.value = [];
+            } else if (type == 4) {
+              listPlaceDetails4.value = [];
+            }
+          }
+        }
+      }
+    });
+};
+onMounted(() => {
+  if (props.displayDialog && props.model != null) {
+    initPlaceFilter({ value: props.model.birthplace_name }, 1);
+    initPlaceFilter({ value: props.model.birthplace_origin_name }, 2);
+    initPlaceFilter({ value: props.model.place_register_permanent_name }, 3);
+    initPlaceFilter({ value: props.model.place_residence_name }, 4);
+  }
+});
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '72vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
@@ -196,13 +306,7 @@ onMounted(() => {});
                           style="width: 2rem; height: 2rem"
                           icon="pi pi-times"
                           @click="props.deleteImage('avatar')"
-                          class="
-                            p-button-rounded
-                            absolute
-                            top-0
-                            right-0
-                            cursor-pointer
-                          "
+                          class="p-button-rounded absolute top-0 right-0 cursor-pointer"
                         />
                         <input
                           id="imgAvatar"
@@ -224,24 +328,14 @@ onMounted(() => {});
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.profile_id"
-                            v-bind:disabled="!props.isAdd"
+                            v-model="props.model.profile_code"
+                            :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                           />
-                          <div v-if="!props.model.profile_id && submitted">
+                          <div v-if="!props.model.profile_code && submitted">
                             <small class="p-error">
                               <span>Mã nhân sự không được để trống</span>
                             </small>
                           </div>
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Mã chấm công</label>
-                          <InputText
-                            spellcheck="false"
-                            class="ip36"
-                            v-model="props.model.check_in_id"
-                          />
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
@@ -256,18 +350,6 @@ onMounted(() => {});
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
-                          <label>Ngày tuyển dụng</label>
-                          <Calendar
-                            class="ip36"
-                            id="icon"
-                            v-model="props.model.recruitment_date"
-                            :showIcon="true"
-                            placeholder="dd/mm/yyyy"
-                          />
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
                           <label
                             >Họ và tên <span class="redsao">(*)</span></label
                           >
@@ -275,6 +357,7 @@ onMounted(() => {});
                             spellcheck="false"
                             class="ip36"
                             v-model="props.model.profile_user_name"
+                            :style="{ fontWeight: 'bold' }"
                           />
                           <div
                             v-if="!props.model.profile_user_name && submitted"
@@ -287,11 +370,11 @@ onMounted(() => {});
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
-                          <label>Tên gọi khác</label>
+                          <label>Mã chấm công</label>
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.profile_nick_name"
+                            v-model="props.model.check_in_id"
                           />
                         </div>
                       </div>
@@ -316,6 +399,18 @@ onMounted(() => {});
                       </div>
                       <div class="col-6 md:col-6">
                         <div class="form-group">
+                          <label>Ngày tuyển dụng</label>
+                          <Calendar
+                            class="ip36"
+                            id="icon"
+                            v-model="props.model.recruitment_date"
+                            :showIcon="true"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
                           <label>Giới tính</label>
                           <Dropdown
                             :options="props.genders"
@@ -327,14 +422,37 @@ onMounted(() => {});
                           />
                         </div>
                       </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Tên gọi khác</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.profile_nick_name"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 md:col-12">
                 <div class="form-group">
-                  <label>Nơi sinh <span class="redsao">(*)</span></label>
-                  <TreeSelect
+                  <label>Nơi sinh</label>
+                  <Dropdown
+                    @filter="initPlaceFilter($event, 1)"
+                    :options="listPlaceDetails1"
+                    :filter="true"
+                    :editable="true"
+                    :showClear="true"
+                    v-model="props.model.select_birthplace"
+                    optionLabel="name"
+                    optionValue="place_details_id"
+                    class="ip36"
+                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                    panelClass="d-design-dropdown"
+                  />
+                  <!-- <TreeSelect
                     :options="props.places"
                     :showClear="true"
                     :max-height="200"
@@ -344,13 +462,26 @@ onMounted(() => {});
                     optionValue="place_id"
                     class="ip36"
                   >
-                  </TreeSelect>
+                  </TreeSelect> -->
                 </div>
               </div>
               <div class="col-12 md:col-12">
                 <div class="form-group">
                   <label>Quê quán</label>
-                  <TreeSelect
+                  <Dropdown
+                    @filter="initPlaceFilter($event, 2)"
+                    :options="listPlaceDetails2"
+                    :filter="true"
+                    :editable="true"
+                    :showClear="true"
+                    v-model="props.model.select_birthplace_origin"
+                    optionLabel="name"
+                    optionValue="place_details_id"
+                    class="ip36"
+                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                    panelClass="d-design-dropdown"
+                  />
+                  <!-- <TreeSelect
                     :options="props.places"
                     :showClear="true"
                     :max-height="200"
@@ -360,28 +491,49 @@ onMounted(() => {});
                     optionValue="place_id"
                     class="ip36"
                   >
-                  </TreeSelect>
+                  </TreeSelect> -->
                 </div>
               </div>
               <div class="col-12 md:col-12">
-                <div class="form-group">
+                <div class="form-group m-0">
                   <label>Nơi đăng ký HKTT</label>
-                  <TreeSelect
-                    :options="props.places"
-                    :showClear="true"
-                    :max-height="200"
-                    v-model="props.model.select_place_register_permanent"
-                    placeholder="Chọn nơi đăng ký"
-                    optionLabel="name"
-                    optionValue="place_id"
-                    class="ip36"
-                  >
-                  </TreeSelect>
                 </div>
               </div>
               <div class="col-12 md:col-12 p-0">
                 <div class="row">
-                  <div class="col-4 md:col-4">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.place_register_permanent_first"
+                        maxLength="500"
+                        placeholder="Số nhà/đường phố"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <Dropdown
+                        @filter="initPlaceFilter($event, 3)"
+                        :options="listPlaceDetails3"
+                        :filter="true"
+                        :editable="true"
+                        :showClear="true"
+                        v-model="props.model.select_place_register_permanent"
+                        optionLabel="name"
+                        optionValue="place_details_id"
+                        class="ip36"
+                        placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                        panelClass="d-design-dropdown"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 md:col-12 p-0">
+                <div class="row">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Loại giấy tờ</label>
                       <Dropdown
@@ -395,7 +547,7 @@ onMounted(() => {});
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Số</label>
                       <InputText
@@ -406,13 +558,25 @@ onMounted(() => {});
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Ngày cấp</label>
                       <Calendar
                         class="ip36"
                         id="icon"
                         v-model="props.model.identity_date_issue"
+                        :showIcon="true"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Ngày hết hạn</label>
+                      <Calendar
+                        class="ip36"
+                        id="icon"
+                        v-model="props.model.identity_end_date_issue"
                         :showIcon="true"
                         placeholder="dd/mm/yyyy"
                       />
@@ -683,24 +847,35 @@ onMounted(() => {});
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
+                    <div class="form-group m-0">
+                      <label>Chỗ ở hiện nay </label>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Thường trú</label>
                       <InputText
                         spellcheck="false"
                         class="ip36"
                         v-model="props.model.place_permanent"
                         maxLength="500"
+                        placeholder="Số nhà/đường phố"
                       />
                     </div>
                   </div>
-                  <div class="col-12 md:col-12">
+                  <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Chỗ ở hiện nay</label>
-                      <InputText
-                        spellcheck="false"
+                      <Dropdown
+                        @filter="initPlaceFilter($event, 4)"
+                        :options="listPlaceDetails4"
+                        :filter="true"
+                        :editable="true"
+                        :showClear="true"
+                        v-model="props.model.select_place_residence"
+                        optionLabel="name"
+                        optionValue="place_details_id"
                         class="ip36"
-                        v-model="props.model.place_residence"
-                        maxLength="500"
+                        placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                        panelClass="d-design-dropdown"
                       />
                     </div>
                   </div>
@@ -709,7 +884,7 @@ onMounted(() => {});
                       <label class="m-0">Khi cần báo tin cho:</label>
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Họ và tên</label>
                       <InputText
@@ -720,7 +895,7 @@ onMounted(() => {});
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Số điện thoại</label>
                       <InputText
@@ -728,6 +903,25 @@ onMounted(() => {});
                         class="ip36"
                         v-model="props.model.involved_phone"
                         maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Mối quan hệ</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[11]"
+                        optionLabel="relationship_name"
+                        optionValue="relationship_id"
+                        placeholder="Chọn quan hệ"
+                        v-model="props.model.relationship_id"
+                        class="ip36"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -788,11 +982,7 @@ onMounted(() => {});
                       header=""
                       headerStyle="text-align:center;width:50px"
                       bodyStyle="text-align:center;width:50px"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <a
@@ -812,11 +1002,7 @@ onMounted(() => {});
                       header="Họ tên"
                       headerStyle="text-align:center;width:180px;height:50px"
                       bodyStyle="text-align:center;width:180px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -833,11 +1019,7 @@ onMounted(() => {});
                       header="Quan hệ"
                       headerStyle="text-align:center;width:170px;height:50px"
                       bodyStyle="text-align:center;width:170px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <div class="form-group m-0">
@@ -849,11 +1031,11 @@ onMounted(() => {});
                             placeholder="Chọn quan hệ"
                             v-model="slotProps.data.relationship_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -863,11 +1045,7 @@ onMounted(() => {});
                       header="Năm sinh"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -883,11 +1061,7 @@ onMounted(() => {});
                       header="SĐT"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputMask
@@ -903,11 +1077,7 @@ onMounted(() => {});
                       header="Mã số thuế"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -924,11 +1094,7 @@ onMounted(() => {});
                       header="CCCD/Hộ chiếu"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -945,11 +1111,7 @@ onMounted(() => {});
                       header="Ngày cấp"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -965,11 +1127,7 @@ onMounted(() => {});
                       header="Nơi cấp"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -986,11 +1144,7 @@ onMounted(() => {});
                       header="Phụ thuộc"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <div class="form-group m-0">
@@ -1007,11 +1161,11 @@ onMounted(() => {});
                             optionValue="value"
                             placeholder="Chọn trạng thái"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           >
                             <template #option="slotProps">
                               <div class="country-item flex align-items-center">
@@ -1029,11 +1183,7 @@ onMounted(() => {});
                       header="Từ ngày"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1049,11 +1199,7 @@ onMounted(() => {});
                       header="Đến ngày"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1069,11 +1215,7 @@ onMounted(() => {});
                       header="Thông tin cơ bản"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1089,11 +1231,7 @@ onMounted(() => {});
                       header="Ghi chú"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1106,14 +1244,8 @@ onMounted(() => {});
                     </Column>
                     <template #empty>
                       <div
-                        class="
-                          align-items-center
-                          justify-content-center
-                          p-4
-                          text-center
-                          m-auto
-                        "
-                        style="display: flex; width: 100%; "
+                        class="align-items-center justify-content-center p-4 text-center m-auto"
+                        style="display: flex; width: 100%"
                       ></div>
                     </template>
                   </DataTable>
@@ -1164,11 +1296,7 @@ onMounted(() => {});
                       header=""
                       headerStyle="text-align:center;width:50px"
                       bodyStyle="text-align:center;width:50px"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <a
@@ -1188,11 +1316,7 @@ onMounted(() => {});
                       header="Tên trường"
                       headerStyle="text-align:center;width:180px;height:50px"
                       bodyStyle="text-align:center;width:180px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1209,11 +1333,7 @@ onMounted(() => {});
                       header="Chuyên ngành"
                       headerStyle="text-align:center;width:170px;height:50px"
                       bodyStyle="text-align:center;width:170px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <div class="form-group m-0">
@@ -1225,11 +1345,11 @@ onMounted(() => {});
                             placeholder="Chọn chuyên ngành"
                             v-model="slotProps.data.specialized"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1239,11 +1359,7 @@ onMounted(() => {});
                       header="Từ tháng, năm"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1261,11 +1377,7 @@ onMounted(() => {});
                       header="Đến tháng, năm"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1283,11 +1395,7 @@ onMounted(() => {});
                       header="Hình thức đào tạo"
                       headerStyle="text-align:center;width:170px;height:50px"
                       bodyStyle="text-align:center;width:170px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <div class="form-group m-0">
@@ -1299,11 +1407,11 @@ onMounted(() => {});
                             placeholder="Chọn hình thức"
                             v-model="slotProps.data.form_traning_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1313,11 +1421,7 @@ onMounted(() => {});
                       header="Văn bằng, chứng chỉ"
                       headerStyle="text-align:center;width:170px;height:50px"
                       bodyStyle="text-align:center;width:170px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <div class="form-group m-0">
@@ -1329,11 +1433,11 @@ onMounted(() => {});
                             placeholder="Chọn văn bằng"
                             v-model="slotProps.data.certificate_id"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1343,11 +1447,7 @@ onMounted(() => {});
                       header="Ngày hiệu lực"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1363,11 +1463,7 @@ onMounted(() => {});
                       header="Ngày hết hiệu lực"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1383,11 +1479,7 @@ onMounted(() => {});
                       header="Số hiệu"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1404,11 +1496,7 @@ onMounted(() => {});
                       header="Phiên bản"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1425,11 +1513,7 @@ onMounted(() => {});
                       header="Lần phát hành"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1443,14 +1527,8 @@ onMounted(() => {});
                     </Column>
                     <template #empty>
                       <div
-                        class="
-                          align-items-center
-                          justify-content-center
-                          p-4
-                          text-center
-                          m-auto
-                        "
-                        style="display: flex; width: 100%; "
+                        class="align-items-center justify-content-center p-4 text-center m-auto"
+                        style="display: flex; width: 100%"
                       ></div>
                     </template>
                   </DataTable>
@@ -1498,11 +1576,7 @@ onMounted(() => {});
                       header=""
                       headerStyle="text-align:center;width:50px"
                       bodyStyle="text-align:center;width:50px"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <a
@@ -1522,11 +1596,7 @@ onMounted(() => {});
                       header="Số thẻ"
                       headerStyle="text-align:center;width:180px;height:50px"
                       bodyStyle="text-align:center;width:180px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1543,11 +1613,7 @@ onMounted(() => {});
                       header="Hình thức"
                       headerStyle="text-align:center;width:170px;height:50px"
                       bodyStyle="text-align:center;width:170px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <div class="form-group m-0">
@@ -1564,11 +1630,11 @@ onMounted(() => {});
                             placeholder="Chọn chuyên ngành"
                             v-model="slotProps.data.form"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1578,11 +1644,7 @@ onMounted(() => {});
                       header="Từ ngày"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1598,11 +1660,7 @@ onMounted(() => {});
                       header="Đến ngày"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1618,11 +1676,7 @@ onMounted(() => {});
                       header="Nơi kết nạp"
                       headerStyle="text-align:center;width:180px;height:50px"
                       bodyStyle="text-align:center;width:180px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1639,11 +1693,7 @@ onMounted(() => {});
                       header="Nơi điều chuyển"
                       headerStyle="text-align:center;width:180px;height:50px"
                       bodyStyle="text-align:center;width:180px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1657,14 +1707,8 @@ onMounted(() => {});
                     </Column>
                     <template #empty>
                       <div
-                        class="
-                          align-items-center
-                          justify-content-center
-                          p-4
-                          text-center
-                          m-auto
-                        "
-                        style="display: flex; width: 100%; "
+                        class="align-items-center justify-content-center p-4 text-center m-auto"
+                        style="display: flex; width: 100%"
                       ></div>
                     </template>
                   </DataTable>
@@ -1797,7 +1841,10 @@ onMounted(() => {});
               <template #header>
                 <Toolbar class="w-full custoolbar p-0 font-bold">
                   <template #start>
-                    <span>8. Kinh nghiệm làm việc</span></template
+                    <span
+                      >8. Quá trình công tác (đơn vị cũ)/Kinh nghiệm làm
+                      việc</span
+                    ></template
                   >
                   <template #end>
                     <a
@@ -1832,11 +1879,7 @@ onMounted(() => {});
                       header=""
                       headerStyle="text-align:center;width:50px"
                       bodyStyle="text-align:center;width:50px"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <a
@@ -1856,11 +1899,7 @@ onMounted(() => {});
                       header="Từ tháng, năm"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1878,11 +1917,7 @@ onMounted(() => {});
                       header="Đến tháng, năm"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <Calendar
@@ -1900,11 +1935,7 @@ onMounted(() => {});
                       header="Công ty, đơn vị"
                       headerStyle="text-align:center;width:180px;height:50px"
                       bodyStyle="text-align:center;width:180px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1917,15 +1948,28 @@ onMounted(() => {});
                       </template>
                     </Column>
                     <Column
+                      field="address"
+                      header="Địa chỉ"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.address"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
                       field="role"
                       header="Vị trí"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1938,15 +1982,28 @@ onMounted(() => {});
                       </template>
                     </Column>
                     <Column
+                      field="wage"
+                      header="Mức lương"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.wage"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
                       field="reference_name"
                       header="Người tham chiếu"
                       headerStyle="text-align:center;width:150px;height:50px"
                       bodyStyle="text-align:center;width:150px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1963,11 +2020,7 @@ onMounted(() => {});
                       header="SĐT"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputMask
@@ -1983,11 +2036,7 @@ onMounted(() => {});
                       header="Mô tả công việc"
                       headerStyle="text-align:center;width:200px;height:50px"
                       bodyStyle="text-align:center;width:200px;"
-                      class="
-                        align-items-center
-                        justify-content-center
-                        text-center
-                      "
+                      class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
                         <InputText
@@ -1999,16 +2048,27 @@ onMounted(() => {});
                         />
                       </template>
                     </Column>
+                    <Column
+                      field="reason"
+                      header="Lý do nghỉ việc"
+                      headerStyle="text-align:center;width:200px;height:50px"
+                      bodyStyle="text-align:center;width:200px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.reason"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
                     <template #empty>
                       <div
-                        class="
-                          align-items-center
-                          justify-content-center
-                          p-4
-                          text-center
-                          m-auto
-                        "
-                        style="display: flex; width: 100%; "
+                        class="align-items-center justify-content-center p-4 text-center m-auto"
+                        style="display: flex; width: 100%"
                       ></div>
                     </template>
                   </DataTable>
@@ -2090,13 +2150,7 @@ onMounted(() => {});
                       :value="props.model.files"
                       :rowHover="true"
                       :scrollable="true"
-                      class="
-                        w-full
-                        h-full
-                        ptable
-                        p-datatable-sm
-                        flex flex-column
-                      "
+                      class="w-full h-full ptable p-datatable-sm flex flex-column"
                       layout="list"
                       responsiveLayout="scroll"
                     >
@@ -2171,6 +2225,13 @@ onMounted(() => {});
 @import url(./stylehrm.css);
 </style>
 <style lang="scss" scoped>
+::v-deep(.p-datatable) {
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+}
 ::v-deep(.d-lang-table) {
   .p-datatable-thead .justify-content-center .p-column-header-content {
     justify-content: center !important;

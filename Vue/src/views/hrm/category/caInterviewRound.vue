@@ -151,7 +151,6 @@ const interview_round = ref({
   interview_round_name: "",
   emote_file: "",
   status: true,
-  is_default: false,
   is_order: 1,
 });
 
@@ -183,9 +182,8 @@ const openBasic = (str) => {
     interview_round_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id,
+    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
   };
 
   checkIsmain.value = false;
@@ -199,7 +197,6 @@ const closeDialog = () => {
     interview_round_name: "",
     emote_file: "",
     status: true,
-    is_default: false,
     is_order: 1,
   };
 
@@ -911,7 +908,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system== true">
             <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
           </div>
           <div v-else></div>
@@ -970,33 +967,33 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Vòng phỏng vấn <span class="redsao">(*)</span></label
+          <label class="col-2 text-left p-0"
+            >Vòng PV <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="interview_round.interview_round_name"
             spellcheck="false"
-            class="col-9 ip36 px-2"
+            class="col-10 ip36 px-2"
             :class="{
               'p-invalid': v$.interview_round_name.$invalid && submitted,
             }"
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-3 text-left"></div>
+          <div class="col-2 text-left"></div>
           <small
             v-if="
               (v$.interview_round_name.$invalid && submitted) ||
               v$.interview_round_name.$pending.$response
             "
-            class="col-9 p-error"
+            class="col-10 p-error"
           >
             <span class="col-12 p-0">{{
               v$.interview_round_name.required.$message
@@ -1005,17 +1002,27 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-
         <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-left p-0">STT</div>
-            <InputNumber v-model="interview_round.is_order" class="col-6 ip36 p-0" />
+            <InputNumber
+              v-model="interview_round.is_order"
+              class="col-6 ip36 p-0"
+            />
           </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
             <InputSwitch v-model="interview_round.status" />
           </div>
+          <div
+            class="field col-4 md:col-4 p-0 align-items-center flex"
+            v-if="store.getters.user.is_super"
+          >
+            <div class="col-6 text-center p-0">Hệ thống</div>
+            <InputSwitch v-model="interview_round.is_system" />
+          </div>
         </div>
+        
       </div>
     </form>
     <template #footer>

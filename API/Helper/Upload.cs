@@ -6,6 +6,7 @@ using System.Configuration;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -21,9 +22,22 @@ namespace API.Helper
                 string portals = "";
                 bool isHttp = false;
                 bool isFtp = false;
-                //Portals = "ftp://123.31.12.70/PublishSOE2020/Vue2022/Code/";
-                var file_size = new FileInfo(root + newFileName).Length;
-                if ((fileData.Headers.ContentLength != null && fileData.Headers.ContentLength == 0) || file_size == 0)
+                //Portals = "ftp://123.31.12.70:21/PublishSOE2020/Vue2022/VTCPLUS/api/Portals";
+                //Portals = "https://apivtc.soe.vn/";
+                newFileName = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/");
+                string nameFileGet = root + newFileName;
+                var pathFileTransfer = "";
+                if (File.Exists(fileData.LocalFileName))
+                {
+                    pathFileTransfer = fileData.LocalFileName;
+                }
+                else
+                {
+                    pathFileTransfer = root + newFileName;
+                }
+                var file_up = new FileInfo(pathFileTransfer);
+                //if ((fileData.Headers.ContentLength != null && fileData.Headers.ContentLength == 0) || file_size == 0)
+                if (file_up.Length == 0)
                 {
                     return;
                 }
@@ -47,14 +61,29 @@ namespace API.Helper
                     {
                         portals = Portals + "\\Portals";
                     }
+                    if (isHttp || isFtp)
+                    {
+                        if (Portals.Contains("Portals") && newFileName.IndexOf("/Portals/") == 0)
+                        {
+                            newFileName = newFileName.Substring(9);
+                        }
+                    }
                     if (!isHttp && !isFtp)
                     {
-                        newFileName = portals + newFileName.Replace("/", "\\");
-                        newFileName.Replace("Portals\\Portals", "Portals");
+                        newFileName = portals + "/" + newFileName;
+                        newFileName = Regex.Replace(newFileName.Replace("\\", "/"), @"\.*/+", "/");
+                        newFileName = newFileName.Replace("Portals/Portals/", "Portals/");
                         string directory = Path.GetDirectoryName(newFileName);
                         if (!Directory.Exists(directory))
                             Directory.CreateDirectory(directory);
-                        File.Move(fileData.LocalFileName, newFileName);
+                        if (File.Exists(fileData.LocalFileName))
+                        {
+                            File.Move(fileData.LocalFileName, newFileName);
+                        }
+                        else
+                        {
+                            File.Move(pathFileTransfer, newFileName);
+                        }
                         if (helper.IsImageFileName(newFileName))
                         {
                             helper.ResizeImage(newFileName, 1920, 1080, 90);
@@ -74,36 +103,79 @@ namespace API.Helper
                             if (rswidth != null)
                                 multiForm.Add(new StringContent(rswidth.ToString()), "rswidth");
                             // add file and directly upload it
-                            FileStream fs = File.OpenRead(fileData.LocalFileName);
-                            multiForm.Add(new StreamContent(fs), "file", Path.GetFileName(fileData.LocalFileName));
+                            FileStream fs = File.OpenRead(nameFileGet);
+                            multiForm.Add(new StreamContent(fs), "file", Path.GetFileName(nameFileGet));
                             // send request to API
                             jwtcookie = HttpUtility.UrlDecode(jwtcookie);
                             string jwt = Codec.DecryptString(jwtcookie, ConfigurationManager.AppSettings["EncriptKey"]);
                             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwt);
                             var response = await client.PostAsync(portals + "/api/Upload/Update_File", multiForm);
+                            fs.Close();
                         }
                     }
                     else if (isFtp)
                     {
-                        //string url = "ftp://" + newFileName;
-                        string url = portals + newFileName;
-                        FtpWebRequest request = (FtpWebRequest)WebRequest.Create(url);
-
-                        string json = System.IO.File.ReadAllText(HttpContext.Current.Server.MapPath("~/Config/Config.json"));
+                        //string json = System.IO.File.ReadAllText(HttpContext.Current.Server.MapPath("~/Config/Config.json"));
+                        string json = System.IO.File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/Config/Config.json");
                         settings deJson = JsonConvert.DeserializeObject<settings>(json);
-                        var usAccess = deJson.userftp != null ? Codec.DecryptString(deJson.userftp, helper.psKey) : "";
-                        var psAccess = deJson.psftp != null ? Codec.DecryptString(deJson.psftp, helper.psKey) : "";
-                        //request.Credentials = new NetworkCredential(usAccess, psAccess);
-                        request.Credentials = new NetworkCredential("os", "#Os1234567BiBi");
+                        var usAccess = deJson.userftp != null ? Codec.DecryptString(deJson.userftp, helper.psKey) : ""; // "os";
+                        var psAccess = deJson.psftp != null ? Codec.DecryptString(deJson.psftp, helper.psKey) : ""; // "#Os1234567BiBi";
+
+                        string url = portals + newFileName;
+                        string directoryAddFtp = Path.GetDirectoryName(newFileName).Replace("\\", "/");
+                        var listPartPath = Regex.Replace(directoryAddFtp.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                        var pathToDir = portals;
+                        foreach (var itemPart in listPartPath)
+                        {
+                            var itemFormat = itemPart.Trim();
+                            if (itemFormat != "")
+                            {
+                                try
+                                {
+                                    FtpWebRequest requestDir = (FtpWebRequest)WebRequest.Create(pathToDir + "/" + itemFormat);
+                                    requestDir.Credentials = new NetworkCredential(usAccess, psAccess);
+                                    //requestDir.KeepAlive = false;
+                                    requestDir.Method = WebRequestMethods.Ftp.ListDirectory;
+                                    using (FtpWebResponse makeDirResponse = (FtpWebResponse)requestDir.GetResponse())
+                                    {
+                                        pathToDir += "/" + itemFormat;
+                                        makeDirResponse.Close();
+                                    }
+                                }
+                                catch (WebException e)
+                                {
+                                    FtpWebRequest requestDir = (FtpWebRequest)WebRequest.Create(pathToDir + "/" + itemFormat);
+                                    pathToDir += "/" + itemFormat;
+                                    requestDir.Credentials = new NetworkCredential(usAccess, psAccess);
+                                    //requestDir.KeepAlive = false;
+                                    requestDir.Method = WebRequestMethods.Ftp.MakeDirectory;
+                                    using (FtpWebResponse makeDirResponse = (FtpWebResponse)requestDir.GetResponse())
+                                    {
+                                        makeDirResponse.Close();
+                                    }
+                                }
+                            }
+                        }
+                        
+
+                        FtpWebRequest request = (FtpWebRequest)WebRequest.Create(url);
+                        request.Credentials = new NetworkCredential(usAccess, psAccess);
                         request.Method = WebRequestMethods.Ftp.UploadFile;
 
-                        FileStream fs = File.OpenRead(fileData.LocalFileName);
+                        FileStream fs = File.OpenRead(pathFileTransfer);
                         using (Stream ftpStream = request.GetRequestStream())
                         {
                             fs.CopyTo(ftpStream);
+                            ftpStream.Close();
+                            fs.Close();
                         }
                     }
                 }
+                
+            }
+            catch (WebException e)
+            {
+                String status = ((FtpWebResponse)e.Response).StatusDescription;
             }
             catch (Exception e)
             {

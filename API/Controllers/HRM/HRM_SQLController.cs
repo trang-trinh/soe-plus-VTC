@@ -157,7 +157,7 @@ namespace API.Controllers.HRM
             try
             {
 
-                    
+
 
 
 
@@ -181,7 +181,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg(" + dvid + ") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -287,7 +287,7 @@ namespace API.Controllers.HRM
                         + " CONTAINS( hcal.training_emps_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " +
 
                         " or ( hcal.training_emps_code like N'%" + filterSQL.Search.ToUpper() + "%'  collate Latin1_General_100_CI_AS )  " +
-                           
+
                         ")";
                 }
 
@@ -402,7 +402,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg(" + dvid + ") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -503,9 +503,9 @@ namespace API.Controllers.HRM
                 if (!string.IsNullOrWhiteSpace(filterSQL.Search))
                 {
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
-                     
 
-                        + " CONTAINS(hcal.candidate_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') " ;
+
+                        + " CONTAINS(hcal.candidate_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') ";
                 }
 
 
@@ -534,7 +534,7 @@ namespace API.Controllers.HRM
                     sqlCount += " select count(*) as totalRecords2 from hrm_candidate  hcal WHERE " + WhereSQL + " and hcal.status=1 and " + checkOrgz;
                     sqlCount += " select count(*) as totalRecords3 from hrm_candidate  hcal WHERE " + WhereSQL + " and hcal.status=2 and " + checkOrgz;
                     sqlCount += " select count(*) as totalRecords4 from hrm_candidate  hcal WHERE " + WhereSQL + " and hcal.status=3 and " + checkOrgz;
-                   
+
                 }
                 else
                 {
@@ -546,7 +546,7 @@ namespace API.Controllers.HRM
                     sqlCount += " select count(*) as totalRecords2 from hrm_candidate  hcal WHERE hcal.status=1 and " + checkOrgz;
                     sqlCount += " select count(*) as totalRecords3 from hrm_candidate  hcal WHERE hcal.status=2 and " + checkOrgz;
                     sqlCount += " select count(*) as totalRecords4 from hrm_candidate  hcal WHERE hcal.status=3 and " + checkOrgz;
-              
+
 
                 }
                 if (!filterSQL.next)//Đảo Sort
@@ -616,13 +616,13 @@ namespace API.Controllers.HRM
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + " hcal.* ,su.full_name,su.avatar,(SELECT COUNT(*) FROM hrm_candidate hc WHERE hc.campaign_id=hcal.campaign_id) AS slTuyen,hcv.vacancy_name, "+
-                " (SELECT COUNT(*) FROM hrm_candidate hc WHERE hc.campaign_id = hcal.campaign_id AND hc.status = 1) AS trungTuyen "+
+                sql = selectStr + " hcal.* ,su.full_name,su.avatar,(SELECT COUNT(*) FROM hrm_candidate hc WHERE hc.campaign_id=hcal.campaign_id) AS slTuyen,hcv.vacancy_name, " +
+                " (SELECT COUNT(*) FROM hrm_candidate hc WHERE hc.campaign_id = hcal.campaign_id AND hc.status = 1) AS trungTuyen " +
                 " from hrm_campaign hcal     LEFT JOIN hrm_ca_vacancy hcv ON hcv.vacancy_id = hcal.rec_vacancies   LEFT JOIN sys_users su ON hcal.created_by = su.user_id ";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg(" + dvid + ") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -725,7 +725,7 @@ namespace API.Controllers.HRM
                     WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
 
 
-                        + " ( CONTAINS(hcal.campaign_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') or hcal.campaign_code like N'%"+ filterSQL.Search.ToUpper() + "%' )";
+                        + " ( CONTAINS(hcal.campaign_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') or hcal.campaign_code like N'%" + filterSQL.Search.ToUpper() + "%' )";
                 }
 
 
@@ -833,7 +833,7 @@ namespace API.Controllers.HRM
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + " hcal.*, (SELECT COUNT(*) FROM hrm_rec_candidate hrc WHERE hrc.rec_calendar_id = hcal.rec_calendar_id) AS countUser, su.full_name AS created_name, su.avatar AS created_avatar, "+
+                sql = selectStr + " hcal.*, (SELECT COUNT(*) FROM hrm_rec_candidate hrc WHERE hrc.rec_calendar_id = hcal.rec_calendar_id) AS countUser, su.full_name AS created_name, su.avatar AS created_avatar, " +
 " (select distinct '[' + STUFF((SELECT     ',{\"full_name\":\"' + cast(ISNULL(hcs.full_name, '') as nvarchar(50)) + '\"' + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(50)) + '\"' + '}' " +
 " FROM sys_users   hcs  WHERE hcs.user_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.interviewers, ',') upp) for xml path(''), type " +
 " ).value('.', 'nvarchar(max)'), 1, 1, '')  +']'  ) as listUserRecs , hc.campaign_name from hrm_rec_calendar hcal   LEFT JOIN sys_users su ON su.user_id = hcal.created_by " +
@@ -841,7 +841,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg(" + dvid + ") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -969,7 +969,7 @@ namespace API.Controllers.HRM
                     sql += " WHERE (" + WhereSQL + ") and " + checkOrgz + @"
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
                     sqlCount += " WHERE " + WhereSQL + "  and " + checkOrgz;
-                    
+
                 }
                 else
                 {
@@ -977,7 +977,7 @@ namespace API.Controllers.HRM
                         ORDER BY " + filterSQL.sqlO + offSetSQL;
 
                     sqlCount += " WHERE  " + checkOrgz;
-                    
+
 
                 }
                 if (!filterSQL.next)//Đảo Sort
@@ -1052,7 +1052,7 @@ namespace API.Controllers.HRM
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
-                string checkOrgz = super == "True" ? " hcal.organization_id is not null " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg(" + dvid + ") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
                 if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
                 {
                     var check = false;
@@ -1233,6 +1233,261 @@ namespace API.Controllers.HRM
             {
                 string contents = helper.ExceptionMessage(e);
                 helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = sql, contents }), domainurl + "/hrm_SQL/Filter_hrm_proposal", ip, tid, "Lỗi khi gọi proc Filter_hrm_proposal", 0, "hrm_SQL");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1", sql });
+            }
+
+        }
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> Filter_hrm_reward([System.Web.Mvc.Bind(Include = "fieldSQLS,Search,sqlO,PageNo,PageSize,next,id")][FromBody] FilterSQL filterSQL)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+
+
+            string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(x => x.Type == "dvid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            string sql = "";
+            string sqlCount = "  select count(*) as totalRecords from hrm_reward  hcal ";
+            try
+            {
+                var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
+
+
+
+                sql =  
+
+                    " (Select FieldValue into #child from dbo.udf_PivotParameters((Select IDChild from view_sys_organization where organization_id = "+dvid+" ), ',')) "+
+"Select tbn.*, cts.contract_id, (o.organization_id)department_id, (o.organization_name)department_name, ps.position_name, wp.work_position_name into #contract " +
+" from(Select ct.profile_id, Max(ct.sign_date)sign_date, Max(ct.is_order)maxorder from hrm_contract ct " +
+
+  "  where (ct.organization_id ="+ dvid +" or ct.organization_id in (Select FieldValue from #child)) and ct.status = 1	group by ct.profile_id) tbn " +
+"inner join hrm_contract cts on cts.profile_id = tbn.profile_id and cts.sign_date = tbn.sign_date and cts.is_order = tbn.maxorder " +
+"left join sys_organization o on cts.department_id = o.organization_id " +
+"left join ca_positions ps on cts.position_id = ps.position_id " +
+"left join hrm_ca_work_position wp on cts.work_position_id = wp.work_position_id";
+
+  sql+=  " select  hcal.*,su.full_name,su.avatar, " +
+"  CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 3 THEN(select distinct '[' + STUFF(( " +
+    "   SELECT ',{\"full_name\":\"' + cast(ISNULL(hcs.profile_user_name, '') as nvarchar(150)) + '\"' " +
+     "     + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(250)) + '\"' " +
+      "     + ',\"profile_id\":\"' + cast(ISNULL(hcs.profile_id, '') as nvarchar(100)) + '\"'  " +
+      "      +',\"profile_code\":\"' + cast(ISNULL(hcs.profile_code, '') as nvarchar(250)) + '\"'" +
+   "  + ',\"position_name\":\"' + cast(ISNULL(sc.position_name, '') as nvarchar(250)) + '\"'" +
+   "  + ',\"department_name\":\"' + cast(ISNULL(sc.department_name, '') as nvarchar(250)) + '\"' + '}' " +
+  "    FROM hrm_profile   hcs LEFT JOIN #contract sc ON hcs.profile_id = sc.profile_id  " +
+  "  WHERE hcs.profile_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type) " +
+ "  .value('.', 'nvarchar(max)'), 1, 1, '')  +']'   ) " +
+
+  "  WHEN hcal.reward_type = 2 THEN(select distinct '[' + STUFF((" +
+  "    SELECT     ',{\"department_name\":\"' + cast(ISNULL(hcs.organization_name, '') as nvarchar(150)) + '\"' + '}' " +
+  "   FROM sys_organization hcs  WHERE hcs.organization_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type).value('.', 'nvarchar(max)'), 1, 1, '')  +']'   )  " +
+" END as listRewards  ,  " +
+" CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
+" (SELECT hcrt1.reward_title_name FROM hrm_ca_reward_title hcrt1 WHERE hcrt1.reward_title_id = hcal.reward_title_id)  " +
+" WHEN hcal.reward_type = 3 THEN  " +
+"  (SELECT hcd.discipline_name FROM hrm_ca_discipline hcd   WHERE hcd.discipline_id = hcal.reward_title_id) END as reward_title_name ,  " +
+" CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
+" (SELECT hcrl.reward_level_name FROM hrm_ca_reward_level hcrl     WHERE hcrl.reward_level_id = hcal.reward_level_id)  WHEN hcal.reward_type = 3 THEN  " +
+ "    (SELECT hcd.discipline_level_name FROM hrm_ca_discipline_level hcd   WHERE hcd.discipline_level_id = hcal.reward_level_id) END as reward_level_name  " +
+" from hrm_reward hcal LEFT JOIN sys_users su ON su.user_id = hcal.created_by  ";
+                string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
+                string WhereSQL = "";
+
+                string checkOrgz = super == "True" ? " (  hcal.organization_id =" + dvid + " OR hcal.organization_id IN (SELECT *    FROM dbo.udf_getChildOrg(" + dvid + ") uco)  ) " : (" ( hcal.organization_id = 0 or hcal.organization_id =" + dvid + " ) ");
+                if (filterSQL.fieldSQLS != null && filterSQL.fieldSQLS.Count > 0)
+                {
+                    var check = false;
+                    foreach (var field in filterSQL.fieldSQLS)
+                    {
+                        string WhereSQLR = "";
+                        if (field.filteroperator == "in")
+                        {
+                            WhereSQLR += (WhereSQLR != "" ? " And " : " ") + field.key + " in(" + String.Join(",", field.filterconstraints.Select(a => "'" + a.value + "'").ToList()) + ")";
+                        }
+                        else
+                        {
+                            WhereSQLR += field.filterconstraints.Count > 1 ? "(" : "";
+                            foreach (var m in field.filterconstraints.Where(a => a.value != null))
+                            {
+                                switch (m.matchMode)
+                                {
+                                    case "isNull":
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " is null  )";
+                                        break;
+                                    case "lt":
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " < " + m.value + ")";
+                                        break;
+                                    case "gt":
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >" + m.value + ")";
+                                        break;
+                                    case "lte":
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " <= " + m.value + ")";
+                                        break;
+                                    case "gte":
+                                        WhereSQLR += " " + field.filteroperator + " (" + field.key + " >= " + m.value + ")";
+                                        break;
+                                    case "startsWith":
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'" + m.value + "%'";
+                                        break;
+                                    case "endsWith":
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "'";
+                                        break;
+                                    case "contains":
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + " like N'%" + m.value + "%'";
+                                        break;
+                                    case "notContains":
+                                        WhereSQLR += " " + field.filteroperator + " " + field.key + "  not like N'%" + m.value + "%'";
+                                        break;
+                                    case "equals":
+                                        WhereSQLR += " " + field.filteroperator + " ( hcal." + field.key + " = N'" + m.value + "')";
+                                        break;
+                                    case "notEquals":
+                                        WhereSQLR += " " + field.filteroperator + " ( hcal." + field.key + "  <> N'" + m.value + "')";
+                                        break;
+                                    case "dateIs":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) = CAST('" + m.value + "' as date)";
+                                        break;
+                                    case "dateIsNot":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <> CAST('" + m.value + "' as date)";
+                                        break;
+                                    case "dateBefore":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) <= CAST('" + m.value + "' as date)";
+                                        break;
+                                    case "dateAfter":
+                                        WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) >= CAST('" + m.value + "' as date)";
+                                        break;
+
+                                }
+                            }
+                            WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";
+                        }
+                        if (WhereSQLR.StartsWith("( and"))
+                        {
+
+                            WhereSQLR = "( " + WhereSQLR.Substring(5);
+                        }
+                        else if (WhereSQLR.StartsWith("( or"))
+                        {
+                            WhereSQLR = "( " + WhereSQLR.Substring(4);
+                        }
+                        if (WhereSQLR.StartsWith(" and"))
+                        {
+
+                            WhereSQLR = WhereSQLR.Substring(4);
+                        }
+                        else if (WhereSQLR.StartsWith(" or"))
+                        {
+                            WhereSQLR = WhereSQLR.Substring(3);
+                        }
+
+                        if (check == true)
+                        {
+                            WhereSQLR = "  and  " + WhereSQLR;
+                        }
+                        WhereSQL += WhereSQLR;
+                        check = true;
+                    }
+                }
+
+
+                //Search
+                if (!string.IsNullOrWhiteSpace(filterSQL.Search))
+                {
+                    WhereSQL = (WhereSQL.Trim() != "" ? (WhereSQL + " And  ") : "")
+
+
+                        + " ( CONTAINS(hcal.reward_name,'\"*" + filterSQL.Search.ToUpper() + "*\"') or hcal.reward like N'%" + filterSQL.Search.ToUpper() + "%' )";
+                }
+
+
+                var offSetSQL = "";
+                if (filterSQL.next)//Trang tiếp
+                {
+                    if (filterSQL.id != null)
+                    {
+                        offSetSQL = " offset (" + filterSQL.PageNo * filterSQL.PageSize + ") rows fetch next " + filterSQL.PageSize + " rows only";
+                    }
+                }
+                else//Trang trước
+                {
+                    if (filterSQL.id != "-1")
+                    {
+                        offSetSQL = " offset (" + filterSQL.PageNo * filterSQL.PageSize + ") rows fetch next " + filterSQL.PageSize + " rows only";
+                    }
+                }
+
+                if (WhereSQL.Trim() != "")
+                {
+                    sql += " WHERE (" + WhereSQL + ") and " + checkOrgz + @"
+                        ORDER BY " + filterSQL.sqlO + offSetSQL;
+                    sqlCount += " WHERE " + WhereSQL + "  and " + checkOrgz;
+
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and ( hcal.reward_type=1 or hcal.reward_type=2 ) and " + checkOrgz;
+
+
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE " + WhereSQL + " and hcal.reward_type=3    and " + checkOrgz;
+
+
+                }
+                else
+                {
+                    sql += " WHERE " + checkOrgz + @"
+                        ORDER BY " + filterSQL.sqlO + offSetSQL;
+
+                    sqlCount += " WHERE  " + checkOrgz;
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE   ( hcal.reward_type=1 or hcal.reward_type=2 ) and " + checkOrgz;
+
+                    sqlCount += " select count(*) as totalRecords from hrm_reward  hcal WHERE hcal.reward_type=3 and " + checkOrgz;
+
+                }
+                if (!filterSQL.next)//Đảo Sort
+                {
+                    sql = "Select * from (" + sql + " ORDER BY " + (filterSQL.sqlO.Contains("DESC") ? filterSQL.sqlO.Replace("DESC", "ASC") : filterSQL.sqlO.Replace("ASC", "DESC")) + ") as tbn ";
+                }
+
+
+
+                sql += sqlCount;
+
+                sql = sql.Replace("\r", " ").Replace("\n", " ").Replace("   ", " ").Trim();
+                sql = Regex.Replace(sql, @"\s+", " ").Trim();
+                var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, System.Data.CommandType.Text, sql).Tables);
+                var tables = await task;
+                string JSONresult = JsonConvert.SerializeObject(tables);
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, sql, err = "0" });
+
+
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = sql, contents }), domainurl + "/hrm_SQL/Filter_reward", ip, tid, "Lỗi khi gọi Filter_reward", 0, "hrm_SQL");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1", sql });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = sql, contents }), domainurl + "/hrm_SQL/Filter_reward", ip, tid, "Lỗi khi gọi proc Filter_reward", 0, "hrm_SQL");
                 if (!helper.debug)
                 {
                     contents = "";

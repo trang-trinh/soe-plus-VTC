@@ -8,8 +8,9 @@ import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
 import printprofile from "../component/printprofile.vue";
-import diloginsurance from "../../insurance/component/diloginsurance.vue";
+// import diloginsurance from "../../insurance/component/diloginsurance.vue";
 import comptimekeep from "../component/comptimekeep.vue";
+import diloginsurance from "../../profile/component/diloginsurance.vue";
 import moment from "moment";
 
 const route = useRoute();
@@ -29,18 +30,19 @@ const basedomainURL = baseURL;
 
 //Declare
 const views = ref([
-  { view: 1, title: "Sơ yếu", icon: "fa-regular fa-address-card" },
-  { view: 2, title: "Phân công", icon: "fa-solid fa-list-check" },
-  { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
-  { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
-  { view: 5, title: "Lương", icon: "a-solid fa-money-check-dollar" },
-  { view: 6, title: "Bảo hiểm", icon: "fa-solid fa-file-shield" },
-  { view: 7, title: "Phép", icon: "fa-regular fa-calendar-days" },
-  { view: 8, title: "Đào tạo", icon: "fa-solid fa-person-chalkboard" },
-  { view: 9, title: "Quyết định", icon: "fa-solid fa-envelope-open" },
-  { view: 10, title: "File", icon: "fa-solid fa-paperclip" },
-  { view: 11, title: "Tiếp nhận", icon: "fa-regular fa-file" },
-  { view: 12, title: "Sức khỏe", icon: "fa-solid fa-briefcase-medical" },
+  { view: 1, title: "Sơ yếu", icon: "pi pi-id-card" },
+  { view: 2, title: "Phân công", icon: "pi pi-check-circle" },
+  { view: 3, title: "Hợp đồng", icon: "pi pi-envelope" },
+  { view: 4, title: "Chấm công", icon: "pi pi-calendar-times" },
+  { view: 5, title: "Lương", icon: "pi pi-dollar" },
+  { view: 6, title: "Bảo hiểm", icon: "pi pi-shield" },
+  { view: 7, title: "Phép", icon: "pi pi-calendar-minus" },
+  { view: 8, title: "Đào tạo", icon: "pi pi-book" },
+  { view: 9, title: "Quyết định", icon: "pi pi-bookmark" },
+  { view: 16, title: "Khen thưởng/kỷ luật", icon: "pi pi-bolt" },
+  { view: 10, title: "File", icon: "pi pi-paperclip" },
+  { view: 11, title: "Tiếp nhận", icon: "pi pi-box" },
+  { view: 12, title: "Sức khỏe", icon: "pi pi-heart" },
 ]);
 const options = ref({
   loading: true,
@@ -120,6 +122,7 @@ const filter = (event) => {
 };
 
 //data view 1
+const isAdd = ref(false);
 const profile = ref({});
 const places = ref([]);
 const marital_status = ref([
@@ -156,7 +159,7 @@ const contract = ref({});
 const headerDialogContract = ref();
 const displayDialogContract = ref(false);
 const openViewDialogContract = (str) => {
-  forceRerender();
+  forceRerender(1);
   isView.value = true;
   options.value.loading = true;
   swal.fire({
@@ -280,6 +283,7 @@ const openViewDialogContract = (str) => {
 };
 const closeDialogContract = () => {
   displayDialogContract.value = false;
+  forceRerender(1);
 };
 
 //data view 6
@@ -337,17 +341,18 @@ const tranning = ref({});
 const headerDialogTranning = ref();
 const displayDialogTranning = ref(false);
 const openViewDialogTranning = (str) => {
-  forceRerender();
+  forceRerender(2);
   headerDialogTranning.value = str;
   displayDialogTranning.value = true;
 };
 const closeDialogTranning = () => {
   displayDialogTranning.value = false;
+  forceRerender(2);
 };
 
 //data view 10
 const typeFiles = ref([
-  { is_type: 0, title: "Sơ yếu lí lịch" },
+  { is_type: 0, title: "Sơ yếu lý lịch" },
   { is_type: 1, title: "Hợp đồng" },
   { is_type: 2, title: "Đào tạo" },
 ]);
@@ -374,11 +379,13 @@ const formatBytes = (bytes, decimals = 2) => {
 const headerDialogFile = ref();
 const displayDialogFile = ref(false);
 const openViewDialogFile = (str) => {
+  forceRerender(3);
   headerDialogFile.value = str;
   displayDialogFile.value = true;
 };
 const closeDialogFile = () => {
   displayDialogFile.value = false;
+  forceRerender(3);
 };
 
 //data view 11
@@ -415,6 +422,7 @@ const vaccines = ref([]);
 
 //data view 13
 const goPrint = (view) => {
+  forceRerender(3);
   options.value.view = view;
 };
 
@@ -427,12 +435,20 @@ const goBack = () => {
 };
 
 //Function
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
 const changeView = (view) => {
-  options.value.view = view;
+  if (view != null) {
+    options.value.view = view;
+    options.value.view_copy = view;
+  } else {
+    options.value.view = options.value.view_copy;
+  }
   initData();
 };
 
@@ -441,7 +457,7 @@ const isType = ref();
 const headerDialog = ref();
 const displayDialog = ref(false);
 const openEditDialog = (type, str) => {
-  forceRerender();
+  forceRerender(0);
   if (type === 1) {
     isType.value = type;
     headerDialog.value = str;
@@ -454,176 +470,192 @@ const openEditDialog = (type, str) => {
 };
 const closeDialog = () => {
   displayDialog.value = false;
+  forceRerender(0);
 };
 
 //Function edit bảo hiểm
-const statuss = ref([
-  { value: 1, text: "Trả" },
-  { value: 2, text: "Sửa" },
-  { value: 3, text: "Chốt" },
-  { value: 4, text: "Xin cấp" },
-  { value: 5, text: "Gộp" },
-  { value: 6, text: "Người lao động giữ sổ" },
-]);
-const hinhthucs = ref([
-  { value: 1, text: "Bao tăng" },
-  { value: 2, text: "Báo giảm" },
-]);
-const insurance_dictionarys = ref([]);
-const initDictionaryInsurance = () => {
-  axios
-    .post(
-      baseURL + "api/insurance/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_insurance_dictionary",
-            par: [{ par: "user_id", va: store.state.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      if (data != null) {
-        insurance_dictionarys.value = data;
-      }
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
+// const statuss = ref([
+//   { value: 1, text: "Trả" },
+//   { value: 2, text: "Sửa" },
+//   { value: 3, text: "Chốt" },
+//   { value: 4, text: "Xin cấp" },
+//   { value: 5, text: "Gộp" },
+//   { value: 6, text: "Người lao động giữ sổ" },
+// ]);
+// const hinhthucs = ref([
+//   { value: 1, text: "Bao tăng" },
+//   { value: 2, text: "Báo giảm" },
+// ]);
+// const insurance_dictionarys = ref([]);
+// const initDictionaryInsurance = () => {
+//   axios
+//     .post(
+//       baseURL + "api/insurance/GetDataProc",
+//       {
+//         str: encr(
+//           JSON.stringify({
+//             proc: "hrm_insurance_dictionary",
+//             par: [{ par: "user_id", va: store.state.user.user_id }],
+//           }),
+//           SecretKey,
+//           cryoptojs
+//         ).toString(),
+//       },
+//       config
+//     )
+//     .then((response) => {
+//       let data = JSON.parse(response.data.data);
+//       if (data != null) {
+//         insurance_dictionarys.value = data;
+//       }
+//     })
+//     .catch((error) => {
+//       toast.error("Tải dữ liệu không thành công!");
+//       options.value.loading = false;
 
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
+//       if (error && error.status === 401) {
+//         swal.fire({
+//           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//           confirmButtonText: "OK",
+//         });
+//         store.commit("gologout");
+//       }
+//     });
+// };
+// const headerDialogInsurance = ref();
+// const displayDialogInsurance = ref(false);
+// const openEditDialogInsurance = (str) => {
+//   axios
+//     .post(
+//       baseURL + "/api/hrm/callProc",
+//       {
+//         str: encr(
+//           JSON.stringify({
+//             proc: "hrm_profile_insurance_edit",
+//             par: [{ par: "profile_id", va: options.value["profile_id"] }],
+//           }),
+//           SecretKey,
+//           cryoptojs
+//         ).toString(),
+//       },
+//       config
+//     )
+//     .then((response) => {
+//       swal.close();
+//       let data = JSON.parse(response.data.data);
+//       if (data.length > 0) {
+//         if (data[0] != null && data[0].length > 0) {
+//           insurance.value = data[0][0];
+//         } else {
+//           insurance.value = {};
+//         }
+//         //get child
+//         if (data[1] != null && data[1].length > 0) {
+//           insurance_pays.value = data[1];
+//           insurance_pays.value.forEach((item) => {
+//             if (item.start_date != null) {
+//               item.start_date = new Date(item.start_date);
+//             }
+//           });
+//         } else {
+//           insurance_pays.value = [];
+//         }
+
+//         if (data[2] != null && data[2].length > 0) {
+//           insurance_resolves.value = data[2];
+//           insurance_resolves.value.forEach((item) => {
+//             if (item.received_file_date != null) {
+//               item.received_file_date = new Date(item.received_file_date);
+//             }
+//             if (item.completed_date != null) {
+//               item.completed_date = new Date(item.completed_date);
+//             }
+//             if (item.received_money_date != null) {
+//               item.received_money_date = new Date(item.received_money_date);
+//             }
+//           });
+//         } else {
+//           insurance_resolves.value = [];
+//         }
+//       }
+//       headerDialogInsurance.value = str;
+//       displayDialogInsurance.value = true;
+//     })
+//     .catch((error) => {
+//       swal.close();
+//       if (options.value.loading) options.value.loading = false;
+//       if (error && error.status === 401) {
+//         swal.fire({
+//           title: "Thông báo!",
+//           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//           icon: "error",
+//           confirmButtonText: "OK",
+//         });
+//         store.commit("gologout");
+//         return;
+//       } else {
+//         swal.fire({
+//           title: "Thông báo!",
+//           text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+//           icon: "error",
+//           confirmButtonText: "OK",
+//         });
+//         return;
+//       }
+//     });
+// };
+// const closeDialogInsurance = () => {
+//   displayDialogInsurance.value = false;
+// };
+// const addRow = (type) => {
+//   //relative
+//   if (type == 1) {
+//     let obj = {
+//       start_date: null,
+//       payment_form: null,
+//       reason: null,
+//       end_date: null,
+//       organization_payment: null,
+//       total_payment: null,
+//       company_payment: null,
+//       member_payment: null,
+//     };
+//     insurance_pays.value.push(obj);
+//   }
+//   if (type == 2) {
+//     let obj = {
+//       type_mode: null,
+//       payment_form: null,
+//       type_mode: null,
+//       completed_date: null,
+//       received_money_date: null,
+//       money: null,
+//     };
+//     insurance_resolves.value.push(obj);
+//   }
+// };
+// const deleteRow = (idx, type) => {
+//   if (type == 1) {
+//     insurance_pays.value.splice(idx, 1);
+//   }
+//   if (type == 2) {
+//     insurance_resolves.value.splice(idx, 1);
+//   }
+// };
+
+//Funtion Insurance
 const headerDialogInsurance = ref();
 const displayDialogInsurance = ref(false);
 const openEditDialogInsurance = (str) => {
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_profile_insurance_edit",
-            par: [{ par: "profile_id", va: options.value["profile_id"] }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      let data = JSON.parse(response.data.data);
-      if (data.length > 0) {
-        if (data[0] != null && data[0].length > 0) {
-          insurance.value = data[0][0];
-        } else {
-          insurance.value = {};
-        }
-        //get child
-        if (data[1] != null && data[1].length > 0) {
-          insurance_pays.value = data[1];
-          insurance_pays.value.forEach((item) => {
-            if (item.start_date != null) {
-              item.start_date = new Date(item.start_date);
-            }
-          });
-        } else {
-          insurance_pays.value = [];
-        }
-
-        if (data[2] != null && data[2].length > 0) {
-          insurance_resolves.value = data[2];
-          insurance_resolves.value.forEach((item) => {
-            if (item.received_file_date != null) {
-              item.received_file_date = new Date(item.received_file_date);
-            }
-            if (item.completed_date != null) {
-              item.completed_date = new Date(item.completed_date);
-            }
-            if (item.received_money_date != null) {
-              item.received_money_date = new Date(item.received_money_date);
-            }
-          });
-        } else {
-          insurance_resolves.value = [];
-        }
-      }
-      headerDialogInsurance.value = str;
-      displayDialogInsurance.value = true;
-    })
-    .catch((error) => {
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-        return;
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    });
+  forceRerender(4);
+  isAdd.value = false;
+  isView.value = false;
+  headerDialogInsurance.value = str;
+  displayDialogInsurance.value = true;
 };
 const closeDialogInsurance = () => {
   displayDialogInsurance.value = false;
-};
-const addRow = (type) => {
-  //relative
-  if (type == 1) {
-    let obj = {
-      start_date: null,
-      payment_form: null,
-      reason: null,
-      end_date: null,
-      organization_payment: null,
-      total_payment: null,
-      company_payment: null,
-      member_payment: null,
-    };
-    insurance_pays.value.push(obj);
-  }
-  if (type == 2) {
-    let obj = {
-      type_mode: null,
-      payment_form: null,
-      type_mode: null,
-      completed_date: null,
-      received_money_date: null,
-      money: null,
-    };
-    insurance_resolves.value.push(obj);
-  }
-};
-const deleteRow = (idx, type) => {
-  if (type == 1) {
-    insurance_pays.value.splice(idx, 1);
-  }
-  if (type == 2) {
-    insurance_resolves.value.splice(idx, 1);
-  }
+  forceRerender(4);
 };
 
 //Function mores
@@ -702,7 +734,7 @@ const itemButPrints = ref([
     },
   },
   {
-    view: 14,
+    view: 15,
     label: "Sổ lao động mẫu 145/2020/NĐ-CP",
     icon: "fa-regular fa-file",
     command: (event) => {
@@ -1010,11 +1042,16 @@ const initView1 = (rf) => {
         if (tbs[0] != null && tbs[0].length > 0) {
           profile.value = tbs[0][0];
           profile.value["relates"] = JSON.parse(profile.value["relates"]);
-          profile.value["relate"] = profile.value["relates"][0];
-          if (profile.value["relate"]["relate_time"] != null) {
-            profile.value["relate"]["relate_time"] = moment(
-              new Date(profile.value["relate"]["relate_time"])
-            ).format("DD/MM/YYYY");
+          if (
+            profile.value["relates"] != null &&
+            profile.value["relates"].length > 0
+          ) {
+            profile.value["relate"] = profile.value["relates"][0];
+            if (profile.value["relate"]["relate_time"] != null) {
+              profile.value["relate"]["relate_time"] = moment(
+                new Date(profile.value["relate"]["relate_time"])
+              ).format("DD/MM/YYYY");
+            }
           }
           profile.value["gender"] =
             profile.value["gender"] == 1
@@ -1577,9 +1614,7 @@ const initView4 = (rf) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_timekeep_by_user",
-            par: [
-              { par: "profile_id", va: options.value["profile_id"] },
-            ],
+            par: [{ par: "profile_id", va: options.value["profile_id"] }],
           }),
           SecretKey,
           cryoptojs
@@ -2209,7 +2244,7 @@ onMounted(() => {
     options.value["key_id"] = route.params.id;
     options.value["profile_id"] = route.query.id;
     initRelate();
-    initDictionaryInsurance();
+    //initDictionaryInsurance();
     initData();
   } else {
     router.back();
@@ -2227,181 +2262,11 @@ const onPage = (event) => {
 </script>
 <template>
   <div class="surface-100 p-2">
-    <Toolbar class="outline-none surface-0 border-none pb-1">
+    <Toolbar class="outline-none surface-0 border-none">
       <template #start>
-        <span v-if="options.view === 10" class="p-input-icon-left">
-          <i class="pi pi-search" />
-          <InputText
-            @keypress.enter="searchData()"
-            v-model="options.search"
-            type="text"
-            spellcheck="false"
-            :placeholder="'Tìm kiếm'"
-          />
-        </span>
-        <Button
-          v-if="options.view === 10"
-          @click="toggleFilter($event)"
-          type="button"
-          class="ml-2 p-button-outlined p-button-secondary"
-          aria:haspopup="true"
-          aria-controls="overlay_panel"
-        >
-          <div>
-            <span class="mr-2"><i class="pi pi-filter"></i></span>
-            <span class="mr-2">Lọc dữ liệu</span>
-            <span><i class="pi pi-chevron-down"></i></span>
-          </div>
-        </Button>
-        <OverlayPanel
-          :showCloseIcon="false"
-          ref="opfilter"
-          appendTo="body"
-          class="p-0 m-0"
-          id="overlay_panel"
-          style="width: 400px"
-        >
-          <div class="grid formgrid m-0">
-            <div
-              class="col-12 md:col-12 p-0"
-              :style="{
-                minHeight: 'unset',
-                maxHeight: 'calc(100vh - 300px)',
-                overflow: 'auto',
-              }"
-            >
-              <div class="row">
-                <div class="col-12 md:col-12">
-                  <div class="row">
-                    <div class="col-12 md:col-12 p-0">
-                      <div class="form-group">
-                        <label>Loại file</label>
-                        <MultiSelect
-                          :options="type_files"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.type_files"
-                          optionLabel="title"
-                          placeholder="Chọn loại file"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.title }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(index, options.type_files);
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-12 p-0">
-                      <div class="form-group">
-                        <label>Vị trí file</label>
-                        <MultiSelect
-                          :options="is_type_files"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.is_type_files"
-                          optionLabel="title"
-                          placeholder="Chọn vị trí"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.title }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(
-                                          index,
-                                          options.is_type_files
-                                        );
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-12 md:col-12 p-0">
-              <Toolbar
-                class="border-none surface-0 outline-none px-0 pb-0 w-full"
-              >
-                <template #start>
-                  <Button
-                    @click="resetFilter()"
-                    class="p-button-outlined"
-                    label="Bỏ chọn"
-                  ></Button>
-                </template>
-                <template #end>
-                  <Button @click="filter($event)" label="Lọc"></Button>
-                </template>
-              </Toolbar>
-            </div>
-          </div>
-        </OverlayPanel>
+        <h2 class="m-0" :style="{ color: '#0078d4' }">
+          <span>{{ profile.profile_user_name }}</span>
+        </h2>
       </template>
       <template #end>
         <ul class="flex p-0 m-0 mr-2" style="list-style: none">
@@ -2434,6 +2299,7 @@ const onPage = (event) => {
           :popup="true"
           id="overlay_Export"
           ref="menuButs"
+          :style="{ minWidth: '218px !important' }"
         />
         <Button
           @click="
@@ -2460,7 +2326,7 @@ const onPage = (event) => {
             <li
               v-for="(value, key) in itemButPrints"
               :key="key"
-              @click="changeView(value.view)"
+              @click="goPrint(value.view)"
               class="item-menu"
               :class="{
                 'item-menu-highlight': value.view === options.view,
@@ -2477,87 +2343,31 @@ const onPage = (event) => {
         </OverlayPanel>
       </template>
     </Toolbar>
-    <Toolbar class="outline-none surface-0 border-none pt-0">
-      <template #start>
-        <div style="height: 36px; display: flex; align-items: center">
-          <SelectButton
-            :options="views"
-            v-model="options.view"
-            @change="changeView(options.view)"
-            optionValue="view"
-            optionLabel="view"
-            dataKey="view"
-            aria-labelledby="custom"
-            class="selectbutton-custom"
+    <div
+      class="tabview"
+      :style="{ borderTop: 'solid 1px rgba(0,0,0,.1) !important' }"
+    >
+      <div class="tableview-nav-content">
+        <ul class="tableview-nav nav">
+          <li
+            class="nav-item tableview-header"
+            v-for="(item, index) in views"
+            :key="index"
+            :class="{ highlight: options.view === item.view }"
+            @click="changeView(item.view)"
           >
-            <template #option="slotProps">
-              <b>
-                <span
-                  v-if="slotProps.option.icon != null"
-                  :class="{ 'mr-2': slotProps.option.title != null }"
-                >
-                  <font-awesome-icon :icon="slotProps.option.icon" />
-                </span>
-                <span> {{ slotProps.option.title }}</span>
-              </b>
-            </template>
-          </SelectButton>
-          <!-- <span class="p-buttonset">
-            <Button
-              @click="
-                toggleMores($event);
-                $event.stopPropagation();
-              "
-              :class="{
-                'p-button-outlined p-button-secondary p-button-custom':
-                  options.view < 11 || options.view > 12,
-              }"
-              :style="{
-                background:
-                  options.view < 11 || options.view > 12 ? '#ffffff' : '',
-                borderColor:
-                  options.view < 11 || options.view > 12 ? '#ced4da' : '',
-                color: options.view < 11 || options.view > 12 ? '#495057' : '',
-                transition:
-                  'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
-                height: '30px',
-              }"
-            >
-              <font-awesome-icon icon="fa-solid fa-ellipsis" />
-            </Button>
-          </span>
-          <OverlayPanel
-            :showCloseIcon="false"
-            ref="menuButMores"
-            appendTo="body"
-            class="p-0 m-0"
-            id="overlay_More"
-            style="min-width: max-content"
-          >
-            <ul class="m-0 p-0" style="list-style: none">
-              <li
-                v-for="(value, key) in itemButMores"
-                :key="key"
-                @click="changeView(value.view)"
-                class="item-menu"
-                :class="{
-                  'item-menu-highlight': value.view === options.view,
-                }"
-              >
-                <div>
-                  <span :class="{ 'mr-2': value.label != null }"
-                    ><font-awesome-icon :icon="value.icon"
-                  /></span>
-                  <span>{{ value.label }}</span>
-                </div>
-              </li>
-            </ul>
-          </OverlayPanel> -->
-        </div>
-      </template>
-      <template #end> </template>
-    </Toolbar>
-    <div class="d-lang-table" style="border-top: solid 1px rgba(0, 0, 0, 0.1)">
+            <div class="mb-1">
+              <!-- <font-awesome-icon :icon="item.icon" /> -->
+              <i :class="item.icon"></i>
+            </div>
+            <div>
+              <span> {{ item.title }} </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="d-lang-table">
       <div class="flex">
         <div class="flex-1">
           <div class="d-lang-table-1">
@@ -2571,13 +2381,17 @@ const onPage = (event) => {
                   >
                     <AccordionTab>
                       <template #header>
-                        <Toolbar class="w-full custoolbar p-0 font-bold py-0">
+                        <Toolbar
+                          class="w-full custoolbar p-0 font-bold py-0"
+                          :style="{ minHeight: '40px' }"
+                        >
                           <template #start>
                             <!-- <i class="pi pi-users mr-2"></i> -->
                             <span>1. Thông tin chung</span>
                           </template>
                           <template #end>
                             <div
+                              v-if="profile.relate"
                               class="relative relative-hover"
                               :style="{ margin: '0.5rem 0' }"
                             >
@@ -2611,8 +2425,9 @@ const onPage = (event) => {
                                 class="absolute"
                                 :style="{
                                   color: 'red',
-                                  bottom: '-3px',
-                                  right: '-3px',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
                                 }"
                                 ><i class="pi pi-heart-fill"></i
                               ></span>
@@ -2732,7 +2547,7 @@ const onPage = (event) => {
                                     <b
                                       class="m-0"
                                       :style="{ color: '#2ECC71' }"
-                                      >{{ profile.profile_id }}</b
+                                      >{{ profile.profile_code }}</b
                                     >
                                   </label>
                                 </div>
@@ -4842,6 +4657,196 @@ const onPage = (event) => {
             </div>
             <div v-show="options.view === 9" class="f-full">Quyết định</div>
             <div v-show="options.view === 10" class="f-full">
+              <Toolbar class="outline-none surface-0 border-none pb-1">
+                <template #start>
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText
+                      @keypress.enter="searchData()"
+                      v-model="options.search"
+                      type="text"
+                      spellcheck="false"
+                      :placeholder="'Tìm kiếm'"
+                    />
+                  </span>
+                  <Button
+                    v-if="options.view === 10"
+                    @click="toggleFilter($event)"
+                    type="button"
+                    class="ml-2 p-button-outlined p-button-secondary"
+                    aria:haspopup="true"
+                    aria-controls="overlay_panel"
+                  >
+                    <div>
+                      <span class="mr-2"><i class="pi pi-filter"></i></span>
+                      <span class="mr-2">Lọc dữ liệu</span>
+                      <span><i class="pi pi-chevron-down"></i></span>
+                    </div>
+                  </Button>
+                  <OverlayPanel
+                    :showCloseIcon="false"
+                    ref="opfilter"
+                    appendTo="body"
+                    class="p-0 m-0"
+                    id="overlay_panel"
+                    style="width: 400px"
+                  >
+                    <div class="grid formgrid m-0">
+                      <div
+                        class="col-12 md:col-12 p-0"
+                        :style="{
+                          minHeight: 'unset',
+                          maxHeight: 'calc(100vh - 300px)',
+                          overflow: 'auto',
+                        }"
+                      >
+                        <div class="row">
+                          <div class="col-12 md:col-12">
+                            <div class="row">
+                              <div class="col-12 md:col-12 p-0">
+                                <div class="form-group">
+                                  <label>Loại file</label>
+                                  <MultiSelect
+                                    :options="type_files"
+                                    :filter="true"
+                                    :showClear="true"
+                                    :editable="false"
+                                    v-model="options.type_files"
+                                    optionLabel="title"
+                                    placeholder="Chọn loại file"
+                                    class="w-full limit-width"
+                                    style="min-height: 36px"
+                                    panelClass="d-design-dropdown"
+                                  >
+                                    <template #value="slotProps">
+                                      <ul
+                                        class="p-ulchip"
+                                        v-if="
+                                          slotProps.value &&
+                                          slotProps.value.length > 0
+                                        "
+                                      >
+                                        <li
+                                          class="p-lichip"
+                                          v-for="(
+                                            value, index
+                                          ) in slotProps.value"
+                                          :key="index"
+                                        >
+                                          <Chip class="mr-2 mb-2 px-3 py-2">
+                                            <div class="flex">
+                                              <div>
+                                                <span>{{ value.title }}</span>
+                                              </div>
+                                              <span
+                                                tabindex="0"
+                                                class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                                @click="
+                                                  removeFilter(
+                                                    index,
+                                                    options.type_files
+                                                  );
+                                                  $event.stopPropagation();
+                                                "
+                                                v-tooltip.top="'Xóa'"
+                                              ></span>
+                                            </div>
+                                          </Chip>
+                                        </li>
+                                      </ul>
+                                      <span v-else>
+                                        {{ slotProps.placeholder }}
+                                      </span>
+                                    </template>
+                                  </MultiSelect>
+                                </div>
+                              </div>
+                              <div class="col-12 md:col-12 p-0">
+                                <div class="form-group">
+                                  <label>Vị trí file</label>
+                                  <MultiSelect
+                                    :options="is_type_files"
+                                    :filter="true"
+                                    :showClear="true"
+                                    :editable="false"
+                                    v-model="options.is_type_files"
+                                    optionLabel="title"
+                                    placeholder="Chọn vị trí"
+                                    class="w-full limit-width"
+                                    style="min-height: 36px"
+                                    panelClass="d-design-dropdown"
+                                  >
+                                    <template #value="slotProps">
+                                      <ul
+                                        class="p-ulchip"
+                                        v-if="
+                                          slotProps.value &&
+                                          slotProps.value.length > 0
+                                        "
+                                      >
+                                        <li
+                                          class="p-lichip"
+                                          v-for="(
+                                            value, index
+                                          ) in slotProps.value"
+                                          :key="index"
+                                        >
+                                          <Chip class="mr-2 mb-2 px-3 py-2">
+                                            <div class="flex">
+                                              <div>
+                                                <span>{{ value.title }}</span>
+                                              </div>
+                                              <span
+                                                tabindex="0"
+                                                class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                                @click="
+                                                  removeFilter(
+                                                    index,
+                                                    options.is_type_files
+                                                  );
+                                                  $event.stopPropagation();
+                                                "
+                                                v-tooltip.top="'Xóa'"
+                                              ></span>
+                                            </div>
+                                          </Chip>
+                                        </li>
+                                      </ul>
+                                      <span v-else>
+                                        {{ slotProps.placeholder }}
+                                      </span>
+                                    </template>
+                                  </MultiSelect>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12 p-0">
+                        <Toolbar
+                          class="border-none surface-0 outline-none px-0 pb-0 w-full"
+                        >
+                          <template #start>
+                            <Button
+                              @click="resetFilter()"
+                              class="p-button-outlined"
+                              label="Bỏ chọn"
+                            ></Button>
+                          </template>
+                          <template #end>
+                            <Button
+                              @click="filter($event)"
+                              label="Lọc"
+                            ></Button>
+                          </template>
+                        </Toolbar>
+                      </div>
+                    </div>
+                  </OverlayPanel>
+                </template>
+                <template #end> </template>
+              </Toolbar>
               <div class="d-lang-table-1 p-2">
                 <DataTable
                   @page="onPage($event)"
@@ -5185,22 +5190,34 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 13" class="f-full">
-              <div class="row p-2 justify-content-center">
-                <div class="col-10 md:col-10 p-0">
-                  <printprofile :key="componentKey" />
+            <div
+              v-show="
+                options.view === 13 ||
+                options.view === 14 ||
+                options.view === 15
+              "
+              class="f-full"
+            >
+              <div class="row">
+                <div class="col-12 md:col-12 p-0">
+                  <printprofile
+                    :key="componentKey['3']"
+                    :profile="profile"
+                    :view="options.view"
+                  />
                 </div>
               </div>
             </div>
+            <div v-show="options.view === 16" class="f-full"></div>
           </div>
         </div>
         <div
-          style="
-            width: 400px !important;
-            border-left: solid 1px rgba(0, 0, 0, 0.1);
-            overflow: auto;
-            height: calc(100vh - 165px);
-          "
+          :style="{
+            width: '400px !important',
+            borderLeft: 'solid 1px rgba(0, 0, 0, 0.1)',
+            overflow: 'auto',
+            height: 'calc(100vh - 165px)',
+          }"
         >
           <div class="row">
             <div class="col-12 md:col-12 p-0">
@@ -5481,18 +5498,9 @@ const onPage = (event) => {
     </div>
   </div>
 
-  <!-- Dialog contract -->
-  <dialogcontract
-    :key="componentKey"
-    :headerDialog="headerDialogContract"
-    :displayDialog="displayDialogContract"
-    :closeDialog="closeDialogContract"
-    :isView="isView"
-    :model="contract"
-    :dictionarys="dictionarys"
-  />
+  <!-- Dialog -->
   <dialoginfo
-    :key="componentKey"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
@@ -5500,8 +5508,17 @@ const onPage = (event) => {
     :isType="isType"
     :initData="initView1"
   />
+  <dialogcontract
+    :key="componentKey['1']"
+    :headerDialog="headerDialogContract"
+    :displayDialog="displayDialogContract"
+    :closeDialog="closeDialogContract"
+    :isView="isView"
+    :model="contract"
+    :dictionarys="dictionarys"
+  />
   <dialogtraining
-    :key="componentKey"
+    :key="componentKey['2']"
     :headerDialog="headerDialogTranning"
     :displayBasic="displayDialogTranning"
     :training_emps="options.training_emps"
@@ -5510,28 +5527,21 @@ const onPage = (event) => {
     :view="true"
   />
   <dialogfile
-    :key="componentKey"
+    :key="componentKey['2']"
     :headerDialog="headerDialogFile"
     :displayDialog="displayDialogFile"
     :file="options.file"
     :closeDialog="closeDialogFile"
   />
   <diloginsurance
-    :key="componentKey"
+    :key="componentKey['4']"
     :headerDialog="headerDialogInsurance"
     :displayDialog="displayDialogInsurance"
     :closeDialog="closeDialogInsurance"
-    :isAdd="false"
-    :isView="false"
-    :model="insurance"
-    :addRow="addRow"
-    :deleteRow="deleteRow"
-    :insurance_pays="insurance_pays"
-    :insurance_resolves="insurance_resolves"
-    :statuss="statuss"
-    :hinhthucs="hinhthucs"
-    :dictionarys="insurance_dictionarys"
-    :initData="initView6"
+    :isAdd="isAdd"
+    :isView="isView"
+    :profile="profile"
+    :initData="null"
   />
 </template>
 <style scoped>
@@ -5580,8 +5590,26 @@ const onPage = (event) => {
 .relative-hover:hover .absolute-hover {
   display: block;
 }
+.form-grid-center {
+  display: grid;
+  justify-content: center;
+}
+.nav-item {
+  padding: 5px 10px !important;
+  min-width: 80px;
+  text-align: center;
+  display: grid;
+  justify-content: center;
+}
 </style>
 <style lang="scss" scoped>
+::v-deep(.p-datatable) {
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+}
 ::v-deep(.disable-header) {
   table thead {
     display: none;

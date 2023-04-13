@@ -22,7 +22,7 @@ const props = defineProps({
   isType: Number,
   initData: Function,
 });
-
+const display = ref(props.displayDialog);
 //Declare
 const bgColor = ref([
   "#F8E69A",
@@ -45,8 +45,8 @@ const marital_status = ref([
   { value: 2, text: "Ly hôn" },
 ]);
 const status = ref([
-  { value: 0, title: "Chờ duyệt", bg_color: "#EEC65D", text_color: "#fff" },
-  { value: 1, title: "Đã duyệt", bg_color: "#AFE362", text_color: "#fff" },
+  { value: 0, title: "Chờ duyệt", bg_color: "#eee", text_color: "#000" },
+  { value: 1, title: "Đã duyệt", bg_color: "#F2FBE6", text_color: "#000" },
 ]);
 
 //Function
@@ -597,16 +597,18 @@ const initData = () => {
   }
 };
 onMounted(() => {
-  initData();
+  if (props.displayDialog) {
+    initData();
+  }
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '72vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
@@ -660,15 +662,18 @@ onMounted(() => {
                   <span>Ngày: {{ item.created_date }}</span>
                 </div>
               </div>
-              <Button
-                style="width: 1.5rem; height: 1.5rem"
-                icon="pi pi-times"
-                @click="
-                  deleteEdit(item);
-                  $event.stopPropagation();
-                "
-                class="p-button-rounded absolute top-0 right-0 cursor-pointer"
-              />
+              <div
+                class="li-custom-hover p-button-rounded absolute top-0 right-0 cursor-pointer"
+              >
+                <Button
+                  style="width: 1.5rem; height: 1.5rem"
+                  icon="pi pi-times"
+                  @click="
+                    deleteEdit(item);
+                    $event.stopPropagation();
+                  "
+                />
+              </div>
             </li>
           </ul>
         </template>
@@ -919,7 +924,7 @@ onMounted(() => {
                 <label class="m-0">Khi cần báo tin cho:</label>
               </div>
             </div>
-            <div class="col-6 md:col-6">
+            <div class="col-4 md:col-4">
               <div class="form-group">
                 <label>Họ và tên</label>
                 <InputText
@@ -930,7 +935,7 @@ onMounted(() => {
                 />
               </div>
             </div>
-            <div class="col-6 md:col-6">
+            <div class="col-4 md:col-4">
               <div class="form-group">
                 <label>Số điện thoại</label>
                 <InputText
@@ -938,6 +943,25 @@ onMounted(() => {
                   class="ip36"
                   v-model="model.involved_phone"
                   maxLength="50"
+                />
+              </div>
+            </div>
+            <div class="col-4 md:col-4">
+              <div class="form-group">
+                <label>Mối quan hệ</label>
+                <Dropdown
+                  :showClear="true"
+                  :options="dictionarys[11]"
+                  optionLabel="relationship_name"
+                  optionValue="relationship_id"
+                  placeholder="Chọn quan hệ"
+                  v-model="model.relationship_id"
+                  class="ip36"
+                  style="
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  "
                 />
               </div>
             </div>
@@ -986,7 +1010,7 @@ onMounted(() => {
               :rowHover="true"
               :showGridlines="true"
               scrollDirection="both"
-              class="empty-full"
+              class="empty-full p-datatable"
             >
               <Column
                 header=""
@@ -1002,6 +1026,35 @@ onMounted(() => {
                   >
                     <i class="pi pi-times-circle" style="font-size: 18px"></i>
                   </a>
+                </template>
+              </Column>
+              <Column
+                field="relationship_id"
+                header="Quan hệ gia đình"
+                headerStyle="text-align:center;width:170px;height:50px"
+                bodyStyle="text-align:center;width:170px;"
+                class="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <div class="form-group m-0">
+                    <Dropdown
+                      :showClear="true"
+                      :options="[
+                        { value: 1, title: 'Về bản thân' },
+                        { value: 2, title: 'Về bên vợ' }
+                      ]"
+                      optionLabel="title"
+                      optionValue="value"
+                      placeholder="Chọn quan hệ"
+                      v-model="slotProps.data.is_type"
+                      class="ip36"
+                      style="
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                      "
+                    />
+                  </div>
                 </template>
               </Column>
               <Column
@@ -1288,11 +1341,24 @@ onMounted(() => {
   color: #495057 !important;
 }
 .hightlight {
-  background-color: #3b82f6 !important;
-  color: #fff !important;
+  background-color: #e5f2fc !important;
+  color: #000 !important;
+}
+.li-custom-hover {
+  display: none;
+}
+.li-custom:hover .li-custom-hover {
+  display: block;
 }
 </style>
 <style lang="scss" scoped>
+::v-deep(.p-datatable) {
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+}
 ::v-deep(.d-lang-table) {
   .p-datatable-thead .justify-content-center .p-column-header-content {
     justify-content: center !important;

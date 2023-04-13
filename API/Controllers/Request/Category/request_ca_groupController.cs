@@ -122,7 +122,7 @@ namespace API.Controllers.Request.Category
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
-        
+
         [HttpPut]
         public async Task<HttpResponseMessage> update_request_ca_group()
         {
@@ -537,7 +537,7 @@ namespace API.Controllers.Request.Category
 
                 if (WhereSQL.Trim() != "")
                 {
-                    sql += " WHERE (" + WhereSQL + ") and " + checkOrgz 
+                    sql += " WHERE (" + WhereSQL + ") and " + checkOrgz
                         + Environment.NewLine + @"ORDER BY " + filterSQL.sqlO + offSetSQL;
                     sqlCount += " WHERE " + WhereSQL
                         + Environment.NewLine + " and " + checkOrgz;
@@ -551,7 +551,7 @@ namespace API.Controllers.Request.Category
                 }
                 if (!filterSQL.next)//Đảo Sort
                 {
-                    sql = "Select * from (" + sql 
+                    sql = "Select * from (" + sql
                         + Environment.NewLine + @" ORDER BY " + (filterSQL.sqlO.Contains("DESC") ? filterSQL.sqlO.Replace("DESC", "ASC") : filterSQL.sqlO.Replace("ASC", "DESC"))
                         + Environment.NewLine + ") as tbn ";
                 }

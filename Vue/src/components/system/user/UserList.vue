@@ -76,6 +76,9 @@ const opition = ref({
   user_id: store.getters.user.user_id,
   status: null,
   is_role: false,
+  organization_parent_id: store.getters.user.organization_parent_id,
+  department_id: store.getters.user.department_id,
+  organization_id: store.getters.user.organization_id,
 });
 const bgColor = ref([
   "#F8E69A",
@@ -87,12 +90,12 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const selectCapcha = ref();
-selectCapcha.value = {};
-selectCapcha.value[store.getters.user.organization_id] = true;
+// selectCapcha.value = {};
+// selectCapcha.value[store.getters.user.organization_parent_id] = true;
 const selectCap = ref();
 selectCap.value = {};
 selectCap.value[
-  store.getters.user.is_super ? -1 : store.getters.user.organization_id
+  store.getters.user.is_super ? -1 : store.getters.user.organization_parent_id
 ] = true;
 const users = ref();
 const isShowBtnDel = ref(false);
@@ -103,7 +106,7 @@ const toast = useToast();
 const swal = inject("$swal");
 const axios = inject("axios"); // inject axios
 const basedomainURL = fileURL;
-const layout = ref("grid");
+const layout = ref("list");
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -246,6 +249,7 @@ const itemButMores = ref([
     },
   },
 ]);
+
 const refreshKey = (data)=>{
   swal
     .fire({
@@ -309,6 +313,7 @@ const toggleFilter = (event) => {
   filterButs.value.toggle(event);
 };
 const filterUser = () => {
+  isfilter.value = true;
   checkFilter.value = true;
   loadUser(true);
 };
@@ -385,8 +390,8 @@ const initModuleFunctions = () => {
             proc: "sys_functions_module_list",
             par: [
               {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
+                par: "organization_parent_id",
+                va: store.getters.user.organization_parent_id,
               },
             ],
           }),
@@ -462,7 +467,6 @@ const handleFileUpload = (event, type) => {
 //Show Modal
 const showModalAddUser = () => {
   files = [];
-  isAdd.value = true;
   submitted.value = false;
   files = [];
   user.value = {
@@ -472,13 +476,13 @@ const showModalAddUser = () => {
     status: 1,
     role_id: "nhanvien",
     is_admin: false,
-    organization_id: store.getters.user.organization_id,
     display_birthday: true,
     email: null,
     is_booking: true,
   };
   // selectCapcha.value = {};
-  // selectCapcha.value[user.value.organization_id || "-1"] = true;
+  // selectCapcha.value[user.value.organization_parent_id || "-1"] = true;
+  isAdd.value = true;
   displayAddUser.value = true;
   if (document.querySelector("#AnhUser"))
     document.querySelector("#AnhUser").value = "";
@@ -613,10 +617,10 @@ const initTudien = () => {
         tdRoles.value = data[0];
         chucvus.value = data[2];
       }
-      data_organization = data[1];
-      if (data_organization.length > 0) {
+      data_organization = data[3];
+      if (data[1].length > 0) {
         let obj = renderTreeDV(
-          data_organization,
+          data[1],
           "organization_id",
           "organization_name",
           "phòng ban"
@@ -636,6 +640,7 @@ const initTudien = () => {
     .catch((error) => {});
 };
 const loadCount = (f) => {
+  debugger
   axios
     .post(
       baseURL + "/api/Users/GetDataProc",
@@ -647,8 +652,8 @@ const loadCount = (f) => {
               { par: "search", va: opition.value.search },
               { par: "user_id", va: opition.value.user_id },
               { par: "role_id", va: opition.value.role_id },
-              { par: "organization_id", va: opition.value.organization_id },
-              { par: "department_id", va: opition.value.department_id },
+              { par: "organization_parent_id", va: opition.value.organization_parent_id },
+              { par: "department_id", va: opition.value.organization_id || opition.value.department_id },
               { par: "position_id", va: opition.value.position_id },
               { par: "filter_department", va: opition.value.filter_department },
               { par: "filter_permission", va: opition.value.check_quyen },
@@ -684,18 +689,20 @@ const onPage = (event) => {
   opition.value.PageSize = event.rows;
   loadUser(true);
 };
+const isfilter = ref(false);
 const goDonvi = (u) => {
+  isfilter.value = true;
   selectCapcha.value = {};
   if (u) {
     opition.value.department_id = u.department_id;
-    opition.value.organization_id = u.organization_id;
+    opition.value.organization_parent_id = u.organization_parent_id;
     opition.value.organization_name = u.organization_name;
     selectCapcha.value[opition.value.department_id] = true;
   } else {
     opition.value.department_id = null;
     opition.value.organization_name = null;
-    opition.value.organization_id = null;
-    selectCapcha.value[store.getters.user.organization_id] = true;
+    opition.value.organization_parent_id = null;
+    selectCapcha.value[store.getters.user.organization_parent_id] = true;
   }
   opition.value.PageNo = 1;
   loadUser(true);
@@ -761,9 +768,9 @@ const resetopition = () => {
     opition.value.text_color = u.text_color;
     opition.value.background_color = u.background_color;
   }
-  if (opition.value.organization_id && !opition.value.organization_name) {
+  if (opition.value.organization_parent_id && !opition.value.organization_name) {
     opition.value.organization_name = users.value.find(
-      (x) => x.organization_id == opition.value.organization_id
+      (x) => x.organization_parent_id == opition.value.organization_parent_id
     ).organization_name;
   }
   if (opition.value.status && !opition.value.tenstatus) {
@@ -818,8 +825,8 @@ const loadUser = (rf, rfpb) => {
               { par: "search", va: opition.value.search },
               { par: "user_id", va: opition.value.user_id },
               { par: "role_id", va: opition.value.role_id },
-              { par: "organization_id", va: opition.value.organization_id },
-              { par: "department_id", va: opition.value.department_id },
+              { par: "organization_parent_id", va: opition.value.organization_parent_id },
+              { par: "department_id", va: opition.value.organization_id || opition.value.department_id },
               { par: "position_id", va: opition.value.position_id },
               { par: "filter_department", va: opition.value.filter_department },
               { par: "filter_permission", va: opition.value.check_quyen },
@@ -909,7 +916,7 @@ const editUser = (md) => {
         }
         getInfoPass(user.value);
         selectCapcha.value = {};
-        selectCapcha.value[user.value.department_id || user.value.organization_child_id || user.value.organization_id || "-1"] = true;
+        selectCapcha.value[user.value.department_id || user.value.organization_id || user.value.organization_parent_id || "-1"] = true;
       }
     })
     .catch((error) => {
@@ -971,47 +978,62 @@ const handleSubmit = (isFormValid) => {
     });
     return;
   }
-  let id_key = Object.keys(selectCapcha.value)[0];
-  if(id_key == -1){
-    user.value.department_id = null;
-    user.value.organization_id = null;
-    user.value.organization_child_id = null;
+  if (!selectCapcha.value) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng chọn đơn vị hoặc phòng ban!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
   }
-  else{
+  let id_key = parseInt(Object.keys(selectCapcha.value)[0]);
+  if (id_key == -1) {
+    user.value.department_id = null;
+    user.value.organization_parent_id = null;
+    user.value.organization_id = null;
+  } else {
     //get organization_parent and child
-    let obj = data_organization.filter(x => x.organization_id == id_key);
-    if(obj.length > 0) {
-      let list_id =  obj[0].listparent_id.slice(0,-1).split("/").map(item => parseInt(item) ? parseInt(item) : item); 
-      user.value.organization_id = list_id[0];
-      user.value.department_id = list_id[list_id.length-1];
-      list_id.forEach((id)=>{
-        let org = data_organization.filter(x => x.organization_id == id);
-        if(org.length > 0 && org[0].organization_type==0) {
-          user.value.organization_child_id = id;
+    let obj = data_organization.filter((x) => x.organization_id == id_key);
+    if (obj.length > 0) {
+      let list_id = obj[0].listparent_id
+        .slice(0, -1)
+        .split("/")
+        .map((item) => (parseInt(item) ? parseInt(item) : item));
+      user.value.organization_parent_id = list_id[0];
+      user.value.department_id = list_id[list_id.length - 1];
+      list_id.forEach((id) => {
+        let org = data_organization.filter((x) => x.organization_id == id);
+        if (org.length > 0 && org[0].organization_type == 0) {
+          user.value.organization_id = id;
         }
-      })
-      //check 
-      if(user.value.department_id == user.value.organization_child_id) {
+      });
+      //check
+      if (user.value.department_id == user.value.organization_id) {
         user.value.department_id = null;
       }
-      if(user.value.organization_id == user.value.department_id ){
+      if (user.value.organization_parent_id == user.value.department_id) {
         user.value.department_id = null;
-        user.value.organization_child_id = null;
+        user.value.organization_id = null;
       }
-      if(user.value.organization_id == user.value.organization_child_id){
-        user.value.organization_child_id = null;
+      if (user.value.organization_parent_id == user.value.organization_id) {
+        user.value.organization_id = null;
       }
-      if(user.value.is_admin && user.value.organization_child_id!== null ) user.value.is_admin_child = true; 
+      if (user.value.is_admin && user.value.organization_id !== null)
+        user.value.is_admin_child = true;
+      if (user.value.organization_id == null) {
+        user.value.organization_id = user.value.organization_parent_id;
+      }
     }
   }
   // user.value.department_id = keys[0];
   // if (user.value.department_id == -1) {
   //   user.value.department_id = null;
-  //   user.value.organization_id = null;
+  //   user.value.organization_parent_id = null;
   // }
   // if (user.value.department_id) {
   //   const result = getParent(treedonvis.value, user.value.department_id, "key");
-  //   user.value.organization_id = result.key;
+  //   user.value.organization_parent_id = result.key;
   // }
   if (user.value.full_name) {
     user.value.last_name = user.value.full_name.split(" ").slice(-1).join(" ");
@@ -1204,7 +1226,7 @@ const exportUser = (method) => {
           { par: "search", va: opition.value.search },
           { par: "user_id", va: opition.value.user_id },
           { par: "role_id", va: opition.value.role_id },
-          { par: "organization_id", va: opition.value.organization_id },
+          { par: "organization_parent_id", va: opition.value.organization_parent_id },
           { par: "department_id", va: opition.value.department_id },
           { par: "position_id", va: opition.value.position_id },
           { par: "filter_department", va: opition.value.filter_department },
@@ -1558,7 +1580,7 @@ const initUserPhongban = () => {
       });
     }
     //if (dv.data.IsDonvi == false) {
-    let us = users.value.filter((x) => x.organization_id == dv.key);
+    let us = users.value.filter((x) => x.organization_parent_id == dv.key);
     if (us.length > 0) {
       if (!dv.children) dv.children = [];
       dv.children = [];
@@ -1664,7 +1686,7 @@ onMounted(() => {
       :paginator="isPaginator"
       :rows="opition.PageSize"
       :totalRecords="opition.totalrecords"
-      :pageLinkSize="opition.PageSize"
+      pageLinkSize="4"
       @page="onPage($event)"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
@@ -1699,7 +1721,7 @@ onMounted(() => {
           <Chip
             class="custom-chip chippb ml-2 mr-1"
             @remove="goDonvi()"
-            v-if="opition.department_id || opition.organization_id"
+            v-if="(opition.department_id || opition.organization_parent_id) && isfilter"
             :label="opition.organization_name"
             removable
           />
@@ -1754,14 +1776,14 @@ onMounted(() => {
               appendTo="body"
               :showCloseIcon="false"
               id="overlay_panelS"
-              style="width: 350px"
+              style="width: 600px"
               :breakpoints="{ '960px': '20vw' }"
             >
               <div class="grid formgrid m-2">
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Đơn vị/Phòng ban:</div>
+                  <div class="col-3 p-0">Đơn vị/Phòng ban:</div>
                   <TreeSelect
-                    class="col-8 p-0"
+                    class="col-9 p-0"
                     v-model="selectCap"
                     :options="treedonvis"
                     :showClear="true"
@@ -1773,7 +1795,7 @@ onMounted(() => {
                   </TreeSelect>
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Chức vụ:</div>
+                  <div class="col-3 p-0">Chức vụ:</div>
                   <Dropdown
                     :showClear="true"
                     v-model="opition.position_id"
@@ -1781,11 +1803,12 @@ onMounted(() => {
                     optionLabel="position_name"
                     optionValue="position_id"
                     placeholder="Chọn chức vụ"
-                    class="p-dropdown-sm col-8 p-0"
+                    class="p-dropdown-sm col-9 p-0"
+                    :filter="true"
                   />
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Nhóm người dùng:</div>
+                  <div class="col-3 p-0">Nhóm người dùng:</div>
                   <Dropdown
                     :showClear="true"
                     v-model="opition.role_id"
@@ -1793,11 +1816,11 @@ onMounted(() => {
                     optionLabel="role_name"
                     optionValue="role_id"
                     placeholder="Chọn nhóm người dùng"
-                    class="p-dropdown-sm col-8 p-0"
+                    class="p-dropdown-sm col-9 p-0"
                   />
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Trạng thái:</div>
+                  <div class="col-3 p-0">Trạng thái:</div>
                   <Dropdown
                     :showClear="true"
                     v-model="opition.status"
@@ -1805,11 +1828,11 @@ onMounted(() => {
                     optionLabel="text"
                     optionValue="value"
                     placeholder="Chọn trạng thái"
-                    class="p-dropdown-sm col-8 p-0"
+                    class="p-dropdown-sm col-9 p-0"
                   />
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                  <div class="col-4 p-0">Quyền Module:</div>
+                  <div class="col-3 p-0">Quyền Module:</div>
                   <Dropdown
                     :showClear="true"
                     v-model="opition.check_quyen"
@@ -1817,7 +1840,7 @@ onMounted(() => {
                     optionLabel="text"
                     optionValue="value"
                     placeholder="Chọn loại quyền"
-                    class="p-dropdown-sm col-8 p-0"
+                    class="p-dropdown-sm col-9 p-0"
                   />
                 </div>
                 <div class="col-12 field p-0">
@@ -1826,7 +1849,7 @@ onMounted(() => {
                       <Button
                         @click="reFilterUser"
                         class="p-button-outlined"
-                        label="Xóa"
+                        label="Bỏ chọn"
                       ></Button>
                     </template>
                     <template #end>
@@ -2007,14 +2030,6 @@ onMounted(() => {
       <template #list="slotProps">
         <div class="p-2 w-full" style="background-color: #fff">
           <div class="flex align-items-center justify-content-center">
-            <div class="mx-2">
-              <Checkbox
-                id="IsIdentity"
-                v-model="slotProps.data.chon"
-                :binary="true"
-                @change="clickDelUser"
-              />
-            </div>
             <Avatar
               v-bind:label="
                 slotProps.data.avatar
@@ -2040,13 +2055,13 @@ onMounted(() => {
                   {{ slotProps.data.full_name }}
                 </h3>
               </Button>
-              <i style="font-size: 10pt; color: #999"
+              <span style="font-size: 10pt; color: #999"
                 >{{ slotProps.data.user_id }}
-                {{ slotProps.data.phone ? "| " + slotProps.data.phone : "" }}</i
+                {{ slotProps.data.phone ? "| " + slotProps.data.phone : "" }}</span
               >
-              <i style="font-size: 10pt; color: #999">{{
+              <span style="font-size: 10pt; color: #999">{{
                 slotProps.data.email
-              }}</i>
+              }}</span>
             </div>
             <Chip
               @click="goDonvi(slotProps.data)"
@@ -2280,7 +2295,7 @@ onMounted(() => {
                   "This field should be at least",
                   "Mật khẩu không được ít hơn"
                 )
-                .replace("long", "ký tự")
+                .replace("characters long", "ký tự")
             }}</span>
           </div>
         </small>
@@ -2302,7 +2317,7 @@ onMounted(() => {
           </div>
         </small>
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Đơn vị</label>
+          <label class="col-2 text-left">Đơn vị <span class="redsao">(*)</span></label>
           <TreeSelect
             class="col-10 ip32"
             v-model="selectCapcha"
@@ -2333,6 +2348,8 @@ onMounted(() => {
             optionLabel="position_name"
             optionValue="position_id"
             placeholder="Chọn chức vụ"
+            :filter="true"
+            :showClear="true"
           />
         </div>
         <div class="field col-12 md:col-12">
@@ -2482,8 +2499,8 @@ onMounted(() => {
           <label class="col-2 text-right">Admin</label>
           <InputSwitch class="col-1" v-model="user.is_admin" />
              <label class="col-1" v-if="user.is_super"></label>
-            <label class="col-2 text-right" v-if="user.is_super">Is Super</label>
-            <InputSwitch v-model="user.is_super" v-if="user.is_super"/>
+            <label class="col-2 text-right" v-if="store.getters.user.is_super">Is Super</label>
+            <InputSwitch v-model="user.is_super" v-if="store.getters.user.is_super"/>
         </div>
                   <Accordion class="w-full p-2" >
             <!-- 1. Thông tin chung -->
@@ -2500,7 +2517,7 @@ onMounted(() => {
           <label class="col-2 text-right">Ban hành</label>
           <InputSwitch class="col-1" v-model="user.calendar_enact" />
                      <label class="col-1"></label>
-                    <label class="col-2 text-right">Tổng hợp CV</label>
+              <label class="col-2 text-right">Tổng hợp CV</label>
           <InputSwitch class="col-1" v-model="user.is_task" />
         </div>
               </AccordionTab>

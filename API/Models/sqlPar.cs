@@ -149,6 +149,7 @@ namespace API.Models
 
         public string userftp { get; set; }
         public string psftp { get; set; }
+        public bool isEncodeProc { get; set; }
 
     }
     public class connectString
@@ -240,5 +241,12 @@ namespace API.Models
         public string image { get; set; }
         public string tag { get; set; }
         public string url { get; set; }
+    }
+
+    public class MappingFile
+    {
+        public string file_key_id { get; set; }
+        public string path_file { get; set; }
+        public int type_save_file { get; set; }
     }
 }

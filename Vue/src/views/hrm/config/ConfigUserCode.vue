@@ -232,6 +232,7 @@ const loadUser = () => {
 };
 
 const datalistsD = ref();
+const datalistsBD = ref();
 const loadOrganization = (value) => {
   axios
     .post(
@@ -257,9 +258,8 @@ const loadOrganization = (value) => {
       if (data.length > 0) {
 
         configUserCodeMain.value = data.filter(x => x.organization_type == 3);
-        data = data.filter(x => x.organization_type == 0);
-
-
+        data = data.filter(x => x.organization_type == 0 && x.organization_id != 162);
+        datalistsBD.value=[...data];
         let obj = renderTreeDV1(
           data,
           "organization_id",
@@ -311,13 +311,18 @@ const reOrganization = (data) => {
 };
 const saveDeConfig = () => {
   liData.value = [];
-  for (const key in datalistsD.value) {
+  // for (const key in datalistsD.value) {
 
-    if (Object.hasOwnProperty.call(datalistsD.value, key)) {
-      const element = datalistsD.value[key];
-      reOrganization(element);
-    }
-  } let formData = new FormData();
+  //   if (Object.hasOwnProperty.call(datalistsD.value, key)) {
+  //     const element = datalistsD.value[key];
+  //     reOrganization(element);
+  //   }
+  // } 
+  datalistsBD.value.forEach(element => {
+    liData.value.push(element);
+  });
+  
+  let formData = new FormData();
   if(configUserCodeMain.value.length>0){
     liData.value.push(configUserCodeMain.value[0])
   }
@@ -352,10 +357,7 @@ const saveDeConfig = () => {
 
  
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
-
+  
    
   loadUser();
   return {
@@ -367,17 +369,11 @@ onMounted(() => {
 </script>
 <template>
   <div class="d-container  p-0 "  >
-    <div class=" p-0 surface-0">
-      <!-- <div class=" w-full p-0  style-vb-1  text-center text-2xl">
-        BẢNG THIẾT LẬP MÃ NHÂN SỰ
-      </div>
-      -->
-
-
+    <div class=" p-0 surface-0  check-scroll">
       <div class="grid mt-0 p-0 m-0 ">
 
 
-        <div class="col-12 field   p-0">
+        <div class="col-12 field   p-0" v-if="configUserCodeMain.length>0">
           <DataTable :value="configUserCodeMain">
             <Column   label="">
               <template #body="data">
@@ -441,9 +437,9 @@ onMounted(() => {
         </div>
         <div class="col-12 p-0   ">
 
-          <TreeTable :expandedKeys="expandedKeys" :value="datalistsD" class="p-treetable-sm" :rowHover="true"
+          <DataTable  :value="datalistsBD" class="p-treetable-sm" :rowHover="true"
             :lazy="true" scrollHeight="flex">
-            <Column field="organization_name" :expander="true"
+            <Column field="organization_name"  
             headerStyle="text-align:center " 
             >
               <template #header>
@@ -462,7 +458,7 @@ onMounted(() => {
               <template #body="data">
                 <div class="w-full  ">
 
-                  <InputText class="w-full duy-inpput "  v-model="data.node.data.symbol" spellcheck="false" />
+                  <InputText class="w-full duy-inpput "  v-model="data.data.symbol" spellcheck="false" />
                 </div>
               </template>
             </Column>
@@ -476,7 +472,7 @@ onMounted(() => {
               <template #body="data">
                 <div class="w-full  ">
 
-                  <InputNumber class="w-full duy-inpput " v-model="data.node.data.length" type="text" spellcheck="false" />
+                  <InputNumber class="w-full duy-inpput " v-model="data.data.length" type="text" spellcheck="false" />
                 </div>
               </template>
             </Column>
@@ -496,7 +492,7 @@ onMounted(() => {
               <template #body="data">
                 <div class="w-full ">
 
-                  <InputNumber    style=" max-width: 100px;  text-align:center !important" class="w-full duy-inpput " v-model="data.node.data.initialization" spellcheck="false" />
+                  <InputNumber    style=" max-width: 100px;  text-align:center !important" class="w-full duy-inpput " v-model="data.data.initialization" spellcheck="false" />
                 </div>
               </template>
             </Column>
@@ -510,13 +506,12 @@ onMounted(() => {
               <template #body="data">
                 <div class="w-full format-center">
 
-                  <InputSwitch class="w-4rem lck-checked" v-model="data.node.data.automatic" spellcheck="false" />
+                  <InputSwitch class="w-4rem lck-checked" v-model="data.data.automatic" spellcheck="false" />
                 </div>
               </template>
             </Column>
 
-          </TreeTable>
-
+          </DataTable>
 
 
 
@@ -552,7 +547,8 @@ onMounted(() => {
  
 
 .check-scroll {
-  max-height: 40rem;
+  max-height: 41rem;
+ 
   overflow: scroll
 }
 
@@ -573,7 +569,7 @@ onMounted(() => {
   }
 
   .check-scroll {
-    max-height: 25rem;
+    max-height:30rem;
     overflow: scroll
   }
 }
@@ -584,7 +580,7 @@ onMounted(() => {
   }
 
   .check-scroll {
-    max-height: 40rem;
+    max-height: 20rem;
     overflow: scroll
   }
 }

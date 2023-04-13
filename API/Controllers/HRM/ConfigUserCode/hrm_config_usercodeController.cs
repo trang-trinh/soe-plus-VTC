@@ -55,12 +55,12 @@ namespace API.Controllers.HRM.ConfigUserCode
                 {
                  var dv= int.Parse(dvid );
                     var Superior = db.hrm_config_usercode.Where(p => p.organization_type == 3 && p.organization_id == dv).FirstOrDefault();
-                    if (Superior == null)
+                    var is_admin = db.sys_users.Where( p => p.organization_id==dv && (p.organization_parent_id == null || p.organization_parent_id==p.organization_id )).FirstOrDefault();
+                    if (Superior == null && is_admin !=null)
                     {
                         var hrm_CogfinUAD = new hrm_config_usercode();
                         hrm_CogfinUAD.organization_name = "Mã cấp trên";
                         hrm_CogfinUAD.symbol = "";
-                   
                         hrm_CogfinUAD.organization_id =dv;
                         hrm_CogfinUAD.organization_type = 3;
                         hrm_CogfinUAD.is_order = 0;
@@ -73,13 +73,13 @@ namespace API.Controllers.HRM.ConfigUserCode
                         db.SaveChanges();
                        
                     }
-                    var ListOrganization = db.sys_organization.Where(p => (p.organization_id == dv || p.parent_id == dv) && p.organization_type==0).ToList();
+                    var ListOrganization = db.sys_organization.Where(p => (p.organization_id == dv || p.parent_id == dv) && p.organization_type==0).OrderBy(x=>x.is_order).ToList();
                     var i = 1;
                     foreach (var item in ListOrganization)
                     {
                         var SuperiorCheck = db.hrm_config_usercode.AsNoTracking().Where(p => p.organization_type == 3 && p.organization_id == dv).FirstOrDefault();
                         var itemAdd = db.hrm_config_usercode.Where(p => p.organization_type == 0 && p.organization_id == item.organization_id).FirstOrDefault();
-                        if (Superior == null)
+                        if (itemAdd == null&& item.parent_id !=null)
                         {
                             var hrm_Cogfin = new hrm_config_usercode();
                             hrm_Cogfin.organization_name =item.organization_name;
@@ -95,6 +95,8 @@ namespace API.Controllers.HRM.ConfigUserCode
                             db.SaveChanges();
                             i++;
                         }
+
+
                     }
 
 

@@ -20,6 +20,7 @@ using System.IO;
 using System.Text;
 using API.Helper;
 using System.Text.RegularExpressions;
+using System.Configuration;
 
 namespace Controllers
 {
@@ -269,6 +270,7 @@ namespace Controllers
                     helper.milisec = cog.milisec;
                     helper.timeout = cog.timeout;
                     helper.timemail = cog.timemail;
+                    helper.isEncodeProc = cog.isEncodeProc;
                     string depass = Codec.EncryptString(cog.publictoken, helper.psKey);
                     helper.publictoken = depass;
                     cog.publictoken = depass;
@@ -757,5 +759,133 @@ namespace Controllers
             }
         }
         #endregion
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> CallViewFile([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string dataProc = data["str"].ToObject<string>();
+            string des = Codec.DecryptString(dataProc, helper.psKey);
+            MappingFile fileMap = JsonConvert.DeserializeObject<MappingFile>(des);
+            if (fileMap.file_key_id != null && fileMap.file_key_id != "")
+            {
+                var contextHttp = HttpContext.Current;
+                string root = contextHttp.Server.MapPath("~/");
+                string ip = contextHttp.Request.UserHostAddress;
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                string domainurl = contextHttp.Request.Url.Scheme + "://" + contextHttp.Request.Url.Host + ":" + contextHttp.Request.Url.Port + "/";
+                try
+                {
+                    if (fileMap.type_save_file == 1)
+                    {
+                        string PortalsConfig = ConfigurationManager.AppSettings["Portals"];
+                        //string PortalsConfig = "ftp://123.31.12.70:21/PublishSOE2020/Vue2022/VTCPLUS/api/Portals";
+                        if (!File.Exists(HttpContext.Current.Server.MapPath("~/") + fileMap.path_file))
+                        {
+                            if (PortalsConfig.Contains("Portals") && fileMap.path_file.IndexOf("/Portals/") == 0)
+                            {
+                                var pathGetFile = fileMap.path_file.Substring(8);
+
+                                string json = System.IO.File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/Config/Config.json");
+                                settings deJson = JsonConvert.DeserializeObject<settings>(json);
+                                var usAccess =  deJson.userftp != null ? Codec.DecryptString(deJson.userftp, helper.psKey) : ""; // "os";
+                                var psAccess = deJson.psftp != null ? Codec.DecryptString(deJson.psftp, helper.psKey) : ""; // "#Os1234567BiBi";
+
+                                string url = PortalsConfig + pathGetFile;
+                                FtpWebRequest request = (FtpWebRequest)WebRequest.Create(url);
+                                request.Credentials = new NetworkCredential(usAccess, psAccess);
+                                request.Method = WebRequestMethods.Ftp.DownloadFile;
+
+                                var ftpResponse = (FtpWebResponse)request.GetResponse();
+                                /* Get the FTP Server's Response Stream */
+                                FileStream fs = File.Create(root + fileMap.path_file);
+                                using (Stream ftpStream = ftpResponse.GetResponseStream())
+                                {
+                                    ftpStream.CopyTo(fs);
+                                    ftpStream.Close();
+                                    fs.Close();
+                                }
+                            }
+                        }
+                    }
+                    else if (fileMap.type_save_file == 2)
+                    {
+                        string PortalsConfig = ConfigurationManager.AppSettings["Portals"];
+                        //string PortalsConfig = "https://apivtc.soe.vn";
+                        return Request.CreateResponse(HttpStatusCode.OK, new { portF = PortalsConfig, err = "0" });
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { contents }), domainurl + "Cache/CallViewFile", ip, tid, "CallViewFile", 0, "Cache");
+                    if (!helper.debug)
+                    {
+                        contents = helper.logCongtent;
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { contents }), domainurl + "Cache/CallViewFile", ip, tid, "CallViewFile", 0, "Cache");
+                    if (!helper.debug)
+                    {
+                        contents = helper.logCongtent;
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+            }
+            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1" });
+        }
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> getPortalFile()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+
+            var contextHttp = HttpContext.Current;
+            string ip = contextHttp.Request.UserHostAddress;
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = contextHttp.Request.Url.Scheme + "://" + contextHttp.Request.Url.Host + ":" + contextHttp.Request.Url.Port + "/";
+            try
+            {
+                //string PortalsConfig = ConfigurationManager.AppSettings["Portals"];
+                //string PortalsConfig = "ftp://123.31.12.70:21/PublishSOE2020/Vue2022/VTCPLUS/api/Portals";
+                string PortalsConfig = "https://apivtc.soe.vn";
+                return Request.CreateResponse(HttpStatusCode.OK, new { portF = Codec.EncryptString(PortalsConfig, helper.psKey), err = "0" });
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { contents }), domainurl + "Cache/getPortalFile", ip, tid, "getPortalFile", 0, "Cache");
+                if (!helper.debug)
+                {
+                    contents = helper.logCongtent;
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { contents }), domainurl + "Cache/getPortalFile", ip, tid, "getPortalFile", 0, "Cache");
+                if (!helper.debug)
+                {
+                    contents = helper.logCongtent;
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
     }
 }
