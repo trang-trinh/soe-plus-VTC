@@ -270,7 +270,7 @@ onMounted(() => {
         {{ store.getters.user.organization_name }}
       </h3>
     </div>
-    <div class="login-product-container">
+    <div class="login-product-container" v-if="store.getters.user.product_name ">
       <div class="login-product">
         <h3 class="
                 product-name
