@@ -1158,7 +1158,7 @@ onMounted(() => {
               <InputNumber
                 v-model="campaign.expected_cost"
                 class="w-full"
-                suffix=" VND"
+                inputId="locale-german" locale="de-DE"  
                 placeholder="Nhập chi phí dự kiến"
               />
             </div>
@@ -1308,7 +1308,7 @@ onMounted(() => {
                   v-model="campaign.rec_salary_from"
                   :min="0"
                   class="w-full d-input-design-number"
-                  suffix=" VND"
+                  inputId="locale-german" locale="de-DE"  
                   placeholder="Từ"
                 />
               </div>
@@ -1326,7 +1326,7 @@ onMounted(() => {
                       : null
                   "
                   class="w-full d-input-design-number"
-                  suffix=" VND"
+                  inputId="locale-german" locale="de-DE"  
                   placeholder="Đến"
                 />
               </div>

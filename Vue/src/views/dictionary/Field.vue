@@ -287,9 +287,7 @@ const editField = (dataPlace) => {
   submitted.value = false;
   field.value = dataPlace;
   isChirlden.value = false;
-  if (dataPlace.parent_id != null) {
-    isChirlden.value = true;
-  }
+
   headerDialog.value = "Sửa lĩnh vực";
   issaveField.value = true;
   displayBasic.value = true;

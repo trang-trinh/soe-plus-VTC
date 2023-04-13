@@ -195,9 +195,9 @@ const onFilterUserDropdown = (value) => {
 const ins_checked = ref(false);
 const datalistsD = ref();
 const datalists = ref([]);
-const arrDisabled=ref([]);
+const arrDisabled = ref([]);
 const loadOrganization = () => {
-  arrDisabled.value=[];
+  arrDisabled.value = [];
   axios
     .post(
       baseURL + "/api/device_card/getData",
@@ -217,9 +217,9 @@ const loadOrganization = () => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
         data.forEach((element) => {
-          ins_checked.value=element.is_auto;
+          ins_checked.value = element.is_auto;
           element.from_month = new Date(element.from_month);
-          arrDisabled.value.push(   element.from_month);
+          arrDisabled.value.push(element.from_month);
         });
         datalists.value = [...data];
       }
@@ -228,21 +228,18 @@ const loadOrganization = () => {
       options.value.loading = false;
     });
 };
- 
- 
+
 const displayDialogUser = ref(false);
 
- 
 const saveDeConfig = () => {
- 
- 
   let formData = new FormData();
- 
+
   formData.append("hrm_config_insurance_rate", JSON.stringify(datalists.value));
   formData.append("ins_checked", JSON.stringify(ins_checked.value));
   axios
     .put(
-      baseURL + "/api/hrm_config_insurance_rate/update_hrm_config_insurance_rate",
+      baseURL +
+        "/api/hrm_config_insurance_rate/update_hrm_config_insurance_rate",
       formData,
       config
     )
@@ -291,8 +288,18 @@ const onchangeInsurance = (data, check) => {
   var ard = datalists.value.find(
     (x) => x.insurance_rate_id == data.insurance_rate_id
   );
-
+debugger
   if (ard != null) {
+    if (check == 5)
+      ard.social_ins_percent = ard.social_ins_company + ard.social_ins_employee;
+    if (check == 6)
+      ard.accident_ins_percent =
+        ard.accident_ins_company + ard.accident_ins_employee;
+    if (check == 7)
+      ard.health_ins_percent = ard.health_ins_company + ard.health_ins_employee;
+    if (check == 8)
+      ard.unemployment_ins_percent =
+       Number( ard.unemployment_ins_company) + Number(  ard.unemployment_ins_employee);
     if (check == 1)
       if (ard.social_ins_percent - ard.social_ins_company >= 0)
         ard.social_ins_employee =
@@ -324,68 +331,66 @@ const onchangeInsurance = (data, check) => {
   }
 };
 
-
 const delRow_Item = (item) => {
- if(!item.insurance_rate_id){
-
-
-datalists.value=datalists.value.filter(x=>x!=item);
-
- }
- else{
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá bản ghi này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-
-        axios
-          .delete(baseURL + "/api/hrm_config_insurance_rate/delete_hrm_config_insurance_rate", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: item != null ? [item.insurance_rate_id] : 1,
-          })
-          .then((response) => {
-            swal.close();
-            if (response.data.err != "1") {
-              swal.close();
-              toast.success("Xoá bản ghi thành công!");
-        loadOrganization();
-            } else {
-              swal.fire({
-                title: "Error!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          })
-          .catch((error) => {
-            swal.close();
-            if (error.status === 401) {
-              swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                confirmButtonText: "OK",
-              });
-            }
+  if (!item.insurance_rate_id) {
+    datalists.value = datalists.value.filter((x) => x != item);
+  } else {
+    swal
+      .fire({
+        title: "Thông báo",
+        text: "Bạn có muốn xoá bản ghi này không!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      })
+      .then((result) => {
+        if (result.isConfirmed) {
+          swal.fire({
+            width: 110,
+            didOpen: () => {
+              swal.showLoading();
+            },
           });
-      }
-    });
+
+          axios
+            .delete(
+              baseURL +
+                "/api/hrm_config_insurance_rate/delete_hrm_config_insurance_rate",
+              {
+                headers: { Authorization: `Bearer ${store.getters.token}` },
+                data: item != null ? [item.insurance_rate_id] : 1,
+              }
+            )
+            .then((response) => {
+              swal.close();
+              if (response.data.err != "1") {
+                swal.close();
+                toast.success("Xoá bản ghi thành công!");
+                loadOrganization();
+              } else {
+                swal.fire({
+                  title: "Error!",
+                  text: response.data.ms,
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+              }
+            })
+            .catch((error) => {
+              swal.close();
+              if (error.status === 401) {
+                swal.fire({
+                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  confirmButtonText: "OK",
+                });
+              }
+            });
+        }
+      });
   }
- 
 };
 onMounted(() => {
   loadOrganization();
@@ -402,18 +407,18 @@ onMounted(() => {
     <div class="p-0 surface-0">
       <div class="grid mt-0 p-0 m-0">
         <div class="col-12 field p-0 font-bold">
-          <div class="col-12 p-0 format-center text-xl">Tỷ lệ đóng bảo hiểm</div>
+          <div class="col-12 p-0 format-center text-xl">
+            Tỷ lệ đóng bảo hiểm
+          </div>
         </div>
         <div class="col-12 field format-center p-0 font-bold">
           <Toolbar class="w-full custoolbar">
-
             <template #end>
               <div>
                 <Button @click="add_Item" icon="pi pi-plus" />
               </div>
             </template>
           </Toolbar>
-        
         </div>
 
         <div class="col-12 field p-0">
@@ -471,8 +476,7 @@ onMounted(() => {
               <template #body="slotProps">
                 <InputNumber
                   v-model="slotProps.data.ins_premium"
-                  class="w-full"
-                
+                  class="w-full"     inputId="locale-german" locale="de-DE"  
                 />
               </template>
             </Column>
@@ -497,8 +501,7 @@ onMounted(() => {
                   v-tooltip.top="'Mức đóng'"
                 />
                 <InputNumber
-                
-                v-tooltip.top="'Công ty đóng'"
+                  v-tooltip.top="'Công ty đóng'"
                   spellcheck="false"
                   :max="100"
                   suffix=" %"
@@ -509,14 +512,14 @@ onMounted(() => {
                   @update:modelValue="onchangeInsurance(slotProps.data, 1)"
                 />
                 <InputNumber
-                v-tooltip.top="'Nhân viên đóng'"
+                  @update:modelValue="onchangeInsurance(slotProps.data, 5)"
+                  v-tooltip.top="'Nhân viên đóng'"
                   spellcheck="false"
                   class="w-4rem ml-2"
                   inputClass="format-center d-design-disabled"
                   :max="100"
                   suffix=" %"
                   :useGrouping="false"
-                 
                   v-model="slotProps.data.social_ins_employee"
                 />
               </template>
@@ -535,12 +538,14 @@ onMounted(() => {
                   class="w-4rem"
                   :max="100"
                   suffix=" %"
-                  placeholder="%"      v-tooltip.top="'Mức đóng'"
+                  placeholder="%"
+                  v-tooltip.top="'Mức đóng'"
                   v-model="slotProps.data.accident_ins_percent"
                 />
                 <InputNumber
                   spellcheck="false"
-                  :max="100"            v-tooltip.top="'Công ty đóng'"
+                  :max="100"
+                  v-tooltip.top="'Công ty đóng'"
                   suffix=" %"
                   class="w-4rem ml-2 format-center"
                   placeholder="CTY"
@@ -548,16 +553,17 @@ onMounted(() => {
                   v-model="slotProps.data.accident_ins_company"
                   @update:modelValue="onchangeInsurance(slotProps.data, 2)"
                 />
-                <InputNumber   v-tooltip.top="'Nhân viên đóng'"
+                <InputNumber
+                  v-tooltip.top="'Nhân viên đóng'"
                   spellcheck="false"
-                  class="w-4rem ml-2 "
-                  :max="100"    inputClass="format-center d-design-disabled"
+                  class="w-4rem ml-2"
+                  :max="100"
+                  inputClass="format-center d-design-disabled"
                   placeholder="NLĐ"
                   suffix=" %"
                   :useGrouping="false"
-                   
                   v-model="slotProps.data.accident_ins_employee"
-                  @update:modelValue="onchangeInsurance(slotProps.data, 2)"
+                  @update:modelValue="onchangeInsurance(slotProps.data, 6)"
                 />
               </template>
             </Column>
@@ -573,8 +579,9 @@ onMounted(() => {
                 <InputNumber
                   spellcheck="false"
                   class="w-4rem"
-                  :max="100" 
-                  suffix=" %"     v-tooltip.top="'Mức đóng'"
+                  :max="100"
+                  suffix=" %"
+                  v-tooltip.top="'Mức đóng'"
                   inputClass="format-center"
                   v-model="slotProps.data.health_ins_percent"
                   @update:modelValue="onchangeInsurance(slotProps.data, 3)"
@@ -583,7 +590,8 @@ onMounted(() => {
                   spellcheck="false"
                   class="w-4rem ml-2"
                   :max="100"
-                  suffix=" %"            v-tooltip.top="'Công ty đóng'"
+                  suffix=" %"
+                  v-tooltip.top="'Công ty đóng'"
                   inputClass="format-center"
                   v-model="slotProps.data.health_ins_company"
                   @update:modelValue="onchangeInsurance(slotProps.data, 3)"
@@ -592,16 +600,17 @@ onMounted(() => {
                   spellcheck="false"
                   :max="100"
                   class="w-4rem ml-2"
-                  suffix=" %"   v-tooltip.top="'Nhân viên đóng'"
-                  inputClass="format-center d-design-disabled" 
-                   
+                  suffix=" %"
+                  v-tooltip.top="'Nhân viên đóng'"
+                  inputClass="format-center d-design-disabled"
+                  @update:modelValue="onchangeInsurance(slotProps.data, 7)"
                   v-model="slotProps.data.health_ins_employee"
                 />
               </template>
             </Column>
             <Column
               field="transfer_place"
-              header="Bảo hiểm thất nghiệp" 
+              header="Bảo hiểm thất nghiệp"
               headerStyle="text-align:center;width:15rem ;height:50px"
               bodyStyle="text-align:center ;width:15rem;"
               class="align-items-center justify-content-center text-center"
@@ -609,7 +618,8 @@ onMounted(() => {
               <template #body="slotProps">
                 <InputNumber
                   spellcheck="false"
-                  class="w-4rem"     v-tooltip.top="'Mức đóng'"
+                  class="w-4rem"
+                  v-tooltip.top="'Mức đóng'"
                   suffix=" %"
                   inputClass="format-center"
                   v-model="slotProps.data.unemployment_ins_percent"
@@ -619,16 +629,18 @@ onMounted(() => {
                   spellcheck="false"
                   class="w-4rem ml-2"
                   suffix=" %"
-                  inputClass="format-center"            v-tooltip.top="'Công ty đóng'"
+                  inputClass="format-center"
+                  v-tooltip.top="'Công ty đóng'"
                   v-model="slotProps.data.unemployment_ins_company"
                   @update:modelValue="onchangeInsurance(slotProps.data, 4)"
                 />
                 <InputNumber
                   spellcheck="false"
                   class="w-4rem ml-2"
-                  suffix=" %"    inputClass="format-center d-design-disabled"
+                  suffix=" %"
+                  inputClass="format-center d-design-disabled"
                   v-tooltip.top="'Nhân viên đóng'"
-                   
+                  @update:modelValue="onchangeInsurance(slotProps.data, 8)"
                   v-model="slotProps.data.unemployment_ins_employee"
                 />
               </template>
@@ -641,7 +653,7 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <a
-                  @click="delRow_Item(slotProps.data )"
+                  @click="delRow_Item(slotProps.data)"
                   class="hover cursor-pointer"
                 >
                   <i class="pi pi-times-circle" style="font-size: 18px"></i>
@@ -652,13 +664,18 @@ onMounted(() => {
         </div>
         <div class="col-12 style-vb-3 p-0 py-2 align-items-center flex">
           <Checkbox v-model="ins_checked" :binary="true" />
-<div class="pl-1">
-          <span> Tự động tính toán lại bảo hiểm từ tháng hiện tại</span></div>
+          <div class="pl-1">
+            <span> Tự động tính toán lại bảo hiểm từ tháng hiện tại</span>
+          </div>
         </div>
         <div class="col-12 style-vb-3 p-0 py-3">
-          <InputText spellcheck="false" class="w-4rem  " style="    background-color: white;
-    color: black;
-    opacity: 1;" disabled placeholder="CTY" />
+          <InputText
+            spellcheck="false"
+            class="w-4rem"
+            style="background-color: white; color: black; opacity: 1"
+            disabled
+            placeholder="CTY"
+          />
           <InputText
             spellcheck="false"
             class="w-4rem ml-2"

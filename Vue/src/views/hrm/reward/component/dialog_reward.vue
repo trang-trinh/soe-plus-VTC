@@ -1097,7 +1097,7 @@ onMounted(() => {
               <InputNumber
                 class="w-full"
                 v-model="reward.reward_cost"
-                suffix=" VNĐ"
+                inputId="locale-german" locale="de-DE"  
               />
             </div>
           </div>

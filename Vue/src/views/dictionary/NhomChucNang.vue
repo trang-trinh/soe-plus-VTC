@@ -1642,7 +1642,7 @@ onMounted(() => {
                   </div>
 
                   <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
+                    :class=" 'col-8'"
                   >
                     <TreeSelect
                       v-model="filterPhanloai_EG"
@@ -1676,7 +1676,7 @@ onMounted(() => {
                     Trạng thái
                   </div>
                   <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
+                    :class=" 'col-8'"
                   >
                     <Dropdown
                       class="col-12 p-0 m-0"

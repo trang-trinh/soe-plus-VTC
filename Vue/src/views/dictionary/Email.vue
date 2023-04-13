@@ -537,11 +537,6 @@ const editEmailGroup = (dataEmailGroup) => {
   headerDialog.value = "Sửa nhóm email";
   issaveEmailGroup.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_super) {
-    EmailGroup.value.organization_id = store.state.user.organization_parent_id;
-  } else {
-    EmailGroup.value.organization_id = store.state.user.organization_id;
-  }
 };
 const editEmail = (dataEmail) => {
   submitted.value = false;
