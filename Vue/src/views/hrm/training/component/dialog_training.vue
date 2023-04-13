@@ -1256,7 +1256,7 @@ onMounted(() => {
                 <InputNumber
                   v-model="training_emps.tuition"
                   class="w-full"
-                  suffix=" VND"
+                  inputId="locale-german" locale="de-DE"  
                   placeholder="Nhập học phí"
                 />
               </div>
@@ -1269,7 +1269,7 @@ onMounted(() => {
                 <InputNumber
                   v-model="training_emps.expense"
                   class="w-full"
-                  suffix=" VND"
+                  inputId="locale-german" locale="de-DE"  
                   placeholder="Nhập chi phí"
                 />
               </div>

@@ -476,7 +476,7 @@ onMounted(() => {
               <template #body="slotProps">
                 <InputNumber
                   v-model="slotProps.data.ins_premium"
-                  class="w-full"
+                  class="w-full"     inputId="locale-german" locale="de-DE"  
                 />
               </template>
             </Column>
