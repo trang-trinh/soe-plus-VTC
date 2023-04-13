@@ -6,6 +6,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 
+const router = inject("router");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -123,12 +124,13 @@ const initData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_insurance_list1",
+              proc: "hrm_insurance_list_1",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
                 { par: "status", va: null },
+                { par: "search", va: options.value.searchStamp },
                 { par: "date", va: options.value.date },
               ],
             }),
@@ -568,7 +570,7 @@ const searchStamp = (event) => {
   }
 };
 const refreshStamp = () => {
-  options.value.SearchText = null;
+  options.value.searchStamp = null;
   options.value.date = null;
   monthPickerFilter.value = null;
   filterTrangthai.value = null;
@@ -738,6 +740,13 @@ const deleteRow = (idx, type) => {
     insurance_resolves.value.splice(idx, 1);
   }
 };
+const goProfile = (item) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: generateUUID()},
+    query: { id: item.profile_id },
+  });
+};
 //filter date
 const monthPickerFilter = ref();
 const onFilterMonth = ()=>{
@@ -752,6 +761,28 @@ const onCleanFilterMonth = () => {
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
+}
+function generateUUID() {
+  // Public Domain/MIT
+  var d = new Date().getTime(); //Timestamp
+  var d2 =
+    (typeof performance !== "undefined" &&
+      performance.now &&
+      performance.now() * 1000) ||
+    0; //Time in microseconds since page-load or 0 if unsupported
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16; //random number between 0 and 16
+    if (d > 0) {
+      //Use timestamp until depleted
+      r = (d + r) % 16 | 0;
+      d = Math.floor(d / 16);
+    } else {
+      //Use microseconds since page-load if supported
+      r = (d2 + r) % 16 | 0;
+      d2 = Math.floor(d2 / 16);
+    }
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
 }
 function formatNumber(a, b, c, d) {
   var e = isNaN((b = Math.abs(b))) ? 2 : b;
@@ -834,12 +865,12 @@ onMounted(() => {
               <i class="pi pi-search" />
               <InputText
                 v-model="options.SearchText"
-                @keyup="searchStamp"
+                @keyup="initData()"
                 type="text"
                 spellcheck="false"
                 placeholder="Tìm kiếm"
               />
-              <Button
+              <!-- <Button
                 type="button"
                 class="ml-2"
                 icon="pi pi-filter"
@@ -897,7 +928,7 @@ onMounted(() => {
                     </Toolbar>
                   </div>
                 </div>
-              </OverlayPanel>
+              </OverlayPanel> -->
             </span>
           </template>
 
@@ -985,6 +1016,11 @@ onMounted(() => {
         bodyStyle="text-align:center"
         class="align-items-center justify-content-center text-center"
       >
+      <template #body="slotProps">
+            <b @click="goProfile(slotProps.data)" class="hover cursor-pointer">{{
+              slotProps.data.profile_user_name
+            }}</b>
+          </template>
       </Column>
       <Column
         field="organization_name"
@@ -1016,8 +1052,8 @@ onMounted(() => {
       <Column
         field="insurance_id"
         header="Số sổ"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        headerStyle="text-align:center;max-width:100px;height:50px"
+        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
@@ -1134,6 +1170,9 @@ onMounted(() => {
 </template>
     
     <style scoped>
+    .hover:hover {
+  color: #0078d4;
+}
 .ip33 {
   height: 33px !important;
 }
