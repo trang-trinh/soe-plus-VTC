@@ -274,6 +274,7 @@ const HrmProfile = () => import("../views/hrm/profile/profile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
+const HrmDecision = () => import("../views/hrm/decision/decision.vue");
 const HrmTimekeep = () => import("../views/hrm/timekeep/timekeep.vue");
 const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
@@ -1565,6 +1566,11 @@ const router = createRouter({
       path: "/hrm/contract",
       name: "contract",
       component: HrmContract,
+    },
+    {
+      path: "/hrm/decision",
+      name: "decision",
+      component: HrmDecision,
     },
     {
       path: "/hrm/timekeep",
