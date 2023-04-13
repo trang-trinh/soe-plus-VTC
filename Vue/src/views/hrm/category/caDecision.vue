@@ -17,17 +17,17 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  decision_name: {
+  type_decision_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
 const rules = {
-  decision_name: {
+  type_decision_name: {
     required,
     $errors: [
       {
-        $property: "decision_name",
+        $property: "type_decision_name",
         $validator: "required",
         $message: "Tên quyết định không được để trống!",
       },
@@ -43,7 +43,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_decision_count",
+            proc: "hrm_ca_type_decision_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -64,7 +64,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu decision
+//Lấy dữ liệu type_decision
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -82,7 +82,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_ca_decision_list",
+              proc: "hrm_ca_type_decision_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -136,19 +136,19 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].decision_id;
+    options.value.id = datalists.value[datalists.value.length - 1].type_decision_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].decision_id;
+    options.value.id = datalists.value[0].type_decision_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const decision = ref({
-  decision_name: "",
+const type_decision = ref({
+  type_decision_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -156,7 +156,7 @@ const decision = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, decision);
+const v$ = useVuelidate(rules, type_decision);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -178,8 +178,8 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  decision.value = {
-    decision_name: "",
+  type_decision.value = {
+    type_decision_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
@@ -195,8 +195,8 @@ const openBasic = (str) => {
 };
 
 const closeDialog = () => {
-  decision.value = {
-    decision_name: "",
+  type_decision.value = {
+    type_decision_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -215,7 +215,7 @@ const saveData = (isFormValid) => {
     return;
   }
 
-  if (decision.value.decision_name.length > 250) {
+  if (type_decision.value.type_decision_name.length > 250) {
     swal.fire({
       title: "Error!",
       text: "Tên quyết định không được vượt quá 250 ký tự!",
@@ -231,7 +231,7 @@ const saveData = (isFormValid) => {
   }
 
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
-  formData.append("hrm_ca_decision", JSON.stringify(decision.value));
+  formData.append("hrm_ca_type_decision", JSON.stringify(type_decision.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -241,7 +241,7 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_decision/add_hrm_ca_decision",
+        baseURL + "/api/hrm_ca_type_decision/add_hrm_ca_type_decision",
         formData,
         config
       )
@@ -273,7 +273,7 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_decision/update_hrm_ca_decision",
+        baseURL + "/api/hrm_ca_type_decision/update_hrm_ca_type_decision",
         formData,
         config
       )
@@ -314,15 +314,15 @@ const editTem = (dataTem) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_decision_get",
+            proc: "hrm_type_decision_get",
             par: [
               {
                 par: "user_id",
                 va: store.getters.user.user_id,
               },
               {
-                par: "decision_id",
-                va: dataTem.decision_id,
+                par: "type_decision_id",
+                va: dataTem.type_decision_id,
               },
             ],
           }),
@@ -336,9 +336,9 @@ const editTem = (dataTem) => {
       let data = JSON.parse(response.data.data)[0];
       let data1 = JSON.parse(response.data.data)[1];
       if (data) {
-        decision.value = data[0];
+        type_decision.value = data[0];
         if (
-          decision.value.is_system == true &&
+          type_decision.value.is_system == true &&
           (store.getters.user.is_super == false ||
             store.getters.user.is_super == null)
         ) {
@@ -379,9 +379,9 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_ca_decision/delete_hrm_ca_decision", {
+          .delete(baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.decision_id] : 1,
+            data: Tem != null ? [Tem.type_decision_id] : 1,
           })
           .then((response) => {
             swal.close();
@@ -440,7 +440,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "decision_id",
+    id: "type_decision_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -452,7 +452,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_decision", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_type_decision", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -547,14 +547,14 @@ const onFilter = (event) => {
 const onCheckBox = (value, check) => {
   if (check) {
     let data = {
-      IntID: value.decision_id,
-      TextID: value.decision_id + "",
+      IntID: value.type_decision_id,
+      TextID: value.type_decision_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_decision/update_s_hrm_ca_decision",
+        baseURL + "/api/hrm_ca_type_decision/update_s_hrm_ca_type_decision",
         data,
         config
       )
@@ -611,10 +611,10 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.decision_id);
+            listId.push(item.type_decision_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_ca_decision/delete_hrm_ca_decision", {
+            .delete(baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision", {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: listId != null ? listId : 1,
             })
@@ -799,7 +799,7 @@ onMounted(() => {
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
       :row-hover="true"
-      dataKey="decision_id"
+      dataKey="type_decision_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
     >
@@ -939,7 +939,7 @@ onMounted(() => {
       ></Column>
 
       <Column
-        field="decision_name"
+        field="type_decision_name"
         header="Tên quyết định"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
@@ -955,7 +955,7 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        field="decision_name"
+        field="type_decision_name"
         header="File mẫu"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:100px;height:50px"
@@ -1114,11 +1114,11 @@ onMounted(() => {
             >Quyết định<span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="decision.decision_name"
+            v-model="type_decision.type_decision_name"
             spellcheck="false"
             class="col-9 ip36 px-2"
             :class="{
-              'p-invalid': v$.decision_name.$invalid && submitted,
+              'p-invalid': v$.type_decision_name.$invalid && submitted,
             }"
             :disabled="checkDisabled"
           />
@@ -1127,13 +1127,13 @@ onMounted(() => {
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v$.decision_name.$invalid && submitted) ||
-              v$.decision_name.$pending.$response
+              (v$.type_decision_name.$invalid && submitted) ||
+              v$.type_decision_name.$pending.$response
             "
             class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.decision_name.required.$message
+              v$.type_decision_name.required.$message
                 .replace("Value", "Tên quyết định")
                 .replace("is required", "không được để trống")
             }}</span>
@@ -1143,21 +1143,21 @@ onMounted(() => {
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-9 text-left p-0">STT</div>
             <InputNumber
-              v-model="decision.is_order"
+              v-model="type_decision.is_order"
               class="col-3 ip36 p-0"
               :disabled="checkDisabled"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="decision.status" :disabled="checkDisabled" />
+            <InputSwitch v-model="type_decision.status" :disabled="checkDisabled" />
           </div>
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="decision.is_system" />
+            <InputSwitch v-model="type_decision.is_system" />
           </div>
         </div>
 
