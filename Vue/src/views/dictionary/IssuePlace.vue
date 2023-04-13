@@ -1050,8 +1050,6 @@ onMounted(() => {
           </template>
 
           <template #end>
-            {{ filters }}
-            {{ filterPhanloai }}
             <Button
               v-if="checkDelList"
               @click="deleteList()"

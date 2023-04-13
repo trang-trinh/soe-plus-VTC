@@ -156,8 +156,8 @@ const LoadData = (rf) => {
               proc: "task_ca_taskgroup_list",
               par: [
                 { par: "user_id", va: user.user_id },
-                { par: "status", va: options.value.PageNo },
-                { par: "@search", va: options.value.PageSize },
+                { par: "status", va: null },
+                { par: "search", va: null },
               ],
             }),
             SecretKey,
@@ -232,7 +232,11 @@ const loadCount = () => {
         str: encr(
           JSON.stringify({
             proc: "task_ca_taskgroup_count",
-            par: [{ par: "user_id", va: user.user_id }],
+            par: [
+              { par: "user_id", va: user.user_id },
+              { par: "status", va: null },
+              { par: "search", va: "" },
+            ],
           }),
           SecretKey,
           cryoptojs,
@@ -713,10 +717,24 @@ const searchItem = () => {
   isDynamicSQL.value = true;
   LoadData(true);
 };
+const filters = ref({});
 const filter = () => {
   styleObj.value = style.value;
-  isDynamicSQL.value = true;
-  LoadData(true);
+  if (filterTrangthai.value != null) {
+    filters.value["status"] = filterTrangthai.value == 1 ? "true" : "false";
+  } else filters.value["status"] = "";
+  if (filterPhanloai.value != null) {
+    filters.value["organization_id"] =
+      Object.keys(filterPhanloai.value)[0] == 0
+        ? store.state.user.organization_parent_id.toString()
+        : Object.keys(filterPhanloai.value)[0];
+  } else filters.value["organization_id"] = null;
+  styleObj.value = style.value;
+};
+const SearchBytext = () => {
+  if (options.value.SearchText != null) {
+    filters.value["global"] = options.value.SearchText;
+  } else filters.value["global"] = "";
 };
 onMounted(() => {
   LoadData(true);
@@ -748,10 +766,11 @@ onMounted(() => {
       responsiveLayout="scroll"
       :totalRecords="options.totalRecords"
       :selectionMode="selectionMode"
-      filterMode="lenient"
       @page="onPage($event)"
+      v-model:filters="filters"
+      filterMode="lenient"
+      :globalFilterFields="['group_name', 'status', 'organization_id']"
     >
-      {{ datalists }}
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
           <i class="pi pi-money-bill"> </i> Danh sách nhóm công việc ({{
@@ -881,9 +900,7 @@ onMounted(() => {
         field="STT"
         header="STT"
         :sortable="true"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;;max-height:600px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-4rem"
       >
         <template #body="menu">
           <div
@@ -907,17 +924,13 @@ onMounted(() => {
         header="Tên nhóm công việc"
         :expander="true"
         :sortable="true"
-        headerStyle="height:50px;max-width:auto;"
-        bodyStyle="max-height:600px"
       >
       </Column>
       <Column
         :sortable="true"
         field="created_date"
         header="Ngày tạo"
-        headerStyle="text-align:center;max-width:10rem;height:50px"
-        bodyStyle="text-align:center;max-width:10rem;max-height:600px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           {{
@@ -929,9 +942,7 @@ onMounted(() => {
         :sortable="true"
         field="created_by"
         header="Người tạo"
-        headerStyle="text-align:center;max-width:240px;height:50px"
-        bodyStyle="text-align:center;max-width:240px;max-height:600px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-15rem"
       >
         <template #body="data">
           {{ data.node.data.fullname }}
@@ -958,9 +969,7 @@ onMounted(() => {
       <Column
         field="status"
         header="Hiển thị"
-        headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:600px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           <Checkbox
@@ -971,32 +980,23 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        field="status"
+        field="organization_name"
         header="Đơn vị"
-        headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:600px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-20rem"
       >
-        <template #body="data">
-          <!-- {{ user }} -->
-          {{ data.data }}
-        </template>
       </Column>
       <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:200px;height:50px"
-        bodyStyle="text-align:center;max-width:200px;;max-height:600px"
+        class="align-items-center justify-content-center text-center max-w-12rem"
       >
         <template #body="data">
           <div
             v-if="
               store.state.user.is_super == true ||
-              (user.is_admin &&
-                user.organization_child_id != null &&
-                user.organization_child_id ==
-                  data.data.organization_child_id) ||
-              user.is_admin
+              store.state.user.user_id == value.created_by ||
+              (store.state.user.is_admin &&
+                value.is_system != true &&
+                store.state.user.organization_id == value.organization_id)
             "
           >
             <Button
