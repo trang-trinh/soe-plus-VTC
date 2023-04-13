@@ -206,9 +206,9 @@ const loadData = (rf, is_filter) => {
             : "\nSize: " + item.capacityMB);
         });
         if(isfilter.value == true ) isTopView.value = false;
-          if(options.value.PageNo== 0 && data.length>5 && !isfilter.value){
-            datatop.value = data.slice(0,3);
-            datalists.value = data.slice(3);
+          if(options.value.PageNo== 0 && data.length>6 && !isfilter.value){
+            datatop.value = data.slice(0,4);
+            datalists.value = data.slice(4);
             isTopView.value = true;
           }
           else{
@@ -1162,12 +1162,13 @@ onMounted(() => {
           <div class="w-full" v-if="isTopView">
             <h3 class="ml-3 my-2">Gần đây</h3>
             <div class="flex">
-              <div v-for="(item, index) in datatop" :key="index" class="col-4"  v-show="index<3">
+              <div v-for="(item, index) in datatop" :key="index" class="col-3" >
                <div  @click="goFile(item)"
                   @mouseover="hoverItem(item.file_id)"
                   @mouseleave="leaveItem()"
                   v-on:dblclick="viewFile(item)"
-                class="m-2 p-2 cursor-pointer item-hover relative" style="background-color:#f1f6fc;border-radius: 15px;height: 95%;">
+                  :title="item.labelContext"
+                class="m-2 p-2 cursor-pointer item-top-hover relative" style="background-color:#f1f6fc;border-radius: 15px;height: 95%;">
                 <Button
                     v-show="item.file_id == item_hover"
                     icon="pi pi-ellipsis-h"

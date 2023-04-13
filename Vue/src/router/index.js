@@ -377,6 +377,7 @@ const caRewardTitle = () => import("../views/hrm/category/caRewardTitle.vue");
 const caHospital = () => import("../views/hrm/category/caHospital.vue");
 const caRewardLevel = () => import("../views/hrm/category/caRewardLevel.vue");
 const caDiscipline = () => import("../views/hrm/category/caDiscipline.vue");
+const caReason = () => import("../views/hrm/category/caReason.vue");
 const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
 const caTags = () => import("../views/hrm/category/caTags.vue");
@@ -1775,6 +1776,12 @@ const router = createRouter({
       name: "caHRMDiscipline",
       component: caDiscipline,
     },
+    {
+      path: "/hrm/category/ca_reason",
+      name: "caHRMReason",
+      component: caReason,
+    },
+    
     {
       path: "/hrm/category/ca_tags",
       name: "caHRMTags",

@@ -611,12 +611,12 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
-
+if(tabs.value.id==0){
   axios
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
-        excelname: "DANH SÁCH CHIẾN DỊCH",
+        excelname: "DANH SÁCH KHEN THƯỞNG",
         proc: "hrm_reward_export",
         par: [
           { par: "user_id", va: store.state.user.user_id },
@@ -706,7 +706,7 @@ const exportData = (method) => {
         });
         store.commit("gologout");
       }
-    });
+    });}
 };
 
 const activeTab = (tab) => {
