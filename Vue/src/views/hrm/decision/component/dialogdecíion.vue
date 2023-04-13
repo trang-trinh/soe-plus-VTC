@@ -23,6 +23,7 @@ const props = defineProps({
   isAdd: Boolean,
   isCopy: Boolean,
   isView: Boolean,
+  type_decision: Object,
   decision: Object,
   initData: Function,
 });
@@ -46,6 +47,8 @@ const dictionarys = ref([]);
 //Function
 const submitted = ref(false);
 const model = ref({
+  type_decision_id: props.type_decision.type_decision_id,
+  type_decision_code: props.type_decision.type_decision_code,
   decision_date: new Date(),
   start_date: new Date(),
 });

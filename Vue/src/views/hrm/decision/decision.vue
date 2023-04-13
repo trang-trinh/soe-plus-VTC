@@ -139,6 +139,12 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 
+const menuAddItems = ref();
+const itemAddItems = ref([]);
+const toggleAddItem = (event) => {
+  menuAddItems.value.toggle(event);
+};
+
 //Function
 const componentKey = ref(0);
 const forceRerender = () => {
@@ -312,11 +318,15 @@ const model = ref({});
 const headerDialog = ref();
 const displayDialog = ref(false);
 const files = ref([]);
-const openAddDialog = (str) => {
+const type_decision = ref({});
+const openAddDialog = (type, str) => {
+  type_decision.value = type;
   forceRerender();
   isAdd.value = true;
   isCopy.value = false;
   model.value = {
+    type_decision_id: type.type_decision_id,
+    type_decision_code: type.type_decision_code,
     profile: null,
     sign_user: null,
     contract_no: "",
@@ -767,6 +777,18 @@ const initDictionary = () => {
         if (data != null) {
           let tbs = JSON.parse(data);
           dictionarys.value = tbs;
+
+          if (tbs[3] != null && tbs[3].length > 0) {
+            tbs[3].forEach((item) => {
+              itemAddItems.value.push({
+                label: item.type_decision_name,
+                icon: "pi pi-plus",
+                command: (event) => {
+                  openAddDialog(item, "Thêm mới quyết định");
+                },
+              });
+            });
+          }
         }
       }
     });
@@ -977,10 +999,22 @@ onMounted(() => {
       </template>
       <template #end>
         <Button
-          @click="openAddDialog('Thêm mới quyết định')"
+          @click="toggleAddItem"
           label="Thêm mới"
           icon="pi pi-plus"
           class="mr-2"
+        >
+          <div>
+            <span><i class="pi pi-plus mr-2"></i></span>
+            <span class="mr-2">Thếm mới</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
+        <Menu
+          :model="itemAddItems"
+          :popup="true"
+          id="overlay_AddItem"
+          ref="menuAddItems"
         />
         <Button
           @click="refresh()"
@@ -1229,6 +1263,7 @@ onMounted(() => {
     :isAdd="isAdd"
     :isCopy="isCopy"
     :isView="isView"
+    :type_decision="type_decision"
     :decision="decision"
     :initData="initData"
   />
