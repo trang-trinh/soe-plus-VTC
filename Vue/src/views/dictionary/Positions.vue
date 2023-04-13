@@ -397,7 +397,7 @@ const itemButs = ref([
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportDaexportData("ExportExcel");
+      exportData("ExportExcel");
     },
   },
   {
@@ -440,23 +440,7 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
-  console.log({
-    excelname: "DANH SÁCH CHỨC VỤ",
-    proc: "ca_positions_listexport",
-    par: [
-      { par: "search", va: options.value.SearchText },
-      { par: "status", va: filterTrangthai.value },
-      { par: "user_id", va: store.state.user.user_id },
-      {
-        par: "s_org",
-        va:
-          filterPhanloai.value != null
-            ? Object.keys(filterPhanloai.value)[0]
-            : null,
-      },
-      { par: "filter_Org", va: options.value.filter_Org },
-    ],
-  });
+
   axios
     .post(
       baseURL + "/api/Excel/ExportExcel",

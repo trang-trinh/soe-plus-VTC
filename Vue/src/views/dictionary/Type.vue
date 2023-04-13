@@ -104,7 +104,7 @@ const loadCount = () => {
     });
 };
 const loadData = (rf) => {
-  if (store.state.user.user_id == "administrator") {
+  if (store.state.user.is_super) {
     loadDonvi();
   }
   if (rf) {
@@ -199,12 +199,15 @@ const openBasic = (str) => {
     doc_type_name: "",
     is_order: sttField.value,
     status: true,
+    organization_id:
+      store.state.user.is_super == true
+        ? store.state.user.organization_parent_id != null
+          ? store.state.user.organization_parent_id
+          : store.state.user.organization_id
+        : store.state.user.organization_id,
+    is_system: store.state.user.is_super == true ? true : false,
   };
-  if (store.state.user.is_super) {
-    caType.value.organization_id = 0;
-  } else {
-    caType.value.organization_id = store.state.user.organization_id;
-  }
+
   issaveField.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -292,11 +295,6 @@ const editField = (dataPlace) => {
   headerDialog.value = "Sửa loại văn bản";
   issaveField.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_super) {
-    caType.value.organization_id = 0;
-  } else {
-    caType.value.organization_id = store.state.user.organization_id;
-  }
 };
 //Xóa bản ghi
 const delField = (Field) => {
@@ -734,7 +732,10 @@ const loadDonvi = () => {
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
-          JSON.stringify({ proc: "sys_org_list" }),
+          JSON.stringify({
+            proc: "sys_organization_list_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
           SecretKey,
           cryoptojs,
         ).toString(),
@@ -939,21 +940,13 @@ onMounted(() => {
                 <div class="grid formgrid m-0">
                   <div class="flex field col-12 p-0">
                     <div
-                      :class="
-                        store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 p-0'
-                          : 'col-4 text-left pt-2 p-0'
-                      "
+                      :class="'col-4 text-left pt-2 p-0'"
                       style="text-align: left"
                     >
                       Phân loại
                     </div>
 
-                    <div
-                      :class="
-                        store.state.user.is_super == 1 ? 'col-10' : 'col-8'
-                      "
-                    >
+                    <div :class="'col-8'">
                       <TreeSelect
                         v-model="filterPhanloai"
                         :options="treedonvis"
@@ -962,6 +955,7 @@ onMounted(() => {
                         placeholder="Chọn đơn vị"
                         class="col-12 p-0 m-0 md:col-12"
                         v-if="store.state.user.is_super == 1"
+                        panelClass="d-design-dropdown"
                       />
                       <Dropdown
                         class="col-12 p-0 m-0"
@@ -977,20 +971,12 @@ onMounted(() => {
 
                   <div class="flex field col-12 p-0">
                     <div
-                      :class="
-                        store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 p-0'
-                          : 'col-4 text-left pt-2 p-0'
-                      "
+                      :class="'col-4 text-left pt-2 p-0'"
                       style="text-align: center,justify-content:center"
                     >
                       Trạng thái
                     </div>
-                    <div
-                      :class="
-                        store.state.user.is_super == 1 ? 'col-10' : 'col-8'
-                      "
-                    >
+                    <div :class="'col-8'">
                       <Dropdown
                         class="col-12 p-0 m-0"
                         v-model="filterTrangthai"
@@ -1125,14 +1111,14 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        field="organization_id"
+        field="is_system"
         header="Hệ thống"
         headerStyle="text-align:center;max-width:125px;height:50px"
         bodyStyle="text-align:center;max-width:125px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
@@ -1142,17 +1128,22 @@ onMounted(() => {
         </template>
       </Column>
       <Column
+        field="organization_name"
+        header="Đơn vị"
+        class="align-items-center justify-content-center text-center max-w-20rem"
+      >
+      </Column>
+      <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           <div
             v-if="
               store.state.user.is_super == true ||
               store.state.user.user_id == data.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
+              (store.state.user.is_admin &&
+                data.data.is_system != true &&
                 store.state.user.organization_id == data.data.organization_id)
             "
           >
@@ -1344,14 +1335,3 @@ onMounted(() => {
 </template>
 
 <style scoped></style>
-<style>
-.p-treeselect-panel {
-  max-width: 30vw !important;
-}
-.p-treeselect-panel .p-treeselect-items-wrapper .p-tree {
-  max-height: 17vh !important;
-}
-.p-dropdown-item {
-  white-space: normal !important;
-}
-</style>

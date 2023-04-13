@@ -236,12 +236,15 @@ const openBasic = (str) => {
     search_code: "",
     display_code: "",
     is_slider: true,
+    organization_id:
+      store.state.user.is_super == true
+        ? store.state.user.organization_parent_id != null
+          ? store.state.user.organization_parent_id
+          : store.state.user.organization_id
+        : store.state.user.organization_id,
+    is_system: store.state.user.is_super == true ? true : false,
   };
-  if (store.state.user.is_super == true) {
-    issuePlace.value.organization_id = 0;
-  } else {
-    issuePlace.value.organization_id = store.state.user.organization_id;
-  }
+
   issuePlace.value.is_order =
     datalists.value.length > 0 ? datalists.value[0].data.is_order + 1 : 1;
   issaveField.value = false;
@@ -255,7 +258,6 @@ const closeDialog = () => {
     status: true,
   };
   editChild.value = false;
-
   issuePlace.value.organization_id = null;
   displayBasic.value = false;
 };
@@ -330,15 +332,10 @@ const editChild = ref(false);
 const editField = (dataPlace) => {
   editChild.value = true;
   submitted.value = false;
-  issuePlace.value = dataPlace;
+  issuePlace.value = JSON.parse(JSON.stringify(dataPlace));
   headerDialog.value = "Sửa nơi ban hành";
   issaveField.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_super == true) {
-    issuePlace.value.organization_id = 0;
-  } else {
-    issuePlace.value.organization_id = store.state.user.organization_id;
-  }
 };
 //Xóa bản ghi
 const delField = (Field) => {
@@ -513,7 +510,9 @@ const onCheckBox = (value) => {
   if (
     store.state.user.is_super == true ||
     store.state.user.user_id == value.created_by ||
-    store.state.user.role_id == "admin"
+    (store.state.user.is_admin &&
+      value.is_system != true &&
+      store.state.user.organization_id == value.organization_id)
   ) {
     axios
       .put(
@@ -548,7 +547,12 @@ const onCheckBox = (value) => {
   } else {
     swal.fire({
       title: "Thông báo!",
-      text: "Bạn không có quyền chỉnh sửa! Chỉ có Quản trị viên đơn vị hoặc Quản trị viên hệ thống mới có quyền chỉnh sửa mục này",
+      text:
+        "Bạn không có quyền chỉnh sửa! Chỉ có " +
+        (value.is_system
+          ? "Quản trị viên hệ thống"
+          : "Quản trị viên đơn vị hoặc Quản trị viên hệ thống") +
+        " mới có quyền chỉnh sửa mục này",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -619,7 +623,6 @@ const deleteList = () => {
 const first = ref();
 const searchField = () => {
   editChild.value = false;
-
   selectedFields.value = [];
   first.value = 0;
   options.value.PageNo = 0;
@@ -674,7 +677,10 @@ const loadDonvi = () => {
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
-          JSON.stringify({ proc: "sys_org_list" }),
+          JSON.stringify({
+            proc: "sys_organization_list_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
           SecretKey,
           cryoptojs,
         ).toString(),
@@ -861,6 +867,8 @@ const openChild = (data) => {
     search_code: "",
     display_code: "",
     is_slider: true,
+    organization_id: data.organization_id,
+    is_system: data.is_system,
   };
   issuePlace.value.parent_name = data.data.issue_place_name;
   issuePlace.value.level = data.data.level + 1;
@@ -871,11 +879,7 @@ const openChild = (data) => {
       : data.children != null
       ? data.children[0].data.is_order + 1
       : 1;
-  if (store.state.user.is_super == true) {
-    issuePlace.value.organization_id = 0;
-  } else {
-    issuePlace.value.organization_id = store.state.user.organization_id;
-  }
+
   issaveField.value = false;
   headerDialog.value = "Thêm nơi ban hành con";
   displayBasic.value = true;
@@ -888,10 +892,11 @@ const filterFileds = () => {
   } else filters.value["status"] = "";
   if (filterPhanloai.value != null) {
     filters.value["organization_id"] =
-      filterPhanloai.value == 0
-        ? "0"
-        : store.state.user.organization_id.toString();
-  } else filters.value["organization_id"] = "";
+      Object.keys(filterPhanloai.value)[0] == 0
+        ? store.state.user.organization_parent_id.toString()
+        : Object.keys(filterPhanloai.value)[0];
+  } else filters.value["organization_id"] = null;
+  styleObj.value = style.value;
 };
 const SearchBytext = () => {
   if (options.value.SearchText != null) {
@@ -972,27 +977,22 @@ onMounted(() => {
               <div class="grid formgrid m-0">
                 <div class="flex field col-12">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 '
-                        : 'col-4 text-left pt-2 '
-                    "
+                    :class="'col-4 text-left pt-2 '"
                     style="text-align: left"
                   >
                     Phân loại
                   </div>
 
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-8'">
                     <TreeSelect
                       v-model="filterPhanloai"
                       :options="treedonvis"
                       optionLabel="data.organization_name"
                       optionValue="data.organization_id"
                       placeholder="Chọn đơn vị"
-                      class="col-12md:col-12"
+                      class="col-12 md:col-12"
                       v-if="store.state.user.is_super == 1"
+                      panelClass="d-design-dropdown"
                     />
                     <Dropdown
                       class="col-12 m-0"
@@ -1009,18 +1009,12 @@ onMounted(() => {
 
                 <div class="flex field col-12">
                   <div
-                    :class="
-                      store.state.user.is_super == 1
-                        ? 'col-2 text-left pt-2 '
-                        : 'col-4 text-left pt-2 '
-                    "
+                    :class="'col-4 text-left pt-2 '"
                     style="text-align: center,justify-content:center"
                   >
                     Trạng thái
                   </div>
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-8'">
                     <Dropdown
                       class="col-12 m-0"
                       v-model="filterTrangthai"
@@ -1056,6 +1050,8 @@ onMounted(() => {
           </template>
 
           <template #end>
+            {{ filters }}
+            {{ filterPhanloai }}
             <Button
               v-if="checkDelList"
               @click="deleteList()"
@@ -1093,13 +1089,7 @@ onMounted(() => {
           </template>
         </Toolbar>
       </template>
-      <Column
-        selectionMode="multiple"
-        headerClass="align-items-center justify-content-center text-center max-w-2rem"
-        bodyClass="align-items-center justify-content-center text-center "
-        bodyStyle="max-width:calc(2rem + 2px)"
-        v-if="store.state.user.is_super == true"
-      ></Column>
+
       <Column
         field="STT"
         header="STT"
@@ -1140,15 +1130,20 @@ onMounted(() => {
         bodyClass="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
-          <div v-if="data.node.data.organization_id == 0">
+          <div v-if="data.node.data.is_system">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
             ></i>
           </div>
           <div v-else></div>
-        </template>
-      </Column>
+        </template> </Column
+      ><Column
+        field="organization_name"
+        header="Đơn vị"
+        headerClass="align-items-center justify-content-center text-center max-w-20rem"
+        bodyClass="align-items-center justify-content-center text-center max-w-20rem"
+      ></Column>
       <Column
         header="Mã tra cứu"
         field="search_code"
@@ -1170,6 +1165,13 @@ onMounted(() => {
       >
         <template #body="data">
           <Button
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == data.node.data.created_by ||
+              (store.state.user.is_admin &&
+                store.state.user.organization_id ==
+                  data.node.data.organization_id)
+            "
             @click="openChild(data.node)"
             class="p-button-rounded p-button-secondary p-button-outlined mx-1"
             type="button"
@@ -1180,7 +1182,7 @@ onMounted(() => {
             v-if="
               store.state.user.is_super == true ||
               store.state.user.user_id == data.node.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
+              (store.state.user.is_admin &&
                 store.state.user.organization_id ==
                   data.node.data.organization_id)
             "
@@ -1385,13 +1387,31 @@ onMounted(() => {
             v-model="issuePlace.is_order"
             class="col-1 ip-36 px-0"
           />
-          <div class="col-2 text-center">Trạng thái</div>
-          <div class="col-1">
-            <InputSwitch v-model="issuePlace.status" />
-          </div>
+
           <div class="col-3 text-center">Tích nơi nhận qua mạng</div>
           <div class="col-2">
             <InputSwitch v-model="issuePlace.is_slider" />
+          </div>
+        </div>
+        <div class="col-12 flex align-items-center">
+          <div class="col-4 flex">
+            <div class="col-9 text-left">Trạng thái</div>
+            <div class="col-3">
+              <InputSwitch v-model="issuePlace.status" />
+            </div>
+          </div>
+
+          <div
+            class="col-4 flex"
+            v-if="
+              store.state.user.is_super &&
+              issuePlace.organization_id == store.state.user.organization_id
+            "
+          >
+            <div class="col-9">Hệ thống</div>
+            <div class="col-3">
+              <InputSwitch v-model="issuePlace.is_system" />
+            </div>
           </div>
         </div>
       </div>
