@@ -263,6 +263,7 @@ const openBasic = (str) => {
 const closeDialog = () => {
   displayBasic.value = false;
   initData(true);
+  forceRerender();
 };
 
 //Thêm bản ghi
@@ -568,6 +569,8 @@ const searchStamp = (event) => {
 };
 const refreshStamp = () => {
   options.value.SearchText = null;
+  options.value.date = null;
+  monthPickerFilter.value = null;
   filterTrangthai.value = null;
   options.value.loading = true;
   selectedStamps.value = [];

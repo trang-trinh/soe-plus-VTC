@@ -164,8 +164,7 @@ const saveData = () => {
     if (response.data.err === "0") {
       swal.close();
       toast.success("Cập nhật thành công!");
-      debugger
-      props.displayDialog = false;
+      props.closeDialog();
       props.initData(true);
     } else {
       swal.fire({
@@ -919,7 +918,7 @@ onMounted(() => {
       <Button
         label="Hủy"
         icon="pi pi-times"
-        @click="closeDialog"
+        @click="props.closeDialog()"
         class="p-button-outlined"
       />
 
