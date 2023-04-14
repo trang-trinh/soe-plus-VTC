@@ -381,6 +381,8 @@ const caDiscipline = () => import("../views/hrm/category/caDiscipline.vue");
 const caReason = () => import("../views/hrm/category/caReason.vue");
 const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
+  const caAllowance = () =>
+  import("../views/hrm/category/caAllowance.vue");
 const caTags = () => import("../views/hrm/category/caTags.vue");
 const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
 const caWorkPosition = () => import("../views/hrm/category/caWorkPosition.vue");
@@ -1776,7 +1778,11 @@ const router = createRouter({
       name: "caHRMDisciplineLevel",
       component: caDisciplineLevel,
     },
-
+    {
+      path: "/hrm/category/ca_allowance",
+      name: "caHRMAllowance",
+      component: caAllowance,
+    },
     {
       path: "/hrm/category/ca_discipline",
       name: "caHRMDiscipline",
