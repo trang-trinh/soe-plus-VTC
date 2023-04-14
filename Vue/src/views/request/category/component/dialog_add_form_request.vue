@@ -170,6 +170,10 @@ const indexSelect = ref();
 const OpenDialogTreeUser = (one, index) => {
 	indexSelect.value = index;
 	selectedUser.value = [];
+	if(listGroupTeams.value.length > 0){
+		selectedUser.value = [...listGroupTeams.value[index].GroupTeamUsers];
+	}
+	
 	headerDialogUser.value = "Chọn người duyệt"; 0
 	displayDialogUser.value = true;
 };
