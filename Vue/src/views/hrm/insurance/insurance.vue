@@ -4,8 +4,9 @@ import { useToast } from "vue-toastification";
 import diloginsurance from "../insurance/component/diloginsurance.vue";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
-import moment from "moment";
+// import Datepicker from 'vuejs3-datepicker';
 
+import moment from "moment";
 const router = inject("router");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -35,9 +36,14 @@ const hinhthucs = ref([
   { value: 1, text: "Báo tăng" },
   { value: 2, text: "Báo giảm" },
 ]);
+const groups = ref([
+  { view: 1, icon: "pi pi-list", title: "list" },
+  { view: 2, icon: "pi pi-align-right", title: "tree" },
+]);
 const insurance_pays = ref();
 const insurance_resolves = ref();
 const dictionarys = ref();
+const datatrees = ref()
 //Function
 const componentKey = ref(0);
 const forceRerender = () => {
@@ -201,6 +207,7 @@ const insurance = ref({
   profile_id: 1,
 });
 const selectedStamps = ref();
+const monthPickerFilter = ref();
 const submitted = ref(false);
 const isAdd = ref(false);
 const isView = ref(false);
@@ -208,7 +215,7 @@ const datalists = ref();
 const toast = useToast();
 const basedomainURL = baseURL;
 const checkDelList = ref(false);
-
+var dt = new Date();
 const options = ref({
   IsNext: true,
   sort: "created_date",
@@ -217,7 +224,10 @@ const options = ref({
   PageSize: 20,
   loading: true,
   totalRecords: null,
-  date : null
+  date : null,
+  view:1,
+  start_date:  new Date(dt.getFullYear(), 0),
+  end_date: new Date(dt.getFullYear(), dt.getMonth()),
 });
 
 //Hiển thị dialog
@@ -701,6 +711,11 @@ watch(selectedStamps, () => {
     checkDelList.value = false;
   }
 });
+watch(monthPickerFilter, () => {
+  if (monthPickerFilter.value != null) {
+    onFilterMonth();
+  } 
+});
 const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
@@ -748,16 +763,115 @@ const goProfile = (item) => {
   });
 };
 //filter date
-const monthPickerFilter = ref();
 const onFilterMonth = ()=>{
+  if( options.value.view == 1)
+ {
   options.value.date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
   initData(true);
+ } 
+ else{
+  options.value.start_date = null;
+  options.value.end_date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
+  loadDataTree(true);
+ }
 }
 const onCleanFilterMonth = () => {
   if (monthPickerFilter.value) monthPickerFilter.value = null;
-  options.value.date  = null;
+  if( options.value.view == 1)
+ {
+  options.value.date = null;
   initData(true);
+ } 
+ else{
+  options.value.start_date = new Date(dt.getFullYear(), 0);
+  options.value.end_date = new Date(dt.getFullYear(), dt.getMonth());
+  loadDataTree(true);
+ }
 };
+const changeView = (view) => {
+  if (view != null) {
+    options.value.view = view;
+    options.value.view_copy = view;
+  } else {
+    options.value.view = options.value.view_copy;
+  }
+  if(view == 2) loadDataTree();
+};
+const listDate= ref();
+const isViewTree = ref(false);
+const amount_paid_final = ref();
+const payment_final = ref();
+const loadDataTree = ()=>{
+  debugger
+  payment_final.value = 0;
+  amount_paid_final.value = 0;
+  listDate.value = dateRange(options.value.start_date, options.value.end_date)
+  axios
+        .post(
+          baseURL + "/api/insurance/GetDataProc",
+          {
+            str: encr(
+              JSON.stringify({
+                proc: "hrm_insurance_list_tree",
+                par: [
+                  { par: "pageno", va: options.value.PageNo },
+                  { par: "pagesize", va: options.value.PageSize },
+                  { par: "user_id", va: store.getters.user.user_id },
+                  { par: "status", va: null },
+                  { par: "search", va: options.value.searchStamp },
+                  { par: "start_date", va: options.value.start_date },
+                  { par: "end_date", va: options.value.end_date },
+                ],
+              }),
+              SecretKey,
+              cryoptojs
+            ).toString(),
+          },
+          config
+        )
+        .then((response) => {
+          let data = JSON.parse(response.data.data)[0];
+          if (isFirst.value) isFirst.value = false;
+          data.forEach((element, i) => {
+            element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+            element.data = JSON.parse(element.data);
+            element.listDays = element.data != null? element.data.map(x => x.pay_date): [];
+            element.total_payment = element.data != null? element.data.map(x => parseInt(x.total_payment)): [];
+            element.amount_paid = element.data != null? element.data.map(x => parseInt(x.amount_paid)): [];
+            element.payment_all = element.total_payment.length== 0 ?0 : element.total_payment.reduce((a, b) => a + b, 0);
+            element.amount_paid_all = element.amount_paid.length== 0 ?0 : element.amount_paid.reduce((a, b) => a + b, 0);
+            payment_final.value += element.payment_all;
+            amount_paid_final.value += element.amount_paid_all;
+          });
+          datatrees.value = data;
+          // get du lieu tong
+          listDate.value.forEach((item)=>{
+            item.payment_all = 0;
+            item.amount_paid_all = 0;
+            data.forEach((user)=>{
+              if(user.data && user.data.filter(x => x.pay_date == item.value).length>0){
+                item.payment_all += parseInt(user.data.filter(x => x.pay_date == item.value)[0].total_payment);
+                item.amount_paid_all += parseInt(user.data.filter(x => x.pay_date == item.value)[0].amount_paid);
+              }
+            })
+          })
+          options.value.loading = false;
+          isViewTree.value = true;
+        })
+        .catch((error) => {
+          toast.error("Tải dữ liệu không thành công!");
+          options.value.loading = false;
+
+          if (error && error.status === 401) {
+            swal.fire({
+              text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+              confirmButtonText: "OK",
+            });
+            store.commit("gologout");
+          }
+        });
+  
+}
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
@@ -803,6 +917,35 @@ function formatNumber(a, b, c, d) {
       : "")
   );
 }
+
+//get list month
+function dateRange(startDate, endDate) {
+  if(startDate == null) startDate = endDate;
+  var start      = moment(startDate).format("yyyy/MM/DD").split('/');
+  var end        =  moment(endDate).format("yyyy/MM/DD").split('/');
+  var startYear  = parseInt(start[0]);
+  var endYear    = parseInt(end[0]);
+  var dates      = [];
+
+  for(var i = startYear; i <= endYear; i++) {
+    var endMonth = i != endYear ? 11 : parseInt(end[1]) - 1;
+    var startMon = i === startYear ? parseInt(start[1])-1 : 0;
+    for(var j = startMon; j <= endMonth; j = j > 12 ? j % 12 || 11 : j+1) {
+      var month = j+1;
+      var displayMonth = month < 10 ? '0'+month : month;
+      var obj ={
+        label: 'Tháng '+ month,
+        year: i,
+        month: month,
+        value:[displayMonth, '01', i].join('/'),
+        
+      }
+      dates.push(obj);
+    }
+  }
+  return dates;
+}
+
 onMounted(() => {
   initData(true);
   loadTudien();
@@ -825,37 +968,10 @@ onMounted(() => {
 });
 </script>
     <template>
-  <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <DataTable
-      @page="onPage($event)"
-      @sort="onSort($event)"
-      @filter="onFilter($event)"
-      v-model:filters="filters"
-      filterDisplay="menu"
-      filterMode="lenient"
-      :filters="filters"
-      :scrollable="true"
-      scrollHeight="flex"
-      :showGridlines="true"
-      columnResizeMode="fit"
-      :lazy="true"
-      :totalRecords="options.totalRecords"
-      :loading="options.loading"
-      :reorderableColumns="true"
-      :value="datalists"
-      removableSort
-      v-model:rows="options.PageSize"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :paginator="true"
-      dataKey="insurance_id"
-      responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
-      :row-hover="true"
-    >
-      <template #header>
-        <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-building"></i> Danh sách thẻ bảo hiểm ({{
+  <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0 insurance">
+    <div style="background-color: #fff; padding: 1rem;">
+      <h3 class="module-title mt-0 ml-1 mb-2">
+          <i class="pi pi-building"></i> Danh sách đóng bảo hiểm ({{
             options.totalRecords
           }})
         </h3>
@@ -869,78 +985,32 @@ onMounted(() => {
                 type="text"
                 spellcheck="false"
                 placeholder="Tìm kiếm"
-              />
-              <!-- <Button
-                type="button"
-                class="ml-2"
-                icon="pi pi-filter"
-                @click="toggle"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                v-tooltip="'Bộ lọc'"
-                :class="
-                  filterTrangthai != null && checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
-                "
-              />
-              <OverlayPanel
-                ref="op"
-                appendTo="body"
-                class=""
-                :showCloseIcon="false"
-                id="overlay_panel"
-                style="width: 300px"
-              >
-                <div class="grid formgrid m-0">
-                  <div class="flex field col-12 p-0">
-                    <div
-                      class="col-4 text-left pt-2 p-0"
-                      style="text-align: left"
-                    >
-                      Trạng thái
-                    </div>
-                    <div class="col-8">
-                      <Dropdown
-                        class="col-12"
-                        v-model="filterTrangthai"
-                        :options="trangThai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Trạng thái"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex col-12 p-0">
-                    <Toolbar
-                      class="border-none surface-0 outline-none pb-0 w-full"
-                    >
-                      <template #start>
-                        <Button
-                          @click="reFilterEmail"
-                          class="p-button-outlined"
-                          label="Xóa"
-                        ></Button>
-                      </template>
-                      <template #end>
-                        <Button @click="filterFileds" label="Lọc"></Button>
-                      </template>
-                    </Toolbar>
-                  </div>
-                </div>
-              </OverlayPanel> -->
+              />            
             </span>
           </template>
 
           <template #end>
+            <!-- <Calendar v-model="monthPickerFilter" 
+            class="ip36 mr-2" view="month" dateFormat="mm/yy" :showIcon="true" :showClear="true" 
+            placeholder=" Lọc theo tháng"/> -->
+            <!-- <datepicker :clear-button="true" 
+              modelValue="monthPickerFilter"
+              :language="'vn'" 
+              :minimum-view="'month'"
+              :maximum-view="'month'"
+              :full-month-name="true"
+              >
+            </datepicker>
+            {{ monthPickerFilter }} -->
             <Datepicker
               @closed="onFilterMonth(false)"
-              class="mr-2"
+              class="mr-2 datepicker"
               locale="vi"
-              selectText="Thực hiện"
+              selectText="Lọc"
               cancelText="Hủy"
               placeholder=" Lọc theo tháng"
               v-model="monthPickerFilter"
+              auto-apply
               monthPicker
               ><template #clear-icon>
                 <Button
@@ -987,10 +1057,53 @@ onMounted(() => {
               :model="itemButs"
               :popup="true"
             /> 
+            <SelectButton
+              v-model="options.view"
+              :options="groups"
+              @change="changeView(options.view)"
+              optionValue="view"
+              optionLabel="view"
+              dataKey="view"
+              aria-labelledby="custom"
+            >
+              <template #option="slotProps">
+                <div v-tooptip.top="slotProps.option.title">
+                  <i :class="slotProps.option.icon"></i>
+                </div>
+              </template>
+            </SelectButton>
           </template>
-        </Toolbar></template
-      >
+        </Toolbar>
+    </div>
 
+    <DataTable
+      v-if="options.view == 1"
+      @page="onPage($event)"
+      @sort="onSort($event)"
+      @filter="onFilter($event)"
+      v-model:filters="filters"
+      filterDisplay="menu"
+      filterMode="lenient"
+      :filters="filters"
+      :scrollable="true"
+      scrollHeight="flex"
+      :showGridlines="true"
+      columnResizeMode="fit"
+      :lazy="true"
+      :totalRecords="options.totalRecords"
+      :loading="options.loading"
+      :reorderableColumns="true"
+      :value="datalists"
+      removableSort
+      v-model:rows="options.PageSize"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+      :paginator="true"
+      dataKey="insurance_id"
+      responsiveLayout="scroll"
+      v-model:selection="selectedStamps"
+      :row-hover="true"
+    >
       <Column
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
@@ -1068,8 +1181,8 @@ onMounted(() => {
       <Column
         field="batdaudong"
         header="Bắt đầu đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
       >
         <template #body="{ data }">
@@ -1079,8 +1192,8 @@ onMounted(() => {
       <Column
         field="mucdong"
         header="Mức đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px;justify-content:center"
-        bodyStyle="text-align:center;max-width:150px;max-height:60px;justify-content:end"
+        headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
+        bodyStyle="text-align:center;max-width:120px;max-height:60px;justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.mucdong, 0, ".", ".") }}
@@ -1089,8 +1202,8 @@ onMounted(() => {
       <Column
         field="congtydong"
         header="Công ty đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px;justify-content:center"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px; justify-content:end"
+        headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
+        bodyStyle="text-align:center;max-width:120px;;max-height:60px; justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.congtydong, 0, ".", ".") }}
@@ -1099,8 +1212,8 @@ onMounted(() => {
       <Column
         field="nhanviendong"
         header="Người lao động đóng"
-        headerStyle="text-align:center;max-width:150px;height:50px;justify-content:center"
-        bodyStyle="text-align:right;max-width:150px;max-height:60px;justify-content:end"
+        headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
+        bodyStyle="text-align:right;max-width:120px;max-height:60px;justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.nhanviendong, 0, ".", ".") }}
@@ -1147,6 +1260,88 @@ onMounted(() => {
         </div>
       </template>
     </DataTable>
+  
+    <table class="w-full" style="overflow-y: scroll" id="table-bc" v-if="isViewTree">
+      <thead>
+      <tr style="background-color: #f8f9fa; z-index: 10 !important" class="top-0 sticky">
+        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 50px;max-width: 50px;" class="m-checkbox-table top-0 sticky left-0">
+          STT
+        </th>
+        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 150px;max-width: 150px;" class="m-checkbox-table top-0 sticky left-50">
+          Mã NV
+        </th>
+        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 120px;max-width: 120px;" class="m-checkbox-table top-0 sticky left-200">
+          Họ và tên
+        </th>
+        <th  v-for="(item,index) in listDate" :key="index" colspan="2" class="text-center py-2">{{ item.label }}</th>
+        <th colspan="2" class="text-center py-2">
+          Tổng
+        </th>
+      </tr>
+      <tr class="sticky" style="z-index: 1 !important;top: 33px !important;background-color: #f8f9fa;">
+
+        <template v-for="(item,index) in listDate" :key="index">
+          <th class="item-date" style="padding: 0.5rem">Phải đóng</th>
+          <th class="item-date" style="padding: 0.5rem">Đã đóng</th>
+        </template>
+        <th class="item-date" style="padding: 0.5rem">Phải đóng</th>
+        <th class="item-date" style="padding: 0.5rem">Đã đóng</th>
+      </tr>
+      
+    </thead>
+    <tbody>
+        <tr style="vertical-align: top" v-for="(item, index) in datatrees" :key="index">
+          <td  class="sticky left-0 p-2 align-content-center text-center bg-white"
+            >
+            {{ index + 1 }}
+          </td>
+          <td class="sticky p-2 left-50 bg-white" >
+            {{ item.profile_id }}
+          </td>
+          <td class="sticky p-2 left-200 bg-white">
+            {{ item.profile_user_name }}
+          </td>
+          <template v-for="(item_month,index2) in listDate" :key="index2">
+            <td class="text-right item-date bg-white" style="padding: 0.5rem">
+              <span v-if="item.listDays.includes(item_month.value)">{{ item.data.filter(x => x.pay_date == item_month.value).length> 0 ?formatNumber(item.data.filter(x => x.pay_date == item_month.value)[0].total_payment, 0, ".", "."): ''}}</span>
+            </td>
+            <td class="text-right item-date bg-white" style="padding: 0.5rem" >
+              <span v-if="item.listDays.includes(item_month.value)">{{ item.data.filter(x => x.pay_date == item_month.value).length> 0 ?formatNumber(item.data.filter(x => x.pay_date == item_month.value)[0].amount_paid, 0, ".", "."): ''}}</span>
+            </td>
+          </template>
+          <td class="text-right item-date bg-white" style="padding: 0.5rem">
+            {{ item.payment_all != 0 ? formatNumber( item.payment_all, 0, ".", ".") : '' }}
+          </td>
+          <td class="text-right item-date bg-white" style="padding: 0.5rem">
+            {{item.amount_paid_all!=0 ? formatNumber( item.amount_paid_all , 0, ".", "."):'' }}
+          </td>
+        </tr>
+        <tr>
+            <td class="sticky left-0 p-2 text-center bg-white"></td>
+            <td
+              class="sticky left-50 p-2  font-bold bg-white"
+              colspan="2"
+              style="text-align: center"
+            >
+              Tổng cộng
+            </td>
+            <template v-for="(item_month,index2) in listDate" :key="index2">
+            <td class="text-right item-date bg-white" style="padding: 0.5rem">
+              {{item_month.payment_all!=0 ? formatNumber( item_month.payment_all, 0, ".", "."):'' }}
+            </td>
+            <td class="text-right item-date bg-white" style="padding: 0.5rem" >
+              {{item_month.amount_paid_all!=0 ? formatNumber( item_month.amount_paid_all, 0, ".", "."):'' }}
+            </td>
+          </template>
+            <td class="text-right item-date bg-white" style="padding: 0.5rem">
+              {{payment_final!=0 ? formatNumber( payment_final, 0, ".", "."):'' }}
+            </td>
+            <td class="text-right item-date bg-white" style="padding: 0.5rem" >
+              {{amount_paid_final!=0 ? formatNumber(amount_paid_final, 0, ".", "."):'' }}
+            </td>
+          </tr>
+        </tbody>
+    </table>
   </div>
 
   <diloginsurance
@@ -1169,7 +1364,7 @@ onMounted(() => {
   />
 </template>
     
-    <style scoped>
+<style scoped>
     .hover:hover {
   color: #0078d4;
 }
@@ -1184,5 +1379,30 @@ onMounted(() => {
 .scroll-outer:hover,
 .scroll-outer:focus {
   visibility: visible;
+}
+.item-date {
+  vertical-align: middle;
+}
+.left-50 {
+  left: 50px !important;
+}
+.left-200 {
+  left: 200px !important;
+}
+.left-320 {
+  left: 320px !important;
+}
+.left-520 {
+  left: 520px !important;
+}
+.left-600 {
+  left: 600px !important;
+}
+</style>
+<style lang="scss" scoped>
+::v-deep(.insurance) {
+  .dp__action_row, .dp__action_buttons{
+  display: none !important;
+  }
 }
 </style>
