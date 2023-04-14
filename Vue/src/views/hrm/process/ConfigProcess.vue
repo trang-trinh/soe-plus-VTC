@@ -1188,7 +1188,7 @@ const initTudien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-
+       
       if (data.length > 0) {
         let obj = renderTree(data, "module_id", "module_name", "module");
         listModules.value = obj.arrtreeChils;
@@ -1208,7 +1208,7 @@ const renderTree = (data, id, name, title) => {
     .filter(
       (x) =>
         x.parent_id == null &&
-        arrr.find((xs) => xs.module_id == x.module_id) != null
+        x.module_key =="M13"
     )
     .forEach((m, i) => {
       m.IsOrder = i + 1;

@@ -153,6 +153,7 @@ const showModalAddModule = () => {
     is_target: "_self",
     is_stand: [{ value: "Menuleft", text: "Menu trái" }],
     is_size: "720px",
+    is_view_parent: true,
   };
   displayAddModule.value = true;
 };
@@ -919,8 +920,9 @@ onMounted(() => {
             placeholder="Chọn vị trí"
             display="chip"
           />
-          <label class="col-5 text-center">Kích thước file upload tối đa(MB)</label>
-          <InputNumber  class="col-1 ip36 p-0" v-model="module.max_length_file" />
+          <label class="col-4 text-right">Hiển thị menu cha</label>
+          <!-- <InputNumber  class="col-1 ip36 p-0" v-model="module.max_length_file" /> -->
+          <InputSwitch v-model="module.is_view_parent" />
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-bottom">STT</label>

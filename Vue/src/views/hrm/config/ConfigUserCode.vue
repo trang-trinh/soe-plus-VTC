@@ -357,10 +357,7 @@ const saveDeConfig = () => {
 
  
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
-
+  
    
   loadUser();
   return {
@@ -376,7 +373,7 @@ onMounted(() => {
       <div class="grid mt-0 p-0 m-0 ">
 
 
-        <div class="col-12 field   p-0">
+        <div class="col-12 field   p-0" v-if="configUserCodeMain.length>0">
           <DataTable :value="configUserCodeMain">
             <Column   label="">
               <template #body="data">
@@ -550,7 +547,8 @@ onMounted(() => {
  
 
 .check-scroll {
-  max-height: 45rem;
+  max-height: 41rem;
+ 
   overflow: scroll
 }
 

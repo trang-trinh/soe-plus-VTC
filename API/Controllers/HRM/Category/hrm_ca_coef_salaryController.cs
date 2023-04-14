@@ -80,7 +80,7 @@ namespace API.Controllers.HRM.Category
                             return Request.CreateResponse(HttpStatusCode.OK, new { err = "Hệ số lương đã tồn tại trong hệ thống!" });
                         }
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        ca_coef_salary.organization_id = super ? 0 : dvid;
+                        ca_coef_salary.organization_id =  dvid;
                         ca_coef_salary.created_by = uid;
                         ca_coef_salary.created_date = DateTime.Now;
                         ca_coef_salary.created_ip = ip;

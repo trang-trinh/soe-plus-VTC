@@ -37,7 +37,7 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
- 
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -67,7 +67,7 @@ const loadCount = () => {
         options.value.totalRecords1 = data1[0].totalRecords1;
         options.value.totalRecords2 = data2[0].totalRecords2;
         options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
+        options.value.totalRecords4 = data4[0].totalRecords4;
         options.value.totalRecords5 = data5[0].totalRecords5;
 
         sttStamp.value = data[0].totalRecords + 1;
@@ -95,8 +95,7 @@ const campaign = ref({
   rec_number_vacancies: null,
   rec_candidate_sheet_id: null,
   can_academic_level_id: null,
- 
- 
+
   can_specialization_id: null,
   can_experience_id: null,
   can_language_level_id: null,
@@ -145,6 +144,23 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+
+          if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name =
+              " </br> <span class='text-sm'>" +
+              element.position_name +
+              "</span>";
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name =
+              " </br> <span class='text-sm'>" +
+              element.department_name +
+              "</span>";
+          }
         });
 
         datalists.value = data;
@@ -206,8 +222,8 @@ const options = ref({
   totalRecords3: 0,
   totalRecords4: 0,
   totalRecords5: 0,
-  totalRecordsExport:50,
-  pagenoExport:1
+  totalRecordsExport: 50,
+  pagenoExport: 1,
 });
 
 //Hiển thị dialog
@@ -586,12 +602,10 @@ const onCheckBox = (value, check) => {
 const exportExcelR = () => {
   showExport.value = false;
 
- 
-    exportData("ExportExcel");
- 
+  exportData("ExportExcel");
 };
 
-const headerExport=ref("Cấu hình xuất Excel");
+const headerExport = ref("Cấu hình xuất Excel");
 const menuButs = ref();
 const showExport = ref(false);
 const itemButs = ref([
@@ -599,10 +613,7 @@ const itemButs = ref([
     label: "Xuất Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-
-     
-        showExport.value = true;
-     
+      showExport.value = true;
     },
   },
 ]);
@@ -616,7 +627,7 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
- 
+
   axios
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
@@ -626,26 +637,51 @@ const exportData = (method) => {
         par: [
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
-          { par: "rec_position_id", va:options.value.rec_position_id?
-           options.value.rec_position_id.toString():null },
-          { par: "user_verify", va:options.value.user_verify_list? options.value.user_verify_list.toString():null },
-          { par: "user_follows", va:options.value.user_follows_list?
-           options.value.user_follows_list.toString():null },
-          { par: "can_academic_level_id", va: options.value.can_academic_level_id?
-           options.value.can_academic_level_id.toString():null },
-          { par: "rec_vacancies", va: options.value.rec_vacancies?
-           options.value.rec_vacancies.toString():null },
-          { par: "status ", va: options.value.status_filter?
-          options.value.status_filter.toString():null },
+          {
+            par: "rec_position_id",
+            va: options.value.rec_position_id
+              ? options.value.rec_position_id.toString()
+              : null,
+          },
+          {
+            par: "user_verify",
+            va: options.value.user_verify_list
+              ? options.value.user_verify_list.toString()
+              : null,
+          },
+          {
+            par: "user_follows",
+            va: options.value.user_follows_list
+              ? options.value.user_follows_list.toString()
+              : null,
+          },
+          {
+            par: "can_academic_level_id",
+            va: options.value.can_academic_level_id
+              ? options.value.can_academic_level_id.toString()
+              : null,
+          },
+          {
+            par: "rec_vacancies",
+            va: options.value.rec_vacancies
+              ? options.value.rec_vacancies.toString()
+              : null,
+          },
+          {
+            par: "status ",
+            va: options.value.status_filter
+              ? options.value.status_filter.toString()
+              : null,
+          },
           { par: "start_dateI", va: options.value.start_dateI },
           { par: "end_dateI", va: options.value.end_dateI },
           { par: "start_dateD", va: options.value.start_dateD },
           { par: "end_dateD", va: options.value.end_dateD },
           { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.pagenoExport-1 },
+          { par: "pageno", va: options.value.pagenoExport - 1 },
           { par: "pagesize", va: options.value.totalRecordsExport },
         ],
-      }, 
+      },
       config
     )
     .then((response) => {
@@ -725,8 +761,8 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   campaign.value = item;
-  selectedStamps.value=[];
- 
+  selectedStamps.value = [];
+
   selectedStamps.value.push(item);
   menuButMores.value.toggle(event);
   //selectedNodes.value = item;
@@ -808,7 +844,7 @@ const reFilter = () => {
   options.value.start_dateD = null;
   options.value.end_dateD = null;
   options.value.can_academic_level_id = null;
-  
+
   options.value.rec_position_id = null;
   options.value.status_filter = null;
   checkLoadCount.value = true;
@@ -843,7 +879,6 @@ const filterFileds = () => {
     }
   }
 
-  
   if (options.value.rec_position_id) {
     let filterS2 = {
       filterconstraints: [],
@@ -923,7 +958,7 @@ const filterFileds = () => {
   }
 
   onDayClick();
-   
+
   loadDataSQL();
   op.value.hide();
 };
@@ -938,7 +973,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateI
     ) {
       let sDate = new Date(options.value.start_dateI);
-   
+
       options.value.start_dateI = sDate;
       let filterS = {
         filterconstraints: [
@@ -954,7 +989,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateI
     ) {
       let eDate = new Date(options.value.end_dateI);
-     
+
       options.value.end_dateI = eDate;
       let filterS = {
         filterconstraints: [
@@ -988,8 +1023,6 @@ const onDayClick = () => {
     }
   }
 
-
-
   if (options.value.start_dateD != null) {
     if (!options.value.end_dateD)
       options.value.end_dateD = options.value.start_dateD;
@@ -999,7 +1032,7 @@ const onDayClick = () => {
       options.value.start_dateD != options.value.end_dateD
     ) {
       let sDate = new Date(options.value.start_dateD);
-   
+
       options.value.start_dateD = sDate;
       let filterS = {
         filterconstraints: [
@@ -1015,7 +1048,7 @@ const onDayClick = () => {
       options.value.start_dateI != options.value.end_dateD
     ) {
       let eDate = new Date(options.value.end_dateD);
-     
+
       options.value.end_dateD = eDate;
       let filterS = {
         filterconstraints: [
@@ -1386,7 +1419,7 @@ onMounted(() => {
                                 />
                               </div>
                             </div>
-                            <div class="col-6  p-0 pl-2 md:col-6">
+                            <div class="col-6 p-0 pl-2 md:col-6">
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
@@ -1427,7 +1460,8 @@ onMounted(() => {
                                       <div
                                         class="col-1 mx-2 p-0 align-items-center"
                                       >
-                                        <Avatar   style="color:#fff"
+                                        <Avatar
+                                          style="color: #fff"
                                           v-bind:label="
                                             slotProps.option.avatar
                                               ? ''
@@ -1470,7 +1504,7 @@ onMounted(() => {
                                             {{ slotProps.option.name }}
                                           </div>
                                           <div
-                                            class="flex w-full text-sm font-italic text-500"
+                                            class="flex w-full text-sm text-500"
                                           >
                                             <div>
                                               {{
@@ -1548,7 +1582,7 @@ onMounted(() => {
                                 />
                               </div>
                             </div>
-                            <div class="col-6  p-0 pl-2 md:col-6">
+                            <div class="col-6 p-0 pl-2 md:col-6">
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
@@ -1576,7 +1610,7 @@ onMounted(() => {
                               placeholder="Chọn người theo dõi"
                               style="min-height: 36px"
                               panelClass="d-design-dropdown  d-tree-input"
-                              class="col-12 p-0  mt-2"
+                              class="col-12 p-0 mt-2"
                             >
                               <template #option="slotProps">
                                 <div
@@ -1589,8 +1623,9 @@ onMounted(() => {
                                       <div
                                         class="col-1 mx-2 p-0 align-items-center"
                                       >
-                                        <Avatar   style="color:#fff"
-                                          v-bind:label=" 
+                                        <Avatar
+                                          style="color: #fff"
+                                          v-bind:label="
                                             slotProps.option.avatar
                                               ? ''
                                               : slotProps.option.name.substring(
@@ -1632,7 +1667,7 @@ onMounted(() => {
                                             {{ slotProps.option.name }}
                                           </div>
                                           <div
-                                            class="flex w-full text-sm font-italic text-500"
+                                            class="flex w-full text-sm text-500"
                                           >
                                             <div>
                                               {{
@@ -1667,7 +1702,6 @@ onMounted(() => {
                               </MultiSelect>
                             </div>
                           </div>
-                          
                         </div>
                       </div>
                     </div>
@@ -1777,7 +1811,8 @@ onMounted(() => {
             filterMode="lenient"
             :filters="filters"
             :scrollable="true"
-            scrollHeight="flex" selectionMode="single"
+            scrollHeight="flex"
+            selectionMode="single"
             :showGridlines="true"
             columnResizeMode="fit"
             :lazy="true"
@@ -1939,7 +1974,7 @@ onMounted(() => {
                   }}</span
                 >
                 <div>
-                  <Avatar 
+                  <Avatar
                     v-bind:label="
                       slotProps.data.avatar
                         ? ''
@@ -1958,12 +1993,18 @@ onMounted(() => {
                       font-size: 1rem !important;
                     "
                     :style="{
-                      background: bgColor[slotProps.data.created_is_order % 7],
+                      background: bgColor[slotProps.data.full_name.length % 7],
                     }"
                     class="text-avatar"
                     size="xlarge"
                     shape="circle"
-                    v-tooltip.top="slotProps.data.full_name"
+                    v-tooltip.top="{
+                      value:
+                        slotProps.data.full_name +
+                        slotProps.data.position_name +
+                        slotProps.data.department_name,
+                      escape: true,
+                    }"
                   />
                 </div>
               </template>
@@ -1977,7 +2018,7 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <div
-                  class="m-2"
+                  class="w-full m-0 p-0"
                   @click="
                     toggleStatus(slotProps.data, $event);
                     $event.stopPropagation();
@@ -1997,21 +2038,42 @@ onMounted(() => {
                         ? 'Đã hủy'
                         : 'Lên kế hoạch'
                     "
-                    :style="
-                      slotProps.data.status == 2
-                        ? ' backgroundColor: #2196f3; border:#2196f3'
-                        : slotProps.data.status == 3
-                        ? 'backgroundColor:var(--green-500); border:var(--green-500)'
-                        : slotProps.data.status == 4
-                        ? 'backgroundColor:#ff8b4e; border:#ff8b4e'
-                        : slotProps.data.status == 5
-                        ? 'backgroundColor:red; border:red'
-                        : 'backgroundColor:#bbbbbb; border:#bbbbbb'
-                    "
                     icon="pi pi-chevron-down"
                     iconPos="right"
-                    class="px-2 w-10rem d-design-left"
+                    class="p-button-outlined"
+                    :style="{
+                      borderColor:
+                      slotProps.data.status == 1
+                        ? '#bbbbbb'
+                        : slotProps.data.status == 2
+                        ? '#2196f3'
+                        : slotProps.data.status == 3
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 4
+                        ? '#ff8b4e'
+                        : slotProps.data.status == 5
+                        ? 'red'
+                   
+                        : '#bbbbbb',
+                      // backgroundColor: slotProps.data.bg_color,
+                      color:
+                      slotProps.data.status == 1
+                        ? '#bbbbbb'
+                        : slotProps.data.status == 2
+                        ? '#2196f3'
+                        : slotProps.data.status == 3
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 4
+                        ? '#ff8b4e'
+                        : slotProps.data.status == 5
+                        ? 'red'
+                     
+                        : '#bbbbbb',
+                      borderRadius: '15px',
+                      padding: '0.3rem 0.75rem !important', width:'100% !important'
+                    }"
                   />
+       
                 </div>
                 <OverlayPanel
                   :showCloseIcon="false"
@@ -2075,7 +2137,6 @@ onMounted(() => {
       </div>
     </div>
     <div v-if="displayBasic == true">
-  
       <dialogCampaign
         :headerDialog="headerDialog"
         :displayBasic="displayBasic"
@@ -2109,7 +2170,12 @@ onMounted(() => {
       <div class="col-12 field flex">
         <div class="col-6 p-0">Trang bắt đầu:</div>
         <div class="col-6 p-0">
-          <InputNumber class="w-full" :min="1" :max="Math.ceil(options.totalRecords/options.totalRecordsExport)" v-model="options.pagenoExport" />
+          <InputNumber
+            class="w-full"
+            :min="1"
+            :max="Math.ceil(options.totalRecords / options.totalRecordsExport)"
+            v-model="options.pagenoExport"
+          />
         </div>
       </div>
       <div class="col-12 p-0">

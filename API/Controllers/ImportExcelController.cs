@@ -29,15 +29,7 @@ namespace API.Controllers
 
         public string getipaddress()
         {
-            //var host = Dns.GetHostEntry(Dns.GetHostName());
-            //foreach (var ip in host.AddressList)
-            //{
-            //    if (ip.AddressFamily == AddressFamily.InterNetwork)
-            //    {
-            //        return ip.ToString();
-            //    }
-            //}
-            //return "localhost";
+       
             return HttpContext.Current.Request.UserHostAddress;
         }
         #region Từ điển
@@ -530,8 +522,15 @@ namespace API.Controllers
                                                 dv.status = vl.ToString().ToUpper() == "HIỂN THỊ" ? true : false;
                                                 break;
                                             case "organization":
-                                                var temp_id = db.sys_organization.Where(x => GetNameOrg.ToString().Contains(x.organization_name)).FirstOrDefault();
-                                                dv.organization_id = vl.ToString().ToUpper() == "HỆ THỐNG" ? 0 : Convert.ToInt32(temp_id.organization_id);
+                                                if (sp == true)
+                                                {
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    var temp_id = db.sys_organization.Where(x => GetNameOrg.ToString().Contains(x.organization_name)).FirstOrDefault();
+                                                    dv.organization_id = Convert.ToInt32(temp_id.organization_id);
+                                                }
                                                 break;
                                         }
                                     }
@@ -539,6 +538,12 @@ namespace API.Controllers
                                     dv.created_date = DateTime.Now;
                                     dv.created_ip = ip;
                                     dv.created_token_id = tid;
+                                    if (sp == true)
+                                    {
+                                        dv.is_system = true;
+                                        dv.organization_id = helper.OrgainzationParent(claims);
+                                    }
+                                    else dv.is_system = false;
                                     dvs.Add(dv);
                                 }
                                 if (dvs.Count > 0)
@@ -1126,16 +1131,28 @@ namespace API.Controllers
                                                 dv.status = vl.ToString().ToUpper() == "HIỂN THỊ" ? true : false;
                                                 break;
                                             case "organization":
-                                                var temp_id = db.sys_organization.Where(x => GetNameOrg.ToString().Contains(x.organization_name)).FirstOrDefault();
-                                                dv.organization_id = vl.ToString().ToUpper() == "HỆ THỐNG" ? 0 : Convert.ToInt32(temp_id.organization_id);
-                                                break;
-
+                                                if (sp == true)
+                                                {
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    var temp_id = db.sys_organization.Where(x => GetNameOrg.ToString().Contains(x.organization_name)).FirstOrDefault();
+                                                    dv.organization_id = vl.ToString().ToUpper() == "HỆ THỐNG" ? 0 : Convert.ToInt32(temp_id.organization_id);
+                                                    break;
+                                                }
                                         }
                                     }
                                     dv.created_by = uid;
                                     dv.created_date = DateTime.Now;
                                     dv.created_ip = ip;
                                     dv.created_token_id = tid;
+                                    if (sp == true)
+                                    {
+                                        dv.is_system = true;
+                                        dv.organization_id = helper.OrgainzationParent(claims);
+                                    }
+                                    else dv.is_system = false;
                                     dvs.Add(dv);
                                 }
                                 if (dvs.Count > 0)

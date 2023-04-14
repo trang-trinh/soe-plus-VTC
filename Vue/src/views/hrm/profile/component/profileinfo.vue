@@ -30,18 +30,19 @@ const basedomainURL = baseURL;
 
 //Declare
 const views = ref([
-  { view: 1, title: "Sơ yếu", icon: "fa-regular fa-address-card" },
-  { view: 2, title: "Phân công", icon: "fa-solid fa-list-check" },
-  { view: 3, title: "Hợp đồng", icon: "fa-solid fa-file-contract" },
-  { view: 4, title: "Chấm công", icon: "fa-solid fa-building-circle-check" },
-  { view: 5, title: "Lương", icon: "a-solid fa-money-check-dollar" },
-  { view: 6, title: "Bảo hiểm", icon: "fa-solid fa-file-shield" },
-  { view: 7, title: "Phép", icon: "fa-regular fa-calendar-days" },
-  { view: 8, title: "Đào tạo", icon: "fa-solid fa-person-chalkboard" },
-  { view: 9, title: "Quyết định", icon: "fa-solid fa-envelope-open" },
-  { view: 10, title: "File", icon: "fa-solid fa-paperclip" },
-  { view: 11, title: "Tiếp nhận", icon: "fa-regular fa-file" },
-  { view: 12, title: "Sức khỏe", icon: "fa-solid fa-briefcase-medical" },
+  { view: 1, title: "Sơ yếu", icon: "pi pi-id-card" },
+  { view: 2, title: "Phân công", icon: "pi pi-check-circle" },
+  { view: 3, title: "Hợp đồng", icon: "pi pi-envelope" },
+  { view: 4, title: "Chấm công", icon: "pi pi-calendar-times" },
+  { view: 5, title: "Lương", icon: "pi pi-dollar" },
+  { view: 6, title: "Bảo hiểm", icon: "pi pi-shield" },
+  { view: 7, title: "Phép", icon: "pi pi-calendar-minus" },
+  { view: 8, title: "Đào tạo", icon: "pi pi-book" },
+  { view: 9, title: "Quyết định", icon: "pi pi-bookmark" },
+  { view: 16, title: "Khen thưởng/kỷ luật", icon: "pi pi-bolt" },
+  { view: 10, title: "File", icon: "pi pi-paperclip" },
+  { view: 11, title: "Tiếp nhận", icon: "pi pi-box" },
+  { view: 12, title: "Sức khỏe", icon: "pi pi-heart" },
 ]);
 const options = ref({
   loading: true,
@@ -351,7 +352,7 @@ const closeDialogTranning = () => {
 
 //data view 10
 const typeFiles = ref([
-  { is_type: 0, title: "Sơ yếu lí lịch" },
+  { is_type: 0, title: "Sơ yếu lý lịch" },
   { is_type: 1, title: "Hợp đồng" },
   { is_type: 2, title: "Đào tạo" },
 ]);
@@ -421,6 +422,7 @@ const vaccines = ref([]);
 
 //data view 13
 const goPrint = (view) => {
+  forceRerender(3);
   options.value.view = view;
 };
 
@@ -732,7 +734,7 @@ const itemButPrints = ref([
     },
   },
   {
-    view: 14,
+    view: 15,
     label: "Sổ lao động mẫu 145/2020/NĐ-CP",
     icon: "fa-regular fa-file",
     command: (event) => {
@@ -2260,7 +2262,7 @@ const onPage = (event) => {
 </script>
 <template>
   <div class="surface-100 p-2">
-    <Toolbar class="outline-none surface-0 border-none pb-1">
+    <Toolbar class="outline-none surface-0 border-none">
       <template #start>
         <h2 class="m-0" :style="{ color: '#0078d4' }">
           <span>{{ profile.profile_user_name }}</span>
@@ -2324,7 +2326,7 @@ const onPage = (event) => {
             <li
               v-for="(value, key) in itemButPrints"
               :key="key"
-              @click="changeView(value.view)"
+              @click="goPrint(value.view)"
               class="item-menu"
               :class="{
                 'item-menu-highlight': value.view === options.view,
@@ -2341,87 +2343,31 @@ const onPage = (event) => {
         </OverlayPanel>
       </template>
     </Toolbar>
-    <Toolbar class="outline-none surface-0 border-none pt-0">
-      <template #start>
-        <div style="height: 36px; display: flex; align-items: center">
-          <SelectButton
-            :options="views"
-            v-model="options.view"
-            @change="changeView(options.view)"
-            optionValue="view"
-            optionLabel="view"
-            dataKey="view"
-            aria-labelledby="custom"
-            class="selectbutton-custom"
+    <div
+      class="tabview"
+      :style="{ borderTop: 'solid 1px rgba(0,0,0,.1) !important' }"
+    >
+      <div class="tableview-nav-content">
+        <ul class="tableview-nav nav">
+          <li
+            class="nav-item tableview-header"
+            v-for="(item, index) in views"
+            :key="index"
+            :class="{ highlight: options.view === item.view }"
+            @click="changeView(item.view)"
           >
-            <template #option="slotProps">
-              <b>
-                <span
-                  v-if="slotProps.option.icon != null"
-                  :class="{ 'mr-2': slotProps.option.title != null }"
-                >
-                  <font-awesome-icon :icon="slotProps.option.icon" />
-                </span>
-                <span> {{ slotProps.option.title }}</span>
-              </b>
-            </template>
-          </SelectButton>
-          <!-- <span class="p-buttonset">
-            <Button
-              @click="
-                toggleMores($event);
-                $event.stopPropagation();
-              "
-              :class="{
-                'p-button-outlined p-button-secondary p-button-custom':
-                  options.view < 11 || options.view > 12,
-              }"
-              :style="{
-                background:
-                  options.view < 11 || options.view > 12 ? '#ffffff' : '',
-                borderColor:
-                  options.view < 11 || options.view > 12 ? '#ced4da' : '',
-                color: options.view < 11 || options.view > 12 ? '#495057' : '',
-                transition:
-                  'background-color 0.2s, color 0.2s, border-color 0.2s,  boxShadow 0.2s',
-                height: '30px',
-              }"
-            >
-              <font-awesome-icon icon="fa-solid fa-ellipsis" />
-            </Button>
-          </span>
-          <OverlayPanel
-            :showCloseIcon="false"
-            ref="menuButMores"
-            appendTo="body"
-            class="p-0 m-0"
-            id="overlay_More"
-            style="min-width: max-content"
-          >
-            <ul class="m-0 p-0" style="list-style: none">
-              <li
-                v-for="(value, key) in itemButMores"
-                :key="key"
-                @click="changeView(value.view)"
-                class="item-menu"
-                :class="{
-                  'item-menu-highlight': value.view === options.view,
-                }"
-              >
-                <div>
-                  <span :class="{ 'mr-2': value.label != null }"
-                    ><font-awesome-icon :icon="value.icon"
-                  /></span>
-                  <span>{{ value.label }}</span>
-                </div>
-              </li>
-            </ul>
-          </OverlayPanel> -->
-        </div>
-      </template>
-      <template #end> </template>
-    </Toolbar>
-    <div class="d-lang-table" style="border-top: solid 1px rgba(0, 0, 0, 0.1)">
+            <div class="mb-1">
+              <!-- <font-awesome-icon :icon="item.icon" /> -->
+              <i :class="item.icon"></i>
+            </div>
+            <div>
+              <span> {{ item.title }} </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="d-lang-table">
       <div class="flex">
         <div class="flex-1">
           <div class="d-lang-table-1">
@@ -2601,7 +2547,7 @@ const onPage = (event) => {
                                     <b
                                       class="m-0"
                                       :style="{ color: '#2ECC71' }"
-                                      >{{ profile.profile_id }}</b
+                                      >{{ profile.profile_code }}</b
                                     >
                                   </label>
                                 </div>
@@ -5244,22 +5190,34 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 13" class="f-full">
-              <div class="row p-2 justify-content-center">
-                <div class="col-10 md:col-10 p-0">
-                  <printprofile :key="componentKey" />
+            <div
+              v-show="
+                options.view === 13 ||
+                options.view === 14 ||
+                options.view === 15
+              "
+              class="f-full"
+            >
+              <div class="row">
+                <div class="col-12 md:col-12 p-0">
+                  <printprofile
+                    :key="componentKey['3']"
+                    :profile="profile"
+                    :view="options.view"
+                  />
                 </div>
               </div>
             </div>
+            <div v-show="options.view === 16" class="f-full"></div>
           </div>
         </div>
         <div
-          style="
-            width: 400px !important;
-            border-left: solid 1px rgba(0, 0, 0, 0.1);
-            overflow: auto;
-            height: calc(100vh - 165px);
-          "
+          :style="{
+            width: '400px !important',
+            borderLeft: 'solid 1px rgba(0, 0, 0, 0.1)',
+            overflow: 'auto',
+            height: 'calc(100vh - 165px)',
+          }"
         >
           <div class="row">
             <div class="col-12 md:col-12 p-0">
@@ -5540,24 +5498,24 @@ const onPage = (event) => {
     </div>
   </div>
 
-  <!-- Dialog contract -->
-  <dialogcontract
-    :key="componentKey['0']"
-    :headerDialog="headerDialogContract"
-    :displayDialog="displayDialogContract"
-    :closeDialog="closeDialogContract"
-    :isView="isView"
-    :model="contract"
-    :dictionarys="dictionarys"
-  />
+  <!-- Dialog -->
   <dialoginfo
-    :key="componentKey['1']"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
     :profile_id="options.profile_id"
     :isType="isType"
     :initData="initView1"
+  />
+  <dialogcontract
+    :key="componentKey['1']"
+    :headerDialog="headerDialogContract"
+    :displayDialog="displayDialogContract"
+    :closeDialog="closeDialogContract"
+    :isView="isView"
+    :model="contract"
+    :dictionarys="dictionarys"
   />
   <dialogtraining
     :key="componentKey['2']"
@@ -5631,6 +5589,17 @@ const onPage = (event) => {
 }
 .relative-hover:hover .absolute-hover {
   display: block;
+}
+.form-grid-center {
+  display: grid;
+  justify-content: center;
+}
+.nav-item {
+  padding: 5px 10px !important;
+  min-width: 80px;
+  text-align: center;
+  display: grid;
+  justify-content: center;
 }
 </style>
 <style lang="scss" scoped>

@@ -17,18 +17,18 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  discipline_name: {
+  reward_title_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
  
 });
 const rules = {
-  discipline_name: {
+  reward_title_name: {
     required,
     $errors: [
       {
-        $property: "discipline_name",
+        $property: "reward_title_name",
         $validator: "required",
         $message: "Tên hình thức kỉ luật không được để trống!",
       },
@@ -46,10 +46,12 @@ const loadCount = () => {
         {
           str: encr(
             JSON.stringify({
-        proc: "hrm_ca_discipline_count",
+        proc: "hrm_ca_reward_title_count",
         par: [
           { par: "user_id", va: store.getters.user.user_id },
           { par: "status", va: null },
+          { par: "reward_type", va: 2 },
+        
         ],
       }),
             SecretKey,
@@ -68,7 +70,7 @@ const loadCount = () => {
       
     });
 };
-//Lấy dữ liệu discipline
+//Lấy dữ liệu reward_title
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -86,12 +88,13 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-          proc: "hrm_ca_discipline_list",
+          proc: "hrm_ca_reward_title_list",
           par: [
             { par: "pageno", va: options.value.PageNo },
             { par: "pagesize", va: options.value.PageSize },
             { par: "user_id", va: store.getters.user.user_id },
             { par: "status", va: null },
+            { par: "reward_type", va: 2 },
           ],
         }),
             SecretKey,
@@ -140,19 +143,19 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].discipline_id;
+      datalists.value[datalists.value.length - 1].reward_title_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].discipline_id;
+    options.value.id = datalists.value[0].reward_title_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const discipline = ref({
-  discipline_name: "",
+const reward_title = ref({
+  reward_title_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -160,7 +163,7 @@ const discipline = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, discipline);
+const v$ = useVuelidate(rules, reward_title);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -182,8 +185,8 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  discipline.value = {
-    discipline_name: "",
+  reward_title.value = {
+    reward_title_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
@@ -197,8 +200,8 @@ const openBasic = (str) => {
 };
   
 const closeDialog = () => {
-  discipline.value = {
-    discipline_name: "",
+  reward_title.value = {
+    reward_title_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -218,7 +221,7 @@ const saveData = (isFormValid) => {
     return;
   }
  
-  if (discipline.value.discipline_name.length > 250) {
+  if (reward_title.value.reward_title_name.length > 250) {
     swal.fire({
       title: "Error!",
       text: "Tên hình thức kỉ luật không được vượt quá 250 ký tự!",
@@ -228,10 +231,9 @@ const saveData = (isFormValid) => {
     return;
   }
   let formData = new FormData();
+  reward_title.value.reward_type=2;
  
-  if (discipline.value.countryside_fake)
-    discipline.value.countryside = discipline.value.countryside_fake;
-  formData.append("hrm_ca_discipline", JSON.stringify(discipline.value));
+  formData.append("hrm_ca_reward_title", JSON.stringify(reward_title.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -241,7 +243,7 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_discipline/add_hrm_ca_discipline",
+        baseURL + "/api/hrm_ca_reward_title/add_hrm_ca_reward_title",
         formData,
         config
       )
@@ -273,7 +275,7 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_discipline/update_hrm_ca_discipline",
+        baseURL + "/api/hrm_ca_reward_title/update_hrm_ca_reward_title",
         formData,
         config
       )
@@ -308,10 +310,10 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  discipline.value = dataTem;
-  if (discipline.value.countryside)
-    discipline.value.countryside_fake = discipline.value.countryside;
-  if (discipline.value.is_default) {
+  reward_title.value = dataTem;
+  if (reward_title.value.countryside)
+    reward_title.value.countryside_fake = reward_title.value.countryside;
+  if (reward_title.value.is_default) {
     checkIsmain.value = false;
   } else {
     checkIsmain.value = true;
@@ -345,10 +347,10 @@ const delTem = (Tem) => {
 
         axios
           .delete(
-            baseURL + "/api/hrm_ca_discipline/delete_hrm_ca_discipline",
+            baseURL + "/api/hrm_ca_reward_title/delete_hrm_ca_reward_title",
             {
               headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.discipline_id] : 1,
+              data: Tem != null ? [Tem.reward_title_id] : 1,
             }
           )
           .then((response) => {
@@ -405,8 +407,17 @@ const isFirst = ref(true);
 const loadDataSQL = () => {
   datalists.value = [];
 
+  let filterS = {
+    filterconstraints: [{ value: 2, matchMode: "equals" }],
+    filteroperator: "and",
+    key: "reward_type",
+  };
+  filterSQL.value.push(filterS);
+
+
+
   let data = {
-    id: "discipline_id",
+    id: "reward_title_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -418,7 +429,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_discipline", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_reward_title", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -513,14 +524,14 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.discipline_id,
-      TextID: value.discipline_id + "",
+      IntID: value.reward_title_id,
+      TextID: value.reward_title_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_discipline/update_s_hrm_ca_discipline",
+        baseURL + "/api/hrm_ca_reward_title/update_s_hrm_ca_reward_title",
         data,
         config
       )
@@ -585,11 +596,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.discipline_id);
+            listId.push(item.reward_title_id);
           });
           axios
             .delete(
-              baseURL + "/api/hrm_ca_discipline/delete_hrm_ca_discipline",
+              baseURL + "/api/hrm_ca_reward_title/delete_hrm_ca_reward_title",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -715,7 +726,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="discipline_id"
+      dataKey="reward_title_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
@@ -856,7 +867,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       ></Column>
  
       <Column
-        field="discipline_name"
+        field="reward_title_name"
         header="Tên hình thức kỉ luật"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
@@ -964,7 +975,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '40vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
@@ -973,14 +984,14 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Hingh thức kỉ luật <span class="redsao">(*)</span></label
+            >Hình thức kỉ luật <span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="discipline.discipline_name"
+            v-model="reward_title.reward_title_name"
             spellcheck="false"
             class="col-9 ip36 px-2"
             :class="{
-              'p-invalid': v$.discipline_name.$invalid && submitted,
+              'p-invalid': v$.reward_title_name.$invalid && submitted,
             }"
           />
         </div>
@@ -988,13 +999,13 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           <div class="col-3 text-left"></div>
           <small
             v-if="
-              (v$.discipline_name.$invalid && submitted) ||
-              v$.discipline_name.$pending.$response
+              (v$.reward_title_name.$invalid && submitted) ||
+              v$.reward_title_name.$pending.$response
             "
             class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.discipline_name.required.$message
+              v$.reward_title_name.required.$message
                 .replace("Value", "Tên hình thức kỉ luật")
                 .replace("is required", "không được để trống")
             }}</span>
@@ -1002,22 +1013,22 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
+            <div class="col-9 text-left p-0">STT</div>
             <InputNumber
-              v-model="discipline.is_order"
-              class="col-6 ip36 p-0"
+              v-model="reward_title.is_order"
+              class="col-3 ip36 p-0"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="discipline.status" />
+            <InputSwitch v-model="reward_title.status" />
           </div>
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="discipline.is_system" />
+            <InputSwitch v-model="reward_title.is_system" />
           </div>
         </div>
        

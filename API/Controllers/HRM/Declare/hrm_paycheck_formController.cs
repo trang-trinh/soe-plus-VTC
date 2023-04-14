@@ -80,7 +80,7 @@ namespace API.Controllers.HRM.Declare
 
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        paycheck_form.organization_id = super ? 0 : int.Parse(dvid);
+                        paycheck_form.organization_id =  int.Parse(dvid);
                         paycheck_form.created_by = uid;
                         paycheck_form.created_date = DateTime.Now;
                         paycheck_form.created_ip = ip;
@@ -148,7 +148,7 @@ namespace API.Controllers.HRM.Declare
                             hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
-                            db.hrm_file.Add(hrm_File);
+                            db.hrm_file.Add(hrm_File);db.SaveChanges();
 
                         }
 
@@ -348,7 +348,7 @@ namespace API.Controllers.HRM.Declare
                             hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
-                            db.hrm_file.Add(hrm_File);
+                            db.hrm_file.Add(hrm_File);db.SaveChanges();
 
                         }
 

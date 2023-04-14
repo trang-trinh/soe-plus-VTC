@@ -75,6 +75,16 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+          }
         });
 
         datalists.value = data;
@@ -978,8 +988,8 @@ onMounted(() => {
                                               {{ slotProps.option.name }}
                                             </div>
                                             <div
-                                              class="flex w-full text-sm font-italic text-500"
-                                            >
+                                              class="flex w-full text-sm  text-500"
+                                            > 
                                               <div>
                                                 {{
                                                   slotProps.option.position_name
@@ -1218,12 +1228,18 @@ onMounted(() => {
                       font-size: 1rem !important;
                     "
                     :style="{
-                      background: bgColor[slotProps.data.full_name % 7],
+                      background: bgColor[slotProps.data.full_name.length % 7],
                     }"
                     class="text-avatar"
                     size="xlarge"
                     shape="circle"
-                    v-tooltip.top="slotProps.data.full_name"
+                    v-tooltip.top="{
+                      value:
+                        slotProps.data.full_name +
+                        slotProps.data.position_name +
+                        slotProps.data.department_name,
+                      escape: true,
+                    }"
                   />
                 </div>
               </template>

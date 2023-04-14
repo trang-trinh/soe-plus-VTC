@@ -59,7 +59,7 @@ const submitted = ref(false);
 const saveModel = (is_continue) => {
   submitted.value = true;
   if (
-    !props.model.profile_id ||
+    !props.model.profile_code ||
     !props.model.profile_user_name ||
     !props.model.birthday
   ) {
@@ -328,11 +328,10 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.profile_id"
-                            v-bind:disabled="!props.isAdd"
+                            v-model="props.model.profile_code"
                             :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                           />
-                          <div v-if="!props.model.profile_id && submitted">
+                          <div v-if="!props.model.profile_code && submitted">
                             <small class="p-error">
                               <span>Mã nhân sự không được để trống</span>
                             </small>
@@ -448,7 +447,7 @@ onMounted(() => {
                     :showClear="true"
                     v-model="props.model.select_birthplace"
                     optionLabel="name"
-                    optionValue="name"
+                    optionValue="place_details_id"
                     class="ip36"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     panelClass="d-design-dropdown"
@@ -477,7 +476,7 @@ onMounted(() => {
                     :showClear="true"
                     v-model="props.model.select_birthplace_origin"
                     optionLabel="name"
-                    optionValue="name"
+                    optionValue="place_details_id"
                     class="ip36"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     panelClass="d-design-dropdown"
@@ -523,7 +522,7 @@ onMounted(() => {
                         :showClear="true"
                         v-model="props.model.select_place_register_permanent"
                         optionLabel="name"
-                        optionValue="name"
+                        optionValue="place_details_id"
                         class="ip36"
                         placeholder="Xã phường, Quận huyện, Tỉnh thành"
                         panelClass="d-design-dropdown"
@@ -873,7 +872,7 @@ onMounted(() => {
                         :showClear="true"
                         v-model="props.model.select_place_residence"
                         optionLabel="name"
-                        optionValue="name"
+                        optionValue="place_details_id"
                         class="ip36"
                         placeholder="Xã phường, Quận huyện, Tỉnh thành"
                         panelClass="d-design-dropdown"

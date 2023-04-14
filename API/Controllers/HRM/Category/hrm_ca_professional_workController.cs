@@ -75,7 +75,7 @@ namespace API.Controllers.HRM.Category
 
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        ca_professional_work.organization_id = super ? 0 : int.Parse(dvid);
+                        ca_professional_work.organization_id =  int.Parse(dvid);
                         ca_professional_work.created_by = uid;
                         ca_professional_work.created_date = DateTime.Now;
                         ca_professional_work.created_ip = ip;

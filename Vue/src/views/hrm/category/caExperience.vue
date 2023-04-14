@@ -931,7 +931,7 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '30vw' }"
+    :style="{ width: '35vw' }"
     :closable="true"
     :modal="true"
   >
@@ -939,7 +939,7 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
-            >Tên kinh nghiệm <span class="redsao">(*)</span></label
+            >Kinh nghiệm <span class="redsao">(*)</span></label
           >
           <InputText
             v-model="experience.experience_name"
@@ -968,10 +968,10 @@ onMounted(() => {
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
+            <div class="col-9 text-left p-0">STT</div>
             <InputNumber
               v-model="experience.is_order"
-              class="col-6 ip36 p-0"
+              class="col-3 ip36 p-0"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">

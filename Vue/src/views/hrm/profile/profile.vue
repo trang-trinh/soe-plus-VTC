@@ -9,6 +9,7 @@ import dialogrelate from "../profile/component/dialogrelate.vue";
 import dialogtag from "../profile/component//dialogtag.vue";
 import dialogcontract from "../contract/component/dialogcontract.vue";
 import diloginsurance from "../profile/component/diloginsurance.vue";
+import dialogstatus from "../profile/component/dialogstatus.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
 const router = inject("router");
@@ -47,6 +48,7 @@ const options = ref({
   genders: [],
   birthday_start_date: null,
   birthday_end_date: null,
+  tags: [],
 });
 const isFilter = ref(false);
 const isFirst = ref(true);
@@ -61,6 +63,7 @@ const groups = ref([
   { view: 1, icon: "pi pi-list", title: "list" },
   { view: 2, icon: "pi pi-align-right", title: "tree" },
 ]);
+const listPlaceDetails1 = ref([]);
 
 //declare dictionary
 const tabs = ref([
@@ -162,10 +165,11 @@ const resetFilter = () => {
   options.value.departments = [];
   options.value.work_positions = [];
   options.value.professional_works = [];
-  options.value.birthplaces = {};
+  options.value.birthplaces = [];
   options.value.genders = [];
   options.value.birthday_start_date = null;
   options.value.birthday_end_date = null;
+  options.value.tags = [];
 };
 const removeFilter = (idx, array, isTree) => {
   if (isTree) {
@@ -188,6 +192,78 @@ const changeView = (view) => {
   } else {
     options.value.view = options.value.view_copy;
   }
+};
+
+//Xuất excel
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      importExcel(event);
+    },
+  },
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportData("ExportExcel");
+    },
+  },
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
+const exportData = (method) => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/Excel/ExportExcel",
+      {
+        excelname: "DANH SÁCH PHÒNG HỌP",
+        proc: "calendar_ca_boardroom_listexport",
+        par: [
+          { par: "organization_id", va: store.getters.user.organization_id },
+          { par: "search", va: options.value.search },
+        ],
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
+        swal.close();
+
+        toast.success("Kết xuất Data thành công!");
+        if (response.data.path != null) {
+          window.open(baseURL + response.data.path);
+        }
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      }
+    });
 };
 
 //Watch
@@ -273,16 +349,16 @@ const itemButMores = ref([
   },
   {
     label: "Xác nhận là vợ/chồng",
-    icon: "pi pi-check",
+    icon: "pi pi-users",
     command: (event) => {
       openEditDialogRelate(profile.value, "Xác nhận kết hôn với");
     },
   },
   {
     label: "Thiết lập trạng thái",
-    icon: "pi pi-cog",
+    icon: "pi pi-sync",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openAddDialogStatus(profile.value, "Thiết lập trạng thái");
     },
   },
   {
@@ -887,6 +963,23 @@ const closeDialogInsurance = () => {
   displayDialogInsurance.value = false;
   forceRerender(6);
 };
+
+//Function Status
+const headerDialogStatus = ref();
+const displayDialogStatus = ref(false);
+const openAddDialogStatus = (item, str) => {
+  profile.value = item;
+  forceRerender(7);
+  isAdd.value = false;
+  isView.value = false;
+  headerDialogStatus.value = str;
+  displayDialogStatus.value = true;
+};
+const closeDialogStatus = () => {
+  displayDialogStatus.value = false;
+  forceRerender(7);
+};
+
 //Init
 const initPlace = () => {
   axios
@@ -962,6 +1055,47 @@ const renderPlace = (response) => {
   });
   places.value = list1;
 };
+const initPlaceFilter = (event, type) => {
+  var stc = event.value;
+  if (event.value == "") {
+    stc = null;
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "ca_place_details_list",
+            par: [
+              { par: "search", va: stc },
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 50 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data);
+        if (data != null) {
+          if (data[0] != null && data[0].length > 0) {
+            if (type == 1) {
+              listPlaceDetails1.value = JSON.parse(JSON.stringify(data[0]));
+            }
+          } else {
+            if (type == 1) {
+              listPlaceDetails1.value = [];
+            }
+          }
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -1036,30 +1170,22 @@ const initCountFilter = () => {
       .map((x) => x["professional_work_id"])
       .join(",");
   }
-  // var birthplaces = null;
-  // if (
-  //   options.value.birthplaces != null &&
-  //   Object.keys(options.value.birthplaces).length > 0
-  // ) {
-  //   birthplaces = Object.keys(options.value.birthplaces)
-  //     .filter(
-  //       (a) =>
-  //         Object.entries(options.value.birthplaces).findIndex(
-  //           (b) => b[0] == a && b[1]["checked"]
-  //         ) !== -1
-  //     )
-  //     .map((x) => x)
-  //     .join(",");
-  // }
+  var birthplaces = null;
   if (
     options.value.birthplaces != null &&
-    Object.keys(options.value.birthplaces).length > 0
+    options.value.birthplaces.length > 0
   ) {
-    options.value.birthplace_id = Object.keys(options.value.birthplaces)[0];
+    birthplaces = options.value.birthplaces
+      .map((x) => x["place_details_id"])
+      .join(",");
   }
   var genders = null;
   if (options.value.genders != null && options.value.genders.length > 0) {
     genders = options.value.genders.map((x) => x["gender"]).join(",");
+  }
+  var tags = null;
+  if (options.value.tags != null && options.value.tags.length > 0) {
+    tags = options.value.tags.map((x) => x["tags_id"]).join(",");
   }
   tabs.value.forEach((x) => {
     x["total"] = 0;
@@ -1070,7 +1196,7 @@ const initCountFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_count_filter",
+            proc: "hrm_profile_count_filter_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1078,13 +1204,14 @@ const initCountFilter = () => {
               { par: "departments", va: departments },
               { par: "work_positions", va: work_positions },
               { par: "professional_works", va: professional_works },
-              { par: "birthplace_id", va: options.value.birthplace_id },
+              { par: "birthplaces", va: birthplaces },
               { par: "genders", va: genders },
               {
                 par: "birthday_start_date",
                 va: options.value.birthday_start_date,
               },
               { par: "birthday_end_date", va: options.value.birthday_end_date },
+              { par: "tags", va: tags },
             ],
           }),
           SecretKey,
@@ -1218,30 +1345,22 @@ const initDataFilter = () => {
       .map((x) => x["professional_work_id"])
       .join(",");
   }
-  // var birthplaces = null;
-  // if (
-  //   options.value.birthplaces != null &&
-  //   Object.keys(options.value.birthplaces).length > 0
-  // ) {
-  //   birthplaces = Object.keys(options.value.birthplaces)
-  //     .filter(
-  //       (a) =>
-  //         Object.entries(options.value.birthplaces).findIndex(
-  //           (b) => b[0] == a && b[1]["checked"]
-  //         ) !== -1
-  //     )
-  //     .map((x) => x)
-  //     .join(",");
-  // }
+  var birthplaces = null;
   if (
     options.value.birthplaces != null &&
-    Object.keys(options.value.birthplaces).length > 0
+    options.value.birthplaces.length > 0
   ) {
-    options.value.birthplace_id = Object.keys(options.value.birthplaces)[0];
+    birthplaces = options.value.birthplaces
+      .map((x) => x["place_details_id"])
+      .join(",");
   }
   var genders = null;
   if (options.value.genders != null && options.value.genders.length > 0) {
     genders = options.value.genders.map((x) => x["gender"]).join(",");
+  }
+  var tags = null;
+  if (options.value.tags != null && options.value.tags.length > 0) {
+    tags = options.value.tags.map((x) => x["tags_id"]).join(",");
   }
   axios
     .post(
@@ -1249,7 +1368,7 @@ const initDataFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter_2",
+            proc: "hrm_profile_list_filter_3",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1260,13 +1379,14 @@ const initDataFilter = () => {
               { par: "departments", va: departments },
               { par: "work_positions", va: work_positions },
               { par: "professional_works", va: professional_works },
-              { par: "birthplace_id", va: options.value.birthplace_id },
+              { par: "birthplaces", va: birthplaces },
               { par: "genders", va: genders },
               {
                 par: "birthday_start_date",
                 va: options.value.birthday_start_date,
               },
               { par: "birthday_end_date", va: options.value.birthday_end_date },
+              { par: "tags", va: tags },
             ],
           }),
           SecretKey,
@@ -1438,6 +1558,7 @@ const initData = (ref) => {
               const endDate = moment(new Date());
               item.duration = moment.duration(endDate.diff(startDate));
               item.diffyear = item.duration.years();
+              item.diffmonth = item.duration.months();
               item.diffday = item.duration.days();
 
               item["STT"] = i + 1;
@@ -1886,19 +2007,75 @@ onMounted(() => {
                             </span>
                           </template>
                         </TreeSelect> -->
-                        <Dropdown
+                        <!-- <Dropdown
                           @filter="initPlaceFilter($event, 1)"
                           :options="listPlaceDetails1"
                           :filter="true"
                           :editable="false"
-                          :showClear="false"
+                          :showClear="true"
                           v-model="options.birthplaces"
                           optionLabel="name"
-                          optionValue="name"
+                          optionValue="place_details_id"
                           class="ip36"
                           placeholder="Xã phường, Quận huyện, Tỉnh thành"
                           panelClass="d-design-dropdown"
-                        />
+                          :style="{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }"
+                        /> -->
+                        <MultiSelect
+                          @filter="initPlaceFilter($event, 1)"
+                          :options="listPlaceDetails1"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.birthplaces"
+                          optionLabel="name"
+                          placeholder="Chọn nơi sinh"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(
+                                          index,
+                                          options.birthplaces
+                                        );
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
                       </div>
                     </div>
                     <div class="col-12 md:col-12">
@@ -1984,6 +2161,58 @@ onMounted(() => {
                           @input="changeBirthdayDate()"
                           placeholder="Đến ngày"
                         />
+                      </div>
+                    </div>
+                    <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Nhãn</label>
+                        <MultiSelect
+                          :options="dictionarys[25]"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.tags"
+                          optionLabel="tags_name"
+                          placeholder="Chọn nhãn"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.tags_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.tags);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
                       </div>
                     </div>
                   </div>
@@ -2072,18 +2301,27 @@ onMounted(() => {
     <div class="tabview">
       <div class="tableview-nav-content">
         <ul class="tableview-nav">
-          <li
-            v-for="(tab, key) in tabs"
-            :key="key"
-            @click="activeTab(tab)"
-            class="tableview-header"
-            :class="{ highlight: options.tab === tab.status }"
-          >
-            <a>
-              <i :class="tab.icon"></i>
-              <span>{{ tab.title }} ({{ tab.total }})</span>
-            </a>
-          </li>
+          <template v-if="options.view === 1">
+            <li
+              v-for="(tab, key) in tabs"
+              :key="key"
+              @click="activeTab(tab)"
+              class="tableview-header"
+              :class="{ highlight: options.tab === tab.status }"
+            >
+              <a>
+                <i :class="tab.icon"></i>
+                <span>{{ tab.title }} ({{ tab.total }})</span>
+              </a>
+            </li>
+          </template>
+          <template v-else-if="options.view === 2">
+            <li class="format-center py-0">
+              <h3 class="m-0">
+                <i class="pi pi-list"></i> Danh sách nhân sự theo cơ cấu tổ chức
+              </h3>
+            </li>
+          </template>
         </ul>
       </div>
     </div>
@@ -2168,7 +2406,7 @@ onMounted(() => {
                     "
                     >|</span
                   >
-                  {{ slotProps.data.profile_id }}</span
+                  {{ slotProps.data.profile_code }}</span
                 >
               </div>
               <div class="mb-1" v-if="slotProps.data.recruitment_date">
@@ -2259,21 +2497,24 @@ onMounted(() => {
         <Column
           field="countRecruitment"
           header="Ngày thâm niên"
-          headerStyle="text-align:center;max-width:100px;height:50px"
-          bodyStyle="text-align:center;max-width:100px;"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
           class="align-items-center justify-content-left text-left"
         >
           <template #body="slotProps">
             <div v-tooltip.top="'Thâm niên công tác'">
-              <span v-if="slotProps.data.diffyear > 0"
-                >{{ slotProps.data.diffyear }} năm
+              <span v-if="slotProps.data.diffyear > 0">
+                {{ slotProps.data.diffyear }} năm
               </span>
-              <span
+              <span v-if="slotProps.data.diffmonth > 0">
+                {{ slotProps.data.diffmonth }} tháng
+              </span>
+              <!-- <span
                 v-if="
                   slotProps.data.diffyear >= 0 && slotProps.data.diffday > 0
                 "
                 >{{ slotProps.data.diffday }} ngày
-              </span>
+              </span> -->
             </div>
           </template>
         </Column>
@@ -2388,7 +2629,7 @@ onMounted(() => {
                     backgroundColor: '#f8f9fa',
                   }"
                 >
-                  <b>{{ organization.newname }} (0)</b>
+                  <b>{{ organization.newname }} ({{ organization.total }})</b>
                 </div>
               </td>
             </tr>
@@ -2434,7 +2675,7 @@ onMounted(() => {
               v-for="(item, index) in department.list"
               :key="index"
             >
-              <tr @click="goProfile(item)" class="tr-list">
+              <tr @click="goProfile(item)" class="tr-list cursor-pointer">
                 <td
                   :style="{
                     width: '5rem',
@@ -2498,7 +2739,7 @@ onMounted(() => {
                         <span v-if="item.superior_id && item.profile_id"
                           >|</span
                         >
-                        {{ item.profile_id }}</span
+                        {{ item.profile_code }}</span
                       >
                     </div>
                     <div class="mb-1" v-if="item.recruitment_date">
@@ -2586,8 +2827,12 @@ onMounted(() => {
                     padding: '0.5rem',
                   }"
                 >
-                  <span v-if="item.diffyear > 0">{{ item.diffyear }} năm </span>
-                  <span v-if="item.diffday >= 0">{{ item.diffday }} ngày </span>
+                  <span v-if="item.diffyear > 0">
+                    {{ item.diffyear }} năm
+                  </span>
+                  <span v-if="item.diffmonth > 0">
+                    {{ item.diffmonth }} tháng
+                  </span>
                 </td>
                 <td
                   :style="{
@@ -2736,6 +2981,14 @@ onMounted(() => {
     :closeDialog="closeDialogInsurance"
     :isAdd="isAdd"
     :isView="isView"
+    :profile="profile"
+    :initData="null"
+  />
+  <dialogstatus
+    :key="componentKey['7']"
+    :headerDialog="headerDialogStatus"
+    :displayDialog="displayDialogStatus"
+    :closeDialog="closeDialogStatus"
     :profile="profile"
     :initData="null"
   />

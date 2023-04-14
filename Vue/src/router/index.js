@@ -265,6 +265,7 @@ const TaskPersonConfig = () =>
 //hrm
 // const Interview = () =>
 //     import ("../views/hrm/category/Interview.vue");
+const HrmHome = () => import("../views/hrm/home/home.vue");
 const HrmTool = () => import("../views/hrm/profile/tool/toollayout.vue");
 const HrmTool2 = () => import("../views/hrm/profile/tool/DocTempView.vue");
 const HrmIframe = () => import("../views/hrm/profile/tool/iframedoc.vue");
@@ -273,6 +274,7 @@ const HrmProfile = () => import("../views/hrm/profile/profile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
+const HrmDecision = () => import("../views/hrm/decision/decision.vue");
 const HrmTimekeep = () => import("../views/hrm/timekeep/timekeep.vue");
 const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
@@ -358,6 +360,9 @@ const caHRMSpecialization = () =>
 const caHRMTitle = () => import("../views/hrm/category/caTitle.vue");
 const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
+
+  const caHRMDecision = () =>
+  import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
 const caLeavingReason = () =>
@@ -373,16 +378,21 @@ const caRewardTitle = () => import("../views/hrm/category/caRewardTitle.vue");
 const caHospital = () => import("../views/hrm/category/caHospital.vue");
 const caRewardLevel = () => import("../views/hrm/category/caRewardLevel.vue");
 const caDiscipline = () => import("../views/hrm/category/caDiscipline.vue");
+const caReason = () => import("../views/hrm/category/caReason.vue");
 const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
+  const caAllowance = () =>
+  import("../views/hrm/category/caAllowance.vue");
 const caTags = () => import("../views/hrm/category/caTags.vue");
 const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
 const caWorkPosition = () => import("../views/hrm/category/caWorkPosition.vue");
-const caPersonelGroups  = () => import("../views/hrm/category/caPersonelGroups.vue");
+const caPersonelGroups = () =>
+  import("../views/hrm/category/caPersonelGroups.vue");
 ///HRM
 const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
+const HRM_ConfigEmail = () => import("../views/hrm/config/ConfigEmail.vue");
 // Request
 const Request_Dashboard = () =>
   import("../views/request/request_dashboard.vue");
@@ -1518,6 +1528,11 @@ const router = createRouter({
     //     component: Interview,
     // },
     {
+      path: "/hrm/home",
+      name: "hrmhome",
+      component: HrmHome,
+    },
+    {
       path: "/hrm/hrm_profile",
       name: "Hrm_Info",
       component: Hrm_Info,
@@ -1556,6 +1571,11 @@ const router = createRouter({
       path: "/hrm/contract",
       name: "contract",
       component: HrmContract,
+    },
+    {
+      path: "/hrm/decision",
+      name: "decision",
+      component: HrmDecision,
     },
     {
       path: "/hrm/timekeep",
@@ -1696,12 +1716,17 @@ const router = createRouter({
     {
       path: "/hrm/category/ca_title",
       name: "caHRMTitle",
-      component: caHRMTitle,
+      component: Positions,
     },
     {
       path: "/hrm/category/ca_typeContract",
       name: "caHRMTypeContract",
       component: caHRMTypeContract,
+    },
+    {
+      path: "/hrm/category/ca_decision",
+      name: "caHRMDecision",
+      component: caHRMDecision,
     },
     {
       path: "/hrm/category/ca_vacancy",
@@ -1755,12 +1780,22 @@ const router = createRouter({
       name: "caHRMDisciplineLevel",
       component: caDisciplineLevel,
     },
-
+    {
+      path: "/hrm/category/ca_allowance",
+      name: "caHRMAllowance",
+      component: caAllowance,
+    },
     {
       path: "/hrm/category/ca_discipline",
       name: "caHRMDiscipline",
       component: caDiscipline,
     },
+    {
+      path: "/hrm/category/ca_reason",
+      name: "caHRMReason",
+      component: caReason,
+    },
+    
     {
       path: "/hrm/category/ca_tags",
       name: "caHRMTags",
@@ -1814,7 +1849,12 @@ const router = createRouter({
       name: "HRM_ConfigUser",
       component: HRM_ConfigUser,
     },
-
+    {
+      path: "/hrm/config/configemail",
+      name: "HRM_ConfigEmail",
+      component: HRM_ConfigEmail,
+    },
+    
     // Tài liệu
     {
       path: "/files/file_main/:id/:type",

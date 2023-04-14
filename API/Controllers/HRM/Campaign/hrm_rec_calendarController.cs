@@ -77,7 +77,7 @@ namespace API.Controllers.HRM.Campaign
                         fdrec_calendar = provider.FormData.GetValues("hrm_rec_calendar").SingleOrDefault();
                         hrm_rec_calendar rec_calendar = JsonConvert.DeserializeObject<hrm_rec_calendar>(fdrec_calendar);
                         var intw = int.Parse(dvid);
-                        rec_calendar.organization_id = super ? 0 : int.Parse(dvid);
+                        rec_calendar.organization_id =  int.Parse(dvid);
                         rec_calendar.created_by = uid;
                         rec_calendar.created_date = DateTime.Now;
                         rec_calendar.created_ip = ip;
@@ -94,7 +94,7 @@ namespace API.Controllers.HRM.Campaign
                         foreach (var item in hrm_rec_Candidates)
                         {
                             item.rec_calendar_id = rec_calendar.rec_calendar_id;
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id =   int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;
@@ -165,7 +165,7 @@ namespace API.Controllers.HRM.Campaign
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
-
+db.SaveChanges();
                         }
 
 
@@ -295,7 +295,7 @@ namespace API.Controllers.HRM.Campaign
                         foreach (var item in hrm_rec_Candidates)
                         {
                             item.rec_calendar_id = rec_calendar.rec_calendar_id;
-                            item.organization_id = super ? 0 : int.Parse(dvid);
+                            item.organization_id =  int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
                             item.created_ip = ip;
@@ -392,7 +392,7 @@ namespace API.Controllers.HRM.Campaign
                             hrm_File.created_ip = ip; hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
-
+db.SaveChanges();
                         }
 
 

@@ -4,6 +4,8 @@ import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dialogcontract from "../contract/component/dialogcontract.vue";
 import moment from "moment";
+
+const router = inject("router");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -60,10 +62,10 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const typestatus = ref([
-  { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
-  { value: 1, title: "Đang hiệu lực", bg_color: "#2196f3", text_color: "#fff" },
-  { value: 2, title: "Hết hiệu lực", bg_color: "red", text_color: "#fff" },
-  { value: 3, title: "Đã thanh lý", bg_color: "#ff8b4e", text_color: "#fff" },
+  { value: 0, title: "Chưa hiệu lực", bg_color: "#0078d4", text_color: "#fff" },
+  { value: 1, title: "Đang hiệu lực", bg_color: "#5FC57B", text_color: "#fff" },
+  { value: 2, title: "Hết hiệu lực", bg_color: "#DF5249", text_color: "#fff" },
+  { value: 3, title: "Đã thanh lý", bg_color: "#F39C12", text_color: "#fff" },
 ]);
 const liquidations = ref([
   { value: 0, title: "Thôi việc" },
@@ -91,6 +93,20 @@ const itemButMores = ref([
     },
   },
   {
+    label: "Nhân bản hợp đồng",
+    icon: "pi pi-copy",
+    command: (event) => {
+      copyContract(contract.value, "Nhân bản hợp đồng");
+    },
+  },
+  {
+    label: "In hợp đồng",
+    icon: "pi pi-print",
+    command: (event) => {
+      printViewContract(contract.value);
+    },
+  },
+  {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
@@ -101,12 +117,13 @@ const itemButMores = ref([
 const toggleMores = (event, item) => {
   contract.value = item;
   menuButMores.value.toggle(event);
-  //selectedNodes.value = item;
+  selectedNodes.value = item;
+  options.value["filterContract_id"] = selectedNodes.value["contract_id"];
 };
 
-watch(selectedNodes, () => {
-  options.value["filterContract_id"] = selectedNodes.value["contract_id"];
-});
+// watch(selectedNodes, () => {
+//   options.value["filterContract_id"] = selectedNodes.value["contract_id"];
+// });
 
 //filter
 const search = () => {
@@ -183,6 +200,148 @@ const opstatus = ref();
 const toggleStatus = (item, event) => {
   contract.value = item;
   opstatus.value.toggle(event);
+};
+const goProfile = (item) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: item.contract_id },
+    query: { id: item.profile_id },
+  });
+};
+const copyContract = (item, str) => {
+  files.value = [];
+  submitted.value = false;
+  options.value.loading = true;
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  isAdd.value = true;
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_contract_get",
+            par: [{ par: "contract_id", va: item.contract_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          model.value = tbs[0][0];
+          if (model.value["profiles"] != null) {
+            model.value["profile"] = JSON.parse(model.value["profiles"])[0];
+          }
+          if (model.value["sign_users"] != null) {
+            model.value["sign_user"] = JSON.parse(model.value["sign_users"])[0];
+          }
+          if (model.value["manager_users"] != null) {
+            model.value["manager_user"] = JSON.parse(
+              model.value["manager_users"]
+            )[0];
+          }
+          if (model.value["start_date"] != null) {
+            model.value["start_date"] = new Date(model.value["start_date"]);
+          }
+          if (model.value["end_date"] != null) {
+            model.value["end_date"] = new Date(model.value["end_date"]);
+          }
+          if (model.value["sign_date"] != null) {
+            model.value["sign_date"] = new Date(model.value["sign_date"]);
+          }
+          if (model.value["professional_works"] != null) {
+            model.value["professional_works"] = model.value[
+              "professional_works"
+            ]
+              .split(",")
+              .map((x) => parseInt(x));
+          }
+        }
+        if (tbs[1] != null && tbs[1].length > 0) {
+          model.value["allowances"] = tbs[1];
+          if (tbs[2] != null && tbs[2].length > 0) {
+            var formalitys = tbs[2].filter((x) => x["is_type"] === 0);
+            formalitys.forEach((x) => {
+              if (x["allowance_formality_id"] == null) {
+                x["allowance_formality_id"] = x["allowance_formality"];
+              }
+            });
+            var wages = tbs[2].filter((x) => x["is_type"] === 1);
+            wages.forEach((x) => {
+              if (x["allowance_wage_id"] == null) {
+                x["allowance_wage_id"] = x["allowance_wage"];
+              }
+            });
+            model.value["allowances"].forEach((allowance) => {
+              if (allowance["start_date"] != null) {
+                allowance["start_date"] = new Date(allowance["start_date"]);
+              }
+              allowance.formalitys = formalitys.filter(
+                (x) => x["allowance_id"] === allowance["allowance_id"]
+              );
+              allowance.wages = wages.filter(
+                (x) => x["allowance_id"] === allowance["allowance_id"]
+              );
+            });
+          }
+        } else {
+          model.value.allowances = [];
+        }
+        if (tbs[3] != null && tbs[3].length > 0) {
+          model.value["files"] = tbs[3];
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+
+      forceRerender();
+      headerDialog.value = str;
+      displayDialog.value = true;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+
+const printViewContract = (row) => {
+  if (row) {
+    let o = { id: 2, par: { contract_id: row.contract_id } };
+    let url = encodeURIComponent(
+      encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
+    );
+    url = "https://doconline.soe.vn/report/" + url.replaceAll("%", "==");
+    window.open(url);
+  }
 };
 
 //add model
@@ -521,7 +680,7 @@ const setStar = (item) => {
       }
       swal.close();
       toast.success("Cập nhật thành công!");
-      initData(true);
+      //initData(true);
     })
     .catch((error) => {
       swal.close();
@@ -1416,7 +1575,7 @@ onMounted(() => {
                           :filter="true"
                           :showClear="true"
                           :editable="false"
-                          optionLabel="full_name"
+                          optionLabel="profile_user_name"
                           placeholder="Chọn người ký"
                           class="w-full limit-width"
                           style="min-height: 36px"
@@ -1436,7 +1595,7 @@ onMounted(() => {
                               >
                                 <Chip
                                   :image="value.avatar"
-                                  :label="value.full_name"
+                                  :label="value.profile_user_name"
                                   class="mr-2 mb-2 px-3 py-2"
                                 >
                                   <div class="flex">
@@ -1445,10 +1604,9 @@ onMounted(() => {
                                         v-bind:label="
                                           value.avatar
                                             ? ''
-                                            : (value.last_name ?? '').substring(
-                                                0,
-                                                1
-                                              )
+                                            : (
+                                                value.profile_user_name ?? ''
+                                              ).substring(0, 1)
                                         "
                                         v-bind:image="
                                           value.avatar
@@ -1456,15 +1614,12 @@ onMounted(() => {
                                             : basedomainURL +
                                               '/Portals/Image/noimg.jpg'
                                         "
-                                        style="
-                                          background-color: #2196f3;
-                                          color: #ffffff;
-                                          width: 2rem;
-                                          height: 2rem;
-                                        "
                                         :style="{
                                           background:
                                             bgColor[value.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '2rem',
+                                          height: '2rem',
                                         }"
                                         class="mr-2 text-avatar"
                                         size="xlarge"
@@ -1472,7 +1627,7 @@ onMounted(() => {
                                       />
                                     </div>
                                     <div class="format-flex-center text-left">
-                                      <span>{{ value.full_name }}</span>
+                                      <span>{{ value.profile_user_name }}</span>
                                     </div>
                                     <span
                                       tabindex="0"
@@ -1498,7 +1653,7 @@ onMounted(() => {
                                   v-bind:label="
                                     slotProps.option.avatar
                                       ? ''
-                                      : slotProps.option.last_name.substring(
+                                      : slotProps.option.profile_user_name.substring(
                                           0,
                                           1
                                         )
@@ -1509,32 +1664,38 @@ onMounted(() => {
                                       : basedomainURL +
                                         '/Portals/Image/noimg.jpg'
                                   "
-                                  style="
-                                    background-color: #2196f3;
-                                    color: #ffffff;
-                                    width: 3rem;
-                                    height: 3rem;
-                                    font-size: 1.4rem !important;
-                                  "
                                   :style="{
                                     background:
                                       bgColor[slotProps.option.is_order % 7],
+                                    color: '#ffffff',
+                                    width: '3rem',
+                                    height: '3rem',
+                                    fontSize: '1.4rem !important',
                                   }"
-                                  class="text-avatar"
+                                  class="text-avatar m-0"
                                   size="xlarge"
                                   shape="circle"
                                 />
                               </div>
-                              <div class="ml-3">
-                                <div class="mb-1">
-                                  {{ slotProps.option.full_name }}
-                                </div>
-                                <div class="description">
-                                  <div>
-                                    {{ slotProps.option.position_name }}
+                              <div class="format-center text-left ml-3">
+                                <div>
+                                  <div class="mb-1">
+                                    {{ slotProps.option.profile_user_name }}
                                   </div>
-                                  <div>
-                                    {{ slotProps.option.department_name }}
+                                  <div class="description">
+                                    <div>
+                                      <span>{{
+                                        slotProps.option.profile_code
+                                      }}</span
+                                      ><span
+                                        v-if="slotProps.option.department_name"
+                                      >
+                                        |
+                                        {{
+                                          slotProps.option.department_name
+                                        }}</span
+                                      >
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -1728,25 +1889,27 @@ onMounted(() => {
         <Column
           field="contract_no"
           header="Mã HĐ"
-          headerStyle="text-align:center;max-width:80px;height:50px"
-          bodyStyle="text-align:center;max-width:80px;"
+          headerStyle="text-align:center;max-width:120px;height:50px"
+          bodyStyle="text-align:center;max-width:120px;"
           class="align-items-center justify-content-center text-center"
         />
         <Column
           field="profile_user_name"
           header="Tên nhân sự"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
+          headerStyle="height:50px;max-width:auto;"
         >
           <template #body="slotProps">
-            {{ slotProps.data.profile_user_name }}
+            <b @click="goProfile(slotProps.data)" class="hover">{{
+              slotProps.data.profile_user_name
+            }}</b>
           </template>
         </Column>
         <Column
           field="department_name"
           header="Phòng ban"
-          headerStyle="height:50px;max-width:auto;"
+          headerStyle="text-align:center;max-width:120px;height:50px"
+          bodyStyle="text-align:center;max-width:120px;"
+          class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
             {{ slotProps.data.department_name }}
@@ -1796,7 +1959,7 @@ onMounted(() => {
             <span>{{ slotProps.data.end_date }}</span>
           </template>
         </Column>
-        <Column
+        <!-- <Column
           field="sign_user_name"
           header="Người ký"
           headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1806,7 +1969,7 @@ onMounted(() => {
           <template #body="slotProps">
             {{ slotProps.data.sign_user_name }}
           </template>
-        </Column>
+        </Column> -->
         <Column
           field="created_date"
           header="Ngày/Người lập"
@@ -1815,42 +1978,46 @@ onMounted(() => {
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <span class="mr-2">{{ slotProps.data.created_date }}</span>
-            <div>
-              <Avatar
-                v-bind:label="
-                  slotProps.data.avatar
-                    ? ''
-                    : slotProps.data.full_name.substring(0, 1)
-                "
-                v-bind:image="
-                  slotProps.data.avatar
-                    ? basedomainURL + slotProps.data.avatar
-                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-                style="
-                  background-color: #2196f3;
-                  color: #ffffff;
-                  width: 2rem;
-                  height: 2rem;
-                  font-size: 1rem !important;
-                "
-                :style="{
-                  background: bgColor[slotProps.data.created_is_order % 7],
-                }"
-                class="text-avatar"
-                size="xlarge"
-                shape="circle"
-                v-tooltip.top="slotProps.data.full_name"
-              />
+            <div class="flex justify-content-center">
+              <span class="format-center mr-2">{{
+                slotProps.data.created_date
+              }}</span>
+              <div>
+                <Avatar
+                  v-bind:label="
+                    slotProps.data.avatar
+                      ? ''
+                      : slotProps.data.full_name.substring(0, 1)
+                  "
+                  v-bind:image="
+                    slotProps.data.avatar
+                      ? basedomainURL + slotProps.data.avatar
+                      : basedomainURL + '/Portals/Image/noimg.jpg'
+                  "
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 2rem;
+                    height: 2rem;
+                    font-size: 1rem !important;
+                  "
+                  :style="{
+                    background: bgColor[slotProps.data.created_is_order % 7],
+                  }"
+                  class="text-avatar"
+                  size="xlarge"
+                  shape="circle"
+                  v-tooltip.top="slotProps.data.full_name"
+                />
+              </div>
             </div>
           </template>
         </Column>
         <Column
           field="status"
           header="Trạng thái"
-          headerStyle="text-align:center;max-width:140px;height:50px"
-          bodyStyle="text-align:center;max-width:140px;"
+          headerStyle="text-align:center;max-width:130px;height:50px"
+          bodyStyle="text-align:center;max-width:130px;"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
@@ -1867,10 +2034,13 @@ onMounted(() => {
                 :label="slotProps.data.status_name"
                 icon="pi pi-chevron-down"
                 iconPos="right"
+                class="p-button-outlined"
                 :style="{
-                  border: slotProps.data.bg_color,
-                  backgroundColor: slotProps.data.bg_color,
-                  color: slotProps.data.text_color,
+                  borderColor: slotProps.data.bg_color,
+                  // backgroundColor: slotProps.data.bg_color,
+                  color: slotProps.data.bg_color,
+                  borderRadius: '15px',
+                  padding: '0.3rem 0.75rem !important',
                 }"
               />
             </div>
@@ -1974,13 +2144,13 @@ onMounted(() => {
                 v-tooltip.top="
                   slotProps.data.is_star ? 'Hợp đồng cần lưu ý' : ''
                 "
+                style="font-size: 15px"
               >
                 <i
                   :class="{
                     'pi pi-star-fill icon-star': slotProps.data.is_star,
                     'pi pi-star': !slotProps.data.is_star,
                   }"
-                  style="font-size: 15px"
                 ></i>
               </a>
             </div>
@@ -1995,7 +2165,7 @@ onMounted(() => {
           <template #body="slotProps">
             <Button
               icon="pi pi-ellipsis-h"
-              class="p-button-rounded p-button-text ml-2"
+              class="p-button-rounded p-button-text"
               @click="toggleMores($event, slotProps.data)"
               aria-haspopup="true"
               aria-controls="overlay_More"
@@ -2124,6 +2294,9 @@ onMounted(() => {
 }
 .icon-star {
   color: #f4b400 !important;
+}
+.hover:hover {
+  color: #0078d4;
 }
 </style>
 <style lang="scss" scoped>

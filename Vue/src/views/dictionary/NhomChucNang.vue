@@ -1625,7 +1625,7 @@ onMounted(() => {
               :showCloseIcon="false"
               id="overlay_panel"
               :style="
-                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
+                store.state.user.is_super == 1 ? 'width:40vw' : 'width:400px'
               "
             >
               <div class="grid formgrid m-0">
@@ -1642,7 +1642,7 @@ onMounted(() => {
                   </div>
 
                   <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
+                    :class=" 'col-8'"
                   >
                     <TreeSelect
                       v-model="filterPhanloai_EG"
@@ -1676,7 +1676,7 @@ onMounted(() => {
                     Trạng thái
                   </div>
                   <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
+                    :class=" 'col-8'"
                   >
                     <Dropdown
                       class="col-12 p-0 m-0"
@@ -1954,7 +1954,7 @@ onMounted(() => {
                   class="p-0 m-0"
                   :showCloseIcon="false"
                   id="overlay_panel"
-                  :style="'width:300px'"
+                  :style="'width:400px'"
                 >
                   <div class="grid formgrid m-0"> -->
             <!-- <div class="flex field col-12 p-0">

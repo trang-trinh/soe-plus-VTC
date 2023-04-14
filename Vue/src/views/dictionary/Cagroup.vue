@@ -389,11 +389,7 @@ const editGroup = (dataGroup) => {
   headerDialog.value = "Sửa nhóm văn bản";
   issaveGroup.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_super) {
-    group.value.organization_id = 0;
-  } else {
-    group.value.organization_id = store.state.user.organization_id;
-  }
+
   group_id.value = dataGroup.doc_group_id;
   loadOrganization();
 };
@@ -1148,7 +1144,7 @@ onMounted(() => {
               :showCloseIcon="false"
               id="overlay_panel"
               :style="
-                store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
+                store.state.user.is_super == 1 ? 'width:40vw' : 'width:400px'
               "
             >
               <div class="grid formgrid m-0">
@@ -1164,9 +1160,7 @@ onMounted(() => {
                     Phân loại
                   </div>
 
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-8'">
                     <TreeSelect
                       v-model="filterPhanloai"
                       :options="treedonvis"
@@ -1198,9 +1192,7 @@ onMounted(() => {
                   >
                     Trạng thái
                   </div>
-                  <div
-                    :class="store.state.user.is_super == 1 ? 'col-10' : 'col-8'"
-                  >
+                  <div :class="'col-8'">
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterTrangthai"
