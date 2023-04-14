@@ -33,7 +33,7 @@ const formatByte = ((bytes, precision) => {
 const listOrganiztion = ref([]);
 const totalUsed = ref();
 const listDataOrganization = () => {
-	if (store.getters.user.is_super) {
+	if (store.getters.user.is_super && store.getters.user.organization_parent_id == null) {
 		axios
 			.post(
 				baseUrlCheck + "api/law_comment_emotes/GetDataProc",
@@ -306,6 +306,22 @@ const horizontalOptions = ref(
 		}
 	}
 );
+
+const changeDataChart = () => {
+	if (selectedStatistic.value == 2) {
+		if (selectedFilterOrg.value == null) {
+			let dataAll = listOrgSubAll.value[0];
+			basicData.value.datasets[0].data = [dataAll.task, dataAll.device, dataAll.doc, dataAll.calendar, dataAll.law, dataAll.chat, dataAll.video, dataAll.file];
+		}
+		else {
+			let listDataOrgFilter = listOrgSubAll.value.filter(x => x.organization_id == selectedFilterOrg.value);
+			if (listDataOrgFilter.length > 0) {
+				let dataOrgFilter = listDataOrgFilter[0];
+				basicData.value.datasets[0].data = [dataOrgFilter.task, dataOrgFilter.device, dataOrgFilter.doc, dataOrgFilter.calendar, dataOrgFilter.law, dataOrgFilter.chat, dataOrgFilter.video, dataOrgFilter.file];
+			}
+		}
+	}
+};
 onMounted(() => {
 	listDataOrganization();
 	return {
@@ -506,6 +522,7 @@ onMounted(() => {
 										optionValue="organization_id"
 										placeholder="-- Chọn đơn vị --"										
 										style="width:25rem;"
+										@change="changeDataChart()"
 									/>
 								</div>
 							</div>
