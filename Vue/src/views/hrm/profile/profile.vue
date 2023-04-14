@@ -10,6 +10,7 @@ import dialogtag from "../profile/component//dialogtag.vue";
 import dialogcontract from "../contract/component/dialogcontract.vue";
 import diloginsurance from "../profile/component/diloginsurance.vue";
 import dialogstatus from "../profile/component/dialogstatus.vue";
+import dialogmatchaccount from "../profile/component/dialogmatchaccount.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
 const router = inject("router");
@@ -323,7 +324,7 @@ const itemButMores = ref([
     label: "Cấp tài khoản truy cập",
     icon: "pi pi-key",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openMatchAccount(profile.value, "Liên kết tài khoản");
     },
   },
   {
@@ -978,6 +979,20 @@ const openAddDialogStatus = (item, str) => {
 const closeDialogStatus = () => {
   displayDialogStatus.value = false;
   forceRerender(7);
+};
+
+//Function Matching account
+const headerDialogMatchAccount = ref();
+const displayDialogMatchAccount = ref(false);
+const openMatchAccount = (item, str) => {
+  profile.value = item;
+  forceRerender(8);
+  headerDialogMatchAccount.value = str;
+  displayDialogMatchAccount.value = true;
+};
+const closeDialogMatchAccount = () => {
+  forceRerender(8);
+  displayDialogMatchAccount.value = false;
 };
 
 //Init
@@ -2541,12 +2556,21 @@ onMounted(() => {
         </Column>
         <Column
           header=""
-          headerStyle="text-align:center;max-width:100px"
-          bodyStyle="text-align:center;max-width:100px"
+          headerStyle="text-align:center;max-width:150px"
+          bodyStyle="text-align:center;max-width:150px"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <ul class="flex p-0" style="list-style: none">
+            <ul class="flex p-0 justify-content-right" style="list-style: none; justify-content: right;">
+              <li v-if="slotProps.data.is_matchaccount">
+                <Button
+                  @click="openMatchAccount(slotProps.data, 'liên kết tài khoản')"
+                  icon="pi pi-user"
+                  class="p-button-rounded p-button-text"
+                  v-tooltip.top="'Đã được cấp tài khoản truy cập'"
+                  style="font-size: 15px; color: #000"
+                />
+              </li>
               <li>
                 <Button
                   :icon="
@@ -2991,6 +3015,13 @@ onMounted(() => {
     :closeDialog="closeDialogStatus"
     :profile="profile"
     :initData="null"
+  />
+  <dialogmatchaccount
+    :key="componentKey['8']"
+    :headerDialog="headerDialogMatchAccount"
+    :displayDialog="displayDialogMatchAccount"
+    :closeDialog="closeDialogMatchAccount"
+    :profile="profile"
   />
   <Menu
     id="overlay_More"
