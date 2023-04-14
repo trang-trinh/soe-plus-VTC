@@ -383,6 +383,10 @@ const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
   const caAllowance = () =>
   import("../views/hrm/category/caAllowance.vue");
+  const caWageGroups = () =>
+  import("../views/hrm/category/caWageGroups.vue");
+  const caCivilServantRank = () =>
+  import("../views/hrm/category/caCivilServantRank.vue");
 const caTags = () => import("../views/hrm/category/caTags.vue");
 const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
 const caWorkPosition = () => import("../views/hrm/category/caWorkPosition.vue");
@@ -1782,6 +1786,16 @@ const router = createRouter({
       path: "/hrm/category/ca_allowance",
       name: "caHRMAllowance",
       component: caAllowance,
+    },
+    {
+      path: "/hrm/category/ca_wage_groups",
+      name: "caHRMcaWageGroups",
+      component: caWageGroups,
+    },
+    {
+      path: "/hrm/category/ca_civilservantrank",
+      name: "caHRMcaCivilServantRank",
+      component: caCivilServantRank,
     },
     {
       path: "/hrm/category/ca_discipline",

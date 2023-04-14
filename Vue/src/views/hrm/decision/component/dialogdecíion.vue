@@ -577,7 +577,7 @@ onMounted(() => {
                     inputId="time24"
                     :class="{
                       'p-invalid': !model.decision_date && submitted,
-                    }"
+                    }" 
                     v-model="model.decision_date"
                     placeholder="DD/MM/YYYY"
                   />

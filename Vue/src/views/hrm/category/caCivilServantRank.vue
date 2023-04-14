@@ -17,33 +17,33 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  allowance_wage_name: {
+  civil_servant_rank_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
-  allowance_wage_code: {
+  civil_servant_rank_code: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
 const rules = {
-  allowance_wage_name: {
+  civil_servant_rank_name: {
     required,
     $errors: [
       {
-        $property: "allowance_wage_name",
+        $property: "civil_servant_rank_name",
         $validator: "required",
-        $message: "Tên phụ cấp không được để trống!",
+        $message: "Tên ngạch công/viên chức không được để trống!",
       },
     ],
   },
-  allowance_wage_code: {
+  civil_servant_rank_code: {
     required,
     $errors: [
       {
-        $property: "allowance_wage_code",
+        $property: "civil_servant_rank_code",
         $validator: "required",
-        $message: "Mã phụ cấp không được để trống!",
+        $message: "Mã ngạch công/viên chức không được để trống!",
       },
     ],
   },
@@ -57,7 +57,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_allowance_wage_count",
+            proc: "hrm_ca_civil_servant_rank_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -78,7 +78,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu allowance_wage
+//Lấy dữ liệu civil_servant_rank
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -96,7 +96,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_ca_allowance_wage_list",
+              proc: "hrm_ca_civil_servant_rank_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -115,9 +115,9 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if(element.allowance_wage_type)
-          element.allowance_wage_type_name= listAllowAprroved.value.find(x=>x.code==element.allowance_wage_type).name;
-        });
+          if(element.wage_groups_id)
+          element.wage_groups_name=listWageGroups.value.find(x=>x.code==element.wage_groups_id).name;
+    });
         datalists.value = data;
 
         options.value.loading = false;
@@ -152,19 +152,19 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].allowance_wage_id;
+    options.value.id = datalists.value[datalists.value.length - 1].civil_servant_rank_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].allowance_wage_id;
+    options.value.id = datalists.value[0].civil_servant_rank_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const allowance_wage = ref({
-  allowance_wage_name: "",
+const civil_servant_rank = ref({
+  civil_servant_rank_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -172,7 +172,7 @@ const allowance_wage = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, allowance_wage);
+const v$ = useVuelidate(rules, civil_servant_rank);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -194,8 +194,8 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  allowance_wage.value = {
-    allowance_wage_name: "",
+  civil_servant_rank.value = {
+    civil_servant_rank_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
@@ -210,8 +210,8 @@ const openBasic = (str) => {
 };
 
 const closeDialog = () => {
-  allowance_wage.value = {
-    allowance_wage_name: "",
+  civil_servant_rank.value = {
+    civil_servant_rank_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -230,10 +230,10 @@ const saveData = (isFormValid) => {
     return;
   }
 
-  if (allowance_wage.value.allowance_wage_name.length > 250) {
+  if (civil_servant_rank.value.civil_servant_rank_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên phụ cấp không được vượt quá 250 ký tự!",
+      text: "Tên ngạch công/viên chức không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -241,9 +241,9 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
 
-  if (allowance_wage.value.countryside_fake)
-    allowance_wage.value.countryside = allowance_wage.value.countryside_fake;
-  formData.append("hrm_ca_allowance_wage", JSON.stringify(allowance_wage.value));
+  if (civil_servant_rank.value.countryside_fake)
+    civil_servant_rank.value.countryside = civil_servant_rank.value.countryside_fake;
+  formData.append("hrm_ca_civil_servant_rank", JSON.stringify(civil_servant_rank.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -253,14 +253,14 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_allowance_wage/add_hrm_ca_allowance_wage",
+        baseURL + "/api/hrm_ca_civil_servant_rank/add_hrm_ca_civil_servant_rank",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm phụ cấp thành công!");
+          toast.success("Thêm ngạch công/viên chức thành công!");
           loadData(true);
 
           closeDialog();
@@ -285,14 +285,14 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_allowance_wage/update_hrm_ca_allowance_wage",
+        baseURL + "/api/hrm_ca_civil_servant_rank/update_hrm_ca_civil_servant_rank",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa phụ cấp thành công!");
+          toast.success("Sửa ngạch công/viên chức thành công!");
 
           closeDialog();
         } else {
@@ -319,15 +319,14 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  allowance_wage.value = dataTem;
-  if (allowance_wage.value.date_approved)
-    allowance_wage.value.date_approved = new Date(allowance_wage.value.date_approved);
-  if (allowance_wage.value.is_default) {
+  civil_servant_rank.value = dataTem;
+ 
+  if (civil_servant_rank.value.is_default) {
     checkIsmain.value = false;
   } else {
     checkIsmain.value = true;
   }
-  headerDialog.value = "Sửa phụ cấp";
+  headerDialog.value = "Sửa ngạch công/viên chức";
   isSaveTem.value = true;
   displayBasic.value = true;
 };
@@ -354,15 +353,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_ca_allowance_wage/delete_hrm_ca_allowance_wage", {
+          .delete(baseURL + "/api/hrm_ca_civil_servant_rank/delete_hrm_ca_civil_servant_rank", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.allowance_wage_id] : 1,
+            data: Tem != null ? [Tem.civil_servant_rank_id] : 1,
           })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá phụ cấp thành công!");
+              toast.success("Xoá ngạch công/viên chức thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -412,7 +411,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "allowance_wage_id",
+    id: "civil_servant_rank_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -424,7 +423,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_allowance_wage", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_civil_servant_rank", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -519,21 +518,21 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.allowance_wage_id,
-      TextID: value.allowance_wage_id + "",
+      IntID: value.civil_servant_rank_id,
+      TextID: value.civil_servant_rank_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_allowance_wage/update_s_hrm_ca_allowance_wage",
+        baseURL + "/api/hrm_ca_civil_servant_rank/update_s_hrm_ca_civil_servant_rank",
         data,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái phụ cấp thành công!");
+          toast.success("Sửa trạng thái ngạch công/viên chức thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -556,16 +555,16 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   } else {
     let data1 = {
-      IntID: value.allowance_wage_id,
-      TextID: value.allowance_wage_id + "",
+      IntID: value.civil_servant_rank_id,
+      TextID: value.civil_servant_rank_id + "",
       BitMain: value.is_default,
     };
     axios
-      .put(baseURL + "/api/hrm_ca_allowance_wage/Update_DefaultStamp", data1, config)
+      .put(baseURL + "/api/hrm_ca_civil_servant_rank/Update_DefaultStamp", data1, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái phụ cấp thành công!");
+          toast.success("Sửa trạng thái ngạch công/viên chức thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -594,7 +593,7 @@ const deleteList = () => {
   let checkD = false;
   selectedStamps.value.forEach((item) => {
     if (item.is_default) {
-      toast.error("Không được xóa phụ cấp mặc định!");
+      toast.error("Không được xóa ngạch công/viên chức mặc định!");
       checkD = true;
       return;
     }
@@ -603,7 +602,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá phụ cấp này không!",
+        text: "Bạn có muốn xoá ngạch công/viên chức này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -621,10 +620,10 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.allowance_wage_id);
+            listId.push(item.civil_servant_rank_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_ca_allowance_wage/delete_hrm_ca_allowance_wage", {
+            .delete(baseURL + "/api/hrm_ca_civil_servant_rank/delete_hrm_ca_civil_servant_rank", {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: listId != null ? listId : 1,
             })
@@ -632,7 +631,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá phụ cấp thành công!");
+                toast.success("Xoá ngạch công/viên chức thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -702,17 +701,60 @@ const toggle = (event) => {
 };
  
 
-const listAllowAprroved = ref([
-  {
-    name: "Hệ số",
-    code: 1,
-  },
-  { name: "Tỷ lệ phần trăm", code: 2 },
-  { name: "Mức tiền", code: 3 },
-]);
-onMounted(() => {
+const listWageGroups = ref([
  
-  loadData(true);
+  
+]);
+const initTudien=()=>{
+
+    axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_ca_wage_groups_list",
+              par: [
+                { par: "pageno", va:0},
+                { par: "pagesize", va: 100000 },
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "status", va: true },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        if (isFirst.value) isFirst.value = false;
+        listWageGroups.value = [];
+      data.forEach((element, i) => {
+        listWageGroups.value.push({
+          name: element.wage_groups_name,
+          code: element.wage_groups_id,
+        });
+      });
+      loadData(true);
+      })
+      .catch((error) => {
+        toast.error("Tải dữ liệu không thành công!");
+        options.value.loading = false;
+
+        if (error && error.status === 401) {
+          swal.fire({
+            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            confirmButtonText: "OK",
+          });
+          store.commit("gologout");
+        }
+      });
+}
+onMounted(() => {
+    initTudien();
+
   return {
     datalists,
     options,
@@ -756,14 +798,14 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="allowance_wage_id"
+      dataKey="civil_servant_rank_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-credit-card"></i> Danh sách phụ cấp ({{
+          <i class="pi pi-credit-card"></i> Danh sách ngạch công/viên chức ({{
             options.totalRecords
           }})
         </h3>
@@ -849,7 +891,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm phụ cấp')"
+              @click="openBasic('Thêm ngạch công/viên chức')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -896,83 +938,55 @@ onMounted(() => {
       
       ></Column>
       <Column
-        field="allowance_wage_code"
-        header="Mã phụ cấp"
+        field="civil_servant_rank_code"
+        header="Mã ngạch"
         :sortable="true"        headerClass="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:250px;height:50px"
-        bodyStyle="text-align:center;max-width:250px"
-      >
-        <template #filter="{ filterModel }">
-          <InputText
-            type="text"
-            v-model="filterModel.value"
-            class="p-column-filter"
-            placeholder="Từ khoá"
-          />
-        </template>
-      </Column>
-      <Column
-        field="allowance_wage_name"
-        header="Tên phụ cấp"
-        :sortable="true"
-        headerStyle="text-align:left;height:50px"
-        bodyStyle="text-align:left"
-      >
-        <template #filter="{ filterModel }">
-          <InputText
-            type="text"
-            v-model="filterModel.value"
-            class="p-column-filter"
-            placeholder="Từ khoá"
-          />
-        </template>
-      </Column>
-      <Column
-        field="organization_id"
-        header="Ngày áp dụng"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <div v-if="data.data.date_approved ">
-            {{
-                  moment(new Date(data.data.date_approved )).format("DD/MM/YYYY")
-                }}
-          </div>
-          <div v-else></div>
-        </template>
-      </Column>
-
-      <Column
-        field="allowance_wage_type_name"
-        header="Loại phụ cấp"
         headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        bodyStyle="text-align:center;max-width:150px"
       >
-        
+        <template #filter="{ filterModel }">
+          <InputText
+            type="text"
+            v-model="filterModel.value"
+            class="p-column-filter"
+            placeholder="Từ khoá"
+          />
+        </template>
       </Column>
+   
       <Column
-        field="status"
-        header="Gia hạn"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px"
-        class="align-items-center justify-content-center text-center"
+        field="civil_servant_rank_name"
+        header="Tên ngạch công/viên chức"
+        :sortable="true"
+        headerStyle="text-align:left;height:50px;max-width:320px"
+        bodyStyle="text-align:left;max-width:320px"
+        headerClass="align-items-center justify-content-center text-center"
       >
-        <template #body="data">
-          <Checkbox
-         
-            :binary="true"
-            v-model="data.data.allowance_wage_extend"
-        
-          /> </template
-      ></Column>
+        <template #filter="{ filterModel }">
+          <InputText
+            type="text"
+            v-model="filterModel.value"
+            class="p-column-filter"
+            placeholder="Từ khoá"
+          />
+        </template>
+      </Column>
+      
+      <Column
+        field="wage_groups_name"
+        header="Tên nhóm mã ngạch"
+        headerStyle="text-align:center;height:50px"
+       
+        headerClass="align-items-center justify-content-center text-center"
+      >
+       </Column>
+    
+     
       <Column
         field="status"
         header="Trạng thái"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
@@ -1059,118 +1073,93 @@ onMounted(() => {
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
-            >Mã phụ cấp <span class="redsao">(*)</span></label
+          <label class="col-3 text-left p-0"
+            >Mã ngạch <span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="allowance_wage.allowance_wage_code"
+            v-model="civil_servant_rank.civil_servant_rank_code"
             spellcheck="false"
-            class="col-10 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{
-              'p-invalid': v$.allowance_wage_code.$invalid && submitted,
+              'p-invalid': v$.civil_servant_rank_code.$invalid && submitted,
             }"
           />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-2 text-left"></div>
+        <div style="display: flex" class="field col-12 md:col-12"      v-if="
+              (v$.civil_servant_rank_code.$invalid && submitted) ||
+              v$.civil_servant_rank_code.$pending.$response
+            ">
+          <div class="col-3 text-left"></div>
           <small
-            v-if="
-              (v$.allowance_wage_code.$invalid && submitted) ||
-              v$.allowance_wage_code.$pending.$response
-            "
-            class="col-10 p-error"
+       
+            class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.allowance_wage_code.required.$message
-                .replace("Value", "Mã phụ cấp")
+              v$.civil_servant_rank_code.required.$message
+                .replace("Value", "Mã ngạch công/viên chức")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
         <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
-            >Phụ cấp <span class="redsao">(*)</span></label
+          <label class="col-3 text-left p-0"
+            >Ngạch công/viên chức <span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="allowance_wage.allowance_wage_name"
+            v-model="civil_servant_rank.civil_servant_rank_name"
             spellcheck="false"
-            class="col-10 ip36 px-2"
+            class="col-9 ip36 px-2"
             :class="{
-              'p-invalid': v$.allowance_wage_name.$invalid && submitted,
+              'p-invalid': v$.civil_servant_rank_name.$invalid && submitted,
             }"
           />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-2 text-left"></div>
+        <div style="display: flex" class="field col-12 md:col-12"     v-if="
+              (v$.civil_servant_rank_name.$invalid && submitted) ||
+              v$.civil_servant_rank_name.$pending.$response
+            ">
+          <div class="col-3 text-left"></div>
           <small
-            v-if="
-              (v$.allowance_wage_name.$invalid && submitted) ||
-              v$.allowance_wage_name.$pending.$response
-            "
-            class="col-10 p-error"
+        
+            class="col-9 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.allowance_wage_name.required.$message
-                .replace("Value", "Tên phụ cấp")
+              v$.civil_servant_rank_name.required.$message
+                .replace("Value", "Tên ngạch công/viên chức")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left p-0">Ngày áp dụng</div>
-            <Calendar
-              :showIcon="true"
-              class="ip36"
-              autocomplete="on"
-              :showOnFocus="false"
-              v-model="allowance_wage.date_approved"
-              placeholder="dd/mm/yyyy"
-            />
-          </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-3 pl-3 p-0">Loại</div>
+        <div class="field col-12 md:col-12  align-items-center flex">
+            <div class="col-3  p-0">Nhóm mã ngạch</div>
             <Dropdown
               class="col-9 p-0 m-0"
-              v-model=" allowance_wage.allowance_wage_type"
-              :options="listAllowAprroved"
+              v-model="civil_servant_rank.wage_groups_id"
+              :options="listWageGroups"
               optionLabel="name"
               optionValue="code"
-              placeholder="Chọn loại phụ cấp"
+              placeholder="Chọn nhóm mã ngạch"
+              :filter="true"
             />
           </div>
-        </div>
+  
         <div class="col-12 field md:col-12 flex">
-          
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left p-0 ">STT</div>
-            <InputNumber v-model="allowance_wage.is_order" class="col-8 ip36 p-0" />
-          </div>
-
-          <div class="field col-6 md:col-6 p-0 align-items-center flex" v-if="allowance_wage.allowance_wage_type==3">
-            <div class="col-3 text-left p-0 pl-3">Mức tiền</div>
-            <InputNumber
-              v-model="allowance_wage.allowance_wage_cost"        inputId="locale-german" locale="de-DE" 
-              class="col-9 ip36 p-0"
-            />
-          </div>
-        </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 p-0">Trạng thái</div>
-            <InputSwitch class="col-9 p-0" v-model="allowance_wage.status" />
+            <div class="field col-4 md:col-4 p-0 align-items-center flex">
+                <div class="col-9 text-left p-0 ">STT</div>
+            <InputNumber v-model="civil_servant_rank.is_order" class="col-3 ip36 p-0" />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 p-0">Gia hạn</div>
-            <InputSwitch v-model="allowance_wage.allowance_wage_extend" />
+            <div class="col-6 p-0 pl-3">Trạng thái</div>
+            <InputSwitch class="col-9 p-0" v-model="civil_servant_rank.status" />
           </div>
+       
 
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="allowance_wage.is_system" />
+            <InputSwitch v-model="civil_servant_rank.is_system" />
           </div>
         </div>
       </div>

@@ -1287,7 +1287,7 @@ onMounted(() => {
               inputId="time24"
               :class="{
                 'p-invalid': !modelLiquidation.date && submitted,
-              }"
+              }" :showOnFocus="false"
               v-model="modelLiquidation.date"
               placeholder="DD/MM/YYYY"
             />

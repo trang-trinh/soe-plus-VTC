@@ -366,7 +366,7 @@ onMounted(() => {
                   id="icon"
                   v-model="slotProps.data.injection_date"
                   :showIcon="true"
-                  placeholder="dd/mm/yyyy"
+                  placeholder="dd/mm/yyyy" :showOnFocus="false"
                 />
               </template>
             </Column>

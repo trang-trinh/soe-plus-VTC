@@ -4,7 +4,7 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
-import { encr, checkURL } from "../../../util/function.js"; import moment from "moment";
+import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -17,33 +17,19 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  allowance_wage_name: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
-  allowance_wage_code: {
+  wage_groups_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
 const rules = {
-  allowance_wage_name: {
+  wage_groups_name: {
     required,
     $errors: [
       {
-        $property: "allowance_wage_name",
+        $property: "wage_groups_name",
         $validator: "required",
-        $message: "Tên phụ cấp không được để trống!",
-      },
-    ],
-  },
-  allowance_wage_code: {
-    required,
-    $errors: [
-      {
-        $property: "allowance_wage_code",
-        $validator: "required",
-        $message: "Mã phụ cấp không được để trống!",
+        $message: "Tên nhóm mã ngạch không được để trống!",
       },
     ],
   },
@@ -57,7 +43,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_allowance_wage_count",
+            proc: "hrm_ca_wage_groups_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -78,7 +64,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu allowance_wage
+//Lấy dữ liệu wage_groups
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -96,7 +82,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_ca_allowance_wage_list",
+              proc: "hrm_ca_wage_groups_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -115,8 +101,6 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if(element.allowance_wage_type)
-          element.allowance_wage_type_name= listAllowAprroved.value.find(x=>x.code==element.allowance_wage_type).name;
         });
         datalists.value = data;
 
@@ -152,19 +136,20 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].allowance_wage_id;
+    options.value.id =
+      datalists.value[datalists.value.length - 1].wage_groups_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].allowance_wage_id;
+    options.value.id = datalists.value[0].wage_groups_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const allowance_wage = ref({
-  allowance_wage_name: "",
+const wage_groups = ref({
+  wage_groups_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -172,7 +157,7 @@ const allowance_wage = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, allowance_wage);
+const v$ = useVuelidate(rules, wage_groups);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -194,13 +179,13 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  allowance_wage.value = {
-    allowance_wage_name: "",
+  wage_groups.value = {
+    wage_groups_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-    is_system: store.getters.user.is_super ? true : false,
+    is_system: store.getters.user.is_super?true:false,
   };
 
   checkIsmain.value = false;
@@ -208,10 +193,10 @@ const openBasic = (str) => {
   headerDialog.value = str;
   displayBasic.value = true;
 };
-
+ 
 const closeDialog = () => {
-  allowance_wage.value = {
-    allowance_wage_name: "",
+  wage_groups.value = {
+    wage_groups_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -230,10 +215,10 @@ const saveData = (isFormValid) => {
     return;
   }
 
-  if (allowance_wage.value.allowance_wage_name.length > 250) {
+  if (wage_groups.value.wage_groups_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên phụ cấp không được vượt quá 250 ký tự!",
+      text: "Tên nhóm mã ngạch không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -241,9 +226,12 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
 
-  if (allowance_wage.value.countryside_fake)
-    allowance_wage.value.countryside = allowance_wage.value.countryside_fake;
-  formData.append("hrm_ca_allowance_wage", JSON.stringify(allowance_wage.value));
+  if (wage_groups.value.countryside_fake)
+    wage_groups.value.countryside = wage_groups.value.countryside_fake;
+  formData.append(
+    "hrm_ca_wage_groups",
+    JSON.stringify(wage_groups.value)
+  );
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -253,14 +241,14 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_allowance_wage/add_hrm_ca_allowance_wage",
+        baseURL + "/api/hrm_ca_wage_groups/add_hrm_ca_wage_groups",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm phụ cấp thành công!");
+          toast.success("Thêm nhóm mã ngạch thành công!");
           loadData(true);
 
           closeDialog();
@@ -285,14 +273,14 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_allowance_wage/update_hrm_ca_allowance_wage",
+        baseURL + "/api/hrm_ca_wage_groups/update_hrm_ca_wage_groups",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa phụ cấp thành công!");
+          toast.success("Sửa nhóm mã ngạch thành công!");
 
           closeDialog();
         } else {
@@ -319,15 +307,15 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  allowance_wage.value = dataTem;
-  if (allowance_wage.value.date_approved)
-    allowance_wage.value.date_approved = new Date(allowance_wage.value.date_approved);
-  if (allowance_wage.value.is_default) {
+  wage_groups.value = dataTem;
+  if (wage_groups.value.countryside)
+    wage_groups.value.countryside_fake = wage_groups.value.countryside;
+  if (wage_groups.value.is_default) {
     checkIsmain.value = false;
   } else {
     checkIsmain.value = true;
   }
-  headerDialog.value = "Sửa phụ cấp";
+  headerDialog.value = "Sửa nhóm mã ngạch";
   isSaveTem.value = true;
   displayBasic.value = true;
 };
@@ -354,15 +342,18 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_ca_allowance_wage/delete_hrm_ca_allowance_wage", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.allowance_wage_id] : 1,
-          })
+          .delete(
+            baseURL + "/api/hrm_ca_wage_groups/delete_hrm_ca_wage_groups",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.wage_groups_id] : 1,
+            }
+          )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá phụ cấp thành công!");
+              toast.success("Xoá nhóm mã ngạch thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -412,7 +403,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "allowance_wage_id",
+    id: "wage_groups_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -424,7 +415,11 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_allowance_wage", data, config)
+    .post(
+      baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_wage_groups",
+      data,
+      config
+    )
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -519,21 +514,21 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.allowance_wage_id,
-      TextID: value.allowance_wage_id + "",
+      IntID: value.wage_groups_id,
+      TextID: value.wage_groups_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_allowance_wage/update_s_hrm_ca_allowance_wage",
+        baseURL + "/api/hrm_ca_wage_groups/update_s_hrm_ca_wage_groups",
         data,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái phụ cấp thành công!");
+          toast.success("Sửa trạng thái nhóm mã ngạch thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -556,16 +551,20 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   } else {
     let data1 = {
-      IntID: value.allowance_wage_id,
-      TextID: value.allowance_wage_id + "",
+      IntID: value.wage_groups_id,
+      TextID: value.wage_groups_id + "",
       BitMain: value.is_default,
     };
     axios
-      .put(baseURL + "/api/hrm_ca_allowance_wage/Update_DefaultStamp", data1, config)
+      .put(
+        baseURL + "/api/hrm_ca_wage_groups/Update_DefaultStamp",
+        data1,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái phụ cấp thành công!");
+          toast.success("Sửa trạng thái nhóm mã ngạch thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -594,7 +593,7 @@ const deleteList = () => {
   let checkD = false;
   selectedStamps.value.forEach((item) => {
     if (item.is_default) {
-      toast.error("Không được xóa phụ cấp mặc định!");
+      toast.error("Không được xóa nhóm mã ngạch mặc định!");
       checkD = true;
       return;
     }
@@ -603,7 +602,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá phụ cấp này không!",
+        text: "Bạn có muốn xoá nhóm mã ngạch này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -621,18 +620,22 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.allowance_wage_id);
+            listId.push(item.wage_groups_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_ca_allowance_wage/delete_hrm_ca_allowance_wage", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
+            .delete(
+              baseURL +
+                "/api/hrm_ca_wage_groups/delete_hrm_ca_wage_groups",
+              {
+                headers: { Authorization: `Bearer ${store.getters.token}` },
+                data: listId != null ? listId : 1,
+              }
+            )
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá phụ cấp thành công!");
+                toast.success("Xoá nhóm mã ngạch thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -700,16 +703,7 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
- 
 
-const listAllowAprroved = ref([
-  {
-    name: "Hệ số",
-    code: 1,
-  },
-  { name: "Tỷ lệ phần trăm", code: 2 },
-  { name: "Mức tiền", code: 3 },
-]);
 onMounted(() => {
  
   loadData(true);
@@ -756,14 +750,14 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="allowance_wage_id"
+      dataKey="wage_groups_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-credit-card"></i> Danh sách phụ cấp ({{
+          <i class="pi pi-credit-card"></i> Danh sách nhóm mã ngạch ({{
             options.totalRecords
           }})
         </h3>
@@ -849,7 +843,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm phụ cấp')"
+              @click="openBasic('Thêm nhóm mã ngạch')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -881,8 +875,8 @@ onMounted(() => {
 
       <Column
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:50px;height:50px"
-        bodyStyle="text-align:center;max-width:50px"
+        headerStyle="text-align:center;max-width:70px;height:50px"
+        bodyStyle="text-align:center;max-width:70px"
         selectionMode="multiple"
       >
       </Column>
@@ -893,27 +887,12 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-      
+        :sortable="true"
       ></Column>
+
       <Column
-        field="allowance_wage_code"
-        header="Mã phụ cấp"
-        :sortable="true"        headerClass="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:250px;height:50px"
-        bodyStyle="text-align:center;max-width:250px"
-      >
-        <template #filter="{ filterModel }">
-          <InputText
-            type="text"
-            v-model="filterModel.value"
-            class="p-column-filter"
-            placeholder="Từ khoá"
-          />
-        </template>
-      </Column>
-      <Column
-        field="allowance_wage_name"
-        header="Tên phụ cấp"
+        field="wage_groups_name"
+        header="Tên nhóm mã ngạch"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -927,47 +906,7 @@ onMounted(() => {
           />
         </template>
       </Column>
-      <Column
-        field="organization_id"
-        header="Ngày áp dụng"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <div v-if="data.data.date_approved ">
-            {{
-                  moment(new Date(data.data.date_approved )).format("DD/MM/YYYY")
-                }}
-          </div>
-          <div v-else></div>
-        </template>
-      </Column>
 
-      <Column
-        field="allowance_wage_type_name"
-        header="Loại phụ cấp"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-        
-      </Column>
-      <Column
-        field="status"
-        header="Gia hạn"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <Checkbox
-         
-            :binary="true"
-            v-model="data.data.allowance_wage_extend"
-        
-          /> </template
-      ></Column>
       <Column
         field="status"
         header="Trạng thái"
@@ -1016,8 +955,7 @@ onMounted(() => {
               store.state.user.is_super == true ||
               store.state.user.user_id == Tem.data.created_by ||
               (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id &&
-                Tem.data.is_system != true)
+                store.state.user.organization_id == Tem.data.organization_id && Tem.data.is_system!=true )
             "
           >
             <Button
@@ -1052,7 +990,7 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '40vw' }"
+    :style="{ width: '45vw' }"
     :closable="true"
     :modal="true"
   >
@@ -1060,14 +998,14 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left p-0"
-            >Mã phụ cấp <span class="redsao">(*)</span></label
+            >Nhóm mã ngạch <span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="allowance_wage.allowance_wage_code"
+            v-model="wage_groups.wage_groups_name"
             spellcheck="false"
             class="col-10 ip36 px-2"
             :class="{
-              'p-invalid': v$.allowance_wage_code.$invalid && submitted,
+              'p-invalid': v$.wage_groups_name.$invalid && submitted,
             }"
           />
         </div>
@@ -1075,102 +1013,37 @@ onMounted(() => {
           <div class="col-2 text-left"></div>
           <small
             v-if="
-              (v$.allowance_wage_code.$invalid && submitted) ||
-              v$.allowance_wage_code.$pending.$response
+              (v$.wage_groups_name.$invalid && submitted) ||
+              v$.wage_groups_name.$pending.$response
             "
             class="col-10 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.allowance_wage_code.required.$message
-                .replace("Value", "Mã phụ cấp")
+              v$.wage_groups_name.required.$message
+                .replace("Value", "Tên nhóm mã ngạch")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
-            >Phụ cấp <span class="redsao">(*)</span></label
-          >
-          <InputText
-            v-model="allowance_wage.allowance_wage_name"
-            spellcheck="false"
-            class="col-10 ip36 px-2"
-            :class="{
-              'p-invalid': v$.allowance_wage_name.$invalid && submitted,
-            }"
-          />
-        </div>
-        <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-2 text-left"></div>
-          <small
-            v-if="
-              (v$.allowance_wage_name.$invalid && submitted) ||
-              v$.allowance_wage_name.$pending.$response
-            "
-            class="col-10 p-error"
-          >
-            <span class="col-12 p-0">{{
-              v$.allowance_wage_name.required.$message
-                .replace("Value", "Tên phụ cấp")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
-        </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left p-0">Ngày áp dụng</div>
-            <Calendar
-              :showIcon="true"
-              class="ip36"
-              autocomplete="on"
-              :showOnFocus="false"
-              v-model="allowance_wage.date_approved"
-              placeholder="dd/mm/yyyy"
-            />
-          </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-3 pl-3 p-0">Loại</div>
-            <Dropdown
-              class="col-9 p-0 m-0"
-              v-model=" allowance_wage.allowance_wage_type"
-              :options="listAllowAprroved"
-              optionLabel="name"
-              optionValue="code"
-              placeholder="Chọn loại phụ cấp"
-            />
-          </div>
-        </div>
-        <div class="col-12 field md:col-12 flex">
-          
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left p-0 ">STT</div>
-            <InputNumber v-model="allowance_wage.is_order" class="col-8 ip36 p-0" />
-          </div>
 
-          <div class="field col-6 md:col-6 p-0 align-items-center flex" v-if="allowance_wage.allowance_wage_type==3">
-            <div class="col-3 text-left p-0 pl-3">Mức tiền</div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">STT</div>
             <InputNumber
-              v-model="allowance_wage.allowance_wage_cost"        inputId="locale-german" locale="de-DE" 
-              class="col-9 ip36 p-0"
+              v-model="wage_groups.is_order"
+              class="col-6 ip36 p-0"
             />
           </div>
-        </div>
-        <div class="col-12 field md:col-12 flex">
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 p-0">Trạng thái</div>
-            <InputSwitch class="col-9 p-0" v-model="allowance_wage.status" />
+            <div class="col-6 text-center p-0">Trạng thái</div>
+            <InputSwitch v-model="wage_groups.status" />
           </div>
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 p-0">Gia hạn</div>
-            <InputSwitch v-model="allowance_wage.allowance_wage_extend" />
-          </div>
-
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="allowance_wage.is_system" />
+            <InputSwitch v-model="wage_groups.is_system" />
           </div>
         </div>
       </div>
