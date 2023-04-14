@@ -7,7 +7,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 //Khai báo
-
+const router = inject("router");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -18,6 +18,9 @@ const file_detail = ref();
 const data_log = ref();
 const layout = ref("list");
 const first = ref(0);
+const list_users= ref([]);
+const list_profiles= ref([]);
+const isTopView = ref(false)
 const list_types = ref([
   { img: "/Portals/file/pdf.png", label: "PDF", type: 1 },
   { img: "/Portals/file/png.png", label: "Ảnh", type: 2 },
@@ -79,9 +82,10 @@ const downloadFile = (file)=>{
 }
 const dataDetail = ref();
 const ModalShowFile = ref(false);
+const fileNamDetail = ref('File số hóa');
 const viewFile = (data)=>{
   updateView(data.file_id);
-
+  fileNamDetail.value = data.file_name;
   dataDetail.value = data;
   ModalShowFile.value = true;
 }
@@ -99,10 +103,15 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_file_count",
+            proc: "hrm_file_count1",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: null },
+                { par: "search", va: options.value.search },
+                { par: "type_files", va: type_files.value },
+                { par: "profiles", va: profiles.value },
+                { par: "users", va: users.value },
+                { par: "start_date", va: options.value.start_date },
+                { par: "end_date", va: options.value.end_date },
             ],
           }),
           SecretKey,
@@ -121,32 +130,50 @@ const loadCount = () => {
     .catch((error) => { });
 };
 //Lấy dữ liệu
-const loadData = (rf) => {
-  debugger
+const loadData = (rf, is_filter) => {
+
+  if (options.value.users != null && options.value.users.length > 0) {
+    users.value = options.value.users.map((x) => x["user_id"]).join(",");
+    }
+    else  users.value = null;
+    if (options.value.profiles != null && options.value.profiles.length > 0) {
+      profiles.value = options.value.profiles.map((x) => x["profile_id"]).join(",");
+    } else profiles.value = null;
+    if (options.value.type_files != null && options.value.type_files.length > 0) {
+      type_files.value = options.value.type_files.map((x) => x["type"]).join(",");
+    } else type_files.value = null;
+  if(is_filter) loadTudien();
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
       return false;
     }
     if (rf) {
-      if (options.value.PageNo == 0) {
         loadCount();
-      }
     }
-    options.value.type = filterType.value ? filterType.value.type : null;
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_file_list1",
+              proc: "hrm_file_list2",
               par: [
                 { par: "user_id", va: store.getters.user.user_id },
                 { par: "search", va: options.value.search },
-                { par: "type", va: options.value.type },
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
+                { par: "type_files", va: type_files.value },
+                { par: "profiles", va: profiles.value },
+                { par: "users", va: users.value },
+                { par: "start_date", va: options.value.start_date },
+                { par: "end_date", va: options.value.end_date },
+                { par: "pageNo", va: options.value.PageNo },
+                { par: "pageSize", va: options.value.PageSize },
               ],
             }),
             SecretKey,
@@ -156,9 +183,11 @@ const loadData = (rf) => {
         config
       )
       .then((response) => {
+        swal.close();
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        data.forEach((item, i) => {
+        if(data.length>0){
+          data.forEach((item, i) => {
           item.STT = options.value.PageNo * options.value.PageSize + i + 1;
           item.file_name_grid = item.file_name;
           if (item.file_name.length > 30)
@@ -176,8 +205,20 @@ const loadData = (rf) => {
             ? ""
             : "\nSize: " + item.capacityMB);
         });
-        datalists.value = data;
-
+        if(isfilter.value == true ) isTopView.value = false;
+          if(options.value.PageNo== 0 && data.length>6 && !isfilter.value){
+            datatop.value = data.slice(0,4);
+            datalists.value = data.slice(4);
+            isTopView.value = true;
+          }
+          else{
+            datalists.value = data;
+          } 
+        }
+        else {
+          datalists.value = [];
+          isTopView.value = false;
+        }
         options.value.loading = false;
       })
       .catch((error) => {
@@ -196,6 +237,7 @@ const loadData = (rf) => {
 };
 //Phân trang dữ liệu
 const onPage = (event) => {
+  debugger
   if (event.rows != options.value.PageSize) {
     options.value.PageSize = event.rows;
   }
@@ -225,6 +267,7 @@ const selectedStamps = ref();
 const submitted = ref(false);
 const isSaveTem = ref(false);
 const datalists = ref();
+const datatop = ref();
 const toast = useToast();
 const basedomainURL = baseURL;
 const checkDelList = ref(false);
@@ -241,13 +284,13 @@ const options = ref({
 var dataCol = [];
 const chartDatapie = ref({
   labels: ["Pdf", "Ảnh", "Word, Excel", "Khác"],
-  datasets: [
-    {
-      data: [],
-      backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
-      hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
-    },
-  ],
+  // datasets: [
+  //   {
+  //     data: [],
+  //     backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
+  //     hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+  //   },
+  // ],
 });
 const lightOptions = ref({
   plugins: {
@@ -432,6 +475,7 @@ const updateView = (id) => {
   // .then((response) => {
   // });
 }
+const displayChart = ref(true);
 const loadTudien = () => {
   axios
     .post(
@@ -439,8 +483,16 @@ const loadTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_file_dictionary",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_file_dictionary1",
+            par: [
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "search", va: options.value.search },
+                { par: "type_files", va: type_files.value },
+                { par: "profiles", va: profiles.value },
+                { par: "users", va: users.value },
+                { par: "start_date", va: options.value.start_date },
+                { par: "end_date", va: options.value.end_date },
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -449,32 +501,49 @@ const loadTudien = () => {
       config
     )
     .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (data.length > 0) {
-        dataCol[0] = data.find((x) => x.file_type == "Pdf")
-          ? data.find((x) => x.file_type == "Pdf").count_type
+      let data = JSON.parse(response.data.data);
+      if (data[0].length > 0) {
+        dataCol[0] = data[0].find((x) => x.file_type == "Pdf")
+          ? data[0].find((x) => x.file_type == "Pdf").count_type
           : 0;
-        dataCol[1] = data.find((x) => x.file_type == "Image")
-          ? data.find((x) => x.file_type == "Image").count_type
+        dataCol[1] = data[0].find((x) => x.file_type == "Image")
+          ? data[0].find((x) => x.file_type == "Image").count_type
           : 0;
-        dataCol[2] = data.find((x) => x.file_type == "Word")
-          ? data.find((x) => x.file_type == "Word").count_type
+        dataCol[2] = data[0].find((x) => x.file_type == "Word")
+          ? data[0].find((x) => x.file_type == "Word").count_type
           : 0;
-        dataCol[3] = data.find((x) => x.file_type == "More")
-          ? data.find((x) => x.file_type == "More").count_type
+        dataCol[3] = data[0].find((x) => x.file_type == "More")
+          ? data[0].find((x) => x.file_type == "More").count_type
           : 0;
-        chartDatapie.value.datasets[0].data = dataCol;
+        chartDatapie.value.datasets = [];
+          displayChart.value= true;
+          setTimeout(() => {
+          lightOptions.value.plugins.legend.display = true;
+          chartDatapie.value.datasets.push({
+            data: [],
+            backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
+            hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+          });
+          chartDatapie.value.datasets[0].data = dataCol;
+        }, 100);          
       }
-      let data2 = JSON.parse(response.data.data)[1];
-      if (data.length > 0) {
-        total_file.value = data2[0].total_file;
+      else displayChart.value= false;
+      if (data[1].length > 0) {
+        total_file.value = data[1][0].total_file;
       }
-      let data3 = JSON.parse(response.data.data)[2];
-      if (data.length > 0) {
-        total_size.value = data2[0].total_size;
+      if (data[1].length > 0) {
+        total_size.value = data[1][0].total_size;
+      }
+      if (data[2].length > 0) {
+        list_users.value = data[2];
+      }
+      if (data[3].length > 0) {
+        list_profiles.value = data[3];
       }
     })
-    .catch((error) => { });
+    .catch((error) => { 
+      debugger
+    });
 };
 const first_module = ref(0);
 const filterTrangthai = ref();
@@ -490,14 +559,76 @@ const clearDetail = ()=>{
   isDetail.value = false;
   itemclick.value = null;
 }
+const goProfile = (item) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: generateUUID()},
+    query: { id: item.profile_id_key },
+  });
+};
+const changeView = (item)=>{
+  layout.value = item;
+  options.value.PageNo= 0;
+  if(item == 'grid'){
+    options.value.PageSize= 36;
+  } 
+  else{
+    options.value.PageSize= 20;
+  } 
+  loadData(true, true)
+}
 watch(selectedStamps, () => {
   if(selectedStamps.value){
     goFile(selectedStamps.value);
   }
 });
-const op = ref();
-const toggle = (event) => {
-  op.value.toggle(event);
+// const op = ref();
+// const toggle = (event) => {
+//   op.value.toggle(event);
+// };
+const onRefresh = ()=>{
+   options.value = {
+  IsNext: true,
+  sort: "created_date",
+  search: "",
+  PageNo: 0,
+  PageSize: 20,
+  loading: true,
+  totalRecords: null,
+  type: null,
+  type_files: [],
+  users: [],
+  profiles: [],
+  start_date: null,
+  end_date: null,
+  };
+  layout.value = 'list';
+  isfilter.value = false;
+  loadData(true, true);
+}
+//filter
+const opfilter = ref();
+const isfilter =ref(false)
+const toggleFilter = (event) => {
+  opfilter.value.toggle(event);
+};
+const resetFilter = () => {
+  options.value.type_files = [];
+  options.value.users = [];
+  options.value.profiles = [];
+  options.value.start_date = null;
+  options.value.end_date = null;
+};
+const removeFilter = (idx, array) => {
+  array.splice(idx, 1);
+};
+const users = ref(null);
+const profiles = ref(null);
+const type_files = ref(null);
+const filter = (event) => {
+  opfilter.value.toggle(event);
+  isfilter.value = true;
+  loadData(true, true);
 };
 const formatBytes = (bytes, decimals = 2) => {
   if (bytes === 0) return "0 Bytes";
@@ -510,6 +641,28 @@ const formatBytes = (bytes, decimals = 2) => {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 };
+function generateUUID() {
+  // Public Domain/MIT
+  var d = new Date().getTime(); //Timestamp
+  var d2 =
+    (typeof performance !== "undefined" &&
+      performance.now &&
+      performance.now() * 1000) ||
+    0; //Time in microseconds since page-load or 0 if unsupported
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16; //random number between 0 and 16
+    if (d > 0) {
+      //Use timestamp until depleted
+      r = (d + r) % 16 | 0;
+      d = Math.floor(d / 16);
+    } else {
+      //Use microseconds since page-load if supported
+      r = (d2 + r) % 16 | 0;
+      d2 = Math.floor(d2 / 16);
+    }
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
 onMounted(() => {
   loadData(true);
   loadTudien();
@@ -523,7 +676,436 @@ onMounted(() => {
         <Toolbar class="w-full custoolbar">
             <template #start>
               <div class="header-bar">
-                <div class="flex w-full p-3">
+                <Toolbar class="outline-none surface-0 border-none pb-1 ml-3">
+                <template #start>
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText
+                      @keyup.enter="loadData(true)"
+                      v-model="options.search"
+                      type="text"
+                      spellcheck="false"
+                      :placeholder="'Tìm kiếm'"
+                    />
+                  </span>
+                  <Button
+                    @click="toggleFilter($event)"
+                    type="button"
+                    class="ml-2 p-button-outlined p-button-secondary"
+                    aria:haspopup="true"
+                    aria-controls="overlay_panel"
+                  >
+                    <div>
+                      <span class="mr-2"><i class="pi pi-filter"></i></span>
+                      <span class="mr-2">Lọc dữ liệu</span>
+                      <span><i class="pi pi-chevron-down"></i></span>
+                    </div>
+                  </Button>
+                  <OverlayPanel
+                    :showCloseIcon="false"
+                    ref="opfilter"
+                    appendTo="body"
+                    class="p-0 m-0"
+                    id="overlay_panel"
+                    style="width: 400px"
+                  >
+                  <div class="grid formgrid m-0">
+                    <div
+                      class="col-12 md:col-12 p-0"
+                      :style="{
+                        minHeight: 'unset',
+                        maxheight: 'calc(100vh - 300px)',
+                        overflow: 'auto',
+                      }"
+                    > 
+                    <div class="row">
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label>Loại</label>
+                          <MultiSelect
+                            :options="list_types"
+                            :filter="true"
+                            :showClear="true"
+                            :editable="false"
+                            v-model="options.type_files"
+                            optionLabel="label"
+                            placeholder="Chọn loại"
+                            class="w-full limit-width"
+                            style="min-height: 36px"
+                            panelClass="d-design-dropdown"
+                          >
+                            <template #value="slotProps">
+                              <ul
+                                class="p-ulchip"
+                                v-if="
+                                  slotProps.value && slotProps.value.length > 0
+                                "
+                              >
+                                <li
+                                  class="p-lichip"
+                                  v-for="(value, index) in slotProps.value"
+                                  :key="index"
+                                >
+                                  <Chip class="mr-2 mb-2 px-3 py-2">
+                                    <div class="flex">
+                                      <div>
+                                        <span>{{ value.label }}</span>
+                                      </div>
+                                      <span
+                                        tabindex="0"
+                                        class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                        @click="
+                                          removeFilter(
+                                            index,
+                                            options.type_files
+                                          );
+                                          $event.stopPropagation();
+                                        "
+                                        v-tooltip.top="'Xóa'"
+                                      ></span>
+                                    </div>
+                                  </Chip>
+                                </li>
+                              </ul>
+                              <span v-else>
+                                {{ slotProps.placeholder }}
+                              </span>
+                            </template>
+                          </MultiSelect>
+                        </div>
+                      </div>
+                     <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Nhân sự</label>
+                        <MultiSelect
+                          :options="list_profiles"
+                          v-model="options.profiles"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          optionLabel="profile_user_name"
+                          placeholder="Chọn nhân sự"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip
+                                  :image="value.avatar"
+                                  :label="value.profile_user_name"
+                                  class="mr-2 mb-2 px-3 py-2"
+                                >
+                                  <div class="flex">
+                                    <div class="format-flex-center">
+                                      <Avatar
+                                        v-bind:label="
+                                          value.avatar
+                                            ? ''
+                                            : (
+                                                value.profile_user_name ?? ''
+                                              ).substring(0, 1)
+                                        "
+                                        v-bind:image="
+                                          value.avatar
+                                            ? basedomainURL + value.avatar
+                                            : basedomainURL +
+                                              '/Portals/Image/noimg.jpg'
+                                        "
+                                        :style="{
+                                          background:
+                                            bgColor[value.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '2rem',
+                                          height: '2rem',
+                                        }"
+                                        class="mr-2 text-avatar"
+                                        size="xlarge"
+                                        shape="circle"
+                                      />
+                                    </div>
+                                    <div class="format-flex-center text-left">
+                                      <span>{{ value.profile_user_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.profiles);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                          <template #option="slotProps">
+                            <div v-if="slotProps.option" class="flex">
+                              <div class="format-center">
+                                <Avatar
+                                  v-bind:label="
+                                    slotProps.option.avatar
+                                      ? ''
+                                      : slotProps.option.profile_user_name.substring(
+                                          0,
+                                          1
+                                        )
+                                  "
+                                  v-bind:image="
+                                    slotProps.option.avatar
+                                      ? basedomainURL + slotProps.option.avatar
+                                      : basedomainURL +
+                                        '/Portals/Image/noimg.jpg'
+                                  "
+                                  :style="{
+                                    background:
+                                      bgColor[slotProps.option.is_order % 7],
+                                    color: '#ffffff',
+                                    width: '3rem',
+                                    height: '3rem',
+                                    fontSize: '1.4rem !important',
+                                  }"
+                                  class="text-avatar m-0"
+                                  size="xlarge"
+                                  shape="circle"
+                                />
+                              </div>
+                              <div class="format-center text-left ml-3">
+                                <div>
+                                  <div class="mb-1">
+                                    {{ slotProps.option.profile_user_name }}
+                                  </div>
+                                  <div class="description">
+                                    <div>
+                                      <span>{{
+                                        slotProps.option.profile_code
+                                      }}</span
+                                      ><span
+                                        v-if="slotProps.option.department_name"
+                                      >
+                                        |
+                                        {{
+                                          slotProps.option.department_name
+                                        }}</span
+                                      >
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <span v-else> Chưa có dữ liệu </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Người tạo</label>
+                        <MultiSelect
+                          :options="list_users"
+                          v-model="options.users"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          optionLabel="full_name"
+                          placeholder="Chọn người tạo"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip
+                                  :image="value.avatar"
+                                  :label="value.full_name"
+                                  class="mr-2 mb-2 px-3 py-2"
+                                >
+                                  <div class="flex">
+                                    <div class="format-flex-center">
+                                      <Avatar
+                                        v-bind:label="
+                                          value.avatar
+                                            ? ''
+                                            : (
+                                                value.last_name ?? ''
+                                              ).substring(0, 1)
+                                        "
+                                        v-bind:image="
+                                          value.avatar
+                                            ? basedomainURL + value.avatar
+                                            : basedomainURL +
+                                              '/Portals/Image/noimg.jpg'
+                                        "
+                                        :style="{
+                                          background:
+                                            bgColor[value.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '2rem',
+                                          height: '2rem',
+                                        }"
+                                        class="mr-2 text-avatar"
+                                        size="xlarge"
+                                        shape="circle"
+                                      />
+                                    </div>
+                                    <div class="format-flex-center text-left">
+                                      <span>{{ value.full_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.users);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                          <template #option="slotProps">
+                            <div v-if="slotProps.option" class="flex">
+                              <div class="format-center">
+                                <Avatar
+                                  v-bind:label="
+                                    slotProps.option.avatar
+                                      ? ''
+                                      : slotProps.option.profile_user_name.substring(
+                                          0,
+                                          1
+                                        )
+                                  "
+                                  v-bind:image="
+                                    slotProps.option.avatar
+                                      ? basedomainURL + slotProps.option.avatar
+                                      : basedomainURL +
+                                        '/Portals/Image/noimg.jpg'
+                                  "
+                                  :style="{
+                                    background:
+                                      bgColor[slotProps.option.is_order % 7],
+                                    color: '#ffffff',
+                                    width: '3rem',
+                                    height: '3rem',
+                                    fontSize: '1.4rem !important',
+                                  }"
+                                  class="text-avatar m-0"
+                                  size="xlarge"
+                                  shape="circle"
+                                />
+                              </div>
+                              <div class="format-center text-left ml-3">
+                                <div>
+                                  <div class="mb-1">
+                                    {{ slotProps.option.full_name }}
+                                  </div>
+                                  <div class="description">
+                                    <div>
+                                      <span>{{
+                                        slotProps.option.user_id
+                                      }}</span
+                                      ><span
+                                        v-if="slotProps.option.department_name"
+                                      >
+                                        |
+                                        {{
+                                          slotProps.option.department_name
+                                        }}</span
+                                      >
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <span v-else> Chưa có dữ liệu </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                      <div class="form-group m-0">
+                        <label>Ngày tạo</label>
+                      </div>
+                    </div>
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <Calendar
+                          :showIcon="true"
+                          class="ip36"
+                          autocomplete="on"
+                          inputId="time24"
+                          v-model="options.start_date"
+                          placeholder="Từ ngày"
+                        />
+                      </div>
+                    </div>
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <Calendar
+                          :showIcon="true"
+                          class="ip36"
+                          autocomplete="on"
+                          inputId="time24"
+                          v-model="options.end_date"
+                          placeholder="Đến ngày"
+                        />
+                      </div>
+                    </div>
+                    </div>
+                    <div class="col-12 md:col-12 p-0">
+                      <Toolbar
+                          class="border-none surface-0 outline-none px-0 pb-0 w-full"
+                        >
+                          <template #start>
+                            <Button
+                              @click="resetFilter()"
+                              class="p-button-outlined"
+                              label="Bỏ chọn"
+                            ></Button>
+                          </template>
+                          <template #end>
+                            <Button @click="filter($event)" label="Lọc"></Button>
+                          </template>
+                        </Toolbar>
+                      </div>
+                    </div>
+                    </div>                         
+                  </OverlayPanel>
+                </template>
+                <template #end>
+                </template>
+              </Toolbar>
+                <!-- <div class="flex w-full p-3">
                   <div class="w-15rem mr-2">
                     <Dropdown v-model="filterType" :options="list_types" optionLabel="label" placeholder="Kho dữ liệu"
                       class="w-full" showClear="true" @change="loadData(true)">
@@ -557,45 +1139,89 @@ onMounted(() => {
                       </span>
                     </div>
                   </div>
-                </div>
+                </div> -->
               </div>
             </template>
             <template #end>
                 <!-- <DataViewLayoutOptions v-model="layout" /> -->
                 <div class="p-dataview-layout-options p-selectbutton p-buttonset">
-                  <button class="p-button p-button-icon-only" :class="layout== 'list'?'p-highlight':''" type="button" @click="changeView(layout = 'list')">
+                  <button class="p-button p-button-icon-only" :class="layout== 'list'?'p-highlight':''" type="button" @click="changeView('list')">
                     <i class="pi pi-bars"></i>
                   </button>
-                  <button class="p-button p-button-icon-only" :class="layout== 'grid'?'p-highlight':''"  type="button" @click="changeView(layout = 'grid')">
+                  <button class="p-button p-button-icon-only" :class="layout== 'grid'?'p-highlight':''"  type="button" @click="changeView('grid')">
                     <i class="pi pi-th-large"></i>
                   </button>
-                  <!-- <Button
-                  class="p-button-outlined p-button-secondary"
-                  icon="pi pi-bars"
-                  @click="onRefresh"
-                   />
-                  <Button
-                    class="p-button-outlined p-button-secondary"
-                    icon="pi pi-th-large"
-                    @click="onRefresh"
-                  /> -->
                 </div>
                 <Button
                   class="mr-2 ml-2 p-button-outlined p-button-secondary"
                   icon="pi pi-refresh"
-                  @click="onRefresh"
+                  @click="onRefresh()"
                 />
               </template>
           </Toolbar>
+          <div class="w-full" v-if="isTopView">
+            <h3 class="ml-3 my-2">Gần đây</h3>
+            <div class="flex">
+              <div v-for="(item, index) in datatop" :key="index" class="col-3" >
+               <div  @click="goFile(item)"
+                  @mouseover="hoverItem(item.file_id)"
+                  @mouseleave="leaveItem()"
+                  v-on:dblclick="viewFile(item)"
+                  :title="item.labelContext"
+                class="m-2 p-2 cursor-pointer item-top-hover relative" style="background-color:#f1f6fc;border-radius: 15px;height: 95%;">
+                <Button
+                    v-show="item.file_id == item_hover"
+                    icon="pi pi-ellipsis-h"
+                    class="p-button-rounded p-button-text absolute btn-more"
+                    @click="toggleMores($event, item)"
+                    aria-haspopup="true"
+                    style="top:6px !important"
+                    aria-controls="overlay_More"
+                  />
+                <div class="format-center text-1line my-2 mr-4" style="">{{item.file_name }}</div>
+                <div class="item-content">
+                  <div class="mx-2 bg-white py-2">
+                        <Image
+                          v-if="item.is_image"
+                          height="110"
+                          class="w-full cursor-pointer"
+                          v-bind:src="
+                            item.file_path
+                              ? basedomainURL + item.file_path
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                        />
+                        <img
+                          v-else
+                          class="w-full cursor-pointer"
+                          style="height: 110px; object-fit: contain"
+                          v-bind:src="
+                            basedomainURL +
+                            '/Portals/file/' +
+                            item.file_type.replace('.','') +
+                            '.png'
+                          "
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                        />
+                      </div>
+                </div>
+              </div>
+              </div>
+            </div>
+          </div>
           <DataTable
           v-if="layout== 'list'"
           class="w-full p-datatable-sm e-sm cursor-pointer"
           :value="datalists"
+          :class="isTopView?'over-scroll-list':'over-scroll'"
           v-model:filters="filters"
           :showGridlines="true"
           filterMode="lenient"
-          :paginator="datalists && datalists.length > 20"
-          :rows="20"
+          :paginator="'true'"
+          :rows="options.PageSize"
           filterDisplay="menu"
           selectionMode="single"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
@@ -604,22 +1230,14 @@ onMounted(() => {
           scrollHeight="flex"
           responsiveLayout="scroll"
           v-model:selection="selectedStamps"
+          pageLinkSize="4"
           :globalFilterFields="[
             'file_name'
           ]"
           v-model:first="first_module"
+          v-on:dblclick="viewFile(selectedStamps)"
+          @page="onPage($event)"
         >
-        <!-- <DataView
-          class=""
-          :value="datalists"
-          :layout="layout"
-          paginator="false"
-          :rows="layout == 'grid' ? '36' : '10'"
-          responsiveLayout="scroll"
-          :scrollable="false"
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          v-model:first="first"
-        > -->
 
           <Column field="file_type" class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
@@ -647,11 +1265,17 @@ onMounted(() => {
           <Column field="profile_name" header="Nhân sự"
             headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px"
             bodyStyle="text-align:center;max-width:200px;min-width:150px;"
-            class="align-items-center justify-content-center text-center"></Column>
-          <Column field="created_date" header="Ngày/ Người tạo"
-            headerStyle="text-align:center;max-width:200px;min-width:200px;height:50px"
-            bodyStyle="text-align:center;max-width:200px;min-width:200px;;max-height:60px"
             class="align-items-center justify-content-center text-center">
+            <template #body="slotProps">
+            <b @click="goProfile(slotProps.data)" class="hover">{{
+              slotProps.data.profile_name
+            }}</b>
+          </template>
+          </Column>
+          <Column field="created_date" header="Ngày/ Người tạo"
+            headerStyle="text-align:left;max-width:170px;min-width:170px;height:50px"
+            bodyStyle="text-align:left;max-width:170px;min-width:170px;;max-height:60px"
+            class="">
             <template #body="slotProps">
               <span class="mr-2">{{
                 moment(new Date(slotProps.data.created_date)).format(
@@ -667,13 +1291,7 @@ onMounted(() => {
                   slotProps.data.avatar
                     ? basedomainURL + slotProps.data.avatar
                     : basedomainURL + '/Portals/Image/noimg.jpg'
-                " style="
-                      background-color: #2196f3;
-                      color: #ffffff;
-                      width: 2rem;
-                      height: 2rem;
-                      font-size: 1rem !important;
-                    " :style="{
+                " style="background-color: #2196f3;color: #ffffff;width: 2rem;height: 2rem;font-size: 1rem !important;" :style="{
                       background: bgColor[slotProps.data.is_order % 7],
                     }" class="text-avatar" size="xlarge" shape="circle" v-tooltip.top="slotProps.data.full_name" />
               </div>
@@ -707,18 +1325,18 @@ onMounted(() => {
           </template>
           </DataTable>
           <div
+          v-if="layout== 'grid'"
             class="col-12 p-0 overflow-y-auto grid-9"
-            style="height: calc(100vh - 115px)"
           >
           <div class="header-top">
             <span class="font-bold flex ml-5 text-lg">Danh sách files</span>
           </div>
           <DataView
-            v-if="layout== 'grid'"
             class="w-full h-full e-sm flex flex-column p-dataview-unset"
             :value="datalists"
+            :class="isTopView?'over-scroll-grid':'over-scroll-grid-notop'"
             :layout="layout"
-            :paginator="datalists.length > 20"
+            :paginator="'true'"
             rows="36"
             responsiveLayout="scroll"
             :scrollable="false"
@@ -733,6 +1351,7 @@ onMounted(() => {
                   @click="goFile(slotProps.data)"
                   @mouseover="hoverItem(slotProps.data.file_id)"
                   @mouseleave="leaveItem()"
+                  v-on:dblclick="viewFile(slotProps.data)"
                 >
                  <Button
                     v-show="slotProps.data.file_id == item_hover"
@@ -751,7 +1370,7 @@ onMounted(() => {
                           height="110"
                           class="w-full cursor-pointer"
                           v-bind:src="
-                            slotProps.data.is_filepath
+                            slotProps.data.file_path
                               ? basedomainURL + slotProps.data.file_path
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
@@ -777,7 +1396,6 @@ onMounted(() => {
                       <div
                         class="
                           format-center
-                          font-semibold
                           mx-2
                           text-3line text-title
                           my-2
@@ -808,12 +1426,12 @@ onMounted(() => {
       <div style="width: 320px !important; border-left: 1px solid rgba(0, 0, 0, 0.1);overflow: hidden;">
         <div v-if="!isDetail">
           <div class="header-bar w-full format-center" style="border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
-            <h3>Kho số hóa: {{ total_file }} files</h3>
+            <h3>Kho số hóa: {{ total_file || 0}} files</h3>
           </div>
-          <div class="body-right format-center">
+          <div class="body-right format-center" v-if="displayChart">
             <Chart type="pie" style="width: 90% !important" :data="chartDatapie" :options="lightOptions" />
           </div>
-          <div class=" format-center w-full ">
+          <div class=" format-center w-full" v-if="displayChart">
             <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
           </div>
         </div>
@@ -852,11 +1470,11 @@ onMounted(() => {
           <div class="field col-12 flex">
             <div class="col-3 p-0 flex" style="align-items:center">Vị trí hồ sơ: </div>
             <div class="col-9 p-0 text-bold">
-              {{ file_detail.is_type == 0 ? 'Hồ sơ' : file_detail.is_type == 1 ? 'Hợp đồng' : file_detail.is_type == 2 ? 'Đào tạo':''}}
+              {{ file_detail.type_name}}
             </div>
           </div>
           <div class="field col-12 font-bold text-lg pl-0 pb-3">Thông tin truy cập</div>
-          <div class="scroll">
+          <div class="scroll-right">
             <div v-for="(item, index) in data_log" :key="index" class="flex mb-3"
               :style="(index == data_log.length - 1) ? '' : 'border-bottom:2px solid #eee'">
               <div class="log-image">
@@ -873,7 +1491,7 @@ onMounted(() => {
                             background: bgColor[index % 7],
                           }" class="mr-2" size="xlarge" shape="circle" />
                   </div>
-                  <span class="sign-date description">{{ item.position_name }} </span>
+                  <span class="sign-date description" v-if="item.position_name">{{ item.position_name }} </span>
                 </div>
               </div>
               <div class="log-detail">
@@ -894,7 +1512,7 @@ onMounted(() => {
   </div>
   <Dialog
     v-model:visible="ModalShowFile"
-    header="Chi tiết"
+    :header="fileNamDetail"
     :modal="true"
     :closable="true"
     :style="{ width: '70vw' }"
@@ -964,6 +1582,8 @@ onMounted(() => {
 </template>
     
 <style scoped>
+  @import url(../profile/component/stylehrm.css);
+
   .header-top{
     height:50px; 
     border-top: 1px solid #e9ecef!important;
@@ -974,6 +1594,9 @@ onMounted(() => {
   }
 .item-hover:hover{
   background-color: #f0f8ff!important;
+}
+.item-top-hover:hover{
+  background-color: #cce9ff!important;
 }
 .item-click{
   background-color: #cce9ff!important;
@@ -987,12 +1610,14 @@ onMounted(() => {
   width: 22px !important;
   height:22px !important;
 }
-.scroll {
+.scroll-right {
   overflow: auto;
-  max-height: calc(100vh - 408px);
-  min-height: calc(100vh - 408px);
+  max-height: calc(100vh - 350px);
+  min-height: calc(100vh - 350px);
 }
-
+.hover:hover {
+  color: #0078d4;
+}
 .text-bold {
   color: #000000;
 }
@@ -1000,27 +1625,47 @@ onMounted(() => {
 .header-bar {
   background-color: #fff !important;
   height: 57px !important;
+  display:flex;
 }
 
 .body-content {
   background: #fff;
-  min-height: calc(100vh - 70px);
-  max-height: calc(100vh - 70px);
+}
+.over-scroll{
+  min-height: calc(100vh - 150px);
+  max-height: calc(100vh - 150px);
   overflow: auto;
 }
-
-.icon-modules {
-  width: 16px;
-  height: 16px;
+.over-scroll-list{
+  min-height: calc(100vh - 360px);
+  max-height: calc(100vh - 360px);
+  overflow: auto;
 }
-
+.over-scroll-grid{
+  min-height: calc(100vh - 390px);
+  max-height: calc(100vh - 390px);
+  overflow: auto;
+}
+.over-scroll-grid-notop{
+  min-height: calc(100vh - 200px);
+  max-height: calc(100vh - 200px);
+  overflow: auto;
+}
+.text-1line {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  column-gap: initial;
+  -webkit-line-clamp: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
 .field {
   margin-bottom: 0.75rem;
 }
 
 .log-image {
-  max-width: 90px;
-  min-width: 90px;
+  max-width: 50px;
+  min-width: 50px;
   position: relative;
 }
 
@@ -1066,17 +1711,24 @@ onMounted(() => {
 <style lang="scss" scoped>
 ::v-deep(.p-datatable-wrapper) {
 
-  th,
-  td {
+  th {
     height: 50px;
     border: none !important;
     border-top: 1px solid #e9ecef !important;
     border-bottom: 1px solid #e9ecef !important;
-  }
-
-  th {
     background: #fff !important;
   }
+}
+
+::v-deep(.p-selectable-row) {
+
+  td {
+  height: 50px;
+  border: none !important;
+  border-top: 1px solid #e9ecef !important;
+  border-bottom: 1px solid #e9ecef !important;
+}
+
 }
 ::v-deep(.p-datatable-header) {
   padding: 0px !important;
@@ -1137,6 +1789,21 @@ onMounted(() => {
 ::v-deep(.p-dataview-content) {
   .grid {
     display: grid !important;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label,
+  .p-treeselect .p-treeselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-chip img {
+    margin: 0;
+  }
+  .p-avatar-text {
+    font-size: 1rem;
   }
 }
 </style>

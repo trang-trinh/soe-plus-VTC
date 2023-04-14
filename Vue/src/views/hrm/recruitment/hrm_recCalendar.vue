@@ -125,6 +125,17 @@ const loadData = (rf) => {
       if(element.listUserRecs){
         element.listUserRecs=JSON.parse(element.listUserRecs) ;
       }
+
+      if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+          }
         });
 
         datalists.value = data;
@@ -1432,15 +1443,23 @@ onMounted(() => {
                               item.full_name.lastIndexOf(' ') + 1,
                               item.full_name.lastIndexOf(' ') + 2
                             )
-                      "   style="color:#fff"
+                      "   
                       :key="index"
+                      style="
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      width: 3rem;
+                      height: 3rem;
+                      font-size: 1rem !important;
+                    "
+                   
                       :style="
                         item.avatar
                           ? 'background-color: #2196f3'
                           : 'background:' + bgColor[item.full_name.length % 7]
                       "
                       :image="basedomainURL + item.avatar"
-                      class="w-3rem h-3rem text-lg"
+                  
                       shape="circle"
 
                       v-tooltip.top="item.full_name"
@@ -1498,12 +1517,18 @@ onMounted(() => {
                       font-size: 1rem !important;
                     "
                     :style="{
-                      background: bgColor[slotProps.data.created_name % 7],
+                      background: bgColor[slotProps.data.created_name.length % 7],
                     }"
                     class="text-avatar"
                     size="xlarge"
                     shape="circle"
-                    v-tooltip.top="slotProps.data.created_name"
+                    v-tooltip.top="{
+                      value:
+                        slotProps.data.full_name +
+                        slotProps.data.position_name +
+                        slotProps.data.department_name,
+                      escape: true,
+                    }"
                   />
                 </div>
               </template>

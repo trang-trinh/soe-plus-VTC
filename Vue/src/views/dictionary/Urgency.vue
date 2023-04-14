@@ -188,12 +188,15 @@ const openBasic = (str) => {
     urgency_name: "",
     is_order: sttField.value,
     status: true,
+    organization_id:
+      store.state.user.is_super == true
+        ? store.state.user.organization_parent_id != null
+          ? store.state.user.organization_parent_id
+          : store.state.user.organization_id
+        : store.state.user.organization_id,
+    is_system: store.state.user.is_super == true ? true : false,
   };
-  if (store.state.user.is_super == true) {
-    urgency.value.organization_id = 0;
-  } else {
-    urgency.value.organization_id = store.state.user.organization_id;
-  }
+
   issaveField.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
@@ -205,7 +208,6 @@ const closeDialog = () => {
     status: true,
   };
   displayBasic.value = false;
-  loadData(true);
 };
 
 //Thêm bản ghi
@@ -268,15 +270,10 @@ const sttField = ref();
 //Sửa bản ghi
 const editField = (dataPlace) => {
   submitted.value = false;
-  urgency.value = dataPlace;
+  urgency.value = JSON.parse(JSON.stringify(dataPlace));
   headerDialog.value = "Sửa độ khẩn";
   issaveField.value = true;
   displayBasic.value = true;
-  if (store.state.user.is_super == true) {
-    urgency.value.organization_id = 0;
-  } else {
-    urgency.value.organization_id = store.state.user.organization_id;
-  }
 };
 //Xóa bản ghi
 const delField = (Field) => {
@@ -543,7 +540,9 @@ const onCheckBox = (value) => {
   if (
     store.state.user.is_super == true ||
     store.state.user.user_id == value.created_by ||
-    store.state.user.role_id == "admin"
+    (store.state.user.is_admin &&
+      value.is_system != true &&
+      store.state.user.organization_id == value.organization_id)
   ) {
     axios
       .put(baseURL + "/api/ca_urgency/Update_Urgency_Status", data, config)
@@ -574,7 +573,12 @@ const onCheckBox = (value) => {
   } else {
     swal.fire({
       title: "Thông báo!",
-      text: "Bạn không có quyền chỉnh sửa! Chỉ có Quản trị viên đơn vị hoặc Quản trị viên hệ thống mới có quyền chỉnh sửa mục này",
+      text:
+        "Bạn không có quyền chỉnh sửa! Chỉ có " +
+        (value.is_system
+          ? "Quản trị viên hệ thống"
+          : "Quản trị viên đơn vị hoặc Quản trị viên hệ thống") +
+        " mới có quyền chỉnh sửa mục này",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -714,7 +718,10 @@ const loadDonvi = () => {
       baseURL + "/api/DictionaryProc/getData",
       {
         str: encr(
-          JSON.stringify({ proc: "sys_org_list" }),
+          JSON.stringify({
+            proc: "sys_organization_list_dictionary",
+            par: [{ par: "user_id", va: store.state.user.user_id }],
+          }),
           SecretKey,
           cryoptojs,
         ).toString(),
@@ -835,22 +842,7 @@ const item = "/Portals/Mau Excel/Mẫu Excel Độ khẩn.xlsx";
 
 onMounted(() => {
   loadData(true);
-  return {
-    datalists,
-    options,
-    onPage,
-    loadData,
-    loadCount,
-    openBasic,
-    closeDialog,
-    basedomainURL,
-    saveField,
-    isFirst,
-    searchFields,
-    onCheckBox,
-    selectedFields,
-    deleteList,
-  };
+  return {};
 });
 </script>
 <template>
@@ -912,28 +904,18 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                :style="
-                  store.state.user.is_super == 1 ? 'width:40vw' : 'width:300px'
-                "
+                :style="'width:400px'"
               >
                 <div class="grid formgrid m-0">
                   <div class="flex field col-12 p-0">
                     <div
-                      :class="
-                        store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 p-0'
-                          : 'col-4 text-left pt-2 p-0'
-                      "
+                      :class="'col-4 text-left pt-2 p-0'"
                       style="text-align: left"
                     >
                       Phân loại
                     </div>
 
-                    <div
-                      :class="
-                        store.state.user.is_super == 1 ? 'col-10' : 'col-8'
-                      "
-                    >
+                    <div :class="'col-8'">
                       <TreeSelect
                         v-model="filterPhanloai"
                         :options="treedonvis"
@@ -942,6 +924,7 @@ onMounted(() => {
                         placeholder="Chọn đơn vị"
                         class="col-12 p-0 m-0 md:col-12"
                         v-if="store.state.user.is_super == 1"
+                        panelClass="d-design-dropdown"
                       />
 
                       <Dropdown
@@ -958,20 +941,12 @@ onMounted(() => {
 
                   <div class="flex field col-12 p-0">
                     <div
-                      :class="
-                        store.state.user.is_super == 1
-                          ? 'col-2 text-left pt-2 p-0'
-                          : 'col-4 text-left pt-2 p-0'
-                      "
+                      :class="'col-4 text-left pt-2 p-0'"
                       style="text-align: center,justify-content:center"
                     >
                       Trạng thái
                     </div>
-                    <div
-                      :class="
-                        store.state.user.is_super == 1 ? 'col-10' : 'col-8'
-                      "
-                    >
+                    <div :class="'col-8'">
                       <Dropdown
                         class="col-12 p-0 m-0"
                         v-model="filterTrangthai"
@@ -1046,18 +1021,14 @@ onMounted(() => {
 
       <Column
         selectionMode="multiple"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-3rem"
         v-if="store.state.user.is_super == true"
       ></Column>
       <Column
         field="STT"
         header="STT"
         :sortable="true"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:75px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-4rem"
       >
       </Column>
 
@@ -1065,17 +1036,14 @@ onMounted(() => {
         field="urgency_name"
         header="Độ khẩn"
         :sortable="true"
-        headerStyle="height:50px"
-        bodyStyle="max-height:60px"
+        headerClass="align-items-centers justify-content-center text-center"
       >
       </Column>
 
       <Column
         field="status"
         header="Trạng thái"
-        headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
           <Checkbox
@@ -1088,32 +1056,33 @@ onMounted(() => {
       <Column
         field="organization_id"
         header="Hệ thống"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-8rem"
       >
         <template #body="data">
-          <div v-if="data.data.organization_id == 0">
+          <div v-if="data.data.is_system">
             <i
               class="pi pi-check text-blue-400"
               style="font-size: 1.5rem"
             ></i>
           </div>
           <div v-else></div>
-        </template>
-      </Column>
+        </template> </Column
+      ><Column
+        field="organization_name"
+        header="Đơn vị"
+        class="align-items-center justify-content-center text-center max-w-20rem"
+      ></Column>
       <Column
         header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        class="align-items-center justify-content-center text-center max-w-10rem"
       >
         <template #body="data">
           <div
             v-if="
               store.state.user.is_super == true ||
               store.state.user.user_id == data.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
+              (store.state.user.is_admin &&
+                data.data.is_system != true &&
                 store.state.user.organization_id == data.data.organization_id)
             "
           >
@@ -1197,10 +1166,20 @@ onMounted(() => {
                   class="col-6 p-0 ip36"
                 />
               </div>
-              <div class="col-6 flex p-0">
+              <div class="col-3 flex p-0">
                 <div class="pb-2 col-6 p-0 line-height-4 px-2">Trạng thái</div>
                 <InputSwitch
                   v-model="urgency.status"
+                  class="p-0 ip36"
+                />
+              </div>
+              <div
+                class="col-3 flex p-0"
+                v-if="store.state.user.is_super"
+              >
+                <div class="pb-2 col-6 p-0 line-height-4 px-2">Hệ thống</div>
+                <InputSwitch
+                  v-model="urgency.is_system"
                   class="p-0 ip36"
                 />
               </div>
@@ -1268,14 +1247,3 @@ onMounted(() => {
 </template>
 
 <style scoped></style>
-<style>
-.p-treeselect-panel {
-  max-width: 30vw !important;
-}
-.p-treeselect-panel .p-treeselect-items-wrapper .p-tree {
-  max-height: 17vh !important;
-}
-.p-dropdown-item {
-  white-space: normal !important;
-}
-</style>

@@ -547,7 +547,8 @@ onMounted(() => {
  
 
 .check-scroll {
-  max-height: 45rem;
+  max-height: 41rem;
+ 
   overflow: scroll
 }
 

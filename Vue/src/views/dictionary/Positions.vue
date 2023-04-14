@@ -148,7 +148,7 @@ const loadData = (rf) => {
         }
       });
   }
-  if (store.state.user.is_super == 1) {
+  if (store.state.user.is_super == true) {
     loadDonvi();
   }
 };
@@ -204,7 +204,12 @@ const openBasic = (str) => {
     position_name: "",
     is_order: sttPosition.value,
     status: true,
-    organization_id: store.state.user.organization_id,
+    organization_id:
+      store.state.user.is_super == true
+        ? store.state.user.organization_parent_id != null
+          ? store.state.user.organization_parent_id
+          : store.state.user.organization_id
+        : store.state.user.organization_id,
     is_system: store.state.user.is_super == true ? true : false,
   };
 
@@ -407,20 +412,27 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
-  if (filterPhanloai.value == undefined) {
-    options.value.filter_Org = 1;
-  } else if (filterPhanloai.value == 0) {
-    options.value.filter_Org = 3; //list hệ thống
-  } else options.value.filter_Org = 2; // list đơn vị
+  if (store.state.user.is_super == true) {
+    if (
+      filterPhanloai.value == undefined ||
+      Object.keys(filterPhanloai.value)[0] == undefined
+    ) {
+      options.value.filter_Org = 1;
+    } else if (Object.keys(filterPhanloai.value)[0] == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  } else {
+    if (filterPhanloai.value == undefined) {
+      options.value.filter_Org = 1;
+    } else if (filterPhanloai.value == 0) {
+      options.value.filter_Org = 3; //list hệ thống
+    } else options.value.filter_Org = 2; // list đơn vị
+  }
   filterTrangthai.value =
     filterTrangthai.value != null
       ? filterTrangthai.value == 1
         ? true
         : false
-      : null;
-  filterPhanloai.value =
-    filterPhanloai.value != null && filterPhanloai.value != ""
-      ? filterPhanloai.value
       : null;
   swal.fire({
     width: 110,
@@ -428,6 +440,7 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
+
   axios
     .post(
       baseURL + "/api/Excel/ExportExcel",
@@ -438,7 +451,13 @@ const exportData = (method) => {
           { par: "search", va: options.value.SearchText },
           { par: "status", va: filterTrangthai.value },
           { par: "user_id", va: store.state.user.user_id },
-          { par: "s_org", va: filterPhanloai.value },
+          {
+            par: "s_org",
+            va:
+              filterPhanloai.value != null
+                ? Object.keys(filterPhanloai.value)[0]
+                : null,
+          },
           { par: "filter_Org", va: options.value.filter_Org },
         ],
       },
@@ -970,6 +989,7 @@ onMounted(() => {
                       v-if="store.state.user.is_super == 1"
                       panelClass="d-design-dropdown"
                     />
+
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterPhanloai"

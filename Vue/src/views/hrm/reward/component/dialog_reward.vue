@@ -333,7 +333,7 @@ const initTudien = () => {
     })
     .catch((error) => {});
 
-    listRewardLevel.value = [];
+  listRewardLevel.value = [];
   listDisciplineTitle.value = [];
   listDisciplineLevel.value = [];
   listRewardTitle.value = [];
@@ -349,7 +349,7 @@ const initTudien = () => {
               { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: true },
-              { par: "reward_type", va: 1 },
+              { par: "reward_type", va: null },
             ],
           }),
           SecretKey,
@@ -363,19 +363,18 @@ const initTudien = () => {
 
       data.forEach((element) => {
         if (element.reward_type == 1) {
-      
           listRewardLevel.value.push({
-          name: element.reward_level_name,
-          code: element.reward_level_id,
-        });
+            name: element.reward_level_name,
+            code: element.reward_level_id,
+          });
         } else if (element.reward_type == 2) {
-        
           listDisciplineLevel.value.push({
-          name: element.reward_level_name,
-          code: element.reward_level_id,
-        });
+            name: element.reward_level_name,
+            code: element.reward_level_id,
+          });
         }
       });
+      
     })
     .catch((error) => {
       console.log(error);
@@ -560,7 +559,7 @@ const loadUserProfiles = () => {
           department_id: element.department_id,
           work_position_name: element.work_position_name,
           position_name: element.position_name,
-
+          profile_code: element.profile_code,
           organization_id: element.organization_id,
         });
       });
@@ -618,13 +617,11 @@ const onChangeSwType2 = () => {
   }
 };
 onMounted(() => {
- 
-if(props.checkadd){
-reward.value = props.reward;
-  listFilesS.value = [];
-}
-else{
-  axios
+  if (props.checkadd) {
+    reward.value = props.reward;
+    listFilesS.value = [];
+  } else {
+    axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
         {
@@ -634,7 +631,7 @@ else{
               par: [
                 {
                   par: "reward_id",
-                  va:props.reward.reward_id,
+                  va: props.reward.reward_id,
                 },
               ],
             }),
@@ -649,35 +646,29 @@ else{
         let data1 = JSON.parse(response.data.data)[1];
         if (data) {
           reward.value = data[0];
- if(reward.value.reward_type==1||reward.value.reward_type==3 ){
-  reward.value.reward_name_fake1= reward.value.reward_name.split(",");
-  reward.value.reward_name_fake2=null;
- }else{
+          if (reward.value.reward_type == 1 || reward.value.reward_type == 3) {
+            reward.value.reward_name_fake1 =
+              reward.value.reward_name.split(",");
+            reward.value.reward_name_fake2 = null;
+          } else {
+            reward.value.reward_name_fake2 = {};
+            reward.value.reward_name.split(",").forEach((element) => {
+              reward.value.reward_name_fake2[element] = true;
+            });
+          }
 
-  reward.value.reward_name_fake2={};
-  reward.value.reward_name.split(",").forEach(element => {
-    reward.value.reward_name_fake2[element]=true;
-  });
-
- }
- 
           if (reward.value.decision_date)
             reward.value.decision_date = new Date(reward.value.decision_date);
           if (reward.value.effective_date)
             reward.value.effective_date = new Date(reward.value.effective_date);
- 
         }
- 
+
         if (data1) {
           listFilesS.value = data1;
         }
-      
       })
       .catch((error) => {});
-}
-
-
-
+  }
 
   initTudien();
 
@@ -737,7 +728,7 @@ else{
           <div class="col-2 p-0"></div>
         </div>
         <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6   p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">
               Số quyết định <span class="redsao pl-1"> (*)</span>
             </div>
@@ -747,7 +738,7 @@ else{
                 v-model="reward.reward_number"
                 :class="{
                   'p-invalid': reward.reward_number == null && submitted,
-                }"
+                }"   :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
               />
             </div>
           </div>
@@ -811,64 +802,61 @@ else{
                     :filter="true"
                   >
                     <template #option="slotProps">
-                      <div class="country-item flex align-items-center w-full">
-                        <div class="grid w-full p-0">
-                          <div
-                            class="field p-0 col-12 flex m-0 cursor-pointer align-items-center"
-                          >
-                            <div class="w-1rem mx-2 p-0 align-items-center">
-                              <Avatar
-                                style="color: #fff; width: 2rem; height: 2rem"
-                                v-bind:label="
-                                  slotProps.option.avatar
-                                    ? ''
-                                    : slotProps.option.profile_user_name.substring(
-                                        slotProps.option.profile_user_name.lastIndexOf(
-                                          ' '
-                                        ) + 1,
-                                        slotProps.option.profile_user_name.lastIndexOf(
-                                          ' '
-                                        ) + 2
-                                      )
-                                "
-                                :image="basedomainURL + slotProps.option.avatar"
-                                size="xlarge"
-                                :style="
-                                  slotProps.option.avatar
-                                    ? 'background-color: #2196f3'
-                                    : 'background:' +
-                                      bgColor[
-                                        slotProps.option.profile_user_name
-                                          .length % 7
-                                      ]
-                                "
-                                shape="circle"
-                                @error="
-                                  $event.target.src =
-                                    basedomainURL + '/Portals/Image/nouser1.png'
-                                "
-                              />
+                      <div v-if="slotProps.option" class="flex">
+                        <div class="format-center">
+                          <Avatar
+                            v-bind:label="
+                              slotProps.option.avatar
+                                ? ''
+                                : slotProps.option.profile_user_name.substring(
+                                    0,
+                                    1
+                                  )
+                            "
+                            v-bind:image="
+                              slotProps.option.avatar
+                                ? basedomainURL + slotProps.option.avatar
+                                : basedomainURL + '/Portals/Image/noimg.jpg'
+                            "
+                            style="
+                              color: #ffffff;
+                              width: 3rem;
+                              height: 3rem;
+                              font-size: 1.4rem !important;
+                            "
+                            :style="{
+                              background:
+                                bgColor[
+                                  slotProps.option.profile_user_name.length % 7
+                                ],
+                            }"
+                            size="xlarge"
+                            shape="circle"
+                          />
+                        </div>
+                        <div class="format-center text-left ml-3">
+                          <div>
+                            <div class="mb-1 font-bold">
+                              {{ slotProps.option.profile_user_name }}
                             </div>
-                            <div
-                              style="width: calc(100% - 1rem)"
-                              class="p-0 ml-3 align-items-center"
-                            >
-                              <div class="pt-2">
-                                <div class="font-bold">
-                                  {{ slotProps.option.profile_user_name }}
-                                </div>
-                                <div
-                                  class="flex w-full text-sm   text-500"
+                            <div class="description">
+                              <div>
+                                <span v-if="slotProps.option.position_name">{{
+                                  slotProps.option.position_name
+                                }}</span>
+                                <span v-else>{{
+                                  slotProps.option.profile_code
+                                }}</span>
+
+                                <span v-if="slotProps.option.department_name">
+                                  | {{ slotProps.option.department_name }}</span
                                 >
-                                  <div>
-                                    {{ slotProps.option.position_name }}
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
+                      <span v-else> Chưa có dữ liệu </span>
                     </template>
                   </MultiSelect>
                 </div>
@@ -1088,7 +1076,7 @@ else{
 
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem  ">Ngày hiệu lực</div>
+            <div class="w-10rem">Ngày hiệu lực</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
@@ -1101,20 +1089,20 @@ else{
             </div>
           </div>
           <div
-          class="col-6   p-0 flex text-left align-items-center"
-          v-if="reward.reward_type != 3"
-        >
-          <div class="w-10rem pl-3">Giá trị</div>
-          <div style="width: calc(100% - 10rem)">
-            <InputNumber
-              class="w-full"
-              v-model="reward.reward_cost"
-              suffix=" VNĐ"
-            />
+            class="col-6 p-0 flex text-left align-items-center"
+            v-if="reward.reward_type != 3"
+          >
+            <div class="w-10rem pl-3">Giá trị</div>
+            <div style="width: calc(100% - 10rem)">
+              <InputNumber
+                class="w-full"
+                v-model="reward.reward_cost"
+                inputId="locale-german" locale="de-DE"  
+              />
+            </div>
           </div>
         </div>
-        </div>
-       
+
         <div class="col-12 field p-0 flex text-left align-items-center">
           <div class="w-10rem">Nội dung</div>
           <div style="width: calc(100% - 10rem)">
@@ -1165,8 +1153,109 @@ else{
             </template>
           </FileUpload>
 
-          <div class="col-12 p-0">
-            <div
+          <div class="col-12 p-0" v-if="listFilesS.length>0">
+            <DataTable
+            :value="listFilesS"
+            filterDisplay="menu"
+            filterMode="lenient"
+            scrollHeight="flex"
+            :showGridlines="true"
+            :paginator="false"
+            :row-hover="true"
+            columnResizeMode="fit"
+          >
+            <Column field="code" header="  File đính kèm">
+              <template #body="item">
+                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
+                  <div class="w-full flex align-items-center">
+                    <div class="flex w-full text-900">
+                      <div
+                        v-if="item.data.is_image"
+                        class="align-items-center flex"
+                      >
+                        <Image
+                          :src="basedomainURL + item.data.file_path"
+                          alt=""
+                          width="70"
+                          height="50"
+                          style="
+                            object-fit: contain;
+                            border: 1px solid #ccc;
+                            width: 70px;
+                            height: 50px;
+                          "
+                          preview
+                          class="pr-2"
+                        />
+                        <div class="ml-2" style="word-break: break-all">
+                          {{ item.data.file_name }}
+                        </div>
+                      </div>
+                      <div v-else>
+                        <a
+                          :href="basedomainURL + item.data.file_path"
+                          download
+                          class="w-full no-underline cursor-pointer text-900"
+                        >
+                          <div class="align-items-center flex">
+                            <div>
+                              <img
+                                :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  item.data.file_path.substring(
+                                    item.data.file_path.lastIndexOf('.') + 1
+                                  ) +
+                                  '.png'
+                                "
+                                style="
+                                  width: 70px;
+                                  height: 50px;
+                                  object-fit: contain;
+                                "
+                                alt=""
+                              />
+                            </div>
+                            <div class="ml-2" style="word-break: break-all">
+                              <div class="ml-2" style="word-break: break-all">
+                          <div style="word-break: break-all">
+                            {{ item.data.file_name }}
+                          </div>
+                          <div
+                            v-if="store.getters.user.is_super"
+                            style="
+                              word-break: break-all;
+                              font-size: 11px;
+                              font-style: italic;
+                            "
+                          >
+                            {{ item.data.organization_name }}
+                          </div>
+                        </div>
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                    <div
+                      class="w-3rem align-items-center d-style-hover-1"
+                      v-if="
+                    store.getters.user.organization_id == item.data.organization_id
+                  "
+                    >
+                      <Button
+                        icon="pi pi-times"
+                        class="p-button-rounded  bg-red-300 border-none"
+                        @click="deleteFileH(item.data)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Column>
+          </DataTable>
+
+            <!-- <div
               class="p-0 w-full flex"
               v-for="(item, index) in listFilesS"
               :key="index"
@@ -1234,7 +1323,7 @@ else{
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>

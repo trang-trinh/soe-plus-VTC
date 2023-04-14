@@ -22,7 +22,7 @@ const props = defineProps({
   isType: Number,
   initData: Function,
 });
-
+const display = ref(props.displayDialog);
 //Declare
 const bgColor = ref([
   "#F8E69A",
@@ -605,10 +605,10 @@ onMounted(() => {
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '72vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
     <form @submit.prevent="" name="submitform">
@@ -1010,7 +1010,7 @@ onMounted(() => {
               :rowHover="true"
               :showGridlines="true"
               scrollDirection="both"
-              class="empty-full"
+              class="empty-full p-datatable"
             >
               <Column
                 header=""
@@ -1026,6 +1026,35 @@ onMounted(() => {
                   >
                     <i class="pi pi-times-circle" style="font-size: 18px"></i>
                   </a>
+                </template>
+              </Column>
+              <Column
+                field="relationship_id"
+                header="Quan hệ gia đình"
+                headerStyle="text-align:center;width:170px;height:50px"
+                bodyStyle="text-align:center;width:170px;"
+                class="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <div class="form-group m-0">
+                    <Dropdown
+                      :showClear="true"
+                      :options="[
+                        { value: 1, title: 'Về bản thân' },
+                        { value: 2, title: 'Về bên vợ' }
+                      ]"
+                      optionLabel="title"
+                      optionValue="value"
+                      placeholder="Chọn quan hệ"
+                      v-model="slotProps.data.is_type"
+                      class="ip36"
+                      style="
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                      "
+                    />
+                  </div>
                 </template>
               </Column>
               <Column
@@ -1323,6 +1352,13 @@ onMounted(() => {
 }
 </style>
 <style lang="scss" scoped>
+::v-deep(.p-datatable) {
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+}
 ::v-deep(.d-lang-table) {
   .p-datatable-thead .justify-content-center .p-column-header-content {
     justify-content: center !important;

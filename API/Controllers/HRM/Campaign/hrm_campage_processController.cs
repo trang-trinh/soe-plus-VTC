@@ -212,7 +212,7 @@ namespace API.Controllers.HRM.Campaign
                                         hrm_File.created_ip = ip;
                                         hrm_File.created_token_id = tid;
                                         db.hrm_file.Add(hrm_File);
-
+db.SaveChanges();
                                     }
                                     #endregion
 
@@ -531,7 +531,7 @@ namespace API.Controllers.HRM.Campaign
                                         hrm_File.created_ip = ip; hrm_File.organization_id = int.Parse(dvid);
                                         hrm_File.created_token_id = tid;
                                         db.hrm_file.Add(hrm_File);
-
+db.SaveChanges();
                                     }
                                     #endregion
                                     var process_form = db.hrm_config_process_form.Where(a => a.config_process_form_id == hrm_Config_Process.process_form_id).FirstOrDefault();

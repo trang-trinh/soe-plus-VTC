@@ -90,21 +90,27 @@
   min-width: 30rem !important;
 }
 /* Duy design List File */
-.d-style-hover-1{
 
+.description {
+  color: #aaa;
+  font-size: 12px;
+}
+.d-design-disabled.p-inputtext {
+  background-color: #eee;
+  cursor: default;
+}
+.d-style-hover-1 {
   display: none;
 }
-.d-style-hover:hover{
+.d-style-hover:hover {
   cursor: pointer;
-  color: #2196F3 !important;
+  color: #2196f3 !important;
 }
-.d-style-hover:hover a{
-   
-  color: #2196F3 !important;
+.d-style-hover:hover a {
+  color: #2196f3 !important;
 }
-.d-style-hover:hover .d-style-hover-1{
-      display: block;
-   
+.d-style-hover:hover .d-style-hover-1 {
+  display: block;
 }
 /*Style chung cho min-w-Xrem*/
 html {
@@ -1296,4 +1302,7 @@ li.p-chips-token {
 .v-sidebar-menu .vsm--link {
   line-height: 18px;
   white-space: normal;
+}
+.word-break-break-all {
+  word-break: break-all;
 }

@@ -39,7 +39,7 @@ const views = ref([
   { view: 7, title: "Phép", icon: "pi pi-calendar-minus" },
   { view: 8, title: "Đào tạo", icon: "pi pi-book" },
   { view: 9, title: "Quyết định", icon: "pi pi-bookmark" },
-  { view: 15, title: "Khen thưởng/kỷ luật", icon: "pi pi-bolt" },
+  { view: 16, title: "Khen thưởng/kỷ luật", icon: "pi pi-bolt" },
   { view: 10, title: "File", icon: "pi pi-paperclip" },
   { view: 11, title: "Tiếp nhận", icon: "pi pi-box" },
   { view: 12, title: "Sức khỏe", icon: "pi pi-heart" },
@@ -352,7 +352,7 @@ const closeDialogTranning = () => {
 
 //data view 10
 const typeFiles = ref([
-  { is_type: 0, title: "Sơ yếu lí lịch" },
+  { is_type: 0, title: "Sơ yếu lý lịch" },
   { is_type: 1, title: "Hợp đồng" },
   { is_type: 2, title: "Đào tạo" },
 ]);
@@ -422,6 +422,7 @@ const vaccines = ref([]);
 
 //data view 13
 const goPrint = (view) => {
+  forceRerender(3);
   options.value.view = view;
 };
 
@@ -733,7 +734,7 @@ const itemButPrints = ref([
     },
   },
   {
-    view: 14,
+    view: 15,
     label: "Sổ lao động mẫu 145/2020/NĐ-CP",
     icon: "fa-regular fa-file",
     command: (event) => {
@@ -2325,7 +2326,7 @@ const onPage = (event) => {
             <li
               v-for="(value, key) in itemButPrints"
               :key="key"
-              @click="changeView(value.view)"
+              @click="goPrint(value.view)"
               class="item-menu"
               :class="{
                 'item-menu-highlight': value.view === options.view,
@@ -2342,7 +2343,10 @@ const onPage = (event) => {
         </OverlayPanel>
       </template>
     </Toolbar>
-    <div class="tabview" :style="{ borderTop: 'solid 1px rgba(0,0,0,.1) !important' }">
+    <div
+      class="tabview"
+      :style="{ borderTop: 'solid 1px rgba(0,0,0,.1) !important' }"
+    >
       <div class="tableview-nav-content">
         <ul class="tableview-nav nav">
           <li
@@ -2543,7 +2547,7 @@ const onPage = (event) => {
                                     <b
                                       class="m-0"
                                       :style="{ color: '#2ECC71' }"
-                                      >{{ profile.profile_id }}</b
+                                      >{{ profile.profile_code }}</b
                                     >
                                   </label>
                                 </div>
@@ -5186,25 +5190,34 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 13" class="f-full">
-              <div class="row p-2 justify-content-center">
-                <div class="col-10 md:col-10 p-0">
-                  <printprofile :key="componentKey" />
+            <div
+              v-show="
+                options.view === 13 ||
+                options.view === 14 ||
+                options.view === 15
+              "
+              class="f-full"
+            >
+              <div class="row">
+                <div class="col-12 md:col-12 p-0">
+                  <printprofile
+                    :key="componentKey['3']"
+                    :profile="profile"
+                    :view="options.view"
+                  />
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 15" class="f-full">
-              
-            </div>
+            <div v-show="options.view === 16" class="f-full"></div>
           </div>
         </div>
         <div
-          style="
-            width: 400px !important;
-            border-left: solid 1px rgba(0, 0, 0, 0.1);
-            overflow: auto;
-            height: calc(100vh - 165px);
-          "
+          :style="{
+            width: '400px !important',
+            borderLeft: 'solid 1px rgba(0, 0, 0, 0.1)',
+            overflow: 'auto',
+            height: 'calc(100vh - 165px)',
+          }"
         >
           <div class="row">
             <div class="col-12 md:col-12 p-0">
@@ -5485,24 +5498,24 @@ const onPage = (event) => {
     </div>
   </div>
 
-  <!-- Dialog contract -->
-  <dialogcontract
-    :key="componentKey['0']"
-    :headerDialog="headerDialogContract"
-    :displayDialog="displayDialogContract"
-    :closeDialog="closeDialogContract"
-    :isView="isView"
-    :model="contract"
-    :dictionarys="dictionarys"
-  />
+  <!-- Dialog -->
   <dialoginfo
-    :key="componentKey['1']"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
     :profile_id="options.profile_id"
     :isType="isType"
     :initData="initView1"
+  />
+  <dialogcontract
+    :key="componentKey['1']"
+    :headerDialog="headerDialogContract"
+    :displayDialog="displayDialogContract"
+    :closeDialog="closeDialogContract"
+    :isView="isView"
+    :model="contract"
+    :dictionarys="dictionarys"
   />
   <dialogtraining
     :key="componentKey['2']"

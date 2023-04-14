@@ -4,6 +4,7 @@ import { useToast } from "vue-toastification";
 import configUsers from "./ConfigUserCode.vue";
 import ConfigContract from "./ConfigContract.vue";
 import ConfigHolidays from "./ConfigHolidays.vue";
+import ConfigInsurance from "./ConfigInsuranceRate.vue";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
 const router = inject("router");
@@ -116,7 +117,8 @@ onMounted(() => {
       >
         {{ organization.organization_name }}
       </div>
-      <div style="margin: 0 15%">
+      <div style=";overflow-y: scroll; height: calc(100vh - 150px);">
+      <div style="margin: 0 12%">
         <Accordion :multiple="false" :activeIndex="activeIndex"  @tab-open="onTabOpen($event)">
           <AccordionTab >
             <template #header>
@@ -144,10 +146,20 @@ onMounted(() => {
               <ConfigHolidays />
               </div>
           </AccordionTab>
-
+          <AccordionTab  >
+            <template #header>
+                <div class="text-xl">
+               Tỷ lệ đóng bảo hiểm
+                </div>
+            </template>
+            <div class="check-scroll-2"   v-if="activeIndex==3">
+              <ConfigInsurance />
+              </div>
+          </AccordionTab>
+          
           
         </Accordion>
-      </div>
+      </div></div>
     </div>
   </div>
 </template>

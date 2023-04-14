@@ -120,6 +120,17 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+
+          if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+          }
         });
 
         datalists.value = data;
@@ -1396,12 +1407,18 @@ onMounted(() => {
                       font-size: 1rem !important;
                     "
                     :style="{
-                      background: bgColor[slotProps.data.created_is_order % 7],
+                      background: bgColor[slotProps.data.full_name.length % 7],
                     }"
                     class="text-avatar"
                     size="xlarge"
                     shape="circle"
-                    v-tooltip.top="slotProps.data.full_name"
+                    v-tooltip.top="{
+                      value:
+                        slotProps.data.full_name +
+                        slotProps.data.position_name +
+                        slotProps.data.department_name,
+                      escape: true,
+                    }"
                   />
                 </div>
               </template>
@@ -1422,9 +1439,18 @@ onMounted(() => {
                   "
                   aria:haspopup="true"
                   aria-controls="overlay_panel_status"
+                  class="m-0 w-full"
                 >
-                  <Button
-                    :label="
+           
+                <Button
+                v-tooltip.top=" slotProps.data.status == 1
+                        ? 'Trúng tuyển'
+                        : slotProps.data.status == 2
+                        ? 'Không trúng tuyển'
+                        : slotProps.data.status == 3
+                        ? 'Đã chuyển HSNS'
+                        : 'Ứng tuyển'"
+                :label="
                       slotProps.data.status == 1
                         ? 'Trúng tuyển'
                         : slotProps.data.status == 2
@@ -1433,20 +1459,44 @@ onMounted(() => {
                         ? 'Đã chuyển HSNS'
                         : 'Ứng tuyển'
                     "
-                    :style="
-                      slotProps.data.status == 1
-                        ? 'backgroundColor:var(--green-500)'
-                        : slotProps.data.status == 2
-                        ? 'backgroundColor:red'
-                        : slotProps.data.status == 3
-                        ? 'backgroundColor:#2196f3'
-                        : 'backgroundColor:#bbbbbb'
-                    "
-               
                     icon="pi pi-chevron-down"
                     iconPos="right"
-                    class="px-2 w-10rem d-design-left"
+                    class="p-button-outlined"
+                    :style="{
+                      borderColor:
+                      slotProps.data.status == 1
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 2
+                        ? 'red'
+                        : slotProps.data.status == 3
+                        ? '#2196f3'
+                        : slotProps.data.status == 4
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 5
+                        ? 'var(--purple-500)'
+                        : slotProps.data.status == 6
+                        ? 'red'
+                        : '#bbbbbb',
+                      // backgroundColor: slotProps.data.bg_color,
+                      color:
+                      slotProps.data.status == 1
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 2
+                        ? 'red'
+                        : slotProps.data.status == 3
+                        ? '#2196f3'
+                        : slotProps.data.status == 4
+                        ? 'var(--green-500)'
+                        : slotProps.data.status == 5
+                        ? 'var(--purple-500)'
+                        : slotProps.data.status == 6
+                        ? 'red'
+                        : '#bbbbbb',
+                      borderRadius: '15px',
+                      padding: '0.3rem 0.75rem !important',  width:'100% !important'
+                    }"
                   />
+                 
 
 
                 </div>

@@ -232,7 +232,7 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
   reward_title.value.reward_type=2;
-
+ 
   formData.append("hrm_ca_reward_title", JSON.stringify(reward_title.value));
   swal.fire({
     width: 110,

@@ -154,7 +154,7 @@ namespace API.Controllers.HRM.Recruitment_proposal
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
-
+db.SaveChanges();
                         }
 
 
@@ -361,7 +361,7 @@ namespace API.Controllers.HRM.Recruitment_proposal
                             hrm_File.created_ip = ip; hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
-
+db.SaveChanges();
                         }
 
 

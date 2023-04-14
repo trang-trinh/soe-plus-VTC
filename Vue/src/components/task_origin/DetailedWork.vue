@@ -6203,7 +6203,7 @@ const is_viewSecurityTask = ref(true);
                     basedomainURL + '/Portals/Image/nouser1.png'
                 "
                 v-if="user.is_type == 0 && user.STTGV == 0"
-                v-tooltip="{
+                v-tooltip.left="{
                   value: user.tooltip,
                   escape: true,
                 }"
@@ -6228,7 +6228,7 @@ const is_viewSecurityTask = ref(true);
                     basedomainURL + '/Portals/Image/nouser1.png'
                 "
                 v-if="user.is_type == 1 && user.STTTH == 0"
-                v-tooltip="{
+                v-tooltip.left="{
                   value: user.tooltip,
                   escape: true,
                 }"
@@ -6253,7 +6253,7 @@ const is_viewSecurityTask = ref(true);
                     basedomainURL + '/Portals/Image/nouser1.png'
                 "
                 v-if="user.is_type == 2 && user.STTDTH == 0"
-                v-tooltip="{
+                v-tooltip.left="{
                   value: user.tooltip,
                   escape: true,
                 }"
@@ -6278,7 +6278,7 @@ const is_viewSecurityTask = ref(true);
                     basedomainURL + '/Portals/Image/nouser1.png'
                 "
                 v-if="user.is_type == 3 && user.STTTD == 0"
-                v-tooltip="{
+                v-tooltip.left="{
                   value: user.tooltip,
                   escape: true,
                 }"
@@ -6303,7 +6303,7 @@ const is_viewSecurityTask = ref(true);
                 $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
               "
               v-if="countAllMember > 4"
-              v-tooltip="{
+              v-tooltip.left="{
                 value: 'và ' + (members.length - 4) + ' người khác tham gia',
               }"
               :label="'+' + (members.length - 4)"

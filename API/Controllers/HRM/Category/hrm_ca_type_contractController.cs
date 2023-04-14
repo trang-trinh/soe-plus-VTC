@@ -82,13 +82,43 @@ namespace API.Controllers.HRM.Category
 
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        ca_type_contract.organization_id = int.Parse(dvid);
-                        ca_type_contract.created_by = uid;
-                        ca_type_contract.created_date = DateTime.Now;
-                        ca_type_contract.created_ip = ip;
-                        ca_type_contract.created_token_id = tid;
-                        db.hrm_ca_type_contract.Add(ca_type_contract);
-                        db.SaveChanges();
+                        if (!super)
+                        {
+                            var sytx = ca_type_contract.report_key;
+                            ca_type_contract.report_key = null;
+                            ca_type_contract.is_system = true;
+                            ca_type_contract.organization_id = int.Parse(dvid);
+                            ca_type_contract.created_by = uid;
+                            ca_type_contract.created_date = DateTime.Now;
+                            ca_type_contract.created_ip = ip;
+                            ca_type_contract.created_token_id = tid;
+                            db.hrm_ca_type_contract.Add(ca_type_contract);
+                            db.SaveChanges();
+                            hrm_smartreport_link hrm_Smartreport_Link = new hrm_smartreport_link();
+                            hrm_Smartreport_Link.key_id = ca_type_contract.type_contract_id;
+                            hrm_Smartreport_Link.report_key = sytx;
+                            hrm_Smartreport_Link.report_type = 1;
+                            hrm_Smartreport_Link.organization_id = int.Parse(dvid);
+                            hrm_Smartreport_Link.created_by = uid;
+                            hrm_Smartreport_Link.created_date = DateTime.Now;
+                            hrm_Smartreport_Link.created_ip = ip;
+                            hrm_Smartreport_Link.created_token_id = tid;
+                            db.hrm_smartreport_link.Add(hrm_Smartreport_Link);
+                            db.SaveChanges();
+                        }
+                        else
+                        {
+                            ca_type_contract.is_system = true;
+                            ca_type_contract.organization_id = int.Parse(dvid);
+                            ca_type_contract.created_by = uid;
+                            ca_type_contract.created_date = DateTime.Now;
+                            ca_type_contract.created_ip = ip;
+                            ca_type_contract.created_token_id = tid;
+                            db.hrm_ca_type_contract.Add(ca_type_contract);
+                            db.SaveChanges();
+
+                        }
+               
                         // This illustrates how to get thefile names.
                         FileInfo fileInfo = null;
                         MultipartFileData ffileData = null;
@@ -160,7 +190,7 @@ namespace API.Controllers.HRM.Category
                             hrm_File.organization_id = int.Parse(dvid);
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
-                            db.hrm_file.Add(hrm_File);
+                            db.hrm_file.Add(hrm_File);db.SaveChanges();
                             try
                             {
                                 string FilePath = newFileName;
@@ -306,18 +336,61 @@ namespace API.Controllers.HRM.Category
                         }
                         fdca_type_contract = provider.FormData.GetValues("hrm_ca_type_contract").SingleOrDefault();
                         hrm_ca_type_contract ca_type_contract = JsonConvert.DeserializeObject<hrm_ca_type_contract>(fdca_type_contract);
+                        if (!super)
+                        {
+                            var ca_type_contract_old = db.hrm_ca_type_contract.AsNoTracking().Where(s => s.type_contract_id == ca_type_contract.type_contract_id ).FirstOrDefault();
+                            var sytx = ca_type_contract.report_key;
+                            if(ca_type_contract_old!=null)
+                            ca_type_contract.report_key = ca_type_contract_old.report_key;
+                            else
+                                ca_type_contract.report_key = null;
+                            ca_type_contract.modified_by = uid;
+                            ca_type_contract.modified_date = DateTime.Now;
+                            ca_type_contract.modified_ip = ip;
 
+                            ca_type_contract.modified_token_id = tid;
+                            db.Entry(ca_type_contract).State = EntityState.Modified;
+                            db.SaveChanges();
 
+                            var hrm_smartreport_link_old = db.hrm_smartreport_link.AsNoTracking().Where(s => s.report_type==1 &&
+                            s.key_id ==ca_type_contract.type_contract_id && s.organization_id == dvid).FirstOrDefault();
+                            if (hrm_smartreport_link_old == null)
+                            { 
+                            hrm_smartreport_link hrm_Smartreport_Link = new hrm_smartreport_link();
+                            hrm_Smartreport_Link.key_id = ca_type_contract.type_contract_id;
+                            hrm_Smartreport_Link.report_key = sytx;
+                            hrm_Smartreport_Link.report_type = 1;
+                            hrm_Smartreport_Link.organization_id = dvid;
+                            hrm_Smartreport_Link.created_by = uid;
+                            hrm_Smartreport_Link.created_date = DateTime.Now;
+                            hrm_Smartreport_Link.created_ip = ip;
+                            hrm_Smartreport_Link.created_token_id = tid;
+                            db.hrm_smartreport_link.Add(hrm_Smartreport_Link);
+                            db.SaveChanges();
+                            }
+                            else
+                            {
+                                hrm_smartreport_link_old.report_key = sytx;
+                                hrm_smartreport_link_old.modified_by = uid;
+                                hrm_smartreport_link_old.modified_date = DateTime.Now;
+                                hrm_smartreport_link_old.modified_ip = ip;
+                                hrm_smartreport_link_old.modified_token_id = tid;
+                                db.Entry(hrm_smartreport_link_old).State = EntityState.Modified;
+                                db.SaveChanges();
 
+                            }
+                        }
+                        else
+                        {
 
+                            ca_type_contract.modified_by = uid;
+                            ca_type_contract.modified_date = DateTime.Now;
+                            ca_type_contract.modified_ip = ip;
+                            ca_type_contract.modified_token_id = tid;
+                            db.Entry(ca_type_contract).State = EntityState.Modified;
+                            db.SaveChanges();
 
-
-                        ca_type_contract.modified_by = uid;
-                        ca_type_contract.modified_date = DateTime.Now;
-                        ca_type_contract.modified_ip = ip;
-                        ca_type_contract.modified_token_id = tid;
-                        db.Entry(ca_type_contract).State = EntityState.Modified;
-                        db.SaveChanges();
+                        }
                         var hrm_Files = "";
                         List<string> paths = new List<string>();
                         hrm_Files = provider.FormData.GetValues("hrm_files").SingleOrDefault();
@@ -438,7 +511,7 @@ namespace API.Controllers.HRM.Category
                             hrm_File.created_date = DateTime.Now;
                             hrm_File.created_ip = ip; hrm_File.organization_id = dvid;
                             hrm_File.created_token_id = tid;
-                            db.hrm_file.Add(hrm_File);
+                            db.hrm_file.Add(hrm_File);db.SaveChanges();
                             try
                             {
                                 string FilePath = newFileName;
@@ -591,6 +664,10 @@ namespace API.Controllers.HRM.Category
                                 {
                                     arr.Add(item.ToString());
                                 }
+
+                                var das2 = await db.hrm_smartreport_link.Where(a =>  a.key_id == da.type_contract_id && a.report_type==1).ToListAsync();
+                                db.hrm_smartreport_link.RemoveRange(das2);
+                                db.SaveChanges();
                                 var das3 = await db.hrm_file.Where(a => arr.Contains(a.key_id) && a.is_type == 8).ToListAsync();
 
 

@@ -1,12 +1,11 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
-import { required } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
-import { encr, checkURL } from "../../../util/function.js";
+import { encr } from "../../../util/function.js";
 import moment from "moment";
 import dialogReward from "./component/dialog_reward.vue";
+import router from "@/router";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -80,7 +79,7 @@ const reward = ref({
 });
 //Lấy dữ liệu reward
 const loadData = (rf) => {
-  if (rf) {
+ 
     if (isDynamicSQL.value) {
       loadDataSQL();
       return false;
@@ -101,7 +100,7 @@ const loadData = (rf) => {
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
                 { par: "user_id", va: store.getters.user.user_id },
-                { par: "status", va: null },
+                { par: "reward_type", va: options.value.tab },
               ],
             }),
             SecretKey,
@@ -123,12 +122,18 @@ const loadData = (rf) => {
                 if (!item.position_name) {
                   item.position_name = "";
                 } else {
-                  item.position_name = " </br>" + item.position_name;
+                  item.position_name =
+                    " </br> <span class='text-sm'>" +
+                    item.position_name +
+                    "</span>";
                 }
                 if (!item.department_name) {
                   item.department_name = "";
                 } else {
-                  item.department_name = " </br>" + item.department_name;
+                  item.department_name =
+                    " </br> <span class='text-sm'>" +
+                    item.department_name +
+                    "</span>";
                 }
               });
             }
@@ -136,12 +141,18 @@ const loadData = (rf) => {
           if (!element.position_name) {
             element.position_name = "";
           } else {
-            element.position_name = " </br>" + element.position_name;
+            element.position_name =
+              " </br> <span class='text-sm'>" +
+              element.position_name +
+              "</span>";
           }
           if (!element.department_name) {
             element.department_name = "";
           } else {
-            element.department_name = " </br>" + element.department_name;
+            element.department_name =
+              " </br> <span class='text-sm'>" +
+              element.department_name +
+              "</span>";
           }
         });
 
@@ -154,7 +165,7 @@ const loadData = (rf) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
       });
-  }
+ 
 };
 //Phân trang dữ liệu
 const onPage = (event) => {
@@ -240,7 +251,7 @@ const closeDialog = () => {
   };
 
   displayBasic.value = false;
-  loadData(true);
+  loadDataSQL();
 };
 const sttStamp = ref(1);
 const listFilesS = ref([]);
@@ -248,7 +259,7 @@ const listFilesS = ref([]);
 const editTem = (dataTem) => {
   reward.value = dataTem;
 
-  headerDialog.value = "Sửa khen thưởng";
+  headerDialog.value = "Sửa bản ghi";
   isSaveTem.value = false;
   displayBasic.value = true;
 };
@@ -283,7 +294,7 @@ const delTem = (Tem) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá thông tin khen thưởng thành công!");
+              toast.success("Xoá bản ghi thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -333,6 +344,28 @@ const checkLoadCount = ref(true);
 const loadDataSQL = () => {
   datalists.value = [];
 
+
+  if (options.value.tab==0) {
+    let filterS1 = {
+      filterconstraints: [{ value: 1, matchMode: "equals" },{ value: 2, matchMode: "equals" }],
+      filteroperator: "or",
+      key: "reward_type",
+    };
+      filterSQL.value.push(filterS1);
+  }
+  else{
+    let filterS1 = {
+      filterconstraints: [{ value: 3, matchMode: "equals" }],
+      filteroperator: "and",
+      key: "reward_type",
+    };
+      filterSQL.value.push(filterS1);
+
+  }
+
+
+
+
   let data = {
     id: "reward_id",
     sqlS: null,
@@ -356,6 +389,42 @@ const loadDataSQL = () => {
 
           if (element.listRewards) {
             element.listRewards = JSON.parse(element.listRewards);
+            if (element.reward_type == 1 || element.reward_type == 3) {
+              element.listRewards.forEach((item) => {
+                if (!item.position_name) {
+                  item.position_name = "";
+                } else {
+                  item.position_name =
+                    " </br> <span class='text-sm'>" +
+                    item.position_name +
+                    "</span>";
+                }
+                if (!item.department_name) {
+                  item.department_name = "";
+                } else {
+                  item.department_name =
+                    " </br> <span class='text-sm'>" +
+                    item.department_name +
+                    "</span>";
+                }
+              });
+            }
+            if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name =
+              " </br> <span class='text-sm'>" +
+              element.position_name +
+              "</span>";
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name =
+              " </br> <span class='text-sm'>" +
+              element.department_name +
+              "</span>";
+          }
           }
         });
 
@@ -375,7 +444,7 @@ const loadDataSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-
+      console.log(error);
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
@@ -388,46 +457,6 @@ const loadDataSQL = () => {
     });
 };
 
-const setStatus = (value) => {
-  opstatus.value.hide();
-  let data = {
-    IntID: value.reward_id,
-    TextID: value.reward_id + "",
-    IntTrangthai: value.status,
-    BitTrangthai: false,
-  };
-  axios
-    .put(baseURL + "/api/hrm_reward/update_s_hrm_reward", data, config)
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-        toast.success("Cập nhật trạng thái thành công!");
-        loadData(true);
-      } else {
-        swal.fire({
-          title: "Error!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
-};
-
-const opstatus = ref();
-const toggleStatus = (item, event) => {
-  reward.value = item;
-  opstatus.value.toggle(event);
-};
 //Tìm kiếm
 const searchStamp = (event) => {
   if (event.code == "Enter") {
@@ -445,16 +474,11 @@ const searchStamp = (event) => {
 
 const refreshStamp = () => {
   options.value.SearchText = null;
-  options.value.status_filter = null;
-  options.value.user_follows_list = null;
-  options.value.user_verify_list = null;
-  options.value.rec_position_id = null;
-  options.value.can_academic_level_id = null;
-  options.value.rec_vacancies = null;
+  options.value.reward_title_id = null;
+  options.value.reward_level_id = null;
   options.value.start_dateI = null;
   options.value.end_dateI = null;
   options.value.start_dateI = null;
-  options.value.end_dateD = null;
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -512,7 +536,7 @@ const onCheckBox = (value, check) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái khen thưởng thành công!");
+          toast.success("Sửa trạng thái bản ghi thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -544,7 +568,7 @@ const onCheckBox = (value, check) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái khen thưởng thành công!");
+          toast.success("Sửa trạng thái bản ghi thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -598,102 +622,79 @@ const exportData = (method) => {
       swal.showLoading();
     },
   });
-
-  axios
-    .post(
-      baseURL + "/api/Excel/ExportExcelWithLogo",
-      {
-        excelname: "DANH SÁCH CHIẾN DỊCH",
-        proc: "hrm_reward_export",
-        par: [
-          { par: "user_id", va: store.state.user.user_id },
-          { par: "search", va: options.value.SearchText },
-          {
-            par: "rec_position_id",
-            va: options.value.rec_position_id
-              ? options.value.rec_position_id.toString()
-              : null,
-          },
-          {
-            par: "user_verify",
-            va: options.value.user_verify_list
-              ? options.value.user_verify_list.toString()
-              : null,
-          },
-          {
-            par: "user_follows",
-            va: options.value.user_follows_list
-              ? options.value.user_follows_list.toString()
-              : null,
-          },
-          {
-            par: "can_academic_level_id",
-            va: options.value.can_academic_level_id
-              ? options.value.can_academic_level_id.toString()
-              : null,
-          },
-          {
-            par: "rec_vacancies",
-            va: options.value.rec_vacancies
-              ? options.value.rec_vacancies.toString()
-              : null,
-          },
-          {
-            par: "status ",
-            va: options.value.status_filter
-              ? options.value.status_filter.toString()
-              : null,
-          },
-          { par: "start_dateI", va: options.value.start_dateI },
-          { par: "end_dateI", va: options.value.end_dateI },
-          { par: "start_dateD", va: options.value.start_dateD },
-          { par: "end_dateD", va: options.value.end_dateD },
-          { par: "sort", va: options.value.sort },
-          { par: "pageno", va: options.value.pagenoExport - 1 },
-          { par: "pagesize", va: options.value.totalRecordsExport },
-        ],
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      if (response.data.err != "1") {
+  if (tabs.value.id == 0) {
+    axios
+      .post(
+        baseURL + "/api/Excel/ExportExcelWithLogo",
+        {
+          excelname: "DANH SÁCH KHEN THƯỞNG",
+          proc: "hrm_reward_export",
+          par: [
+            { par: "user_id", va: store.state.user.user_id },
+            { par: "search", va: options.value.SearchText },
+            {
+              par: "reward_level_id",
+              va: options.value.reward_level_id
+                ? options.value.reward_level_id.toString()
+                : null,
+            },
+            {
+              par: "reward_title_id",
+              va: options.value.reward_title_id
+                ? options.value.reward_title_id.toString()
+                : null,
+            },
+          
+            { par: "start_dateI", va: options.value.start_dateI },
+            { par: "end_dateI", va: options.value.end_dateI },
+        
+            { par: "sort", va: options.value.sort },
+            { par: "pageno", va: options.value.pagenoExport - 1 },
+            { par: "pagesize", va: options.value.totalRecordsExport },
+          ],
+        },
+        config
+      )
+      .then((response) => {
         swal.close();
+        if (response.data.err != "1") {
+          swal.close();
 
-        toast.success("Kết xuất Data thành công!");
+          toast.success("Kết xuất Data thành công!");
 
-        if (response.data.path != null) {
-          let pathReplace = response.data.path
-            .replace(/\\+/g, "/")
-            .replace(/\/+/g, "/")
-            .replace(/^\//g, "");
-          var listPath = pathReplace.split("/");
-          var pathFile = "";
-          listPath.forEach((item) => {
-            if (item.trim() != "") {
-              pathFile += "/" + item;
-            }
+          if (response.data.path != null) {
+            let pathReplace = response.data.path
+              .replace(/\\+/g, "/")
+              .replace(/\/+/g, "/")
+              .replace(/^\//g, "");
+            var listPath = pathReplace.split("/");
+            var pathFile = "";
+            listPath.forEach((item) => {
+              if (item.trim() != "") {
+                pathFile += "/" + item;
+              }
+            });
+            window.open(baseURL + pathFile);
+          }
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
           });
-          window.open(baseURL + pathFile);
         }
-      } else {
-        swal.fire({
-          title: "Error!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    })
-    .catch((error) => {
-      if (error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
+      })
+      .catch((error) => {
+        if (error.status === 401) {
+          swal.fire({
+            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            confirmButtonText: "OK",
+          });
+          store.commit("gologout");
+        }
+      });
+  }
 };
 
 const activeTab = (tab) => {
@@ -759,7 +760,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá thông tin khen thưởng này không!",
+        text: "Bạn có muốn xoá thông tin bản ghi này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -788,7 +789,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá thông tin khen thưởng thành công!");
+                toast.success("Xoá thông tin bản ghi thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -816,20 +817,23 @@ const deleteList = () => {
       });
   }
 };
-
+const goProfile = (profile) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: profile.profile_code },
+    query: { id: profile.profile_id },
+  });
+};
 //Filter
 const reFilter = () => {
-  options.value.user_follows = null;
-  options.value.rec_vacancies = null;
-  options.value.user_verify = null;
+  
+  options.value.reward_level_id = null;
+ 
   options.value.start_dateI = null;
   options.value.end_dateI = null;
-  options.value.start_dateD = null;
-  options.value.end_dateD = null;
-  options.value.can_academic_level_id = null;
-
-  options.value.rec_position_id = null;
-  options.value.status_filter = null;
+ 
+  options.value.reward_title_id = null;
+ 
   checkLoadCount.value = true;
   isDynamicSQL.value = false;
   checkFilter.value = false;
@@ -841,19 +845,18 @@ const reFilterEmail = () => {
   op.value.hide();
   loadData(true);
 };
-
-const listVacancies = ref([]);
+ 
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
-  if (options.value.status_filter) {
+  if (options.value.reward_level_id) {
     let filterS1 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "status",
+      key: "reward_level_id",
     };
-    if (options.value.status_filter.length > 0) {
-      options.value.status_filter.forEach((element) => {
+    if (options.value.reward_level_id.length > 0) {
+      options.value.reward_level_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS1.filterconstraints.push(addr);
       });
@@ -862,81 +865,19 @@ const filterFileds = () => {
     }
   }
 
-  if (options.value.rec_position_id) {
+  if (options.value.reward_title_id) {
     let filterS2 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "rec_position_id",
+      key: "reward_title_id",
     };
-    if (options.value.rec_position_id.length > 0) {
-      options.value.rec_position_id.forEach((element) => {
+    if (options.value.reward_title_id.length > 0) {
+      options.value.reward_title_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS2.filterconstraints.push(addr);
       });
 
       filterSQL.value.push(filterS2);
-    }
-  }
-  if (options.value.can_academic_level_id) {
-    let filterS2 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "can_academic_level_id",
-    };
-    if (options.value.can_academic_level_id.length > 0) {
-      options.value.can_academic_level_id.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS2.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS2);
-    }
-  }
-  if (options.value.user_follows) {
-    let filterS3 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "user_follows",
-    };
-    if (options.value.user_follows.length > 0) {
-      options.value.user_follows.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS3.filterconstraints.push(addr);
-        options.value.user_follows_list.push(element.code);
-      });
-
-      filterSQL.value.push(filterS3);
-    }
-  }
-  if (options.value.rec_vacancies) {
-    let filterS4 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "rec_vacancies",
-    };
-    if (options.value.rec_vacancies.length > 0) {
-      options.value.rec_vacancies.forEach((element) => {
-        var addr = { value: element, matchMode: "equals" };
-        filterS4.filterconstraints.push(addr);
-      });
-
-      filterSQL.value.push(filterS4);
-    }
-  }
-  if (options.value.user_verify) {
-    let filterS5 = {
-      filterconstraints: [],
-      filteroperator: "or",
-      key: "user_verify",
-    };
-    if (options.value.user_verify.length > 0) {
-      options.value.user_verify.forEach((element) => {
-        var addr = { value: element.code, matchMode: "contains" };
-        filterS5.filterconstraints.push(addr);
-        options.value.user_verify_list.push(element.code);
-      });
-
-      filterSQL.value.push(filterS5);
     }
   }
 
@@ -963,7 +904,7 @@ const onDayClick = () => {
           { value: options.value.start_dateI, matchMode: "dateAfter" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "decision_date",
       };
       filterSQL.value.push(filterS);
     }
@@ -979,7 +920,7 @@ const onDayClick = () => {
           { value: options.value.end_dateI, matchMode: "dateBefore" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "decision_date",
       };
       filterSQL.value.push(filterS);
     }
@@ -992,7 +933,7 @@ const onDayClick = () => {
           { value: options.value.start_dateI, matchMode: "dateIs" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "decision_date",
       };
       filterSQL.value.push(filterS1);
       let filterS2 = {
@@ -1000,70 +941,13 @@ const onDayClick = () => {
           { value: options.value.end_dateI, matchMode: "dateIs" },
         ],
         filteroperator: "and",
-        key: "start_date",
+        key: "decision_date",
       };
       filterSQL.value.push(filterS2);
     }
   }
 
-  if (options.value.start_dateD != null) {
-    if (!options.value.end_dateD)
-      options.value.end_dateD = options.value.start_dateD;
-
-    if (
-      options.value.start_dateD &&
-      options.value.start_dateD != options.value.end_dateD
-    ) {
-      let sDate = new Date(options.value.start_dateD);
-
-      options.value.start_dateD = sDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.start_dateD, matchMode: "dateAfter" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.end_dateD &&
-      options.value.start_dateI != options.value.end_dateD
-    ) {
-      let eDate = new Date(options.value.end_dateD);
-
-      options.value.end_dateD = eDate;
-      let filterS = {
-        filterconstraints: [
-          { value: options.value.end_dateD, matchMode: "dateBefore" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS);
-    }
-    if (
-      options.value.start_dateD &&
-      options.value.start_dateD == options.value.end_dateD
-    ) {
-      let filterS1 = {
-        filterconstraints: [
-          { value: options.value.start_dateD, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS1);
-      let filterS2 = {
-        filterconstraints: [
-          { value: options.value.end_dateD, matchMode: "dateIs" },
-        ],
-        filteroperator: "and",
-        key: "end_date",
-      };
-      filterSQL.value.push(filterS2);
-    }
-  }
+   
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -1075,70 +959,6 @@ watch(selectedStamps, () => {
 const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
-};
-
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
-
-const loadUser = () => {
-  listDropdownUser.value = [];
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          role_name: element.role_name,
-          position_name: element.position_name,
-        });
-      });
-
-      listDropdownUserCheck.value = [...listDropdownUser.value];
-    })
-    .catch((error) => {
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
 };
 
 const listRewardLevels = ref([]);
@@ -1162,7 +982,7 @@ const initTudien = () => {
               { par: "pagesize", va: 100000 },
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: true },
-              { par: "reward_type", va: 1 },
+              { par: "reward_type", va: null },
             ],
           }),
           SecretKey,
@@ -1336,15 +1156,12 @@ onMounted(() => {
               <Button
                 @click="toggle"
                 type="button"
-                class="ml-2 p-button-outlined p-button-secondary"
+                class="ml-2 "
                 aria:haspopup="true"
                 aria-controls="overlay_panel"
                 :class="
-                  options.status_filter == null &&
-                  options.form_training == null &&
-                  !checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
+            checkFilter 
+                    ? '': 'p-button-secondary p-button-outlined'
                 "
               >
                 <div>
@@ -1360,7 +1177,7 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width: 700px"
+                style="width: 400px"
               >
                 <div class="grid formgrid m-0">
                   <div
@@ -1373,139 +1190,77 @@ onMounted(() => {
                   >
                     <div class="flex">
                       <div class="col-12 md:col-12">
+                        
+                        <div class="row" >
+                          <div class="col-12 md:col-12">
+                            <div class="py-2" v-if="options.tab == 0">Cấp khen thưởng</div>
+                            <div class="py-2"   v-if="options.tab == 1">Cấp kỷ luật</div>
+
+                          
+                            <MultiSelect
+                              :options="listRewardLevels"
+                              :filter="true"
+                              :showClear="true"
+                              :editable="false"
+                              v-model="options.reward_level_id"
+                              optionLabel="name"
+                              optionValue="code"
+                              placeholder="Chọn cấp"
+                              class="w-full limit-width"
+                              style="min-height: 36px"
+                              panelClass="d-design-dropdown"
+                              display="chip"
+                            >
+                            </MultiSelect>
+                          </div>
+                          <div class="col-12 md:col-12">
+                     
+                            <div class="py-2" v-if="options.tab == 0">Hình thức khen thưởng</div>
+                            <div class="py-2"   v-if="options.tab == 1">Hình thức kỷ luật</div>
+                            <MultiSelect
+                              :options="listRewardTitles"
+                              :filter="false"
+                              :showClear="true"
+                              :editable="false"
+                              v-model="options.reward_title_id"
+                              optionLabel="name"
+                              optionValue="code"
+                              display="chip"
+                              placeholder="Chọn hình thức"
+                              class="w-full limit-width"
+                              style="min-height: 36px"
+                              panelClass="d-design-dropdown" 
+                            >
+                            </MultiSelect>
+                          </div>
+                        </div>
+ 
                         <div class="row">
-                          <div class="col-12 md:col-12 flex">
-                            <div class="col-6 md:col-6 p-0">
-                              <div class="form-group">
-                                <div class="py-2">Cấp khen thưởng</div>
-                                <MultiSelect
-                                  :options="listRewardLevels"
-                                  :filter="true"
-                                  :showClear="true"
-                                  :editable="false"
-                                  v-model="options.rec_vacancies"
-                                  optionLabel="name"
-                                  optionValue="code"
-                                  placeholder="Chọn cấp"
-                                  class="w-full limit-width"
-                                  style="min-height: 36px"
-                                  panelClass="d-design-dropdown"
-                                >
-                                </MultiSelect>
+                          <div class="col-12 md:col-12">
+                            <div class="py-2">Ngày quyết định</div>
+                            <div class="col-12 p-0 flex">
+                              <div class="col-6 p-0 md:col-6">
+                                <div class="form-group">
+                                  <Calendar
+                                    :showIcon="true"
+                                    class="ip36"
+                                    autocomplete="on"
+                                    inputId="time24"
+                                    v-model="options.start_dateI"
+                                    placeholder="Từ ngày"
+                                  />
+                                </div>
                               </div>
-                            </div>
-                            <div class="col-6 md:col-6 p-0 ml-2">
-                              <div class="form-group">
-                                <div class="py-2">Cấp kỷ luật</div>
-                                <MultiSelect
-                                  :options="listDisciplineLevels"
-                                  :filter="true"
-                                  :showClear="true"
-                                  :editable="false"
-                                  v-model="options.rec_vacancies"
-                                  optionLabel="name"
-                                  optionValue="code"
-                                  placeholder="Chọn cấp"
-                                  class="w-full limit-width"
-                                  style="min-height: 36px"
-                                  panelClass="d-design-dropdown"
-                                >
-                                </MultiSelect>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="col-12 md:col-12 flex">
-                            <div class="col-6 md:col-6 p-0">
-                              <div class="form-group">
-                                <div class="py-2">Hình thức khen thưởng</div>
-
-                                <MultiSelect
-                                  :options="listRewardTitles"
-                                  :filter="false"
-                                  :showClear="true"
-                                  :editable="false"
-                                  v-model="options.can_academic_level_id"
-                                  optionLabel="name"
-                                  optionValue="code"
-                                  display="chip"
-                                  placeholder="Chọn hình thức"
-                                  class="w-full limit-width"
-                                  style="min-height: 36px"
-                                  panelClass="d-design-dropdown"
-                                >
-                                </MultiSelect>
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6 p-0 ml-2">
-                              <div class="form-group">
-                                <div class="py-2">Hình thức kỷ luật</div>
-
-                                <MultiSelect
-                                  :options="listDisciplineTitles"
-                                  :filter="false"
-                                  :showClear="true"
-                                  :editable="false"
-                                  v-model="options.can_academic_level_id"
-                                  optionLabel="name"
-                                  optionValue="code"
-                                  display="chip"
-                                  placeholder="Chọn hình thức"
-                                  class="w-full limit-width"
-                                  style="min-height: 36px"
-                                  panelClass="d-design-dropdown"
-                                >
-                                </MultiSelect>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="col-12 md:col-12 flex">
-                            <div class="col-6 md:col-6 p-0">
-                              <div class="form-group">
-                                <div class="py-2">Loại khen thưởng</div>
-                                <MultiSelect
-                                  :options="listStatus"
-                                  v-model="options.status_filter"
-                                  :filter="true"
-                                  :showClear="true"
-                                  :editable="false"
-                                  display="chip"
-                                  optionLabel="name"
-                                  optionValue="code"
-                                  placeholder="Chọn loại"
-                                  class="w-full limit-width"
-                                  panelClass="d-design-dropdown"
-                                >
-                                </MultiSelect>
-                              </div>
-                            </div>
-                            <div class="col-6 md:col-6 p-0 ml-2">
-                              <div class="form-group">
-                                <div class="py-2">Ngày quyết định</div>
-                                <div class="col-12 p-0 flex">
-                                  <div class="col-6 p-0 md:col-6">
-                                    <div class="form-group">
-                                      <Calendar
-                                        :showIcon="true"
-                                        class="ip36"
-                                        autocomplete="on"
-                                        inputId="time24"
-                                        v-model="options.start_dateI"
-                                        placeholder="Từ ngày"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div class="col-6 p-0 pl-2 md:col-6">
-                                    <div class="form-group">
-                                      <Calendar
-                                        :showIcon="true"
-                                        class="ip36"
-                                        autocomplete="on"
-                                        inputId="time24"
-                                        v-model="options.end_dateI"
-                                        placeholder="Đến ngày"
-                                      />
-                                    </div>
-                                  </div>
+                              <div class="col-6 p-0 pl-2 md:col-6">
+                                <div class="form-group">
+                                  <Calendar
+                                    :showIcon="true"
+                                    class="ip36"
+                                    autocomplete="on"
+                                    inputId="time24"
+                                    v-model="options.end_dateI"
+                                    placeholder="Đến ngày"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -1514,7 +1269,7 @@ onMounted(() => {
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 md:col-12 p-0">
+                  <div class="col-12 md:col-12  ">
                     <Toolbar
                       class="border-none surface-0 outline-none px-0 pb-0 w-full"
                     >
@@ -1541,7 +1296,7 @@ onMounted(() => {
 
           <template #end>
             <Button
-              @click="openBasic('Thêm mới khen thưởng')"
+              @click="openBasic('Thêm mới')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1670,8 +1425,8 @@ onMounted(() => {
             <Column
               field="vacancy_name"
               header="Đối tượng"
-              headerStyle="text-align:center;max-width:300px;height:50px"
-              bodyStyle="text-align:center;max-width:300px"
+              headerStyle="text-align:center;max-width:250px;height:50px"
+              bodyStyle="text-align:center;max-width:250px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">
@@ -1694,8 +1449,8 @@ onMounted(() => {
                       style="
                         background-color: #2196f3;
                         color: #fff;
-                        width: 2rem;
-                        height: 2rem;
+                        width: 3rem;
+                        height: 3rem;
                         font-size: 1rem !important;
                       "
                       :key="index"
@@ -1705,28 +1460,28 @@ onMounted(() => {
                           : 'background:' + bgColor[item.full_name.length % 7]
                       "
                       :image="basedomainURL + item.avatar"
-                      class="text-avatar cursor-auto"
+                      class="text-avatar cursor-pointer"
                       size="xlarge"
                       shape="circle"
                       v-tooltip.top="{
                         value:
                           item.full_name +
-                         
                           item.position_name +
-                         
                           item.department_name,
                         escape: true,
                       }"
+                      @click="goProfile(item)"
                     />
                     <Avatar
                       v-if="data.data.listRewards.length > 4"
                       :label="(data.data.listRewards.length - 4).toString()"
                       shape="circle"
-                      class="w-3rem h-3rem"
                       style="
-                        background-color: #9c27b0;
+                        background-color: #2196f3;
                         color: #fff;
-                        font-size: 12pt !important;
+                        width: 2rem;
+                        height: 2rem;
+                        font-size: 1rem !important;
                       "
                     />
                   </AvatarGroup>
@@ -1736,7 +1491,8 @@ onMounted(() => {
                     v-for="(item, index) in data.data.listRewards"
                     :key="index"
                   >
-                    <Chip :label="item.department_name" />
+                    <!-- <Chip :label="item.department_name" /> -->
+                    {{ item.department_name }}
                   </div>
                 </div>
               </template>

@@ -100,6 +100,13 @@ const itemButMores = ref([
     },
   },
   {
+    label: "In hợp đồng",
+    icon: "pi pi-print",
+    command: (event) => {
+      printViewContract(contract.value);
+    },
+  },
+  {
     label: "Xoá",
     icon: "pi pi-trash",
     command: (event) => {
@@ -324,6 +331,17 @@ const copyContract = (item, str) => {
         return;
       }
     });
+};
+
+const printViewContract = (row) => {
+  if (row) {
+    let o = { id: 2, par: { contract_id: row.contract_id } };
+    let url = encodeURIComponent(
+      encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
+    );
+    url = "https://doconline.soe.vn/report/" + url.replaceAll("%", "==");
+    window.open(url);
+  }
 };
 
 //add model

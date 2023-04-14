@@ -167,7 +167,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="d-container p-0  ">
+  <div class="   ">
     <div class="p-0 surface-0 check-scroll">
       <div class="col-12 flex style-vb-3 ">
         <div class="col-2 flex justify-content-end align-items-center"></div>
@@ -375,6 +375,7 @@ onMounted(() => {
 .check-scroll {
   max-height: 40rem;
   overflow: scroll;
+  overflow-x: hidden;
 }
 
 @media only screen and (max-height: 768px) {
