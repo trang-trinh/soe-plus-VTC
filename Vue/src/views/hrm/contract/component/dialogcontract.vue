@@ -1100,7 +1100,7 @@ onMounted(() => {
                 <h3 class="m-0">Lương và phụ cấp</h3>
               </div>
             </div>
-            <div class="col-6 md:col-6">
+            <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Ngạch lương </label>
                 <Dropdown
@@ -1124,7 +1124,21 @@ onMounted(() => {
                 </Dropdown>
               </div>
             </div>
-            <div class="col-6 md:col-6">
+            <div class="col-12 md:col-12">
+              <div class="form-group">
+                <label>- Bậc lương</label>
+                <InputNumber
+                  showButtons
+                  v-model="props.model.wage_level"
+                  mode="decimal"
+                  locale="vi-VN"
+                  :minFractionDigits="0"
+                  :maxFractionDigits="2"
+                  class="ip36"
+                />
+              </div>
+            </div>
+            <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Hệ số lương </label>
                 <Dropdown
