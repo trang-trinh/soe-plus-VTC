@@ -398,7 +398,9 @@ const Request_Config_Auth_Sign = () =>
   import("../views/request/config/set_auth_sign.vue");
 const Request_Config_Number = () =>
   import("../views/request/config/set_number_request.vue");
-
+// Backup file
+const BackupFile = () => import("../views/backup/backup_schedule.vue");
+const BackupHistory = () => import("../views/backup/backup_history.vue");
 //Báo cáo Công việc
 const ProjectReport = () => import("../views/task_report/ProjectReport.vue");
 const router = createRouter({
@@ -1928,6 +1930,17 @@ const router = createRouter({
       path: "/tasks/report/project",
       name: "ProjectReport",
       component: ProjectReport,
+    },
+    // Backup file
+    {
+      path: "/system/backup",
+      name: "BackupFile",
+      component: BackupFile,
+    },
+    {
+      path: "/system/backup_history",
+      name: "BackupHistory",
+      component: BackupHistory,
     },
   ],
 });
