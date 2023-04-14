@@ -1446,5 +1446,141 @@ namespace API.Controllers.HRM.Profile
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> match_account()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    // Params
+                    var user_now = await db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+
+                    int en_type = int.Parse(provider.FormData.GetValues("type").SingleOrDefault());
+                    string profile_id = provider.FormData.GetValues("profile_id").SingleOrDefault();
+                    if (en_type == 1)
+                    {
+                        var en_user_id = provider.FormData.GetValues("user_id").SingleOrDefault();
+                        var exists = await db.hrm_matchaccount.CountAsync(x => x.profile_id == profile_id && x.user_id == en_user_id) > 0;
+                        if (!exists)
+                        {
+                            var matchaccountold = await db.hrm_matchaccount.Where(x => x.profile_id == profile_id).ToListAsync();
+                            if (matchaccountold.Count > 0)
+                            {
+                                db.hrm_matchaccount.RemoveRange(matchaccountold);
+                            }
+
+                            hrm_matchaccount matchaccount = new hrm_matchaccount();
+                            matchaccount.profile_id = profile_id;
+                            matchaccount.user_id = en_user_id;
+                            matchaccount.created_by = uid;
+                            matchaccount.created_date = DateTime.Now;
+                            matchaccount.created_ip = ip;
+                            matchaccount.created_token_id = tid;
+                            db.hrm_matchaccount.Add(matchaccount);
+                        }
+                    }
+                    else if (en_type == 2)
+                    {
+                        var profile = await db.hrm_profile.AsNoTracking().FirstOrDefaultAsync(x => x.profile_id == profile_id);
+                        if (profile != null)
+                        {
+
+                            var en_user = provider.FormData.GetValues("user").SingleOrDefault();
+                            sys_users user = JsonConvert.DeserializeObject<sys_users>(en_user);
+
+                            if (db.sys_users.Count(a => a.user_id == user.user_id) > 0)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã có tài khoản người dùng này trong hệ thống rồi!", err = "1" });
+                            }
+                            user.is_psword = BCrypt.Net.BCrypt.HashPassword(user.is_psword);
+                            user.full_name = profile.profile_user_name;
+                            user.full_name_en = helper.convertToUnSign(profile.profile_user_name);
+                            user.last_name = (user.full_name ?? "").Split(' ').Last();
+                            user.organization_id = profile.organization_id;
+                            user.organization_parent_id = db.sys_organization.FirstOrDefault(x=>x.organization_id == user.organization_id)?.parent_id ?? user.organization_id;
+                            user.position_id = db.hrm_contract.FirstOrDefault(x => x.profile_id == profile_id && x.is_active == true)?.position_id;
+                            user.birthday = profile.birthday;
+                            user.phone = profile.phone;
+                            user.email = profile.email;
+                            user.gender = profile.gender;
+                            user.status = 1;
+                            if (!string.IsNullOrEmpty(profile.avatar))
+                            {
+                                var path = HttpContext.Current.Server.MapPath("~/") + profile.avatar;
+                                if (File.Exists(path))
+                                {
+                                    user.avatar = "/Portals/Users/" + user.user_id + "/" + helper.GenKey() + ".jpg";
+                                    File.Copy(path, user.avatar, true);
+                                }
+                            }
+                            db.sys_users.Add(user);
+
+                            hrm_matchaccount matchaccount = new hrm_matchaccount();
+                            matchaccount.profile_id = profile_id;
+                            matchaccount.user_id = user.user_id;
+                            matchaccount.created_by = uid;
+                            matchaccount.created_date = DateTime.Now;
+                            matchaccount.created_ip = ip;
+                            matchaccount.created_token_id = tid;
+                            db.hrm_matchaccount.Add(matchaccount);
+                        }
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/match_account", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/match_account", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
     }
 }
