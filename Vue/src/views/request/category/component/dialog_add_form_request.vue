@@ -179,10 +179,10 @@ const closeDialog = () => {
 const choiceTreeUser = () => {
 	if (selectedUser.value.length > 0) {
 		selectedUser.value.forEach(function (u, j) {
-			let groupuser = { request_form_sign_user_id: -1, request_form_sign_id: null, user_id: u.user_id, full_name: u.full_name, avatar: u.avatar, last_name: u.last_name, created_by: null, created_date: null, created_ip: null, created_token_id: null, STT: null };
 			listGroupTeams.value.forEach((d, i) => {
 				if (i == indexSelect.value) {
-					groupuser.STT = j + 1;
+					let groupuser = { request_form_sign_user_id: "-1", request_form_sign_id: null, user_id: u.user_id, full_name: u.full_name, avatar: u.avatar, last_name: u.last_name, created_by: null, created_date: null, created_ip: null, created_token_id: null, status: true, STT: d.GroupTeamUsers.length + 1 };
+					// groupuser.STT = j + 1;
 					d.GroupTeamUsers.push(groupuser);
 					d.GroupTeamUsers.forEach((e, k) => {
 						if (d.GroupTeamUsers.length == 1) {
