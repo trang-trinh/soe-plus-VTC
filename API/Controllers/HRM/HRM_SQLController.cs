@@ -167,17 +167,26 @@ namespace API.Controllers.HRM
 
 
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + "  hcal.*, (select distinct '[' + STUFF(("
-  + "    SELECT     ',{\"user_id\":\"' + cast(ISNULL(hcs.lecturers_id, '') as nvarchar(50)) + '\"'"
-   + "      + ',\"full_name\":\"' + cast(ISNULL(hcs.lecturers_name, '') as nvarchar(50)) + '\"'"
-  + "   + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(200)) + '\"'"
- + "    + ',\"phone_number\":\"' + cast(ISNULL((hcs.phone_number), '') as nvarchar(500)) + '\"'"
-  + "     + '}'"
- + "    FROM hrm_class_schedule hcs WHERE hcs.training_emps_id = hcal.training_emps_id"
- + "     for xml path(''), type"
-+ "  ).value('.', 'nvarchar(max)'), 1, 1, '') +']') as li_user_verify,"
-          + "   (SELECT COUNT(*) FROM hrm_users_training hut WHERE hut.training_emps_id = hcal.training_emps_id)as count_emps"
-           + "   from hrm_training_emps hcal ";
+
+
+
+                sql = selectStr + " hcal.*,su.full_name,su.avatar,(select distinct '[' + STUFF(( "
+  + "   SELECT ',{\"user_id\":\"' + cast(ISNULL(hcs.lecturers_id, '') as nvarchar(50)) + '\"' "
+  + "  + ',\"full_name\":\"' + cast(ISNULL(hcs.lecturers_name, '') as nvarchar(50)) + '\"' "
+ + "   + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(200)) + '\"' "
+  + "  + ',\"phone_number\":\"' + cast(ISNULL((hcs.phone_number), '') as nvarchar(500)) + '\"' + '}' "
+ + "   FROM hrm_class_schedule hcs WHERE hcs.training_emps_id = hcal.training_emps_id  for xml path(''), type) "
+ + "   .value('.', 'nvarchar(max)'), 1, 1, '') +']') as li_user_verify, "
++ " (SELECT COUNT(*) FROM hrm_users_training hut WHERE hut.training_emps_id = hcal.training_emps_id) as count_emps "
+ + " , so.organization_name AS department_name, cp.position_name "
++ " from hrm_training_emps hcal "
++ " LEFT JOIN sys_users su ON su.user_id = hcal.created_by "
++ " LEFT JOIN sys_organization so ON su.department_id = so.organization_id "
++ " LEFT JOIN ca_positions cp ON su.position_id = cp.position_id ";
+
+
+
+
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 

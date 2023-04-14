@@ -1008,7 +1008,7 @@ onMounted(() => {
             @date-select="goYear(options.tempyear)"
             :showIcon="false"
             :manualInput="false"
-            inputId="yearpicker"
+            inputId="yearpicker" :showOnFocus="false"
             view="year"
             dateFormat="'Năm' yy"
             placeholder="Chọn năm"

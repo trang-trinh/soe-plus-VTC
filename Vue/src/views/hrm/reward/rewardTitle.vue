@@ -1245,7 +1245,7 @@ onMounted(() => {
                                     :showIcon="true"
                                     class="ip36"
                                     autocomplete="on"
-                                    inputId="time24"
+                                    inputId="time24" :showOnFocus="false"
                                     v-model="options.start_dateI"
                                     placeholder="Từ ngày"
                                   />
@@ -1257,7 +1257,7 @@ onMounted(() => {
                                     :showIcon="true"
                                     class="ip36"
                                     autocomplete="on"
-                                    inputId="time24"
+                                    inputId="time24" :showOnFocus="false"
                                     v-model="options.end_dateI"
                                     placeholder="Đến ngày"
                                   />

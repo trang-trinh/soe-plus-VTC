@@ -989,7 +989,7 @@ onMounted(() => {
                 class="w-full"
                 id="basic_purchase_date"
                 v-model="training_emps.start_date"
-                autocomplete="on"
+                autocomplete="on" :showOnFocus="false"
                 :showIcon="true"
                 placeholder="dd/mm/yyyy"
                 :class="{
@@ -1005,7 +1005,7 @@ onMounted(() => {
                 class="w-full"
                 id="basic_purchase_date"
                 v-model="training_emps.end_date"
-                autocomplete="on"
+                autocomplete="on" :showOnFocus="false"
                 :minDate="
                   training_emps.start_date
                     ? new Date(training_emps.start_date)
@@ -1065,8 +1065,8 @@ onMounted(() => {
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Hạn đăng ký</div>
             <div style="width: calc(100% - 10rem)">
-              <Calendar
-                class="w-full"
+              <Calendar 
+                class="w-full" :showOnFocus="false"
                 id="basic_purchase_date"
                 v-model="training_emps.registration_deadline"
                 :maxDate="
@@ -1895,7 +1895,7 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <Calendar
-                      class="w-full"
+                      class="w-full" :showOnFocus="false"
                       id="basic_purchase_date"
                       v-model="slotProps.data.date_study"
                       autocomplete="on"
@@ -1923,7 +1923,7 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <Calendar
-                      inputId="time12"
+                      inputId="time12" 
                       hourFormat="24"
                       class="w-full"
                       autocomplete="on"

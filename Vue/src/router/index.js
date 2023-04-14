@@ -381,6 +381,12 @@ const caDiscipline = () => import("../views/hrm/category/caDiscipline.vue");
 const caReason = () => import("../views/hrm/category/caReason.vue");
 const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
+  const caAllowance = () =>
+  import("../views/hrm/category/caAllowance.vue");
+  const caWageGroups = () =>
+  import("../views/hrm/category/caWageGroups.vue");
+  const caCivilServantRank = () =>
+  import("../views/hrm/category/caCivilServantRank.vue");
 const caTags = () => import("../views/hrm/category/caTags.vue");
 const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
 const caWorkPosition = () => import("../views/hrm/category/caWorkPosition.vue");
@@ -406,7 +412,9 @@ const Request_Config_Auth_Sign = () =>
   import("../views/request/config/set_auth_sign.vue");
 const Request_Config_Number = () =>
   import("../views/request/config/set_number_request.vue");
-
+// Backup file
+const BackupFile = () => import("../views/backup/backup_schedule.vue");
+const BackupHistory = () => import("../views/backup/backup_history.vue");
 //Báo cáo Công việc
 const ProjectReport = () => import("../views/task_report/ProjectReport.vue");
 const router = createRouter({
@@ -1776,7 +1784,21 @@ const router = createRouter({
       name: "caHRMDisciplineLevel",
       component: caDisciplineLevel,
     },
-
+    {
+      path: "/hrm/category/ca_allowance",
+      name: "caHRMAllowance",
+      component: caAllowance,
+    },
+    {
+      path: "/hrm/category/ca_wage_groups",
+      name: "caHRMcaWageGroups",
+      component: caWageGroups,
+    },
+    {
+      path: "/hrm/category/ca_civilservantrank",
+      name: "caHRMcaCivilServantRank",
+      component: caCivilServantRank,
+    },
     {
       path: "/hrm/category/ca_discipline",
       name: "caHRMDiscipline",
@@ -1962,6 +1984,17 @@ const router = createRouter({
       path: "/tasks/report/project",
       name: "ProjectReport",
       component: ProjectReport,
+    },
+    // Backup file
+    {
+      path: "/system/backup",
+      name: "BackupFile",
+      component: BackupFile,
+    },
+    {
+      path: "/system/backup_history",
+      name: "BackupHistory",
+      component: BackupHistory,
     },
   ],
 });

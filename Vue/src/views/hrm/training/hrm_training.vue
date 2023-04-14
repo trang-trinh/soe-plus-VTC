@@ -230,7 +230,7 @@ const options = ref({
   PageSize: 20,
   loading: true,
   totalRecords: 0,
-  tab: -1,
+  tab:0,
   totalRecords1: 0,
   totalRecords2: 0,
   totalRecords3: 0,
@@ -390,8 +390,40 @@ const loadDataSQL = () => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
           if (element.li_user_verify) {
             element.li_user_verify = JSON.parse(element.li_user_verify);
+
+            element.li_user_verify.forEach((item) => {
+                if (!item.position_name) {
+                  item.position_name = "";
+                } else {
+                  item.position_name =
+                    " </br> <span class='text-sm'>" +
+                    item.position_name +
+                    "</span>";
+                }
+                if (!item.department_name) {
+                  item.department_name = "";
+                } else {
+                  item.department_name =
+                    " </br> <span class='text-sm'>" +
+                    item.department_name +
+                    "</span>";
+                }
+              });
+          } else element.li_user_verify = [];
+
+
+          if (!element.position_name) {
+            element.position_name = "";
+          } else {
+            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+          }
+          if (!element.department_name) {
+            element.department_name = "";
+          } else {
+            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
           }
         });
+
 
         datalists.value = data;
       } else {
@@ -1379,7 +1411,7 @@ onMounted(() => {
                                 <Calendar
                                   :showIcon="true"
                                   class="ip36"
-                                  autocomplete="on"
+                                  autocomplete="on" :showOnFocus="false"
                                   inputId="time24"
                                   v-model="options.start_date"
                                   placeholder="Từ ngày"
@@ -1391,7 +1423,7 @@ onMounted(() => {
                                 <Calendar
                                   :showIcon="true"
                                   class="ip36"
-                                  autocomplete="on"
+                                  autocomplete="on"  :showOnFocus="false"
                                   inputId="time24"
                                   v-model="options.end_date"
                                   placeholder="Đến ngày"

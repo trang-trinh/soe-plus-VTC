@@ -554,7 +554,19 @@ namespace API.Controllers.Hrn
                         if (model != null)
                         {
                             model.status = status;
-                            if (model.status == 3)
+                            if (model.status == 1)
+                            {
+                                model.is_active = true;
+                                var old = await db.hrm_contract.Where(x => x.profile_id == model.profile_id && x.contract_id != model.contract_id).ToListAsync();
+                                if (old.Count > 0)
+                                {
+                                    foreach(var o in old)
+                                    {
+                                        o.is_active = false;
+                                    }
+                                }
+                            }
+                            else if (model.status == 3)
                             {
                                 model.liquidation_content = content;
                                 model.liquidation_date = date;

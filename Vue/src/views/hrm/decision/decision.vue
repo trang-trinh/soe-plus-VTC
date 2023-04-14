@@ -2,7 +2,7 @@
 import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
-import dialogdecíion from "../decision/component/dialogdecíion.vue";
+import dialogdecíion from "./component/dialogdecision.vue";
 import moment from "moment";
 
 const router = inject("router");
@@ -1287,7 +1287,7 @@ onMounted(() => {
               inputId="time24"
               :class="{
                 'p-invalid': !modelLiquidation.date && submitted,
-              }"
+              }" :showOnFocus="false"
               v-model="modelLiquidation.date"
               placeholder="DD/MM/YYYY"
             />
