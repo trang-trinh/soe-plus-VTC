@@ -1843,6 +1843,26 @@ onMounted(() => {
                       />
                     </div>
                   </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Danh hiệu</label>
+                      <Textarea
+                        :autoResize="true"
+                        rows="4"
+                        v-model="props.model.appellation"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Huy hiệu</label>
+                      <Textarea
+                        :autoResize="true"
+                        rows="4"
+                        v-model="props.model.armorial"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </AccordionTab>
