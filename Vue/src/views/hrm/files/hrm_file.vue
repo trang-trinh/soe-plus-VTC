@@ -208,7 +208,7 @@ const loadData = (rf, is_filter) => {
         if(isfilter.value == true ) isTopView.value = false;
           if(options.value.PageNo== 0 && data.length>6 && !isfilter.value){
             datatop.value = data.slice(0,4);
-            datalists.value = data.slice(4);
+            datalists.value = data
             isTopView.value = true;
           }
           else{
@@ -521,8 +521,8 @@ const loadTudien = () => {
           lightOptions.value.plugins.legend.display = true;
           chartDatapie.value.datasets.push({
             data: [],
-            backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
-            hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+            backgroundColor: ["#EE7E79", "#83ECC6", "#84B7F9", "#F5CD7C"],
+            hoverBackgroundColor: ["#de5e58", "#56e7b2", "#4c96f6", "#f2c05a"],
           });
           chartDatapie.value.datasets[0].data = dataCol;
         }, 100);          
