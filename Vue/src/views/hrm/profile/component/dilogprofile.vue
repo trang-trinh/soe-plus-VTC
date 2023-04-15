@@ -1724,13 +1724,13 @@ onMounted(() => {
                 <div class="row">
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Ngạch công chức (việc chức)</label>
+                      <label>Ngạch công chức (viên chức)</label>
                       <Dropdown
                         :showClear="true"
                         :options="props.dictionarys[26]"
                         optionLabel="newname"
                         optionValue="newname"
-                        placeholder="Chọn ngạch công chức (việc chức)"
+                        placeholder="Chọn ngạch công chức (viên chức)"
                         class="ip36"
                         v-model="props.model.civil_servant_rank_name"
                       />
@@ -1794,7 +1794,7 @@ onMounted(() => {
                   </div>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Ngày tham gia các mạng</label>
+                      <label>Ngày tham gia cách mạng</label>
                       <Calendar
                         :showIcon="true"
                         v-model="props.model.partisan_joindate"
@@ -1816,7 +1816,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-12 md:col-12">
                     <div class="form-group">
                       <label>Công việc trong tổ chức</label>
                       <InputText
