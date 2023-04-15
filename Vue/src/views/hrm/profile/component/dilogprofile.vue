@@ -827,9 +827,9 @@ onMounted(() => {
               </template>
               <div class="col-12 md:col-12">
                 <div class="row">
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
-                      <label>Số điện thoại</label>
+                      <label>Di động</label>
                       <InputMask
                         v-model="props.model.phone"
                         mask="9999999999"
@@ -838,7 +838,18 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Số điện thoại cố định</label>
+                      <InputMask
+                        v-model="props.model.fax"
+                        mask="9999999999"
+                        placeholder="__________"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Email</label>
                       <InputText
@@ -1322,13 +1333,18 @@ onMounted(() => {
                       class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.university_name"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="250"
-                        />
+                        <Dropdown
+                        :showClear="true"
+                        :editable="true"
+                        :filter="true"
+                        :options="dictionarys[27]"
+                        optionLabel="learning_place_name"
+                        optionValue="learning_place_name"
+                        placeholder="Chọn nơi đào tạo"
+                        class="ip36"
+                        v-model="slotProps.data.university_name"
+                        maxLength="250"
+                      />
                       </template>
                     </Column>
                     <Column
