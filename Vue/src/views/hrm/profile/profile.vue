@@ -518,6 +518,22 @@ const editItem = (item, str) => {
               model.value["identity_date_issue"]
             );
           }
+          if (model.value["partisan_date"] != null) {
+            model.value["partisan_date"] = new Date(
+              model.value["partisan_date"]
+            );
+          }
+          if (model.value["partisan_joindate"] != null) {
+            model.value["partisan_joindate"] = new Date(
+              model.value["partisan_joindate"]
+            );
+          }
+          if (model.value["organization_joindate"] != null) {
+            model.value["organization_joindate"] = new Date(
+              model.value["organization_joindate"]
+            );
+          }
+
         }
         if (tbs[1] != null && tbs[1].length > 0) {
           tbs[1].forEach((x) => {

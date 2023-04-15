@@ -329,7 +329,10 @@ onMounted(() => {
                             spellcheck="false"
                             class="ip36"
                             v-model="props.model.profile_code"
-                            :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
+                            :style="{
+                              backgroundColor: '#FEF9E7',
+                              fontWeight: 'bold',
+                            }"
                           />
                           <div v-if="!props.model.profile_code && submitted">
                             <small class="p-error">
@@ -1541,7 +1544,10 @@ onMounted(() => {
                 <Toolbar class="w-full custoolbar p-0 font-bold">
                   <template #start>
                     <!-- <i class="pi pi-replay mr-2"></i> -->
-                    <span>6. Lịch sử Đảng viên</span></template
+                    <span
+                      >6. Thông tin về Đảng và tham gia tổ chức chính trị/xã
+                      hội</span
+                    ></template
                   >
                   <template #end>
                     <a
@@ -1561,7 +1567,7 @@ onMounted(() => {
                   </template>
                 </Toolbar>
               </template>
-              <div class="col-12 md:col-12 p-0">
+              <!-- <div class="col-12 md:col-12 p-0">
                 <div style="">
                   <DataTable
                     :value="props.datachilds[3]"
@@ -1713,13 +1719,122 @@ onMounted(() => {
                     </template>
                   </DataTable>
                 </div>
+              </div> -->
+              <div class="col-12 md:col-12 p-0">
+                <div class="row">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngạch công chức (việc chức)</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[26]"
+                        optionLabel="newname"
+                        optionValue="newname"
+                        placeholder="Chọn ngạch công chức (việc chức)"
+                        class="ip36"
+                        v-model="props.model.civil_servant_rank_name"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6 format-center">
+                    <div class="form-group">
+                      <div
+                        class="field-checkbox flex justify-content-center"
+                        style="height: 100%"
+                      >
+                        <InputSwitch v-model="props.model.is_partisan" />
+                        <label for="binary">Là Đảng viên</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Số thẻ Đảng</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.card_partisan"
+                        maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngày vào Đảng chính thức</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.partisan_date"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Chị bộ sinh hoạt Đảng</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.partisan_branch"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Đảng bộ chính thức</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.partisan_official"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngày tham gia các mạng</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.partisan_joindate"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngày tham gia tổ chức</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.organization_joindate"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Công việc trong tổ chức</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.organization_task"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </AccordionTab>
-            <!-- 7. Lịch sử tham gia quân đội -->
+            <!-- 7. Thông tin tham gia quân đội -->
             <AccordionTab>
               <template #header>
                 <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                <span>7. Lịch sử tham gia quân đội</span>
+                <span>7. Thông tin tham gia quân đội</span>
               </template>
               <div class="col-12 md:col-12">
                 <div class="row">
@@ -1758,9 +1873,20 @@ onMounted(() => {
                   </div>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Danh hiệu cao nhất</label>
-                      <InputText
-                        spellcheck="false"
+                      <label>Danh hiệu phong tặng cao nhất</label>
+                      <Dropdown
+                        :showClear="true"
+                        :editable="true"
+                        :options="[
+                          { value: 1, title: 'Anh hùng lao động' },
+                          { value: 2, title: 'Anh hùng lực lượng vũ trang' },
+                          { value: 3, title: 'Nhà giáo' },
+                          { value: 4, title: 'Thầy thuốc' },
+                          { value: 5, title: 'Nghệ sĩ nhân dân ưu tú' },
+                        ]"
+                        optionLabel="title"
+                        optionValue="title"
+                        placeholder="Chọn danh hiệu phong tặng cao nhất"
                         class="ip36"
                         v-model="props.model.military_title"
                         maxLength="250"
@@ -1789,28 +1915,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Khen thưởng</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.military_reward"
-                        maxLength="250"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Kỷ luật</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.military_discipline"
-                        maxLength="250"
-                      />
-                    </div>
-                  </div>
+
                   <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Thương binh hạng</label>
@@ -1825,8 +1930,18 @@ onMounted(() => {
                   <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Con gia đình chính sách</label>
-                      <InputText
-                        spellcheck="false"
+                      <Dropdown
+                        :showClear="true"
+                        :editable="true"
+                        :options="[
+                          { value: 1, title: 'Con thương binh' },
+                          { value: 2, title: 'Con liệt sĩ' },
+                          { value: 3, title: 'Người nhiễm chất độc da cam' },
+                          { value: 4, title: 'Dioxin' },
+                        ]"
+                        optionLabel="title"
+                        optionValue="title"
+                        placeholder="Là con gia đình chính sách"
                         class="ip36"
                         v-model="props.model.military_policy_family"
                         maxLength="250"
@@ -2081,37 +2196,107 @@ onMounted(() => {
                 <!-- <i class="pi pi-chart-line mr-2"></i> -->
                 <span>9. Đặc điểm lịch sử bản thân</span>
               </template>
-              <div class="col-12 md:col-12">
-                <div class="form-group">
-                  <label>Nhập thông tin</label>
-                  <Textarea
-                    :autoResize="true"
-                    rows="4"
-                    placeholder="Khai rõ: Bị bắt, bị tù, bản thân có làm việc trong chế độ cũ"
-                    v-model="props.model.biography_first"
-                  />
-                </div>
-              </div>
-              <div class="col-12 md:col-12">
-                <div class="form-group">
-                  <label>Nhập thông tin</label>
-                  <Textarea
-                    :autoResize="true"
-                    rows="4"
-                    placeholder="Tham gia hoặc có quan hệ với các tổ chức chính trị, kinh tế, xã hội nào ở nước ngoài"
-                    v-model="props.model.biography_second"
-                  />
-                </div>
-              </div>
-              <div class="col-12 md:col-12">
-                <div class="form-group">
-                  <label>Nhập thông tin</label>
-                  <Textarea
-                    :autoResize="true"
-                    rows="4"
-                    placeholder="Có thân nhân ở nước ngoài (làm gì, địa chỉ)"
-                    v-model="props.model.biography_third"
-                  />
+              <div class="col-12 md:col-12 p-0">
+                <div class="row">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Thành phần gia đình xuất thân</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.family_member"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label
+                        >Nghề nghiệp bản thân trước khi được tuyển dụng</label
+                      >
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.job_before_recruitment"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Công việc đã làm lâu nhất</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.task_longest"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Sở trường công tác</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.mission_forte"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Khen thưởng</label>
+                      <Textarea
+                        :autoResize="true"
+                        rows="4"
+                        v-model="props.model.military_reward"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Kỷ luật</label>
+                      <Textarea
+                        :autoResize="true"
+                        rows="4"
+                        v-model="props.model.military_discipline"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Nhập thông tin</label>
+                      <Textarea
+                        :autoResize="true"
+                        rows="4"
+                        placeholder="Khai rõ: Bị bắt, bị tù, bản thân có làm việc trong chế độ cũ"
+                        v-model="props.model.biography_first"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Nhập thông tin</label>
+                      <Textarea
+                        :autoResize="true"
+                        rows="4"
+                        placeholder="Tham gia hoặc có quan hệ với các tổ chức chính trị, kinh tế, xã hội nào ở nước ngoài"
+                        v-model="props.model.biography_second"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Nhập thông tin</label>
+                      <Textarea
+                        :autoResize="true"
+                        rows="4"
+                        placeholder="Có thân nhân ở nước ngoài (làm gì, địa chỉ)"
+                        v-model="props.model.biography_third"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </AccordionTab>
