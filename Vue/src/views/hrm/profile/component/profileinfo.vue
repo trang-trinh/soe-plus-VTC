@@ -3960,7 +3960,7 @@ const onPage = (event) => {
                 </DataTable>
               </div>
             </div>
-            <div v-show="options.view === 4" class="f-full">
+            <div v-if="options.view === 4" class="f-full">
               <comptimekeep
                 :profile_id="options.profile_id"
                 :view="options.view"

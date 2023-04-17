@@ -184,7 +184,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <!-- <div
+  <div
     class="d-lang-table"
     :style="{
       height: 'calc(100vh - 220px)',
@@ -195,7 +195,6 @@ onMounted(() => {
       <template #marker="slotProps">
         <span
           class="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
-          :style="{ backgroundColor: slotProps.item.color }"
         >
           <i class="pi pi-check"></i>
         </span>
@@ -203,13 +202,27 @@ onMounted(() => {
       <template #content="slotProps">
         <Card>
           <template #title>
-            {{ slotProps.item.status }}
+            <Button
+              :label="slotProps.item.status_name"
+              :style="{
+                border: slotProps.item.bg_color,
+                backgroundColor: slotProps.item.bg_color,
+                color: slotProps.item.text_color,
+              }"
+            />
           </template>
           <template #subtitle>
-            {{ slotProps.item.date }}
+            {{ slotProps.item.sign_date }}
           </template>
           <template #content>
-            <img
+            <div>Chức danh: {{ slotProps.item.work_position_name }}</div>
+            <div>Chức vụ: {{ slotProps.item.position_name }}</div>
+            <div>Phòng ban: {{ slotProps.item.department_name }}</div>
+            <div>
+              Công việc chuyên môn: {{ slotProps.item.professional_work_name }}
+            </div>
+            <div>Loại hợp đồng: {{ slotProps.item.contract_name }}</div>
+            <!-- <img
               v-if="slotProps.item.image"
               :src="`/images/product/${slotProps.item.image}`"
               :alt="slotProps.item.name"
@@ -221,15 +234,15 @@ onMounted(() => {
               Inventore sed consequuntur error repudiandae numquam deserunt
               quisquam repellat libero asperiores earum nam nobis, culpa ratione
               quam perferendis esse, cupiditate neque quas!
-            </p>
+            </p> -->
             <Button label="Read more" text></Button>
           </template>
         </Card>
       </template>
     </Timeline>
-  </div> -->
+  </div>
 
-  <div class="row p-2">
+  <!-- <div class="row p-2">
     <div class="col-12 md:col-12 p-0">
       <Accordion class="w-full mb-2" :activeIndex="0">
         <AccordionTab>
@@ -453,6 +466,6 @@ onMounted(() => {
         </AccordionTab>
       </Accordion>
     </div>
-  </div>
+  </div> -->
 </template>
 <style scoped></style>
