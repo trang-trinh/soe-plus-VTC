@@ -8,7 +8,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "clean": "rmdir /s /q node_modules",
     "reinstall": "npm run clean && npm install",
-    "rebuild": "npm run clean && npm install && rmdir /s /q dist && npm run build --prod"
+    "rebuild": "npm run clean && npm install && rmdir /s /q dist && npm run build --prod",
+    "deploy": "vite build && node deploy"
   },
   "dependencies": {
     "@1nd/fabric-history-pure-browser": "^1.6.0",
@@ -38,6 +39,7 @@
     "fabric": "^5.2.1",
     "fabric-history": "^1.6.0",
     "file-saver": "^2.0.5",
+    "ftp-deploy": "^2.4.3",
     "html-to-image": "^1.9.0",
     "html-to-pdfmake": "^2.3.10",
     "i18n": "^0.14.1",

@@ -193,6 +193,7 @@ const loadData = (rf) => {
       });
  
       datalists.value = data;
+ 
 
       options.value.loading = false;
     })
@@ -926,9 +927,7 @@ const openDetails=(data)=>{
   displayPaycheck.value=true;
 }
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   loadData(true);
   initTudien();
   loadUserProfiles();
@@ -1132,7 +1131,7 @@ onMounted(() => {
         </template>
 
         <template #body="data">
-          <div class="flex w-full align-items-center pr-2">
+          <div class="flex w-full align-items-center pr-2" v-if="data.data.profile_user_name">
                   <Avatar
                     v-bind:label="
                       data.data.avatar

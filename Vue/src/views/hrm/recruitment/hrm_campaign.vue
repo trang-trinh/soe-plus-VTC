@@ -1234,7 +1234,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
+            proc: "hrm_ca_work_position_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -1253,8 +1253,8 @@ const initTudien = () => {
       listVacancies.value = [];
       data.forEach((element, i) => {
         listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
+          name: element.work_position_name,
+          code: element.work_position_id,
         });
       });
     })
@@ -1873,7 +1873,7 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="vacancy_name"
+              field="work_position_name"
               header="Vị trí"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"

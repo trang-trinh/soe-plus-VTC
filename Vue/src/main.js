@@ -264,7 +264,7 @@ library.add(
   faFile,
   faBriefcaseMedical,
   faPrint,
-  faMedal,
+  faMedal
 );
 import "animate.css";
 Date.prototype.toISOString = function () {

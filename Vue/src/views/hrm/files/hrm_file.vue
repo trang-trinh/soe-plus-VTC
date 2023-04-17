@@ -208,7 +208,7 @@ const loadData = (rf, is_filter) => {
         if(isfilter.value == true ) isTopView.value = false;
           if(options.value.PageNo== 0 && data.length>6 && !isfilter.value){
             datatop.value = data.slice(0,4);
-            datalists.value = data.slice(4);
+            datalists.value = data
             isTopView.value = true;
           }
           else{
@@ -276,7 +276,7 @@ const options = ref({
   sort: "created_date",
   search: "",
   PageNo: 0,
-  PageSize: 20,
+  PageSize: 50,
   loading: true,
   totalRecords: null,
   type: null
@@ -521,8 +521,8 @@ const loadTudien = () => {
           lightOptions.value.plugins.legend.display = true;
           chartDatapie.value.datasets.push({
             data: [],
-            backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
-            hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+            backgroundColor: ["#EE7E79", "#83ECC6", "#84B7F9", "#F5CD7C"],
+            hoverBackgroundColor: ["#de5e58", "#56e7b2", "#4c96f6", "#f2c05a"],
           });
           chartDatapie.value.datasets[0].data = dataCol;
         }, 100);          
@@ -570,10 +570,10 @@ const changeView = (item)=>{
   layout.value = item;
   options.value.PageNo= 0;
   if(item == 'grid'){
-    options.value.PageSize= 36;
+    options.value.PageSize= 54;
   } 
   else{
-    options.value.PageSize= 20;
+    options.value.PageSize= 50;
   } 
   loadData(true, true)
 }
@@ -592,7 +592,7 @@ const onRefresh = ()=>{
   sort: "created_date",
   search: "",
   PageNo: 0,
-  PageSize: 20,
+  PageSize: 50,
   loading: true,
   totalRecords: null,
   type: null,
@@ -1225,7 +1225,6 @@ onMounted(() => {
           filterDisplay="menu"
           selectionMode="single"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
           :scrollable="true"
           scrollHeight="flex"
           responsiveLayout="scroll"

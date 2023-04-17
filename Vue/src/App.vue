@@ -11,7 +11,6 @@ import { useRouter, useRoute } from "vue-router";
 import { decr, encr } from "./util/function";
 import { useToast } from "vue-toastification";
 import { useCookies } from "vue3-cookies";
-
 const { cookies } = useCookies();
 
 //Khai báo biến

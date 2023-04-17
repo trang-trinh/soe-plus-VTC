@@ -205,6 +205,7 @@ const ReloadTree = () => {
   RenderTree(ListTaskCategory);
 };
 const LoadData = () => {
+   
   LoadProject();
   LoadTaskCategory();
 };

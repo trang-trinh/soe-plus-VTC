@@ -425,9 +425,10 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
-                <InputText
+                <InputNumber
                   spellcheck="false"
-                  class="ip36 text-right"
+                  mode="decimal"
+                  class="ip36 text-right input-money"
                   v-model="slotProps.data.total_payment"
                   maxLength="250"
                 />
@@ -441,9 +442,10 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
-                <InputText
+                <InputNumber
+                  mode="decimal"
                   spellcheck="false"
-                  class="ip36 text-right"
+                  class="ip36 text-right input-money"
                   v-model="slotProps.data.company_payment"
                   maxLength="250"
                 />
@@ -459,7 +461,7 @@ onMounted(() => {
               <template #body="slotProps">
                 <InputText
                   spellcheck="false"
-                  class="ip36 text-right"
+                  class="ip36 text-right input-money"
                   v-model="slotProps.data.member_payment"
                   maxLength="250"
                 />
@@ -593,9 +595,10 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
-                <InputText
+                <InputNumber
                   spellcheck="false"
-                  class="ip36 text-right"
+                  mode="decimal"
+                  class="ip36 text-right input-money"
                   v-model="slotProps.data.total_payment"
                   maxLength="250"
                 />

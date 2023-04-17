@@ -70,7 +70,7 @@ const loadCount = () => {
         options.value.totalRecords1 = data1[0].totalRecords1;
         options.value.totalRecords2 = data2[0].totalRecords2;
         options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
+        options.value.totalRecords4 = data4[0].totalRecords4;
         options.value.totalRecords5 = data5[0].totalRecords5;
         options.value.totalRecords6 = data6[0].totalRecords6;
         sttStamp.value = data[0].totalRecords + 1;
@@ -451,7 +451,7 @@ const refreshStamp = () => {
   options.value.user_verify_list = null;
   options.value.rec_position_id = null;
   options.value.can_academic_level_id = null;
-  options.value.vacancy_id = null;
+  options.value.work_position_id = null;
   options.value.start_dateI = null;
   options.value.end_dateI = null;
   options.value.start_dateI = null;
@@ -685,7 +685,7 @@ const exportData = (method) => {
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
-        excelname: "DANH SÁCH đề xuất",
+        excelname: "DANH SÁCH ĐỀ XUẤT",
         proc: "hrm_recruitment_proposal_export",
         par: [
           { par: "user_id", va: store.state.user.user_id },
@@ -715,9 +715,9 @@ const exportData = (method) => {
               : null,
           },
           {
-            par: "vacancy_id",
-            va: options.value.vacancy_id
-              ? options.value.vacancy_id.toString()
+            par: "work_position_id",
+            va: options.value.work_position_id
+              ? options.value.work_position_id.toString()
               : null,
           },
           {
@@ -904,7 +904,7 @@ const deleteList = () => {
 //Filter
 const reFilter = () => {
   options.value.user_follows = null;
-  options.value.vacancy_id = null;
+  options.value.work_position_id = null;
   options.value.user_verify = null;
   options.value.start_dateI = null;
   options.value.end_dateI = null;
@@ -992,14 +992,14 @@ const filterFileds = () => {
       filterSQL.value.push(filterS3);
     }
   }
-  if (options.value.vacancy_id) {
+  if (options.value.work_position_id) {
     let filterS4 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "vacancy_id",
+      key: "work_position_id",
     };
-    if (options.value.vacancy_id.length > 0) {
-      options.value.vacancy_id.forEach((element) => {
+    if (options.value.work_position_id.length > 0) {
+      options.value.work_position_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS4.filterconstraints.push(addr);
       });
@@ -1237,7 +1237,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
+            proc: "hrm_ca_work_position_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -1256,8 +1256,8 @@ const initTudien = () => {
       listVacancies.value = [];
       data.forEach((element, i) => {
         listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
+          name: element.work_position_name,
+          code: element.work_position_id,
         });
       });
     })
@@ -1306,9 +1306,7 @@ const headerChart=ref("Bảng theo dõi quy trình xử lý");
 
 
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   initTudien();
   loadData(true);
 
@@ -1398,7 +1396,7 @@ onMounted(() => {
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.vacancy_id"
+                                v-model="options.work_position_id"
                                 optionLabel="name"
                                 optionValue="code"
                                 display="chip"
@@ -1717,7 +1715,7 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="vacancy_name"
+              field="work_position_name"
               header="Vị trí"
               headerStyle="text-align:center;max-width:250px;height:50px"
               bodyStyle="text-align:center;max-width:250px"
