@@ -478,8 +478,8 @@ onMounted(() => {
         </span>
       </div>
       <div class="col-4 p-0 m-0">
-        <Button @click="refreshData()" class="mr-2 p-button-outlined p-button-secondary" style="float: right;"
-          icon="pi pi-refresh" v-tooltip="'Tải lại'" />
+        <Button @click="refreshData()" label="Tải lại" class="mr-2 p-button-outlined p-button-secondary" style="float: right;"
+          icon="pi pi-refresh" autofocus/>
       </div>
     </div>
     <div class="col-md-12 flex"
@@ -754,7 +754,7 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:7rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <Checkbox disabled :binary="true" v-model="data.data.status" @click="changeStatus(data.data)" />
+                <Checkbox disabled :binary="true" v-model="data.data.status"/>
               </template>
             </Column>
             <Column field="" header=""
