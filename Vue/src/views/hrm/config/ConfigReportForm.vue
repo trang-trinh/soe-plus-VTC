@@ -216,30 +216,108 @@ const options = ref({
   pageSize: 20,
 });
 const filterss = () => {};
-const model = ref({
-  STT: "",
-  organization_id: user.organization_id,
-  report_key: "",
-  report_title: "",
-  status: true,
-});
-const AddNew = () => {
-  model.value = {
-    STT: datalists.value.length > 0 ? datalists.value.length + 1 : 1,
-    organization_id: user.organization_id,
-    report_key: "a",
-    report_title: "a",
-    status: true,
-  };
-  datalists.value.unshift({
-    STT: datalists.value.length > 0 ? datalists.value.length + 1 : 1,
-    organization_id: user.organization_id,
-    report_key: "a",
-    report_title: "a",
-    status: true,
-  });
-};
+function model(STT, organization_id, report_key, report_title, status) {
+  this.STT = STT;
+  this.organization_id = organization_id;
+  this.report_title = report_title;
+  this.report_key = report_key;
+  this.status = status;
+}
 
+const headerDialog = ref();
+const DialogVisible = ref(false);
+const closeDialog = () => {
+  submitted.value = false;
+  models.value = [];
+  DialogVisible.value = false;
+};
+const models = ref([]);
+const AddNew = () => {
+  isEdit.value = false;
+  let stt = datalists.value.length > 0 ? datalists.value.length + 1 : 1;
+  let u_org = user.organization_id;
+  let t = new model(stt, u_org, "", "", true);
+  models.value.unshift(t);
+  DialogVisible.value = true;
+  headerDialog.value = "Thêm mẫu báo cáo";
+};
+const addALine = () => {
+  let stt =
+    models.value.length > 0
+      ? models.value.length + datalists.value.length + 1
+      : 1;
+  let u_org = user.organization_id;
+  let t = new model(stt, u_org, "", "", true);
+  models.value.unshift(t);
+};
+const isEdit = ref(false);
+const index = ref([]);
+const EditData = (e, i) => {
+  isEdit.value = true;
+  let t = JSON.parse(JSON.stringify(e));
+  models.value = [];
+  headerDialog.value = "Chỉnh sửa mẫu báo cáo";
+  DialogVisible.value = true;
+  models.value.push(t);
+};
+const submitted = ref(false);
+const saveData = (e) => {
+  submitted.value = true;
+  let arr = models.value.filter(
+    (x) =>
+      x.report_title == null ||
+      x.report_title == "" ||
+      x.report_key == null ||
+      x.report_key == "",
+  );
+  if (arr.length > 0) {
+    return;
+  } else {
+    let formData = new FormData();
+    formData.append("sys_organization_report", JSON.stringify(models.value));
+    debugger;
+    axios({
+      method: isEdit.value == false ? "post" : "put",
+      url:
+        baseURL +
+        "/api/sys_organization_report/" +
+        (isEdit.value == false ? "AddReportForm" : "UpdateReportForm"),
+      data: formData,
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+      },
+    })
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Đánh giá báo cáo thành công!");
+          loadData();
+          closeDialog();
+          swal.close();
+        } else {
+          swal.close();
+          let ms = response.data.ms;
+          swal.fire({
+            title: "Thông báo!",
+            html: ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Thông báo",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  }
+};
+const DelData = (e) => {};
+const editingRows = ref([]);
 onMounted(() => {
   loadReportForm();
   if (user.is_super) loadDonvi();
@@ -300,51 +378,88 @@ onMounted(() => {
     <div :class="user.is_super == true ? 'col-8' : 'col-12'">
       <DataTable
         :value="datalists"
-        scrollHeight="flex"
-        dataKey="STT"
         :rowHover="true"
         :showGridlines="true"
         responsiveLayout="scroll"
+        scrollHeight="flex"
+        dataKey="key_id"
+        class="col-12 py-0 px-0"
       >
         <template #header>
           <h3 class="module-title mt-0 ml-1 mb-2">
             <i class="pi pi-file-pdf"></i>
             Danh sách mẫu báo cáo
           </h3>
-          {{ listReportForm }}
-          {{ datalists }}
-          <Dropdown
-            class="col-12 p-0 m-0"
-            v-model="options.va"
-            :options="listReportForm"
-            optionLabel="report_name"
-            optionValue="report_key"
-            placeholder="Phân loại"
-            showClear
-            panelClass="d-design-dropdown"
-          />
+
           <Toolbar class="w-full custoolbar">
-            <template #start>
+            <template #end>
               <Button
+                v-if="
+                  user.organization_id == options.organization_id ||
+                  !user.is_super
+                "
                 label="Thêm mới"
                 icon="pi pi-plus"
                 @click="AddNew()"
               ></Button>
             </template>
-
-            <template #end> </template>
           </Toolbar>
         </template>
         <Column
           header="STT"
           field="STT"
-          class=""
-        ></Column>
+          class="align-items-center justify-content-center text-center w-1rem"
+        >
+        </Column>
+        <Column
+          header="Tên báo cáo1"
+          field="report_title"
+          headerClass="align-items-center justify-content-center text-center w-15rem"
+        >
+        </Column>
         <Column
           header="Mẫu báo cáo"
           field="report_name"
-          class=""
-        ></Column>
+          class="align-items-center justify-content-center text-center max-w-10rem"
+        >
+        </Column>
+        <Column
+          field="status"
+          header="Hiển thị"
+          :class="'align-items-center justify-content-center text-center max-w-4rem'"
+        >
+          <template #body="data">
+            <Checkbox
+              :binary="data.data.status"
+              v-model="data.data.status"
+              @click="onCheckBox(data.data)"
+            />
+          </template>
+        </Column>
+        <Column
+          header="Chức năng"
+          field=""
+          class="align-items-center justify-content-center text-center max-w-10rem"
+        >
+          <template #body="data">
+            <div>
+              <Button
+                @click="EditData(data.data, data.index)"
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                type="button"
+                icon="pi pi-pencil"
+                v-tooltip="'Sửa'"
+              ></Button>
+              <Button
+                @click="DelData(data.data, true)"
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                type="button"
+                icon="pi pi-trash"
+                v-tooltip="'Xóa'"
+              ></Button>
+            </div>
+          </template>
+        </Column>
         <template #empty>
           <div
             class="align-items-center justify-content-center p-4 text-center m-auto"
@@ -359,5 +474,120 @@ onMounted(() => {
       </DataTable>
     </div>
   </div>
+
+  <Dialog
+    :header="headerDialog"
+    v-model:visible="DialogVisible"
+    :style="{ width: '50vw' }"
+    :closable="true"
+    :maximizable="true"
+    @hide="closeDialog()"
+  >
+    <div
+      class="col-12"
+      v-if="isEdit == false"
+    >
+      <Button
+        label="Thêm mẫu"
+        style="float: right"
+        @click="addALine()"
+      ></Button>
+    </div>
+    <div class="col-12 flex p-0 align-items-center justify-content-center">
+      <div class="col-1 flex align-items-center justify-content-center">
+        STT
+      </div>
+      <div class="col-5 flex align-items-center justify-content-center">
+        Tên báo cáo <span class="redsao">(*)</span>
+      </div>
+
+      <div class="col-4 flex align-items-center justify-content-center">
+        Mẫu báo cáo<span class="redsao">(*)</span>
+      </div>
+      <div class="col-2 flex align-items-center justify-content-center">
+        Trạng thái
+      </div>
+    </div>
+    <div
+      v-for="(item, index) in models"
+      :key="index"
+    >
+      <div class="col-12 flex p-0 align-items-center justify-content-center">
+        <div class="col-1 flex align-items-center justify-content-center">
+          {{ item.STT }}
+        </div>
+        <InputText
+          v-model="item.report_title"
+          spellcheck="false"
+          type="text"
+          class="col-5"
+          :class="{
+            'p-invalid': !item.report_title && submitted,
+          }"
+        />
+
+        <div class="col-4 flex align-items-center justify-content-center">
+          <Dropdown
+            v-model="item.report_key"
+            :options="listReportForm"
+            optionLabel="report_name"
+            optionValue="report_key"
+            placeholder="Phân loại"
+            showClear
+            class="w-full"
+            panelClass="d-design-dropdown"
+            :class="{
+              'p-invalid': !item.report_key && submitted,
+            }"
+          />
+        </div>
+
+        <div class="col-2 flex align-items-center justify-content-center">
+          <InputSwitch v-model="item.status" />
+        </div>
+      </div>
+      <div class="col-12 flex p-0 align-items-center justify-content-center">
+        <div class="col-1 p-0 flex"></div>
+        <div class="col-5 p-0 flex">
+          <small
+            v-if="!item.report_title && submitted"
+            :class="{
+              'p-text-invalid': !item.report_title && submitted,
+            }"
+          >
+            Tên báo cáo không được để trống!</small
+          >
+        </div>
+        <div class="col-4">
+          <small
+            v-if="!item.report_title && submitted"
+            :class="{
+              'p-text-invalid': !item.report_title && submitted,
+            }"
+          >
+            Mẫu báo cáo không được để trống!</small
+          >
+        </div>
+        <div class="col-2 p-0"></div>
+      </div>
+    </div>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialog()"
+        class="p-button-outlined"
+      />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveData()"
+      />
+    </template>
+  </Dialog>
 </template>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.p-text-invalid {
+  color: red;
+}
+</style>
