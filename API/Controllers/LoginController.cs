@@ -208,6 +208,21 @@ namespace Controllers
                         cookie.Secure = true;
                         respMessage.StatusCode = HttpStatusCode.OK;
                         respMessage.Headers.AddCookies(new CookieHeaderValue[] { cookie });
+
+                        string rootFileConfig = HttpContext.Current.Server.MapPath("~/Config");
+                        string json = System.IO.File.ReadAllText(Path.Combine(rootFileConfig, Path.GetFileName("Config.json")));
+                        if (json != null)
+                        {
+                            settings config = JsonConvert.DeserializeObject<settings>(json);
+                            CookieHeaderValue cookiedoc = new CookieHeaderValue("jwt_doconline", obj.data);
+                            cookiedoc.Expires = DateTimeOffset.Now.AddMinutes(helper.timeout);
+                            cookiedoc.Domain = config.docOnlineUrl;
+                            cookiedoc.Path = "/";
+                            cookiedoc.HttpOnly = true;
+                            //cookiedoc.Secure = true;
+                            respMessage.Headers.AddCookies(new CookieHeaderValue[] { cookiedoc });
+                        }
+                            
                         Log.Info("Login-page started...");
                         return respMessage;
                         #endregion
