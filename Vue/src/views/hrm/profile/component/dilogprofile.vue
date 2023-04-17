@@ -128,7 +128,7 @@ const saveModel = (is_continue) => {
       obj["place_register_permanent"] = obj["select_place_register_permanent"];
     }
   }
-  if (obj["place_residence_id"] != null) {
+  if (obj["select_place_residence"] != null) {
     var checkname = listPlaceDetails4.value.findIndex(
       (x) => x["place_details_id"] === (obj["select_place_residence"] || "")
     );

@@ -3,16 +3,9 @@ import { inject, onMounted, ref } from "vue";
 import { required, email } from "@vuelidate/validators";
 import { encr, decr } from "../util/function";
 import { socketMethod } from "../util/methodSocket";
-import { useCookies, globalCookiesConfig } from "vue3-cookies";
+import { useCookies } from "vue3-cookies";
 import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
-if (baseURL.includes("soe.vn")) {
-  globalCookiesConfig({
-    expireTimes: "30d",
-    path: "/",
-    domain: ".soe.vn",
-  });
-}
 const { cookies } = useCookies();
 
 const socket = inject("socket");

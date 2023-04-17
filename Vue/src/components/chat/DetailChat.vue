@@ -4,7 +4,7 @@ import { useToast } from "vue-toastification";
 import { required, maxLength } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import moment from "moment";
-import { useCookies, globalCookiesConfig } from "vue3-cookies";
+import { useCookies } from "vue3-cookies";
 import { VuemojiPicker } from "vuemoji-picker";
 //import { forEach } from "jszip";
 //import DetailBoxChat from "../../components/chat/BoxChat.vue";
@@ -23,13 +23,6 @@ const socket = inject("socket");
 // const forceRerenderChat = () => {
 // 	componentKeyChat.value += 1;
 // };
-if (baseURL.includes("soe.vn")) {
-  globalCookiesConfig({
-    expireTimes: "30d",
-    path: "/",
-    domain: ".soe.vn",
-  });
-}
 const { cookies } = useCookies();
 const basedomainURL = baseURL;
 const baseUrlCheck = baseURL;
