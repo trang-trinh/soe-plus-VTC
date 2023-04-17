@@ -881,9 +881,104 @@ const loadDataTree = ()=>{
         });
   
 }
-const onClickOutside = ()=>{
+//excel
+const exportExcel = () => {
+  let text_string = "";
+  text_string =
+    "TỪ " +
+    moment(new Date(options.value.start_date))
+      .format("MM/YYYY")
+      .toString() +
+    " - " +
+    moment(new Date(options.value.end_date)).format("MM/YYYY").toString();
   
-}
+  let name = "Danh sach dong bao hiem thang "+ moment(new Date()).format("MM-YYYY").toString();
+  let id = "tablequizz";
+  var htmltable1 = "";
+  // htmltable1 = renderExcel_Ketqua();
+  var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+  tab_text =
+    tab_text +
+    "<head><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>";
+  tab_text = tab_text + "<x:Name>Test Sheet</x:Name>";
+  tab_text =
+    tab_text +
+    "<x:WorksheetOptions><x:Panes></x:Panes></x:WorksheetOptions></x:ExcelWorksheet>";
+  tab_text =
+    tab_text + "</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>";
+  tab_text =
+    tab_text +
+    "<style>.item-date{min-width:100px !important} th,td,table,tr{padding:5px;font-size:13pt} .text-right{text-align:right} .text-left{text-align:left}table{margin:20px auto;border-collapse: collapse;}</style>";
+  tab_text =
+    tab_text +
+    '<style>.cstd{font-family: Times New Roman;border:none!important; font-size: 17px; font-weight: 700; text-align: center; vertical-align: center;color:#1769aa}</style><table><td colspan="' +
+    '15' +
+    '" class="cstd" > DANH SÁCH ĐÓNG BẢO HIỂM ' +
+    text_string +
+    "</td > ";
+  tab_text = tab_text + "</table>";
+
+  //var exportTable = $('#' + id).clone();
+  //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
+  tab_text =
+    tab_text +
+    "<style>th,table,tr{font-family: Times New Roman; font-size: 12px; vertical-align: middle;}</style><table border='1'>";
+  var exportTable = document
+    .getElementById("table-bc")
+    .cloneNode(true).innerHTML;
+  tab_text = tab_text + exportTable.replaceAll('.', ',');
+  tab_text = tab_text + htmltable1;
+  tab_text = tab_text + "</table>";
+  tab_text = tab_text + '<meta charset="utf-8"/></ta></body></html>';
+  var data_type =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  var ua = window.navigator.userAgent;
+  var msie = ua.indexOf("MSIE ");
+
+  var fileName = name + " " + parseInt(Math.random() * 100) + ".xls";
+  if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+    if (window.navigator.msSaveBlob) {
+      var blob = new Blob([tab_text], {
+        type: data_type, //"application/csv;charset=utf-8;"
+      });
+      navigator.msSaveBlob(blob, fileName);
+    }
+  } else {
+    var blob2 = new Blob([tab_text], {
+      type: data_type, //"application/csv;charset=utf-8;"
+    });
+    var filename = fileName;
+    var elem = window.document.createElement("a");
+    elem.href = window.URL.createObjectURL(blob2);
+    elem.download = filename;
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+  }
+};
+
+//export
+const menuButs = ref();
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
+const itemButs = ref([
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportExcel();
+    },
+  },
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      //exportData("ExportExcel");
+    },
+  },
+]);
+
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
@@ -957,7 +1052,6 @@ function dateRange(startDate, endDate) {
   }
   return dates;
 }
-const disabledDates = ref(['2022'])
 onMounted(() => {
   initData(true);
   loadTudien();
@@ -1064,6 +1158,7 @@ onMounted(() => {
             />
 
             <Button
+              v-if="options.view == 2"
               label="Tiện ích"
               icon="pi pi-file-excel"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -1284,13 +1379,13 @@ onMounted(() => {
       <table class="w-full" style="overflow-y: scroll" id="table-bc">
       <thead>
       <tr style="background-color: #f8f9fa; z-index: 10 !important" class="top-0 sticky">
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 50px;max-width: 50px;" class="m-checkbox-table top-0 sticky left-0">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 50px;max-width: 50px;" class="m-checkbox-table top-0 sticky left-0">
           STT
         </th>
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 100px;max-width: 100px;" class="m-checkbox-table top-0 sticky left-50">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 100px;max-width: 100px;" class="m-checkbox-table top-0 sticky left-50">
           Mã NV
         </th>
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 150px;max-width: 150px;" class="m-checkbox-table top-0 sticky left-150">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 150px;max-width: 150px;" class="m-checkbox-table top-0 sticky left-150">
           Họ và tên
         </th>
         <th  v-for="(item,index) in listDate" :key="index" colspan="2" class="text-center py-2">{{ item.label }}</th>
@@ -1311,18 +1406,18 @@ onMounted(() => {
     </thead>
     <tbody>
         <tr style="vertical-align: top" v-for="(item, index) in datatrees" :key="index">
-          <td  class="sticky left-0 p-2 bg-white"
+          <td  class="sticky left-0 p-2 bg-white text-left"
             >
             <div class="format-center w-full h-full">
               {{ index + 1 }}
             </div>
           </td>
-          <td class="sticky p-2 left-50 bg-white" >
+          <td class="sticky p-2 left-50 bg-white text-left" >
             <div class="format-center w-full h-full">
               {{ item.profile_id }}
             </div>
           </td>
-          <td class="sticky p-2 left-150 bg-white">
+          <td class="sticky p-2 left-150 bg-white text-left">
             <div class="format-center w-full h-full">
               {{ item.profile_user_name }}
             </div>
@@ -1435,6 +1530,12 @@ onMounted(() => {
 ::v-deep(.insurance) {
   .dp__action_row, .dp__action_buttons{
   display: none !important;
+  }
+}
+::v-deep(.dp__input_wrap) {
+  .dp__input_reg{
+  border: 1px solid #607D8B;
+  height: 31px;
   }
 }
 </style>
