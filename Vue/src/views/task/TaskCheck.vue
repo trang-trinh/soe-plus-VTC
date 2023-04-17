@@ -2121,9 +2121,7 @@ const onFilterMonth = (check) => {
 };
 //Bình luận công việc
 
-onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //  router.back();
-  }
+onMounted(() => {  
   loadProject();
   return {
     datalists,

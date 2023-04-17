@@ -127,6 +127,7 @@ const loadProject = () => {
         let data = JSON.parse(response.data.data)[0];
         listCategorySave.value = data;
         emitter.emit("emitData", { type: "listCategorySave",data:data});
+         
         renderCate(data);
         options.value.loading = false;
       })
@@ -465,7 +466,7 @@ onMounted(() => {
         </div>
 
         <div style="height: calc(100vh - 128px)">
-        
+ 
           <TreeTable
             :value="listCategory"
             @nodeSelect="onNodeSelect($event, true)"
