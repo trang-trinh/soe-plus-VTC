@@ -293,7 +293,8 @@ const Hrm_config_approved = () =>
   import("../views/hrm/process/ConfigAprrovedGroups.vue");
 const Hrm_Recruitment_Process = () =>
   import("../views/hrm/recruitment/hrm_process.vue");
-
+const HRM_Report_Config = () =>
+  import("../views/hrm/config/ConfigReportForm.vue");
 //end
 // TV
 const ConfigScreenTV = () => import("../views/tivi/tivi_screen_config.vue");
@@ -361,8 +362,7 @@ const caHRMTitle = () => import("../views/hrm/category/caTitle.vue");
 const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
 
-  const caHRMDecision = () =>
-  import("../views/hrm/category/caDecision.vue");
+const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
 const caLeavingReason = () =>
@@ -1809,7 +1809,7 @@ const router = createRouter({
       name: "caHRMReason",
       component: caReason,
     },
-    
+
     {
       path: "/hrm/category/ca_tags",
       name: "caHRMTags",
@@ -1868,7 +1868,7 @@ const router = createRouter({
       name: "HRM_ConfigEmail",
       component: HRM_ConfigEmail,
     },
-    
+
     // Tài liệu
     {
       path: "/files/file_main/:id/:type",
@@ -1979,6 +1979,11 @@ const router = createRouter({
       path: "/request/config/ca_form",
       name: "Request_Config_Number",
       component: Request_Config_Number,
+    },
+    {
+      path: "/hrm/config/report",
+      name: "HRM_Report_Config",
+      component: HRM_Report_Config,
     },
     {
       path: "/tasks/report/project",
