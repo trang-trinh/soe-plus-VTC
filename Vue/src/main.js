@@ -276,7 +276,6 @@ let ck = useCookies();
 if (baseURL.includes("soe.vn")) {
   ck = useCookies({
     expireTimes: "30d",
-    path: "/",
     domain: ".soe.vn",
   });
 }
