@@ -275,7 +275,6 @@ import { useCookies } from "vue3-cookies";
 if (baseURL.includes("soe.vn")) {
   useCookies({
     expireTimes: "30d",
-    path: "/",
     domain: ".soe.vn",
   });
 }
