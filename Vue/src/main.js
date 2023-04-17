@@ -272,13 +272,15 @@ Date.prototype.toISOString = function () {
 };
 
 import { useCookies } from "vue3-cookies";
+let ck = useCookies();
 if (baseURL.includes("soe.vn")) {
-  useCookies({
+  ck = useCookies({
     expireTimes: "30d",
+    path: "/",
     domain: ".soe.vn",
   });
 }
-const { cookies } = useCookies();
+const { cookies } = ck;
 //End CSS
 const app = createApp(App);
 const socket = io(socketURL, { autoConnect: false });
