@@ -264,7 +264,7 @@ library.add(
   faFile,
   faBriefcaseMedical,
   faPrint,
-  faMedal,
+  faMedal
 );
 import "animate.css";
 Date.prototype.toISOString = function () {
@@ -272,6 +272,13 @@ Date.prototype.toISOString = function () {
 };
 
 import { useCookies } from "vue3-cookies";
+if (baseURL.includes("soe.vn")) {
+  useCookies({
+    expireTimes: "30d",
+    path: "/",
+    domain: ".soe.vn",
+  });
+}
 const { cookies } = useCookies();
 //End CSS
 const app = createApp(App);

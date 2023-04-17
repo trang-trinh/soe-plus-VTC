@@ -13,13 +13,13 @@ export default defineConfig({
   },
 
   // Local test
-  define: {
-    baseURL: JSON.stringify("http://localhost:8080/"),
-    fileURL: JSON.stringify("http://localhost:8080/"),
-    socketURL: JSON.stringify("https://socket2.soe.vn/"),
-    SecretKey: JSON.stringify("1012198815021989"),
-    isDev: true,
-  },
+  // define: {
+  //   baseURL: JSON.stringify("http://localhost:8080/"),
+  //   fileURL: JSON.stringify("http://localhost:8080/"),
+  //   socketURL: JSON.stringify("https://socket2.soe.vn/"),
+  //   SecretKey: JSON.stringify("1012198815021989"),
+  //   isDev: true,
+  // },
   // define: {
   //   baseURL: JSON.stringify("https://localhost:44393/"),
   //   fileURL: JSON.stringify("https://localhost:44393/"),
@@ -49,13 +49,13 @@ export default defineConfig({
   //     SecretKey: JSON.stringify("1012198815021989"),
   //     isDev: true,
   // },
-  // define: {
-  //   baseURL: JSON.stringify("https://apivtc.soe.vn/"),
-  //   fileURL: JSON.stringify("https://apivtc.soe.vn/"),
-  //   socketURL: JSON.stringify("https://socket2.soe.vn/"),
-  //   SecretKey: JSON.stringify("1012198815021989"),
-  //   isDev: true,
-  // },
+  define: {
+    baseURL: JSON.stringify("https://apivtc.soe.vn/"),
+    fileURL: JSON.stringify("https://apivtc.soe.vn/"),
+    socketURL: JSON.stringify("https://socket2.soe.vn/"),
+    SecretKey: JSON.stringify("1012198815021989"),
+    isDev: true,
+  },
   server: {
     host: true,
     //port 3000 localhost
