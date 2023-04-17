@@ -326,153 +326,148 @@ onMounted(() => {
 </script>
 <template>
   <div class="main-layout true flex-grow-1 p-2 flex">
-    <div
-      :class="user.is_super == true ? 'col-4 h-full' : ''"
+    <TreeTable
+      :value="treedonvis"
+      :expandedKeys="expandedKeysMain"
+      v-model:selectionKeys="selectedKey"
+      :showGridlines="true"
+      filterMode="strict"
+      :rowHover="true"
+      responsiveLayout="scroll"
+      :lazy="true"
+      :scrollable="true"
+      scrollHeight="flex"
+      class="h-full w-custom-screen px-2"
       v-if="user.is_super"
     >
-      <TreeTable
-        :value="treedonvis"
-        :expandedKeys="expandedKeysMain"
-        v-model:selectionKeys="selectedKey"
-        :showGridlines="true"
-        filterMode="strict"
-        :rowHover="true"
-        responsiveLayout="scroll"
-        :lazy="true"
-        :scrollable="true"
-        scrollHeight="flex"
-        class="h-full"
-      >
-        <template #header>
-          <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
-            <i class="pi pi-microsoft"> </i> Danh sách đơn vị
-          </h3>
-          <Toolbar class="w-full custoolbar">
-            <template #start>
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText
-                  type="text"
-                  spellcheck="false"
-                  v-model="options.searchText"
-                  placeholder="Tìm kiếm theo tên đơn vị"
-                  v-on:keyup.enter="filterss()"
-                />
-              </span>
-            </template>
-          </Toolbar>
-        </template>
-        <Column
-          field="STT"
-          header="STT"
-          class="align-items-center justify-content-center text-center max-w-4rem"
-        ></Column>
-        <Column
-          field="organization_name"
-          header="Tên đơn vị"
-          expander
-          headerClass="align-items-center justify-content-center text-center"
-        ></Column>
-      </TreeTable>
-    </div>
-    <div :class="user.is_super == true ? 'col-8' : 'col-12'">
-      <DataTable
-        :value="datalists"
-        :rowHover="true"
-        :showGridlines="true"
-        responsiveLayout="scroll"
-        scrollHeight="flex"
-        dataKey="key_id"
-        class="col-12 py-0 px-0"
-      >
-        <template #header>
-          <h3 class="module-title mt-0 ml-1 mb-2">
-            <i class="pi pi-file-pdf"></i>
-            Danh sách mẫu báo cáo
-          </h3>
+      <template #header>
+        <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
+          <i class="pi pi-microsoft"> </i> Danh sách đơn vị
+        </h3>
+        <Toolbar class="w-full custoolbar">
+          <template #start>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText
+                type="text"
+                spellcheck="false"
+                v-model="options.searchText"
+                placeholder="Tìm kiếm theo tên đơn vị"
+                v-on:keyup.enter="filterss()"
+              />
+            </span>
+          </template>
+        </Toolbar>
+      </template>
+      <Column
+        field="STT"
+        header="STT"
+        class="align-items-center justify-content-center text-center max-w-4rem"
+      ></Column>
+      <Column
+        field="organization_name"
+        header="Tên đơn vị"
+        expander
+        headerClass="align-items-center justify-content-center text-center"
+      ></Column>
+    </TreeTable>
 
-          <Toolbar class="w-full custoolbar">
-            <template #end>
-              <Button
-                v-if="
-                  user.organization_id == options.organization_id ||
-                  !user.is_super
-                "
-                label="Thêm mới"
-                icon="pi pi-plus"
-                @click="AddNew()"
-              ></Button>
-            </template>
-          </Toolbar>
+    <DataTable
+      :value="datalists"
+      :rowHover="true"
+      :showGridlines="true"
+      responsiveLayout="scroll"
+      scrollHeight="flex"
+      dataKey="key_id"
+      class="col-12 py-0 px-0"
+    >
+      <template #header>
+        <h3 class="module-title mt-0 ml-1 mb-2">
+          <i class="pi pi-file-pdf"></i>
+          Danh sách mẫu báo cáo
+        </h3>
+
+        <Toolbar class="w-full custoolbar">
+          <template #end>
+            <Button
+              v-if="
+                user.organization_id == options.organization_id ||
+                !user.is_super
+              "
+              label="Thêm mới"
+              icon="pi pi-plus"
+              @click="AddNew()"
+            ></Button>
+          </template>
+        </Toolbar>
+      </template>
+      <Column
+        header="STT"
+        field="STT"
+        class=""
+      >
+      </Column>
+      <Column
+        header="Tên báo cáo1"
+        field="report_title"
+        headerClass="align-items-center justify-content-center text-center w-15rem"
+      >
+      </Column>
+      <Column
+        header="Mẫu báo cáo"
+        field="report_name"
+        class="align-items-center justify-content-center text-center max-w-10rem"
+      >
+      </Column>
+      <Column
+        field="status"
+        header="Hiển thị"
+        class=""
+      >
+        <template #body="data">
+          <Checkbox
+            :binary="data.data.status"
+            v-model="data.data.status"
+            @click="onCheckBox(data.data)"
+          />
         </template>
-        <Column
-          header="STT"
-          field="STT"
-          class="align-items-center justify-content-center text-center w-1rem"
-        >
-        </Column>
-        <Column
-          header="Tên báo cáo1"
-          field="report_title"
-          headerClass="align-items-center justify-content-center text-center w-15rem"
-        >
-        </Column>
-        <Column
-          header="Mẫu báo cáo"
-          field="report_name"
-          class="align-items-center justify-content-center text-center max-w-10rem"
-        >
-        </Column>
-        <Column
-          field="status"
-          header="Hiển thị"
-          :class="'align-items-center justify-content-center text-center max-w-4rem'"
-        >
-          <template #body="data">
-            <Checkbox
-              :binary="data.data.status"
-              v-model="data.data.status"
-              @click="onCheckBox(data.data)"
-            />
-          </template>
-        </Column>
-        <Column
-          header="Chức năng"
-          field=""
-          class="align-items-center justify-content-center text-center max-w-10rem"
-        >
-          <template #body="data">
-            <div>
-              <Button
-                @click="EditData(data.data, data.index)"
-                class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                type="button"
-                icon="pi pi-pencil"
-                v-tooltip="'Sửa'"
-              ></Button>
-              <Button
-                @click="DelData(data.data, true)"
-                class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                type="button"
-                icon="pi pi-trash"
-                v-tooltip="'Xóa'"
-              ></Button>
-            </div>
-          </template>
-        </Column>
-        <template #empty>
-          <div
-            class="align-items-center justify-content-center p-4 text-center m-auto"
-          >
-            <img
-              src="../../../assets/background/nodata.png"
-              height="144"
-            />
-            <h3 class="m-1">Không có dữ liệu</h3>
+      </Column>
+      <Column
+        header="Chức năng"
+        field=""
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <div>
+            <Button
+              @click="EditData(data.data, data.index)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-pencil"
+              v-tooltip="'Sửa'"
+            ></Button>
+            <Button
+              @click="DelData(data.data, true)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-trash"
+              v-tooltip="'Xóa'"
+            ></Button>
           </div>
         </template>
-      </DataTable>
-    </div>
+      </Column>
+      <template #empty>
+        <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+        >
+          <img
+            src="../../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Không có dữ liệu</h3>
+        </div>
+      </template>
+    </DataTable>
   </div>
 
   <Dialog
@@ -589,5 +584,8 @@ onMounted(() => {
 <style lang="scss" scoped>
 .p-text-invalid {
   color: red;
+}
+.w-custom-screen {
+  width: 40vw !important;
 }
 </style>
