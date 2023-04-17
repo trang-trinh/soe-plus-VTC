@@ -70,7 +70,7 @@ const loadCount = () => {
         options.value.totalRecords1 = data1[0].totalRecords1;
         options.value.totalRecords2 = data2[0].totalRecords2;
         options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecord4;
+        options.value.totalRecords4 = data4[0].totalRecords4;
         options.value.totalRecords5 = data5[0].totalRecords5;
         options.value.totalRecords6 = data6[0].totalRecords6;
         sttStamp.value = data[0].totalRecords + 1;
@@ -1306,9 +1306,7 @@ const headerChart=ref("Bảng theo dõi quy trình xử lý");
 
 
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   initTudien();
   loadData(true);
 
