@@ -1718,8 +1718,8 @@ const router = createRouter({
       component: caHRMSpecialization,
     },
     {
-      path: "/hrm/category/ca_title",
-      name: "caHRMTitle",
+      path: "/hrm/category/ca_positions",
+      name: "caHRMPositions",
       component: Positions,
     },
     {
@@ -1727,6 +1727,14 @@ const router = createRouter({
       name: "caHRMTypeContract",
       component: caHRMTypeContract,
     },
+    {
+      path: "/hrm/category/ca_title",
+      name: "caHRMTitle",
+      component: caHRMTitle,
+    },
+
+
+    
     {
       path: "/hrm/category/ca_decision",
       name: "caHRMDecision",
