@@ -276,7 +276,7 @@ const options = ref({
   sort: "created_date",
   search: "",
   PageNo: 0,
-  PageSize: 20,
+  PageSize: 50,
   loading: true,
   totalRecords: null,
   type: null
@@ -570,10 +570,10 @@ const changeView = (item)=>{
   layout.value = item;
   options.value.PageNo= 0;
   if(item == 'grid'){
-    options.value.PageSize= 36;
+    options.value.PageSize= 54;
   } 
   else{
-    options.value.PageSize= 20;
+    options.value.PageSize= 50;
   } 
   loadData(true, true)
 }
@@ -592,7 +592,7 @@ const onRefresh = ()=>{
   sort: "created_date",
   search: "",
   PageNo: 0,
-  PageSize: 20,
+  PageSize: 50,
   loading: true,
   totalRecords: null,
   type: null,
@@ -1225,7 +1225,6 @@ onMounted(() => {
           filterDisplay="menu"
           selectionMode="single"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
           :scrollable="true"
           scrollHeight="flex"
           responsiveLayout="scroll"
