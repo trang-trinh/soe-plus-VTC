@@ -1424,7 +1424,7 @@ onMounted(() => {
                         autocomplete="off"
                         placeholder="dd/mm/yyyy"
                         :showIcon="true"
-                        :maxDate="new Date()"
+                        :maxDate="new Date()" :showOnFocus="false"
                       />
                     </div>
                   </div>
@@ -1565,7 +1565,7 @@ onMounted(() => {
                   id="basic_purchase_date"
                   v-model="candidate.candidate_identity_date"
                   autocomplete="off"
-                  placeholder="dd/mm/yyyy"
+                  placeholder="dd/mm/yyyy" :showOnFocus="false"
                   :showIcon="true"
                 />
               </div>
@@ -1931,7 +1931,7 @@ onMounted(() => {
                       class="w-full"
                       v-model="slotProps.data.birthday"
                       autocomplete="off"
-                      placeholder="dd/mm/yyyy"
+                      placeholder="dd/mm/yyyy" :showOnFocus="false"
                       :showIcon="true"
                     />
                   </template>
@@ -2088,7 +2088,7 @@ onMounted(() => {
                         v-model="slotProps.data.start_date"
                         autocomplete="off"
                         :showIcon="true"
-                        placeholder="mm/yyyy"
+                        placeholder="mm/yyyy" :showOnFocus="false"
                         view="month"
                         dateFormat="mm/yy"
                         :maxDate="
@@ -2114,7 +2114,7 @@ onMounted(() => {
                       v-model="slotProps.data.end_date"
                       autocomplete="off"
                       :showIcon="true"
-                      view="month"
+                      view="month" :showOnFocus="false"
                       dateFormat="mm/yy"
                       placeholder="mm/yyyy"
                       :minDate="
@@ -2297,7 +2297,7 @@ onMounted(() => {
                         v-model="slotProps.data.start_date"
                         autocomplete="off"
                         :showIcon="true"
-                        placeholder="mm/yyyy"
+                        placeholder="mm/yyyy" :showOnFocus="false"
                         view="month"
                         dateFormat="mm/yy"
                         :maxDate="
@@ -2324,7 +2324,7 @@ onMounted(() => {
                       autocomplete="off"
                       :showIcon="true"
                       view="month"
-                      dateFormat="mm/yy"
+                      dateFormat="mm/yy" :showOnFocus="false"
                       placeholder="mm/yyyy"
                       :minDate="
                         candidate.start_date

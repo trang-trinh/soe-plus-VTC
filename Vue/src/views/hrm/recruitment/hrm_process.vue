@@ -892,7 +892,7 @@ onMounted(() => {
                             <div class="col-6 md:col-6">
                               <div class="form-group">
                                 <Calendar
-                                  :showIcon="true"
+                                  :showIcon="true" 
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.start_date"

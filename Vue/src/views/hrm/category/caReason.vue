@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
- 
+
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -21,7 +21,6 @@ const filters = ref({
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
- 
 });
 const rules = {
   discipline_name: {
@@ -34,30 +33,27 @@ const rules = {
       },
     ],
   },
- 
 };
- 
- 
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-        proc: "hrm_ca_discipline_count",
-        par: [
-          { par: "user_id", va: store.getters.user.user_id },
-          { par: "status", va: null },
-     
-        
-        ],
-      }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },config
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_discipline_count",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -66,9 +62,7 @@ const loadCount = () => {
         sttStamp.value = data[0].totalRecords + 1;
       }
     })
-    .catch((error) => {
-      
-    });
+    .catch((error) => {});
 };
 //Lấy dữ liệu discipline
 const loadData = (rf) => {
@@ -83,25 +77,25 @@ const loadData = (rf) => {
       }
     }
     axios
-         .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
         {
           str: encr(
             JSON.stringify({
-          proc: "hrm_ca_discipline_list",
-          par: [
-            { par: "pageno", va: options.value.PageNo },
-            { par: "pagesize", va: options.value.PageSize },
-            { par: "user_id", va: store.getters.user.user_id },
-            { par: "status", va: null },
-    
-          ],
-        }),
+              proc: "hrm_ca_discipline_list",
+              par: [
+                { par: "pageno", va: options.value.PageNo },
+                { par: "pagesize", va: options.value.PageSize },
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "status", va: null },
+              ],
+            }),
             SecretKey,
             cryoptojs
           ).toString(),
-        },config
-    )
+        },
+        config
+      )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
@@ -115,7 +109,7 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-     
+
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -190,7 +184,8 @@ const openBasic = (str) => {
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
+    organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
   };
 
   checkIsmain.value = false;
@@ -198,7 +193,7 @@ const openBasic = (str) => {
   headerDialog.value = str;
   displayBasic.value = true;
 };
-  
+
 const closeDialog = () => {
   discipline.value = {
     discipline_name: "",
@@ -206,21 +201,20 @@ const closeDialog = () => {
     status: true,
     is_order: 1,
   };
- 
+
   displayBasic.value = false;
   loadData(true);
 };
- 
- 
+
 //Thêm bản ghi
- 
+
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
     return;
   }
- 
+
   if (discipline.value.discipline_name.length > 250) {
     swal.fire({
       title: "Error!",
@@ -231,8 +225,7 @@ const saveData = (isFormValid) => {
     return;
   }
   let formData = new FormData();
- 
- 
+
   formData.append("hrm_ca_discipline", JSON.stringify(discipline.value));
   swal.fire({
     width: 110,
@@ -252,7 +245,7 @@ const saveData = (isFormValid) => {
           swal.close();
           toast.success("Thêm lý do thành công!");
           loadData(true);
-      
+
           closeDialog();
         } else {
           swal.fire({
@@ -284,7 +277,6 @@ const saveData = (isFormValid) => {
           swal.close();
           toast.success("Sửa lý do thành công!");
 
-       
           closeDialog();
         } else {
           swal.fire({
@@ -321,7 +313,6 @@ const editTem = (dataTem) => {
   headerDialog.value = "Sửa lý do";
   isSaveTem.value = true;
   displayBasic.value = true;
- 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -346,13 +337,10 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(
-            baseURL + "/api/hrm_ca_discipline/delete_hrm_ca_discipline",
-            {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.discipline_id] : 1,
-            }
-          )
+          .delete(baseURL + "/api/hrm_ca_discipline/delete_hrm_ca_discipline", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: Tem != null ? [Tem.discipline_id] : 1,
+          })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
@@ -381,10 +369,9 @@ const delTem = (Tem) => {
     });
 };
 //Xuất excel
- 
+
 //Sort
 const onSort = (event) => {
- 
   options.value.PageNo = 0;
 
   if (event.sortField == null) {
@@ -407,14 +394,12 @@ const isFirst = ref(true);
 const loadDataSQL = () => {
   datalists.value = [];
 
-//   let filterS = {
-//     filterconstraints: [{ value: 2, matchMode: "equals" }],
-//     filteroperator: "and",
-//     key: "reward_type",
-//   };
-//   filterSQL.value.push(filterS);
-
-
+  //   let filterS = {
+  //     filterconstraints: [{ value: 2, matchMode: "equals" }],
+  //     filteroperator: "and",
+  //     key: "reward_type",
+  //   };
+  //   filterSQL.value.push(filterS);
 
   let data = {
     id: "discipline_id",
@@ -452,7 +437,7 @@ const loadDataSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-     
+
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
@@ -484,7 +469,7 @@ const refreshStamp = () => {
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
-  filterSQL.value=[];
+  filterSQL.value = [];
   loadData(true);
 };
 const onFilter = (event) => {
@@ -560,7 +545,6 @@ const onCheckBox = (value, check, checkIsmain) => {
         });
       });
   } else {
-    
   }
 };
 //Xóa nhiều
@@ -657,8 +641,8 @@ const reFilterEmail = () => {
   filterTrangthai.value = null;
   isDynamicSQL.value = false;
   checkFilter.value = false;
-  filterSQL.value=[];
-  options.value.SearchText=null;
+  filterSQL.value = [];
+  options.value.SearchText = null;
   op.value.hide();
   loadData(true);
 };
@@ -684,10 +668,55 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
- 
-onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-     //router.back();
-  }
+const initTuDien = () => {
+  listReason.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_ca_type_decision_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 100000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      data.forEach((element, i) => {
+        listReason.value.push({
+          name: element.type_decision_name,
+          code: element.type_decision_id,
+        });
+      });
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+onMounted(() => {
+  initTuDien();
   loadData(true);
   return {
     datalists,
@@ -698,7 +727,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
     openBasic,
     closeDialog,
     basedomainURL,
-   
+
     saveData,
     isFirst,
     searchStamp,
@@ -871,7 +900,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         bodyStyle="text-align:center;max-width:70px"
         :sortable="true"
       ></Column>
- 
+
       <Column
         field="discipline_name"
         header="Tên lý do"
@@ -894,21 +923,13 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         headerStyle="text-align:center;max-width:200px;height:50px"
         bodyStyle="text-align:center;max-width:200px"
         class="align-items-center justify-content-center text-center"
-      >     <template #body="data">
-     <div v-if="data.data.reason_type==1">
-        Bổ nhiệm
-    </div>
-    <div v-if="data.data.reason_type==2">
-        Miễn nhiệm
-    </div>
-    <div v-if="data.data.reason_type==3">
-        Điều chuyển
-    </div>
-    <div v-if="data.data.reason_type==4">
-        Chấm dứt HĐ lao động
-    </div>
-    </template>
-
+      >
+        <template #body="data">
+          <div v-if="data.data.reason_type == 1">Bổ nhiệm</div>
+          <div v-if="data.data.reason_type == 2">Miễn nhiệm</div>
+          <div v-if="data.data.reason_type == 3">Điều chuyển</div>
+          <div v-if="data.data.reason_type == 4">Chấm dứt HĐ lao động</div>
+        </template>
       </Column>
 
       <Column
@@ -933,7 +954,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             @click="onCheckBox(data.data, true, true)"
           /> </template
       ></Column>
-<Column
+      <Column
         field="organization_id"
         header="Hệ thống"
         headerStyle="text-align:center;max-width:125px;height:50px"
@@ -941,11 +962,8 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.is_system== true">
-            <i
-              class="pi pi-check text-blue-400"
-              style="font-size: 1.5rem"
-            ></i>
+          <div v-if="data.data.is_system == true">
+            <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
           </div>
           <div v-else></div>
         </template>
@@ -984,13 +1002,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
       </Column>
       <template #empty>
         <div
-          class="
-            align-items-center
-            justify-content-center
-            p-4
-            text-center
-            m-auto
-          "
+          class="align-items-center justify-content-center p-4 text-center m-auto"
           v-if="!isFirst"
         >
           <img src="../../../assets/background/nodata.png" height="144" />
@@ -1009,7 +1021,6 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
   >
     <form>
       <div class="grid formgrid m-2">
-        
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
             >Lý do <span class="redsao">(*)</span></label
@@ -1023,15 +1034,16 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             }"
           />
         </div>
-        <div   v-if="
-              (v$.discipline_name.$invalid && submitted) ||
-              v$.discipline_name.$pending.$response
-            " style="display: flex" class="field col-12 md:col-12">
+        <div
+          v-if="
+            (v$.discipline_name.$invalid && submitted) ||
+            v$.discipline_name.$pending.$response
+          "
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
           <div class="col-3 text-left"></div>
-          <small
-          
-            class="col-9 p-error"
-          >
+          <small class="col-9 p-error">
             <span class="col-12 p-0">{{
               v$.discipline_name.required.$message
                 .replace("Value", "Tên lý do")
@@ -1040,26 +1052,21 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           </small>
         </div>
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Loại lý  do</label
-          >
+          <label class="col-3 text-left p-0">Loại lý do</label>
           <Dropdown
-                  v-model="discipline.reason_type"
-                  :options="listReason"
-                  optionLabel="name"
-                  optionValue="code"
-                  class="col-9 p-0"
-                  panelClass="d-design-dropdown"
-                  placeholder="Chọn lý do"
-                />
+            v-model="discipline.reason_type"
+            :options="listReason"
+            optionLabel="name"
+            optionValue="code"
+            class="col-9 p-0"
+            panelClass="d-design-dropdown"
+            placeholder="Chọn lý do"
+          />
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-9 text-left p-0">STT</div>
-            <InputNumber
-              v-model="discipline.is_order"
-              class="col-3 ip36 p-0"
-            />
+            <InputNumber v-model="discipline.is_order" class="col-3 ip36 p-0" />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
@@ -1073,8 +1080,6 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             <InputSwitch v-model="discipline.is_system" />
           </div>
         </div>
-       
-       
       </div>
     </form>
     <template #footer>
@@ -1082,7 +1087,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         label="Hủy"
         icon="pi pi-times"
         @click="closeDialog"
-      class="p-button-outlined"
+        class="p-button-outlined"
       />
 
       <Button

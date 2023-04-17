@@ -274,6 +274,7 @@ const HrmProfile = () => import("../views/hrm/profile/profile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
+const HrmDecision = () => import("../views/hrm/decision/decision.vue");
 const HrmTimekeep = () => import("../views/hrm/timekeep/timekeep.vue");
 const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
@@ -380,6 +381,12 @@ const caDiscipline = () => import("../views/hrm/category/caDiscipline.vue");
 const caReason = () => import("../views/hrm/category/caReason.vue");
 const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
+  const caAllowance = () =>
+  import("../views/hrm/category/caAllowance.vue");
+  const caWageGroups = () =>
+  import("../views/hrm/category/caWageGroups.vue");
+  const caCivilServantRank = () =>
+  import("../views/hrm/category/caCivilServantRank.vue");
 const caTags = () => import("../views/hrm/category/caTags.vue");
 const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
 const caWorkPosition = () => import("../views/hrm/category/caWorkPosition.vue");
@@ -405,7 +412,9 @@ const Request_Config_Auth_Sign = () =>
   import("../views/request/config/set_auth_sign.vue");
 const Request_Config_Number = () =>
   import("../views/request/config/set_number_request.vue");
-
+// Backup file
+const BackupFile = () => import("../views/backup/backup_schedule.vue");
+const BackupHistory = () => import("../views/backup/backup_history.vue");
 //Báo cáo Công việc
 const ProjectReport = () => import("../views/task_report/ProjectReport.vue");
 const router = createRouter({
@@ -1568,6 +1577,11 @@ const router = createRouter({
       component: HrmContract,
     },
     {
+      path: "/hrm/decision",
+      name: "decision",
+      component: HrmDecision,
+    },
+    {
       path: "/hrm/timekeep",
       name: "timekeep",
       component: HrmTimekeep,
@@ -1770,7 +1784,21 @@ const router = createRouter({
       name: "caHRMDisciplineLevel",
       component: caDisciplineLevel,
     },
-
+    {
+      path: "/hrm/category/ca_allowance",
+      name: "caHRMAllowance",
+      component: caAllowance,
+    },
+    {
+      path: "/hrm/category/ca_wage_groups",
+      name: "caHRMcaWageGroups",
+      component: caWageGroups,
+    },
+    {
+      path: "/hrm/category/ca_civilservantrank",
+      name: "caHRMcaCivilServantRank",
+      component: caCivilServantRank,
+    },
     {
       path: "/hrm/category/ca_discipline",
       name: "caHRMDiscipline",
@@ -1961,6 +1989,17 @@ const router = createRouter({
       path: "/tasks/report/project",
       name: "ProjectReport",
       component: ProjectReport,
+    },
+    // Backup file
+    {
+      path: "/system/backup",
+      name: "BackupFile",
+      component: BackupFile,
+    },
+    {
+      path: "/system/backup_history",
+      name: "BackupHistory",
+      component: BackupHistory,
     },
   ],
 });

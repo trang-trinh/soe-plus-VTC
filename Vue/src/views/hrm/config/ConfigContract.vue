@@ -179,7 +179,7 @@ onMounted(() => {
             view="year"
             dateFormat="yy"
             @date-select="loadContract()"
- 
+            :showOnFocus="false"
           />
         </div>
         <div class="col-3 flex align-items-center format-center">

@@ -4,7 +4,7 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
-import { encr, checkURL } from "../../../util/function.js";
+import { encr, checkURL } from "../../../util/function.js"; import moment from "moment";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -17,19 +17,33 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  type_decision_name: {
+  allowance_wage_name: {
+    operator: FilterOperator.AND,
+    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+  },
+  allowance_wage_code: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
 const rules = {
-  type_decision_name: {
+  allowance_wage_name: {
     required,
     $errors: [
       {
-        $property: "type_decision_name",
+        $property: "allowance_wage_name",
         $validator: "required",
-        $message: "Tên loại quyết định không được để trống!",
+        $message: "Tên phụ cấp không được để trống!",
+      },
+    ],
+  },
+  allowance_wage_code: {
+    required,
+    $errors: [
+      {
+        $property: "allowance_wage_code",
+        $validator: "required",
+        $message: "Mã phụ cấp không được để trống!",
       },
     ],
   },
@@ -43,7 +57,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_type_decision_count",
+            proc: "hrm_ca_allowance_wage_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -64,7 +78,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu type_decision
+//Lấy dữ liệu allowance_wage
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -82,7 +96,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_ca_type_decision_list",
+              proc: "hrm_ca_allowance_wage_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -101,6 +115,8 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          if(element.allowance_wage_type)
+          element.allowance_wage_type_name= listAllowAprroved.value.find(x=>x.code==element.allowance_wage_type).name;
         });
         datalists.value = data;
 
@@ -136,20 +152,19 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].type_decision_id;
+    options.value.id = datalists.value[datalists.value.length - 1].allowance_wage_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].type_decision_id;
+    options.value.id = datalists.value[0].allowance_wage_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const type_decision = ref({
-  type_decision_name: "",
+const allowance_wage = ref({
+  allowance_wage_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -157,7 +172,7 @@ const type_decision = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, type_decision);
+const v$ = useVuelidate(rules, allowance_wage);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -177,19 +192,17 @@ const options = ref({
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
-const listTypeContract = ref([]);
 const openBasic = (str) => {
   submitted.value = false;
-  type_decision.value = {
-    type_decision_name: "",
+  allowance_wage.value = {
+    allowance_wage_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
   };
-  checkDisabled.value = false;
-  listFilesS.value = [];
+
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
@@ -197,8 +210,8 @@ const openBasic = (str) => {
 };
 
 const closeDialog = () => {
-  type_decision.value = {
-    type_decision_name: "",
+  allowance_wage.value = {
+    allowance_wage_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -217,23 +230,20 @@ const saveData = (isFormValid) => {
     return;
   }
 
-  if (type_decision.value.type_decision_name.length > 250) {
+  if (allowance_wage.value.allowance_wage_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên loại quyết định không được vượt quá 250 ký tự!",
+      text: "Tên phụ cấp không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
     return;
   }
   let formData = new FormData();
-  for (var i = 0; i < filesList.value.length; i++) {
-    let file = filesList.value[i];
-    formData.append("image", file);
-  }
- 
-  formData.append("hrm_files", JSON.stringify(listFilesS.value));
-  formData.append("hrm_ca_type_decision", JSON.stringify(type_decision.value));
+
+  if (allowance_wage.value.countryside_fake)
+    allowance_wage.value.countryside = allowance_wage.value.countryside_fake;
+  formData.append("hrm_ca_allowance_wage", JSON.stringify(allowance_wage.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -243,14 +253,14 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_type_decision/add_hrm_ca_type_decision",
+        baseURL + "/api/hrm_ca_allowance_wage/add_hrm_ca_allowance_wage",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm loại quyết định thành công!");
+          toast.success("Thêm phụ cấp thành công!");
           loadData(true);
 
           closeDialog();
@@ -275,14 +285,14 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_type_decision/update_hrm_ca_type_decision",
+        baseURL + "/api/hrm_ca_allowance_wage/update_hrm_ca_allowance_wage",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa loại quyết định thành công!");
+          toast.success("Sửa phụ cấp thành công!");
 
           closeDialog();
         } else {
@@ -309,54 +319,17 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_type_decision_get",
-            par: [
-              {
-                par: "user_id",
-                va: store.getters.user.user_id,
-              },
-              {
-                par: "type_decision_id",
-                va: dataTem.type_decision_id,
-              },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-      if (data) {
-        type_decision.value = data[0];
-
-        if (
-          type_decision.value.is_system == true &&
-          (store.getters.user.is_super == false ||
-            store.getters.user.is_super == null)
-        ) {
-          checkDisabled.value = true;
-        }
-        if (data1) {
-          listFilesS.value = data1;
-        }
-      }
-
-      headerDialog.value = "Sửa loại quyết định";
-      isSaveTem.value = true;
-      displayBasic.value = true;
-    })
-    .catch((error) => {});
+  allowance_wage.value = dataTem;
+  if (allowance_wage.value.date_approved)
+    allowance_wage.value.date_approved = new Date(allowance_wage.value.date_approved);
+  if (allowance_wage.value.is_default) {
+    checkIsmain.value = false;
+  } else {
+    checkIsmain.value = true;
+  }
+  headerDialog.value = "Sửa phụ cấp";
+  isSaveTem.value = true;
+  displayBasic.value = true;
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -381,18 +354,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(
-            baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision",
-            {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.type_decision_id] : 1,
-            }
-          )
+          .delete(baseURL + "/api/hrm_ca_allowance_wage/delete_hrm_ca_allowance_wage", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: Tem != null ? [Tem.allowance_wage_id] : 1,
+          })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá loại quyết định thành công!");
+              toast.success("Xoá phụ cấp thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -415,12 +385,8 @@ const delTem = (Tem) => {
       }
     });
 };
-const checkDisabled = ref(false);
 //Xuất excel
 
-const deleteFileH = (value) => {
-  listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
-};
 //Sort
 const onSort = (event) => {
   options.value.PageNo = 0;
@@ -446,7 +412,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "type_decision_id",
+    id: "allowance_wage_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -458,7 +424,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_type_decision", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_allowance_wage", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -550,24 +516,56 @@ const onFilter = (event) => {
   loadDataSQL();
 };
 //Checkbox
-const onCheckBox = (value, check) => {
+const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.type_decision_id,
-      TextID: value.type_decision_id + "",
+      IntID: value.allowance_wage_id,
+      TextID: value.allowance_wage_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_type_decision/update_s_hrm_ca_type_decision",
+        baseURL + "/api/hrm_ca_allowance_wage/update_s_hrm_ca_allowance_wage",
         data,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái loại quyết định thành công!");
+          toast.success("Sửa trạng thái phụ cấp thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  } else {
+    let data1 = {
+      IntID: value.allowance_wage_id,
+      TextID: value.allowance_wage_id + "",
+      BitMain: value.is_default,
+    };
+    axios
+      .put(baseURL + "/api/hrm_ca_allowance_wage/Update_DefaultStamp", data1, config)
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa trạng thái phụ cấp thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -594,12 +592,18 @@ const onCheckBox = (value, check) => {
 const deleteList = () => {
   let listId = new Array(selectedStamps.value.length);
   let checkD = false;
-
+  selectedStamps.value.forEach((item) => {
+    if (item.is_default) {
+      toast.error("Không được xóa phụ cấp mặc định!");
+      checkD = true;
+      return;
+    }
+  });
   if (!checkD) {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá loại quyết định này không!",
+        text: "Bạn có muốn xoá phụ cấp này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -617,21 +621,18 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.type_decision_id);
+            listId.push(item.allowance_wage_id);
           });
           axios
-            .delete(
-              baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision",
-              {
-                headers: { Authorization: `Bearer ${store.getters.token}` },
-                data: listId != null ? listId : 1,
-              }
-            )
+            .delete(baseURL + "/api/hrm_ca_allowance_wage/delete_hrm_ca_allowance_wage", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: listId != null ? listId : 1,
+            })
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá loại quyết định thành công!");
+                toast.success("Xoá phụ cấp thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -699,123 +700,18 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
+ 
 
-const filesList = ref([]);
-let fileSize = [];
-const onUploadFile = (event) => {
-  fileSize = [];
-  filesList.value = [];
-
-  var ms = false;
-
-  event.files.forEach((fi) => {
-    let formData = new FormData();
-    formData.append("fileupload", fi);
-    axios({
-      method: "post",
-      url: baseURL + `/api/chat/ScanFileUpload`,
-      data: formData,
-      headers: {
-        Authorization: `Bearer ${store.getters.token}`,
-      },
-    })
-      .then((response) => {
-        if (response.data.err != "1") {
-          if (fi.size > 100 * 1024 * 1024) {
-            ms = true;
-          } else {
-            filesList.value.push(fi);
-            fileSize.push(fi.size);
-          }
-        } else {
-          filesList.value = filesList.value.filter((x) => x.name != fi.name);
-          swal.fire({
-            title: "Cảnh báo",
-            text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
-            icon: "warning",
-            confirmButtonText: "OK",
-          });
-        }
-        if (ms) {
-          swal.fire({
-            icon: "warning",
-            type: "warning",
-            title: "Thông báo",
-            text: "Bạn chỉ được upload file có dung lượng tối đa 100MB!",
-          });
-        }
-      })
-      .catch(() => {
-        swal.fire({
-          title: "Thông báo",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  });
-};
-const removeFile = (event) => {
-  filesList.value = filesList.value.filter((a) => a != event.file);
-};
-const initTuDien = () => {
-  listTypeContract.value = [];
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "smartreport_list ",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (isFirst.value) isFirst.value = false;
-      var arrGroups = [];
-      data.forEach((element) => {
-        var strchk = arrGroups.find((x) => x == element.report_group);
-        if (strchk == null) {
-          arrGroups.push(element.report_group);
-        }
-      });
-      arrGroups.forEach((item) => {
-        var ardf = {
-          label: item,
-          items: [],
-        };
-        data
-          .filter((x) => x.report_group == item)
-          .forEach((z) => {
-            ardf.items.push({ label: z.report_name, value: z.report_key });
-          });
-          listTypeContract.value.push(ardf);
-      });
-
-      options.value.loading = false;
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-const listFilesS = ref([]);
+const listAllowAprroved = ref([
+  {
+    name: "Hệ số",
+    code: 1,
+  },
+  { name: "Tỷ lệ phần trăm", code: 2 },
+  { name: "Mức tiền", code: 3 },
+]);
 onMounted(() => {
-  initTuDien();
+ 
   loadData(true);
   return {
     datalists,
@@ -843,10 +739,10 @@ onMounted(() => {
       @sort="onSort($event)"
       @filter="onFilter($event)"
       v-model:filters="filters"
-      :filters="filters"
-      :scrollable="true"
       filterDisplay="menu"
       filterMode="lenient"
+      :filters="filters"
+      :scrollable="true"
       scrollHeight="flex"
       :showGridlines="true"
       columnResizeMode="fit"
@@ -860,14 +756,14 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      :row-hover="true"
-      dataKey="type_decision_id"
+      dataKey="allowance_wage_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
+      :row-hover="true"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách loại quyết định ({{
+          <i class="pi pi-credit-card"></i> Danh sách phụ cấp ({{
             options.totalRecords
           }})
         </h3>
@@ -953,7 +849,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm loại quyết định')"
+              @click="openBasic('Thêm phụ cấp')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -985,8 +881,8 @@ onMounted(() => {
 
       <Column
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
+        headerStyle="text-align:center;max-width:50px;height:50px"
+        bodyStyle="text-align:center;max-width:50px"
         selectionMode="multiple"
       >
       </Column>
@@ -997,12 +893,27 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-        :sortable="true"
+      
       ></Column>
-
       <Column
-        field="type_decision_name"
-        header="Tên loại quyết định"
+        field="allowance_wage_code"
+        header="Mã phụ cấp"
+        :sortable="true"        headerClass="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:250px;height:50px"
+        bodyStyle="text-align:center;max-width:250px"
+      >
+        <template #filter="{ filterModel }">
+          <InputText
+            type="text"
+            v-model="filterModel.value"
+            class="p-column-filter"
+            placeholder="Từ khoá"
+          />
+        </template>
+      </Column>
+      <Column
+        field="allowance_wage_name"
+        header="Tên phụ cấp"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -1016,68 +927,47 @@ onMounted(() => {
           />
         </template>
       </Column>
-      <!-- <Column
-        field="decision_name"
-        header="File mẫu"
+      <Column
+        field="organization_id"
+        header="Ngày áp dụng"
+        headerStyle="text-align:center;max-width:125px;height:50px"
+        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <div v-if="data.data.date_approved ">
+            {{
+                  moment(new Date(data.data.date_approved )).format("DD/MM/YYYY")
+                }}
+          </div>
+          <div v-else></div>
+        </template>
+      </Column>
+
+      <Column
+        field="allowance_wage_type_name"
+        header="Loại phụ cấp"
+        headerStyle="text-align:center;max-width:150px;height:50px"
+        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        class="align-items-center justify-content-center text-center"
+      >
+        
+      </Column>
+      <Column
+        field="status"
+        header="Gia hạn"
         headerStyle="text-align:center;max-width:100px;height:50px"
         bodyStyle="text-align:center;max-width:100px"
+        class="align-items-center justify-content-center text-center"
       >
-        <template #body="item">
-          <div>
-            <div v-if="item.data.file_path">
-              <a
-                :href="basedomainURL + item.data.file_path"
-                download
-                class="w-full no-underline cursor-pointer text-900"
-              >
-                <div class="align-items-center flex">
-                  <div>
-                    <img
-                      :src="
-                        basedomainURL +
-                        '/Portals/Image/file/' +
-                        item.data.file_path.substring(
-                          item.data.file_path.lastIndexOf('.') + 1
-                        ) +
-                        '.png'
-                      "
-                      style="width: 70px; height: 50px; object-fit: contain"
-                      alt=""
-                    />
-                  </div>
-                   
-                </div>
-              </a>
-            </div>
-            <div  v-else-if="item.data.file_path_sys">
-              <a
-                :href="basedomainURL + item.data.file_path_sys"
-                download
-                class="w-full no-underline cursor-pointer text-900"
-              >
-                <div class="align-items-center flex">
-                  <div>
-                    <img
-                      :src="
-                        basedomainURL +
-                        '/Portals/Image/file/' +
-                        item.data.file_path_sys.substring(
-                          item.data.file_path_sys.lastIndexOf('.') + 1
-                        ) +
-                        '.png'
-                      "
-                      style="width: 70px; height: 50px; object-fit: contain"
-                      alt=""
-                    />
-                  </div>
-                   
-                </div>
-              </a>
-            </div>
-          </div>
-        </template>
-      </Column> -->
+        <template #body="data">
+          <Checkbox
+         
+            :binary="true"
+            v-model="data.data.allowance_wage_extend"
+        
+          /> </template
+      ></Column>
       <Column
         field="status"
         header="Trạng thái"
@@ -1121,18 +1011,21 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px"
       >
         <template #body="Tem">
-          <div>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == Tem.data.created_by ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id == Tem.data.organization_id &&
+                Tem.data.is_system != true)
+            "
+          >
             <Button
               @click="editTem(Tem.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-pencil"
               v-tooltip.top="'Sửa'"
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Tem.data.created_by ||
-                store.state.user.is_admin
-              "
             ></Button>
             <Button
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
@@ -1140,12 +1033,6 @@ onMounted(() => {
               icon="pi pi-trash"
               @click="delTem(Tem.data)"
               v-tooltip.top="'Xóa'"
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Tem.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
-                  store.state.user.organization_id == Tem.data.organization_id)
-              "
             ></Button>
           </div>
         </template>
@@ -1165,290 +1052,127 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '35vw' }"
+    :style="{ width: '40vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Loại quyết định <span class="redsao">(*)</span></label
+          <label class="col-2 text-left p-0"
+            >Mã phụ cấp <span class="redsao">(*)</span></label
           >
           <InputText
-            v-model="type_decision.type_decision_name"
+            v-model="allowance_wage.allowance_wage_code"
             spellcheck="false"
-            class="col-9 ip36 px-2"
+            class="col-10 ip36 px-2"
             :class="{
-              'p-invalid': v$.type_decision_name.$invalid && submitted,
+              'p-invalid': v$.allowance_wage_code.$invalid && submitted,
             }"
-            :disabled="checkDisabled"
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-3 text-left"></div>
+          <div class="col-2 text-left"></div>
           <small
             v-if="
-              (v$.type_decision_name.$invalid && submitted) ||
-              v$.type_decision_name.$pending.$response
+              (v$.allowance_wage_code.$invalid && submitted) ||
+              v$.allowance_wage_code.$pending.$response
             "
-            class="col-9 p-error"
+            class="col-10 p-error"
           >
             <span class="col-12 p-0">{{
-              v$.type_decision_name.required.$message
-                .replace("Value", "Tên loại quyết định")
+              v$.allowance_wage_code.required.$message
+                .replace("Value", "Mã phụ cấp")
+                .replace("is required", "không được để trống")
+            }}</span>
+          </small>
+        </div>
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left p-0"
+            >Phụ cấp <span class="redsao">(*)</span></label
+          >
+          <InputText
+            v-model="allowance_wage.allowance_wage_name"
+            spellcheck="false"
+            class="col-10 ip36 px-2"
+            :class="{
+              'p-invalid': v$.allowance_wage_name.$invalid && submitted,
+            }"
+          />
+        </div>
+        <div style="display: flex" class="field col-12 md:col-12">
+          <div class="col-2 text-left"></div>
+          <small
+            v-if="
+              (v$.allowance_wage_name.$invalid && submitted) ||
+              v$.allowance_wage_name.$pending.$response
+            "
+            class="col-10 p-error"
+          >
+            <span class="col-12 p-0">{{
+              v$.allowance_wage_name.required.$message
+                .replace("Value", "Tên phụ cấp")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
         <div class="col-12 field md:col-12 flex">
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-9 text-left p-0">STT</div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left p-0">Ngày áp dụng</div>
+            <Calendar
+              :showIcon="true"
+              class="ip36"
+              autocomplete="on"
+              :showOnFocus="false"
+              v-model="allowance_wage.date_approved"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-3 pl-3 p-0">Loại</div>
+            <Dropdown
+              class="col-9 p-0 m-0"
+              v-model=" allowance_wage.allowance_wage_type"
+              :options="listAllowAprroved"
+              optionLabel="name"
+              optionValue="code"
+              placeholder="Chọn loại phụ cấp"
+            />
+          </div>
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left p-0 ">STT</div>
+            <InputNumber v-model="allowance_wage.is_order" class="col-8 ip36 p-0" />
+          </div>
+
+          <div class="field col-6 md:col-6 p-0 align-items-center flex" v-if="allowance_wage.allowance_wage_type==3">
+            <div class="col-3 text-left p-0 pl-3">Mức tiền</div>
             <InputNumber
-              v-model="type_decision.is_order"
-              class="col-3 ip36 p-0"
-              :disabled="checkDisabled"
+              v-model="allowance_wage.allowance_wage_cost"        inputId="locale-german" locale="de-DE" 
+              class="col-9 ip36 p-0"
             />
+          </div>
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+            <div class="col-6 p-0">Trạng thái</div>
+            <InputSwitch class="col-9 p-0" v-model="allowance_wage.status" />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch
-              v-model="type_decision.status"
-              :disabled="checkDisabled"
-            />
+            <div class="col-6 p-0">Gia hạn</div>
+            <InputSwitch v-model="allowance_wage.allowance_wage_extend" />
           </div>
+
           <div
             class="field col-4 md:col-4 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="type_decision.is_system" />
+            <InputSwitch v-model="allowance_wage.is_system" />
           </div>
         </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Mẫu quyết định </label>
-          <Dropdown
-            :filter="true"
-            v-model="type_decision.report_key"
-            :options="listTypeContract"
-            optionLabel="label"
-            optionValue="value"
-            optionGroupLabel="label" optionGroupChildren="items"
-            class="col-9"
-            panelClass="d-design-dropdown"
-            placeholder="Chọn mẫu quyết định"
-      
-          />
-        </div>
-        <!-- <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == true).length>0">
-          <DataTable
-            :value="listFilesS.filter((x) => x.is_system == true)"
-            filterDisplay="menu"
-            filterMode="lenient"
-            scrollHeight="flex"
-            :showGridlines="true"
-            :paginator="false"
-            :row-hover="true"
-            columnResizeMode="fit"
-          >
-            <Column field="code" header="File mẫu hệ thống">
-              <template #body="item">
-                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
-                  <div class="w-full flex align-items-center">
-                    <div class="flex w-full text-900">
-                      <div
-                        v-if="item.data.is_image"
-                        class="align-items-center flex"
-                      >
-                        <Image
-                          :src="basedomainURL + item.data.file_path"
-                          alt=""
-                          width="70"
-                          height="50"
-                          style="
-                            object-fit: contain;
-                            border: 1px solid #ccc;
-                            width: 70px;
-                            height: 50px;
-                          "
-                          preview
-                          class="pr-2"
-                        />
-                        <div class="ml-2" style="word-break: break-all">
-                          {{ item.data.file_name }}
-                        </div>
-                      </div>
-                      <div v-else>
-                        <a
-                          :href="basedomainURL + item.data.file_path"
-                          download
-                          class="w-full no-underline cursor-pointer text-900"
-                        >
-                          <div class="align-items-center flex">
-                            <div>
-                              <img
-                                :src="
-                                  basedomainURL +
-                                  '/Portals/Image/file/' +
-                                  item.data.file_path.substring(
-                                    item.data.file_path.lastIndexOf('.') + 1
-                                  ) +
-                                  '.png'
-                                "
-                                style="
-                                  width: 70px;
-                                  height: 50px;
-                                  object-fit: contain;
-                                "
-                                alt=""
-                              />
-                            </div>
-                            <div class="ml-2" style="word-break: break-all">
-                              {{ item.data.file_name }}
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <div
-                      class="w-3rem align-items-center d-style-hover-1"
-                      v-if="store.getters.user.is_super"
-                    >
-                      <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded  bg-red-300 border-none"
-                        @click="deleteFileH(item.data)"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
-        <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == false).length>0">
-          <DataTable
-            :value="listFilesS.filter((x) => x.is_system == false)"
-            filterDisplay="menu"
-            filterMode="lenient"
-            scrollHeight="flex"
-            :showGridlines="true"
-            :paginator="false"
-            :row-hover="true"
-            columnResizeMode="fit"
-          >
-            <Column field="code" header="  File mẫu Đơn vị">
-              <template #body="item">
-                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
-                  <div class="w-full flex align-items-center">
-                    <div class="flex w-full text-900">
-                      <div
-                        v-if="item.data.is_image"
-                        class="align-items-center flex"
-                      >
-                        <Image
-                          :src="basedomainURL + item.data.file_path"
-                          alt=""
-                          width="70"
-                          height="50"
-                          style="
-                            object-fit: contain;
-                            border: 1px solid #ccc;
-                            width: 70px;
-                            height: 50px;
-                          "
-                          preview
-                          class="pr-2"
-                        />
-                        <div class="ml-2" style="word-break: break-all">
-                          {{ item.data.file_name }}
-                        </div>
-                      </div>
-                      <div v-else>
-                        <a
-                          :href="basedomainURL + item.data.file_path"
-                          download
-                          class="w-full no-underline cursor-pointer text-900"
-                        >
-                          <div class="align-items-center flex">
-                            <div>
-                              <img
-                                :src="
-                                  basedomainURL +
-                                  '/Portals/Image/file/' +
-                                  item.data.file_path.substring(
-                                    item.data.file_path.lastIndexOf('.') + 1
-                                  ) +
-                                  '.png'
-                                "
-                                style="
-                                  width: 70px;
-                                  height: 50px;
-                                  object-fit: contain;
-                                "
-                                alt=""
-                              />
-                            </div>
-                            <div class="ml-2" style="word-break: break-all">
-                              <div class="ml-2" style="word-break: break-all">
-                          <div style="word-break: break-all">
-                            {{ item.data.file_name }}
-                          </div>
-                          <div
-                            v-if="store.getters.user.is_super"
-                            style="
-                              word-break: break-all;
-                              font-size: 11px;
-                              font-style: italic;
-                            "
-                          >
-                            {{ item.data.organization_name }}
-                          </div>
-                        </div>
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <div
-                      class="w-3rem align-items-center d-style-hover-1"
-                      v-if="
-                    store.getters.user.organization_id == item.data.organization_id
-                  "
-                    >
-                      <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded  bg-red-300 border-none"
-                        @click="deleteFileH(item.data)"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
-        <div class="col-12 field   ">File mẫu</div>    
-        <div class="w-full col-12 field  ">
-          <FileUpload
-            chooseLabel="Chọn File"
-            :showUploadButton="false"
-            :showCancelButton="false"
-            :multiple="false"
-            accept=".doc,.docx"
-            :maxFileSize="524288000"
-            @select="onUploadFile"
-            @remove="removeFile"
-
-            :fileLimit="1"
-
-            :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
-          >
-            <template #empty>
-              <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
-            </template>
-          </FileUpload>
-        </div> -->
       </div>
     </form>
     <template #footer>

@@ -1440,7 +1440,7 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
+                                  class="ip36" :showOnFocus="false"
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.start_dateI"
@@ -1452,7 +1452,7 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
+                                  class="ip36" :showOnFocus="false"
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.end_dateI"
@@ -1516,7 +1516,7 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
+                                  class="ip36" :showOnFocus="false"
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.start_dateD"
@@ -1529,7 +1529,7 @@ onMounted(() => {
                                 <Calendar
                                   :showIcon="true"
                                   class="ip36"
-                                  autocomplete="on"
+                                  autocomplete="on" :showOnFocus="false"
                                   inputId="time24"
                                   v-model="options.end_dateD"
                                   placeholder="Đến ngày"

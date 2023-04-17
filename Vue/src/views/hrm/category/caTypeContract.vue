@@ -177,7 +177,7 @@ const options = ref({
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
-const listTypeContract=ref([]);
+const listTypeContract = ref([]);
 const openBasic = (str) => {
   submitted.value = false;
   type_contract.value = {
@@ -188,8 +188,8 @@ const openBasic = (str) => {
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
   };
-  checkDisabled.value=false;
-  listFilesS.value=[];
+  checkDisabled.value = false;
+  listFilesS.value = [];
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
@@ -231,7 +231,7 @@ const saveData = (isFormValid) => {
     let file = filesList.value[i];
     formData.append("image", file);
   }
-
+ 
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
   formData.append("hrm_ca_type_contract", JSON.stringify(type_contract.value));
   swal.fire({
@@ -339,11 +339,14 @@ const editTem = (dataTem) => {
       let data1 = JSON.parse(response.data.data)[1];
       if (data) {
         type_contract.value = data[0];
-         
-if(type_contract.value.is_system==true&& (store.getters.user.is_super==false || store.getters.user.is_super== null)){
 
-  checkDisabled.value=true;
-}
+        if (
+          type_contract.value.is_system == true &&
+          (store.getters.user.is_super == false ||
+            store.getters.user.is_super == null)
+        ) {
+          checkDisabled.value = true;
+        }
         if (data1) {
           listFilesS.value = data1;
         }
@@ -412,7 +415,7 @@ const delTem = (Tem) => {
       }
     });
 };
-const checkDisabled=ref(false);
+const checkDisabled = ref(false);
 //Xuất excel
 
 const deleteFileH = (value) => {
@@ -755,57 +758,63 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
-const initTuDien=()=>{
-  
-listTypeContract.value=[];
+const initTuDien = () => {
+  listTypeContract.value = [];
   axios
-      .post(
-        baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "smartreport_list ",
-              par: [
-           
-                { par: "user_id", va: store.getters.user.user_id },
-         
-              ],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        if (isFirst.value) isFirst.value = false;
-        data.forEach((element, i) => {
-          listTypeContract.value.push({
-            name:element.report_name,
-            code:element.report_key
-          })
-        });
-     
-
-        options.value.loading = false;
-      })
-      .catch((error) => {
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
-
-        if (error && error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
-          store.commit("gologout");
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smartreport_list ",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      var arrGroups = [];
+      data.forEach((element) => {
+        var strchk = arrGroups.find((x) => x == element.report_group);
+        if (strchk == null) {
+          arrGroups.push(element.report_group);
         }
       });
-}
+      arrGroups.forEach((item) => {
+        var ardf = {
+          label: item,
+          items: [],
+        };
+        data
+          .filter((x) => x.report_group == item)
+          .forEach((z) => {
+            ardf.items.push({ label: z.report_name, value: z.report_key });
+          });
+          listTypeContract.value.push(ardf);
+      });
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
 const listFilesS = ref([]);
 onMounted(() => {
- 
   initTuDien();
   loadData(true);
   return {
@@ -1173,9 +1182,7 @@ onMounted(() => {
             :class="{
               'p-invalid': v$.type_contract_name.$invalid && submitted,
             }"
-            :disabled="checkDisabled
-             
-            "
+            :disabled="checkDisabled"
           />
         </div>
         <div style="display: flex" class="field col-12 md:col-12">
@@ -1200,18 +1207,14 @@ onMounted(() => {
             <InputNumber
               v-model="type_contract.is_order"
               class="col-3 ip36 p-0"
-              :disabled="
-              checkDisabled
-              "
+              :disabled="checkDisabled"
             />
           </div>
           <div class="field col-4 md:col-4 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
             <InputSwitch
               v-model="type_contract.status"
-              :disabled="
-              checkDisabled
-              "
+              :disabled="checkDisabled"
             />
           </div>
           <div
@@ -1223,20 +1226,19 @@ onMounted(() => {
           </div>
         </div>
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Mẫu hợp đồng </label
-          >
+          <label class="col-3 text-left p-0">Mẫu hợp đồng </label>
           <Dropdown
-                :filter="true"
-                v-model="type_contract.report_key"
-                :options="listTypeContract"
-                optionLabel="name"
-                optionValue="code"
-                class="col-9"
-                panelClass="d-design-dropdown"
-                placeholder="Chọn mẫu hợp đồng"
-        
-              />
+            :filter="true"
+            v-model="type_contract.report_key"
+            :options="listTypeContract"
+            optionLabel="label"
+            optionValue="value"
+            optionGroupLabel="label" optionGroupChildren="items"
+            class="col-9"
+            panelClass="d-design-dropdown"
+            placeholder="Chọn mẫu hợp đồng"
+      
+          />
         </div>
         <!-- <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == true).length>0">
           <DataTable
@@ -1468,7 +1470,6 @@ onMounted(() => {
 </template>
     
     <style scoped>
-
 .inputanh {
   border: 1px solid #ccc;
   width: 8rem;

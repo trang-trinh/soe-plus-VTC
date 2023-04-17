@@ -1403,7 +1403,7 @@ onMounted(() => {
               :showIcon="true"
               class="col-8 p-0"
               autocomplete="off"
-              view="month"
+              view="month" :showOnFocus="false"
               dateFormat="mm/yy"
               v-model="paycheck_form.paycheck_form_date"
               placeholder="Chọn tháng"

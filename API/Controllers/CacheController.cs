@@ -71,13 +71,19 @@ namespace Controllers
                 using (DBEntities db = new DBEntities())
                 {
                     string json = System.IO.File.ReadAllText(HttpContext.Current.Server.MapPath("~/Config/Config.json"));
+                    var dataGet = JsonConvert.DeserializeObject<settings>(json);
+                    if (dataGet.publictoken != null)
+                    {
+                        dataGet.publictoken = Codec.DecryptString(dataGet.publictoken, helper.psKey);
+                    }
                     var numUserEncrypt = db.sys_users.Count(x => x.is_psword.Contains("=="));
                     var is_user_encrypt = false;
                     if (numUserEncrypt > 0)
                     {
                         is_user_encrypt = true;
                     }
-                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.DeserializeObject<settings>(json), u_crypt = is_user_encrypt });
+                    //return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.DeserializeObject<settings>(json), u_crypt = is_user_encrypt });
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = dataGet, u_crypt = is_user_encrypt });
                 }
             }
             catch (Exception e)
@@ -859,9 +865,9 @@ namespace Controllers
             string domainurl = contextHttp.Request.Url.Scheme + "://" + contextHttp.Request.Url.Host + ":" + contextHttp.Request.Url.Port + "/";
             try
             {
-                //string PortalsConfig = ConfigurationManager.AppSettings["Portals"];
+                string PortalsConfig = ConfigurationManager.AppSettings["Portals"];
                 //string PortalsConfig = "ftp://123.31.12.70:21/PublishSOE2020/Vue2022/VTCPLUS/api/Portals";
-                string PortalsConfig = "https://apivtc.soe.vn";
+                //string PortalsConfig = "https://apivtc.soe.vn";
                 return Request.CreateResponse(HttpStatusCode.OK, new { portF = Codec.EncryptString(PortalsConfig, helper.psKey), err = "0" });
             }
             catch (DbEntityValidationException e)

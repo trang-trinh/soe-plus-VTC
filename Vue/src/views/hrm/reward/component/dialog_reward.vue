@@ -749,7 +749,7 @@ onMounted(() => {
                 class="w-full"
                 id="basic_purchase_date"
                 v-model="reward.decision_date"
-                autocomplete="off"
+                autocomplete="off" :showOnFocus="false"
                 :showIcon="true"
                 placeholder="dd/mm/yyyy"
               />
@@ -1084,7 +1084,7 @@ onMounted(() => {
                 id="basic_purchase_date"
                 v-model="reward.effective_date"
                 autocomplete="off"
-                :showIcon="true"
+                :showIcon="true" :showOnFocus="false"
               />
             </div>
           </div>
@@ -1097,7 +1097,7 @@ onMounted(() => {
               <InputNumber
                 class="w-full"
                 v-model="reward.reward_cost"
-                suffix=" VNĐ"
+                inputId="locale-german" locale="de-DE"  
               />
             </div>
           </div>
