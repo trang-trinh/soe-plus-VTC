@@ -625,9 +625,9 @@ namespace API.Controllers.HRM
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + " hcal.* ,su.full_name,su.avatar,(SELECT COUNT(*) FROM hrm_candidate hc WHERE hc.campaign_id=hcal.campaign_id) AS slTuyen,hcv.vacancy_name, " +
+                sql = selectStr + " hcal.* ,su.full_name,su.avatar,(SELECT COUNT(*) FROM hrm_candidate hc WHERE hc.campaign_id=hcal.campaign_id) AS slTuyen,hcv.work_position_name, " +
                 " (SELECT COUNT(*) FROM hrm_candidate hc WHERE hc.campaign_id = hcal.campaign_id AND hc.status = 1) AS trungTuyen " +
-                " from hrm_campaign hcal     LEFT JOIN hrm_ca_vacancy hcv ON hcv.vacancy_id = hcal.rec_vacancies   LEFT JOIN sys_users su ON hcal.created_by = su.user_id ";
+                " from hrm_campaign hcal     LEFT JOIN hrm_ca_work_position hcv ON hcv.work_position_id = hcal.rec_vacancies   LEFT JOIN sys_users su ON hcal.created_by = su.user_id ";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
@@ -1055,8 +1055,8 @@ namespace API.Controllers.HRM
             try
             {
                 var selectStr = filterSQL.id == null ? (" Select TOP(" + filterSQL.PageSize + @") ") : "Select ";
-                sql = selectStr + " hcal.* ,su.full_name,su.avatar ,hcv.vacancy_name " +
- " from hrm_recruitment_proposal hcal LEFT JOIN hrm_ca_vacancy hcv ON hcv.vacancy_id = hcal.vacancy_id  " +
+                sql = selectStr + " hcal.* ,su.full_name,su.avatar ,hcv.work_position_name " +
+ " from hrm_recruitment_proposal hcal LEFT JOIN hrm_ca_work_position hcv ON hcv.work_position_id = hcal.work_position_id  " +
  " LEFT JOIN sys_users su ON hcal.created_by = su.user_id";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
