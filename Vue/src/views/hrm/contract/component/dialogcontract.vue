@@ -1126,7 +1126,7 @@ onMounted(() => {
             </div>
             <div class="col-12 md:col-12">
               <div class="form-group">
-                <label>- Bậc lương</label>
+                <label>Bậc lương</label>
                 <InputNumber
                   showButtons
                   v-model="props.model.wage_level"
