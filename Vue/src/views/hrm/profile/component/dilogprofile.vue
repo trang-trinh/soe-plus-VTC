@@ -1272,7 +1272,6 @@ onMounted(() => {
                             style="height: 100%"
                           >
                             <InputSwitch v-model="slotProps.data.is_company" />
-                            <label for="binary">Bằng cấp chính</label>
                           </div>
                         </div>
                       </template>
@@ -1291,7 +1290,6 @@ onMounted(() => {
                             style="height: 100%"
                           >
                             <InputSwitch v-model="slotProps.data.is_die" />
-                            <label for="binary">Bằng cấp chính</label>
                           </div>
                         </div>
                       </template>
