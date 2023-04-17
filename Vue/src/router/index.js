@@ -361,7 +361,7 @@ const caHRMSpecialization = () =>
 const caHRMTitle = () => import("../views/hrm/category/caTitle.vue");
 const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
-
+  const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
 const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
@@ -721,49 +721,49 @@ const router = createRouter({
       component: Status,
     },
     {
-      path: "/project",
+      path: "/system/project",
       name: "project",
       component: Project,
     },
     {
-      path: "/api",
+      path: "/system/api",
       name: "api",
       component: Api,
     },
     {
-      path: "/table",
+      path: "/system/table",
       name: "table",
       component: Table,
     },
     {
-      path: "/plugin",
+      path: "/system/plugin",
       name: "plugin",
       component: Plugin,
     },
     //Task
     {
-      path: "/project/task",
+      path: "/system/project/task",
       name: "task/project",
       component: Task,
     },
 
     {
-      path: "/taskgroup",
-      name: "taskgroup",
+      path: "/system/taskgroup",
+      name: "taskgroupSASS",
       component: TaskGroup,
     },
     {
-      path: "/taskcheck",
+      path: "/system/taskcheck",
       name: "taskcheck",
       component: TaskCheck,
     },
     {
-      path: "/taskreport/mainreport",
+      path: "/system/taskreport/mainreport",
       name: "mainreport",
       component: MainReport,
     },
     {
-      path: "/taskreport/checklistreport",
+      path: "/system/taskreport/checklistreport",
       name: "checklistreport",
       component: CheckListReport,
     },
@@ -1733,8 +1733,12 @@ const router = createRouter({
       component: caHRMTitle,
     },
 
-
     
+    {
+      path: "/hrm/hrm_shift",
+      name: "caHRMDeclareShift",
+      component: caHRMDeclareShift,
+    },
     {
       path: "/hrm/category/ca_decision",
       name: "caHRMDecision",

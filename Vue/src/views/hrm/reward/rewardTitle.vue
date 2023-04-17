@@ -616,18 +616,19 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
+  
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
   });
-  if (tabs.value.id == 0) {
+ 
     axios
       .post(
         baseURL + "/api/Excel/ExportExcelWithLogo",
         {
-          excelname: "DANH SÁCH KHEN THƯỞNG",
+          excelname: options.value.tab==0?"DANH SÁCH KHEN THƯỞNG":"DANH SÁCH KỶ LUẬT",
           proc: "hrm_reward_export",
           par: [
             { par: "user_id", va: store.state.user.user_id },
@@ -644,9 +645,9 @@ const exportData = (method) => {
                 ? options.value.reward_title_id.toString()
                 : null,
             },
-          
-            { par: "start_dateI", va: options.value.start_dateI },
-            { par: "end_dateI", va: options.value.end_dateI },
+            { par: "reward_type", va: options.value.tab  },
+            { par: "start_date", va:   options.value.start_dateI},
+            { par: "end_date", va:options.value.end_dateI },
         
             { par: "sort", va: options.value.sort },
             { par: "pageno", va: options.value.pagenoExport - 1 },
@@ -694,7 +695,7 @@ const exportData = (method) => {
           store.commit("gologout");
         }
       });
-  }
+ 
 };
 
 const activeTab = (tab) => {
