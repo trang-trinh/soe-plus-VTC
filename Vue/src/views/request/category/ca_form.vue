@@ -39,6 +39,15 @@ const listDropdownTypeProcess = ref([
 	{ value: 1, text: "Duyệt lần lượt" },
 	{ value: 2, text: "Duyệt ngẫu nhiên" },
 ])
+const bgColor = ref([
+	"#F8E69A",
+	"#AFDFCF",
+	"#F4B2A3",
+	"#9A97EC",
+	"#CAE2B0",
+	"#8BCFFB",
+	"#CCADD7",
+]);
 const datalists = ref([]);
 const listRequestCaGroup = ref();
 const request_form = ref({
@@ -82,13 +91,31 @@ const loadData = (rf) => {
 			data.forEach((el, i) => {
 				el.request_group_name = el.request_group_name ? el.request_group_name : "Loại khác";
 				el.group_request = el.group_request ? JSON.parse(el.group_request) : [];
+				el.list_group_users = el.list_group_users ? JSON.parse(el.list_group_users) : [];
 				if (el.group_request.length > 0) {
 					el.group_request.forEach((gr) => {
 						gr.status = true;
 					});
 				}
+				let listgroupby = groupBy(el.list_group_users, "request_form_sign_id");
+				el.arrNew = [];
+				for (let k in listgroupby) {
+					let requestGroup1 = [];
+					let requestGroup2 = [];
+					listgroupby[k].forEach(function (r, i) {
+						if (i <= 2) {
+							requestGroup1.push(r);
+						} else {
+							requestGroup2.push(r);
+						}
+					});
+					el.arrNew.push({
+						request_form_sign_id: k,
+						requestGroup1: requestGroup1,
+						requestGroup2: requestGroup2,
+					});
+				}
 			});
-
 			datalists.value = data;
 			options.value.loading = false;
 		})
@@ -208,7 +235,7 @@ const delTem = (model) => {
 						swal.close();
 						if (response.data.err != "1") {
 							swal.close();
-							toast.success("Xoá nhóm dự án thành công!");
+							toast.success("Xoá loại đề xuất thành công!");
 							checkDelList.value = false;
 							loadData(true);
 						} else {
@@ -511,7 +538,7 @@ const openSlideBarprocedure = (model) => {
 	// 		showProcedure.value = true;
 	// 		selectedFormID.value = model.request_form_id;
 	// 		forceRerender();
-	// 	})
+	// 	})x
 	// 	.catch((error) => {
 	// 		toast.error("Tải dữ liệu không thành công!");
 	// 		options.value.loading = false;
@@ -595,8 +622,49 @@ onMounted(() => {
 				headerStyle="max-width:40rem;height:50px;border-left:none;border-right:none;"
 				bodyStyle="max-width:40rem;border-left:none;border-right:none;" class="align-items-center">
 				<template #body="data">
-					<div class="name-hover">
-						<!-- Avatar -->
+					<div class="name-hover" style="width: 100%;display: flex;">
+						<div class="text-left" v-for="l in data.data.arrNew" style="width: 30%;">
+							<AvatarGroup>
+								<div v-for="(value, index) in l.requestGroup1" :key="index">
+									<div>
+										<Avatar v-tooltip.bottom="{
+											value:
+												value.full_name +
+												'<br/>' +
+												(value.tenChucVu || '') +
+												'<br/>' +
+												(value.tenToChuc || ''),
+											escape: true,
+										}" v-bind:label="
+	value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
+" v-bind:image="basedomainURL + value.avatar" style="
+					                    background-color: #2196f3;
+					                    color: #ffffff;
+					                    width: 32px;
+					                    height: 32px;
+					                    font-size: 15px !important;
+					                    margin-left: -10px;
+					                  " :style="{
+					                  	background: bgColor[index % 7] + '!important',
+					                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+									</div>
+								</div>
+								<Avatar v-if="
+									l.requestGroup2.length > 0
+								" :label="
+	'+' +
+	(l.requestGroup2.length) +
+	''
+" class="cursor-pointer" shape="circle" style="
+					                background-color: #e9e9e9 !important;
+					                color: #98a9bc;
+					                font-size: 14px !important;
+					                width: 32px;
+					                margin-left: -10px;
+					                height: 32px;
+					              " />
+							</AvatarGroup>
+						</div>
 					</div>
 				</template>
 			</Column>
@@ -640,17 +708,17 @@ onMounted(() => {
 						(store.state.user.role_id == 'admin' && store.state.user.organization_id == Tem.data.organization_id)
 					">
 						<Button @click="editForm(Tem.data)" class="
-																	p-button-rounded
-																	p-button-secondary
-																	p-button-outlined
-																	mx-1
-																" type="button" icon="pi pi-pencil" v-tooltip.top="'Sửa'"></Button>
+																						p-button-rounded
+																						p-button-secondary
+																						p-button-outlined
+																						mx-1
+																					" type="button" icon="pi pi-pencil" v-tooltip.top="'Sửa'"></Button>
 						<Button class="
-																	p-button-rounded
-																	p-button-danger
-																	p-button-outlined
-																	mx-1
-																" type="button" icon="pi pi-trash" @click="delTem(Tem.data)" v-tooltip.top="'Xóa'"></Button>
+																						p-button-rounded
+																						p-button-danger
+																						p-button-outlined
+																						mx-1
+																					" type="button" icon="pi pi-trash" @click="delTem(Tem.data)" v-tooltip.top="'Xóa'"></Button>
 					</div>
 				</template>
 			</Column>

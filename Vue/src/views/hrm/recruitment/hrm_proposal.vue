@@ -451,7 +451,7 @@ const refreshStamp = () => {
   options.value.user_verify_list = null;
   options.value.rec_position_id = null;
   options.value.can_academic_level_id = null;
-  options.value.vacancy_id = null;
+  options.value.work_position_id = null;
   options.value.start_dateI = null;
   options.value.end_dateI = null;
   options.value.start_dateI = null;
@@ -685,27 +685,15 @@ const exportData = (method) => {
     .post(
       baseURL + "/api/Excel/ExportExcelWithLogo",
       {
-        excelname: "DANH SÁCH đề xuất",
+        excelname: "DANH SÁCH ĐỀ XUẤT",
         proc: "hrm_recruitment_proposal_export",
         par: [
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
           {
-            par: "rec_position_id",
-            va: options.value.rec_position_id
-              ? options.value.rec_position_id.toString()
-              : null,
-          },
-          {
-            par: "user_verify",
-            va: options.value.user_verify_list
-              ? options.value.user_verify_list.toString()
-              : null,
-          },
-          {
-            par: "user_follows",
-            va: options.value.user_follows_list
-              ? options.value.user_follows_list.toString()
+            par: "work_position_id",
+            va: options.value.work_position_id
+              ? options.value.work_position_id.toString()
               : null,
           },
           {
@@ -715,13 +703,14 @@ const exportData = (method) => {
               : null,
           },
           {
-            par: "vacancy_id",
-            va: options.value.vacancy_id
-              ? options.value.vacancy_id.toString()
+            par: "position_id",
+            va: options.value.position_id
+              ? options.value.position_id.toString()
               : null,
           },
+          
           {
-            par: "status ",
+            par: "status",
             va: options.value.status_filter
               ? options.value.status_filter.toString()
               : null,
@@ -904,7 +893,7 @@ const deleteList = () => {
 //Filter
 const reFilter = () => {
   options.value.user_follows = null;
-  options.value.vacancy_id = null;
+  options.value.work_position_id = null;
   options.value.user_verify = null;
   options.value.start_dateI = null;
   options.value.end_dateI = null;
@@ -992,14 +981,14 @@ const filterFileds = () => {
       filterSQL.value.push(filterS3);
     }
   }
-  if (options.value.vacancy_id) {
+  if (options.value.work_position_id) {
     let filterS4 = {
       filterconstraints: [],
       filteroperator: "or",
-      key: "vacancy_id",
+      key: "work_position_id",
     };
-    if (options.value.vacancy_id.length > 0) {
-      options.value.vacancy_id.forEach((element) => {
+    if (options.value.work_position_id.length > 0) {
+      options.value.work_position_id.forEach((element) => {
         var addr = { value: element, matchMode: "equals" };
         filterS4.filterconstraints.push(addr);
       });
@@ -1237,7 +1226,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
+            proc: "hrm_ca_work_position_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -1256,8 +1245,8 @@ const initTudien = () => {
       listVacancies.value = [];
       data.forEach((element, i) => {
         listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
+          name: element.work_position_name,
+          code: element.work_position_id,
         });
       });
     })
@@ -1396,7 +1385,7 @@ onMounted(() => {
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.vacancy_id"
+                                v-model="options.work_position_id"
                                 optionLabel="name"
                                 optionValue="code"
                                 display="chip"
@@ -1416,7 +1405,7 @@ onMounted(() => {
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.rec_position_id"
+                                v-model="options.position_id"
                                 optionLabel="name"
                                 optionValue="code"
                                 placeholder="Chọn chức vụ"
@@ -1715,7 +1704,7 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="vacancy_name"
+              field="work_position_name"
               header="Vị trí"
               headerStyle="text-align:center;max-width:250px;height:50px"
               bodyStyle="text-align:center;max-width:250px"
