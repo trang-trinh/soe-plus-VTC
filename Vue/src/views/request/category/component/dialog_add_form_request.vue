@@ -174,7 +174,7 @@ const OpenDialogTreeUser = (one, index) => {
 		selectedUser.value = [...listGroupTeams.value[index].GroupTeamUsers];
 	}
 	
-	headerDialogUser.value = "Chọn người duyệt"; 0
+	headerDialogUser.value = "Chọn người duyệt";
 	displayDialogUser.value = true;
 };
 const closeDialog = () => {
