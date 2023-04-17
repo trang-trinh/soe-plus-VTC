@@ -494,17 +494,11 @@ const editItem = (item, str) => {
           // model.value["select_place_register_permanent"][
           //   model.value["place_register_permanent"] || -1
           // ] = true;
-          if (model.value["birthplace_id"] == null) {
-            model.value["select_birthplace"] = model.value["birthplace_name"];
-          }
-          if (model.value["birthplace_origin_id"] == null) {
-            model.value["select_birthplace_origin"] =
-              model.value["birthplace_origin_name"];
-          }
-          if (model.value["place_register_permanent"] == null) {
-            model.value["select_place_register_permanent"] =
-              model.value["place_register_permanent_name"];
-          }
+          model.value["select_birthplace"] = model.value["birthplace_name"];
+          model.value["select_birthplace_origin"] = model.value["birthplace_origin_name"];
+          model.value["select_place_register_permanent"] = model.value["place_register_permanent_name"];
+          model.value["select_place_residence"] = model.value["place_residence_name"];
+
           if (model.value["recruitment_date"] != null) {
             model.value["recruitment_date"] = new Date(
               model.value["recruitment_date"]

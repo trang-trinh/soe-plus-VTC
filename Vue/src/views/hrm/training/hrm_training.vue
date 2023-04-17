@@ -1802,8 +1802,8 @@ onMounted(() => {
             <Column
               field="li_user_verify"
               header="Giảng viên"
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
+              headerStyle="text-align:center;max-width:160px;height:50px"
+              bodyStyle="text-align:center;max-width:160px"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="data">

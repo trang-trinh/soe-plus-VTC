@@ -114,6 +114,7 @@ const loadTudien = () => {
 };
 //Lấy dữ liệu bank
 const initData = (rf) => {
+  if(options.value.date.getFullYear() == 1900) options.value.date = new Date(dt.getFullYear(), dt.getMonth()) ;
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -224,7 +225,7 @@ const options = ref({
   PageSize: 20,
   loading: true,
   totalRecords: null,
-  date : null,
+  date : new Date(dt.getFullYear(), dt.getMonth()),
   view:1,
   start_date:  new Date(dt.getFullYear(), 0),
   end_date: new Date(dt.getFullYear(), dt.getMonth()),
@@ -580,9 +581,23 @@ const searchStamp = (event) => {
   }
 };
 const refreshStamp = () => {
-  options.value.searchStamp = null;
-  options.value.date = null;
+   options.value = {
+      IsNext: true,
+      sort: "created_date",
+      SearchText: "",
+      PageNo: 0,
+      PageSize: 20,
+      loading: true,
+      totalRecords: null,
+      date : new Date(dt.getFullYear(), dt.getMonth()),
+      view:1,
+      start_date:  new Date(dt.getFullYear(), 0),
+      end_date: new Date(dt.getFullYear(), dt.getMonth()),
+    };
+  // options.value.searchStamp = null;
+  // options.value.date = null;
   monthPickerFilter.value = null;
+  yearPickerFilter.value = null;
   filterTrangthai.value = null;
   options.value.loading = true;
   selectedStamps.value = [];
@@ -711,11 +726,6 @@ watch(selectedStamps, () => {
     checkDelList.value = false;
   }
 });
-watch(monthPickerFilter, () => {
-  if (monthPickerFilter.value != null) {
-    onFilterMonth();
-  } 
-});
 const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
@@ -763,46 +773,45 @@ const goProfile = (item) => {
   });
 };
 //filter date
-const onFilterMonth = ()=>{
-  if( options.value.view == 1)
+const yearPickerFilter = ref();
+const onFilterMonth = (type)=>{
+  if(type == 1)
  {
   options.value.date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
   initData(true);
  } 
  else{
-  options.value.start_date = null;
-  options.value.end_date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
+  options.value.start_date = new Date(yearPickerFilter.value, 0);
+  options.value.end_date =  new Date(yearPickerFilter.value, 11);
   loadDataTree(true);
  }
 }
-const onCleanFilterMonth = () => {
-  if (monthPickerFilter.value) monthPickerFilter.value = null;
-  if( options.value.view == 1)
+const onCleanFilterMonth = (type) => {
+  if( type == 1)
  {
+  if (monthPickerFilter.value) monthPickerFilter.value = null;
   options.value.date = null;
   initData(true);
  } 
  else{
+  if (yearPickerFilter.value) yearPickerFilter.value = null;
   options.value.start_date = new Date(dt.getFullYear(), 0);
   options.value.end_date = new Date(dt.getFullYear(), dt.getMonth());
   loadDataTree(true);
  }
 };
 const changeView = (view) => {
-  if (view != null) {
-    options.value.view = view;
-    options.value.view_copy = view;
-  } else {
-    options.value.view = options.value.view_copy;
-  }
-  if(view == 2) loadDataTree();
+  options.value.view = view;
+  if(view == 1) initData();
+  else if(view == 2) loadDataTree();
 };
 const listDate= ref();
 const isViewTree = ref(false);
 const amount_paid_final = ref();
 const payment_final = ref();
 const loadDataTree = ()=>{
-  debugger
+  if(options.value.start_date.getFullYear() == 1900 ) options.value.start_date = new Date(dt.getFullYear(), 0)
+  if(options.value.end_date.getFullYear() == 1900 ) options.value.end_date = new Date(dt.getFullYear(), dt.getMonth())
   payment_final.value = 0;
   amount_paid_final.value = 0;
   listDate.value = dateRange(options.value.start_date, options.value.end_date)
@@ -872,6 +881,104 @@ const loadDataTree = ()=>{
         });
   
 }
+//excel
+const exportExcel = () => {
+  let text_string = "";
+  text_string =
+    "TỪ " +
+    moment(new Date(options.value.start_date))
+      .format("MM/YYYY")
+      .toString() +
+    " - " +
+    moment(new Date(options.value.end_date)).format("MM/YYYY").toString();
+  
+  let name = "Danh sach dong bao hiem thang "+ moment(new Date()).format("MM-YYYY").toString();
+  let id = "tablequizz";
+  var htmltable1 = "";
+  // htmltable1 = renderExcel_Ketqua();
+  var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+  tab_text =
+    tab_text +
+    "<head><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>";
+  tab_text = tab_text + "<x:Name>Test Sheet</x:Name>";
+  tab_text =
+    tab_text +
+    "<x:WorksheetOptions><x:Panes></x:Panes></x:WorksheetOptions></x:ExcelWorksheet>";
+  tab_text =
+    tab_text + "</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>";
+  tab_text =
+    tab_text +
+    "<style>.item-date{min-width:100px !important} th,td,table,tr{padding:5px;font-size:13pt} .text-right{text-align:right} .text-left{text-align:left}table{margin:20px auto;border-collapse: collapse;}</style>";
+  tab_text =
+    tab_text +
+    '<style>.cstd{font-family: Times New Roman;border:none!important; font-size: 17px; font-weight: 700; text-align: center; vertical-align: center;color:#1769aa}</style><table><td colspan="' +
+    '15' +
+    '" class="cstd" > DANH SÁCH ĐÓNG BẢO HIỂM ' +
+    text_string +
+    "</td > ";
+  tab_text = tab_text + "</table>";
+
+  //var exportTable = $('#' + id).clone();
+  //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
+  tab_text =
+    tab_text +
+    "<style>th,table,tr{font-family: Times New Roman; font-size: 12px; vertical-align: middle;}</style><table border='1'>";
+  var exportTable = document
+    .getElementById("table-bc")
+    .cloneNode(true).innerHTML;
+  tab_text = tab_text + exportTable.replaceAll('.', ',');
+  tab_text = tab_text + htmltable1;
+  tab_text = tab_text + "</table>";
+  tab_text = tab_text + '<meta charset="utf-8"/></ta></body></html>';
+  var data_type =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  var ua = window.navigator.userAgent;
+  var msie = ua.indexOf("MSIE ");
+
+  var fileName = name + " " + parseInt(Math.random() * 100) + ".xls";
+  if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+    if (window.navigator.msSaveBlob) {
+      var blob = new Blob([tab_text], {
+        type: data_type, //"application/csv;charset=utf-8;"
+      });
+      navigator.msSaveBlob(blob, fileName);
+    }
+  } else {
+    var blob2 = new Blob([tab_text], {
+      type: data_type, //"application/csv;charset=utf-8;"
+    });
+    var filename = fileName;
+    var elem = window.document.createElement("a");
+    elem.href = window.URL.createObjectURL(blob2);
+    elem.download = filename;
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+  }
+};
+
+//export
+const menuButs = ref();
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
+const itemButs = ref([
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportExcel();
+    },
+  },
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      //exportData("ExportExcel");
+    },
+  },
+]);
+
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
@@ -945,7 +1052,6 @@ function dateRange(startDate, endDate) {
   }
   return dates;
 }
-
 onMounted(() => {
   initData(true);
   loadTudien();
@@ -971,9 +1077,12 @@ onMounted(() => {
   <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0 insurance">
     <div style="background-color: #fff; padding: 1rem;">
       <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-building"></i> Danh sách đóng bảo hiểm ({{
+          <i class="pi pi-building"></i> Danh sách đóng bảo hiểm  
+          <span v-if="options.view == 1 && options.date">tháng {{moment(new Date(options.date)).format("MM/YYYY")}} </span>
+          <span v-if="options.view == 2"> từ tháng {{moment(new Date(options.start_date)).format("MM/YYYY")}} đến tháng {{moment(new Date(options.end_date)).format("MM/YYYY")}}</span>
+           <!-- ({{
             options.totalRecords
-          }})
+          }}) -->
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -990,20 +1099,32 @@ onMounted(() => {
           </template>
 
           <template #end>
-            <!-- <Calendar v-model="monthPickerFilter" 
-            class="ip36 mr-2" view="month" dateFormat="mm/yy" :showIcon="true" :showClear="true" 
-            placeholder=" Lọc theo tháng"/> -->
-            <!-- <datepicker :clear-button="true" 
-              modelValue="monthPickerFilter"
-              :language="'vn'" 
-              :minimum-view="'month'"
-              :maximum-view="'month'"
-              :full-month-name="true"
-              >
-            </datepicker>
-            {{ monthPickerFilter }} -->
+            
+           <Datepicker
+           v-if="options.view == 2"
+              @closed="onFilterMonth(2,true)"
+              class="mr-2 datepicker"
+              locale="vi"
+              selectText="Lọc"
+              cancelText="Hủy"
+              placeholder="Lọc theo năm"
+              v-model="yearPickerFilter"
+              auto-apply
+              year-picker
+              ><template #clear-icon>
+                <Button
+                  @click="onCleanFilterMonth(2)"
+                  icon="pi pi-times"
+                  class="p-button-rounded p-button-text"
+                />
+              </template>
+              <template #input-icon>
+                <Button icon="pi pi-calendar" class="p-button-text" />
+              </template>
+            </Datepicker>
             <Datepicker
-              @closed="onFilterMonth(false)"
+            v-if="options.view == 1"
+              @closed="onFilterMonth(1)"
               class="mr-2 datepicker"
               locale="vi"
               selectText="Lọc"
@@ -1014,7 +1135,7 @@ onMounted(() => {
               monthPicker
               ><template #clear-icon>
                 <Button
-                  @click="onCleanFilterMonth"
+                  @click="onCleanFilterMonth(1)"
                   icon="pi pi-times"
                   class="p-button-rounded p-button-text"
                 />
@@ -1023,13 +1144,6 @@ onMounted(() => {
                 <Button icon="pi pi-calendar" class="p-button-text" />
               </template>
             </Datepicker>
-            <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
             <!-- <Button
                @click="openBasic('Cập nhật thẻ bảo hiểm')"
               label="Thêm mới"
@@ -1044,6 +1158,7 @@ onMounted(() => {
             />
 
             <Button
+              v-if="options.view == 2"
               label="Tiện ích"
               icon="pi pi-file-excel"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -1104,13 +1219,13 @@ onMounted(() => {
       v-model:selection="selectedStamps"
       :row-hover="true"
     >
-      <Column
+      <!-- <Column
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
         selectionMode="multiple"
       >
-      </Column>
+      </Column> -->
 
 
       <!-- <Column
@@ -1222,8 +1337,8 @@ onMounted(() => {
       <Column
         header="Chức năng"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
       >
         <template #body="Tem">
           <div>
@@ -1260,17 +1375,17 @@ onMounted(() => {
         </div>
       </template>
     </DataTable>
-  
-    <table class="w-full" style="overflow-y: scroll" id="table-bc" v-if="isViewTree">
+    <div style="width: 100%;height: calc(100vh - 160px);" class="overflow-scroll relative" v-if="isViewTree"> 
+      <table class="w-full" style="overflow-y: scroll" id="table-bc">
       <thead>
       <tr style="background-color: #f8f9fa; z-index: 10 !important" class="top-0 sticky">
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 50px;max-width: 50px;" class="m-checkbox-table top-0 sticky left-0">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 50px;max-width: 50px;" class="m-checkbox-table top-0 sticky left-0">
           STT
         </th>
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 150px;max-width: 150px;" class="m-checkbox-table top-0 sticky left-50">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 100px;max-width: 100px;" class="m-checkbox-table top-0 sticky left-50">
           Mã NV
         </th>
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 120px;max-width: 120px;" class="m-checkbox-table top-0 sticky left-200">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 150px;max-width: 150px;" class="m-checkbox-table top-0 sticky left-150">
           Họ và tên
         </th>
         <th  v-for="(item,index) in listDate" :key="index" colspan="2" class="text-center py-2">{{ item.label }}</th>
@@ -1291,15 +1406,21 @@ onMounted(() => {
     </thead>
     <tbody>
         <tr style="vertical-align: top" v-for="(item, index) in datatrees" :key="index">
-          <td  class="sticky left-0 p-2 align-content-center text-center bg-white"
+          <td  class="sticky left-0 p-2 bg-white text-left"
             >
-            {{ index + 1 }}
+            <div class="format-center w-full h-full">
+              {{ index + 1 }}
+            </div>
           </td>
-          <td class="sticky p-2 left-50 bg-white" >
-            {{ item.profile_id }}
+          <td class="sticky p-2 left-50 bg-white text-left" >
+            <div class="format-center w-full h-full">
+              {{ item.profile_id }}
+            </div>
           </td>
-          <td class="sticky p-2 left-200 bg-white">
-            {{ item.profile_user_name }}
+          <td class="sticky p-2 left-150 bg-white text-left">
+            <div class="format-center w-full h-full">
+              {{ item.profile_user_name }}
+            </div>
           </td>
           <template v-for="(item_month,index2) in listDate" :key="index2">
             <td class="text-right item-date bg-white" style="padding: 0.5rem">
@@ -1341,7 +1462,9 @@ onMounted(() => {
             </td>
           </tr>
         </tbody>
-    </table>
+      </table>
+    </div>
+
   </div>
 
   <diloginsurance
@@ -1382,12 +1505,13 @@ onMounted(() => {
 }
 .item-date {
   vertical-align: middle;
+  min-width: 90px;
 }
 .left-50 {
   left: 50px !important;
 }
-.left-200 {
-  left: 200px !important;
+.left-150 {
+  left: 150px !important;
 }
 .left-320 {
   left: 320px !important;
@@ -1398,11 +1522,20 @@ onMounted(() => {
 .left-600 {
   left: 600px !important;
 }
+#table-bc th, #table-bc td{
+  height:44px ;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.insurance) {
   .dp__action_row, .dp__action_buttons{
   display: none !important;
+  }
+}
+::v-deep(.dp__input_wrap) {
+  .dp__input_reg{
+  border: 1px solid #607D8B;
+  height: 31px;
   }
 }
 </style>
