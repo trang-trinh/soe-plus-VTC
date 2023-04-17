@@ -518,6 +518,21 @@ const editItem = (item, str) => {
               model.value["identity_date_issue"]
             );
           }
+          if (model.value["partisan_date"] != null) {
+            model.value["partisan_date"] = new Date(
+              model.value["partisan_date"]
+            );
+          }
+          if (model.value["partisan_joindate"] != null) {
+            model.value["partisan_joindate"] = new Date(
+              model.value["partisan_joindate"]
+            );
+          }
+          if (model.value["organization_joindate"] != null) {
+            model.value["organization_joindate"] = new Date(
+              model.value["organization_joindate"]
+            );
+          }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
           tbs[1].forEach((x) => {
@@ -544,6 +559,12 @@ const editItem = (item, str) => {
             }
             if (x["end_date"] != null) {
               x["end_date"] = new Date(x["end_date"]);
+            }
+            if (x["degree_date"] != null) {
+              x["degree_date"] = new Date(x["degree_date"]);
+            }
+            if (x["graduation_year"] != null) {
+              x["graduation_year"] = new Date(x["graduation_year"]);
             }
             if (x["certificate_start_date"] != null) {
               x["certificate_start_date"] = new Date(
@@ -2561,10 +2582,15 @@ onMounted(() => {
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <ul class="flex p-0 justify-content-right" style="list-style: none; justify-content: right;">
+            <ul
+              class="flex p-0 justify-content-right"
+              style="list-style: none; justify-content: right"
+            >
               <li v-if="slotProps.data.is_matchaccount">
                 <Button
-                  @click="openMatchAccount(slotProps.data, 'liên kết tài khoản')"
+                  @click="
+                    openMatchAccount(slotProps.data, 'liên kết tài khoản')
+                  "
                   icon="pi pi-user"
                   class="p-button-rounded p-button-text"
                   v-tooltip.top="'Đã được cấp tài khoản truy cập'"
