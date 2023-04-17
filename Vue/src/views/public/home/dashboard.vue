@@ -7,7 +7,7 @@ import dialogcutrice from "./dialogcutrice.vue";
 import vi from "date-fns/locale/vi";
 import moment from "moment";
 import { useToast } from "vue-toastification";
-import { useCookies, globalCookiesConfig } from "vue3-cookies";
+import { useCookies } from "vue3-cookies";
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
 const store = inject("store");
@@ -21,13 +21,6 @@ const config = {
     Authorization: `Bearer ${store.getters.token}`,
   },
 };
-if (baseURL.includes("soe.vn")) {
-  globalCookiesConfig({
-    expireTimes: "30d",
-    path: "/",
-    domain: ".soe.vn",
-  });
-}
 const { cookies } = useCookies();
 const PositionSideBar = ref("right");
 emitter.on("psb", (obj) => {

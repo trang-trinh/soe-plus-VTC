@@ -150,6 +150,7 @@ namespace API.Models
         public string userftp { get; set; }
         public string psftp { get; set; }
         public bool isEncodeProc { get; set; }
+        public string docOnlineUrl { get; set;}
 
     }
     public class connectString
