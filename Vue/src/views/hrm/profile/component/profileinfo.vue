@@ -9,6 +9,8 @@ import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
 import printprofile from "../component/printprofile.vue";
 // import diloginsurance from "../../insurance/component/diloginsurance.vue";
+
+import comptask from "../../profile/component/comptask.vue";
 import comptimekeep from "../component/comptimekeep.vue";
 import diloginsurance from "../../profile/component/diloginsurance.vue";
 import moment from "moment";
@@ -2223,7 +2225,7 @@ const initData = () => {
   if (options.value.view === 1) {
     initDictionary1();
   } else if (options.value.view === 2) {
-    initView2(true);
+    //initView2(true);
   } else if (options.value.view === 3) {
     initDictionary3();
     initView3(true);
@@ -3775,242 +3777,8 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 2" class="f-full">
-              <div class="row p-2">
-                <div class="col-12 md:col-12 p-0">
-                  <Accordion class="w-full mb-2" :activeIndex="0">
-                    <AccordionTab>
-                      <template #header>
-                        <span>Công việc hiện tại</span>
-                      </template>
-                      <div class="row">
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Trạng thái:
-                              <span class="description-2">{{
-                                task.status_name
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Phòng ban:
-                              <span class="description-2">{{
-                                task.department_name
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Vị trí:
-                              <span class="description-2">{{
-                                task.work_position_name
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Chức vụ:
-                              <span class="description-2">{{
-                                task.position_name
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Ngày hiệu lực:
-                              <span class="description-2">{{
-                                task.start_date
-                              }}</span>
-                              <span v-if="task.start_date && task.end_date">
-                                -
-                              </span>
-                              <span
-                                v-if="task.end_date"
-                                class="description-2"
-                                >{{ task.end_date }}</span
-                              ></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Ngày ký hợp đồng chính thức:
-                              <span class="description-2">{{
-                                task.sign_date
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Công việc chuyên môn:
-                              <span class="description-2">{{
-                                task.professional_work_name
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Loại hợp đồng:
-                              <span class="description-2">{{
-                                task.contract_name
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Hình thức:
-                              <span class="description-2">{{
-                                task.formality_name
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
-                              >Ngạch lương:
-                              <span class="description-2">{{
-                                task.wage_name
-                              }}</span></label
-                            >
-                          </div>
-                        </div>
-                      </div>
-                    </AccordionTab>
-                  </Accordion>
-                </div>
-                <div class="col-12 md:col-12 p-0">
-                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
-                    <AccordionTab>
-                      <template #header>
-                        <span>Quá trình làm việc</span>
-                      </template>
-                      <div>
-                        <DataTable
-                          :value="tasks"
-                          :scrollable="true"
-                          :lazy="true"
-                          :rowHover="true"
-                          :showGridlines="true"
-                          scrollDirection="both"
-                          style="display: grid"
-                          class="empty-full"
-                        >
-                          <Column
-                            field="start_date"
-                            header="Ngày hiệu lực"
-                            headerStyle="text-align:center;width:120px;height:50px"
-                            bodyStyle="text-align:center;width:120px;"
-                            class="align-items-center justify-content-center text-center"
-                          >
-                            <template #body="slotProps">
-                              <span v-html="slotProps.data.start_date"></span>
-                            </template>
-                          </Column>
-                          <Column
-                            field="start_date"
-                            header="Ngày hết hạn"
-                            headerStyle="text-align:center;width:120px;height:50px"
-                            bodyStyle="text-align:center;width:120px;"
-                            class="align-items-center justify-content-center text-center"
-                          >
-                            <template #body="slotProps">
-                              <span v-html="slotProps.data.end_date"></span>
-                            </template>
-                          </Column>
-
-                          <Column
-                            field="department_name"
-                            header="Phòng ban"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
-                            class="align-items-center justify-content-center text-center"
-                          />
-                          <Column
-                            field="work_position_name"
-                            header="Vị trí"
-                            headerStyle="text-align:center;width:200px;height:50px"
-                            bodyStyle="text-align:center;width:200px;"
-                            class="align-items-center justify-content-center text-center"
-                          />
-                          <Column
-                            field="position_name"
-                            header="Chức vụ"
-                            headerStyle="text-align:center;width:150px;height:50px"
-                            bodyStyle="text-align:center;width:150px;"
-                            class="align-items-center justify-content-center text-center"
-                          />
-                          <Column
-                            field="type_contract_name"
-                            header="Loại hợp đồng"
-                            headerStyle="text-align:center;width:120px;height:50px"
-                            bodyStyle="text-align:center;width:120px;"
-                            class="align-items-center justify-content-center text-center"
-                          >
-                            <template #body="slotProps">
-                              {{ slotProps.data.type_contract_name }}
-                            </template>
-                          </Column>
-                          <Column
-                            field="contract_no"
-                            header="Mã HĐ"
-                            headerStyle="text-align:center;width:80px;height:50px"
-                            bodyStyle="text-align:center;width:80px;"
-                            class="align-items-center justify-content-center text-center"
-                          />
-                          <Column
-                            field="status"
-                            header="Trạng thái"
-                            headerStyle="text-align:center;width:140px;height:50px"
-                            bodyStyle="text-align:center;width:140px;"
-                            class="align-items-center justify-content-center text-center"
-                          >
-                            <template #body="slotProps">
-                              <div
-                                class="m-2"
-                                aria:haspopup="true"
-                                aria-controls="overlay_panel_status"
-                              >
-                                <Button
-                                  :label="slotProps.data.status_name"
-                                  :style="{
-                                    border: slotProps.data.bg_color,
-                                    backgroundColor: slotProps.data.bg_color,
-                                    color: slotProps.data.text_color,
-                                  }"
-                                />
-                              </div>
-                            </template>
-                          </Column>
-                          <template #empty>
-                            <div
-                              class="align-items-center justify-content-center p-4 text-center m-auto"
-                              style="display: flex; width: 100%"
-                            ></div>
-                          </template>
-                        </DataTable>
-                      </div>
-                    </AccordionTab>
-                  </Accordion>
-                </div>
-              </div>
+            <div v-if="options.view === 2" class="f-full">
+              <comptask :profile_id="options.profile_id" :view="options.view" />
             </div>
             <div v-show="options.view === 3" class="f-full">
               <div class="d-lang-table-1 p-2">
@@ -4193,7 +3961,10 @@ const onPage = (event) => {
               </div>
             </div>
             <div v-show="options.view === 4" class="f-full">
-              <comptimekeep :profile_id="options.profile_id" />
+              <comptimekeep
+                :profile_id="options.profile_id"
+                :view="options.view"
+              />
             </div>
             <div v-show="options.view === 5" class="f-full">Phiếu lương</div>
             <div v-show="options.view === 6" class="f-full">

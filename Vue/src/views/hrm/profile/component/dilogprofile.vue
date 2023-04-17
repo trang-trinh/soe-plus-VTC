@@ -2334,7 +2334,12 @@ onMounted(() => {
               </template>
               <div class="col-12 md:col-12 p-0">
                 <div class="row">
-                  <div class="col-6 md:col-6">
+                  <div class="col-6 md:col-6 format-center">
+                    <div class="form-group m-0">
+                      <label>Thời gian làm việc trong khối nhà nước trước khi vào công ty: </label>
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Năm</label>
                       <InputNumber
@@ -2347,7 +2352,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Tháng</label>
                       <InputNumber
