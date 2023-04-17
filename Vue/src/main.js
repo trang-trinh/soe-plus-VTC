@@ -271,9 +271,9 @@ Date.prototype.toISOString = function () {
   return moment(this).format("YYYY-MM-DDTHH:mm:ss");
 };
 
-import { useCookies } from "vue3-cookies";
+import { useCookies, globalCookiesConfig } from "vue3-cookies";
 if (baseURL.includes("soe.vn")) {
-  useCookies({
+  globalCookiesConfig({
     expireTimes: "30d",
     path: "/",
     domain: ".soe.vn",

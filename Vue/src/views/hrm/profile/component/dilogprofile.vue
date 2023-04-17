@@ -1297,29 +1297,21 @@ onMounted(() => {
               </template>
               <div class="col-12 md:col-12 p-0">
                 <div class="row" v-for="(item, index) in props.datachilds[2]">
-                  <div class="col-12 md:col-12">
-                    <div class="form-group">
-                      <div
-                        class="format-center"
-                        :style="{ justifyContent: 'left' }"
+                  <Toolbar class="w-full custoolbar p-0 font-bold">
+                    <template #start></template>
+                    <template #end>
+                      <a
+                        @click="props.deleteRow(2, index)"
+                        class="hover"
+                        v-tooltip.top="'Xóa'"
                       >
-                        <span class="mr-2"
-                          ><a
-                            @click="props.deleteRow(2, index)"
-                            class="hover"
-                            v-tooltip.top="'Xóa'"
-                          >
-                            <i
-                              class="pi pi-times-circle"
-                              style="font-size: 18px"
-                            ></i> </a
-                        ></span>
-                        <span :style="{ color: '#005a9e' }">
-                          Quá trình {{ index + 1 }}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
+                        <i
+                          class="pi pi-times-circle"
+                          style="font-size: 18px"
+                        ></i>
+                      </a>
+                    </template>
+                  </Toolbar>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Nơi đào tạo</label>
@@ -1403,7 +1395,7 @@ onMounted(() => {
                   </div>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Nơi đào tạo</label>
+                      <label>Xếp loại</label>
                       <Dropdown
                         :showClear="true"
                         :editable="true"
@@ -1449,7 +1441,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6 format-center">
+                  <div class="col-4 md:col-4 format-center">
                     <div class="form-group m-0">
                       <div
                         class="field-checkbox flex justify-content-center"
@@ -1458,6 +1450,29 @@ onMounted(() => {
                         <InputSwitch v-model="item.is_man_degree" />
                         <label for="binary">Bằng cấp chính</label>
                       </div>
+                    </div>
+                  </div>
+
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Ngày hiệu lực</label>
+                      <Calendar
+                        v-model="item.certificate_start_date"
+                        :showIcon="false"
+                        class="ip36"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Ngày hết hiệu lực</label>
+                      <Calendar
+                        v-model="item.certificate_end_date"
+                        :showIcon="false"
+                        class="ip36"
+                        placeholder="dd/mm/yyyy"
+                      />
                     </div>
                   </div>
                   <div class="col-6 md:col-6">
@@ -1476,28 +1491,6 @@ onMounted(() => {
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                         }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày hiệu lực</label>
-                      <Calendar
-                        v-model="item.certificate_start_date"
-                        :showIcon="false"
-                        class="ip36"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày hết hiệu lực</label>
-                      <Calendar
-                        v-model="item.certificate_end_date"
-                        :showIcon="false"
-                        class="ip36"
-                        placeholder="dd/mm/yyyy"
                       />
                     </div>
                   </div>
@@ -2340,7 +2333,35 @@ onMounted(() => {
                 </Toolbar>
               </template>
               <div class="col-12 md:col-12 p-0">
-                <div style="">
+                <div class="row">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Năm</label>
+                      <InputNumber
+                        v-model="props.model.seniority_year"
+                        inputId="minmax"
+                        :min="0"
+                        :max="100"
+                        showButtons
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Tháng</label>
+                      <InputNumber
+                        v-model="props.model.seniority_month"
+                        inputId="minmax"
+                        :min="0"
+                        :max="11"
+                        showButtons
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
                   <DataTable
                     :value="props.datachilds[4]"
                     :scrollable="true"

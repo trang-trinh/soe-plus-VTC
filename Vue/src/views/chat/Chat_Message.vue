@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { useRouter, useRoute } from "vue-router";
 import { VuemojiPicker } from "vuemoji-picker";
 import moment from "moment";
-import { useCookies } from "vue3-cookies";
+import { useCookies, globalCookiesConfig } from "vue3-cookies";
 import chatMessage from "../../components/chat/DetailChat.vue";
 import { encr, change_unsigned, checkURL } from "../../util/function.js";
 import { socketMethod } from "../../util/methodSocket";
@@ -25,6 +25,13 @@ const forceRerender = () => {
   componentKey.value += 1;
 };
 
+if (baseURL.includes("soe.vn")) {
+  globalCookiesConfig({
+    expireTimes: "30d",
+    path: "/",
+    domain: ".soe.vn",
+  });
+}
 const { cookies } = useCookies();
 const showInfoChat = ref(true);
 //Nơi nhận EMIT từ component
