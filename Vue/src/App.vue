@@ -10,8 +10,14 @@ import { watch, inject, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { decr, encr } from "./util/function";
 import { useToast } from "vue-toastification";
-import { useCookies } from "vue3-cookies";
-
+import { useCookies, globalCookiesConfig } from "vue3-cookies";
+if (baseURL.includes("soe.vn")) {
+  globalCookiesConfig({
+    expireTimes: "30d",
+    path: "/",
+    domain: ".soe.vn",
+  });
+}
 const { cookies } = useCookies();
 
 //Khai báo biến
