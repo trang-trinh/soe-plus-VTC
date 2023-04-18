@@ -13,6 +13,7 @@ import printprofile from "../component/printprofile.vue";
 import comptask from "../../profile/component/comptask.vue";
 import comptimekeep from "../component/comptimekeep.vue";
 import diloginsurance from "../../profile/component/diloginsurance.vue";
+import comreward from "../../profile/component/comreward.vue";
 import moment from "moment";
 
 const route = useRoute();
@@ -77,18 +78,25 @@ const selectedNodes = ref([]);
 watch(selectedNodes, () => {});
 const selectRow = (event) => {
   if (event && event.data) {
-    if (options.value.view === 1) {
-      goProfile(event.data);
-    } else if (options.value.view === 3) {
-      options.value["contract_id"] = event.data["contract_id"];
-      openViewDialogContract("Thông tin hợp đồng");
-    } else if (options.value.view === 8) {
-      options.value["training_emps"] = event.data;
-      openViewDialogTranning("Thông tin khóa đào tạo");
-    } else if (options.value.view === 10) {
-      options.value["file"] = event.data;
-      openViewDialogFile(event.data["file_name"]);
-    }
+    goProfile(event.data);
+  }
+};
+const selectRow3 = (event) => {
+  if (event && event.data) {
+    options.value["contract_id"] = event.data["contract_id"];
+    openViewDialogContract("Thông tin hợp đồng");
+  }
+};
+const selectRow8 = (event) => {
+  if (event && event.data) {
+    options.value["training_emps"] = event.data;
+    openViewDialogTranning("Thông tin khóa đào tạo");
+  }
+};
+const selectRow10 = (event) => {
+  if (event && event.data) {
+    options.value["file"] = event.data;
+    openViewDialogFile(event.data["file_name"]);
   }
 };
 const goProfile = (profile) => {
@@ -3784,7 +3792,7 @@ const onPage = (event) => {
               <div class="d-lang-table-1 p-2">
                 <DataTable
                   @page="onPage($event)"
-                  @rowSelect="selectRow"
+                  @rowSelect="selectRow3"
                   :value="contracts"
                   :paginator="true"
                   :rows="options.pageSize"
@@ -4234,7 +4242,7 @@ const onPage = (event) => {
               <div class="d-lang-table-1 p-2">
                 <DataTable
                   @page="onPage($event)"
-                  @rowSelect="selectRow"
+                  @rowSelect="selectRow8"
                   :value="trannings"
                   :paginator="true"
                   :rows="options.pageSize"
@@ -4621,7 +4629,7 @@ const onPage = (event) => {
               <div class="d-lang-table-1 p-2">
                 <DataTable
                   @page="onPage($event)"
-                  @rowSelect="selectRow"
+                  @rowSelect="selectRow10"
                   :value="files"
                   :paginator="true"
                   :rows="options.pageSize"
@@ -4979,7 +4987,12 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 16" class="f-full"></div>
+            <div v-if="options.view === 16" class="f-full">
+              <comreward
+                :profile_id="options.profile_id"
+                :view="options.view"
+              />
+            </div>
           </div>
         </div>
         <div
