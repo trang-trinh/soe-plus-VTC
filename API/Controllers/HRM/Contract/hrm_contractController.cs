@@ -563,6 +563,7 @@ namespace API.Controllers.Hrn
                                     foreach(var o in old)
                                     {
                                         o.is_active = false;
+                                        o.status = 2;
                                     }
                                 }
                             }
