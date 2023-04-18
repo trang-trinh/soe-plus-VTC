@@ -154,6 +154,14 @@ const loadReportForm = () => {
 const datalists = ref([]);
 
 const loadData = () => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  if (user.is_super) loadDonvi();
+
   axios
     .post(
       baseURL + "/api/DictionaryProc/getData",
@@ -180,6 +188,7 @@ const loadData = () => {
         x.STT = i + 1;
       });
       datalists.value = data;
+      swal.close();
     })
     .catch((error) => {
       if (error && error.status === 401) {
@@ -214,14 +223,21 @@ const options = ref({
   searchText: "",
   pageNo: 0,
   pageSize: 20,
+  organization_id: user.organization_id,
+  searchTextOrg: "",
 });
-const filterss = () => {};
+const filterss = () => {
+  if (options.value.searchTextOrg != null) {
+    filters.value["global"] = options.value.searchTextOrg;
+  } else filters.value["global"] = "";
+};
 function model(STT, organization_id, report_key, report_title, status) {
   this.STT = STT;
   this.organization_id = organization_id;
   this.report_title = report_title;
   this.report_key = report_key;
   this.status = status;
+  this.is_system = user.is_super ? true : false;
 }
 
 const headerDialog = ref();
@@ -251,7 +267,16 @@ const addALine = () => {
   models.value.unshift(t);
 };
 const isEdit = ref(false);
-const index = ref([]);
+const EditMultiple = () => {
+  isEdit.value = true;
+  let t = [];
+  t = JSON.parse(JSON.stringify(selectedProduct.value));
+  models.value = [];
+  models.value = [...t];
+  headerDialog.value = "Chỉnh sửa mẫu báo cáo";
+  DialogVisible.value = true;
+};
+
 const EditData = (e, i) => {
   isEdit.value = true;
   let t = JSON.parse(JSON.stringify(e));
@@ -275,7 +300,12 @@ const saveData = (e) => {
   } else {
     let formData = new FormData();
     formData.append("sys_organization_report", JSON.stringify(models.value));
-    debugger;
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
     axios({
       method: isEdit.value == false ? "post" : "put",
       url:
@@ -290,9 +320,10 @@ const saveData = (e) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Đánh giá báo cáo thành công!");
+          toast.success("Sửa mẫu báo cáo thành công!");
           loadData();
           closeDialog();
+          selectedProduct.value = [];
           swal.close();
         } else {
           swal.close();
@@ -316,160 +347,352 @@ const saveData = (e) => {
       });
   }
 };
-const DelData = (e) => {};
-const editingRows = ref([]);
+const DelData = (e, str) => {
+  let arrID = [];
+  if (str === "single") {
+    arrID.push(e.key_id);
+  } else
+    e.forEach((x) => {
+      arrID.push(x.key_id);
+    });
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá danh sách này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+
+        axios
+          .delete(baseURL + "/api/sys_organization_report/DeleteReportForm", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: arrID != null ? arrID : 1,
+          })
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá danh sách thành công!");
+              selectedProduct.value = [];
+              loadData(true);
+            } else {
+              swal.fire({
+                title: "Thông báo",
+                html: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                title: "Thông báo",
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+};
+const selectedProduct = ref([]);
+const onCheckBox = (e) => {
+  let data = {
+    IntID: e.key_id,
+    TextID: e.key_id + "",
+    IntTrangthai: 1,
+    BitTrangthai: e.status,
+  };
+  console.log(store.state.user.is_super);
+  if (
+    !user.is_super ||
+    (user.is_super && user.organization_id == e.organization_id)
+  ) {
+    axios
+      .put(
+        baseURL + "/api/sys_organization_report/UpdateStatusReportForm",
+        data,
+        config,
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Cập nhật trạng thái thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Thông báo",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Thông báo",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  } else {
+    swal.fire({
+      title: "Thông báo!",
+      text:
+        "Bạn không có quyền chỉnh sửa! Chỉ có " +
+        (e.is_system
+          ? "Quản trị viên hệ thống"
+          : "Quản trị viên đơn vị hoặc Quản trị viên hệ thống") +
+        " mới có quyền chỉnh sửa mục này",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    loadData(true);
+  }
+};
+const filters = ref({});
 onMounted(() => {
   loadReportForm();
-  if (user.is_super) loadDonvi();
   loadData();
 });
 </script>
 <template>
-  <div class="main-layout true flex-grow-1 p-2 flex">
-    <TreeTable
-      :value="treedonvis"
-      :expandedKeys="expandedKeysMain"
-      v-model:selectionKeys="selectedKey"
-      :showGridlines="true"
-      filterMode="strict"
-      :rowHover="true"
-      responsiveLayout="scroll"
-      :lazy="true"
-      :scrollable="true"
-      scrollHeight="flex"
-      class="h-full w-custom-screen px-2"
+  <div class="main-layout true flex-grow-1 p-2 inline-flex">
+    <div
       v-if="user.is_super"
+      class="col-3"
     >
-      <template #header>
-        <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
-          <i class="pi pi-microsoft"> </i> Danh sách đơn vị
-        </h3>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                type="text"
-                spellcheck="false"
-                v-model="options.searchText"
-                placeholder="Tìm kiếm theo tên đơn vị"
-                v-on:keyup.enter="filterss()"
-              />
-            </span>
-          </template>
-        </Toolbar>
-      </template>
-      <Column
-        field="STT"
-        header="STT"
-        class="align-items-center justify-content-center text-center max-w-4rem"
-      ></Column>
-      <Column
-        field="organization_name"
-        header="Tên đơn vị"
-        expander
-        headerClass="align-items-center justify-content-center text-center"
-      ></Column>
-    </TreeTable>
-
-    <DataTable
-      :value="datalists"
-      :rowHover="true"
-      :showGridlines="true"
-      responsiveLayout="scroll"
-      scrollHeight="flex"
-      dataKey="key_id"
-      class="col-12 py-0 px-0"
-    >
-      <template #header>
-        <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-file-pdf"></i>
-          Danh sách mẫu báo cáo
-        </h3>
-
-        <Toolbar class="w-full custoolbar">
-          <template #end>
-            <Button
-              v-if="
-                user.organization_id == options.organization_id ||
-                !user.is_super
-              "
-              label="Thêm mới"
-              icon="pi pi-plus"
-              @click="AddNew()"
-            ></Button>
-          </template>
-        </Toolbar>
-      </template>
-      <Column
-        header="STT"
-        field="STT"
-        class=""
+      <TreeTable
+        :value="treedonvis"
+        :expandedKeys="expandedKeysMain"
+        :showGridlines="true"
+        :rowHover="true"
+        responsiveLayout="scroll"
+        :scrollable="true"
+        filterMode="lenient"
+        scrollHeight="flex"
+        :filters="filters"
+        :globalFilterFields="['organization_id', 'organization_name']"
       >
-      </Column>
-      <Column
-        header="Tên báo cáo1"
-        field="report_title"
-        headerClass="align-items-center justify-content-center text-center w-15rem"
-      >
-      </Column>
-      <Column
-        header="Mẫu báo cáo"
-        field="report_name"
-        class="align-items-center justify-content-center text-center max-w-10rem"
-      >
-      </Column>
-      <Column
-        field="status"
-        header="Hiển thị"
-        class=""
-      >
-        <template #body="data">
-          <Checkbox
-            :binary="data.data.status"
-            v-model="data.data.status"
-            @click="onCheckBox(data.data)"
-          />
+        <template #header>
+          <Toolbar class="w-full custoolbar">
+            <template #start>
+              <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
+                <i class="pi pi-microsoft"> </i> Danh sách đơn vị
+              </h3>
+            </template>
+            <template #end>
+              <span class="p-input-icon-left">
+                <i class="pi pi-search" />
+                <InputText
+                  type="text"
+                  spellcheck="false"
+                  v-model="options.searchTextOrg"
+                  placeholder="Tìm kiếm theo tên đơn vị"
+                  v-on:keyup.enter="filterss()"
+                />
+              </span>
+            </template>
+          </Toolbar>
         </template>
-      </Column>
-      <Column
-        header="Chức năng"
-        field=""
-        class="align-items-center justify-content-center text-center"
+
+        <Column
+          field="STT"
+          header="STT"
+          class="align-items-center justify-content-center text-center max-w-4rem"
+        ></Column>
+        <Column
+          field="organization_name"
+          header="Tên đơn vị"
+          expander
+          headerClass="align-items-center justify-content-center text-center"
+        ></Column>
+      </TreeTable>
+    </div>
+    <div class="col">
+      <DataTable
+        :value="datalists"
+        show-gridlines="true"
+        :scrollable="true"
+        v-model:selection="selectedProduct"
+        dataKey="key_id"
       >
-        <template #body="data">
-          <div>
-            <Button
-              @click="EditData(data.data, data.index)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-pencil"
-              v-tooltip="'Sửa'"
-            ></Button>
-            <Button
-              @click="DelData(data.data, true)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-trash"
-              v-tooltip="'Xóa'"
-            ></Button>
+        <template #header>
+          <h3 class="module-title mt-0 ml-1 mb-2">
+            <i class="pi pi-file-pdf"></i>
+            Danh sách cấu hình mẫu báo cáo
+          </h3>
+
+          <Toolbar class="w-full custoolbar">
+            <template #start>
+              <span class="p-input-icon-left">
+                <i class="pi pi-search" />
+                <InputText
+                  type="text"
+                  spellcheck="false"
+                  v-model="options.searchTextOrg"
+                  placeholder="Tìm kiếm "
+                  v-on:keyup.enter="filterss()"
+                />
+              </span>
+            </template>
+            <template #end>
+              <Button
+                v-if="
+                  ((user.is_super &&
+                    user.organization_id == options.organization_id) ||
+                    !user.is_super) &&
+                  selectedProduct.length > 0
+                "
+                class="p-button-danger mx-2"
+                label="Xóa"
+                icon="pi pi-trash"
+                @click="DelData(selectedProduct, 'multiples')"
+              ></Button>
+              <Button
+                v-if="
+                  ((user.is_super &&
+                    user.organization_id == options.organization_id) ||
+                    !user.is_super) &&
+                  selectedProduct.length > 0
+                "
+                class="mx-2"
+                label="Sửa"
+                icon="pi pi-pencil"
+                @click="EditMultiple()"
+              ></Button>
+              <Button
+                v-if="
+                  (user.is_super &&
+                    user.organization_id == options.organization_id) ||
+                  !user.is_super
+                "
+                class="mx-2"
+                label="Thêm mới"
+                icon="pi pi-plus"
+                @click="AddNew()"
+              ></Button>
+            </template>
+          </Toolbar>
+        </template>
+        <Column
+          selectionMode="multiple"
+          class="align-items-center justify-content-center text-center max-w-3rem"
+        ></Column>
+        <Column
+          header="STT"
+          field="STT"
+          class="align-items-center justify-content-center text-center max-w-3rem"
+        >
+        </Column>
+        <Column
+          header="Tên báo cáo"
+          field="report_title"
+          class="align-items-center justify-content-center text-center"
+        >
+        </Column>
+        <Column
+          header="Mẫu báo cáo"
+          field="report_name"
+          class="align-items-center justify-content-center text-center"
+        >
+        </Column>
+        <Column
+          field="status"
+          header="Hiển thị"
+          class="align-items-center justify-content-center text-center max-w-8rem"
+        >
+          <template #body="data">
+            <Checkbox
+              :binary="data.data.status"
+              v-model="data.data.status"
+              @click="onCheckBox(data.data)"
+            />
+          </template>
+        </Column>
+
+        <Column
+          field="is_system"
+          header="Hệ thống"
+          class="align-items-center justify-content-center text-center max-w-8rem"
+        >
+          <template #body="data">
+            <div v-if="data.data.is_system == true">
+              <i
+                class="pi pi-check text-blue-400"
+                style="font-size: 1.5rem"
+              ></i>
+            </div>
+            <div v-else></div>
+          </template>
+        </Column>
+        <Column
+          field="organization_name"
+          header="Đơn vị"
+          class="align-items-center justify-content-center text-center max-w-15rem"
+        ></Column>
+        <Column
+          header="Chức năng"
+          field=""
+          class="align-items-center justify-content-center text-center max-w-10rem"
+        >
+          <template #body="data">
+            <div
+              v-if="
+                !user.is_super ||
+                (user.is_super &&
+                  user.organization_id == options.organization_id)
+              "
+            >
+              <Button
+                @click="EditData(data.data, data.index)"
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                type="button"
+                icon="pi pi-pencil"
+                v-tooltip="'Sửa'"
+              ></Button>
+              <Button
+                @click="DelData(data.data, 'single')"
+                class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                type="button"
+                icon="pi pi-trash"
+                v-tooltip="'Xóa'"
+              ></Button>
+            </div>
+          </template>
+        </Column>
+        <template #empty>
+          <div
+            class="align-items-center justify-content-center p-4 text-center m-auto"
+          >
+            <img
+              src="../../../assets/background/nodata.png"
+              height="144"
+            />
+            <h3 class="m-1">Không có dữ liệu</h3>
           </div>
         </template>
-      </Column>
-      <template #empty>
-        <div
-          class="align-items-center justify-content-center p-4 text-center m-auto"
-        >
-          <img
-            src="../../../assets/background/nodata.png"
-            height="144"
-          />
-          <h3 class="m-1">Không có dữ liệu</h3>
-        </div>
-      </template>
-    </DataTable>
+      </DataTable>
+    </div>
   </div>
-
   <Dialog
     :header="headerDialog"
     v-model:visible="DialogVisible"
@@ -492,15 +715,23 @@ onMounted(() => {
       <div class="col-1 flex align-items-center justify-content-center">
         STT
       </div>
-      <div class="col-5 flex align-items-center justify-content-center">
+      <div class="col-4 flex align-items-center justify-content-center">
         Tên báo cáo <span class="redsao">(*)</span>
       </div>
 
       <div class="col-4 flex align-items-center justify-content-center">
         Mẫu báo cáo<span class="redsao">(*)</span>
       </div>
-      <div class="col-2 flex align-items-center justify-content-center">
-        Trạng thái
+      <div class="col-3 flex align-items-center justify-content-center">
+        <div class="col-6 flex align-items-center justify-content-center">
+          Trạng thái
+        </div>
+        <div
+          class="col-6 flex align-items-center justify-content-center"
+          v-if="user.is_super"
+        >
+          Hệ thống
+        </div>
       </div>
     </div>
     <div
@@ -515,7 +746,7 @@ onMounted(() => {
           v-model="item.report_title"
           spellcheck="false"
           type="text"
-          class="col-5"
+          class="col-4"
           :class="{
             'p-invalid': !item.report_title && submitted,
           }"
@@ -537,8 +768,16 @@ onMounted(() => {
           />
         </div>
 
-        <div class="col-2 flex align-items-center justify-content-center">
-          <InputSwitch v-model="item.status" />
+        <div class="col-3 flex align-items-center justify-content-center">
+          <div class="col-6 flex align-items-center justify-content-center">
+            <InputSwitch v-model="item.status" />
+          </div>
+          <div
+            class="col-6 flex align-items-center justify-content-center"
+            v-if="user.is_super"
+          >
+            <InputSwitch v-model="item.is_system" />
+          </div>
         </div>
       </div>
       <div class="col-12 flex p-0 align-items-center justify-content-center">
@@ -551,6 +790,18 @@ onMounted(() => {
             }"
           >
             Tên báo cáo không được để trống!</small
+          >
+          <small
+            v-if="
+              item.report_title &&
+              item.report_title.toString().length > 250 &&
+              submitted
+            "
+            :class="{
+              'p-text-invalid': !item.report_title && submitted,
+            }"
+          >
+            Tên báo cáo không quá 250 kí tự!</small
           >
         </div>
         <div class="col-4">
@@ -584,8 +835,5 @@ onMounted(() => {
 <style lang="scss" scoped>
 .p-text-invalid {
   color: red;
-}
-.w-custom-screen {
-  width: 40vw !important;
 }
 </style>
