@@ -170,3 +170,41 @@ export const removeAccents = (str) => {
               .replace(/[\u0300-\u036f]/g, '')
               .replace(/đ/g, 'd').replace(/Đ/g, 'D');
   }
+
+  
+export const autoFillDate = (model,prop_name) => {
+    var ip_val = document.getElementById(prop_name).value;
+    var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth() + 1;
+        var yyyy = today.getFullYear();
+        if(dd < 10) dd = '0' + dd;
+        if(mm < 10) mm = '0' + mm;
+    if(ip_val.length === 2 && ip_val > 0){
+        model[prop_name] = ip_val + '/' + mm + '/' + yyyy;
+        ip_val = "";
+        if(!moment(model[prop_name], "DD/MM/YYYY", true).isValid()){
+          model[prop_name] = dd + '/' + mm + '/' + yyyy;
+        }
+    }
+    else if(ip_val.length === 4){
+      let d = ip_val.substring(0, 2);
+      let m = ip_val.substring(2, 4)
+        model[prop_name] = d + '/' + m + '/' + yyyy;
+        ip_val = "";
+        if(!moment(model[prop_name], "DD/MM/YYYY", true).isValid()){
+          model[prop_name] = dd + '/' + mm + '/' + yyyy;
+        }
+    }
+    else if(ip_val.length === 6){
+      let d = ip_val.substring(0, 2);
+      let m = ip_val.substring(2, 4)
+      let y = ip_val.substring(4, 6)
+        model[prop_name] =  d + '/' + m + '/' + '20' + y;
+        ip_val = "";
+        if(!moment(model[prop_name], "DD/MM/YYYY", true).isValid()){
+          model[prop_name] = dd + '/' + mm + '/' + yyyy;
+        }
+    }
+   
+}

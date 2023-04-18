@@ -26,6 +26,14 @@ const dictionarys = ref([]);
 const task = ref({});
 const tasks = ref([]);
 
+//Dictionary
+const typestatus = ref([
+  { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
+  { value: 1, title: "Đang làm việc", bg_color: "#5fc57b", text_color: "#fff" },
+  { value: 2, title: "Đã làm việc", bg_color: "red", text_color: "#fff" },
+  { value: 3, title: "Đã làm việc", bg_color: "red", text_color: "#fff" },
+]);
+
 //init
 const initDictionary2 = () => {
   dictionarys.value = [];
@@ -185,9 +193,9 @@ onMounted(() => {
 </script>
 <template>
   <div
-    class="d-lang-table"
+    class="d-lang-table my-3"
     :style="{
-      height: 'calc(100vh - 220px)',
+      height: 'calc(100vh - 182px) !important',
       overflowY: 'auto',
     }"
   >
@@ -195,47 +203,54 @@ onMounted(() => {
       <template #marker="slotProps">
         <span
           class="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
+          :style="{
+            backgroundColor: slotProps.item.bg_color,
+          }"
         >
-          <i class="pi pi-check"></i>
+          <i class="pi pi-briefcase"></i>
         </span>
       </template>
       <template #content="slotProps">
-        <Card>
+        <Card class="my-5">
           <template #title>
-            <Button
-              :label="slotProps.item.status_name"
-              :style="{
-                border: slotProps.item.bg_color,
-                backgroundColor: slotProps.item.bg_color,
-                color: slotProps.item.text_color,
-              }"
-            />
+            <div class="w-full text-left">
+              <Button
+                :label="slotProps.item.status_name"
+                class="p-button-outlined"
+                :style="{
+                  borderColor: slotProps.item.bg_color,
+                  // backgroundColor: slotProps.data.bg_color,
+                  color: slotProps.item.bg_color,
+                  borderRadius: '15px',
+                  padding: '0.3rem 0.75rem !important',
+                }"
+              />
+            </div>
           </template>
           <template #subtitle>
-            {{ slotProps.item.sign_date }}
+            <div class="w-full text-left">
+              {{ slotProps.item.sign_date }}
+            </div>
           </template>
           <template #content>
-            <div>Chức danh: {{ slotProps.item.work_position_name }}</div>
-            <div>Chức vụ: {{ slotProps.item.position_name }}</div>
-            <div>Phòng ban: {{ slotProps.item.department_name }}</div>
-            <div>
-              Công việc chuyên môn: {{ slotProps.item.professional_work_name }}
+            <div class="w-full text-left">
+              <div class="mb-2">
+                Chức danh: <b>{{ slotProps.item.work_position_name }}</b>
+              </div>
+              <div class="mb-2">
+                Chức vụ: <b>{{ slotProps.item.position_name }}</b>
+              </div>
+              <div class="mb-2">
+                Phòng ban: <b>{{ slotProps.item.department_name }}</b>
+              </div>
+              <div class="mb-2">
+                Công việc chuyên môn:
+                <b>{{ slotProps.item.professional_work_name }}</b>
+              </div>
+              <div>
+                Loại hợp đồng: <b>{{ slotProps.item.type_contract_name }}</b>
+              </div>
             </div>
-            <div>Loại hợp đồng: {{ slotProps.item.contract_name }}</div>
-            <!-- <img
-              v-if="slotProps.item.image"
-              :src="`/images/product/${slotProps.item.image}`"
-              :alt="slotProps.item.name"
-              width="200"
-              class="shadow-1"
-            />
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Inventore sed consequuntur error repudiandae numquam deserunt
-              quisquam repellat libero asperiores earum nam nobis, culpa ratione
-              quam perferendis esse, cupiditate neque quas!
-            </p> -->
-            <Button label="Read more" text></Button>
           </template>
         </Card>
       </template>

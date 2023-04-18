@@ -520,5 +520,95 @@ namespace API.Controllers.HRM.Category
             }
 
         }
+
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_t_hrm_ca_allowance_wage([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            IEnumerable<Claim> claims = identity.Claims;
+
+            try
+            {
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        var int_id = int.Parse(trangthai.IntID.ToString());
+                        var das = db.hrm_ca_allowance_wage.Where(a => (a.allowance_wage_id == int_id)).FirstOrDefault<hrm_ca_allowance_wage>();
+                        if (das != null)
+                        {
+                            das.modified_by = uid;
+                            das.modified_date = DateTime.Now;
+                            das.modified_ip = ip;
+                            das.modified_token_id = tid;
+                            das.allowance_wage_extend = !trangthai.BitTrangthai;
+
+
+                            #region add hrm_log
+                            if (helper.wlog)
+                            {
+
+                                hrm_log log = new hrm_log();
+                                log.title = "Sửa phụ cấp " + das.allowance_wage_name;
+
+                                log.log_module = "ca_allowance_wage";
+                                log.log_type = 1;
+                                log.id_key = das.allowance_wage_id.ToString();
+                                log.created_date = DateTime.Now;
+                                log.created_by = uid;
+                                log.created_token_id = tid;
+                                log.created_ip = ip;
+                                db.hrm_log.Add(log);
+                                db.SaveChanges();
+
+
+                            }
+                            #endregion
+                            await db.SaveChangesAsync();
+                        }
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_allowance_wage/Update_Trangthaica_allowance_wage", ip, tid, "Lỗi khi cập nhật trạng thái ca_allowance_wages", 0, "hrm_ca_allowance_wage");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_allowance_wage/Update_Trangthaica_allowance_wage", ip, tid, "Lỗi khi cập nhật trạng thái ca_allowance_wages", 0, "hrm_ca_allowance_wage");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+
+        }
     }
 }
