@@ -752,6 +752,7 @@ onMounted(() => {
                       <label>Chuyên ngành học</label>
                       <Dropdown
                         :showClear="true"
+                        :filter="true"
                         :options="props.dictionarys[7]"
                         optionLabel="specialization_name"
                         optionValue="specialization_id"
@@ -1065,8 +1066,10 @@ onMounted(() => {
                         <Calendar
                           v-model="slotProps.data.identification_date_issue"
                           :showIcon="false"
+                          view="year"
+                          dateFormat="yy"
                           class="ip36"
-                          placeholder="dd/mm/yyyy"
+                          placeholder="yyyy"
                         />
                       </template>
                     </Column>
@@ -1254,6 +1257,42 @@ onMounted(() => {
                           type="text"
                           class="ip36"
                         />
+                      </template>
+                    </Column>
+                    <Column
+                      field="note"
+                      header="Cùng cơ quan"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <div class="form-group m-0">
+                          <div
+                            class="field-checkbox flex justify-content-center"
+                            style="height: 100%"
+                          >
+                            <InputSwitch v-model="slotProps.data.is_company" />
+                          </div>
+                        </div>
+                      </template>
+                    </Column>
+                    <Column
+                      field="note"
+                      header="Đã mất"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <div class="form-group m-0">
+                          <div
+                            class="field-checkbox flex justify-content-center"
+                            style="height: 100%"
+                          >
+                            <InputSwitch v-model="slotProps.data.is_die" />
+                          </div>
+                        </div>
                       </template>
                     </Column>
                     <template #empty>
@@ -2334,7 +2373,15 @@ onMounted(() => {
               </template>
               <div class="col-12 md:col-12 p-0">
                 <div class="row">
-                  <div class="col-6 md:col-6">
+                  <div class="col-6 md:col-6 format-center">
+                    <div class="form-group m-0">
+                      <label
+                        >Thời gian làm việc trong khối nhà nước trước khi vào
+                        công ty:
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Năm</label>
                       <InputNumber
@@ -2347,7 +2394,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Tháng</label>
                       <InputNumber

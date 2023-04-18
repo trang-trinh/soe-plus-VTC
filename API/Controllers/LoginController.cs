@@ -214,12 +214,12 @@ namespace Controllers
                         if (json != null)
                         {
                             settings config = JsonConvert.DeserializeObject<settings>(json);
-                            CookieHeaderValue cookiedoc = new CookieHeaderValue("jwt_doconline", obj.data);
+                            CookieHeaderValue cookiedoc = new CookieHeaderValue("doconline", obj.u);
                             cookiedoc.Expires = DateTimeOffset.Now.AddMinutes(helper.timeout);
                             cookiedoc.Domain = config.docOnlineUrl;
                             cookiedoc.Path = "/";
-                            cookiedoc.HttpOnly = true;
-                            //cookiedoc.Secure = true;
+                            cookiedoc.HttpOnly = false;
+                            cookiedoc.Secure = false;
                             respMessage.Headers.AddCookies(new CookieHeaderValue[] { cookiedoc });
                         }
                             

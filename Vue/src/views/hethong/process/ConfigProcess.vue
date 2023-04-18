@@ -825,6 +825,7 @@ const initProcedure = (rf) => {
         data.forEach((element, i) => {
           element.STT = options.value.pageno * options.value.pagesize + i + 1;
         });
+         
         listdatas.value = data;
 
         if (listdatas.value.length > 0) {
@@ -1170,6 +1171,7 @@ const loadOrganization = (value) => {
     });
 };
 const datalistsDSave = ref();
+const expandedKeys = ref();
 
 const expandListD = (data) => {
   for (let node of data) {
@@ -1254,8 +1256,7 @@ const renderTree = (data, id, name, title) => {
   data
     .filter(
       (x) =>
-        x.parent_id == null &&
-        arrr.find((xs) => xs.module_id == x.module_id) != null
+        x.parent_id == null  
     )
     .forEach((m, i) => {
       m.IsOrder = i + 1;
@@ -1391,6 +1392,7 @@ emitter.on("emitData", (obj) => {
             >
               <template #body="data">
                 <div class="w-full">
+            
                   <TreeSelect
                     panelClass="d-design-dropdown  d-tree-input d-tree-border"
                     class="w-full p-0 sel-placeholder d-tree-input d-tree-border"
@@ -1716,6 +1718,7 @@ emitter.on("emitData", (obj) => {
             Modules <span class="redsao">(*)</span>
           </div>
           <div class="col-9 p-0">
+          
             <TreeSelect
               panelClass="d-design-dropdown  d-tree-input"
               class="w-full p-0 sel-placeholder d-tree-input"

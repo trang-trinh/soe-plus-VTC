@@ -109,13 +109,15 @@ namespace API.Controllers.HRM.Declare
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Paycheck", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Paycheck", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Paycheck", fileName);
+                            // }
+                              newFileName = Path.Combine(root + "/" + dvid + "/Paycheck",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Paycheck", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -309,13 +311,15 @@ namespace API.Controllers.HRM.Declare
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Paycheck", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Paycheck", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Paycheck", fileName);
+                            // }
+                              newFileName = Path.Combine(root + "/" + dvid + "/Paycheck",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Paycheck", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {

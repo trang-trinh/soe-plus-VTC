@@ -4,6 +4,8 @@ import { useToast } from "vue-toastification";
 import diloginsurance from "../insurance/component/diloginsurance.vue";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
+import VueDatePicker from '@vuepic/vue-datepicker';
+
 // import Datepicker from 'vuejs3-datepicker';
 
 import moment from "moment";
@@ -114,7 +116,7 @@ const loadTudien = () => {
 };
 //Lấy dữ liệu bank
 const initData = (rf) => {
-  if(options.value.date.getFullYear() == 1900) options.value.date = new Date(dt.getFullYear(), dt.getMonth()) ;
+  if(isEmpty(options.value.date)) options.value.date = new Date(dt.getFullYear(), dt.getMonth()) ;
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -580,7 +582,7 @@ const searchStamp = (event) => {
     }
   }
 };
-const refreshStamp = () => {
+const onRefresh = () => {
    options.value = {
       IsNext: true,
       sort: "created_date",
@@ -777,7 +779,11 @@ const yearPickerFilter = ref();
 const onFilterMonth = (type)=>{
   if(type == 1)
  {
-  options.value.date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
+  if (monthPickerFilter.value == null){
+    options.value.date = null;
+  } 
+  else
+    options.value.date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
   initData(true);
  } 
  else{
@@ -801,7 +807,20 @@ const onCleanFilterMonth = (type) => {
  }
 };
 const changeView = (view) => {
-  options.value.view = view;
+  options.value = {
+      IsNext: true,
+      sort: "created_date",
+      SearchText: "",
+      PageNo: 0,
+      PageSize: 20,
+      totalRecords: null,
+      date : new Date(dt.getFullYear(), dt.getMonth()),
+      view:view,
+      start_date:  new Date(dt.getFullYear(), 0),
+      end_date: new Date(dt.getFullYear(), dt.getMonth()),
+    };
+  monthPickerFilter.value = null;
+  yearPickerFilter.value = null;
   if(view == 1) initData();
   else if(view == 2) loadDataTree();
 };
@@ -810,8 +829,8 @@ const isViewTree = ref(false);
 const amount_paid_final = ref();
 const payment_final = ref();
 const loadDataTree = ()=>{
-  if(options.value.start_date.getFullYear() == 1900 ) options.value.start_date = new Date(dt.getFullYear(), 0)
-  if(options.value.end_date.getFullYear() == 1900 ) options.value.end_date = new Date(dt.getFullYear(), dt.getMonth())
+  if(isNaN(options.value.start_date)|| options.value.start_date.getFullYear()== 1900) options.value.start_date = new Date(dt.getFullYear(), 0)
+  if(isNaN(options.value.end_date)|| options.value.end_date.getFullYear()== 1900) options.value.end_date = new Date(dt.getFullYear(), dt.getMonth())
   payment_final.value = 0;
   amount_paid_final.value = 0;
   listDate.value = dateRange(options.value.start_date, options.value.end_date)
@@ -892,7 +911,7 @@ const exportExcel = () => {
     " - " +
     moment(new Date(options.value.end_date)).format("MM/YYYY").toString();
   
-  let name = "BC_baohiem_";
+  let name = "Danh sach dong bao hiem thang "+ moment(new Date()).format("MM-YYYY").toString();
   let id = "tablequizz";
   var htmltable1 = "";
   // htmltable1 = renderExcel_Ketqua();
@@ -908,11 +927,11 @@ const exportExcel = () => {
     tab_text + "</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>";
   tab_text =
     tab_text +
-    "<style>.item-date{min-width:100px !important}.bc-content th,td,table,tr{padding:5px;font-size:13pt}table{margin:20px auto;border-collapse: collapse;}</style>";
+    "<style>.item-date{min-width:100px !important} th,td,table,tr{padding:5px;font-size:13pt} .text-right{text-align:right} .text-left{text-align:left}table{margin:20px auto;border-collapse: collapse;}</style>";
   tab_text =
     tab_text +
     '<style>.cstd{font-family: Times New Roman;border:none!important; font-size: 17px; font-weight: 700; text-align: center; vertical-align: center;color:#1769aa}</style><table><td colspan="' +
-    (listDate.value.length + 3) +
+    '15' +
     '" class="cstd" > DANH SÁCH ĐÓNG BẢO HIỂM ' +
     text_string +
     "</td > ";
@@ -922,7 +941,7 @@ const exportExcel = () => {
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
   tab_text =
     tab_text +
-    "<style>th,table,tr{font-family: Times New Roman; font-size: 12px; vertical-align: middle; text-align: center;}</style><table border='1'>";
+    "<style>th,table,tr{font-family: Times New Roman; font-size: 12px; vertical-align: middle;}</style><table border='1'>";
   var exportTable = document
     .getElementById("table-bc")
     .cloneNode(true).innerHTML;
@@ -935,7 +954,7 @@ const exportExcel = () => {
   var ua = window.navigator.userAgent;
   var msie = ua.indexOf("MSIE ");
 
-  var fileName = name + "_" + parseInt(Math.random() * 1000) + ".xls";
+  var fileName = name + " " + parseInt(Math.random() * 100) + ".xls";
   if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
     if (window.navigator.msSaveBlob) {
       var blob = new Blob([tab_text], {
@@ -978,7 +997,10 @@ const itemButs = ref([
     },
   },
 ]);
-
+function isNotValidDate(d) {
+  // return d instanceof Date && !isNaN(d) ;
+  return d instanceof Date && (isNaN(d) || d.getFullYear() == 1900 || isEmpty(d))
+}
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
@@ -1100,7 +1122,7 @@ onMounted(() => {
 
           <template #end>
             
-           <Datepicker
+           <VueDatePicker
            v-if="options.view == 2"
               @closed="onFilterMonth(2,true)"
               class="mr-2 datepicker"
@@ -1121,7 +1143,7 @@ onMounted(() => {
               <template #input-icon>
                 <Button icon="pi pi-calendar" class="p-button-text" />
               </template>
-            </Datepicker>
+            </VueDatePicker>
             <Datepicker
             v-if="options.view == 1"
               @closed="onFilterMonth(1)"
@@ -1151,7 +1173,7 @@ onMounted(() => {
               class="mr-2"
             />  -->
             <Button
-              @click="refreshStamp"
+              @click="onRefresh"
               class="mr-2 p-button-outlined p-button-secondary"
               icon="pi pi-refresh"
               v-tooltip="'Tải lại'"
@@ -1253,24 +1275,24 @@ onMounted(() => {
       <Column
         field="organization_name"
         header="Phòng ban"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
+        headerStyle="text-align:center;max-width:150px;height:50px"
+        bodyStyle="text-align:center;max-width:150px;"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
       <Column
-        field="organization_name"
+        field="position_name"
         header="Chức vụ"
         headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        bodyStyle="text-align:center;max-width:150px;;"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
       <Column
         field="recruitment_date"
         header="Ngày vào"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        headerStyle="text-align:center;max-width:100px;height:50px"
+        bodyStyle="text-align:center;max-width:100px;"
         class="align-items-center justify-content-center text-center"
       >
       <template #body="{ data }">
@@ -1281,7 +1303,7 @@ onMounted(() => {
         field="insurance_id"
         header="Số sổ"
         headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
+        bodyStyle="text-align:center;max-width:100px;"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
@@ -1289,7 +1311,7 @@ onMounted(() => {
         field="insurance_code"
         header="Số thẻ"
         headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
+        bodyStyle="text-align:center;max-width:100px;"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
@@ -1297,7 +1319,7 @@ onMounted(() => {
         field="batdaudong"
         header="Bắt đầu đóng"
         headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
+        bodyStyle="text-align:center;max-width:120px;"
         class="align-items-center justify-content-center text-center"
       >
         <template #body="{ data }">
@@ -1308,7 +1330,7 @@ onMounted(() => {
         field="mucdong"
         header="Mức đóng"
         headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
-        bodyStyle="text-align:center;max-width:120px;max-height:60px;justify-content:end"
+        bodyStyle="text-align:center;max-width:120px;justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.mucdong, 0, ".", ".") }}
@@ -1318,7 +1340,7 @@ onMounted(() => {
         field="congtydong"
         header="Công ty đóng"
         headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px; justify-content:end"
+        bodyStyle="text-align:center;max-width:120px; justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.congtydong, 0, ".", ".") }}
@@ -1328,7 +1350,7 @@ onMounted(() => {
         field="nhanviendong"
         header="Người lao động đóng"
         headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
-        bodyStyle="text-align:right;max-width:120px;max-height:60px;justify-content:end"
+        bodyStyle="text-align:right;max-width:120px;justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.nhanviendong, 0, ".", ".") }}
@@ -1379,13 +1401,13 @@ onMounted(() => {
       <table class="w-full" style="overflow-y: scroll" id="table-bc">
       <thead>
       <tr style="background-color: #f8f9fa; z-index: 10 !important" class="top-0 sticky">
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 50px;max-width: 50px;" class="m-checkbox-table top-0 sticky left-0">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 50px;max-width: 50px;" class="m-checkbox-table top-0 sticky left-0">
           STT
         </th>
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 100px;max-width: 100px;" class="m-checkbox-table top-0 sticky left-50">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 100px;max-width: 100px;" class="m-checkbox-table top-0 sticky left-50">
           Mã NV
         </th>
-        <th rowspan="2" style="padding: 0.5rem;height: 50px;background-color: #f8f9fa;min-width: 150px;max-width: 150px;" class="m-checkbox-table top-0 sticky left-150">
+        <th rowspan="2" style="padding: 0.5rem;background-color: #f8f9fa;min-width: 150px;max-width: 150px;" class="m-checkbox-table top-0 sticky left-150">
           Họ và tên
         </th>
         <th  v-for="(item,index) in listDate" :key="index" colspan="2" class="text-center py-2">{{ item.label }}</th>
@@ -1406,18 +1428,18 @@ onMounted(() => {
     </thead>
     <tbody>
         <tr style="vertical-align: top" v-for="(item, index) in datatrees" :key="index">
-          <td  class="sticky left-0 p-2 bg-white"
+          <td  class="sticky left-0 p-2 bg-white text-left"
             >
             <div class="format-center w-full h-full">
               {{ index + 1 }}
             </div>
           </td>
-          <td class="sticky p-2 left-50 bg-white" >
+          <td class="sticky p-2 left-50 bg-white text-left" >
             <div class="format-center w-full h-full">
               {{ item.profile_id }}
             </div>
           </td>
-          <td class="sticky p-2 left-150 bg-white">
+          <td class="sticky p-2 left-150 bg-white text-left">
             <div class="format-center w-full h-full">
               {{ item.profile_user_name }}
             </div>
@@ -1447,17 +1469,17 @@ onMounted(() => {
               Tổng cộng
             </td>
             <template v-for="(item_month,index2) in listDate" :key="index2">
-            <td class="text-right item-date bg-white" style="padding: 0.5rem">
+            <td class="text-right item-date bg-white font-bold" style="padding: 0.5rem">
               {{item_month.payment_all!=0 ? formatNumber( item_month.payment_all, 0, ".", "."):'' }}
             </td>
-            <td class="text-right item-date bg-white" style="padding: 0.5rem" >
+            <td class="text-right item-date bg-white font-bold" style="padding: 0.5rem" >
               {{item_month.amount_paid_all!=0 ? formatNumber( item_month.amount_paid_all, 0, ".", "."):'' }}
             </td>
           </template>
-            <td class="text-right item-date bg-white" style="padding: 0.5rem">
+            <td class="text-right item-date bg-white font-bold" style="padding: 0.5rem">
               {{payment_final!=0 ? formatNumber( payment_final, 0, ".", "."):'' }}
             </td>
-            <td class="text-right item-date bg-white" style="padding: 0.5rem" >
+            <td class="text-right item-date bg-white font-bold" style="padding: 0.5rem" >
               {{amount_paid_final!=0 ? formatNumber(amount_paid_final, 0, ".", "."):'' }}
             </td>
           </tr>

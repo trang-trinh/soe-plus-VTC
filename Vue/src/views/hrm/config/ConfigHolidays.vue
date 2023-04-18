@@ -674,7 +674,7 @@ onMounted(() => {
                 class="align-items-center justify-content-center text-center"
                 headerStyle="text-align:center;max-width:70px;height:50px"
                 bodyStyle="text-align:center;max-width:70px"
-                selectionMode="multiple"
+                 selectionMode="multiple"  v-if="store.getters.user.is_super==true"
               >
               </Column>
 
@@ -749,10 +749,10 @@ onMounted(() => {
   background-color:#2196F3 !important ;
   color: white !important;
 }
-.check-scroll {
+/* .check-scroll {
   max-height: 40rem;
   overflow: scroll;
-}
+} */
 
 @media only screen and (max-height: 768px) {
   .style-vb-1 {
@@ -768,10 +768,10 @@ onMounted(() => {
     padding: 8px !important;
   }
 
-  .check-scroll {
+  /* .check-scroll {
     max-height: 25rem;
     overflow: scroll;
-  }
+  } */
 }
 
 @media only screen and (max-height: 678px) {
@@ -779,9 +779,9 @@ onMounted(() => {
     display: none;
   }
 
-  .check-scroll {
+  /* .check-scroll {
     max-height: 40rem;
     overflow: scroll;
-  }
+  } */
 }
 </style>

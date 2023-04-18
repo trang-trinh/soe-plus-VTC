@@ -691,21 +691,9 @@ const exportData = (method) => {
           { par: "user_id", va: store.state.user.user_id },
           { par: "search", va: options.value.SearchText },
           {
-            par: "rec_position_id",
-            va: options.value.rec_position_id
-              ? options.value.rec_position_id.toString()
-              : null,
-          },
-          {
-            par: "user_verify",
-            va: options.value.user_verify_list
-              ? options.value.user_verify_list.toString()
-              : null,
-          },
-          {
-            par: "user_follows",
-            va: options.value.user_follows_list
-              ? options.value.user_follows_list.toString()
+            par: "work_position_id",
+            va: options.value.work_position_id
+              ? options.value.work_position_id.toString()
               : null,
           },
           {
@@ -715,13 +703,14 @@ const exportData = (method) => {
               : null,
           },
           {
-            par: "work_position_id",
-            va: options.value.work_position_id
-              ? options.value.work_position_id.toString()
+            par: "position_id",
+            va: options.value.position_id
+              ? options.value.position_id.toString()
               : null,
           },
+          
           {
-            par: "status ",
+            par: "status",
             va: options.value.status_filter
               ? options.value.status_filter.toString()
               : null,
@@ -1416,7 +1405,7 @@ onMounted(() => {
                                 :filter="true"
                                 :showClear="true"
                                 :editable="false"
-                                v-model="options.rec_position_id"
+                                v-model="options.position_id"
                                 optionLabel="name"
                                 optionValue="code"
                                 placeholder="Chọn chức vụ"
@@ -1679,13 +1668,13 @@ onMounted(() => {
             responsiveLayout="scroll"
             v-model:selection="dataSelected"
             :row-hover="true"
-            selectionMode="multiple"
+             selectionMode="multiple"  v-if="store.getters.user.is_super==true"
           >
             <Column
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
-              selectionMode="multiple"
+               selectionMode="multiple"  v-if="store.getters.user.is_super==true"
             >
             </Column>
             <Column

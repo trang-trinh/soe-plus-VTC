@@ -528,12 +528,12 @@ const router = createRouter({
       component: Error,
     },
     {
-      path: "/sys/sys_approved_groups",
+      path: "/system/sys_approved_groups",
       name: "sys_sys_approved_groups",
       component: ConfigAprrovedGroups,
     },
     {
-      path: "/sys/sys_process",
+      path: "/system/sys_process",
       name: "sys_sys_process",
       component: ConfigProcess,
     },

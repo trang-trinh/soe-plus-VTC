@@ -76,7 +76,12 @@ namespace API.Controllers.HRM.Reward
                         }
                         fdhrm_Reward = provider.FormData.GetValues("hrm_reward").SingleOrDefault();
                         hrm_reward hrm_Reward = JsonConvert.DeserializeObject<hrm_reward>(fdhrm_Reward);
-
+                        var intw = int.Parse(dvid);
+                        var checkBarcode = db.hrm_reward.AsNoTracking().Where(a => a.reward_number == hrm_Reward.reward_number && a.organization_id == intw).FirstOrDefault();
+                        if (checkBarcode != null)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Số quyết định đã tồn tại! Vui lòng nhập lại", err = "1" });
+                        }
 
                         hrm_Reward.organization_id =  int.Parse(dvid);
                         hrm_Reward.created_by = uid;
@@ -114,13 +119,15 @@ namespace API.Controllers.HRM.Reward
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Reward", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Reward", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Reward", fileName);
+                            // }
+                              newFileName = Path.Combine(root + "/" + dvid + "/Reward",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Reward", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -267,7 +274,12 @@ namespace API.Controllers.HRM.Reward
                         hrm_reward hrm_Reward = JsonConvert.DeserializeObject<hrm_reward>(fdhrm_Reward);
 
 
-
+                        var checkBarcode = db.hrm_reward.AsNoTracking().Where(a => a.reward_number == hrm_Reward.reward_number && a.reward_id
+                     != hrm_Reward.reward_id && hrm_Reward.organization_id == intw).FirstOrDefault();
+                        if (checkBarcode != null)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Số quyết định đã tồn tại! Vui lòng nhập lại", err = "1" });
+                        }
                         hrm_Reward.modified_by = uid;
                         hrm_Reward.modified_date = DateTime.Now;
                         hrm_Reward.modified_ip = ip;
@@ -325,13 +337,15 @@ namespace API.Controllers.HRM.Reward
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Reward", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Reward", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Reward", fileName);
+                            // }
+                                  newFileName = Path.Combine(root + "/" + dvid + "/Reward",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Reward", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {

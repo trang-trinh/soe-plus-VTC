@@ -3,7 +3,7 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { encr, checkURL } from "../../../../util/function.js";
+import { encr, autoFillDate } from "../../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
 
@@ -987,7 +987,8 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
-                id="basic_purchase_date"
+                @blur="autoFillDate(training_emps,'start_date')"
+              id="start_date"
                 v-model="training_emps.start_date"
                 autocomplete="on" :showOnFocus="false"
                 :showIcon="true"
@@ -1003,7 +1004,8 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
-                id="basic_purchase_date"
+                @blur="autoFillDate(training_emps,'end_date')"
+              id="end_date"
                 v-model="training_emps.end_date"
                 autocomplete="on" :showOnFocus="false"
                 :minDate="
@@ -1067,7 +1069,8 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar 
                 class="w-full" :showOnFocus="false"
-                id="basic_purchase_date"
+                @blur="autoFillDate(training_emps,'registration_deadline')"
+              id="registration_deadline"
                 v-model="training_emps.registration_deadline"
                 :maxDate="
                   training_emps.start_date
@@ -1374,7 +1377,22 @@ onMounted(() => {
                 :rowHover="true"
                 :showGridlines="true"
                 scrollDirection="both"
-              >
+              >  <Column
+                  header=""
+                  headerStyle="text-align:center;width:50px"
+                  bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <a
+                      @click="delRow_Item(slotProps.data, 1)"
+                      class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa học viên'"
+                    >
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
                 <Column
                   field="card_number"
                   header="STT"
@@ -1610,22 +1628,7 @@ onMounted(() => {
                     />
                   </template>
                 </Column>
-                <Column
-                  header=""
-                  headerStyle="text-align:center;width:50px"
-                  bodyStyle="text-align:center;width:50px"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <a
-                      @click="delRow_Item(slotProps.data, 1)"
-                      class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa học viên'"
-                    >
-                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                    </a>
-                  </template>
-                </Column>
+              
                 <template #empty> </template>
               </DataTable>
             </div>
@@ -1674,7 +1677,22 @@ onMounted(() => {
                 :rowHover="true"
                 :showGridlines="true"
                 scrollDirection="both"
-              >
+              > <Column
+                  header=""
+                  headerStyle="text-align:center;width:50px"
+                  bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <a
+                      @click="delRow_Item(slotProps.data, 2)"
+                      class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa lịch học'"
+                    >
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
                 <Column
                   field="card_number"
                   header="STT"
@@ -1974,22 +1992,7 @@ onMounted(() => {
                     />
                   </template>
                 </Column>
-                <Column
-                  header=""
-                  headerStyle="text-align:center;width:50px"
-                  bodyStyle="text-align:center;width:50px"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <a
-                      @click="delRow_Item(slotProps.data, 2)"
-                      class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa lịch học'"
-                    >
-                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                    </a>
-                  </template>
-                </Column>
+               
               </DataTable>
             </div>
           </div>

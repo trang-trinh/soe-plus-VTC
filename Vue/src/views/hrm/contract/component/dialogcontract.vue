@@ -124,10 +124,10 @@ const saveModel = (is_continue) => {
     obj.profile_id = obj.profile.profile_id;
   }
   if (obj.sign_user != null) {
-    obj.sign_user_id = obj.sign_user.user_id;
+    obj.sign_user_id = obj.sign_user.profile_id;
   }
   if (obj.manager_user != null) {
-    obj.manager_user_id = obj.manager_user.user_id;
+    obj.manager_user_id = obj.manager_user.profile_id;
   }
   if (obj.start_date != null) {
     obj.start_date = moment(obj.start_date).format("YYYY-MM-DDTHH:mm:ssZZ");
@@ -846,14 +846,16 @@ onMounted(() => {
                           </span>
                           <span
                             v-if="
+                              dictionarys[11] != null &&
                               dictionarys[11].findIndex(
-                                (x) => x.professional_work_id === item
+                                (x) => x.professional_work_id === parseInt(item)
                               ) !== -1
                             "
                           >
                             {{
                               dictionarys[11].find(
-                                (x) => x["professional_work_id"] == item
+                                (x) =>
+                                  x["professional_work_id"] === parseInt(item)
                               ).professional_work_name
                             }}
                           </span>

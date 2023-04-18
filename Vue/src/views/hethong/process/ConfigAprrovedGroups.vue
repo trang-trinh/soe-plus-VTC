@@ -1255,8 +1255,7 @@ const renderTree = (data, id, name, title) => {
   data
     .filter(
       (x) =>
-        x.parent_id == null &&
-        arrr.find((xs) => xs.module_id == x.module_id) != null
+        x.parent_id == null  
     )
     .forEach((m, i) => {
       m.IsOrder = i + 1;
@@ -1639,6 +1638,7 @@ onMounted(() => {
           >
             <template #body="data">
               <div class="w-full">
+               
                 <TreeSelect
                   panelClass="d-design-dropdown  d-tree-input d-tree-border"
                   class="w-full p-0 sel-placeholder d-tree-input d-tree-border"
