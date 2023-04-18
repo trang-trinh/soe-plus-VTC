@@ -161,7 +161,6 @@ const loadData = () => {
     },
   });
   if (user.is_super) loadDonvi();
-
   axios
     .post(
       baseURL + "/api/DictionaryProc/getData",
@@ -171,9 +170,10 @@ const loadData = () => {
             proc: "sys_organization_report_list",
             par: [
               { par: "user_id", va: user.user_id },
-              { par: "findOrg", va: null },
+              { par: "findOrg", va: options.value.filtersOrg },
               { par: "pageno", va: options.value.pageNo },
               { par: "pagesize", va: options.value.pageSize },
+              { par: "search", va: options.value.searchText },
             ],
           }),
           SecretKey,
@@ -184,11 +184,13 @@ const loadData = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
+      let data2 = JSON.parse(response.data.data)[1];
       data.forEach((x, i) => {
-        x.STT = i + 1;
+        x.STT = options.value.pageNo * options.value.pageSize + (i + 1);
       });
       datalists.value = data;
       swal.close();
+      options.value.totalRecords = data2[0].totalRecords;
     })
     .catch((error) => {
       if (error && error.status === 401) {
@@ -225,6 +227,8 @@ const options = ref({
   pageSize: 20,
   organization_id: user.organization_id,
   searchTextOrg: "",
+  filtersOrg: null,
+  totalRecords: null,
 });
 const filterss = () => {
   if (options.value.searchTextOrg != null) {
@@ -418,57 +422,64 @@ const onCheckBox = (e) => {
     IntTrangthai: 1,
     BitTrangthai: e.status,
   };
-  console.log(store.state.user.is_super);
-  if (
-    !user.is_super ||
-    (user.is_super && user.organization_id == e.organization_id)
-  ) {
-    axios
-      .put(
-        baseURL + "/api/sys_organization_report/UpdateStatusReportForm",
-        data,
-        config,
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Cập nhật trạng thái thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Thông báo",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
+  axios
+    .put(
+      baseURL + "/api/sys_organization_report/UpdateStatusReportForm",
+      data,
+      config,
+    )
+    .then((response) => {
+      if (response.data.err != "1") {
         swal.close();
+        toast.success("Cập nhật trạng thái thành công!");
+        loadData(true);
+        closeDialog();
+      } else {
         swal.fire({
           title: "Thông báo",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          text: response.data.ms,
           icon: "error",
           confirmButtonText: "OK",
         });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
       });
-  } else {
-    swal.fire({
-      title: "Thông báo!",
-      text:
-        "Bạn không có quyền chỉnh sửa! Chỉ có " +
-        (e.is_system
-          ? "Quản trị viên hệ thống"
-          : "Quản trị viên đơn vị hoặc Quản trị viên hệ thống") +
-        " mới có quyền chỉnh sửa mục này",
-      icon: "error",
-      confirmButtonText: "OK",
     });
-    loadData(true);
-  }
 };
+const clickRow = (node) => {
+  options.value.filtersOrg = node.data.organization_id;
+  loadData();
+};
+const UNclickRow = (node) => {
+  options.value.filtersOrg = null;
+  loadData();
+};
+const RefreshData = () => {
+  options.value = {
+    searchText: "",
+    pageNo: 0,
+    pageSize: 20,
+    organization_id: user.organization_id,
+    searchTextOrg: "",
+    filtersOrg: null,
+    totalRecords: null,
+  };
+  loadData();
+};
+const selectedKey = ref();
 const filters = ref({});
+const onPage = (e) => {
+  options.value.pageNo = e.page;
+  options.value.pageSize = e.rows;
+  loadData(true);
+};
 onMounted(() => {
   loadReportForm();
   loadData();
@@ -491,6 +502,11 @@ onMounted(() => {
         scrollHeight="flex"
         :filters="filters"
         :globalFilterFields="['organization_id', 'organization_name']"
+        v-model:selectionKeys="selectedKey"
+        selectionMode="single"
+        :metaKeySelection="false"
+        @node-select="clickRow"
+        @nodeUnselect="UNclickRow"
       >
         <template #header>
           <Toolbar class="w-full custoolbar">
@@ -532,13 +548,27 @@ onMounted(() => {
         :value="datalists"
         show-gridlines="true"
         :scrollable="true"
+        scroll-height="flex"
         v-model:selection="selectedProduct"
         dataKey="key_id"
+        :paginator="true"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+        :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+        :rows="options.pageSize"
+        :totalRecords="options.totalRecords"
+        responsiveLayout="scroll"
+        v-model:first="first"
+        scrollHeight="flex"
+        :loading="options.loading"
+        :lazy="true"
+        @page="onPage($event)"
+        :rowHover="true"
+        :showGridlines="true"
       >
         <template #header>
           <h3 class="module-title mt-0 ml-1 mb-2">
             <i class="pi pi-file-pdf"></i>
-            Danh sách cấu hình mẫu báo cáo
+            Danh sách cấu hình mẫu báo cáo ({{ options.totalRecords }})
           </h3>
 
           <Toolbar class="w-full custoolbar">
@@ -548,9 +578,9 @@ onMounted(() => {
                 <InputText
                   type="text"
                   spellcheck="false"
-                  v-model="options.searchTextOrg"
+                  v-model="options.searchText"
                   placeholder="Tìm kiếm "
-                  v-on:keyup.enter="filterss()"
+                  v-on:keyup.enter="loadData()"
                 />
               </span>
             </template>
@@ -558,7 +588,7 @@ onMounted(() => {
               <Button
                 v-if="
                   ((user.is_super &&
-                    user.organization_id == options.organization_id) ||
+                    user.organization_id == options.filtersOrg) ||
                     !user.is_super) &&
                   selectedProduct.length > 0
                 "
@@ -570,7 +600,7 @@ onMounted(() => {
               <Button
                 v-if="
                   ((user.is_super &&
-                    user.organization_id == options.organization_id) ||
+                    user.organization_id == options.filtersOrg) ||
                     !user.is_super) &&
                   selectedProduct.length > 0
                 "
@@ -589,6 +619,12 @@ onMounted(() => {
                 label="Thêm mới"
                 icon="pi pi-plus"
                 @click="AddNew()"
+              ></Button>
+              <Button
+                class="mx-2 p-button-outlined"
+                label="Tải lại"
+                icon="pi pi-refresh"
+                @click="RefreshData()"
               ></Button>
             </template>
           </Toolbar>
@@ -624,6 +660,9 @@ onMounted(() => {
             <Checkbox
               :binary="data.data.status"
               v-model="data.data.status"
+              :disabled="
+                data.data.organization_id == user.organization_id ? false : true
+              "
               @click="onCheckBox(data.data)"
             />
           </template>
@@ -659,7 +698,7 @@ onMounted(() => {
               v-if="
                 !user.is_super ||
                 (user.is_super &&
-                  user.organization_id == options.organization_id)
+                  user.organization_id == data.data.organization_id)
               "
             >
               <Button
