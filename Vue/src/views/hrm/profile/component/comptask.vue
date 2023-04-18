@@ -29,9 +29,9 @@ const tasks = ref([]);
 //Dictionary
 const typestatus = ref([
   { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
-  { value: 1, title: "Đang làm việc", bg_color: "#2196f3", text_color: "#fff" },
+  { value: 1, title: "Đang làm việc", bg_color: "#5fc57b", text_color: "#fff" },
   { value: 2, title: "Đã làm việc", bg_color: "red", text_color: "#fff" },
-  { value: 3, title: "Đã làm việc", bg_color: "#ff8b4e", text_color: "#fff" },
+  { value: 3, title: "Đã làm việc", bg_color: "red", text_color: "#fff" },
 ]);
 
 //init

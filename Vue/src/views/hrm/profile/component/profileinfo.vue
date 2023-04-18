@@ -42,7 +42,7 @@ const views = ref([
   { view: 8, title: "Đào tạo", icon: "pi pi-book" },
   { view: 9, title: "Quyết định", icon: "pi pi-bookmark" },
   { view: 16, title: "Khen thưởng/kỷ luật", icon: "pi pi-bolt" },
-  { view: 10, title: "File", icon: "pi pi-paperclip" },
+  { view: 10, title: "Tài liệu", icon: "pi pi-paperclip" },
   { view: 11, title: "Tiếp nhận", icon: "pi pi-box" },
   { view: 12, title: "Sức khỏe", icon: "pi pi-heart" },
 ]);
@@ -2360,7 +2360,7 @@ const onPage = (event) => {
           >
             <div class="mb-1">
               <!-- <font-awesome-icon :icon="item.icon" /> -->
-              <i :class="item.icon"></i>
+              <i :class="item.icon" :style="{ fontSize: '16px' }"></i>
             </div>
             <div>
               <span> {{ item.title }} </span>
