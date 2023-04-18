@@ -101,6 +101,10 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+ 
+          if(element.report_key){
+            element.report_key_name= listTypeContractSave.value.find(x=>x.report_key==element.report_key).report_name;
+          }
         });
         datalists.value = data;
 
@@ -758,6 +762,7 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
+const  listTypeContractSave=ref([]);
 const initTuDien = () => {
   listTypeContract.value = [];
   axios
@@ -785,6 +790,8 @@ const initTuDien = () => {
           arrGroups.push(element.report_group);
         }
       });
+       
+      listTypeContractSave.value=[...data]
       arrGroups.forEach((item) => {
         var ardf = {
           label: item,
@@ -796,8 +803,10 @@ const initTuDien = () => {
             ardf.items.push({ label: z.report_name, value: z.report_key });
           });
           listTypeContract.value.push(ardf);
-      });
 
+
+      });
+  loadData(true);
       options.value.loading = false;
     })
     .catch((error) => {
@@ -816,7 +825,7 @@ const initTuDien = () => {
 const listFilesS = ref([]);
 onMounted(() => {
   initTuDien();
-  loadData(true);
+
   return {
     datalists,
     options,
@@ -1016,68 +1025,15 @@ onMounted(() => {
           />
         </template>
       </Column>
-      <!-- <Column
-        field="decision_name"
-        header="File mẫu"
+      <Column
+        field="report_key_name"
+        header="Mẫu quyết định"
+        headerStyle="text-align:center;max-width:300px;height:50px"
+        bodyStyle="text-align:center;max-width:300px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px"
       >
-        <template #body="item">
-          <div>
-            <div v-if="item.data.file_path">
-              <a
-                :href="basedomainURL + item.data.file_path"
-                download
-                class="w-full no-underline cursor-pointer text-900"
-              >
-                <div class="align-items-center flex">
-                  <div>
-                    <img
-                      :src="
-                        basedomainURL +
-                        '/Portals/Image/file/' +
-                        item.data.file_path.substring(
-                          item.data.file_path.lastIndexOf('.') + 1
-                        ) +
-                        '.png'
-                      "
-                      style="width: 70px; height: 50px; object-fit: contain"
-                      alt=""
-                    />
-                  </div>
-                   
-                </div>
-              </a>
-            </div>
-            <div  v-else-if="item.data.file_path_sys">
-              <a
-                :href="basedomainURL + item.data.file_path_sys"
-                download
-                class="w-full no-underline cursor-pointer text-900"
-              >
-                <div class="align-items-center flex">
-                  <div>
-                    <img
-                      :src="
-                        basedomainURL +
-                        '/Portals/Image/file/' +
-                        item.data.file_path_sys.substring(
-                          item.data.file_path_sys.lastIndexOf('.') + 1
-                        ) +
-                        '.png'
-                      "
-                      style="width: 70px; height: 50px; object-fit: contain"
-                      alt=""
-                    />
-                  </div>
-                   
-                </div>
-              </a>
-            </div>
-          </div>
-        </template>
-      </Column> -->
+        
+      </Column>
       <Column
         field="status"
         header="Trạng thái"

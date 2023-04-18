@@ -5,6 +5,7 @@ import configUsers from "./ConfigUserCode.vue";
 import ConfigContract from "./ConfigContract.vue";
 import ConfigHolidays from "./ConfigHolidays.vue";
 import ConfigInsurance from "./ConfigInsuranceRate.vue";
+import ConfigEmail from "./ConfigEmail.vue";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
 const router = inject("router");
@@ -152,11 +153,20 @@ onMounted(() => {
                Tỷ lệ đóng bảo hiểm
                 </div>
             </template>
-            <div class="check-scroll-2"   v-if="activeIndex==3">
+            <div    v-if="activeIndex==3">
               <ConfigInsurance />
               </div>
           </AccordionTab>
-          
+          <AccordionTab  >
+            <template #header>
+                <div class="text-xl">
+           Cấu hình gửi Email
+                </div>
+            </template>
+            <div    v-if="activeIndex==4">
+              <ConfigEmail />
+              </div>
+          </AccordionTab>
           
         </Accordion>
       </div></div>

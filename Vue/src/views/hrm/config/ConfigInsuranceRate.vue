@@ -709,11 +709,7 @@ onMounted(() => {
 .hover:hover {
   cursor: pointer;
   color: #2196f3 !important;
-}
-.check-scroll {
-  max-height: 45rem;
-  overflow: scroll;
-}
+} 
 
 @media only screen and (max-height: 768px) {
   .style-vb-1 {
@@ -728,11 +724,7 @@ onMounted(() => {
   .style-vb-3 {
     padding: 8px !important;
   }
-
-  .check-scroll {
-    max-height: 30rem;
-    overflow: scroll;
-  }
+ 
 }
 
 @media only screen and (max-height: 678px) {
@@ -740,9 +732,6 @@ onMounted(() => {
     display: none;
   }
 
-  .check-scroll {
-    max-height: 20rem;
-    overflow: scroll;
-  }
+ 
 }
 </style>

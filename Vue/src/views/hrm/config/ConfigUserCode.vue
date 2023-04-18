@@ -546,11 +546,7 @@ onMounted(() => {
 <style scoped>
  
 
-.check-scroll {
-  max-height: 41rem;
  
-  overflow: scroll
-}
 
 @media only screen and (max-height: 768px) {
 
@@ -568,10 +564,7 @@ onMounted(() => {
     padding: 8px !important;
   }
 
-  .check-scroll {
-    max-height:30rem;
-    overflow: scroll
-  }
+ 
 }
 
 @media only screen and (max-height: 678px) {
@@ -579,9 +572,6 @@ onMounted(() => {
     display: none;
   }
 
-  .check-scroll {
-    max-height: 20rem;
-    overflow: scroll
-  }
+ 
 }
 </style>
