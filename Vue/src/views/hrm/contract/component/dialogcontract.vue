@@ -124,10 +124,10 @@ const saveModel = (is_continue) => {
     obj.profile_id = obj.profile.profile_id;
   }
   if (obj.sign_user != null) {
-    obj.sign_user_id = obj.sign_user.user_id;
+    obj.sign_user_id = obj.sign_user.profile_id;
   }
   if (obj.manager_user != null) {
-    obj.manager_user_id = obj.manager_user.user_id;
+    obj.manager_user_id = obj.manager_user.profile_id;
   }
   if (obj.start_date != null) {
     obj.start_date = moment(obj.start_date).format("YYYY-MM-DDTHH:mm:ssZZ");

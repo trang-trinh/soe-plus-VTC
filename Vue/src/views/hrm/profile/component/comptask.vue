@@ -27,6 +27,15 @@ const task = ref({});
 const tasks = ref([]);
 
 //Dictionary
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
 const typestatus = ref([
   { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
   { value: 1, title: "Đang làm việc", bg_color: "#5fc57b", text_color: "#fff" },
@@ -127,6 +136,9 @@ const initView2 = (rf) => {
           }
 
           tbs[1].forEach((item) => {
+            if (item.managers != null) {
+              item.managers = JSON.parse(item.managers);
+            }
             var idx = typestatus.value.findIndex(
               (x) => x["value"] === item["status"]
             );
@@ -212,7 +224,7 @@ onMounted(() => {
           </span>
         </template>
         <template #content="slotProps">
-          <Card class="my-5">
+          <Card>
             <template #title>
               <div class="w-full text-left">
                 <Button
@@ -248,8 +260,71 @@ onMounted(() => {
                   Công việc chuyên môn:
                   <b>{{ slotProps.item.professional_work_name }}</b>
                 </div>
-                <div>
+                <div class="mb-2">
                   Loại hợp đồng: <b>{{ slotProps.item.type_contract_name }}</b>
+                </div>
+                <div class="mb-2">
+                  Loại nhân sự: <b>{{ slotProps.item.personel_groups_name }}</b>
+                </div>
+                <div
+                  class="flex format-center justify-content-left"
+                  :style="{ justifyContent: 'left' }"
+                >
+                  <span class="mr-2">Người quản lý: </span>
+                  <AvatarGroup
+                    v-if="
+                      slotProps.item.managers &&
+                      slotProps.item.managers.length > 0
+                    "
+                  >
+                    <Avatar
+                      v-for="(item, index) in slotProps.item.managers.slice(
+                        0,
+                        3
+                      )"
+                      v-bind:label="
+                        item.avatar
+                          ? ''
+                          : item.profile_user_name.substring(0, 1)
+                      "
+                      v-bind:image="
+                        item.avatar
+                          ? basedomainURL + item.avatar
+                          : basedomainURL + '/Portals/Image/noimg.jpg'
+                      "
+                      v-tooltip.top="item.profile_user_name"
+                      :key="item.user_id"
+                      style="border: 2px solid orange; color: white"
+                      @click="onTaskUserFilter(item)"
+                      @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                      size="large"
+                      shape="circle"
+                      class="cursor-pointer"
+                      :style="{
+                        backgroundColor: bgColor[index % 7],
+                        width: '2.5rem',
+                        height: '2.5rem',
+                      }"
+                    />
+                    <Avatar
+                      v-if="
+                        slotProps.item.managers &&
+                        slotProps.item.managers.length > 3
+                      "
+                      v-bind:label="
+                        '+' + (slotProps.item.managers - 3).toString()
+                      "
+                      shape="circle"
+                      size="large"
+                      :style="{
+                        backgroundColor: '#2196f3',
+                        color: '#ffffff',
+                        width: '2.5rem',
+                        height: '2.5rem',
+                      }"
+                      class="cursor-pointer"
+                    />
+                  </AvatarGroup>
                 </div>
               </div>
             </template>
