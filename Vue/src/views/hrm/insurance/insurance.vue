@@ -4,6 +4,8 @@ import { useToast } from "vue-toastification";
 import diloginsurance from "../insurance/component/diloginsurance.vue";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
+import VueDatePicker from '@vuepic/vue-datepicker';
+
 // import Datepicker from 'vuejs3-datepicker';
 
 import moment from "moment";
@@ -114,7 +116,7 @@ const loadTudien = () => {
 };
 //Lấy dữ liệu bank
 const initData = (rf) => {
-  if(options.value.date.getFullYear() == 1900) options.value.date = new Date(dt.getFullYear(), dt.getMonth()) ;
+  if(isEmpty(options.value.date)) options.value.date = new Date(dt.getFullYear(), dt.getMonth()) ;
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -580,7 +582,7 @@ const searchStamp = (event) => {
     }
   }
 };
-const refreshStamp = () => {
+const onRefresh = () => {
    options.value = {
       IsNext: true,
       sort: "created_date",
@@ -777,7 +779,11 @@ const yearPickerFilter = ref();
 const onFilterMonth = (type)=>{
   if(type == 1)
  {
-  options.value.date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
+  if (monthPickerFilter.value == null){
+    options.value.date = null;
+  } 
+  else
+    options.value.date = new Date(monthPickerFilter.value.month +1 +"/01" +"/" +monthPickerFilter.value.year);
   initData(true);
  } 
  else{
@@ -801,7 +807,20 @@ const onCleanFilterMonth = (type) => {
  }
 };
 const changeView = (view) => {
-  options.value.view = view;
+  options.value = {
+      IsNext: true,
+      sort: "created_date",
+      SearchText: "",
+      PageNo: 0,
+      PageSize: 20,
+      totalRecords: null,
+      date : new Date(dt.getFullYear(), dt.getMonth()),
+      view:view,
+      start_date:  new Date(dt.getFullYear(), 0),
+      end_date: new Date(dt.getFullYear(), dt.getMonth()),
+    };
+  monthPickerFilter.value = null;
+  yearPickerFilter.value = null;
   if(view == 1) initData();
   else if(view == 2) loadDataTree();
 };
@@ -810,8 +829,8 @@ const isViewTree = ref(false);
 const amount_paid_final = ref();
 const payment_final = ref();
 const loadDataTree = ()=>{
-  if(options.value.start_date.getFullYear() == 1900 ) options.value.start_date = new Date(dt.getFullYear(), 0)
-  if(options.value.end_date.getFullYear() == 1900 ) options.value.end_date = new Date(dt.getFullYear(), dt.getMonth())
+  if(isNaN(options.value.start_date)|| options.value.start_date.getFullYear()== 1900) options.value.start_date = new Date(dt.getFullYear(), 0)
+  if(isNaN(options.value.end_date)|| options.value.end_date.getFullYear()== 1900) options.value.end_date = new Date(dt.getFullYear(), dt.getMonth())
   payment_final.value = 0;
   amount_paid_final.value = 0;
   listDate.value = dateRange(options.value.start_date, options.value.end_date)
@@ -978,7 +997,10 @@ const itemButs = ref([
     },
   },
 ]);
-
+function isNotValidDate(d) {
+  // return d instanceof Date && !isNaN(d) ;
+  return d instanceof Date && (isNaN(d) || d.getFullYear() == 1900 || isEmpty(d))
+}
 //check empy object
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
@@ -1100,7 +1122,7 @@ onMounted(() => {
 
           <template #end>
             
-           <Datepicker
+           <VueDatePicker
            v-if="options.view == 2"
               @closed="onFilterMonth(2,true)"
               class="mr-2 datepicker"
@@ -1121,7 +1143,7 @@ onMounted(() => {
               <template #input-icon>
                 <Button icon="pi pi-calendar" class="p-button-text" />
               </template>
-            </Datepicker>
+            </VueDatePicker>
             <Datepicker
             v-if="options.view == 1"
               @closed="onFilterMonth(1)"
@@ -1151,7 +1173,7 @@ onMounted(() => {
               class="mr-2"
             />  -->
             <Button
-              @click="refreshStamp"
+              @click="onRefresh"
               class="mr-2 p-button-outlined p-button-secondary"
               icon="pi pi-refresh"
               v-tooltip="'Tải lại'"
@@ -1223,7 +1245,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-         selectionMode="multiple"  v-if="store.getters.user.is_super==true"
+        selectionMode="multiple"
       >
       </Column> -->
 
@@ -1253,24 +1275,24 @@ onMounted(() => {
       <Column
         field="organization_name"
         header="Phòng ban"
-        headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
+        headerStyle="text-align:center;max-width:150px;height:50px"
+        bodyStyle="text-align:center;max-width:150px;"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
       <Column
-        field="organization_name"
+        field="position_name"
         header="Chức vụ"
         headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        bodyStyle="text-align:center;max-width:150px;;"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
       <Column
         field="recruitment_date"
         header="Ngày vào"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;max-height:60px"
+        headerStyle="text-align:center;max-width:100px;height:50px"
+        bodyStyle="text-align:center;max-width:100px;"
         class="align-items-center justify-content-center text-center"
       >
       <template #body="{ data }">
@@ -1281,7 +1303,7 @@ onMounted(() => {
         field="insurance_id"
         header="Số sổ"
         headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
+        bodyStyle="text-align:center;max-width:100px;"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
@@ -1289,7 +1311,7 @@ onMounted(() => {
         field="insurance_code"
         header="Số thẻ"
         headerStyle="text-align:center;max-width:100px;height:50px"
-        bodyStyle="text-align:center;max-width:100px;;max-height:60px"
+        bodyStyle="text-align:center;max-width:100px;"
         class="align-items-center justify-content-center text-center"
       >
       </Column>
@@ -1297,7 +1319,7 @@ onMounted(() => {
         field="batdaudong"
         header="Bắt đầu đóng"
         headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px"
+        bodyStyle="text-align:center;max-width:120px;"
         class="align-items-center justify-content-center text-center"
       >
         <template #body="{ data }">
@@ -1308,7 +1330,7 @@ onMounted(() => {
         field="mucdong"
         header="Mức đóng"
         headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
-        bodyStyle="text-align:center;max-width:120px;max-height:60px;justify-content:end"
+        bodyStyle="text-align:center;max-width:120px;justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.mucdong, 0, ".", ".") }}
@@ -1318,7 +1340,7 @@ onMounted(() => {
         field="congtydong"
         header="Công ty đóng"
         headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
-        bodyStyle="text-align:center;max-width:120px;;max-height:60px; justify-content:end"
+        bodyStyle="text-align:center;max-width:120px; justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.congtydong, 0, ".", ".") }}
@@ -1328,7 +1350,7 @@ onMounted(() => {
         field="nhanviendong"
         header="Người lao động đóng"
         headerStyle="text-align:center;max-width:120px;height:50px;justify-content:center"
-        bodyStyle="text-align:right;max-width:120px;max-height:60px;justify-content:end"
+        bodyStyle="text-align:right;max-width:120px;justify-content:end"
       >
         <template #body="{ data }">
           {{ formatNumber(data.nhanviendong, 0, ".", ".") }}
@@ -1447,17 +1469,17 @@ onMounted(() => {
               Tổng cộng
             </td>
             <template v-for="(item_month,index2) in listDate" :key="index2">
-            <td class="text-right item-date bg-white" style="padding: 0.5rem">
+            <td class="text-right item-date bg-white font-bold" style="padding: 0.5rem">
               {{item_month.payment_all!=0 ? formatNumber( item_month.payment_all, 0, ".", "."):'' }}
             </td>
-            <td class="text-right item-date bg-white" style="padding: 0.5rem" >
+            <td class="text-right item-date bg-white font-bold" style="padding: 0.5rem" >
               {{item_month.amount_paid_all!=0 ? formatNumber( item_month.amount_paid_all, 0, ".", "."):'' }}
             </td>
           </template>
-            <td class="text-right item-date bg-white" style="padding: 0.5rem">
+            <td class="text-right item-date bg-white font-bold" style="padding: 0.5rem">
               {{payment_final!=0 ? formatNumber( payment_final, 0, ".", "."):'' }}
             </td>
-            <td class="text-right item-date bg-white" style="padding: 0.5rem" >
+            <td class="text-right item-date bg-white font-bold" style="padding: 0.5rem" >
               {{amount_paid_final!=0 ? formatNumber(amount_paid_final, 0, ".", "."):'' }}
             </td>
           </tr>

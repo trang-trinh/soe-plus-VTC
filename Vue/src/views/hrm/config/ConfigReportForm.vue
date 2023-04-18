@@ -80,7 +80,7 @@ const loadDonvi = () => {
         str: encr(
           JSON.stringify({
             proc: "sys_organization_list_dictionary",
-            par: [{ par: "user_id", va: store.state.user.user_id }],
+            par: [{ par: "user_id", va: user.user_id }],
           }),
           SecretKey,
           cryoptojs,
@@ -567,8 +567,17 @@ onMounted(() => {
       >
         <template #header>
           <h3 class="module-title mt-0 ml-1 mb-2">
-            <i class="pi pi-file-pdf"></i>
+            <i class="pi pi-file-pdf word-break-break-all"></i>
             Danh sách cấu hình mẫu báo cáo ({{ options.totalRecords }})
+            <!-- <br />{{
+              options
+            }}
+            <br />{{ user }} <br />{{ selectedProduct }} -->
+            <!-- <div class="col-12">
+              {{ store.getters.user }}
+              <br />
+              {{ store.state.user }}
+            </div> -->
           </h3>
 
           <Toolbar class="w-full custoolbar">
@@ -632,6 +641,7 @@ onMounted(() => {
         <Column
           selectionMode="multiple"
           class="align-items-center justify-content-center text-center max-w-3rem"
+          v-if="user.organization_id == options.filtersOrg"
         ></Column>
         <Column
           header="STT"
@@ -696,9 +706,8 @@ onMounted(() => {
           <template #body="data">
             <div
               v-if="
-                !user.is_super ||
-                (user.is_super &&
-                  user.organization_id == data.data.organization_id)
+                user.organization_id == data.data.organization_id &&
+                user.is_admin
               "
             >
               <Button
