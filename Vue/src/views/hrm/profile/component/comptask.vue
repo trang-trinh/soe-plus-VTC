@@ -27,6 +27,15 @@ const task = ref({});
 const tasks = ref([]);
 
 //Dictionary
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
 const typestatus = ref([
   { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
   { value: 1, title: "Đang làm việc", bg_color: "#5fc57b", text_color: "#fff" },
@@ -127,6 +136,9 @@ const initView2 = (rf) => {
           }
 
           tbs[1].forEach((item) => {
+            if (item.managers != null) {
+              item.managers = JSON.parse(item.managers);
+            }
             var idx = typestatus.value.findIndex(
               (x) => x["value"] === item["status"]
             );
@@ -199,288 +211,130 @@ onMounted(() => {
       overflowY: 'auto',
     }"
   >
-    <Timeline :value="tasks" align="alternate" class="customized-timeline">
-      <template #marker="slotProps">
-        <span
-          class="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
-          :style="{
-            backgroundColor: slotProps.item.bg_color,
-          }"
-        >
-          <i class="pi pi-briefcase"></i>
-        </span>
-      </template>
-      <template #content="slotProps">
-        <Card class="my-5">
-          <template #title>
-            <div class="w-full text-left">
-              <Button
-                :label="slotProps.item.status_name"
-                class="p-button-outlined"
-                :style="{
-                  borderColor: slotProps.item.bg_color,
-                  // backgroundColor: slotProps.data.bg_color,
-                  color: slotProps.item.bg_color,
-                  borderRadius: '15px',
-                  padding: '0.3rem 0.75rem !important',
-                }"
-              />
-            </div>
-          </template>
-          <template #subtitle>
-            <div class="w-full text-left">
-              {{ slotProps.item.sign_date }}
-            </div>
-          </template>
-          <template #content>
-            <div class="w-full text-left">
-              <div class="mb-2">
-                Chức danh: <b>{{ slotProps.item.work_position_name }}</b>
+    <div v-if="tasks && tasks.length > 0" class="w-full">
+      <Timeline :value="tasks" align="alternate" class="customized-timeline">
+        <template #marker="slotProps">
+          <span
+            class="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
+            :style="{
+              backgroundColor: slotProps.item.bg_color,
+            }"
+          >
+            <i class="pi pi-briefcase"></i>
+          </span>
+        </template>
+        <template #content="slotProps">
+          <Card>
+            <template #title>
+              <div class="w-full text-left">
+                <Button
+                  :label="slotProps.item.status_name"
+                  class="p-button-outlined"
+                  :style="{
+                    borderColor: slotProps.item.bg_color,
+                    // backgroundColor: slotProps.data.bg_color,
+                    color: slotProps.item.bg_color,
+                    borderRadius: '15px',
+                    padding: '0.3rem 0.75rem !important',
+                  }"
+                />
               </div>
-              <div class="mb-2">
-                Chức vụ: <b>{{ slotProps.item.position_name }}</b>
+            </template>
+            <template #subtitle>
+              <div class="w-full text-left">
+                {{ slotProps.item.sign_date }}
               </div>
-              <div class="mb-2">
-                Phòng ban: <b>{{ slotProps.item.department_name }}</b>
-              </div>
-              <div class="mb-2">
-                Công việc chuyên môn:
-                <b>{{ slotProps.item.professional_work_name }}</b>
-              </div>
-              <div>
-                Loại hợp đồng: <b>{{ slotProps.item.type_contract_name }}</b>
-              </div>
-            </div>
-          </template>
-        </Card>
-      </template>
-    </Timeline>
-  </div>
-
-  <!-- <div class="row p-2">
-    <div class="col-12 md:col-12 p-0">
-      <Accordion class="w-full mb-2" :activeIndex="0">
-        <AccordionTab>
-          <template #header>
-            <span>Công việc hiện tại</span>
-          </template>
-          <div class="row">
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Trạng thái:
-                  <span class="description-2">{{
-                    task.status_name
-                  }}</span></label
+            </template>
+            <template #content>
+              <div class="w-full text-left">
+                <div class="mb-2">
+                  Chức danh: <b>{{ slotProps.item.work_position_name }}</b>
+                </div>
+                <div class="mb-2">
+                  Chức vụ: <b>{{ slotProps.item.position_name }}</b>
+                </div>
+                <div class="mb-2">
+                  Phòng ban: <b>{{ slotProps.item.department_name }}</b>
+                </div>
+                <div class="mb-2">
+                  Công việc chuyên môn:
+                  <b>{{ slotProps.item.professional_work_name }}</b>
+                </div>
+                <div class="mb-2">
+                  Loại hợp đồng: <b>{{ slotProps.item.type_contract_name }}</b>
+                </div>
+                <div class="mb-2">
+                  Loại nhân sự: <b>{{ slotProps.item.personel_groups_name }}</b>
+                </div>
+                <div
+                  class="flex format-center justify-content-left"
+                  :style="{ justifyContent: 'left' }"
                 >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Phòng ban:
-                  <span class="description-2">{{
-                    task.department_name
-                  }}</span></label
-                >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Vị trí:
-                  <span class="description-2">{{
-                    task.work_position_name
-                  }}</span></label
-                >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Chức vụ:
-                  <span class="description-2">{{
-                    task.position_name
-                  }}</span></label
-                >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Ngày hiệu lực:
-                  <span class="description-2">{{ task.start_date }}</span>
-                  <span v-if="task.start_date && task.end_date"> - </span>
-                  <span v-if="task.end_date" class="description-2">{{
-                    task.end_date
-                  }}</span></label
-                >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Ngày ký hợp đồng chính thức:
-                  <span class="description-2">{{ task.sign_date }}</span></label
-                >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Công việc chuyên môn:
-                  <span class="description-2">{{
-                    task.professional_work_name
-                  }}</span></label
-                >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Loại hợp đồng:
-                  <span class="description-2">{{
-                    task.contract_name
-                  }}</span></label
-                >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Hình thức:
-                  <span class="description-2">{{
-                    task.formality_name
-                  }}</span></label
-                >
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label
-                  >Ngạch lương:
-                  <span class="description-2">{{ task.wage_name }}</span></label
-                >
-              </div>
-            </div>
-          </div>
-        </AccordionTab>
-      </Accordion>
-    </div>
-    <div class="col-12 md:col-12 p-0">
-      <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
-        <AccordionTab>
-          <template #header>
-            <span>Quá trình làm việc</span>
-          </template>
-          <div>
-            <DataTable
-              :value="tasks"
-              :scrollable="true"
-              :lazy="true"
-              :rowHover="true"
-              :showGridlines="true"
-              scrollDirection="both"
-              style="display: grid"
-              class="empty-full"
-            >
-              <Column
-                field="start_date"
-                header="Ngày hiệu lực"
-                headerStyle="text-align:center;width:120px;height:50px"
-                bodyStyle="text-align:center;width:120px;"
-                class="align-items-center justify-content-center text-center"
-              >
-                <template #body="slotProps">
-                  <span v-html="slotProps.data.start_date"></span>
-                </template>
-              </Column>
-              <Column
-                field="start_date"
-                header="Ngày hết hạn"
-                headerStyle="text-align:center;width:120px;height:50px"
-                bodyStyle="text-align:center;width:120px;"
-                class="align-items-center justify-content-center text-center"
-              >
-                <template #body="slotProps">
-                  <span v-html="slotProps.data.end_date"></span>
-                </template>
-              </Column>
-
-              <Column
-                field="department_name"
-                header="Phòng ban"
-                headerStyle="text-align:center;width:250px;height:50px"
-                bodyStyle="text-align:center;width:250px;"
-                class="align-items-center justify-content-center text-center"
-              />
-              <Column
-                field="work_position_name"
-                header="Vị trí"
-                headerStyle="text-align:center;width:200px;height:50px"
-                bodyStyle="text-align:center;width:200px;"
-                class="align-items-center justify-content-center text-center"
-              />
-              <Column
-                field="position_name"
-                header="Chức vụ"
-                headerStyle="text-align:center;width:150px;height:50px"
-                bodyStyle="text-align:center;width:150px;"
-                class="align-items-center justify-content-center text-center"
-              />
-              <Column
-                field="type_contract_name"
-                header="Loại hợp đồng"
-                headerStyle="text-align:center;width:120px;height:50px"
-                bodyStyle="text-align:center;width:120px;"
-                class="align-items-center justify-content-center text-center"
-              >
-                <template #body="slotProps">
-                  {{ slotProps.data.type_contract_name }}
-                </template>
-              </Column>
-              <Column
-                field="contract_no"
-                header="Mã HĐ"
-                headerStyle="text-align:center;width:80px;height:50px"
-                bodyStyle="text-align:center;width:80px;"
-                class="align-items-center justify-content-center text-center"
-              />
-              <Column
-                field="status"
-                header="Trạng thái"
-                headerStyle="text-align:center;width:140px;height:50px"
-                bodyStyle="text-align:center;width:140px;"
-                class="align-items-center justify-content-center text-center"
-              >
-                <template #body="slotProps">
-                  <div
-                    class="m-2"
-                    aria:haspopup="true"
-                    aria-controls="overlay_panel_status"
+                  <span class="mr-2">Người quản lý: </span>
+                  <AvatarGroup
+                    v-if="
+                      slotProps.item.managers &&
+                      slotProps.item.managers.length > 0
+                    "
                   >
-                    <Button
-                      :label="slotProps.data.status_name"
+                    <Avatar
+                      v-for="(item, index) in slotProps.item.managers.slice(
+                        0,
+                        3
+                      )"
+                      v-bind:label="
+                        item.avatar
+                          ? ''
+                          : item.profile_user_name.substring(0, 1)
+                      "
+                      v-bind:image="
+                        item.avatar
+                          ? basedomainURL + item.avatar
+                          : basedomainURL + '/Portals/Image/noimg.jpg'
+                      "
+                      v-tooltip.top="item.profile_user_name"
+                      :key="item.user_id"
+                      style="border: 2px solid orange; color: white"
+                      @click="onTaskUserFilter(item)"
+                      @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                      size="large"
+                      shape="circle"
+                      class="cursor-pointer"
                       :style="{
-                        border: slotProps.data.bg_color,
-                        backgroundColor: slotProps.data.bg_color,
-                        color: slotProps.data.text_color,
+                        backgroundColor: bgColor[index % 7],
+                        width: '2.5rem',
+                        height: '2.5rem',
                       }"
                     />
-                  </div>
-                </template>
-              </Column>
-              <template #empty>
-                <div
-                  class="align-items-center justify-content-center p-4 text-center m-auto"
-                  style="display: flex; width: 100%"
-                ></div>
-              </template>
-            </DataTable>
-          </div>
-        </AccordionTab>
-      </Accordion>
+                    <Avatar
+                      v-if="
+                        slotProps.item.managers &&
+                        slotProps.item.managers.length > 3
+                      "
+                      v-bind:label="
+                        '+' + (slotProps.item.managers - 3).toString()
+                      "
+                      shape="circle"
+                      size="large"
+                      :style="{
+                        backgroundColor: '#2196f3',
+                        color: '#ffffff',
+                        width: '2.5rem',
+                        height: '2.5rem',
+                      }"
+                      class="cursor-pointer"
+                    />
+                  </AvatarGroup>
+                </div>
+              </div>
+            </template>
+          </Card>
+        </template>
+      </Timeline>
     </div>
-  </div> -->
+    <div v-else class="w-full h-full format-center">
+      <div class="description">Hiện chưa có dữ liệu</div>
+    </div>
+  </div>
 </template>
 <style scoped></style>
