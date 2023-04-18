@@ -1380,7 +1380,13 @@ namespace API.Controllers.HRM
                                     case "dateAfter":
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) >= CAST('" + m.value + "' as date)";
                                         break;
-
+                                    case "arrIntersec":
+                                        WhereSQLR += " ((SELECT COUNT(*) FROM( "+
+" SELECT upp.FieldValue AS app  from dbo.udf_PivotParameters('"+ m.value + "', ',') upp " +
+" INTERSECT " +
+" SELECT upp.FieldValue AS app  from dbo.udf_PivotParameters(hcal.reward_name, ',') upp " +
+" ) as aas) > 0 ) ";
+                                        break;
                                 }
                             }
                             WhereSQLR += field.filterconstraints.Count > 1 ? ")" : "";

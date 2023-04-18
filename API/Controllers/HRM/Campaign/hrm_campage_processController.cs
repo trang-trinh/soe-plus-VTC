@@ -172,13 +172,15 @@ namespace API.Controllers.HRM.Campaign
                                         }
                                         newFileName = Path.Combine(root + "/" + dvid + "/HRMProcess", fileName);
                                         fileInfo = new FileInfo(newFileName);
-                                        if (fileInfo.Exists)
-                                        {
-                                            fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                            fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                                        // if (fileInfo.Exists)
+                                        // {
+                                        //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                                        //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                            newFileName = Path.Combine(root + "/" + dvid + "/HRMProcess", fileName);
-                                        }
+                                        //     newFileName = Path.Combine(root + "/" + dvid + "/HRMProcess", fileName);
+                                        // }
+                                           newFileName = Path.Combine(root + "/" + dvid + "/HRMProcess",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/HRMProcess", newFileName, 1, root, int.Parse(dvid)));
                                         ffileData = fileData;
                                         if (fileInfo != null)
                                         {
@@ -491,13 +493,15 @@ db.SaveChanges();
                                         }
                                         newFileName = Path.Combine(root + "/" + dvid + "/HRMProcess", fileName);
                                         fileInfo = new FileInfo(newFileName);
-                                        if (fileInfo.Exists)
-                                        {
-                                            fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                            fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                                        // if (fileInfo.Exists)
+                                        // {
+                                        //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                                        //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                            newFileName = Path.Combine(root + "/" + dvid + "/HRMProcess", fileName);
-                                        }
+                                        //     newFileName = Path.Combine(root + "/" + dvid + "/HRMProcess", fileName);
+                                        // }
+                                               newFileName = Path.Combine(root + "/" + dvid + "/HRMProcess",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/HRMProcess", newFileName, 1, root, int.Parse(dvid)));
                                         ffileData = fileData;
                                         if (fileInfo != null)
                                         {

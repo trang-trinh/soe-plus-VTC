@@ -76,8 +76,14 @@ namespace API.Controllers.HRM.Campaign
                         }
                         fdhrm_Campaign = provider.FormData.GetValues("hrm_campaign").SingleOrDefault();
                         hrm_campaign hrm_Campaign = JsonConvert.DeserializeObject<hrm_campaign>(fdhrm_Campaign);
-                       
-                      
+
+                        var intw = int.Parse(dvid);
+                        var checkBarcode = db.hrm_campaign.AsNoTracking().Where(a => a.campaign_code == hrm_Campaign.campaign_code && a.organization_id == intw).FirstOrDefault();
+                        if (checkBarcode != null)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã chiến dịch đã tồn tại! Vui lòng nhập lại", err = "1" });
+                        }
+
                         hrm_Campaign.organization_id =   int.Parse(dvid);
                         hrm_Campaign.created_by = uid;
                         hrm_Campaign.created_date = DateTime.Now;
@@ -114,13 +120,15 @@ namespace API.Controllers.HRM.Campaign
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
+                            // }
+                                   newFileName = Path.Combine(root + "/" + dvid + "/Campaign",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Campaign", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -261,8 +269,13 @@ db.SaveChanges();
 
                         fdhrm_Campaign = provider.FormData.GetValues("hrm_campaign").SingleOrDefault();
                         hrm_campaign hrm_Campaign = JsonConvert.DeserializeObject<hrm_campaign>(fdhrm_Campaign);
-                    
 
+                        var checkBarcode = db.hrm_campaign.AsNoTracking().Where(a => a.campaign_code == hrm_Campaign.campaign_code && a.campaign_id
+                  != hrm_Campaign.campaign_id && hrm_Campaign.organization_id == intw).FirstOrDefault();
+                        if (checkBarcode != null)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã chiến dịch đã tồn tại! Vui lòng nhập lại", err = "1" });
+                        }
 
                         hrm_Campaign.modified_by = uid;
                         hrm_Campaign.modified_date = DateTime.Now;
@@ -321,13 +334,15 @@ db.SaveChanges();
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
+                            // }
+                                     newFileName = Path.Combine(root + "/" + dvid + "/Campaign",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Campaign", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {

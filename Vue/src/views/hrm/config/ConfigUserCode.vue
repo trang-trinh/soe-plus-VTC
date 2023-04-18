@@ -402,7 +402,7 @@ onMounted(() => {
               </template>
               <template #body="data">
                 <div class="w-full  ">
-                  <InputNumber class="w-full  duy-inpput" v-model="data.data.length" :min="1" spellcheck="false" />
+                  <InputNumber  class="w-full  duy-inpput" v-model="data.data.length" :min="1" spellcheck="false" />
                 </div>
               </template>
             </Column>
@@ -414,7 +414,7 @@ onMounted(() => {
               </template>
               <template #body="data">
                 <div class="w-full ">
-                  <InputNumber class="w-full duy-inpput " :min="1" v-model="data.data.initialization" spellcheck="false" />
+                  <InputNumber class="w-full duy-inpput " :min="0" v-model="data.data.initialization" spellcheck="false" />
                 </div>
               </template>
             </Column>
@@ -472,7 +472,7 @@ onMounted(() => {
               <template #body="data">
                 <div class="w-full  ">
 
-                  <InputNumber class="w-full duy-inpput " v-model="data.data.length" type="text" spellcheck="false" />
+                  <InputNumber :min="1" class="w-full duy-inpput " v-model="data.data.length" type="text" spellcheck="false" />
                 </div>
               </template>
             </Column>
@@ -492,7 +492,7 @@ onMounted(() => {
               <template #body="data">
                 <div class="w-full ">
 
-                  <InputNumber    style=" max-width: 100px;  text-align:center !important" class="w-full duy-inpput " v-model="data.data.initialization" spellcheck="false" />
+                  <InputNumber :min="0"    style=" max-width: 100px;  text-align:center !important" class="w-full duy-inpput " v-model="data.data.initialization" spellcheck="false" />
                 </div>
               </template>
             </Column>

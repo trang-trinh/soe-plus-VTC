@@ -148,7 +148,8 @@ namespace API.Controllers.HRM.Category
 
                             //    newFileName = Path.Combine(root + "/" + dvid + "/TypeContract", fileName);
                             //}
-                            newFileName = Path.Combine(root + "/" + dvid + "/TypeContract", helper.newFileName(fileInfo, root + "/" + dvid + "/TypeContract", newFileName, 1, root, int.Parse(dvid)));
+                            newFileName = Path.Combine(root + "/" + dvid + "/TypeContract",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/TypeContract", newFileName, 1, root, int.Parse(dvid)));
 
                             ffileData = fileData;
                             if (fileInfo != null)
