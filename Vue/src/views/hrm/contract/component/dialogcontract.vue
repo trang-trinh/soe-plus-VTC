@@ -846,14 +846,16 @@ onMounted(() => {
                           </span>
                           <span
                             v-if="
+                              dictionarys[11] != null &&
                               dictionarys[11].findIndex(
-                                (x) => x.professional_work_id === item
+                                (x) => x.professional_work_id === parseInt(item)
                               ) !== -1
                             "
                           >
                             {{
                               dictionarys[11].find(
-                                (x) => x["professional_work_id"] == item
+                                (x) =>
+                                  x["professional_work_id"] === parseInt(item)
                               ).professional_work_name
                             }}
                           </span>
