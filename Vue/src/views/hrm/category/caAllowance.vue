@@ -4,7 +4,7 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
-import { encr, checkURL } from "../../../util/function.js"; import moment from "moment";
+import { encr, autoFillDate } from "../../../util/function.js"; import moment from "moment";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -588,6 +588,47 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   }
 };
+
+const onCheckBoxT = (value ) => {
+ 
+    let data = {
+      IntID: value.allowance_wage_id,
+      TextID: value.allowance_wage_id + "",
+      IntTrangthai: 1,
+      BitTrangthai: value.status,
+    };
+    axios
+      .put(
+        baseURL + "/api/hrm_ca_allowance_wage/update_t_hrm_ca_allowance_wage",
+        data,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa trạng thái gia hạn thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+ 
+};
 //Xóa nhiều
 const deleteList = () => {
   let listId = new Array(selectedStamps.value.length);
@@ -883,7 +924,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:50px;height:50px"
         bodyStyle="text-align:center;max-width:50px"
-        selectionMode="multiple"
+         selectionMode="multiple"  v-if="store.getters.user.is_super==true" 
       >
       </Column>
 
@@ -959,15 +1000,22 @@ onMounted(() => {
         headerStyle="text-align:center;max-width:100px;height:50px"
         bodyStyle="text-align:center;max-width:100px"
         class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
+      ><template #body="data">
           <Checkbox
-         
+            :disabled="
+              !(
+                store.state.user.is_super == true ||
+                store.state.user.user_id == data.data.created_by ||
+                (store.state.user.role_id == 'admin' &&
+                  store.state.user.organization_id == data.data.organization_id)
+              )
+            "
             :binary="true"
             v-model="data.data.allowance_wage_extend"
-        
+            @click="onCheckBoxT(data.data)"
           /> </template
-      ></Column>
+      >
+      </Column>
       <Column
         field="status"
         header="Trạng thái"
@@ -1120,6 +1168,8 @@ onMounted(() => {
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-4 text-left p-0">Ngày áp dụng</div>
             <Calendar
+               @blur="autoFillDate(allowance_wage,'date_approved')"
+              id="date_approved"
               :showIcon="true"
               class="ip36"
               autocomplete="on"

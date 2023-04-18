@@ -3,7 +3,7 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { encr, checkURL } from "../../../../util/function.js";
+import { encr, autoFillDate } from "../../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
 
@@ -987,7 +987,8 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
-                id="basic_purchase_date"
+                @blur="autoFillDate(training_emps,'start_date')"
+              id="start_date"
                 v-model="training_emps.start_date"
                 autocomplete="on" :showOnFocus="false"
                 :showIcon="true"
@@ -1003,7 +1004,8 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
-                id="basic_purchase_date"
+                @blur="autoFillDate(training_emps,'end_date')"
+              id="end_date"
                 v-model="training_emps.end_date"
                 autocomplete="on" :showOnFocus="false"
                 :minDate="
@@ -1067,7 +1069,8 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar 
                 class="w-full" :showOnFocus="false"
-                id="basic_purchase_date"
+                @blur="autoFillDate(training_emps,'registration_deadline')"
+              id="registration_deadline"
                 v-model="training_emps.registration_deadline"
                 :maxDate="
                   training_emps.start_date

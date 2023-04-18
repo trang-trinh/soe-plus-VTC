@@ -3,7 +3,7 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { encr, checkURL } from "../../../../util/function.js";
+import { encr, autoFillDate } from "../../../../util/function.js";
 import moment from "moment";
 
 const cryoptojs = inject("cryptojs");
@@ -1190,6 +1190,8 @@ onMounted(() => {
               <div class="col-5 flex p-0 align-items-center">
                 <div class="p-inputgroup">
                   <Calendar
+                  @blur="autoFillDate(recCalendar,'rec_calendar_date')"
+              id="rec_calendar_date"
                     class="w-full"
                     v-model="recCalendar.rec_calendar_date"
                     autocomplete="off"
@@ -1210,6 +1212,8 @@ onMounted(() => {
                     <span class="p-input-icon-left">
                       <i class="pi pi-search" />
                       <Calendar
+                      @blur="autoFillDate(recCalendar,'rec_time_start')"
+              id="rec_time_start"
                         v-model="recCalendar.rec_time_start"
                         :showTime="true"
                         :timeOnly="true"
@@ -1227,6 +1231,8 @@ onMounted(() => {
                     <div class="col-12 p-0">
                       <div class="p-inputgroup">
                         <Calendar
+                        @blur="autoFillDate(recCalendar,'rec_time_end')"
+              id="rec_time_end"
                           v-model="recCalendar.rec_time_end"
                           :showTime="true"
                           :timeOnly="true"
@@ -1500,6 +1506,8 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <Calendar
+
+                  
                       v-model="slotProps.data.time_recruitment"
                       :showTime="true"
                       placeholder="hh:mm"
