@@ -696,9 +696,8 @@ onMounted(() => {
           <template #body="data">
             <div
               v-if="
-                !user.is_super ||
-                (user.is_super &&
-                  user.organization_id == data.data.organization_id)
+                (user.organization_id =
+                  data.data.organization_id && user.is_admin)
               "
             >
               <Button
