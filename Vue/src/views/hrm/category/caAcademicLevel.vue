@@ -185,7 +185,7 @@ const openBasic = (str) => {
     status: true,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-    is_system: store.getters.user.is_super?true:false,
+    is_system: store.getters.user.is_super ? true : false,
   };
 
   checkIsmain.value = false;
@@ -193,7 +193,7 @@ const openBasic = (str) => {
   headerDialog.value = str;
   displayBasic.value = true;
 };
- 
+
 const closeDialog = () => {
   academic_level.value = {
     academic_level_name: "",
@@ -591,13 +591,17 @@ const onCheckBox = (value, check, checkIsmain) => {
 const deleteList = () => {
   let listId = new Array(selectedStamps.value.length);
   let checkD = false;
-  selectedStamps.value.forEach((item) => {
-    if (item.is_default) {
-      toast.error("Không được xóa trình độ học vấn mặc định!");
-      checkD = true;
-      return;
-    }
-  });
+  // selectedStamps.value.forEach((item) => {
+  //   if (
+  //     store.state.user.is_super == true ||
+  //     store.state.user.user_id == item.data.created_by ||
+  //     (store.state.user.role_id == "admin" &&
+  //       store.state.user.organization_id == item.data.organization_id &&
+  //       item.data.is_system != true)
+  //   ) {
+  //     return;
+  //   }
+  // });
   if (!checkD) {
     swal
       .fire({
@@ -838,7 +842,7 @@ onMounted(() => {
 
           <template #end>
             <Button
-              v-if="checkDelList"
+              v-if="checkDelList "
               @click="deleteList()"
               label="Xóa"
               icon="pi pi-trash"
@@ -879,7 +883,8 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-        selectionMode="multiple"
+         selectionMode="multiple"  v-if="store.getters.user.is_super==true"
+        
       >
       </Column>
 
@@ -957,7 +962,8 @@ onMounted(() => {
               store.state.user.is_super == true ||
               store.state.user.user_id == Tem.data.created_by ||
               (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id && Tem.data.is_system!=true )
+                store.state.user.organization_id == Tem.data.organization_id &&
+                Tem.data.is_system != true)
             "
           >
             <Button

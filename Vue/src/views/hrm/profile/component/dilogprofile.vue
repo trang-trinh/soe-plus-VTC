@@ -752,6 +752,7 @@ onMounted(() => {
                       <label>Chuyên ngành học</label>
                       <Dropdown
                         :showClear="true"
+                        :filter="true"
                         :options="props.dictionarys[7]"
                         optionLabel="specialization_name"
                         optionValue="specialization_id"

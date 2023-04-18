@@ -1940,7 +1940,7 @@ emitter.on("emitData", (obj) => {
               </Toolbar>
             </template>
             <Column
-              selectionMode="multiple"
+               selectionMode="multiple"  v-if="store.getters.user.is_super==true"
               headerStyle="text-align:center;max-width:75px;height:50px"
               bodyStyle="text-align:center;max-width:75px"
               class="align-items-center justify-content-center text-center"

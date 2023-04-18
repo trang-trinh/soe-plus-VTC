@@ -3,7 +3,7 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { encr, checkURL } from "../../../../util/function.js";
+import { encr, autoFillDate } from "../../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
 const store = inject("store");
@@ -1117,8 +1117,10 @@ onMounted(() => {
             <div class="w-10rem">Ngày bắt đầu</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
+              @blur="autoFillDate(campaign,'start_date')"
+              id="start_date"
                 class="w-full"
-                id="basic_purchase_date"
+        
                 v-model="campaign.start_date" :showOnFocus="false"
                 autocomplete="on"
                 :showIcon="true"
@@ -1132,7 +1134,8 @@ onMounted(() => {
               <Calendar
                 class="w-full"
                 placeholder="dd/mm/yyyy"
-                id="basic_purchase_date"
+                @blur="autoFillDate(campaign,'end_date')"
+              id="end_date"
                 v-model="campaign.end_date" :showOnFocus="false"
                 autocomplete="on"
                 :minDate="
@@ -1274,6 +1277,8 @@ onMounted(() => {
               <div style="width: calc(100% - 10rem)">
                 <Calendar
                   class="w-full"
+                  @blur="autoFillDate(campaign,'rec_recruitment_deadline')"
+              id="rec_recruitment_deadline"
                   placeholder="dd/mm/yyyy"
                   v-model="campaign.rec_recruitment_deadline"
                   autocomplete="on" :showOnFocus="false"
