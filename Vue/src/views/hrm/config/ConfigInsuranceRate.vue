@@ -406,11 +406,7 @@ onMounted(() => {
   <div class="d-container p-0">
     <div class="p-0 surface-0">
       <div class="grid mt-0 p-0 m-0">
-        <div class="col-12 field p-0 font-bold">
-          <div class="col-12 p-0 format-center text-xl">
-            Tỷ lệ đóng bảo hiểm
-          </div>
-        </div>
+      
         <div class="col-12 field format-center p-0 font-bold">
           <Toolbar class="w-full custoolbar">
             <template #end>

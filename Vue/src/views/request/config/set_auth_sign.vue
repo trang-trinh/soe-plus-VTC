@@ -45,9 +45,9 @@ const openSelectCompany = () => {
                 str: encr(
                     JSON.stringify({
                         proc: "request_setting_get_list_company_select",
-                        // par: [
-                        //     { par: "request_form_id", va: model.request_form_id },
-                        // ],
+                        par: [
+                            { par: "user_id", va: store.state.user.user_id },
+                        ],
                     }),
                     SecretKey,
                     cryoptojs
@@ -57,7 +57,13 @@ const openSelectCompany = () => {
         )
         .then((response) => {
             let data = JSON.parse(response.data.data);
-            listCompanys.value = data[0];
+            if(datalists.value.length > 0){
+                data[0].forEach((e) => {
+                    if(datalists.value.filter(x=>x.organization_id == e.organization_id).length == 0){
+                        listCompanys.value.push(e);
+                    }
+                })
+            }
             headerSelectCompany.value = "Chọn công ty";
             displaySelectCompany.value = true;
         })
@@ -80,16 +86,77 @@ const ChoseCompany = () => {
     if (selectedCompanys.value.length > 0) {
         selectedCompanys.value.forEach((e) => {
             let arr = {
-                setting_id: "-1", is_num_device: null, is_verify_sign: false, is_skip_web: false, is_one_device: false, is_creator_cancel_request: null, is_creator_del_request: null,
-                is_creator_tag_follow: null, is_creator_handle: null, is_approved_cancel_request: null, is_approved_del_request: null, is_approved_tag_follow: null, is_approved_handle: null, organization_id: e.organization_id, organization_name: e.organization_name
+                setting_id: "-1", is_num_device: null, is_verify_sign: false, is_skip_web: false, is_one_device: false, is_creator_cancel_request: false, is_creator_del_request: false,
+                is_creator_tag_follow: false, is_creator_handle: false, is_approved_cancel_request: false, is_approved_del_request: false, is_approved_tag_follow: false, is_approved_handle: false, organization_id: e.organization_id, organization_name: e.organization_name
             };
             datalists.value.push(arr);
         })
     }
     closeDialogSelectCompany();
 }
+const saveData = () => {
+    let formData = new FormData();
+    formData.append("request_setting", JSON.stringify(datalists.value));
+    axios
+        .post(
+            baseURL +
+            "/api/request_setting/add_request_setting",
+            formData,
+            config,
+        )
+        .then((response) => {
+            if (response.data.err != "1") {
+                swal.close();
+                toast.success("Cập nhật thiết lập xác thực ký thành công!");
+                loadData(true);
+            }
+        })
+        .catch(() => {
+            swal.close();
+            swal.fire({
+                title: "Error!",
+                text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+            });
+        });
+}
 const loadData = (rf) => {
-
+    options.value.loading = true;
+    axios
+        .post(
+            baseUrlCheck + "/api/request/getData",
+            {
+                str: encr(
+                    JSON.stringify({
+                        proc: "request_setting_list",
+                        par: [
+                            { par: "user_id", va: store.state.user.user_id },
+                            // { par: "search", va: options.value.SearchText },
+                        ],
+                    }),
+                    SecretKey,
+                    cryoptojs,
+                ).toString(),
+            },
+            config,
+        )
+        .then((response) => {
+            let data = JSON.parse(response.data.data)[0];
+            datalists.value = data;
+            options.value.loading = false;
+        })
+        .catch((error) => {
+            toast.error("Tải dữ liệu không thành công!");
+            options.value.loading = false;
+            if (error && error.status === 401) {
+                swal.fire({
+                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                    confirmButtonText: "OK",
+                });
+                store.commit("gologout");
+            }
+        });
 }
 onMounted(() => {
     if (!checkURL(window.location.pathname, store.getters.listModule)) {
@@ -105,7 +172,7 @@ onMounted(() => {
 </script>
 <template>
     <div class="main-layout flex-grow-1 p-2 pb-0 pr-0" v-if="store.getters.islogin">\
-        <DataTable class="table-ca-request" :value="datalists" :paginator="false" :scrollable="true" scrollHeight="flex"
+        <DataTable class="table-request-setting" :value="datalists" :paginator="false" :scrollable="true" scrollHeight="flex"
             :loading="options.loading" v-model:selection="selectedDatas" :lazy="true" dataKey="setting_id" :rowHover="true"
             :showGridlines="true" responsiveLayout="scroll">
             <template #header>
@@ -122,6 +189,8 @@ onMounted(() => {
                     </template>
                     <template #end>
                         <Button @click="openSelectCompany('Chọn công ty')" label="Chọn công ty" icon="pi pi-plus"
+                            class="mr-2" />
+                        <Button v-if="datalists.length > 0" @click="saveData()" label="Lưu" icon="pi pi-check"
                             class="mr-2" />
                         <Button @click="refreshData" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
                             v-tooltip="'Tải lại'" />
@@ -143,7 +212,7 @@ onMounted(() => {
                 bodyStyle="justify-content:center;max-width:15rem;border-left:none;border-right:none;"
                 headerClass="align-items-center justify-content-center">
                 <template #body="data">
-                    <InputNumber v-model="data.data.is_num_device" class="col-12 ip36 p-0" />
+                    <InputNumber v-model="data.data.is_num_device" style="text-align: center;" class="col-12 ip36 p-0" />
                 </template>
             </Column>
             <Column field="" header="Xác thực trước khi ký"
@@ -151,8 +220,7 @@ onMounted(() => {
                 bodyStyle="justify-content:center;max-width:15rem;border-left:none;border-right:none;position: relative;"
                 headerClass="align-items-center justify-content-center">
                 <template #body="data">
-                    <InputSwitch class="col-12" style="position: absolute;"
-                        v-model="data.data.is_verify_sign" />
+                    <InputSwitch class="col-12" style="position: absolute;" v-model="data.data.is_verify_sign" />
                 </template>
             </Column>
             <Column field="" header="Xác thực sau khi ký trên web"
@@ -160,8 +228,7 @@ onMounted(() => {
                 bodyStyle="text-align:center;max-width:15rem;border-left:none;border-right:none;position: relative;"
                 class="align-items-center justify-content-center text-center">
                 <template #body="data">
-                    <InputSwitch class="col-12" style="position: absolute;"
-                        v-model="data.data.is_skip_web" />
+                    <InputSwitch class="col-12" style="position: absolute;" v-model="data.data.is_skip_web" />
                 </template>
             </Column>
             <Column field="status" header="1 thiết bị chỉ ký 1 user"
@@ -169,8 +236,7 @@ onMounted(() => {
                 bodyStyle="text-align:center;max-width:15rem;border-left:none;border-right:none;position: relative;"
                 class="align-items-center justify-content-center text-center">
                 <template #body="data">
-                    <InputSwitch class="col-12" style="position: absolute;"
-                        v-model="data.data.is_one_device" />
+                    <InputSwitch class="col-12" style="position: absolute;" v-model="data.data.is_one_device" />
                 </template>
             </Column>
             <template #empty>
@@ -207,10 +273,10 @@ onMounted(() => {
                         </Column>
                         <template #empty>
                             <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                                          display: flex;
-                                          flex-direction: column;
-                                        " v-if="listCompanys.length == 0">
-                                <img src="../../../../assets/background/nodata.png" height="144" />
+                                                          display: flex;
+                                                          flex-direction: column;
+                                                        " v-if="listCompanys.length == 0">
+                                <img src="../../../assets/background/nodata.png" height="144" />
                                 <h3 class="m-1">Không có dữ liệu</h3>
                             </div>
                         </template>
@@ -224,4 +290,10 @@ onMounted(() => {
         </template>
     </Dialog>
 </template>
-<style scoped></style>
+<style lang="scss" scoped>
+::v-deep(.table-request-setting) {
+  .p-inputnumber-input {
+    text-align: center;
+  }
+}
+</style>

@@ -7,6 +7,7 @@ import ConfigHolidays from "./ConfigHolidays.vue";
 import ConfigInsurance from "./ConfigInsuranceRate.vue";
 import ConfigEmail from "./ConfigEmail.vue";
 import { encr, checkURL } from "../../../util/function.js";
+ 
 //Khai báo
 const router = inject("router");
 const cryoptojs = inject("cryptojs");
@@ -167,7 +168,7 @@ onMounted(() => {
               <ConfigEmail />
               </div>
           </AccordionTab>
-          
+         
         </Accordion>
       </div></div>
     </div>
