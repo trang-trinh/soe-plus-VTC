@@ -772,20 +772,20 @@ onMounted(() => {
               <div class="form-group">
                 <label>Chức danh </label>
                 <Dropdown
-                  :options="dictionarys[4]"
+                  :options="dictionarys[16]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
-                  v-model="props.model.work_position_id"
-                  optionLabel="work_position_name"
-                  optionValue="work_position_id"
+                  v-model="props.model.title_id"
+                  optionLabel="title_name"
+                  optionValue="title_id"
                   placeholder="Chọn chức danh"
                   class="ip36"
                 >
                   <template #option="slotProps">
                     <div class="country-item flex align-items-center">
                       <div class="pt-1 pl-2">
-                        {{ slotProps.option.work_position_name }}
+                        {{ slotProps.option.title_name }}
                       </div>
                     </div>
                   </template>
