@@ -283,6 +283,7 @@ const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
 const Hrm_proposal = () => import("../views/hrm/recruitment/hrm_proposal.vue");
 
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
+const hrm_ConfigWorkLocation = () => import("../views/hrm/declare/hrm_config_work_location.vue");
 const Hrm_paycheck_form = () =>
   import("../views/hrm/declare/hrm_paycheck_form.vue");
 const Hrm_rec_calendar = () =>
@@ -1928,6 +1929,12 @@ const router = createRouter({
       name: "Hrm_paycheck_form",
       component: Hrm_paycheck_form,
     },
+    {
+      path: "/hrm/configworklocation",
+      name: "hrm_ConfigWorkLocation",
+      component: hrm_ConfigWorkLocation,
+    },
+    
     {
       path: "/hrm/configprocess",
       name: "Hrm_config_process",
