@@ -7,7 +7,7 @@ import ConfigHolidays from "./ConfigHolidays.vue";
 import ConfigInsurance from "./ConfigInsuranceRate.vue";
 import ConfigEmail from "./ConfigEmail.vue";
 import { encr, checkURL } from "../../../util/function.js";
-import ConfigWorkLocation from "./ConfigWorkLocation.vue";
+ 
 //Khai báo
 const router = inject("router");
 const cryoptojs = inject("cryptojs");
