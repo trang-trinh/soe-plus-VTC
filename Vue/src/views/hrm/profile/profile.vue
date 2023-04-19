@@ -939,7 +939,7 @@ const openAddDialogContract = (item, str) => {
   model.value = {
     profile: item,
     sign_user: null,
-    contract_no: "",
+    contract_code: "",
     contract_name: "",
     employment: "",
     start_date: new Date(),

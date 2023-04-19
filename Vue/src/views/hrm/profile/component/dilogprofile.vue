@@ -171,7 +171,7 @@ const saveModel = (is_continue) => {
       );
       if (is_continue) {
         props.model.profile = null;
-        props.model.contract_no = "";
+        props.model.contract_code = "";
       } else {
         props.closeDialog();
       }
