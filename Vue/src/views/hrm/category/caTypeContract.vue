@@ -101,6 +101,10 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+
+          if(element.report_key){
+            element.report_key_name= listTypeContractSave.value.find(x=>x.report_key==element.report_key).report_name;
+          }
         });
         datalists.value = data;
 
@@ -758,6 +762,7 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
+const  listTypeContractSave=ref([]);
 const initTuDien = () => {
   listTypeContract.value = [];
   axios
@@ -777,6 +782,8 @@ const initTuDien = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
+
+      listTypeContractSave.value=[...data]
       if (isFirst.value) isFirst.value = false;
       var arrGroups = [];
       data.forEach((element) => {
@@ -812,11 +819,12 @@ const initTuDien = () => {
         store.commit("gologout");
       }
     });
+    loadData(true);
 };
 const listFilesS = ref([]);
 onMounted(() => {
   initTuDien();
-  loadData(true);
+ 
   return {
     datalists,
     options,
@@ -1015,7 +1023,14 @@ onMounted(() => {
             placeholder="Từ khoá"
           />
         </template>
-      </Column>
+      </Column><Column
+        field="report_key_name"
+        header="Mẫu hợp đồng"
+        headerStyle="text-align:center;max-width:300px;height:50px"
+        bodyStyle="text-align:center;max-width:300px;;max-height:60px"
+        class="align-items-center justify-content-center text-center"
+      >
+        </Column>
       <!-- <Column
         field="decision_name"
         header="File mẫu"

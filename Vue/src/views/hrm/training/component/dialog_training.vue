@@ -1377,7 +1377,22 @@ onMounted(() => {
                 :rowHover="true"
                 :showGridlines="true"
                 scrollDirection="both"
-              >
+              >  <Column
+                  header=""
+                  headerStyle="text-align:center;width:50px"
+                  bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <a
+                      @click="delRow_Item(slotProps.data, 1)"
+                      class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa học viên'"
+                    >
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
                 <Column
                   field="card_number"
                   header="STT"
@@ -1613,22 +1628,7 @@ onMounted(() => {
                     />
                   </template>
                 </Column>
-                <Column
-                  header=""
-                  headerStyle="text-align:center;width:50px"
-                  bodyStyle="text-align:center;width:50px"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <a
-                      @click="delRow_Item(slotProps.data, 1)"
-                      class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa học viên'"
-                    >
-                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                    </a>
-                  </template>
-                </Column>
+              
                 <template #empty> </template>
               </DataTable>
             </div>
@@ -1677,7 +1677,22 @@ onMounted(() => {
                 :rowHover="true"
                 :showGridlines="true"
                 scrollDirection="both"
-              >
+              > <Column
+                  header=""
+                  headerStyle="text-align:center;width:50px"
+                  bodyStyle="text-align:center;width:50px"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <a
+                      @click="delRow_Item(slotProps.data, 2)"
+                      class="hover cursor-pointer"
+                      v-tooltip.top="'Xóa lịch học'"
+                    >
+                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
+                    </a>
+                  </template>
+                </Column>
                 <Column
                   field="card_number"
                   header="STT"
@@ -1977,22 +1992,7 @@ onMounted(() => {
                     />
                   </template>
                 </Column>
-                <Column
-                  header=""
-                  headerStyle="text-align:center;width:50px"
-                  bodyStyle="text-align:center;width:50px"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <a
-                      @click="delRow_Item(slotProps.data, 2)"
-                      class="hover cursor-pointer"
-                      v-tooltip.top="'Xóa lịch học'"
-                    >
-                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                    </a>
-                  </template>
-                </Column>
+               
               </DataTable>
             </div>
           </div>

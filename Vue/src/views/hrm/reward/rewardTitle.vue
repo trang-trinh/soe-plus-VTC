@@ -5,9 +5,10 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 import dialogReward from "./component/dialog_reward.vue";
+import DropdownUser from "../component/DropdownUser.vue";
 import router from "@/router";
 //Khai báo
-
+const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -216,6 +217,7 @@ const options = ref({
   totalRecords3: 0,
   totalRecordsExport: 50,
   pagenoExport: 1,
+  reward_name:[]
 });
 
 //Hiển thị dialog
@@ -850,6 +852,17 @@ const reFilterEmail = () => {
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
+
+  if (options.value.reward_name.length>0) {
+    let filterS1 = {
+      filterconstraints: [ { value: options.value.reward_name.toString(), matchMode: "arrIntersec" }],
+      filteroperator: "or",
+      key: "reward_name",
+    };
+     
+      filterSQL.value.push(filterS1);
+  
+  }
   if (options.value.reward_level_id) {
     let filterS1 = {
       filterconstraints: [],
@@ -1111,7 +1124,20 @@ const loadUserProfiles = () => {
         store.commit("gologout");
       }
     });
-};
+};5
+  emitter.on("emitData", (obj) => {
+    switch (obj.type) {
+      case "submitModel":
+        if (obj.data) {
+           
+         options.value.reward_name=obj.data;
+         console.log("Ssa",options.value);
+        }
+        break;
+     
+      default: break;
+    }
+  });
 onMounted(() => {
   loadUserProfiles();
   initTudien();
@@ -1178,7 +1204,7 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width: 400px"
+                style="width: 600px"
               >
                 <div class="grid formgrid m-0">
                   <div
@@ -1193,6 +1219,13 @@ onMounted(() => {
                       <div class="col-12 md:col-12">
                         
                         <div class="row" >
+                          <div class="col-12 md:col-12">
+                            <div class="py-2"  >Đối tượng khen thưởng</div>
+                            <DropdownUser  :model="options.reward_name"
+                            
+                            :display="'chip'"
+                            :placeholder="'Chọn đối tượng khen thưởng'"/>
+                          </div>
                           <div class="col-12 md:col-12">
                             <div class="py-2" v-if="options.tab == 0">Cấp khen thưởng</div>
                             <div class="py-2"   v-if="options.tab == 1">Cấp kỷ luật</div>

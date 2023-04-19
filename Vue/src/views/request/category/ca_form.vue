@@ -177,10 +177,38 @@ const editForm = (data) => {
 		.then((response) => {
 			let data = JSON.parse(response.data.data);
 			request_form.value = data[0][0];
-			data[1].forEach((e) => {
+			data[1].forEach((e, k) => {
 				e.GroupTeamUsers = e.GroupTeamUsers
 					? JSON.parse(e.GroupTeamUsers)
 					: [];
+				e.GroupTeamUsers.forEach((m, i) => {
+					if (e.GroupTeamUsers.length == 1) {
+						m.isDisableDown = true;
+						m.isDisableUp = true;
+					} else if (i == 0 && e.GroupTeamUsers.length > 1) {
+						m.isDisableDown = false;
+						m.isDisableUp = true;
+					} else if ((i + 1 == e.GroupTeamUsers.length) && e.GroupTeamUsers.length > 1) {
+						m.isDisableDown = true;
+						m.isDisableUp = false;
+					} else if (i > 0 && i < e.GroupTeamUsers.length - 1) {
+						m.isDisableDown = false;
+						m.isDisableUp = false;
+					}
+				})
+				if (data[1].length == 1) {
+					e.isDisableDown = true;
+					e.isDisableUp = true;
+				} else if (k == 0 && data[1].length > 1) {
+					e.isDisableDown = false;
+					e.isDisableUp = true;
+				} else if ((k + 1 == data[1].length) && data[1].length > 1) {
+					e.isDisableDown = true;
+					e.isDisableUp = false;
+				} else if (k > 0 && k < data[1].length - 1) {
+					e.isDisableDown = false;
+					e.isDisableUp = false;
+				}
 			})
 			data[2].forEach((e, i) => {
 				e.STT = i + 1;
@@ -638,15 +666,15 @@ onMounted(() => {
 										}" v-bind:label="
 	value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
 " v-bind:image="basedomainURL + value.avatar" style="
-					                    background-color: #2196f3;
-					                    color: #ffffff;
-					                    width: 32px;
-					                    height: 32px;
-					                    font-size: 15px !important;
-					                    margin-left: -10px;
-					                  " :style="{
-					                  	background: bgColor[index % 7] + '!important',
-					                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+								                    background-color: #2196f3;
+								                    color: #ffffff;
+								                    width: 32px;
+								                    height: 32px;
+								                    font-size: 15px !important;
+								                    margin-left: -10px;
+								                  " :style="{
+								                  	background: bgColor[index % 7] + '!important',
+								                  }" class="cursor-pointer" size="xlarge" shape="circle" />
 									</div>
 								</div>
 								<Avatar v-if="
@@ -656,13 +684,13 @@ onMounted(() => {
 	(l.requestGroup2.length) +
 	''
 " class="cursor-pointer" shape="circle" style="
-					                background-color: #e9e9e9 !important;
-					                color: #98a9bc;
-					                font-size: 14px !important;
-					                width: 32px;
-					                margin-left: -10px;
-					                height: 32px;
-					              " />
+								                background-color: #e9e9e9 !important;
+								                color: #98a9bc;
+								                font-size: 14px !important;
+								                width: 32px;
+								                margin-left: -10px;
+								                height: 32px;
+								              " />
 							</AvatarGroup>
 						</div>
 					</div>
@@ -708,17 +736,17 @@ onMounted(() => {
 						(store.state.user.role_id == 'admin' && store.state.user.organization_id == Tem.data.organization_id)
 					">
 						<Button @click="editForm(Tem.data)" class="
-																						p-button-rounded
-																						p-button-secondary
-																						p-button-outlined
-																						mx-1
-																					" type="button" icon="pi pi-pencil" v-tooltip.top="'Sửa'"></Button>
+																									p-button-rounded
+																									p-button-secondary
+																									p-button-outlined
+																									mx-1
+																								" type="button" icon="pi pi-pencil" v-tooltip.top="'Sửa'"></Button>
 						<Button class="
-																						p-button-rounded
-																						p-button-danger
-																						p-button-outlined
-																						mx-1
-																					" type="button" icon="pi pi-trash" @click="delTem(Tem.data)" v-tooltip.top="'Xóa'"></Button>
+																									p-button-rounded
+																									p-button-danger
+																									p-button-outlined
+																									mx-1
+																								" type="button" icon="pi pi-trash" @click="delTem(Tem.data)" v-tooltip.top="'Xóa'"></Button>
 					</div>
 				</template>
 			</Column>

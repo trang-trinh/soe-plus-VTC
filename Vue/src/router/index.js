@@ -528,12 +528,12 @@ const router = createRouter({
       component: Error,
     },
     {
-      path: "/sys/sys_approved_groups",
+      path: "/system/sys_approved_groups",
       name: "sys_sys_approved_groups",
       component: ConfigAprrovedGroups,
     },
     {
-      path: "/sys/sys_process",
+      path: "/system/sys_process",
       name: "sys_sys_process",
       component: ConfigProcess,
     },
@@ -1983,7 +1983,7 @@ const router = createRouter({
     },
     // Request/Config
     {
-      path: "/request/config/ca_team",
+      path: "/request/config/set_auth_sign",
       name: "Request_Config_Auth_Sign",
       component: Request_Config_Auth_Sign,
     },

@@ -161,13 +161,15 @@ namespace API.Controllers.HRM.Campaign
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Candidate", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Candidate", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Candidate", fileName);
+                            // }
+                                     newFileName = Path.Combine(root + "/" + dvid + "/Candidate",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Candidate", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -319,7 +321,7 @@ db.SaveChanges();
 
                         fdcandidate = provider.FormData.GetValues("hrm_candidate").SingleOrDefault();
                         hrm_candidate candidate = JsonConvert.DeserializeObject<hrm_candidate>(fdcandidate);
-                        var checkBarcode = db.hrm_candidate.Where(a => a.candidate_code == candidate.candidate_code && a.candidate_id
+                        var checkBarcode = db.hrm_candidate.AsNoTracking().Where(a => a.candidate_code == candidate.candidate_code && a.candidate_id
                         != candidate.candidate_id && candidate.organization_id == intw).FirstOrDefault();
                         if (checkBarcode != null)
                         {
@@ -455,13 +457,15 @@ db.SaveChanges();
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Candidate", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Candidate", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Candidate", fileName);
+                            // }
+                             newFileName = Path.Combine(root + "/" + dvid + "/Candidate",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Candidate", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
