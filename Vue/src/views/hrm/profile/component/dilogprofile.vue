@@ -59,7 +59,6 @@ const submitted = ref(false);
 const saveModel = (is_continue) => {
   submitted.value = true;
   if (
-    !props.model.profile_code ||
     !props.model.profile_user_name ||
     !props.model.birthday
   ) {
@@ -323,7 +322,7 @@ onMounted(() => {
                       <div class="col-6 md:col-6">
                         <div class="form-group">
                           <label
-                            >Mã nhân sự <span class="redsao">(*)</span></label
+                            >Mã nhân sự</label
                           >
                           <InputText
                             spellcheck="false"
@@ -334,11 +333,6 @@ onMounted(() => {
                               fontWeight: 'bold',
                             }"
                           />
-                          <div v-if="!props.model.profile_code && submitted">
-                            <small class="p-error">
-                              <span>Mã nhân sự không được để trống</span>
-                            </small>
-                          </div>
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
@@ -1373,6 +1367,7 @@ onMounted(() => {
                       <label>Chuyên ngành</label>
                       <Dropdown
                         :showClear="true"
+                        :filter="true"
                         :options="props.dictionarys[18]"
                         optionLabel="specialization_name"
                         optionValue="specialization_id"
@@ -1922,7 +1917,7 @@ onMounted(() => {
                     ></template
                   >
                   <template #end>
-                    <a
+                    <!-- <a
                       @click="
                         props.addRow(3);
                         $event.stopPropagation();
@@ -1935,7 +1930,7 @@ onMounted(() => {
                         data-v-62364173=""
                         style="font-size: 18px"
                       ></i>
-                    </a>
+                    </a> -->
                   </template>
                 </Toolbar>
               </template>
@@ -2119,7 +2114,7 @@ onMounted(() => {
                       </div>
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Số thẻ Đảng</label>
                       <InputText
@@ -2130,12 +2125,24 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Ngày vào Đảng</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.partisan_date"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Ngày vào Đảng chính thức</label>
                       <Calendar
                         :showIcon="true"
-                        v-model="props.model.partisan_date"
+                        v-model="props.model.partisan_main_date"
                         class="ip36"
                         id="icon"
                         placeholder="dd/mm/yyyy"
@@ -2238,6 +2245,7 @@ onMounted(() => {
                         v-model="props.model.military_start_date"
                         class="ip36"
                         id="icon"
+                        placeholder="dd/mm/yyyy"
                       />
                     </div>
                   </div>
@@ -2249,6 +2257,7 @@ onMounted(() => {
                         v-model="props.model.military_end_date"
                         class="ip36"
                         id="icon"
+                        placeholder="dd/mm/yyyy"
                       />
                     </div>
                   </div>
@@ -2285,7 +2294,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <!-- <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Sở trường công tác</label>
                       <InputText
@@ -2295,8 +2304,8 @@ onMounted(() => {
                         maxLength="250"
                       />
                     </div>
-                  </div>
-                  <div class="col-6 md:col-6">
+                  </div> -->
+                  <!-- <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Sức khỏe</label>
                       <InputText
@@ -2306,7 +2315,7 @@ onMounted(() => {
                         maxLength="250"
                       />
                     </div>
-                  </div>
+                  </div> -->
 
                   <div class="col-6 md:col-6">
                     <div class="form-group">
@@ -2725,6 +2734,17 @@ onMounted(() => {
                       />
                     </div>
                   </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Nhập thông tin</label>
+                      <Textarea
+                        :autoResize="true"
+                        rows="4"
+                        placeholder="Nhật xét, đánh giá của cơ quan, đơn vị quản lý và sử dụng cán bộ, công chức"
+                        v-model="props.model.note"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </AccordionTab>
@@ -2813,12 +2833,6 @@ onMounted(() => {
               </div>
             </AccordionTab>
           </Accordion>
-        </div>
-        <div class="col-12 md:col-12 mt-2">
-          <div class="form-group">
-            <label>Ghi chú</label>
-            <Textarea :autoResize="true" rows="4" v-model="props.model.note" />
-          </div>
         </div>
       </div>
     </form>
