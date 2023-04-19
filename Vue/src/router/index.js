@@ -1990,7 +1990,7 @@ const router = createRouter({
     },
     // Request/Config
     {
-      path: "/request/config/ca_team",
+      path: "/request/config/set_auth_sign",
       name: "Request_Config_Auth_Sign",
       component: Request_Config_Auth_Sign,
     },
