@@ -54,7 +54,12 @@ function CreateGuid() {
 //Function
 const saveModel = (is_continue) => {
   submitted.value = true;
-  if (!props.model.profile || !props.model.start_date) {
+  if (
+    !props.model.profile ||
+    !props.model.type_contract_id ||
+    !props.model.contract_code ||
+    !props.model.start_date
+  ) {
     swal.fire({
       title: "Thông báo!",
       text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
@@ -345,6 +350,37 @@ const removeAllowanceDetail = (array, idx) => {
   }
 };
 //init
+const genCode = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_contract_gencode",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "type_contract_id", va: props.model.type_contract_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            props.model.contract_code = tbs[0][0].contract_code;
+          }
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -522,10 +558,11 @@ onMounted(() => {
               <div class="form-group">
                 <label>Loại hợp đồng <span class="redsao">(*)</span></label>
                 <Dropdown
+                  @change="genCode()"
                   :options="dictionarys[2]"
                   :filter="true"
                   :showClear="true"
-                  :editable="true"
+                  :editable="false"
                   v-model="props.model.type_contract_id"
                   optionLabel="type_contract_name"
                   optionValue="type_contract_id"
@@ -533,6 +570,11 @@ onMounted(() => {
                   class="ip36"
                   :class="{
                     'p-invalid': !props.model.type_contract_id && submitted,
+                  }"
+                  :style="{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }"
                 >
                   <template #option="slotProps">
@@ -554,17 +596,26 @@ onMounted(() => {
             </div>
             <div class="col-6 md:col-6">
               <div class="form-group">
-                <label>Mã hợp đồng</label>
+                <label>Mã hợp đồng <span class="redsao">(*)</span></label>
                 <InputText
                   v-model="props.model.contract_code"
                   spellcheck="false"
                   class="ip36"
                   :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                   maxLength="250"
+                  :class="{
+                    'p-invalid': !props.model.contract_code && submitted,
+                  }"
                 />
+                <div v-if="!props.model.contract_code && submitted">
+                  <small class="p-error">
+                    <span class="col-12 p-0"
+                      >Mã hợp đồng không được để trống</span
+                    >
+                  </small>
+                </div>
               </div>
             </div>
-
             <div class="col-6 md:col-6">
               <div class="form-group">
                 <label>Hiệu lực từ ngày <span class="redsao">(*)</span></label>

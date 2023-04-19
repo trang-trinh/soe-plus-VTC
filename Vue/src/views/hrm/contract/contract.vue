@@ -334,13 +334,21 @@ const copyContract = (item, str) => {
 };
 
 const printViewContract = (row) => {
-  if (row) {
-    let o = { id: 2, par: { contract_id: row.contract_id } };
+  if (row && row.report_key) {
+    let o = { id: row.report_key, par: { contract_id: row.contract_id } };
     let url = encodeURIComponent(
       encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
     );
     url = "https://doconline.soe.vn/report/" + url.replaceAll("%", "==");
     window.open(url);
+  } else {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Chưa thiết lập loại hợp đồng!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
   }
 };
 
