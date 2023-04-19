@@ -636,6 +636,12 @@ const exportData = (method) => {
             { par: "user_id", va: store.state.user.user_id },
             { par: "search", va: options.value.SearchText },
             {
+              par: "reward_name",
+              va: options.value.reward_name
+                ? options.value.reward_name.toString()
+                : null,
+            },
+            {
               par: "reward_level_id",
               va: options.value.reward_level_id
                 ? options.value.reward_level_id.toString()
@@ -1131,7 +1137,7 @@ const loadUserProfiles = () => {
         if (obj.data) {
            
          options.value.reward_name=obj.data;
-         console.log("Ssa",options.value);
+ 
         }
         break;
      

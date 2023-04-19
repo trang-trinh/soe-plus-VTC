@@ -47,7 +47,7 @@ export default defineConfig({
   //     fileURL: JSON.stringify("http://api.qldh.bhxh/"),
   //     socketURL: JSON.stringify("http://192.168.100.9:3333/"),
   //     SecretKey: JSON.stringify("1012198815021989"),
-  //     isDev: true,
+  //     isDev: true,Tìm
   // },
   define: {
     baseURL: JSON.stringify("https://apivtc.soe.vn/"),
