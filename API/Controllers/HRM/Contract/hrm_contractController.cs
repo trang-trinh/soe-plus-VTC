@@ -85,11 +85,6 @@ namespace API.Controllers.Hrn
                     #region Model
                     if (isAdd)
                     {
-                        var check = await db.hrm_contract.CountAsync(x => x.contract_no == model.contract_no) > 0;
-                        if (check)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Mã hợp đồng đã tồn tại!" });
-                        }
                         model.contract_id = helper.GenKey();
                         model.is_order = model.is_order ?? (db.hrm_contract.Count() + 1);
                         model.status = 0;
