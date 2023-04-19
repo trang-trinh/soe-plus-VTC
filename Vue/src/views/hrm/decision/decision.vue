@@ -329,7 +329,7 @@ const openAddDialog = (type, str) => {
     type_decision_code: type.type_decision_code,
     profile: null,
     sign_user: null,
-    contract_no: "",
+    contract_code: "",
     contract_name: "",
     employment:
       dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
