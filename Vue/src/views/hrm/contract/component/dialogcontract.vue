@@ -56,7 +56,7 @@ const saveModel = (is_continue) => {
   submitted.value = true;
   if (
     !props.model.profile ||
-    !props.model.contract_no ||
+    !props.model.contract_code ||
     !props.model.start_date
   ) {
     swal.fire({
@@ -67,7 +67,7 @@ const saveModel = (is_continue) => {
     });
     return;
   }
-  if (props.model.contract_no != null && props.model.contract_no.length > 250) {
+  if (props.model.contract_code != null && props.model.contract_code.length > 250) {
     swal.fire({
       title: "Thông báo!",
       text: "Mã hợp đồng không được vượt quá 250 ký tự!",
@@ -224,7 +224,7 @@ const saveModel = (is_continue) => {
       );
       if (is_continue) {
         props.model.profile = null;
-        props.model.contract_no = "";
+        props.model.contract_code = "";
       } else {
         props.closeDialog();
       }
@@ -527,12 +527,12 @@ onMounted(() => {
               <div class="form-group">
                 <label>Mã hợp đồng <span class="redsao">(*)</span></label>
                 <InputText
-                  v-model="props.model.contract_no"
+                  v-model="props.model.contract_code"
                   spellcheck="false"
                   class="ip36"
                   :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
                 />
-                <div v-if="!props.model.contract_no && submitted">
+                <div v-if="!props.model.contract_code && submitted">
                   <small class="p-error">
                     <span class="col-12 p-0"
                       >Mã hợp đồng không được để trống</span

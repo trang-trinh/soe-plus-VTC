@@ -357,7 +357,7 @@ const openAddDialog = (str) => {
   model.value = {
     profile: null,
     sign_user: null,
-    contract_no: "",
+    contract_code: "",
     contract_name: "",
     employment:
       dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
@@ -1887,7 +1887,7 @@ onMounted(() => {
         >
         </Column> -->
         <Column
-          field="contract_no"
+          field="contract_code"
           header="Mã HĐ"
           headerStyle="text-align:center;max-width:120px;height:50px"
           bodyStyle="text-align:center;max-width:120px;"

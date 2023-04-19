@@ -3813,7 +3813,7 @@ const onPage = (event) => {
                   responsiveLayout="scroll"
                 >
                   <Column
-                    field="contract_no"
+                    field="contract_code"
                     header="Mã HĐ"
                     headerStyle="text-align:center;max-width:80px;height:50px"
                     bodyStyle="text-align:center;max-width:80px;"
