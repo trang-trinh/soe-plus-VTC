@@ -30,7 +30,6 @@ const checkMultile = ref(false);
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
-
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
@@ -101,9 +100,11 @@ const loadDonvi = () => {
         );
 
         treedonvis.value = obj.arrChils;
-        treedonvis.value.forEach((element) => {
-          expandNodeMain(element);
-        });
+        setTimeout(() => {
+          treedonvis.value.forEach((element) => {
+            expandNodeMain(element);
+          });
+        }, 750);
       } else {
         treedonvis.value = [];
       }
@@ -664,7 +665,7 @@ onMounted(() => {
         <Column
           field="status"
           header="Hiển thị"
-          class="align-items-center justify-content-center text-center max-w-8rem"
+          class="align-items-center justify-content-center text-center max-w-6rem"
         >
           <template #body="data">
             <Checkbox
@@ -681,7 +682,7 @@ onMounted(() => {
         <Column
           field="is_system"
           header="Hệ thống"
-          class="align-items-center justify-content-center text-center max-w-8rem"
+          class="align-items-center justify-content-center text-center max-w-7rem"
         >
           <template #body="data">
             <div v-if="data.data.is_system == true">
@@ -696,12 +697,12 @@ onMounted(() => {
         <Column
           field="organization_name"
           header="Đơn vị"
-          class="align-items-center justify-content-center text-center max-w-15rem"
+          class="align-items-center justify-content-center text-center min-w-25rem"
         ></Column>
         <Column
           header="Chức năng"
           field=""
-          class="align-items-center justify-content-center text-center max-w-10rem"
+          class="align-items-center justify-content-center text-center max-w-7rem"
         >
           <template #body="data">
             <div
