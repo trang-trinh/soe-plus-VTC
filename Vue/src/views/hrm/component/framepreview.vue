@@ -119,31 +119,34 @@ onMounted(() => {
 });
 </script>
 <template>
+  <!-- <Button @click="showDialog = true" label="Show Dialog" /> -->
   <Dialog
-    :header="props.headerDialog"
     v-model:visible="display"
     appendTo="body"
-    :closable="true"
+    :closable="false"
     :style="{
-        zIndex: '9001',
+      zIndex: '9001',
     }"
-    class="p-dialog-maximized"
+    class="p-dialog-maximized p-dialog-content-padding-0"
   >
-    <div class="w-full h-full">
-      <iframe
-        id="IframeDoc2"
-        frameborder="0"
-        class="w-full h-full"
-      />
-    </div>
-    <template #footer>
-      <Button
-        label="Đóng"
-        icon="pi pi-times"
-        @click="props.closeDialog()"
-        class="p-button-text"
-      />
+    <template #header>
+      <Toolbar class="outline-none surface-0 border-none p-0 w-full">
+        <template #start>
+          <h2 class="m-0">{{ props.headerDialog }}</h2>
+        </template>
+        <template #end>
+          <Button
+            @click="toggleAddItem"
+            label="Đóng"
+            icon="pi pi-times"
+            class="p-button-text"
+          />
+        </template>
+      </Toolbar>
     </template>
+    <div class="w-full h-full">
+      <iframe id="IframeDoc2" frameborder="0" class="w-full h-full" />
+    </div>
   </Dialog>
 </template>
 <style scoped></style>
