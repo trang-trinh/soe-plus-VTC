@@ -12,21 +12,8 @@ const swal = inject("$swal");
 const basedomainURL = baseURL;
 const toast = useToast();
 
-const expandedKeys = ref([]);
-
-const selectedUser = ref([]);
-
-const bgColor = ref([
-  "#F8E69A",
-  "#AFDFCF",
-  "#F4B2A3",
-  "#9A97EC",
-  "#CAE2B0",
-  "#8BCFFB",
-  "#CCADD7",
-]);
 const treedonvis = ref([]);
-const checkMultile = ref(false);
+
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
@@ -89,22 +76,17 @@ const loadDonvi = () => {
     )
     .then((response) => {
       treedonvis.value = [];
-      let data = JSON.parse(response.data.data);
+      let data = JSON.parse(response.data.data)[0];
 
       if (data.length > 0) {
         let obj = renderTree(
-          data[0],
+          data,
           "organization_id",
           "organization_name",
           "phòng ban",
         );
 
         treedonvis.value = obj.arrChils;
-        setTimeout(() => {
-          treedonvis.value.forEach((element) => {
-            expandNodeMain(element);
-          });
-        }, 750);
       } else {
         treedonvis.value = [];
       }
@@ -161,7 +143,7 @@ const loadData = () => {
       swal.showLoading();
     },
   });
-  if (user.is_super) loadDonvi();
+  if (user.is_super == true) loadDonvi();
   axios
     .post(
       baseURL + "/api/DictionaryProc/getData",
@@ -204,24 +186,17 @@ const loadData = () => {
       }
     });
 };
-const user = store.state.user;
+const user = store.getters.user;
 const expandedKeysMain = ref([]);
 const expandNodeMain = (node) => {
-  if (node.children && node.children.length) {
+  if (node.children && node.children.length > 0) {
     expandedKeysMain.value[node.key] = true;
     for (let child of node.children) {
-      expandNode(child);
+      expandNodeMain(child);
     }
   }
 };
-const expandNode = (node) => {
-  if (node.children && node.children.length) {
-    expandedKeys.value[node.key] = true;
-    for (let child of node.children) {
-      expandNode(child);
-    }
-  }
-};
+
 const options = ref({
   searchText: "",
   pageNo: 0,
@@ -458,7 +433,7 @@ const clickRow = (node) => {
   options.value.filtersOrg = node.data.organization_id;
   loadData();
 };
-const UNclickRow = (node) => {
+const UNclickRow = () => {
   options.value.filtersOrg = null;
   loadData();
 };
@@ -481,15 +456,30 @@ const onPage = (e) => {
   options.value.pageSize = e.rows;
   loadData(true);
 };
+const first = ref(0);
 onMounted(() => {
   loadReportForm();
   loadData();
+  if (user.is_super == true) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+    setTimeout(() => {
+      treedonvis.value.forEach((element) => {
+        expandNodeMain(element);
+      });
+    }, 750);
+    swal.close();
+  }
 });
 </script>
 <template>
   <div class="main-layout true flex-grow-1 p-2 inline-flex">
     <div
-      v-if="user.is_super"
+      v-if="user.is_super == true && treedonvis.length > 0"
       class="col-3"
     >
       <TreeTable
