@@ -90,10 +90,17 @@ const itemButMores = ref([
     },
   },
   {
-    label: "Nhân bản hợp đồng",
+    label: "Nhân bản quyết định",
     icon: "pi pi-copy",
     command: (event) => {
-      copyItem(decision.value, "Nhân bản hợp đồng");
+      copyItem(decision.value, "Nhân bản quyết định");
+    },
+  },
+  {
+    label: "In quyết định",
+    icon: "pi pi-print",
+    command: (event) => {
+      printViewDecision(decision.value);
     },
   },
   {
@@ -299,13 +306,16 @@ const copyItem = (item, str) => {
     });
 };
 
-const printViewContract = (row) => {
-  if (row) {
-    let o = { id: 2, par: { decision_id: row.decision_id } };
+const printViewDecision = (row) => {
+  if (row && row.report_key) {
+    let o = {
+      id: row.report_key,
+      par: { decision_id: row.decision_id, isedit: true },
+    };
     let url = encodeURIComponent(
       encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
     );
-    url = "https://doconline.soe.vn/report/" + url.replaceAll("%", "==");
+    url = "https://doconline.soe.vn/decided/" + url.replaceAll("%", "==");
     window.open(url);
   }
 };
@@ -544,7 +554,7 @@ const deleteItem = (item) => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá hợp đồng này không!",
+        text: "Bạn có muốn xoá quyết định này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -680,7 +690,7 @@ const setStar = (item) => {
 };
 const setStatus = (status, event) => {
   if (status === 3) {
-    openAddDialogLiquidation("Thanh lý hợp đồng");
+    openAddDialogLiquidation("Thanh lý quyết định");
   } else {
     updateStatus(decision.value, status, event);
   }
@@ -1287,7 +1297,8 @@ onMounted(() => {
               inputId="time24"
               :class="{
                 'p-invalid': !modelLiquidation.date && submitted,
-              }" :showOnFocus="false"
+              }"
+              :showOnFocus="false"
               v-model="modelLiquidation.date"
               placeholder="DD/MM/YYYY"
             />
