@@ -282,7 +282,7 @@ const copyItem = (item, str) => {
       swal.close();
       if (options.value.loading) options.value.loading = false;
 
-      forceRerender();
+      forceRerender(0);
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -359,7 +359,7 @@ const files = ref([]);
 const type_decision = ref({});
 const openAddDialog = (type, str) => {
   type_decision.value = type;
-  forceRerender();
+  forceRerender(0);
   isAdd.value = true;
   isCopy.value = false;
   model.value = {
@@ -389,7 +389,7 @@ const openAddDialog = (type, str) => {
   displayDialog.value = true;
 };
 const closeDialog = () => {
-  forceRerender();
+  forceRerender(0);
   displayDialog.value = false;
 };
 const editItem = (item, str) => {
@@ -490,7 +490,7 @@ const editItem = (item, str) => {
       swal.close();
       if (options.value.loading) options.value.loading = false;
 
-      forceRerender();
+      forceRerender(0);
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -780,7 +780,7 @@ const headerDialogLiquidation = ref();
 const displayDialogLiquidation = ref(false);
 const modelLiquidation = ref();
 const openAddDialogLiquidation = (str) => {
-  forceRerender();
+  forceRerender(0);
   modelLiquidation.value = {
     content: "",
     date: null,
