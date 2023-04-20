@@ -3,6 +3,7 @@ import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dialogdecíion from "./component/dialogdecision.vue";
+import framepreview from "../component/framepreview.vue";
 import moment from "moment";
 
 const router = inject("router");
@@ -100,7 +101,7 @@ const itemButMores = ref([
     label: "In quyết định",
     icon: "pi pi-print",
     command: (event) => {
-      printViewDecision(decision.value);
+      openDialogFrame(decision.value);
     },
   },
   {
@@ -153,9 +154,12 @@ const toggleAddItem = (event) => {
 };
 
 //Function
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
 function CreateGuid() {
   function _p8(s) {
@@ -315,10 +319,13 @@ const printViewDecision = (row) => {
     let url = encodeURIComponent(
       encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
     );
-    url = "https://doconline.soe.vn/decided/" + url.replaceAll("%", "==");
+    url =
+      "https://doconline.soe.vn/decided/" +
+      url.replaceAll("%", "==") +
+      "?v=" +
+      new Date().getTime().toString();
     window.open(url);
-  }
-  else {
+  } else {
     swal.fire({
       title: "Thông báo!",
       text: "Chưa thiết lập mẫu in cho quyết định!",
@@ -327,6 +334,18 @@ const printViewDecision = (row) => {
     });
     return;
   }
+};
+
+const headerDialogFrame = ref();
+const displayDialogFrame = ref(false);
+const openDialogFrame = (item) => {
+  forceRerender(1);
+  headerDialogFrame.value = "Hợp đồng";
+  displayDialogFrame.value = true;
+};
+const closeDialogFrame = () => {
+  forceRerender(1);
+  displayDialogFrame.value = false;
 };
 
 //add model
@@ -1275,7 +1294,7 @@ onMounted(() => {
     </div>
   </div>
   <dialogdecíion
-    :key="componentKey"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
@@ -1285,6 +1304,14 @@ onMounted(() => {
     :type_decision="type_decision"
     :decision="decision"
     :initData="initData"
+  />
+  <framepreview
+    :key="componentKey['1']"
+    :headerDialog="headerDialogFrame"
+    :displayDialog="displayDialogFrame"
+    :closeDialog="closeDialogFrame"
+    :type="3"
+    :model="decision"
   />
   <Dialog
     :header="headerDialogLiquidation"

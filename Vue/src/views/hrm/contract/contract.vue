@@ -3,6 +3,7 @@ import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dialogcontract from "../contract/component/dialogcontract.vue";
+import framepreview from "../component/framepreview.vue";
 import moment from "moment";
 
 const router = inject("router");
@@ -103,7 +104,7 @@ const itemButMores = ref([
     label: "In hợp đồng",
     icon: "pi pi-print",
     command: (event) => {
-      printViewContract(contract.value);
+      openDialogFrame(contract.value);
     },
   },
   {
@@ -181,9 +182,12 @@ const toggleExport = (event) => {
 };
 
 //Function
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
 function CreateGuid() {
   function _p8(s) {
@@ -305,7 +309,7 @@ const copyContract = (item, str) => {
       swal.close();
       if (options.value.loading) options.value.loading = false;
 
-      forceRerender();
+      forceRerender(0);
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -339,7 +343,11 @@ const printViewContract = (row) => {
     let url = encodeURIComponent(
       encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
     );
-    url = "https://doconline.soe.vn/report/" + url.replaceAll("%", "==");
+    url =
+      "https://doconline.soe.vn/report/" +
+      url.replaceAll("%", "==") +
+      "?v=" +
+      new Date().getTime().toString();
     window.open(url);
   } else {
     swal.fire({
@@ -352,6 +360,18 @@ const printViewContract = (row) => {
   }
 };
 
+const headerDialogFrame = ref();
+const displayDialogFrame = ref(false);
+const openDialogFrame = (item) => {
+  forceRerender(1);
+  headerDialogFrame.value = "Hợp đồng";
+  displayDialogFrame.value = true;
+};
+const closeDialogFrame = () => {
+  forceRerender(1);
+  displayDialogFrame.value = false;
+};
+
 //add model
 const isAdd = ref(false);
 const submitted = ref(false);
@@ -360,7 +380,7 @@ const headerDialog = ref();
 const displayDialog = ref(false);
 const files = ref([]);
 const openAddDialog = (str) => {
-  forceRerender();
+  forceRerender(0);
   isAdd.value = true;
   model.value = {
     profile: null,
@@ -387,7 +407,7 @@ const openAddDialog = (str) => {
   displayDialog.value = true;
 };
 const closeDialog = () => {
-  forceRerender();
+  forceRerender(0);
   displayDialog.value = false;
 };
 const editItem = (item, str) => {
@@ -487,7 +507,7 @@ const editItem = (item, str) => {
       swal.close();
       if (options.value.loading) options.value.loading = false;
 
-      forceRerender();
+      forceRerender(0);
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -777,7 +797,7 @@ const headerDialogLiquidation = ref();
 const displayDialogLiquidation = ref(false);
 const modelLiquidation = ref();
 const openAddDialogLiquidation = (str) => {
-  forceRerender();
+  forceRerender(0);
   modelLiquidation.value = {
     content: "",
     date: null,
@@ -2201,7 +2221,7 @@ onMounted(() => {
     </div>
   </div>
   <dialogcontract
-    :key="componentKey"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
@@ -2213,6 +2233,14 @@ onMounted(() => {
     :removeFile="removeFile"
     :dictionarys="dictionarys"
     :initData="initData"
+  />
+  <framepreview
+    :key="componentKey['1']"
+    :headerDialog="headerDialogFrame"
+    :displayDialog="displayDialogFrame"
+    :closeDialog="closeDialogFrame"
+    :type="2"
+    :model="contract"
   />
   <Dialog
     :header="headerDialogLiquidation"
