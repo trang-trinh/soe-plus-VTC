@@ -340,7 +340,7 @@ const headerDialogFrame = ref();
 const displayDialogFrame = ref(false);
 const openDialogFrame = (item) => {
   forceRerender(1);
-  headerDialogFrame.value = "Hợp đồng";
+  headerDialogFrame.value = "Quyết định";
   displayDialogFrame.value = true;
 };
 const closeDialogFrame = () => {
