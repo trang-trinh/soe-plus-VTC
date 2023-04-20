@@ -148,7 +148,7 @@ const loadData = () => {
       swal.showLoading();
     },
   });
-  if (user.is_super == true) loadDonvi();
+
   axios
     .post(
       baseURL + "/api/DictionaryProc/getData",
@@ -465,22 +465,16 @@ const first = ref(0);
 onMounted(() => {
   loadReportForm();
   loadData();
-  if (user.is_super == true) {
-    swal.fire({
-      width: 110,
-      didOpen: () => {
-        swal.showLoading();
-      },
+  loadDonvi();
+
+  setTimeout(() => {
+    treedonvis.value.forEach((element) => {
+      console.log(element);
+      expandNodeMain(element);
+      console.log(expandedKeysMain.value);
     });
-    setTimeout(() => {
-      treedonvis.value.forEach((element) => {
-        console.log(element);
-        expandNodeMain(element);
-        console.log(expandedKeysMain.value);
-      });
-    }, 750);
-    swal.close();
-  }
+  }, 750);
+  swal.close();
 });
 </script>
 <template>
