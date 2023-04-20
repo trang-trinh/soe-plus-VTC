@@ -123,7 +123,7 @@ onMounted(() => {
   <Dialog
     v-model:visible="display"
     appendTo="body"
-    :closable="false"
+    :closable="true"
     :style="{
       zIndex: '9001',
     }"
@@ -136,7 +136,7 @@ onMounted(() => {
         </template>
         <template #end>
           <Button
-            @click="toggleAddItem"
+            @click="props.closeDialog()"
             label="Đóng"
             icon="pi pi-times"
             class="p-button-text"
