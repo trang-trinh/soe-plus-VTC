@@ -108,6 +108,9 @@ namespace API.Controllers.HRM.Profile
                     if (isAdd)
                     {
                         model.profile_id = helper.GenKey();
+                        model.profile_name = model.profile_user_name;
+                        model.profile_name_en = helper.convertToUnSign3(model.profile_name);
+                        model.profile_last_name = model.profile_name.Split(' ').Last();
                         model.is_order = model.is_order ?? (db.hrm_profile.Count() + 1);
                         model.created_by = uid;
                         model.created_date = DateTime.Now;
