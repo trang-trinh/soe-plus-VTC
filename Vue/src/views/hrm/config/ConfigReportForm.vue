@@ -66,7 +66,7 @@ const loadDonvi = () => {
         str: encr(
           JSON.stringify({
             proc: "sys_organization_list_dictionary",
-            par: [{ par: "user_id", va: user.user_id }],
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
           cryoptojs,
@@ -78,17 +78,22 @@ const loadDonvi = () => {
       treedonvis.value = [];
       let data = JSON.parse(response.data.data)[0];
       console.log(data, "dảa");
-      if (data.length > 0) {
-        let obj = renderTree(
-          data,
-          "organization_id",
-          "organization_name",
-          "phòng ban",
-        );
-        console.log(obj, " " + "obj");
-        treedonvis.value = obj.arrChils;
-      } else {
-        treedonvis.value = [];
+
+      try {
+        if (data.length > 0) {
+          let obj = renderTree(
+            data,
+            "organization_id",
+            "organization_name",
+            "phòng ban",
+          );
+          console.log(obj, " " + "obj");
+          treedonvis.value = obj.arrChils;
+        } else {
+          treedonvis.value = [];
+        }
+      } catch (error) {
+        console.log(error);
       }
     })
     .catch((error) => {
