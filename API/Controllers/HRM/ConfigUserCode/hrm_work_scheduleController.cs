@@ -70,36 +70,37 @@ namespace API.Controllers.HRM.Category
                         }
                         fdwork_schedule = provider.FormData.GetValues("hrm_work_schedule").SingleOrDefault();
                         hrm_work_schedule work_schedule = JsonConvert.DeserializeObject<hrm_work_schedule>(fdwork_schedule);
-
-
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        work_schedule.organization_id = int.Parse(dvid);
-                        work_schedule.created_by = uid;
-                        work_schedule.created_date = DateTime.Now;
-                        work_schedule.created_ip = ip;
-                        work_schedule.created_token_id = tid;
-                        db.hrm_work_schedule.Add(work_schedule);
-                        db.SaveChanges();
-
-                        #region add hrm_log
-                        if (helper.wlog)
+                        foreach (var item in work_schedule.profile_id.Split(','))
                         {
 
-                            hrm_log log = new hrm_log();
-                            log.title = "Thêm ca làm việc thành công";
-
-                            log.log_module = "hrm_work_schedule";
-                            log.log_type = 0;
-                            log.id_key = work_schedule.work_schedule_id.ToString();
-                            log.created_date = DateTime.Now;
-                            log.created_by = uid;
-                            log.created_token_id = tid;
-                            log.created_ip = ip;
-                            db.hrm_log.Add(log);
+                            work_schedule.profile_id = item;
+                            work_schedule.organization_id = int.Parse(dvid);
+                            work_schedule.created_by = uid;
+                            work_schedule.created_date = DateTime.Now;
+                            work_schedule.created_ip = ip;
+                            work_schedule.created_token_id = tid;
+                            db.hrm_work_schedule.Add(work_schedule);
                             db.SaveChanges();
 
+                            #region add hrm_log
+                            if (helper.wlog)
+                            {
+                                hrm_log log = new hrm_log();
+                                log.title = "Đăng ký ca làm việc thành công";
+                                log.log_module = "hrm_work_schedule";
+                                log.log_type = 0;
+                                log.id_key = work_schedule.work_schedule_id.ToString();
+                                log.created_date = DateTime.Now;
+                                log.created_by = uid;
+                                log.created_token_id = tid;
+                                log.created_ip = ip;
+                                db.hrm_log.Add(log);
+                                db.SaveChanges();
+                            }
+                            #endregion
                         }
-                        #endregion
+
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;
