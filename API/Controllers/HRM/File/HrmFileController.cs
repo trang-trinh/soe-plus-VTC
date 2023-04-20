@@ -63,7 +63,7 @@ namespace API.Controllers
                 using (DBEntities db = new DBEntities())
                 {
                     string Device = helper.getDecideNameAuto(Request.Headers.UserAgent.ToString());
-                    var da = db.hrm_file_log.FirstOrDefault(x => x.file_id == file_log.file_id);
+                    var da = db.hrm_file_log.FirstOrDefault(x => x.file_id == file_log.file_id && x.created_by == uid);
                     if (da != null)
                     {
 
@@ -86,9 +86,8 @@ namespace API.Controllers
                         log.created_token_id = tid;
                         log.from_device = Device;
                         db.hrm_file_log.Add(log);
-                        await db.SaveChangesAsync();
                     }
-
+                    await db.SaveChangesAsync();
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
             }
