@@ -739,9 +739,7 @@ const toggle = (event) => {
 };
 
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   loadData(true);
   return {
     datalists,
