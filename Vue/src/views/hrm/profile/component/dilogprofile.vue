@@ -287,7 +287,9 @@ const initPlaceFilter = (event, type) => {
 };
 onMounted(() => {
   if (props.displayDialog && props.model != null) {
-    genCode();
+    if (props.isAdd) {
+      genCode();
+    }
     initPlaceFilter({ value: props.model.birthplace_name }, 1);
     initPlaceFilter({ value: props.model.birthplace_origin_name }, 2);
     initPlaceFilter({ value: props.model.place_register_permanent_name }, 3);
@@ -1054,6 +1056,35 @@ onMounted(() => {
                             style="font-size: 18px"
                           ></i>
                         </a>
+                      </template>
+                    </Column>
+                    <Column
+                      field="is_type"
+                      header="Quan hệ gia đình"
+                      headerStyle="text-align:center;width:170px;height:50px"
+                      bodyStyle="text-align:center;width:170px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <div class="form-group m-0">
+                          <Dropdown
+                            :showClear="true"
+                            :options="[
+                              { value: 1, title: 'Về bản thân' },
+                              { value: 2, title: 'Về bên vợ' },
+                            ]"
+                            optionLabel="title"
+                            optionValue="value"
+                            placeholder="Chọn quan hệ"
+                            v-model="slotProps.data.is_type"
+                            class="ip36"
+                            style="
+                              white-space: nowrap;
+                              overflow: hidden;
+                              text-overflow: ellipsis;
+                            "
+                          />
+                        </div>
                       </template>
                     </Column>
                     <Column
