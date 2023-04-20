@@ -1041,7 +1041,7 @@ onMounted(() => {
                       :showClear="true"
                       :options="[
                         { value: 1, title: 'Về bản thân' },
-                        { value: 2, title: 'Về bên vợ' }
+                        { value: 2, title: 'Về bên vợ' },
                       ]"
                       optionLabel="title"
                       optionValue="value"
@@ -1101,7 +1101,7 @@ onMounted(() => {
                 </template>
               </Column>
               <Column
-                field="identification_date_issue"
+                field="birthday"
                 header="Năm sinh"
                 headerStyle="text-align:center;width:120px;height:50px"
                 bodyStyle="text-align:center;width:120px;"
@@ -1109,10 +1109,13 @@ onMounted(() => {
               >
                 <template #body="slotProps">
                   <Calendar
-                    v-model="slotProps.data.identification_date_issue"
+                    v-model="slotProps.data.birthday"
                     :showIcon="false"
                     class="ip36"
-                    placeholder="dd/mm/yyyy"
+                    inputMask="9999"
+                    view="year"
+                    dateFormat="yy"
+                    placeholder="yyyy"
                   />
                 </template>
               </Column>

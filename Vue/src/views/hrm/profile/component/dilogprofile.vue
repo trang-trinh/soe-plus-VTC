@@ -468,6 +468,11 @@ onMounted(() => {
                             optionValue="value"
                             placeholder="Chọn giới tính"
                             class="ip36"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </div>
@@ -500,6 +505,11 @@ onMounted(() => {
                     class="ip36"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     panelClass="d-design-dropdown"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
                   />
                   <!-- <TreeSelect
                     :options="props.places"
@@ -529,6 +539,11 @@ onMounted(() => {
                     class="ip36"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     panelClass="d-design-dropdown"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
                   />
                   <!-- <TreeSelect
                     :options="props.places"
@@ -575,6 +590,11 @@ onMounted(() => {
                         class="ip36"
                         placeholder="Xã phường, Quận huyện, Tỉnh thành"
                         panelClass="d-design-dropdown"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -593,6 +613,11 @@ onMounted(() => {
                         placeholder="Chọn loại"
                         class="ip36"
                         v-model="props.model.identity_papers_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -643,6 +668,11 @@ onMounted(() => {
                         optionLabel="identity_place_name"
                         optionValue="identity_place_id"
                         class="ip36"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -658,6 +688,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.nationality_id"
                         :filter="true"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -672,6 +707,11 @@ onMounted(() => {
                         placeholder="Chọn trạng thái"
                         class="ip36"
                         v-model="props.model.marital_status"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -687,6 +727,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.ethnic_id"
                         :filter="true"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -702,6 +747,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.religion_id"
                         :filter="true"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -728,6 +778,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.bank_id"
                         :filter="true"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -776,6 +831,11 @@ onMounted(() => {
                         placeholder="Chọn trình độ"
                         class="ip36"
                         v-model="props.model.cultural_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -790,6 +850,11 @@ onMounted(() => {
                         placeholder="Chọn trình độ"
                         class="ip36"
                         v-model="props.model.academic_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -805,6 +870,11 @@ onMounted(() => {
                         placeholder="Chọn ngành"
                         class="ip36"
                         v-model="props.model.specialization_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -819,6 +889,11 @@ onMounted(() => {
                         placeholder="Chọn cấp"
                         class="ip36"
                         v-model="props.model.management_state_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -833,6 +908,11 @@ onMounted(() => {
                         placeholder="Chọn cấp"
                         class="ip36"
                         v-model="props.model.political_theory_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -847,6 +927,11 @@ onMounted(() => {
                         placeholder="Chọn cấp"
                         class="ip36"
                         v-model="props.model.language_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -861,6 +946,11 @@ onMounted(() => {
                         placeholder="Chọn cấp"
                         class="ip36"
                         v-model="props.model.informatic_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -937,6 +1027,11 @@ onMounted(() => {
                         class="ip36"
                         placeholder="Xã phường, Quận huyện, Tỉnh thành"
                         panelClass="d-design-dropdown"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -1078,11 +1173,11 @@ onMounted(() => {
                             placeholder="Chọn quan hệ"
                             v-model="slotProps.data.is_type"
                             class="ip36"
-                            style="
-                              white-space: nowrap;
-                              overflow: hidden;
-                              text-overflow: ellipsis;
-                            "
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </template>
@@ -1131,7 +1226,7 @@ onMounted(() => {
                       </template>
                     </Column>
                     <Column
-                      field="identification_date_issue"
+                      field="birthday"
                       header="Năm sinh"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
@@ -1139,8 +1234,9 @@ onMounted(() => {
                     >
                       <template #body="slotProps">
                         <Calendar
-                          v-model="slotProps.data.identification_date_issue"
+                          v-model="slotProps.data.birthday"
                           :showIcon="false"
+                          inputMask="9999"
                           view="year"
                           dateFormat="yy"
                           class="ip36"
@@ -1440,6 +1536,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="item.university_name"
                         maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -1528,6 +1629,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="item.rating"
                         maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -2181,6 +2287,11 @@ onMounted(() => {
                         placeholder="Chọn ngạch công chức (viên chức)"
                         class="ip36"
                         v-model="props.model.civil_servant_rank_name"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -2372,6 +2483,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.military_title"
                         maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -2427,6 +2543,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.military_policy_family"
                         maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>

@@ -781,7 +781,7 @@ onMounted(() => {
             </div>
             <div class="col-12 md:col-12">
               <div class="form-group">
-                <label>Nới ký </label>
+                <label>Nơi ký </label>
                 <InputText
                   v-model="props.model.sign_address"
                   spellcheck="false"
