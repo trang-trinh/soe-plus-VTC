@@ -77,7 +77,7 @@ const loadDonvi = () => {
     .then((response) => {
       treedonvis.value = [];
       let data = JSON.parse(response.data.data)[0];
-
+      console.log(data, "dảa");
       if (data.length > 0) {
         let obj = renderTree(
           data,
@@ -85,7 +85,7 @@ const loadDonvi = () => {
           "organization_name",
           "phòng ban",
         );
-
+        console.log(obj, " " + "obj");
         treedonvis.value = obj.arrChils;
       } else {
         treedonvis.value = [];
@@ -469,7 +469,9 @@ onMounted(() => {
     });
     setTimeout(() => {
       treedonvis.value.forEach((element) => {
+        console.log(element);
         expandNodeMain(element);
+        console.log(expandedKeysMain.value);
       });
     }, 750);
     swal.close();
