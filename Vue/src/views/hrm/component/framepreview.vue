@@ -123,7 +123,7 @@ onMounted(() => {
   <Dialog
     v-model:visible="display"
     appendTo="body"
-    :closable="true"
+    :closable="false"
     :style="{
       zIndex: '9001',
     }"
@@ -149,4 +149,8 @@ onMounted(() => {
     </div>
   </Dialog>
 </template>
-<style scoped></style>
+<style scoped>
+.p-dialog-header-icons{
+  display: none !important;
+}
+</style>
