@@ -280,7 +280,7 @@ onMounted(() => {
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Sức khỏe</label>
+            <label>Tình trạng sức khỏe</label>
             <InputText
               spellcheck="false"
               class="ip36"
