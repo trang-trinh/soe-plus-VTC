@@ -102,7 +102,7 @@ const onTabOpen=(event)=>{
   activeIndex.value=event.index;
  
 }
-const activeIndex=ref(5);
+const activeIndex=ref(0);
 onMounted(() => {
   loadOrg();
   return {};
