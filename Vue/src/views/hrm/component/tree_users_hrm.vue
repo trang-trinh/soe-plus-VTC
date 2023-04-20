@@ -474,20 +474,23 @@ const initUserSQL = () => {
       }
     });
 };
+const displayDialog=ref(false);
 onMounted(() => {
   initOrganization();
   initUser(true);
   //initRender();
+  displayDialog.value=props.displayDialog;
   return {};
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="displayDialog"
     :style="{ width: '60%' }"
     :modal="true"
-    :closable="false"
+    :closable="true"
+    @hide="props.closeDialog"
     style="z-index: 9999999"
   >
     <form @submit.prevent="">
@@ -630,7 +633,7 @@ onMounted(() => {
         label="Hủy"
         icon="pi pi-times"
         @click="props.closeDialog()"
-        class="p-button-text"
+        class="p-button-outlined"
       />
       <Button label="Chọn" icon="pi pi-check" @click="props.choiceUser()" />
     </template>

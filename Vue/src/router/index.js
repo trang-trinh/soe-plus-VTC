@@ -515,7 +515,7 @@ const router = createRouter({
       component: UploadView,
     },
     {
-      path: "/system/options",
+      path: "/options",
       name: "options",
       component: OptionsAccount,
     },

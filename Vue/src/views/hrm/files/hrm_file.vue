@@ -1106,7 +1106,11 @@ onMounted(() => {
                   "
                   v-tooltip.top="{
                     value:
-                      item.profile_user_name,
+                      item.profile_user_name+
+                      '<br/>' +
+                      (item.profile_id||'')+
+                      '<br/>' +
+                      (item.department_name||''),
                     escape: true,
                   }"
                   @click="goProfile(item.profile_id)"
