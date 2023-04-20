@@ -1829,12 +1829,7 @@ onMounted(() => {
           icon="pi pi-plus"
           class="mr-2"
         />
-        <Button
-          @click="refresh()"
-          class="p-button-outlined p-button-secondary mr-2"
-          icon="pi pi-refresh"
-          label="Tải lại"
-        />
+        
         <Button
           icon="pi pi-trash"
           label="Xóa"
@@ -1849,7 +1844,7 @@ onMounted(() => {
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
-          class="p-button-outlined p-button-secondary"
+          class="p-button-outlined p-button-secondary mr-2"
           aria-haspopup="true"
           aria-controls="overlay_Export"
         >
@@ -1863,6 +1858,12 @@ onMounted(() => {
           :popup="true"
           id="overlay_Export"
           ref="menuButs"
+        />
+        <Button
+          @click="refresh()"
+          class="p-button-outlined p-button-secondary"
+          icon="pi pi-refresh"
+          v-tooltip.top="'Tải lại'"
         />
       </template>
     </Toolbar>
