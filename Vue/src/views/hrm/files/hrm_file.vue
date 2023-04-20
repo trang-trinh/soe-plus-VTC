@@ -1265,8 +1265,8 @@ onMounted(() => {
           <div class="format-center w-full" v-if="displayChart">
             <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
           </div>
-          <div class="col-12 font-bold text-lg text-center">
-              Những tài khoản truy cập nhiều nhất
+          <div class="col-12 font-bold text-lg text-center mt-5 mb-1">
+              Tài khoản truy cập nhiều nhất
           </div>
           <DataTable
               :value="top_users"
@@ -1308,8 +1308,8 @@ onMounted(() => {
               <Column
                 field="total_view"
                 header="Số lần"
-                headerStyle="text-align:center;max-width:80px;height:40px;justify-content:center"
-                bodyStyle="text-align:center;max-width:80px;justify-content:center"
+                headerStyle="text-align:center;max-width:50px;height:40px;justify-content:center"
+                bodyStyle="text-align:center;max-width:50px;justify-content:center"
               >
               </Column>
             </DataTable>
@@ -1618,6 +1618,9 @@ onMounted(() => {
 ::v-deep(.padding-new) {
   tr > td{
   border:none !important;
+}
+thead> tr{
+  display:none;
 }
 }
 ::v-deep(.p-selectable-row) {
