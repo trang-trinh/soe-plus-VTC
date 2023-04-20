@@ -215,47 +215,40 @@ const closeDialog = () => {
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
- 
- 
+
   let formData = new FormData();
 
   if (work_schedule.value.profile_id_fake)
-    work_schedule.value.profile_id = work_schedule.value.profile_id_fake.toString();
-    if (work_schedule.value.work_schedule_monthsfake){
-      work_schedule.value.work_schedule_months = "";
-      var trr="";
-      work_schedule.value.work_schedule_monthsfake.forEach(element => {
+    work_schedule.value.profile_id =
+      work_schedule.value.profile_id_fake.toString();
+  if (work_schedule.value.work_schedule_monthsfake) {
+    work_schedule.value.work_schedule_months = "";
+    var trr = "";
+    work_schedule.value.work_schedule_monthsfake.forEach((element) => {
+      work_schedule.value.work_schedule_months +=
+        trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
+      trr = ",";
+    });
+  }
+  if (work_schedule.value.work_schedule_daysfake) {
+    work_schedule.value.work_schedule_days = "";
+    var trr = "";
+    work_schedule.value.work_schedule_daysfake.forEach((element) => {
+      work_schedule.value.work_schedule_days +=
+        trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
+      trr = ",";
+    });
+  }
 
-        work_schedule.value.work_schedule_months+= trr+
-                    moment(new Date(element)).format(
-                      "MM/DD/YYYY"
-                    ).toString();
-                    trr=",";
-                
-      });
-    }
-    if (work_schedule.value.work_schedule_daysfake){
-      work_schedule.value.work_schedule_days = "";
-      var trr="";
-      work_schedule.value.work_schedule_daysfake.forEach(element => {
-        work_schedule.value.work_schedule_days+=trr+
-                    moment(new Date(element)).format(
-                      "MM/DD/YYYY"
-                    ).toString();
-                    trr=",";
-                
-      });
-    }
-     
   formData.append("hrm_work_schedule", JSON.stringify(work_schedule.value));
-   
+
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
   });
-  
+
   if (!isSaveTem.value) {
     axios
       .post(
@@ -327,27 +320,49 @@ const editTem = (dataTem) => {
   submitted.value = false;
   work_schedule.value = dataTem;
   if (work_schedule.value.profile_id)
-    work_schedule.value.profile_id_fake = work_schedule.value.profile_id.split(",");
+    work_schedule.value.profile_id_fake =
+      work_schedule.value.profile_id.split(",");
 
-    if (work_schedule.value.work_schedule_months){
-      work_schedule.value.work_schedule_monthsfake=[];
-      work_schedule.value.work_schedule_months.split(",").forEach(element => {
-        work_schedule.value.work_schedule_monthsfake.push(new Date(element));
-  
-});
-    }
-   
-    if (work_schedule.value.work_schedule_days){
-      work_schedule.value.work_schedule_daysfake=[];
-      work_schedule.value.work_schedule_days.split(",").forEach(element => {
-         
-        work_schedule.value.work_schedule_daysfake.push(new Date(element));
-  
-});
-    }
+  if (work_schedule.value.work_schedule_months) {
+    work_schedule.value.work_schedule_monthsfake = [];
+    work_schedule.value.work_schedule_months.split(",").forEach((element) => {
+      work_schedule.value.work_schedule_monthsfake.push(new Date(element));
+    });
+  }
+
+  if (work_schedule.value.work_schedule_days) {
+    work_schedule.value.work_schedule_daysfake = [];
+    work_schedule.value.work_schedule_days.split(",").forEach((element) => {
+      work_schedule.value.work_schedule_daysfake.push(new Date(element));
+    });
+  }
   headerDialog.value = "Sửa ca làm việc";
   isSaveTem.value = true;
   displayBasic.value = true;
+};
+
+const menuButMores = ref();
+const itemButMores = ref([
+  {
+    label: "Hiệu chỉnh nội dung",
+    icon: "pi pi-pencil",
+    command: (event) => {
+      editTem(work_schedule.value);
+    },
+  },
+  {
+    label: "Xoá",
+    icon: "pi pi-trash",
+    command: (event) => {
+      delTem(work_schedule.value);
+    },
+  },
+]);
+const toggleMores = (event, item) => {
+  work_schedule.value = item;
+
+  menuButMores.value.toggle(event);
+  //selectedNodes.value = item;
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -491,6 +506,15 @@ const searchStamp = (event) => {
     }
   }
 };
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
 const refreshStamp = () => {
   options.value.SearchText = null;
   filterTrangthai.value = null;
@@ -760,7 +784,7 @@ const initTudien = () => {
           code: element.declare_shift_id,
         });
       });
-      datasShift.value=data;
+      datasShift.value = data;
       options.value.loading = false;
     })
     .catch((error) => {
@@ -830,7 +854,7 @@ const choiceUser = () => {
     });
   closeDialogUser();
 };
-const selectedDecS=ref();
+const selectedDecS = ref();
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitModel":
@@ -975,8 +999,7 @@ onMounted(() => {
         :size="25"
         :minSize="25"
       >
-      <DataTable
-  
+        <DataTable
           v-model:filters="filters"
           filterDisplay="menu"
           filterMode="lenient"
@@ -992,15 +1015,13 @@ onMounted(() => {
           :value="datasShift"
           removableSort
           v-model:rows="options.PageSize"
-     
-       selectionMode="single"
+          selectionMode="single"
           dataKey="declare_shift_id"
           class="w-full"
           responsiveLayout="scroll"
           v-model:selection="selectedDecS"
           :row-hover="true"
         >
-        
           <Column
             field="declare_shift_name"
             header="Ca làm việc"
@@ -1008,14 +1029,17 @@ onMounted(() => {
             headerStyle="text-align:left;height:50px"
             bodyStyle="text-align:left;cursor:pointer"
           >
-          <template #body="data">
-            <Chip :label="data.data.declare_shift_name" 
-            
-            :style="{ backgroundColor:data.data.background_color , color: data.data.text_color }"/>
+            <template #body="data">
+              <Chip
+                :label="data.data.declare_shift_name"
+                :style="{
+                  backgroundColor: data.data.background_color,
+                  color: data.data.text_color,
+                }"
+              />
             </template>
-            
           </Column>
- 
+
           <template #empty>
             <div
               class="align-items-center justify-content-center p-4 text-center m-auto"
@@ -1056,53 +1080,122 @@ onMounted(() => {
           v-model:selection="selectedStamps"
           :row-hover="true"
         >
-          <Column
+          <!-- <Column
             class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;max-width:70px;height:50px"
             bodyStyle="text-align:center;max-width:70px"
             selectionMode="multiple"
             v-if="store.getters.user.is_super == true"
           >
-          </Column>
+          </Column> -->
 
           <Column
             field="STT"
             header="STT"
             class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:70px;height:50px"
-            bodyStyle="text-align:center;max-width:70px"
-            :sortable="true"
+            headerStyle="text-align:center;max-width:50px;height:50px"
+            bodyStyle="text-align:center;max-width:50px"
           ></Column>
+          <Column
+            field="Avatar"
+            header="Ảnh"
+            headerStyle="text-align:center;max-width:100px;height:50px"
+            bodyStyle="text-align:center;max-width:100px;"
+            class="align-items-center justify-content-center text-center"
+          >
+            <template #body="slotProps">
+              <div class="relative">
+                <Avatar
+                  v-bind:label="
+                    slotProps.data.avatar
+                      ? ''
+                      : (slotProps.data.profile_user_name ?? '')
+                          .substring(0, 1)
+                          .toUpperCase()
+                  "
+                  v-bind:image="
+                    slotProps.data.avatar
+                      ? basedomainURL + slotProps.data.avatar
+                      : basedomainURL + '/Portals/Image/noimg.jpg'
+                  "
+                  :style="{
+                    background: bgColor[slotProps.index % 7],
+                    color: '#ffffff',
+                    width: '5rem',
+                    height: '5rem',
+                    fontSize: '1.5rem !important',
+                    borderRadius: '5px',
+                  }"
+                  size="xlarge"
+                  class="border-radius"
+                />
+              </div>
+            </template>
+          </Column>
+          <Column
+            field="profile_user_name"
+            header="Họ và tên"     
+            headerClass="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:200px;height:50px"
+            bodyStyle=" max-width:200px"
+          >
+            <template #body="slotProps">
+              <div  >
+                <div class="mb-2">
+                  <b>{{ slotProps.data.profile_user_name }}</b>
+                </div>
+                <div class="mb-1">
+                  <div class="mb-1">
+                    <b>{{ slotProps.data.position_name }}</b>
+                  </div>
+                  <div class="mb-1">
+                    <span>{{ slotProps.data.work_position_name }}</span>
+                  </div>
+                  <div class="mb-1">
+                    <span>{{ slotProps.data.department_name }}</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </Column>
 
           <Column
-            field="work_schedule_name"
-            header="Tên ca làm việc"
-            :sortable="true"
-            headerStyle="text-align:left;height:50px"
-            bodyStyle="text-align:left"
+            field="status"
+            header="Ca làm việc"
+          
+            headerClass="align-items-center justify-content-center text-center"
+          
           >
-            <template #filter="{ filterModel }">
-              <InputText
-                type="text"
-                v-model="filterModel.value"
-                class="p-column-filter"
-                placeholder="Từ khoá"
-              />
-            </template>
-          
             <template #body="data">
-        <div>
-          {{ data.data }}
+        <div     class="flex" >
+          <div
+                  v-for="(item, index) in data.data.work_schedule_months.split(
+                    ','
+                  )"
+                  :key="index"
+                >
+             <Chip class="w-5rem mr-1" :label="moment(new Date(item)).format('MM/YYYY').toString()"></Chip>   
+                </div>
+                <div style="word-break:break-all"
+                  v-for="(item, index) in data.data.work_schedule_days.split(
+                    ','
+                  )"
+                  :key="index"
+                >
+                <Chip class="w-7rem mr-1" :label="moment(new Date(item)).format('DD/MM/YYYY').toString()"></Chip>   
+           
+                </div>
         </div>
+                
+           
             </template>
-          
           </Column>
 
           <Column
             field="status"
             header="Trạng thái"
-            headerStyle="text-align:center;max-width:150px;height:50px"
-            bodyStyle="text-align:center;max-width:150px"
+            headerStyle="text-align:center;max-width:100px;height:50px"
+            bodyStyle="text-align:center;max-width:100px"
             class="align-items-center justify-content-center text-center"
           >
             <template #body="data">
@@ -1122,55 +1215,23 @@ onMounted(() => {
               /> </template
           ></Column>
           <Column
-            field="organization_id"
-            header="Hệ thống"
-            headerStyle="text-align:center;max-width:125px;height:50px"
-            bodyStyle="text-align:center;max-width:125px;;max-height:60px"
+            header=""
+            headerStyle="text-align:center;max-width:50px"
+            bodyStyle="text-align:center;max-width:50px"
             class="align-items-center justify-content-center text-center"
           >
-            <template #body="data">
-              <div v-if="data.data.is_system == true">
-                <i
-                  class="pi pi-check text-blue-400"
-                  style="font-size: 1.5rem"
-                ></i>
-              </div>
-              <div v-else></div>
+            <template #body="slotProps">
+              <Button
+                icon="pi pi-ellipsis-h"
+                class="p-button-rounded p-button-text ml-2"
+                @click="toggleMores($event, slotProps.data)"
+                aria-haspopup="true"
+                aria-controls="overlay_More"
+                v-tooltip.top="'Tác vụ'"
+              />
             </template>
           </Column>
-          <Column
-            header="Chức năng"
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:150px;height:50px"
-            bodyStyle="text-align:center;max-width:150px"
-          >
-            <template #body="Tem">
-              <div
-                v-if="
-                  store.state.user.is_super == true ||
-                  store.state.user.user_id == Tem.data.created_by ||
-                  (store.state.user.role_id == 'admin' &&
-                    store.state.user.organization_id ==
-                      Tem.data.organization_id)
-                "
-              >
-                <Button
-                  @click="editTem(Tem.data)"
-                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                  type="button"
-                  icon="pi pi-pencil"
-                  v-tooltip.top="'Sửa'"
-                ></Button>
-                <Button
-                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                  type="button"
-                  icon="pi pi-trash"
-                  @click="delTem(Tem.data)"
-                  v-tooltip.top="'Xóa'"
-                ></Button>
-              </div>
-            </template>
-          </Column>
+
           <template #empty>
             <div
               class="align-items-center justify-content-center p-4 text-center m-auto"
@@ -1184,6 +1245,12 @@ onMounted(() => {
       >
     </Splitter>
   </div>
+  <Menu
+    id="overlay_More"
+    ref="menuButMores"
+    :model="itemButMores"
+    :popup="true"
+  />
   <tree_users_hrm
     v-if="displayDialogUser === true"
     :headerDialog="'Chọn nhân sự ca làm việc'"
@@ -1234,7 +1301,8 @@ onMounted(() => {
             panelClass="d-design-dropdown"
             placeholder="Chọn địa điểm làm việc"
             :class="{
-              'p-invalid': work_schedule.config_work_location_id == null && submitted,
+              'p-invalid':
+                work_schedule.config_work_location_id == null && submitted,
             }"
           />
         </div>
@@ -1259,7 +1327,6 @@ onMounted(() => {
           </div>
         </div>
 
-       
         <div class="flex field align-items-center col-12 md:col-12">
           <div class="col-3 p-0 flex align-items-center">Đăng ký tháng</div>
           <div class="col-9 p-0">
@@ -1267,7 +1334,9 @@ onMounted(() => {
               v-model="work_schedule.work_schedule_monthsfake"
               view="month"
               dateFormat="mm/yy"
-              class="w-full"   :showIcon="true"   selectionMode="multiple" 
+              class="w-full"
+              :showIcon="true"
+              selectionMode="multiple"
             />
           </div>
         </div>
@@ -1277,7 +1346,8 @@ onMounted(() => {
           <div class="col-9 p-0">
             <Calendar
               v-model="work_schedule.work_schedule_daysfake"
-              selectionMode="multiple" class="w-full"
+              selectionMode="multiple"
+              class="w-full"
               :manualInput="false"
               :showIcon="true"
             />
