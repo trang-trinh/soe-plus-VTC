@@ -480,6 +480,8 @@ onMounted(() => {
 </script>
 <template>
   <div class="main-layout true flex-grow-1 p-2 inline-flex">
+    {{ treedonvis }}
+    {{ user }}
     <div
       v-if="user.is_super == true && treedonvis.length > 0"
       class="col-3"
