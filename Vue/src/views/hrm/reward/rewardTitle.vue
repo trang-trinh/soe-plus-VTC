@@ -1130,7 +1130,7 @@ const loadUserProfiles = () => {
         store.commit("gologout");
       }
     });
-};5
+};
   emitter.on("emitData", (obj) => {
     switch (obj.type) {
       case "submitModel":

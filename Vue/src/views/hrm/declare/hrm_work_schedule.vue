@@ -5,9 +5,13 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
+import tree_users_hrm from "../component/tree_users_hrm.vue";
+import DropdownUser from "../component/DropdownUser.vue";
+import moment from "moment";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
+const emitter = inject("emitter");
 const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
@@ -17,19 +21,19 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  certificate_name: {
+  work_schedule_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
 const rules = {
-  certificate_name: {
+  work_schedule_name: {
     required,
     $errors: [
       {
-        $property: "certificate_name",
+        $property: "work_schedule_name",
         $validator: "required",
-        $message: "Tên chứng chỉ không được để trống!",
+        $message: "Tên ca làm việc không được để trống!",
       },
     ],
   },
@@ -43,7 +47,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_certificate_count",
+            proc: "hrm_work_schedule_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -64,7 +68,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu certificate
+//Lấy dữ liệu work_schedule
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -82,7 +86,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_ca_certificate_list",
+              proc: "hrm_work_schedule_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -136,19 +140,20 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].certificate_id;
+    options.value.id =
+      datalists.value[datalists.value.length - 1].work_schedule_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].certificate_id;
+    options.value.id = datalists.value[0].work_schedule_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const certificate = ref({
-  certificate_name: "",
+const work_schedule = ref({
+  work_schedule_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -156,7 +161,7 @@ const certificate = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, certificate);
+const v$ = useVuelidate(rules, work_schedule);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -178,12 +183,13 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   submitted.value = false;
-  certificate.value = {
-    certificate_name: "",
+  work_schedule.value = {
+    work_schedule_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
+    organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
   };
 
   checkIsmain.value = false;
@@ -193,8 +199,8 @@ const openBasic = (str) => {
 };
 
 const closeDialog = () => {
-  certificate.value = {
-    certificate_name: "",
+  work_schedule.value = {
+    work_schedule_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -209,37 +215,58 @@ const closeDialog = () => {
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
-  if (!isFormValid) {
-    return;
-  }
-
-  if (certificate.value.certificate_name.length > 250) {
-    swal.fire({
-      title: "Error!",
-      text: "Tên chứng chỉ không được vượt quá 250 ký tự!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
+ 
+ 
   let formData = new FormData();
 
-  if (certificate.value.countryside_fake)
-    certificate.value.countryside = certificate.value.countryside_fake;
-  formData.append("hrm_ca_certificate", JSON.stringify(certificate.value));
+  if (work_schedule.value.profile_id_fake)
+    work_schedule.value.profile_id = work_schedule.value.profile_id_fake.toString();
+    if (work_schedule.value.work_schedule_monthsfake){
+      work_schedule.value.work_schedule_months = "";
+      var trr="";
+      work_schedule.value.work_schedule_monthsfake.forEach(element => {
+
+        work_schedule.value.work_schedule_months+= trr+
+                    moment(new Date(element)).format(
+                      "MM/DD/YYYY"
+                    ).toString();
+                    trr=",";
+                
+      });
+    }
+    if (work_schedule.value.work_schedule_daysfake){
+      work_schedule.value.work_schedule_days = "";
+      var trr="";
+      work_schedule.value.work_schedule_daysfake.forEach(element => {
+        work_schedule.value.work_schedule_days+=trr+
+                    moment(new Date(element)).format(
+                      "MM/DD/YYYY"
+                    ).toString();
+                    trr=",";
+                
+      });
+    }
+     
+  formData.append("hrm_work_schedule", JSON.stringify(work_schedule.value));
+   
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
   });
+  
   if (!isSaveTem.value) {
     axios
-      .post(baseURL + "/api/hrm_ca_certificate/add_hrm_ca_certificate", formData, config)
+      .post(
+        baseURL + "/api/hrm_work_schedule/add_hrm_work_schedule",
+        formData,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm chứng chỉ thành công!");
+          toast.success("Thêm ca làm việc thành công!");
           loadData(true);
 
           closeDialog();
@@ -263,11 +290,15 @@ const saveData = (isFormValid) => {
       });
   } else {
     axios
-      .put(baseURL + "/api/hrm_ca_certificate/update_hrm_ca_certificate", formData, config)
+      .put(
+        baseURL + "/api/hrm_work_schedule/update_hrm_work_schedule",
+        formData,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa chứng chỉ thành công!");
+          toast.success("Sửa ca làm việc thành công!");
 
           closeDialog();
         } else {
@@ -294,18 +325,29 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  certificate.value = dataTem;
-  if (certificate.value.countryside)
-    certificate.value.countryside_fake = certificate.value.countryside;
-  if (certificate.value.is_default) {
-    checkIsmain.value = false;
-  } else {
-    checkIsmain.value = true;
-  }
-  headerDialog.value = "Sửa chứng chỉ";
+  work_schedule.value = dataTem;
+  if (work_schedule.value.profile_id)
+    work_schedule.value.profile_id_fake = work_schedule.value.profile_id.split(",");
+
+    if (work_schedule.value.work_schedule_months){
+      work_schedule.value.work_schedule_monthsfake=[];
+      work_schedule.value.work_schedule_months.split(",").forEach(element => {
+        work_schedule.value.work_schedule_monthsfake.push(new Date(element));
+  
+});
+    }
+   
+    if (work_schedule.value.work_schedule_days){
+      work_schedule.value.work_schedule_daysfake=[];
+      work_schedule.value.work_schedule_days.split(",").forEach(element => {
+         
+        work_schedule.value.work_schedule_daysfake.push(new Date(element));
+  
+});
+    }
+  headerDialog.value = "Sửa ca làm việc";
   isSaveTem.value = true;
   displayBasic.value = true;
-  
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -330,15 +372,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_ca_certificate/delete_hrm_ca_certificate", {
+          .delete(baseURL + "/api/hrm_work_schedule/delete_hrm_work_schedule", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.certificate_id] : 1,
+            data: Tem != null ? [Tem.work_schedule_id] : 1,
           })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá chứng chỉ thành công!");
+              toast.success("Xoá ca làm việc thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -388,7 +430,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "certificate_id",
+    id: "work_schedule_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -400,7 +442,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_certificate", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_work_schedule", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -495,17 +537,21 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.certificate_id,
-      TextID: value.certificate_id + "",
+      IntID: value.work_schedule_id,
+      TextID: value.work_schedule_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
-      .put(baseURL + "/api/hrm_ca_certificate/update_s_hrm_ca_certificate", data, config)
+      .put(
+        baseURL + "/api/hrm_work_schedule/update_s_hrm_work_schedule",
+        data,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái chứng chỉ thành công!");
+          toast.success("Sửa trạng thái ca làm việc thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -528,16 +574,20 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   } else {
     let data1 = {
-      IntID: value.certificate_id,
-      TextID: value.certificate_id + "",
+      IntID: value.work_schedule_id,
+      TextID: value.work_schedule_id + "",
       BitMain: value.is_default,
     };
     axios
-      .put(baseURL + "/api/hrm_ca_certificate/Update_DefaultStamp", data1, config)
+      .put(
+        baseURL + "/api/hrm_work_schedule/Update_DefaultStamp",
+        data1,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái chứng chỉ thành công!");
+          toast.success("Sửa trạng thái ca làm việc thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -566,7 +616,7 @@ const deleteList = () => {
   let checkD = false;
   selectedStamps.value.forEach((item) => {
     if (item.is_default) {
-      toast.error("Không được xóa chứng chỉ mặc định!");
+      toast.error("Không được xóa ca làm việc mặc định!");
       checkD = true;
       return;
     }
@@ -575,7 +625,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá chứng chỉ này không!",
+        text: "Bạn có muốn xoá ca làm việc này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -593,18 +643,21 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.certificate_id);
+            listId.push(item.work_schedule_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_ca_certificate/delete_hrm_ca_certificate", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
+            .delete(
+              baseURL + "/api/hrm_work_schedule/delete_hrm_work_schedule",
+              {
+                headers: { Authorization: `Bearer ${store.getters.token}` },
+                data: listId != null ? listId : 1,
+              }
+            )
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá chứng chỉ thành công!");
+                toast.success("Xoá ca làm việc thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -672,11 +725,126 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
+const listDeclareShift = ref([]);
+const listWorkLocation = ref([]);
+const initTudien = () => {
+  listDeclareShift.value = [];
+  listWorkLocation.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_declare_shift_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      data.forEach((element, i) => {
+        listDeclareShift.value.push({
+          name: element.declare_shift_name,
+          code: element.declare_shift_id,
+        });
+      });
 
-onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+    });
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_config_work_location_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      data.forEach((element, i) => {
+        listWorkLocation.value.push({
+          name: element.config_work_location_name,
+          code: element.config_work_location_id,
+        });
+      });
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+    });
+};
+
+const displayDialogUser = ref(false);
+
+const selectedUser = ref();
+
+const showTreeUser = () => {
+  checkMultile.value = false;
+  selectedUser.value = [];
+
+  displayDialogUser.value = true;
+};
+
+const closeDialogUser = () => {
+  displayDialogUser.value = false;
+};
+
+const checkMultile = ref(false);
+
+const choiceUser = () => {
+  work_schedule.value.profile_id_fake = [];
+  if (checkMultile.value == false)
+    selectedUser.value.forEach((element) => {
+      work_schedule.value.profile_id_fake.push(element.profile_id);
+    });
+  closeDialogUser();
+};
+
+emitter.on("emitData", (obj) => {
+  switch (obj.type) {
+    case "submitModel":
+      if (obj.data) {
+        work_schedule.value.profile_id_fake = obj.data;
+      }
+      break;
+
+    default:
+      break;
   }
+});
+onMounted(() => {
+  initTudien();
   loadData(true);
   return {
     datalists,
@@ -699,271 +867,275 @@ onMounted(() => {
 </script>
     <template>
   <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <DataTable
-      @page="onPage($event)"
-      @sort="onSort($event)"
-      @filter="onFilter($event)"
-      v-model:filters="filters"
-      filterDisplay="menu"
-      filterMode="lenient"
-      :filters="filters"
-      :scrollable="true"
-      scrollHeight="flex"
-      :showGridlines="true"
-      columnResizeMode="fit"
-      :lazy="true"
-      :totalRecords="options.totalRecords"
-      :loading="options.loading"
-      :reorderableColumns="true"
-      :value="datalists"
-      removableSort
-      v-model:rows="options.PageSize"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :paginator="true"
-      dataKey="certificate_id"
-      responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
-      :row-hover="true"
-    >
-      <template #header>
-        <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-map"></i> Danh sách chứng chỉ ({{
-            options.totalRecords
-          }})
-        </h3>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="options.SearchText"
-                @keyup="searchStamp"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />
-              <Button
-                type="button"
-                class="ml-2"
-                icon="pi pi-filter"
-                @click="toggle"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                v-tooltip="'Bộ lọc'"
-                :class="
-                  filterTrangthai != null && checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
-                "
-              />
-              <OverlayPanel
-                ref="op"
-                appendTo="body"
-                class="p-0 m-0"
-                :showCloseIcon="false"
-                id="overlay_panel"
-                style="width: 300px"
-              >
-                <div class="grid formgrid m-0">
-                  <div class="flex field col-12 p-0">
-                    <div
-                      class="col-4 text-left pt-2 p-0"
-                      style="text-align: left"
-                    >
-                      Trạng thái
-                    </div>
-                    <div class="col-8">
-                      <Dropdown
-                        class="col-12 p-0 m-0"
-                        v-model="filterTrangthai"
-                        :options="trangThai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Trạng thái"
-                      />
-                    </div>
+    <div class="w-full p-0 surface-0 p-2">
+      <h3 class="module-title mt-0 ml-1 mb-2">
+        <i class="pi pi-map"></i> Danh sách ca làm việc ({{
+          options.totalRecords
+        }})
+      </h3>
+      <Toolbar class="w-full custoolbar">
+        <template #start>
+          <span class="p-input-icon-left">
+            <i class="pi pi-search" />
+            <InputText
+              v-model="options.SearchText"
+              @keyup="searchStamp"
+              type="text"
+              spellcheck="false"
+              placeholder="Tìm kiếm"
+            />
+            <Button
+              type="button"
+              class="ml-2"
+              icon="pi pi-filter"
+              @click="toggle"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+              v-tooltip="'Bộ lọc'"
+              :class="
+                filterTrangthai != null && checkFilter
+                  ? ''
+                  : 'p-button-secondary p-button-outlined'
+              "
+            />
+            <OverlayPanel
+              ref="op"
+              appendTo="body"
+              class="p-0 m-0"
+              :showCloseIcon="false"
+              id="overlay_panel"
+              style="width: 300px"
+            >
+              <div class="grid formgrid m-0">
+                <div class="flex field col-12 p-0">
+                  <div
+                    class="col-4 text-left pt-2 p-0"
+                    style="text-align: left"
+                  >
+                    Trạng thái
                   </div>
-                  <div class="flex col-12 p-0">
-                    <Toolbar
-                      class="border-none surface-0 outline-none pb-0 w-full"
-                    >
-                      <template #start>
-                        <Button
-                          @click="reFilterEmail"
-                          class="p-button-outlined"
-                          label="Xóa"
-                        ></Button>
-                      </template>
-                      <template #end>
-                        <Button @click="filterFileds" label="Lọc"></Button>
-                      </template>
-                    </Toolbar>
+                  <div class="col-8">
+                    <Dropdown
+                      class="col-12 p-0 m-0"
+                      v-model="filterTrangthai"
+                      :options="trangThai"
+                      optionLabel="name"
+                      optionValue="code"
+                      placeholder="Trạng thái"
+                    />
                   </div>
                 </div>
-              </OverlayPanel>
-            </span>
-          </template>
+                <div class="flex col-12 p-0">
+                  <Toolbar
+                    class="border-none surface-0 outline-none pb-0 w-full"
+                  >
+                    <template #start>
+                      <Button
+                        @click="reFilterEmail"
+                        class="p-button-outlined"
+                        label="Xóa"
+                      ></Button>
+                    </template>
+                    <template #end>
+                      <Button @click="filterFileds" label="Lọc"></Button>
+                    </template>
+                  </Toolbar>
+                </div>
+              </div>
+            </OverlayPanel>
+          </span>
+        </template>
 
-          <template #end>
-            <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
-            <Button
-              @click="openBasic('Thêm chứng chỉ')"
-              label="Thêm mới"
-              icon="pi pi-plus"
-              class="mr-2"
-            />
-            <Button
-              @click="refreshStamp"
-              class="mr-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              v-tooltip="'Tải lại'"
-            />
-
-            <!-- <Button
-              label="Tiện ích"
-              icon="pi pi-file-excel"
-              class="mr-2 p-button-outlined p-button-secondary"
-              @click="toggleExport"
-              aria-haspopup="true"
-              aria-controls="overlay_Export"
-            />
-            <Menu
-              id="overlay_Export"
-              ref="menuButs"
-              :model="itemButs"
-              :popup="true"
-            /> -->
-          </template>
-        </Toolbar></template
-      >
-
-      <Column
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
-         selectionMode="multiple"  v-if="store.getters.user.is_super==true"
-      >
-      </Column>
-
-      <Column
-        field="STT"
-        header="STT"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
-        :sortable="true"
-      ></Column>
-
-      <Column
-        field="certificate_name"
-        header="Tên chứng chỉ"
-        :sortable="true"
-        headerStyle="text-align:left;height:50px"
-        bodyStyle="text-align:left"
-      >
-        <template #filter="{ filterModel }">
-          <InputText
-            type="text"
-            v-model="filterModel.value"
-            class="p-column-filter"
-            placeholder="Từ khoá"
+        <template #end>
+          <Button
+            v-if="checkDelList"
+            @click="deleteList()"
+            label="Xóa"
+            icon="pi pi-trash"
+            class="mr-2 p-button-danger"
+          />
+          <Button
+            @click="openBasic('Thêm ca làm việc')"
+            label="Thêm mới"
+            icon="pi pi-plus"
+            class="mr-2"
+          />
+          <Button
+            @click="refreshStamp"
+            class="mr-2 p-button-outlined p-button-secondary"
+            icon="pi pi-refresh"
+            v-tooltip="'Tải lại'"
           />
         </template>
-      </Column>
-
-      <Column
-        field="status"
-        header="Trạng thái"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
-        class="align-items-center justify-content-center text-center"
+      </Toolbar>
+    </div>
+    <Splitter class="w-full h-full">
+      <SplitterPanel
+        class="flex align-items-center justify-content-center"
+        :size="25"
+        :minSize="25"
       >
-        <template #body="data">
-          <Checkbox
-            :disabled="
-              !(
-                store.state.user.is_super == true ||
-                store.state.user.user_id == data.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
-                  store.state.user.organization_id == data.data.organization_id)
-              )
-            "
-            :binary="true"
-            v-model="data.data.status"
-            @click="onCheckBox(data.data, true, true)"
-          /> </template
-      ></Column>
-      <Column
-        field="organization_id"
-        header="Hệ thống"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <div v-if="data.data.is_system== true">
-            <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
-          </div>
-          <div v-else></div>
-        </template>
-      </Column>
-      <Column
-        header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
-      >
-        <template #body="Tem">
-          <div
-            v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == Tem.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
-            "
-          >
-            <Button
-              @click="editTem(Tem.data)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-pencil"
-              v-tooltip.top="'Sửa'"
-            ></Button>
-            <Button
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-trash"
-              @click="delTem(Tem.data)"
-              v-tooltip.top="'Xóa'"
-            ></Button>
-          </div>
-        </template>
-      </Column>
-      <template #empty>
-        <div
-          class="
-            align-items-center
-            justify-content-center
-            p-4
-            text-center
-            m-auto
-          "
-          v-if="!isFirst"
+        Ca làm việc
+      </SplitterPanel>
+      <SplitterPanel class="w-full" :size="75" :minSize="75">
+        <DataTable
+          @page="onPage($event)"
+          @sort="onSort($event)"
+          @filter="onFilter($event)"
+          v-model:filters="filters"
+          filterDisplay="menu"
+          filterMode="lenient"
+          :filters="filters"
+          :scrollable="true"
+          scrollHeight="flex"
+          :showGridlines="true"
+          columnResizeMode="fit"
+          :lazy="true"
+          :totalRecords="options.totalRecords"
+          :loading="options.loading"
+          :reorderableColumns="true"
+          :value="datalists"
+          removableSort
+          v-model:rows="options.PageSize"
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+          :paginator="true"
+          dataKey="work_schedule_id"
+          class="w-full"
+          responsiveLayout="scroll"
+          v-model:selection="selectedStamps"
+          :row-hover="true"
         >
-          <img src="../../../assets/background/nodata.png" height="144" />
-          <h3 class="m-1">Không có dữ liệu</h3>
-        </div>
-      </template>
-    </DataTable>
-  </div>
+          <Column
+            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:70px;height:50px"
+            bodyStyle="text-align:center;max-width:70px"
+            selectionMode="multiple"
+            v-if="store.getters.user.is_super == true"
+          >
+          </Column>
 
+          <Column
+            field="STT"
+            header="STT"
+            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:70px;height:50px"
+            bodyStyle="text-align:center;max-width:70px"
+            :sortable="true"
+          ></Column>
+
+          <Column
+            field="work_schedule_name"
+            header="Tên ca làm việc"
+            :sortable="true"
+            headerStyle="text-align:left;height:50px"
+            bodyStyle="text-align:left"
+          >
+            <template #filter="{ filterModel }">
+              <InputText
+                type="text"
+                v-model="filterModel.value"
+                class="p-column-filter"
+                placeholder="Từ khoá"
+              />
+            </template>
+          </Column>
+
+          <Column
+            field="status"
+            header="Trạng thái"
+            headerStyle="text-align:center;max-width:150px;height:50px"
+            bodyStyle="text-align:center;max-width:150px"
+            class="align-items-center justify-content-center text-center"
+          >
+            <template #body="data">
+              <Checkbox
+                :disabled="
+                  !(
+                    store.state.user.is_super == true ||
+                    store.state.user.user_id == data.data.created_by ||
+                    (store.state.user.role_id == 'admin' &&
+                      store.state.user.organization_id ==
+                        data.data.organization_id)
+                  )
+                "
+                :binary="true"
+                v-model="data.data.status"
+                @click="onCheckBox(data.data, true, true)"
+              /> </template
+          ></Column>
+          <Column
+            field="organization_id"
+            header="Hệ thống"
+            headerStyle="text-align:center;max-width:125px;height:50px"
+            bodyStyle="text-align:center;max-width:125px;;max-height:60px"
+            class="align-items-center justify-content-center text-center"
+          >
+            <template #body="data">
+              <div v-if="data.data.is_system == true">
+                <i
+                  class="pi pi-check text-blue-400"
+                  style="font-size: 1.5rem"
+                ></i>
+              </div>
+              <div v-else></div>
+            </template>
+          </Column>
+          <Column
+            header="Chức năng"
+            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:150px;height:50px"
+            bodyStyle="text-align:center;max-width:150px"
+          >
+            <template #body="Tem">
+              <div
+                v-if="
+                  store.state.user.is_super == true ||
+                  store.state.user.user_id == Tem.data.created_by ||
+                  (store.state.user.role_id == 'admin' &&
+                    store.state.user.organization_id ==
+                      Tem.data.organization_id)
+                "
+              >
+                <Button
+                  @click="editTem(Tem.data)"
+                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                  type="button"
+                  icon="pi pi-pencil"
+                  v-tooltip.top="'Sửa'"
+                ></Button>
+                <Button
+                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                  type="button"
+                  icon="pi pi-trash"
+                  @click="delTem(Tem.data)"
+                  v-tooltip.top="'Xóa'"
+                ></Button>
+              </div>
+            </template>
+          </Column>
+          <template #empty>
+            <div
+              class="align-items-center justify-content-center p-4 text-center m-auto"
+              v-if="!isFirst"
+            >
+              <img src="../../../assets/background/nodata.png" height="144" />
+              <h3 class="m-1">Không có dữ liệu</h3>
+            </div>
+          </template>
+        </DataTable></SplitterPanel
+      >
+    </Splitter>
+  </div>
+  <tree_users_hrm
+    v-if="displayDialogUser === true"
+    :headerDialog="'Chọn nhân sự ca làm việc'"
+    :displayDialog="displayDialogUser"
+    :closeDialog="closeDialogUser"
+    :one="checkMultile"
+    :selected="selectedUser"
+    :choiceUser="choiceUser"
+  />
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
@@ -972,57 +1144,88 @@ onMounted(() => {
     :modal="true"
   >
     <form>
-      <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
-            >Chứng chỉ <span class="redsao">(*)</span></label
+      <div class="grid formgrid">
+        <div class="field col-12 flex align-items-center md:col-12">
+          <label class="col-3 text-left p-0"
+            >Ca làm việc <span class="redsao">(*)</span></label
           >
-          <InputText
-            v-model="certificate.certificate_name"
-            spellcheck="false"
-            class="col-10 ip36 px-2"
+          <Dropdown
+            :filter="true"
+            v-model="work_schedule.declare_shift_id"
+            :options="listDeclareShift"
+            optionLabel="name"
+            optionValue="code"
+            class="col-9 p-0"
+            panelClass="d-design-dropdown"
+            placeholder="Chọn ca làm việc"
             :class="{
-              'p-invalid': v$.certificate_name.$invalid && submitted,
+              'p-invalid': work_schedule.declare_shift_id == null && submitted,
             }"
           />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-2 text-left"></div>
-          <small
-            v-if="
-              (v$.certificate_name.$invalid && submitted) ||
-              v$.certificate_name.$pending.$response
-            "
-            class="col-10 p-error"
+        <div class="field flex align-items-center col-12 md:col-12">
+          <label class="col-3 text-left p-0"
+            >Địa điểm làm việc <span class="redsao">(*)</span></label
           >
-            <span class="col-12 p-0">{{
-              v$.certificate_name.required.$message
-                .replace("Value", "Tên chứng chỉ")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
+          <Dropdown
+            :filter="true"
+            v-model="work_schedule.config_work_location_id"
+            :options="listWorkLocation"
+            optionLabel="name"
+            optionValue="code"
+            class="col-9 p-0"
+            panelClass="d-design-dropdown"
+            placeholder="Chọn địa điểm làm việc"
+            :class="{
+              'p-invalid': work_schedule.config_work_location_id == null && submitted,
+            }"
+          />
         </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
-            <InputNumber
-              v-model="certificate.is_order"
-              class="col-6 ip36 p-0"
+        <div class="field flex align-items-center col-12 md:col-12">
+          <div class="col-3 p-0 flex align-items-center">
+            <div class="text-left p-0">
+              Nhân sự <span class="redsao">(*)</span>
+            </div>
+            <Button
+              v-tooltip.top="'Chọn nhân sự'"
+              @click="showTreeUser()"
+              icon="pi pi-user-plus"
+              class="p-button-text p-button-rounded"
             />
           </div>
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="certificate.status" />
-          </div>
-          <div
-            class="field col-4 md:col-4 p-0 align-items-center flex"
-            v-if="store.getters.user.is_super"
-          >
-            <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="certificate.is_system" />
+          <div class="col-9 p-0">
+            <DropdownUser
+              :model="work_schedule.profile_id_fake"
+              :display="'chip'"
+              :placeholder="'Chọn nhân sự'"
+            />
           </div>
         </div>
-        
+
+       
+        <div class="flex field align-items-center col-12 md:col-12">
+          <div class="col-3 p-0 flex align-items-center">Đăng ký tháng</div>
+          <div class="col-9 p-0">
+            <Calendar
+              v-model="work_schedule.work_schedule_monthsfake"
+              view="month"
+              dateFormat="mm/yy"
+              class="w-full"   :showIcon="true"   selectionMode="multiple" 
+            />
+          </div>
+        </div>
+
+        <div class="flex align-items-center col-12 md:col-12">
+          <div class="col-3 p-0 flex align-items-center">Đăng ký ngày</div>
+          <div class="col-9 p-0">
+            <Calendar
+              v-model="work_schedule.work_schedule_daysfake"
+              selectionMode="multiple" class="w-full"
+              :manualInput="false"
+              :showIcon="true"
+            />
+          </div>
+        </div>
       </div>
     </form>
     <template #footer>
