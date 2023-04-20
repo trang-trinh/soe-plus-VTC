@@ -318,6 +318,15 @@ const printViewDecision = (row) => {
     url = "https://doconline.soe.vn/decided/" + url.replaceAll("%", "==");
     window.open(url);
   }
+  else {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Chưa thiết lập mẫu in cho quyết định!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
 };
 
 //add model

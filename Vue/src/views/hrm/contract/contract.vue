@@ -344,7 +344,7 @@ const printViewContract = (row) => {
   } else {
     swal.fire({
       title: "Thông báo!",
-      text: "Chưa thiết lập loại hợp đồng!",
+      text: "Chưa thiết lập mẫu in cho loại hợp đồng!",
       icon: "error",
       confirmButtonText: "OK",
     });
