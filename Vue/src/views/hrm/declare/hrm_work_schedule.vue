@@ -727,6 +727,7 @@ const toggle = (event) => {
 };
 const listDeclareShift = ref([]);
 const listWorkLocation = ref([]);
+const datasShift = ref([]);
 const initTudien = () => {
   listDeclareShift.value = [];
   listWorkLocation.value = [];
@@ -759,7 +760,7 @@ const initTudien = () => {
           code: element.declare_shift_id,
         });
       });
-
+      datasShift.value=data;
       options.value.loading = false;
     })
     .catch((error) => {
@@ -812,7 +813,6 @@ const selectedUser = ref();
 const showTreeUser = () => {
   checkMultile.value = false;
   selectedUser.value = [];
-
   displayDialogUser.value = true;
 };
 
@@ -830,7 +830,7 @@ const choiceUser = () => {
     });
   closeDialogUser();
 };
-
+const selectedDecS=ref();
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitModel":
@@ -975,7 +975,57 @@ onMounted(() => {
         :size="25"
         :minSize="25"
       >
-        Ca làm việc
+      <DataTable
+  
+          v-model:filters="filters"
+          filterDisplay="menu"
+          filterMode="lenient"
+          :filters="filters"
+          :scrollable="true"
+          scrollHeight="flex"
+          :showGridlines="true"
+          columnResizeMode="fit"
+          :lazy="true"
+          :totalRecords="options.totalRecords"
+          :loading="options.loading"
+          :reorderableColumns="true"
+          :value="datasShift"
+          removableSort
+          v-model:rows="options.PageSize"
+     
+       selectionMode="single"
+          dataKey="declare_shift_id"
+          class="w-full"
+          responsiveLayout="scroll"
+          v-model:selection="selectedDecS"
+          :row-hover="true"
+        >
+        
+          <Column
+            field="declare_shift_name"
+            header="Ca làm việc"
+            headerClass="align-items-center justify-content-center text-center"
+            headerStyle="text-align:left;height:50px"
+            bodyStyle="text-align:left;cursor:pointer"
+          >
+          <template #body="data">
+            <Chip :label="data.data.declare_shift_name" 
+            
+            :style="{ backgroundColor:data.data.background_color , color: data.data.text_color }"/>
+            </template>
+            
+          </Column>
+ 
+          <template #empty>
+            <div
+              class="align-items-center justify-content-center p-4 text-center m-auto"
+              v-if="!isFirst"
+            >
+              <img src="../../../assets/background/nodata.png" height="144" />
+              <h3 class="m-1">Không có dữ liệu</h3>
+            </div>
+          </template>
+        </DataTable>
       </SplitterPanel>
       <SplitterPanel class="w-full" :size="75" :minSize="75">
         <DataTable
@@ -1039,6 +1089,13 @@ onMounted(() => {
                 placeholder="Từ khoá"
               />
             </template>
+          
+            <template #body="data">
+        <div>
+          {{ data.data }}
+        </div>
+            </template>
+          
           </Column>
 
           <Column

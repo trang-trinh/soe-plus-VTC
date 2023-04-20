@@ -6,6 +6,7 @@ import ConfigContract from "./ConfigContract.vue";
 import ConfigHolidays from "./ConfigHolidays.vue";
 import ConfigInsurance from "./ConfigInsuranceRate.vue";
 import ConfigEmail from "./ConfigEmail.vue";
+import ConfigContact from "./ConfigContact.vue";
 import { encr, checkURL } from "../../../util/function.js";
  
 //Khai báo
@@ -101,7 +102,7 @@ const onTabOpen=(event)=>{
   activeIndex.value=event.index;
  
 }
-const activeIndex=ref(0);
+const activeIndex=ref(5);
 onMounted(() => {
   loadOrg();
   return {};
@@ -168,7 +169,16 @@ onMounted(() => {
               <ConfigEmail />
               </div>
           </AccordionTab>
-         
+          <AccordionTab  >
+            <template #header>
+                <div class="text-xl">
+           Thiết lập khác
+                </div>
+            </template>
+            <div    v-if="activeIndex==5">
+              <ConfigContact/>
+              </div>
+          </AccordionTab>
         </Accordion>
       </div></div>
     </div>
