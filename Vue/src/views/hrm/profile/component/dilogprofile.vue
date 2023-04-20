@@ -59,6 +59,7 @@ const submitted = ref(false);
 const saveModel = (is_continue) => {
   submitted.value = true;
   if (
+    !props.model.profile_code ||
     !props.model.profile_user_name ||
     !props.model.birthday
   ) {
@@ -202,6 +203,35 @@ const saveModel = (is_continue) => {
 };
 
 //init
+const genCode = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_gencode",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            props.model.profile_code = tbs[0][0].profile_code;
+            props.model.superior_id = tbs[0][0].superior_id;
+          }
+        }
+      }
+    });
+};
 const initPlaceFilter = (event, type) => {
   var stc = event.value;
   if (event.value == "") {
@@ -257,6 +287,9 @@ const initPlaceFilter = (event, type) => {
 };
 onMounted(() => {
   if (props.displayDialog && props.model != null) {
+    if (props.isAdd) {
+      genCode();
+    }
     initPlaceFilter({ value: props.model.birthplace_name }, 1);
     initPlaceFilter({ value: props.model.birthplace_origin_name }, 2);
     initPlaceFilter({ value: props.model.place_register_permanent_name }, 3);
@@ -322,7 +355,7 @@ onMounted(() => {
                       <div class="col-6 md:col-6">
                         <div class="form-group">
                           <label
-                            >Mã nhân sự</label
+                            >Mã nhân sự <span class="redsao">(*)</span></label
                           >
                           <InputText
                             spellcheck="false"
@@ -332,7 +365,18 @@ onMounted(() => {
                               backgroundColor: '#FEF9E7',
                               fontWeight: 'bold',
                             }"
+                            :class="{
+                              'p-invalid':
+                                !props.model.profile_code && submitted,
+                            }"
                           />
+                          <div v-if="!props.model.profile_code && submitted">
+                            <small class="p-error">
+                              <span class="col-12 p-0"
+                                >Mã nhân sự không được để trống</span
+                              >
+                            </small>
+                          </div>
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
@@ -355,6 +399,10 @@ onMounted(() => {
                             class="ip36"
                             v-model="props.model.profile_user_name"
                             :style="{ fontWeight: 'bold' }"
+                            :class="{
+                              'p-invalid':
+                                !props.model.profile_code && submitted,
+                            }"
                           />
                           <div
                             v-if="!props.model.profile_user_name && submitted"
@@ -386,6 +434,10 @@ onMounted(() => {
                             v-model="props.model.birthday"
                             :showIcon="true"
                             placeholder="dd/mm/yyyy"
+                            :class="{
+                              'p-invalid':
+                                !props.model.profile_code && submitted,
+                            }"
                           />
                           <div v-if="!props.model.birthday && submitted">
                             <small class="p-error">
@@ -1004,6 +1056,35 @@ onMounted(() => {
                             style="font-size: 18px"
                           ></i>
                         </a>
+                      </template>
+                    </Column>
+                    <Column
+                      field="is_type"
+                      header="Quan hệ gia đình"
+                      headerStyle="text-align:center;width:170px;height:50px"
+                      bodyStyle="text-align:center;width:170px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <div class="form-group m-0">
+                          <Dropdown
+                            :showClear="true"
+                            :options="[
+                              { value: 1, title: 'Về bản thân' },
+                              { value: 2, title: 'Về bên vợ' },
+                            ]"
+                            optionLabel="title"
+                            optionValue="value"
+                            placeholder="Chọn quan hệ"
+                            v-model="slotProps.data.is_type"
+                            class="ip36"
+                            style="
+                              white-space: nowrap;
+                              overflow: hidden;
+                              text-overflow: ellipsis;
+                            "
+                          />
+                        </div>
                       </template>
                     </Column>
                     <Column

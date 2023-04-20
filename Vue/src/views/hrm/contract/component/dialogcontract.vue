@@ -56,21 +56,13 @@ const saveModel = (is_continue) => {
   submitted.value = true;
   if (
     !props.model.profile ||
+    !props.model.type_contract_id ||
     !props.model.contract_code ||
     !props.model.start_date
   ) {
     swal.fire({
       title: "Thông báo!",
       text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-  if (props.model.contract_code != null && props.model.contract_code.length > 250) {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Mã hợp đồng không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -358,6 +350,37 @@ const removeAllowanceDetail = (array, idx) => {
   }
 };
 //init
+const genCode = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_contract_gencode",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "type_contract_id", va: props.model.type_contract_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            props.model.contract_code = tbs[0][0].contract_code;
+          }
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -427,6 +450,9 @@ onMounted(() => {
                   v-model="props.model.profile"
                   class="ip36"
                   style="height: auto; min-height: 36px"
+                  :class="{
+                    'p-invalid': !props.model.profile && submitted,
+                  }"
                 >
                   <template #value="slotProps">
                     <div class="mt-2" v-if="slotProps.value">
@@ -521,39 +547,35 @@ onMounted(() => {
                     <span v-else> Chưa có dữ liệu </span>
                   </template>
                 </Dropdown>
-              </div>
-            </div>
-            <div class="col-4 md:col-4">
-              <div class="form-group">
-                <label>Mã hợp đồng <span class="redsao">(*)</span></label>
-                <InputText
-                  v-model="props.model.contract_code"
-                  spellcheck="false"
-                  class="ip36"
-                  :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
-                />
-                <div v-if="!props.model.contract_code && submitted">
+                <div v-if="!props.model.profile && submitted">
                   <small class="p-error">
-                    <span class="col-12 p-0"
-                      >Mã hợp đồng không được để trống</span
-                    >
+                    <span class="col-12 p-0">Nhân sự không được để trống</span>
                   </small>
                 </div>
               </div>
             </div>
-            <div class="col-8 md:col-8">
+            <div class="col-6 md:col-6">
               <div class="form-group">
-                <label>Loại hợp đồng </label>
+                <label>Loại hợp đồng <span class="redsao">(*)</span></label>
                 <Dropdown
+                  @change="genCode()"
                   :options="dictionarys[2]"
                   :filter="true"
                   :showClear="true"
-                  :editable="true"
+                  :editable="false"
                   v-model="props.model.type_contract_id"
                   optionLabel="type_contract_name"
                   optionValue="type_contract_id"
                   placeholder="Chọn hợp đồng"
                   class="ip36"
+                  :class="{
+                    'p-invalid': !props.model.type_contract_id && submitted,
+                  }"
+                  :style="{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }"
                 >
                   <template #option="slotProps">
                     <div class="country-item flex align-items-center">
@@ -563,6 +585,35 @@ onMounted(() => {
                     </div>
                   </template>
                 </Dropdown>
+                <div v-if="!props.model.type_contract_id && submitted">
+                  <small class="p-error">
+                    <span class="col-12 p-0"
+                      >Loại hợp đồng không được để trống</span
+                    >
+                  </small>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 md:col-6">
+              <div class="form-group">
+                <label>Mã hợp đồng <span class="redsao">(*)</span></label>
+                <InputText
+                  v-model="props.model.contract_code"
+                  spellcheck="false"
+                  class="ip36"
+                  :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
+                  maxLength="250"
+                  :class="{
+                    'p-invalid': !props.model.contract_code && submitted,
+                  }"
+                />
+                <div v-if="!props.model.contract_code && submitted">
+                  <small class="p-error">
+                    <span class="col-12 p-0"
+                      >Mã hợp đồng không được để trống</span
+                    >
+                  </small>
+                </div>
               </div>
             </div>
             <div class="col-6 md:col-6">
@@ -606,7 +657,7 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="col-4 md:col-4">
+            <div class="col-6 md:col-6">
               <div class="form-group">
                 <label>Ngày ký</label>
                 <div>
@@ -620,7 +671,7 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="col-8 md:col-8">
+            <div class="col-6 md:col-6">
               <div class="form-group">
                 <label>Người ký</label>
                 <Dropdown
