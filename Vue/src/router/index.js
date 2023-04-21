@@ -1988,7 +1988,7 @@ const router = createRouter({
       component: Request_Config_Auth_Sign,
     },
     {
-      path: "/request/config/ca_form",
+      path: "/request/config/set_number_request",
       name: "Request_Config_Number",
       component: Request_Config_Number,
     },
