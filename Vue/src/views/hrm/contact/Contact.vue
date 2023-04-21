@@ -51,7 +51,7 @@ const opition = ref({
 const options = ref({
   IsNext: true,
   sort: "created_date",
-  SearchText: "",
+  SearchText: null,
   PageNo: 0,
   PageSize: 20,
   loading: true,
@@ -72,22 +72,6 @@ const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const menuButs = ref();
-const itemButs = ref([
-  {
-    label: "Xuất Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportDonvi("ExportExcel");
-    },
-  },
-  {
-    label: "Xuất Mẫu",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportDonvi("ExportExcelMau");
-    },
-  },
-]);
 //Khai báo function
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
@@ -102,30 +86,6 @@ const onNodeUnselect = (node) => {
   );
 };
 // on event
-const onChangeParent = (item) => {
-  const organization_id = parseInt(Object.keys(item)[0]);
-  axios
-    .post(
-      baseURL + "/api/Phongban/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_organization_get_order",
-            par: [{ par: "organization_id", va: organization_id }],
-          }),
-          SecretKey,
-          cryoptojs,
-        ).toString(),
-      },
-      config,
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      if (data.length > 0) {
-        donvi.value.is_order = data[0][0].c + 1;
-      }
-    });
-};
 
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
@@ -179,15 +139,19 @@ const onPage = (event) => {
   opition.value.PageSize = event.rows;
   loadDonvi(true);
 };
+const selectedKey = ref();
 const loadDonvi = (rf) => {
   axios
     .post(
-      baseURL + "/api/Phongban/GetDataProc",
+      baseURL + "/api/hrm/callProc",
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contact_list_organization",
+            proc: "sys_users_list_dictionary_1",
             par: [
+              { par: "pageno", va: opition.value.PageNo },
+              { par: "pagesize", va: opition.value.PageSize },
+              { par: "search", va: opition.value.search },
               { par: "user_id", va: store.getters.user.user_id },
             ],
           }),
@@ -201,27 +165,28 @@ const loadDonvi = (rf) => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       if (isFirst.value) isFirst.value = false;
-      data.forEach((element, i) => {
-        element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        if(element.is_level>1){
-          element.isClosed = true;
-        element.isOpened = false;
+      let obj = renderTree(
+        data,
+        "organization_id",
+        "organization_name",
+        "đơn vị",
+      );
+      donvis.value = obj.arrChils;
+      debugger
+      if(!store.getters.user.is_super || store.getters.user.organization_id != null){
+          donvis.value.forEach((element) => {
+            expandNode(element);
+          });
         }
-        else{
-          element.isClosed = false;
-        element.isOpened = true;
-        }
-
-        if (data.find(x => x.parent_id == element.organization_id)) {
-          element.canExpand = true;
-        }
-      });
-      donvis.value = data;
       // treedonvis.value = obj.arrtreeChils;
       opition.value.loading = false;
 
-      if (data[0] != null)
+      if (data[0] != null){
+        selectedKey.value ={};
+        selectedKey.value[data[0].organization_id] = true;
         loadDataDetail(data[0].organization_id, data[0].organization_name);
+
+      }
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -278,38 +243,6 @@ const loadDataDetail = (id, name) => {
       options.value.loading = false;
     });
 };
-const item_active = ref();
-const toggle_Donvisudung = (dv) => {
-  item_active.value = dv.organization_id;
-  //angular.forEach($scope.td.diadanh, function (item) {
-  //    if (item.Diadanh_ID !== dv.Diadanh_ID) {
-  //        item.activeDd = false;
-  //    }
-  //    else {
-  //        item.activeDd = !item.activeDd;
-  //    }
-  //});
-  dv.isOpened = !dv.isOpened;
-  var lst = donvis.value.filter(l => l.parent_id === dv.organization_id);
-  lst.forEach((o) => {
-    o.isClosed = !o.isClosed;
-    if (o.isClosed) {
-      Expanded(o);
-    }
-  })
-};
-function Expanded(dv) {
-  dv.isOpened = false;
-  var lst = donvis.value.filter(l => l.parent_id === dv.organization_id);
-  if (lst !== null || lst.length > 0) {
-    lst.forEach((o) => {
-      o.isClosed = true;
-      if (o.isClosed) {
-        Expanded(o);
-      }
-    })
-  }
-};
 
 const filteredItems = ref([]);
 const searchItems = (event) => {
@@ -324,6 +257,21 @@ const searchItems = (event) => {
   }
   filteredItems.value = filteItems;
 };
+const onRefresh = ()=>{
+  options.value = {
+    IsNext: true,
+    SearchText: null,
+    PageNo: 0,
+    PageSize: 20,
+    loading: true,
+    totalRecords: null,
+    loadingP: true,
+    pagenoP: 0,
+    pagesizeP: 20,
+    searchP: "",
+  };
+  loadDonvi(true);
+}
 const rowClass = (data) => {
   return data.organization_type == 0
     ? "classdonvi"
@@ -343,144 +291,241 @@ onMounted(() => {
 <template>
   <div>
     <div>
+      <div style="background-color: #fff; padding: 1rem;">
+        <Toolbar class="w-full custoolbar">
+          <template #start>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText
+                v-model="options.SearchText"
+                v-on:keyup.enter="loadDataDetail(id_active,department_name)"
+                type="text"
+                spellcheck="false"
+                placeholder="Tìm kiếm"
+              />            
+            </span>
+          </template>
+
+          <template #end>
+            <Button
+              @click="onRefresh"
+              class="mr-2 p-button-outlined p-button-secondary"
+              icon="pi pi-refresh"
+              v-tooltip="'Tải lại'"
+            />
+
+            <Button
+              label="Tiện ích"
+              icon="pi pi-file-excel"
+              class="mr-2 p-button-outlined p-button-secondary"
+              @click="toggleExport"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            />
+          </template>
+        </Toolbar>
+    </div>
       <Splitter class="h-full w-full pb-0 pr-0">
         <SplitterPanel :size="25" class=" ">
-            <div class="pl-3 tab-left">
-                <div v-for="(dv, index) in donvis" :key="index"
-                :style="'margin-left:' +(dv.is_level+2) + 'em'" v-show="!dv.isClosed" class="my-3 mr-2 relative cursor-pointer ">
-                <div @mouseover="dv.hover = true" @mouseleave="dv.hover = false" style="min-height:20px"  >
-                    <span @click="toggle_Donvisudung(dv)" class="absolute" style="left: -1.7rem;top: 0" v-if="dv.canExpand">
-                    <!-- <a v-if="!dv.isOpened"><i style="font-size: 16px;" class="pi pi-plus-circle"></i></a> -->
-                    <a v-if="!dv.isOpened"><font-awesome-icon icon="fa-solid fa-square-plus" style="font-size: 16px; color: gray;" /></a>
-                    <a v-if="dv.isOpened"><font-awesome-icon icon="fa-solid fa-square-minus" style="font-size: 16px; color: gray;" /></a>
+          <div class="tab-left">
+              <!-- <div>
+                <Toolbar>
+                  <template #start>
+                    <span class="p-input-icon-left">
+                      <i class="pi pi-search" />
+                      <InputText
+                        v-model="filters['global']"
+                        type="text"
+                        spellcheck="false"
+                        placeholder="Tìm kiếm đơn vị"
+                      />
                     </span>
-                    <div class="w-full text-lg item-hover" :class="{'active':  id_active=== dv.organization_id}"  @click="loadDataDetail(dv.organization_id, dv.organization_name)">{{ dv.organization_name }}</div>
+                  </template>
+                  <template #end>
+                  </template>
+                </Toolbar>
+              </div> -->
+              <div>
+                <div class="w-full d-lang-table">
+                  <TreeTable
+                    :value="donvis"
+                    v-model:selectionKeys="selectedKey"
+                    @nodeUnselect="onNodeUnselect"
+                    :expandedKeys="expandedKeys"
+                    :filters="filters"
+                    :showGridlines="false"
+                    filterMode="strict"
+                    class="p-treetable-sm"
+                    :rows="20"
+                    :rowHover="true"
+                    responsiveLayout="scroll"
+                    :scrollable="true"
+                    scrollHeight="flex"
+                    metaKeySelection="true"
+                    selectionMode="single"
+                    @nodeSelect= "(node)=> loadDataDetail(
+                    node.data.organization_id,
+                    node.data.organization_name,
+                  )"
+                  >
+                    <Column
+                      field="organization_name"
+                      header="Tên đơn vị/phòng ban"
+                      headerStyle=""
+                      bodyStyle="text-align:left;word-break:break-word;"
+                      :expander="true"
+                    >
+                      <template #body="md">
+                        <div
+                          :class="
+                            md.node.data.organization_id ===
+                            organization_id_label
+                              ? 'row-active'
+                              : ''
+                          "
+                        >
+                          <span
+                            :class="'donvi' + md.node.data.organization_type"
+                            :style="[
+                              md.node.data ? 'font-weight:bold' : '',
+                              md.node.data.status ? '' : 'color:red !important',
+                            ]"
+                            >{{ md.node.data.organization_name }}</span
+                          >
+                        </div>
+                      </template>
+                    </Column>
+                    <template #empty>
+                      <div
+                        class="m-auto align-items-center justify-content-center p-4 text-center"
+                        v-if="!isFirst"
+                      >
+                        <img
+                          src="../../../assets/background/nodata.png"
+                          height="144"
+                        />
+                        <h3 class="m-1">Không có dữ liệu</h3>
+                      </div>
+                    </template>
+                  </TreeTable>
                 </div>
-
-                </div>
+              </div>
             </div>
         </SplitterPanel>
         <SplitterPanel :size="75">
           <div class="d-lang-table-r">
-            <div class="p-3" v-if="datalistsDetails">
-              <h3 class="module-title m-0">
-                <i class="pi pi-book"></i> {{ department_name }} ({{
-                  datalistsDetails.length
-                }})
-              </h3>
-            </div>
             <DataTable  class="w-full p-datatable-sm e-sm cursor-pointer" :value="datalistsDetails"
-           v-model:filters="filters" :showGridlines="true"
-          filterMode="lenient" :paginator="'true'" :rows="options.PageSize" filterDisplay="menu" selectionMode="single"
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          :scrollable="true" scrollHeight="flex" responsiveLayout="scroll" 
-          pageLinkSize="4">
-            <Column field="STT"
-            header="STT"
-            headerStyle="text-align:center;max-width:50px;height:50px"
-            bodyStyle="text-align:center;max-width:50px;"
-            class="align-items-center justify-content-center text-center"
-            >
-            </Column>
-            <Column
-                field="avatar"
-                header="Ảnh"
-                headerStyle="text-align:center;max-width:80px;height:50px"
-                bodyStyle="text-align:center;max-width:80px;"
-                class="align-items-center justify-content-center text-center"
-            >
-            <template #body="slotProps">
-                <Avatar
-                  v-bind:label="
-                    slotProps.data.avatar
-                      ? ''
-                      : slotProps.data.last_name.substring(0, 1)
-                  "
-                  v-bind:image="
-                    slotProps.data.avatar
-                      ? basedomainURL + slotProps.data.avatar
-                      : basedomainURL + '/Portals/Image/noimg.jpg'
-                  "
-                  @error="basedomainURL + '/Portals/Image/noimg.jpg'"
-                  size="large"
-                  shape="circle"
-                  class="cursor-pointer"
-                  :style="{
-                    backgroundColor: bgColor[(slotProps.data.full_name.length+10) % 7],
-                    color: 'white',
-                  }"
-                />
-            </template>
-            </Column>
-            <Column
-            field="profile_code"
-            header="Mã nhân sự"
-            headerStyle="text-align:center;max-width:80px;height:50px;"
-            bodyStyle="text-align:center;max-width:80px;"
-            class="align-items-center justify-content-center text-center"
-            >
-            </Column>
-            <Column
-            field="full_name"
-            header="Họ và tên"
-            headerStyle="text-align:center;height:50px;justify-content:center"
-            bodyStyle="text-align:left;word-break:break-word;justify-content:start"
-            >
-            </Column>
-            <Column
-            field="birthday"
-            header="Ngày sinh"
-            headerStyle="text-align:center;max-width:100px;height:50px"
-            bodyStyle="text-align:center;max-width:100px;"
-            class="align-items-center justify-content-center text-center"
-            >
-            <template #body="{ data }">
-              <span v-if="data.birthday"> {{ moment(new Date(data.birthday)).format("DD/MM/YYYY ") }}</span>
-            </template>
-            </Column>
-            <Column
-            field="gender"
-            header="Giới tính"
-            headerStyle="text-align:center;max-width:80px;height:50px"
-            bodyStyle="text-align:center;max-width:80px;"
-            class="align-items-center justify-content-center text-center"
-            >
-            <template #body="{ data }">
-              <span> {{data.gender==0?'Nữ':data.gender==1?'Nam':'' }}</span>
-            </template>
-            </Column>     
-            <Column
-            field="phone"
-            header="Mobile"
-            headerStyle="text-align:center;max-width:80px;height:50px"
-            bodyStyle="text-align:center;max-width:80px;"
-            class="align-items-center justify-content-center text-center"
-            >
-            </Column>   
-            <Column
-            field="email"
-            header="Email"
-            headerStyle="text-align:center;max-width:140px;height:50px"
-            bodyStyle="text-align:center;max-width:140px; word-break:break-word"
-            class="align-items-center justify-content-center text-center"
-            >
-            </Column>   
-            <Column
-            field="role_name"
-            header="Chức vụ"
-            headerStyle="text-align:center;max-width:100px;height:50px"
-            bodyStyle="text-align:center;max-width:100px;"
-            class="align-items-center justify-content-center text-center"
-            >
-            </Column> 
-            <Column
-            field="organization_name"
-            header="Phòng ban"
-            headerStyle="text-align:center;max-width:150px;height:50px"
-            bodyStyle="text-align:center;max-width:150px;"
-            class="align-items-center justify-content-center text-center"
-            >
-            </Column> 
+              v-model:filters="filters" :showGridlines="true"
+              filterMode="lenient" :paginator="'true'" :rows="options.PageSize" filterDisplay="menu" selectionMode="single"
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              :scrollable="true" scrollHeight="flex" responsiveLayout="scroll" 
+              pageLinkSize="4">
+              <Column field="STT"
+              header="STT"
+              headerStyle="text-align:center;max-width:50px;height:50px"
+              bodyStyle="text-align:center;max-width:50px;"
+              class="align-items-center justify-content-center text-center"
+              >
+              </Column>
+              <Column
+                  field="avatar"
+                  header="Ảnh"
+                  headerStyle="text-align:center;max-width:80px;height:50px"
+                  bodyStyle="text-align:center;max-width:80px;"
+                  class="align-items-center justify-content-center text-center"
+              >
+              <template #body="slotProps">
+                  <Avatar
+                    v-bind:label="
+                      slotProps.data.avatar
+                        ? ''
+                        : slotProps.data.last_name.substring(0, 1)
+                    "
+                    v-bind:image="
+                      slotProps.data.avatar
+                        ? basedomainURL + slotProps.data.avatar
+                        : basedomainURL + '/Portals/Image/noimg.jpg'
+                    "
+                    @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                    size="large"
+                    shape="circle"
+                    class="cursor-pointer"
+                    :style="{
+                      backgroundColor: bgColor[(slotProps.data.full_name.length+10) % 7],
+                      color: 'white',
+                    }"
+                  />
+              </template>
+              </Column>
+              <Column
+              field="profile_code"
+              header="Mã nhân sự"
+              headerStyle="text-align:center;max-width:80px;height:50px;"
+              bodyStyle="text-align:center;max-width:80px;"
+              class="align-items-center justify-content-center text-center"
+              >
+              </Column>
+              <Column
+              field="full_name"
+              header="Họ và tên"
+              headerStyle="text-align:center;height:50px;justify-content:center"
+              bodyStyle="text-align:left;word-break:break-word;justify-content:start"
+              >
+              </Column>
+              <Column
+              field="birthday"
+              header="Ngày sinh"
+              headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px;"
+              class="align-items-center justify-content-center text-center"
+              >
+              <template #body="{ data }">
+                <span v-if="data.birthday"> {{ moment(new Date(data.birthday)).format("DD/MM/YYYY ") }}</span>
+              </template>
+              </Column>
+              <Column
+              field="gender"
+              header="Giới tính"
+              headerStyle="text-align:center;max-width:80px;height:50px"
+              bodyStyle="text-align:center;max-width:80px;"
+              class="align-items-center justify-content-center text-center"
+              >
+              <template #body="{ data }">
+                <span> {{data.gender==0?'Nữ':data.gender==1?'Nam':'' }}</span>
+              </template>
+              </Column>     
+              <Column
+              field="phone"
+              header="Mobile"
+              headerStyle="text-align:center;max-width:80px;height:50px"
+              bodyStyle="text-align:center;max-width:80px;"
+              class="align-items-center justify-content-center text-center"
+              >
+              </Column>   
+              <Column
+              field="email"
+              header="Email"
+              headerStyle="text-align:center;max-width:140px;height:50px"
+              bodyStyle="text-align:center;max-width:140px; word-break:break-word"
+              class="align-items-center justify-content-center text-center"
+              >
+              </Column>   
+              <Column
+              field="role_name"
+              header="Chức vụ"
+              headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px;"
+              class="align-items-center justify-content-center text-center"
+              >
+              </Column> 
+              <Column
+              field="organization_name"
+              header="Phòng ban"
+              headerStyle="text-align:center;max-width:150px;height:50px"
+              bodyStyle="text-align:center;max-width:150px;"
+              class="align-items-center justify-content-center text-center"
+              >
+              </Column> 
             <template #empty>
                 <div class="
                     align-items-center
@@ -503,15 +548,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.tab-left{
-    overflow: auto;
-    max-height: calc(100vh - 105px);
-    min-height: calc(100vh - 105px);
-}
 
-.ipnone {
-  display: none;
-}
 
 .row-active,.active {
   color: rgb(13, 137, 236);
@@ -519,12 +556,6 @@ onMounted(() => {
 .c-red-600{
   color:red;
 }
-.inputanh img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
-}
-
 .d-lang-table {
   margin: 0px;
   height: calc(100vh - 122px);
@@ -532,7 +563,7 @@ onMounted(() => {
 
 .d-lang-table-r {
   margin: 0px;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 121px);
 }
 .item-hover:hover{
   color:#0099f3;
@@ -555,6 +586,25 @@ onMounted(() => {
 ::v-deep(.p-datatable) {
   .p-datatable-thead > tr > th {
     background-color:#fff ;
+  }
+}
+::v-deep(.avt-org) {
+  img {
+    object-fit: contain !important;
+  }
+}
+::v-deep(.tab-left) {
+  .p-toolbar,.p-treetable .p-treetable-thead > tr > th {
+    background:#fff !important;
+  }
+  thead> tr{
+  display:none;
+}
+}
+::v-deep(.d-lang-table-r) {
+  .p-toolbar {
+    border: none;
+    padding-bottom:0px !important ;
   }
 }
 </style>

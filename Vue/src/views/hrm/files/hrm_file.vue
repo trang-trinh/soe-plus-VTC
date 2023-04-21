@@ -1052,7 +1052,7 @@ onMounted(() => {
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
             bodyStyle="text-align:center;max-width:50px;min-width:50px">
             <template #body="{ data }">
-              <img style="height: 50px; object-fit: contain" v-bind:src="
+              <img style="height: 25px; object-fit: contain" v-bind:src="
                 basedomainURL + '/Portals/file/' + data.file_type + '.png'
               " @error="
                 $event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'
@@ -1359,7 +1359,7 @@ onMounted(() => {
           <div class="field col-12 font-bold text-lg pl-0 pb-3">Thông tin truy cập</div>
           <div class="scroll-right">
             <div v-for="(item, index) in data_log" :key="index" class="flex mb-3"
-              :style="(index == data_log.length - 1) ? '' : 'border-bottom:2px solid #eee'">
+              >
               <div class="log-image">
                 <div class="group-sign">
                   <div style="display: inline-block; position: relative; z-index: 1;">
