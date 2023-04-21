@@ -7,6 +7,15 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 //Khai báo
+const bgColors = ref([
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+  "#B0DE09",
+]);
 const router = inject("router");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -20,6 +29,7 @@ const layout = ref("list");
 const first = ref(0);
 const list_users = ref([]);
 const list_profiles = ref([]);
+const top_users = ref([]);
 const isTopView = ref(false)
 const list_types = ref([
   { img: "/Portals/file/pdf.png", label: "PDF", type: 1 },
@@ -51,7 +61,7 @@ const total_file = ref(0);
 const total_size = ref(0);
 const itemButMores = ref([
   {
-    label: "Xem thông tin",
+    label: "Xem",
     icon: "pi pi-info-circle",
     command: (event) => {
       viewFile(file.value);
@@ -191,7 +201,7 @@ const loadData = (rf, is_filter) => {
             item.STT = options.value.PageNo * options.value.PageSize + i + 1;
             item.file_name_grid = item.file_name;
             item.list_profile = JSON.parse(item.list_profile);
-            item.list_profile = item.list_profile != null ? item.list_profile.concat(item.list_profile) : null;
+            //item.list_profile = item.list_profile != null ? item.list_profile.concat(item.list_profile) : null;
             if (item.file_name.length > 30)
               item.file_name_grid = item.file_name.substring(0, 30) + "...";
             //context label
@@ -542,6 +552,9 @@ const loadTudien = () => {
       if (data[3].length > 0) {
         list_profiles.value = data[3];
       }
+      if (data[4].length > 0) {
+        top_users.value = data[4];
+      }
     })
     .catch((error) => {
       debugger
@@ -565,7 +578,7 @@ const goProfile = (item) => {
   router.push({
     name: "profileinfo",
     params: { id: generateUUID() },
-    query: { id: item.profile_id_key },
+    query: { id: item.profile_id },
   });
 };
 const changeView = (item) => {
@@ -608,6 +621,13 @@ const onRefresh = () => {
   isfilter.value = false;
   loadData(true, true);
 }
+//
+const opMore = ref();
+const profile_mores = ref();
+const toggleMoreUsers = (event, data) => {
+  opMore.value.toggle(event);
+  profile_mores.value = data;
+};
 //filter
 const opfilter = ref();
 const isfilter = ref(false)
@@ -725,7 +745,7 @@ onMounted(() => {
                                                 options.type_files
                                               );
                                             $event.stopPropagation();
-                                                                                      " v-tooltip.top="'Xóa'"></span>
+                                            " v-tooltip.top="'Xóa'"></span>
                                         </div>
                                       </Chip>
                                     </li>
@@ -760,17 +780,17 @@ onMounted(() => {
                                                   value.profile_user_name ?? ''
                                                 ).substring(0, 1)
                                             " v-bind:image="
-  value.avatar
-    ? basedomainURL + value.avatar
-    : basedomainURL +
-    '/Portals/Image/noimg.jpg'
-" :style="{
-  background:
-    bgColor[value.is_order % 7],
-  color: '#ffffff',
-  width: '2rem',
-  height: '2rem',
-}" class="mr-2 text-avatar" size="xlarge" shape="circle" />
+                                                value.avatar
+                                                  ? basedomainURL + value.avatar
+                                                  : basedomainURL +
+                                                  '/Portals/Image/noimg.jpg'
+                                              " :style="{
+                                                background:
+                                                  bgColor[value.is_order % 7],
+                                                color: '#ffffff',
+                                                width: '2rem',
+                                                height: '2rem',
+                                              }" class="mr-2 text-avatar" size="xlarge" shape="circle" />
                                           </div>
                                           <div class="format-flex-center text-left">
                                             <span>{{ value.profile_user_name }}</span>
@@ -779,7 +799,7 @@ onMounted(() => {
                                             class="p-chip-remove-icon pi pi-times-circle format-flex-center" @click="
                                               removeFilter(index, options.profiles);
                                             $event.stopPropagation();
-                                                                                    " v-tooltip.top="'Xóa'"></span>
+                                            " v-tooltip.top="'Xóa'"></span>
                                         </div>
                                       </Chip>
                                     </li>
@@ -799,18 +819,18 @@ onMounted(() => {
                                             1
                                           )
                                       " v-bind:image="
-  slotProps.option.avatar
-    ? basedomainURL + slotProps.option.avatar
-    : basedomainURL +
-    '/Portals/Image/noimg.jpg'
-" :style="{
-  background:
-    bgColor[slotProps.option.is_order % 7],
-  color: '#ffffff',
-  width: '3rem',
-  height: '3rem',
-  fontSize: '1.4rem !important',
-}" class="text-avatar m-0" size="xlarge" shape="circle" />
+                                          slotProps.option.avatar
+                                            ? basedomainURL + slotProps.option.avatar
+                                            : basedomainURL +
+                                            '/Portals/Image/noimg.jpg'
+                                        " :style="{
+                                          background:
+                                            bgColor[slotProps.option.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '3rem',
+                                          height: '3rem',
+                                          fontSize: '1.4rem !important',
+                                        }" class="text-avatar m-0" size="xlarge" shape="circle" />
                                     </div>
                                     <div class="format-center text-left ml-3">
                                       <div>
@@ -857,17 +877,17 @@ onMounted(() => {
                                                   value.last_name ?? ''
                                                 ).substring(0, 1)
                                             " v-bind:image="
-  value.avatar
-    ? basedomainURL + value.avatar
-    : basedomainURL +
-    '/Portals/Image/noimg.jpg'
-" :style="{
-  background:
-    bgColor[value.is_order % 7],
-  color: '#ffffff',
-  width: '2rem',
-  height: '2rem',
-}" class="mr-2 text-avatar" size="xlarge" shape="circle" />
+                                                value.avatar
+                                                  ? basedomainURL + value.avatar
+                                                  : basedomainURL +
+                                                  '/Portals/Image/noimg.jpg'
+                                              " :style="{
+                                                background:
+                                                  bgColor[value.is_order % 7],
+                                                color: '#ffffff',
+                                                width: '2rem',
+                                                height: '2rem',
+                                              }" class="mr-2 text-avatar" size="xlarge" shape="circle" />
                                           </div>
                                           <div class="format-flex-center text-left">
                                             <span>{{ value.full_name }}</span>
@@ -896,18 +916,18 @@ onMounted(() => {
                                             1
                                           )
                                       " v-bind:image="
-  slotProps.option.avatar
-    ? basedomainURL + slotProps.option.avatar
-    : basedomainURL +
-    '/Portals/Image/noimg.jpg'
-" :style="{
-  background:
-    bgColor[slotProps.option.is_order % 7],
-  color: '#ffffff',
-  width: '3rem',
-  height: '3rem',
-  fontSize: '1.4rem !important',
-}" class="text-avatar m-0" size="xlarge" shape="circle" />
+                                          slotProps.option.avatar
+                                            ? basedomainURL + slotProps.option.avatar
+                                            : basedomainURL +
+                                            '/Portals/Image/noimg.jpg'
+                                        " :style="{
+                                          background:
+                                            bgColor[slotProps.option.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '3rem',
+                                          height: '3rem',
+                                          fontSize: '1.4rem !important',
+                                        }" class="text-avatar m-0" size="xlarge" shape="circle" />
                                     </div>
                                     <div class="format-center text-left ml-3">
                                       <div>
@@ -968,41 +988,6 @@ onMounted(() => {
                 <template #end>
                 </template>
               </Toolbar>
-              <!-- <div class="flex w-full p-3">
-                    <div class="w-15rem mr-2">
-                      <Dropdown v-model="filterType" :options="list_types" optionLabel="label" placeholder="Kho dữ liệu"
-                        class="w-full" showClear="true" @change="loadData(true)">
-                        <template #value="slotProps">
-                          <div class="flex align-items-center" v-if="slotProps.value">
-                            <img class="icon-modules" v-bind:src="basedomainURL + slotProps.value.img" />
-                            <div class="ml-2">
-                              {{ slotProps.value.label }}
-                            </div>
-                          </div>
-                          <span v-else>
-                            {{ slotProps.placeholder }}
-                          </span>
-                        </template>
-                        <template #option="slotProps">
-                          <div class="country-item flex">
-                            <img class="icon-modules" v-bind:src="basedomainURL + slotProps.option.img" />
-                            <div style="margin-left: 5px">
-                              {{ slotProps.option.label }}
-                            </div>
-                          </div>
-                        </template>
-                      </Dropdown>
-                    </div>
-                    <div class="w-15rem mr-2">
-                      <div class="w-full flex">
-                        <span class="w-full p-input-icon-left ">
-                          <i class="pi pi-search" />
-                          <InputText type="text" style="height:32px" v-model="options.search" spellcheck="false"
-                            @keyup.enter="loadData(true)" placeholder="Tìm kiếm" />
-                        </span>
-                      </div>
-                    </div>
-                  </div> -->
             </div>
           </template>
           <template #end>
@@ -1067,7 +1052,7 @@ onMounted(() => {
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
             bodyStyle="text-align:center;max-width:50px;min-width:50px">
             <template #body="{ data }">
-              <img style="height: 50px; object-fit: contain" v-bind:src="
+              <img style="height: 25px; object-fit: contain" v-bind:src="
                 basedomainURL + '/Portals/file/' + data.file_type + '.png'
               " @error="
                 $event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'
@@ -1088,16 +1073,79 @@ onMounted(() => {
           </Column>
           <Column field="list_profile" header="Nhân sự"
             headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px;justify-content:center;display:flex"
-            bodyStyle="max-width:200px;min-width:150px; display:block"
-            class="">
+            bodyStyle="max-width:200px;min-width:150px;"
+            class="align-items-center justify-content-center text-center">
             <template #body="slotProps">
-              <span v-for="(item, index) in slotProps.data.list_profile" :key="index">
+              <!-- <span v-for="(item, index) in slotProps.data.list_profile" :key="index">
                 <b @click="goProfile(item.profile_id)" class="hover">{{
                   item.profile_user_name
                 }}</b>
                 <span v-if="index < (slotProps.data.list_profile.length -1)">,&nbsp;</span>                
-              </span>
-          </template>
+              </span> -->
+              <div class="flex" :style="{ justifyContent: 'center' }">
+              <AvatarGroup
+                v-if="
+                  slotProps.data.list_profile &&
+                  slotProps.data.list_profile.length > 0
+                "
+              >
+                <Avatar
+                  v-for="(item, index) in slotProps.data.list_profile.slice(
+                    0,
+                    3
+                  )"
+                  v-bind:label="
+                    item.avatar
+                      ? ''
+                      : item.profile_user_name.substring(0, 1)
+                  "
+                  v-bind:image="
+                    item.avatar
+                      ? basedomainURL + item.avatar
+                      : basedomainURL + '/Portals/Image/noimg.jpg'
+                  "
+                  v-tooltip.top="{
+                    value:
+                      item.profile_user_name+
+                      '<br/>' +
+                      (item.profile_code||'')+
+                      '<br/>' +
+                      (item.department_name||''),
+                    escape: true,
+                  }"
+                  @click="goProfile(item.profile_id)"
+                  :key="item.profile_id"
+                  @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                  size="large"
+                  shape="circle"
+                  class="cursor-pointer"
+                  :style="{
+                    backgroundColor: bgColors[index % 7],
+                    color: 'white',
+                    fontSize: '13px !important',
+                  }"
+                />
+                <Avatar
+                  v-if="
+                    slotProps.data.list_profile &&
+                    slotProps.data.list_profile.length > 3
+                  "
+                  v-bind:label="
+                    '+' + (slotProps.data.list_profile.length - 3).toString()
+                  "
+                  @click="toggleMoreUsers($event, slotProps.data.list_profile.slice(3,slotProps.data.list_profile.length))"
+                  aria:haspopup="true" aria-controls="overlay_Users"
+                  shape="circle"
+                  size="large"
+                  :style="{
+                    backgroundColor: '#2196f3',
+                    color: '#ffffff',
+                  }"
+                  class="cursor-pointer"
+                />
+              </AvatarGroup>
+            </div>
+            </template>
           </Column>
           <Column field="created_date" header="Ngày/ Người tạo"
             headerStyle="text-align:left;max-width:170px;min-width:170px;height:50px"
@@ -1176,9 +1224,9 @@ onMounted(() => {
                         slotProps.data.file_type.replace('.', '') +
                         '.png'
                       " @error="
-  $event.target.src =
-  basedomainURL + '/Portals/Image/noimg.jpg'
-" />
+                        $event.target.src =
+                        basedomainURL + '/Portals/Image/noimg.jpg'
+                      " />
                     </div>
                   </template>
                   <template #content>
@@ -1211,14 +1259,64 @@ onMounted(() => {
       <div style="width: 320px !important; border-left: 1px solid rgba(0, 0, 0, 0.1);overflow: hidden;">
         <div v-if="!isDetail">
           <div class="header-bar w-full format-center" style="border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
-            <h3>Kho số hóa: {{ total_file || 0 }} files</h3>
+            <div class="col-12 font-bold text-lg text-center">
+              Kho số hóa: {{ total_file || 0 }} files
+          </div>
           </div>
           <div class="body-right format-center" v-if="displayChart">
             <Chart type="pie" style="width: 90% !important" :data="chartDatapie" :options="lightOptions" />
           </div>
-          <div class=" format-center w-full" v-if="displayChart">
+          <div class="format-center w-full" v-if="displayChart">
             <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
           </div>
+          <div class="col-12 font-bold text-lg text-center mt-5 mb-1">
+              Tài khoản truy cập nhiều nhất
+          </div>
+          <DataTable
+              :value="top_users"
+              :scrollable="true"
+              :lazy="true"
+              :rowHover="true"
+              :showGridlines="false"
+              dataKey="created_by"
+              scrollHeight="flex"
+              filterDisplay="menu"
+              filterMode="lenient"
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              responsiveLayout="scroll"
+              class="border-none padding-new"
+            >
+              <Column
+                field="full_name"
+                header="Tài khoản"
+                headerStyle="max-width:auto;justify-content:center;height:40px"
+              >
+              <template #body="slotProps">
+              <div>
+                <Avatar v-bind:label="
+                  slotProps.data.avatar
+                    ? ''
+                    : slotProps.data.last_name.substring(0, 1)
+                " v-bind:image="
+                    slotProps.data.avatar
+                      ? basedomainURL + slotProps.data.avatar
+                      : basedomainURL + '/Portals/Image/noimg.jpg'
+                  " style="background-color: #2196f3;color: #ffffff;width: 2rem;height: 2rem;font-size: 1rem !important;"
+                  :style="{
+                    background: bgColor[slotProps.data.full_name.length % 7],
+                  }" class="text-avatar" size="xlarge" shape="circle"  />
+              </div>
+              <span class="ml-2">{{slotProps.data.full_name}}</span>
+            </template>
+              </Column>
+              <Column
+                field="total_view"
+                header="Số lần"
+                headerStyle="text-align:center;max-width:50px;height:40px;justify-content:center"
+                bodyStyle="text-align:center;max-width:50px;justify-content:center"
+              >
+              </Column>
+            </DataTable>
         </div>
         <div v-else class="p-3">
           <div class="field col-12 pl-0 flex">
@@ -1235,12 +1333,12 @@ onMounted(() => {
               <Avatar v-bind:label="
                 file_detail.avatar ? '' : file_detail.last_name.substring(0, 1)
               " v-bind:image="basedomainURL + file_detail.avatar" style="background-color: #2196f3;
-                              color: #ffffff;
-                              width: 2rem;
-                              height: 2rem;
-                            " :style="{
-                              background: bgColor[file_detail.last_name.length % 7],
-                            }" class="mr-2" size="xlarge" shape="circle" />
+                    color: #ffffff;
+                    width: 2rem;
+                    height: 2rem;
+                  " :style="{
+                    background: bgColor[file_detail.last_name.length % 7],
+                  }" class="mr-2" size="xlarge" shape="circle" />
               <div class="text-bold">{{ file_detail.full_name }} </div>
             </div>
           </div>
@@ -1261,7 +1359,7 @@ onMounted(() => {
           <div class="field col-12 font-bold text-lg pl-0 pb-3">Thông tin truy cập</div>
           <div class="scroll-right">
             <div v-for="(item, index) in data_log" :key="index" class="flex mb-3"
-              :style="(index == data_log.length - 1) ? '' : 'border-bottom:2px solid #eee'">
+              >
               <div class="log-image">
                 <div class="group-sign">
                   <div style="display: inline-block; position: relative; z-index: 1;">
@@ -1302,10 +1400,10 @@ onMounted(() => {
         <img v-if="
           'gif,jpeg,png,jpg,.gif,.jpeg,.png,.jpg'.includes(dataDetail.file_type.toLowerCase())
         " style="width: 100%; min-height: 66vh; height: 100%" class="w-full cursor-pointer" :src="
-  dataDetail.file_path
-    ? basedomainURL + dataDetail.file_path
-    : basedomainURL + '/Portals/Image/noimg.jpg'
-" />
+            dataDetail.file_path
+              ? basedomainURL + dataDetail.file_path
+              : basedomainURL + '/Portals/Image/noimg.jpg'
+          " />
         <video v-if="
           'mp4,flv,mov,wmv,.mp4,.flv,.mov,.wmv'.includes(dataDetail.file_type.toLowerCase())
         " style="width: 100%; min-height: 66vh; height: 100%" controls
@@ -1322,17 +1420,52 @@ onMounted(() => {
             dataDetail.file_type.toLowerCase()
           )
         " allowfullscreen :src="
-  basedomainURL +
-  '/Viewer/?title=' +
-  dataDetail.file_name +
-  '&url=' +
-  dataDetail.file_path
-" style="width: 100%; min-height: 66vh; height: 100%" title="Iframe Example">
+            basedomainURL +
+            '/Viewer/?title=' +
+            dataDetail.file_name +
+            '&url=' +
+            dataDetail.file_path
+          " style="width: 100%; min-height: 66vh; height: 100%" title="Iframe Example">
         </iframe>
       </div>
     </div>
   </Dialog>
   <Menu id="overlay_More" ref="menuButMores" :model="itemButMores" :popup="true" />
+  <OverlayPanel :showCloseIcon="false" ref="opMore" appendTo="body" class="p-0 m-0" id="overlay_Users" style="width: 200px">
+    <div class="grid formgrid m-0 p-0">
+      <div v-for="(item, index) in profile_mores" :key="index" class="col-12 flex p-0 py-1 item-top-hover cursor-pointer" @click="goProfile(item)">
+        <div class="col-3">
+          <Avatar
+          v-bind:label="
+            item.avatar
+              ? ''
+              : item.profile_user_name.substring(0, 1)
+          "
+          v-bind:image="
+            item.avatar
+              ? basedomainURL + item.avatar
+              : basedomainURL + '/Portals/Image/noimg.jpg'
+          "
+          :key="item.profile_id"
+          @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+          size="large"
+          shape="circle"
+          class="cursor-pointer"
+          :style="{
+            backgroundColor: bgColors[index % 7],
+            color: 'white',
+            width:'2.7rem',
+            height:'2.7rem',
+            fontSize: '13px !important',
+          }"
+        />
+        </div>
+        <div class="col-9 flex align-items-center hover font-bold">
+          {{item.profile_user_name}}
+        </div>
+      </div>
+    </div>
+  </OverlayPanel>
 </template>
     
 <style scoped>
@@ -1379,6 +1512,7 @@ onMounted(() => {
   color: #0078d4;
 }
 
+
 .text-bold {
   color: #000000;
 }
@@ -1400,8 +1534,8 @@ onMounted(() => {
 }
 
 .over-scroll-list {
-  min-height: calc(100vh - 360px);
-  max-height: calc(100vh - 360px);
+  min-height: calc(100vh - 342px);
+  max-height: calc(100vh - 342px);
   overflow: auto;
 }
 
@@ -1485,7 +1619,14 @@ onMounted(() => {
     background: #fff !important;
   }
 }
-
+::v-deep(.padding-new) {
+  tr > td{
+  border:none !important;
+}
+thead> tr{
+  display:none;
+}
+}
 ::v-deep(.p-selectable-row) {
 
   td {
@@ -1496,7 +1637,6 @@ onMounted(() => {
   }
 
 }
-
 ::v-deep(.p-datatable-header) {
   padding: 0px !important;
   background: #fff !important;

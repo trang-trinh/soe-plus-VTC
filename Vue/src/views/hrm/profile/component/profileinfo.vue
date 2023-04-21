@@ -3813,7 +3813,7 @@ const onPage = (event) => {
                   responsiveLayout="scroll"
                 >
                   <Column
-                    field="contract_no"
+                    field="contract_code"
                     header="Mã HĐ"
                     headerStyle="text-align:center;max-width:80px;height:50px"
                     bodyStyle="text-align:center;max-width:80px;"
@@ -3873,17 +3873,6 @@ const onPage = (event) => {
                     </template>
                   </Column>
                   <Column
-                    field="sign_user_name"
-                    header="Người ký"
-                    headerStyle="text-align:center;max-width:120px;height:50px"
-                    bodyStyle="text-align:center;max-width:120px;"
-                    class="align-items-center justify-content-center text-center"
-                  >
-                    <template #body="slotProps">
-                      {{ slotProps.data.sign_user_name }}
-                    </template>
-                  </Column>
-                  <Column
                     field="created_date"
                     header="Ngày/Người lập"
                     headerStyle="text-align:center;max-width:130px;height:50px"
@@ -3930,20 +3919,17 @@ const onPage = (event) => {
                     class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
-                      <div
-                        class="m-2"
-                        aria:haspopup="true"
-                        aria-controls="overlay_panel_status"
-                      >
-                        <Button
-                          :label="slotProps.data.status_name"
-                          :style="{
-                            border: slotProps.data.bg_color,
-                            backgroundColor: slotProps.data.bg_color,
-                            color: slotProps.data.text_color,
-                          }"
-                        />
-                      </div>
+                      <Button
+                        :label="slotProps.data.status_name"
+                        class="p-button-outlined"
+                        :style="{
+                          borderColor: slotProps.data.bg_color,
+                          // backgroundColor: slotProps.data.bg_color,
+                          color: slotProps.data.bg_color,
+                          borderRadius: '15px',
+                          padding: '0.3rem 0.75rem !important',
+                        }"
+                      />
                     </template>
                   </Column>
                   <template #empty>

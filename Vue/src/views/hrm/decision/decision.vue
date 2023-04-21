@@ -3,6 +3,7 @@ import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dialogdecíion from "./component/dialogdecision.vue";
+import framepreview from "../component/framepreview.vue";
 import moment from "moment";
 
 const router = inject("router");
@@ -90,10 +91,17 @@ const itemButMores = ref([
     },
   },
   {
-    label: "Nhân bản hợp đồng",
+    label: "Nhân bản quyết định",
     icon: "pi pi-copy",
     command: (event) => {
-      copyItem(decision.value, "Nhân bản hợp đồng");
+      copyItem(decision.value, "Nhân bản quyết định");
+    },
+  },
+  {
+    label: "In quyết định",
+    icon: "pi pi-print",
+    command: (event) => {
+      openDialogFrame(decision.value);
     },
   },
   {
@@ -146,9 +154,12 @@ const toggleAddItem = (event) => {
 };
 
 //Function
-const componentKey = ref(0);
-const forceRerender = () => {
-  componentKey.value += 1;
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
 function CreateGuid() {
   function _p8(s) {
@@ -271,7 +282,7 @@ const copyItem = (item, str) => {
       swal.close();
       if (options.value.loading) options.value.loading = false;
 
-      forceRerender();
+      forceRerender(0);
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -299,15 +310,42 @@ const copyItem = (item, str) => {
     });
 };
 
-const printViewContract = (row) => {
-  if (row) {
-    let o = { id: 2, par: { decision_id: row.decision_id } };
+const printViewDecision = (row) => {
+  if (row && row.report_key) {
+    let o = {
+      id: row.report_key,
+      par: { decision_id: row.decision_id, isedit: true },
+    };
     let url = encodeURIComponent(
       encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
     );
-    url = "https://doconline.soe.vn/report/" + url.replaceAll("%", "==");
+    url =
+      "https://doconline.soe.vn/decided/" +
+      url.replaceAll("%", "==") +
+      "?v=" +
+      new Date().getTime().toString();
     window.open(url);
+  } else {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Chưa thiết lập mẫu in cho quyết định!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
   }
+};
+
+const headerDialogFrame = ref();
+const displayDialogFrame = ref(false);
+const openDialogFrame = (item) => {
+  forceRerender(1);
+  headerDialogFrame.value = "Thông tin quyết định";
+  displayDialogFrame.value = true;
+};
+const closeDialogFrame = () => {
+  forceRerender(1);
+  displayDialogFrame.value = false;
 };
 
 //add model
@@ -321,7 +359,7 @@ const files = ref([]);
 const type_decision = ref({});
 const openAddDialog = (type, str) => {
   type_decision.value = type;
-  forceRerender();
+  forceRerender(0);
   isAdd.value = true;
   isCopy.value = false;
   model.value = {
@@ -329,7 +367,7 @@ const openAddDialog = (type, str) => {
     type_decision_code: type.type_decision_code,
     profile: null,
     sign_user: null,
-    contract_no: "",
+    contract_code: "",
     contract_name: "",
     employment:
       dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
@@ -351,7 +389,7 @@ const openAddDialog = (type, str) => {
   displayDialog.value = true;
 };
 const closeDialog = () => {
-  forceRerender();
+  forceRerender(0);
   displayDialog.value = false;
 };
 const editItem = (item, str) => {
@@ -452,7 +490,7 @@ const editItem = (item, str) => {
       swal.close();
       if (options.value.loading) options.value.loading = false;
 
-      forceRerender();
+      forceRerender(0);
       headerDialog.value = str;
       displayDialog.value = true;
     })
@@ -544,7 +582,7 @@ const deleteItem = (item) => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá hợp đồng này không!",
+        text: "Bạn có muốn xoá quyết định này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -680,7 +718,7 @@ const setStar = (item) => {
 };
 const setStatus = (status, event) => {
   if (status === 3) {
-    openAddDialogLiquidation("Thanh lý hợp đồng");
+    openAddDialogLiquidation("Thanh lý quyết định");
   } else {
     updateStatus(decision.value, status, event);
   }
@@ -742,7 +780,7 @@ const headerDialogLiquidation = ref();
 const displayDialogLiquidation = ref(false);
 const modelLiquidation = ref();
 const openAddDialogLiquidation = (str) => {
-  forceRerender();
+  forceRerender(0);
   modelLiquidation.value = {
     content: "",
     date: null,
@@ -1017,16 +1055,10 @@ onMounted(() => {
           ref="menuAddItems"
         />
         <Button
-          @click="refresh()"
-          class="p-button-outlined p-button-secondary mr-2"
-          icon="pi pi-refresh"
-          label="Tải lại"
-        />
-        <Button
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
-          class="p-button-outlined p-button-secondary"
+          class="p-button-outlined p-button-secondary mr-2"
           aria-haspopup="true"
           aria-controls="overlay_Export"
         >
@@ -1040,6 +1072,12 @@ onMounted(() => {
           :popup="true"
           id="overlay_Export"
           ref="menuButs"
+        />
+        <Button
+          @click="refresh()"
+          class="p-button-outlined p-button-secondary"
+          icon="pi pi-refresh"
+          v-tooltip.top="'Tải lại'"
         />
       </template>
     </Toolbar>
@@ -1256,7 +1294,7 @@ onMounted(() => {
     </div>
   </div>
   <dialogdecíion
-    :key="componentKey"
+    :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
@@ -1266,6 +1304,14 @@ onMounted(() => {
     :type_decision="type_decision"
     :decision="decision"
     :initData="initData"
+  />
+  <framepreview
+    :key="componentKey['1']"
+    :headerDialog="headerDialogFrame"
+    :displayDialog="displayDialogFrame"
+    :closeDialog="closeDialogFrame"
+    :type="3"
+    :model="decision"
   />
   <Dialog
     :header="headerDialogLiquidation"
@@ -1287,7 +1333,8 @@ onMounted(() => {
               inputId="time24"
               :class="{
                 'p-invalid': !modelLiquidation.date && submitted,
-              }" :showOnFocus="false"
+              }"
+              :showOnFocus="false"
               v-model="modelLiquidation.date"
               placeholder="DD/MM/YYYY"
             />

@@ -1,0 +1,1396 @@
+<script setup>
+import { ref, inject, onMounted, watch } from "vue";
+import { useToast } from "vue-toastification";
+import { required } from "@vuelidate/validators";
+import { useVuelidate } from "@vuelidate/core";
+import { FilterMatchMode, FilterOperator } from "primevue/api";
+import { encr, checkURL } from "../../../util/function.js";
+import tree_users_hrm from "../component/tree_users_hrm.vue";
+import DropdownUser from "../component/DropdownUser.vue";
+import moment from "moment";
+//Khai báo
+
+const cryoptojs = inject("cryptojs");
+const emitter = inject("emitter");
+const axios = inject("axios");
+const store = inject("store");
+const swal = inject("$swal");
+const isDynamicSQL = ref(false);
+const config = {
+  headers: { Authorization: `Bearer ${store.getters.token}` },
+};
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  work_schedule_name: {
+    operator: FilterOperator.AND,
+    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+  },
+});
+const rules = {
+  work_schedule_name: {
+    required,
+    $errors: [
+      {
+        $property: "work_schedule_name",
+        $validator: "required",
+        $message: "Tên ca làm việc không được để trống!",
+      },
+    ],
+  },
+};
+
+//Lấy số bản ghi
+const loadCount = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_work_schedule_count",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+        options.value.totalRecords = data[0].totalRecords;
+        sttStamp.value = data[0].totalRecords + 1;
+      }
+    })
+    .catch((error) => {});
+};
+//Lấy dữ liệu work_schedule
+const loadData = (rf) => {
+  if (rf) {
+    if (isDynamicSQL.value) {
+      loadDataSQL();
+      return false;
+    }
+    if (rf) {
+      if (options.value.PageNo == 0) {
+        loadCount();
+      }
+    }
+    axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_work_schedule_list",
+              par: [
+                { par: "pageno", va: options.value.PageNo },
+                { par: "pagesize", va: options.value.PageSize },
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "status", va: null },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        if (isFirst.value) isFirst.value = false;
+        data.forEach((element, i) => {
+          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+        });
+        datalists.value = data;
+
+        options.value.loading = false;
+      })
+      .catch((error) => {
+        toast.error("Tải dữ liệu không thành công!");
+        options.value.loading = false;
+
+        if (error && error.status === 401) {
+          swal.fire({
+            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            confirmButtonText: "OK",
+          });
+          store.commit("gologout");
+        }
+      });
+  }
+};
+//Phân trang dữ liệu
+const onPage = (event) => {
+  if (event.rows != options.value.PageSize) {
+    options.value.PageSize = event.rows;
+  }
+  if (event.page == 0) {
+    //Trang đầu
+    options.value.id = null;
+    options.value.IsNext = true;
+  } else if (event.page > options.value.PageNo + 1) {
+    //Trang cuối
+    options.value.id = -1;
+    options.value.IsNext = false;
+  } else if (event.page > options.value.PageNo) {
+    //Trang sau
+
+    options.value.id =
+      datalists.value[datalists.value.length - 1].work_schedule_id;
+    options.value.IsNext = true;
+  } else if (event.page < options.value.PageNo) {
+    //Trang trước
+    options.value.id = datalists.value[0].work_schedule_id;
+    options.value.IsNext = false;
+  }
+  options.value.PageNo = event.page;
+  loadData(true);
+};
+
+const work_schedule = ref({
+  work_schedule_name: "",
+  emote_file: "",
+  status: true,
+  is_order: 1,
+});
+
+const selectedStamps = ref();
+const submitted = ref(false);
+const v$ = useVuelidate(rules, work_schedule);
+const isSaveTem = ref(false);
+const datalists = ref();
+const toast = useToast();
+const basedomainURL = baseURL;
+const checkDelList = ref(false);
+
+const options = ref({
+  IsNext: true,
+  sort: "created_date",
+  SearchText: "",
+  PageNo: 0,
+  PageSize: 20,
+  loading: true,
+  totalRecords: null,
+});
+
+//Hiển thị dialog
+const headerDialog = ref();
+const displayBasic = ref(false);
+const openBasic = (str) => {
+  submitted.value = false;
+  work_schedule.value = {
+    work_schedule_name: "",
+    emote_file: "",
+    status: true,
+    is_order: sttStamp.value,
+    organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
+  };
+
+  checkIsmain.value = false;
+  isSaveTem.value = false;
+  headerDialog.value = str;
+  displayBasic.value = true;
+};
+
+const closeDialog = () => {
+  work_schedule.value = {
+    work_schedule_name: "",
+    emote_file: "",
+    status: true,
+    is_order: 1,
+  };
+
+  displayBasic.value = false;
+  loadData(true);
+};
+
+//Thêm bản ghi
+
+const sttStamp = ref(1);
+const saveData = (isFormValid) => {
+  submitted.value = true;
+
+  let formData = new FormData();
+
+  if (work_schedule.value.profile_id_fake)
+    work_schedule.value.profile_id =
+      work_schedule.value.profile_id_fake.toString();
+  if (work_schedule.value.work_schedule_monthsfake) {
+    work_schedule.value.work_schedule_months = "";
+    var trr = "";
+    work_schedule.value.work_schedule_monthsfake.forEach((element) => {
+      work_schedule.value.work_schedule_months +=
+        trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
+      trr = ",";
+    });
+  }
+  if (work_schedule.value.work_schedule_daysfake) {
+    work_schedule.value.work_schedule_days = "";
+    var trr = "";
+    work_schedule.value.work_schedule_daysfake.forEach((element) => {
+      work_schedule.value.work_schedule_days +=
+        trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
+      trr = ",";
+    });
+  }
+
+  formData.append("hrm_work_schedule", JSON.stringify(work_schedule.value));
+
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  if (!isSaveTem.value) {
+    axios
+      .post(
+        baseURL + "/api/hrm_work_schedule/add_hrm_work_schedule",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Thêm ca làm việc thành công!");
+          loadData(true);
+
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  } else {
+    axios
+      .put(
+        baseURL + "/api/hrm_work_schedule/update_hrm_work_schedule",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa ca làm việc thành công!");
+
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  }
+};
+const checkIsmain = ref(true);
+//Sửa bản ghi
+const editTem = (dataTem) => {
+  submitted.value = false;
+  work_schedule.value = dataTem;
+  if (work_schedule.value.profile_id)
+    work_schedule.value.profile_id_fake =
+      work_schedule.value.profile_id.split(",");
+
+  if (work_schedule.value.work_schedule_months) {
+    work_schedule.value.work_schedule_monthsfake = [];
+    work_schedule.value.work_schedule_months.split(",").forEach((element) => {
+      work_schedule.value.work_schedule_monthsfake.push(new Date(element));
+    });
+  }
+
+  if (work_schedule.value.work_schedule_days) {
+    work_schedule.value.work_schedule_daysfake = [];
+    work_schedule.value.work_schedule_days.split(",").forEach((element) => {
+      work_schedule.value.work_schedule_daysfake.push(new Date(element));
+    });
+  }
+  headerDialog.value = "Sửa ca làm việc";
+  isSaveTem.value = true;
+  displayBasic.value = true;
+};
+
+const menuButMores = ref();
+const itemButMores = ref([
+  {
+    label: "Hiệu chỉnh nội dung",
+    icon: "pi pi-pencil",
+    command: (event) => {
+      editTem(work_schedule.value);
+    },
+  },
+  {
+    label: "Xoá",
+    icon: "pi pi-trash",
+    command: (event) => {
+      delTem(work_schedule.value);
+    },
+  },
+]);
+const toggleMores = (event, item) => {
+  work_schedule.value = item;
+
+  menuButMores.value.toggle(event);
+  //selectedNodes.value = item;
+};
+//Xóa bản ghi
+const delTem = (Tem) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá bản ghi này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+
+        axios
+          .delete(baseURL + "/api/hrm_work_schedule/delete_hrm_work_schedule", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: Tem != null ? [Tem.work_schedule_id] : 1,
+          })
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá ca làm việc thành công!");
+              loadData(true);
+            } else {
+              swal.fire({
+                title: "Error!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+};
+//Xuất excel
+
+//Sort
+const onSort = (event) => {
+  options.value.PageNo = 0;
+
+  if (event.sortField == null) {
+    isDynamicSQL.value = false;
+    loadData(true);
+  } else {
+    options.value.sort =
+      event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
+    if (event.sortField == "STT") {
+      options.value.sort =
+        "is_order" + (event.sortOrder == 1 ? " ASC" : " DESC");
+    }
+    isDynamicSQL.value = true;
+    loadDataSQL();
+  }
+};
+const checkFilter = ref(false);
+const filterSQL = ref([]);
+const isFirst = ref(true);
+const loadDataSQL = () => {
+  datalists.value = [];
+
+  let data = {
+    id: "work_schedule_id",
+    sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
+    sqlO: options.value.sort,
+    Search: options.value.SearchText,
+    PageNo: options.value.PageNo,
+    PageSize: options.value.PageSize,
+    next: true,
+    sqlF: null,
+    fieldSQLS: filterSQL.value,
+  };
+  options.value.loading = true;
+  axios
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_work_schedule", data, config)
+    .then((response) => {
+      let dt = JSON.parse(response.data.data);
+      let data = dt[0];
+      if (data.length > 0) {
+        data.forEach((element, i) => {
+          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+        });
+
+        datalists.value = data;
+      } else {
+        datalists.value = [];
+      }
+      if (isFirst.value) isFirst.value = false;
+      options.value.loading = false;
+      //Show Count nếu có
+      if (dt.length == 2) {
+        options.value.totalRecords = dt[1][0].totalRecords;
+      }
+    })
+    .catch((error) => {
+      options.value.loading = false;
+      toast.error("Tải dữ liệu không thành công!");
+
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+//Tìm kiếm
+const searchStamp = (event) => {
+  if (event.code == "Enter") {
+    if (options.value.SearchText == "") {
+      isDynamicSQL.value = false;
+      options.value.loading = true;
+      loadData(true);
+    } else {
+      isDynamicSQL.value = true;
+      options.value.loading = true;
+      loadData(true);
+    }
+  }
+};
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
+const refreshStamp = () => {
+  options.value.SearchText = null;
+  filterTrangthai.value = null;
+  options.value.loading = true;
+  selectedStamps.value = [];
+  isDynamicSQL.value = false;
+  filterSQL.value = [];
+  loadData(true);
+};
+const onFilter = (event) => {
+  filterSQL.value = [];
+
+  for (const [key, value] of Object.entries(event.filters)) {
+    if (key != "global") {
+      let obj = {
+        key: key,
+        filteroperator: value.operator,
+        filterconstraints: value.constraints,
+      };
+
+      if (value.value && value.value.length > 0) {
+        obj.filteroperator = value.matchMode;
+        obj.filterconstraints = [];
+        value.value.forEach(function (vl) {
+          obj.filterconstraints.push({ value: vl[obj.key] });
+        });
+      } else if (value.matchMode) {
+        obj.filteroperator = "and";
+        obj.filterconstraints = [value];
+      }
+      if (
+        obj.filterconstraints &&
+        obj.filterconstraints.filter((x) => x.value != null).length > 0
+      )
+        filterSQL.value.push(obj);
+    }
+  }
+  options.value.PageNo = 0;
+  options.value.id = null;
+  isDynamicSQL.value = true;
+  loadDataSQL();
+};
+//Checkbox
+const onCheckBox = (value, check, checkIsmain) => {
+  if (check) {
+    let data = {
+      IntID: value.work_schedule_id,
+      TextID: value.work_schedule_id + "",
+      IntTrangthai: 1,
+      BitTrangthai: value.status,
+    };
+    axios
+      .put(
+        baseURL + "/api/hrm_work_schedule/update_s_hrm_work_schedule",
+        data,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa trạng thái ca làm việc thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  } else {
+    let data1 = {
+      IntID: value.work_schedule_id,
+      TextID: value.work_schedule_id + "",
+      BitMain: value.is_default,
+    };
+    axios
+      .put(
+        baseURL + "/api/hrm_work_schedule/Update_DefaultStamp",
+        data1,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa trạng thái ca làm việc thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  }
+};
+//Xóa nhiều
+const deleteList = () => {
+  let listId = new Array(selectedStamps.value.length);
+  let checkD = false;
+  selectedStamps.value.forEach((item) => {
+    if (item.is_default) {
+      toast.error("Không được xóa ca làm việc mặc định!");
+      checkD = true;
+      return;
+    }
+  });
+  if (!checkD) {
+    swal
+      .fire({
+        title: "Thông báo",
+        text: "Bạn có muốn xoá ca làm việc này không!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      })
+      .then((result) => {
+        if (result.isConfirmed) {
+          swal.fire({
+            width: 110,
+            didOpen: () => {
+              swal.showLoading();
+            },
+          });
+
+          selectedStamps.value.forEach((item) => {
+            listId.push(item.work_schedule_id);
+          });
+          axios
+            .delete(
+              baseURL + "/api/hrm_work_schedule/delete_hrm_work_schedule",
+              {
+                headers: { Authorization: `Bearer ${store.getters.token}` },
+                data: listId != null ? listId : 1,
+              }
+            )
+            .then((response) => {
+              swal.close();
+              if (response.data.err != "1") {
+                swal.close();
+                toast.success("Xoá ca làm việc thành công!");
+                checkDelList.value = false;
+
+                loadData(true);
+              } else {
+                swal.fire({
+                  title: "Error!",
+                  text: response.data.ms,
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+              }
+            })
+            .catch((error) => {
+              swal.close();
+              if (error.status === 401) {
+                swal.fire({
+                  title: "Error!",
+                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+              }
+            });
+        }
+      });
+  }
+};
+
+//Filter
+const trangThai = ref([
+  { name: "Hiển thị", code: 1 },
+  { name: "Không hiển thị", code: 0 },
+]);
+
+const filterTrangthai = ref();
+
+const reFilterEmail = () => {
+  filterTrangthai.value = null;
+  isDynamicSQL.value = false;
+  checkFilter.value = false;
+  filterSQL.value = [];
+  options.value.SearchText = null;
+  op.value.hide();
+  loadData(true);
+};
+const filterFileds = () => {
+  filterSQL.value = [];
+  checkFilter.value = true;
+  let filterS = {
+    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
+    filteroperator: "and",
+    key: "status",
+  };
+  filterSQL.value.push(filterS);
+  loadDataSQL();
+};
+watch(selectedStamps, () => {
+  if (selectedStamps.value.length > 0) {
+    checkDelList.value = true;
+  } else {
+    checkDelList.value = false;
+  }
+});
+const op = ref();
+const toggle = (event) => {
+  op.value.toggle(event);
+};
+const listDeclareShift = ref([]);
+const listWorkLocation = ref([]);
+const datasShift = ref([]);
+const initTudien = () => {
+  listDeclareShift.value = [];
+  listWorkLocation.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_declare_shift_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      data.forEach((element, i) => {
+        listDeclareShift.value.push({
+          name: element.declare_shift_name,
+          code: element.declare_shift_id,
+        });
+      });
+      datasShift.value = data;
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+    });
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_config_work_location_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      data.forEach((element, i) => {
+        listWorkLocation.value.push({
+          name: element.config_work_location_name,
+          code: element.config_work_location_id,
+        });
+      });
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+    });
+};
+
+const displayDialogUser = ref(false);
+
+const selectedUser = ref();
+
+const showTreeUser = () => {
+  checkMultile.value = false;
+  selectedUser.value = [];
+  displayDialogUser.value = true;
+};
+
+const closeDialogUser = () => {
+  displayDialogUser.value = false;
+};
+
+const checkMultile = ref(false);
+
+const choiceUser = () => {
+  work_schedule.value.profile_id_fake = [];
+  if (checkMultile.value == false)
+    selectedUser.value.forEach((element) => {
+      work_schedule.value.profile_id_fake.push(element.profile_id);
+    });
+  closeDialogUser();
+};
+const selectedDecS = ref();
+emitter.on("emitData", (obj) => {
+  switch (obj.type) {
+    case "submitModel":
+      if (obj.data) {
+        work_schedule.value.profile_id_fake = obj.data;
+      }
+      break;
+
+    default:
+      break;
+  }
+});
+onMounted(() => {
+  initTudien();
+  loadData(true);
+  return {
+    datalists,
+    options,
+    onPage,
+    loadData,
+    loadCount,
+    openBasic,
+    closeDialog,
+    basedomainURL,
+
+    saveData,
+    isFirst,
+    searchStamp,
+    onCheckBox,
+    selectedStamps,
+    deleteList,
+  };
+});
+</script>
+    <template>
+  <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
+    <div class="w-full p-0 surface-0 p-2">
+      <h3 class="module-title mt-0 ml-1 mb-2">
+        <i class="pi pi-map"></i> Danh sách ca làm việc ({{
+          options.totalRecords
+        }})
+      </h3>
+      <Toolbar class="w-full custoolbar">
+        <template #start>
+          <span class="p-input-icon-left">
+            <i class="pi pi-search" />
+            <InputText
+              v-model="options.SearchText"
+              @keyup="searchStamp"
+              type="text"
+              spellcheck="false"
+              placeholder="Tìm kiếm"
+            />
+            <Button
+              type="button"
+              class="ml-2"
+              icon="pi pi-filter"
+              @click="toggle"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+              v-tooltip="'Bộ lọc'"
+              :class="
+                filterTrangthai != null && checkFilter
+                  ? ''
+                  : 'p-button-secondary p-button-outlined'
+              "
+            />
+            <OverlayPanel
+              ref="op"
+              appendTo="body"
+              class="p-0 m-0"
+              :showCloseIcon="false"
+              id="overlay_panel"
+              style="width: 300px"
+            >
+              <div class="grid formgrid m-0">
+                <div class="flex field col-12 p-0">
+                  <div
+                    class="col-4 text-left pt-2 p-0"
+                    style="text-align: left"
+                  >
+                    Trạng thái
+                  </div>
+                  <div class="col-8">
+                    <Dropdown
+                      class="col-12 p-0 m-0"
+                      v-model="filterTrangthai"
+                      :options="trangThai"
+                      optionLabel="name"
+                      optionValue="code"
+                      placeholder="Trạng thái"
+                    />
+                  </div>
+                </div>
+                <div class="flex col-12 p-0">
+                  <Toolbar
+                    class="border-none surface-0 outline-none pb-0 w-full"
+                  >
+                    <template #start>
+                      <Button
+                        @click="reFilterEmail"
+                        class="p-button-outlined"
+                        label="Xóa"
+                      ></Button>
+                    </template>
+                    <template #end>
+                      <Button @click="filterFileds" label="Lọc"></Button>
+                    </template>
+                  </Toolbar>
+                </div>
+              </div>
+            </OverlayPanel>
+          </span>
+        </template>
+
+        <template #end>
+          <Button
+            v-if="checkDelList"
+            @click="deleteList()"
+            label="Xóa"
+            icon="pi pi-trash"
+            class="mr-2 p-button-danger"
+          />
+          <Button
+            @click="openBasic('Thêm ca làm việc')"
+            label="Thêm mới"
+            icon="pi pi-plus"
+            class="mr-2"
+          />
+          <Button
+            @click="refreshStamp"
+            class="mr-2 p-button-outlined p-button-secondary"
+            icon="pi pi-refresh"
+            v-tooltip="'Tải lại'"
+          />
+        </template>
+      </Toolbar>
+    </div>
+    <Splitter class="w-full h-full">
+      <SplitterPanel
+        class="flex align-items-center justify-content-center"
+        :size="25"
+        :minSize="25"
+      >
+        <DataTable
+          v-model:filters="filters"
+          filterDisplay="menu"
+          filterMode="lenient"
+          :filters="filters"
+          :scrollable="true"
+          scrollHeight="flex"
+          :showGridlines="true"
+          columnResizeMode="fit"
+          :lazy="true"
+          :totalRecords="options.totalRecords"
+          :loading="options.loading"
+          :reorderableColumns="true"
+          :value="datasShift"
+          removableSort
+          v-model:rows="options.PageSize"
+          selectionMode="single"
+          dataKey="declare_shift_id"
+          class="w-full"
+          responsiveLayout="scroll"
+          v-model:selection="selectedDecS"
+          :row-hover="true"
+        >
+          <Column
+            field="declare_shift_name"
+            header="Ca làm việc"
+            headerClass="align-items-center justify-content-center text-center"
+            headerStyle="text-align:left;height:50px"
+            bodyStyle="text-align:left;cursor:pointer"
+          >
+            <template #body="data">
+              <Chip
+                :label="data.data.declare_shift_name"
+                :style="{
+                  backgroundColor: data.data.background_color,
+                  color: data.data.text_color,
+                }"
+              />
+            </template>
+          </Column>
+
+          <template #empty>
+            <div
+              class="align-items-center justify-content-center p-4 text-center m-auto"
+              v-if="!isFirst"
+            >
+              <img src="../../../assets/background/nodata.png" height="144" />
+              <h3 class="m-1">Không có dữ liệu</h3>
+            </div>
+          </template>
+        </DataTable>
+      </SplitterPanel>
+      <SplitterPanel class="w-full" :size="75" :minSize="75">
+        <DataTable
+          @page="onPage($event)"
+          @sort="onSort($event)"
+          @filter="onFilter($event)"
+          v-model:filters="filters"
+          filterDisplay="menu"
+          filterMode="lenient"
+          :filters="filters"
+          :scrollable="true"
+          scrollHeight="flex"
+          :showGridlines="true"
+          columnResizeMode="fit"
+          :lazy="true"
+          :totalRecords="options.totalRecords"
+          :loading="options.loading"
+          :reorderableColumns="true"
+          :value="datalists"
+          removableSort
+          v-model:rows="options.PageSize"
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+          :paginator="true"
+          dataKey="work_schedule_id"
+          class="w-full"
+          responsiveLayout="scroll"
+          v-model:selection="selectedStamps"
+          :row-hover="true"
+        >
+          <!-- <Column
+            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:70px;height:50px"
+            bodyStyle="text-align:center;max-width:70px"
+            selectionMode="multiple"
+            v-if="store.getters.user.is_super == true"
+          >
+          </Column> -->
+
+          <Column
+            field="STT"
+            header="STT"
+            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:50px;height:50px"
+            bodyStyle="text-align:center;max-width:50px"
+          ></Column>
+          <Column
+            field="Avatar"
+            header="Ảnh"
+            headerStyle="text-align:center;max-width:100px;height:50px"
+            bodyStyle="text-align:center;max-width:100px;"
+            class="align-items-center justify-content-center text-center"
+          >
+            <template #body="slotProps">
+              <div class="relative">
+                <Avatar
+                  v-bind:label="
+                    slotProps.data.avatar
+                      ? ''
+                      : (slotProps.data.profile_user_name ?? '')
+                          .substring(0, 1)
+                          .toUpperCase()
+                  "
+                  v-bind:image="
+                    slotProps.data.avatar
+                      ? basedomainURL + slotProps.data.avatar
+                      : basedomainURL + '/Portals/Image/noimg.jpg'
+                  "
+                  :style="{
+                    background: bgColor[slotProps.index % 7],
+                    color: '#ffffff',
+                    width: '5rem',
+                    height: '5rem',
+                    fontSize: '1.5rem !important',
+                    borderRadius: '5px',
+                  }"
+                  size="xlarge"
+                  class="border-radius"
+                />
+              </div>
+            </template>
+          </Column>
+          <Column
+            field="profile_user_name"
+            header="Họ và tên"     
+            headerClass="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:200px;height:50px"
+            bodyStyle=" max-width:200px"
+          >
+            <template #body="slotProps">
+              <div  >
+                <div class="mb-2">
+                  <b>{{ slotProps.data.profile_user_name }}</b>
+                </div>
+                <div class="mb-1">
+                  <div class="mb-1">
+                    <b>{{ slotProps.data.position_name }}</b>
+                  </div>
+                  <div class="mb-1">
+                    <span>{{ slotProps.data.work_position_name }}</span>
+                  </div>
+                  <div class="mb-1">
+                    <span>{{ slotProps.data.department_name }}</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </Column>
+
+          <Column
+            field="status"
+            header="Ca làm việc"
+          
+            headerClass="align-items-center justify-content-center text-center"
+          
+          >
+            <template #body="data">
+        <div     class="flex" >
+          <div
+                  v-for="(item, index) in data.data.work_schedule_months.split(
+                    ','
+                  )"
+                  :key="index"
+                >
+             <Chip class="w-5rem mr-1" :label="moment(new Date(item)).format('MM/YYYY').toString()"></Chip>   
+                </div>
+                <div style="word-break:break-all"
+                  v-for="(item, index) in data.data.work_schedule_days.split(
+                    ','
+                  )"
+                  :key="index"
+                >
+                <Chip class="w-7rem mr-1" :label="moment(new Date(item)).format('DD/MM/YYYY').toString()"></Chip>   
+           
+                </div>
+        </div>
+                
+           
+            </template>
+          </Column>
+
+          <Column
+            field="status"
+            header="Trạng thái"
+            headerStyle="text-align:center;max-width:100px;height:50px"
+            bodyStyle="text-align:center;max-width:100px"
+            class="align-items-center justify-content-center text-center"
+          >
+            <template #body="data">
+              <Checkbox
+                :disabled="
+                  !(
+                    store.state.user.is_super == true ||
+                    store.state.user.user_id == data.data.created_by ||
+                    (store.state.user.role_id == 'admin' &&
+                      store.state.user.organization_id ==
+                        data.data.organization_id)
+                  )
+                "
+                :binary="true"
+                v-model="data.data.status"
+                @click="onCheckBox(data.data, true, true)"
+              /> </template
+          ></Column>
+          <Column
+            header=""
+            headerStyle="text-align:center;max-width:50px"
+            bodyStyle="text-align:center;max-width:50px"
+            class="align-items-center justify-content-center text-center"
+          >
+            <template #body="slotProps">
+              <Button
+                icon="pi pi-ellipsis-h"
+                class="p-button-rounded p-button-text ml-2"
+                @click="toggleMores($event, slotProps.data)"
+                aria-haspopup="true"
+                aria-controls="overlay_More"
+                v-tooltip.top="'Tác vụ'"
+              />
+            </template>
+          </Column>
+
+          <template #empty>
+            <div
+              class="align-items-center justify-content-center p-4 text-center m-auto"
+              v-if="!isFirst"
+            >
+              <img src="../../../assets/background/nodata.png" height="144" />
+              <h3 class="m-1">Không có dữ liệu</h3>
+            </div>
+          </template>
+        </DataTable></SplitterPanel
+      >
+    </Splitter>
+  </div>
+  <Menu
+    id="overlay_More"
+    ref="menuButMores"
+    :model="itemButMores"
+    :popup="true"
+  />
+  <tree_users_hrm
+    v-if="displayDialogUser === true"
+    :headerDialog="'Chọn nhân sự ca làm việc'"
+    :displayDialog="displayDialogUser"
+    :closeDialog="closeDialogUser"
+    :one="checkMultile"
+    :selected="selectedUser"
+    :choiceUser="choiceUser"
+  />
+  <Dialog
+    :header="headerDialog"
+    v-model:visible="displayBasic"
+    :style="{ width: '35vw' }"
+    :closable="true"
+    :modal="true"
+  >
+    <form>
+      <div class="grid formgrid">
+        <div class="field col-12 flex align-items-center md:col-12">
+          <label class="col-3 text-left p-0"
+            >Ca làm việc <span class="redsao">(*)</span></label
+          >
+          <Dropdown
+            :filter="true"
+            v-model="work_schedule.declare_shift_id"
+            :options="listDeclareShift"
+            optionLabel="name"
+            optionValue="code"
+            class="col-9 p-0"
+            panelClass="d-design-dropdown"
+            placeholder="Chọn ca làm việc"
+            :class="{
+              'p-invalid': work_schedule.declare_shift_id == null && submitted,
+            }"
+          />
+        </div>
+        <div class="field flex align-items-center col-12 md:col-12">
+          <label class="col-3 text-left p-0"
+            >Địa điểm làm việc <span class="redsao">(*)</span></label
+          >
+          <Dropdown
+            :filter="true"
+            v-model="work_schedule.config_work_location_id"
+            :options="listWorkLocation"
+            optionLabel="name"
+            optionValue="code"
+            class="col-9 p-0"
+            panelClass="d-design-dropdown"
+            placeholder="Chọn địa điểm làm việc"
+            :class="{
+              'p-invalid':
+                work_schedule.config_work_location_id == null && submitted,
+            }"
+          />
+        </div>
+        <div class="field flex align-items-center col-12 md:col-12">
+          <div class="col-3 p-0 flex align-items-center">
+            <div class="text-left p-0">
+              Nhân sự <span class="redsao">(*)</span>
+            </div>
+            <Button
+              v-tooltip.top="'Chọn nhân sự'"
+              @click="showTreeUser()"
+              icon="pi pi-user-plus"
+              class="p-button-text p-button-rounded"
+            />
+          </div>
+          <div class="col-9 p-0">
+            <DropdownUser
+              :model="work_schedule.profile_id_fake"
+              :display="'chip'"
+              :placeholder="'Chọn nhân sự'"
+            />
+          </div>
+        </div>
+
+        <div class="flex field align-items-center col-12 md:col-12">
+          <div class="col-3 p-0 flex align-items-center">Đăng ký tháng</div>
+          <div class="col-9 p-0">
+            <Calendar
+              v-model="work_schedule.work_schedule_monthsfake"
+              view="month"
+              dateFormat="mm/yy"
+              class="w-full"
+              :showIcon="true"
+              selectionMode="multiple"
+            />
+          </div>
+        </div>
+
+        <div class="flex align-items-center col-12 md:col-12">
+          <div class="col-3 p-0 flex align-items-center">Đăng ký ngày</div>
+          <div class="col-9 p-0">
+            <Calendar
+              v-model="work_schedule.work_schedule_daysfake"
+              selectionMode="multiple"
+              class="w-full"
+              :manualInput="false"
+              :showIcon="true"
+            />
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialog"
+        class="p-button-outlined"
+      />
+
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveData(!v$.$invalid)"
+        autofocus
+      />
+    </template>
+  </Dialog>
+</template>
+    
+    <style scoped>
+.inputanh {
+  border: 1px solid #ccc;
+  width: 8rem;
+  height: 8rem;
+  cursor: pointer;
+  padding: 0.063rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ipnone {
+  display: none;
+}
+.inputanh img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+</style>
+    

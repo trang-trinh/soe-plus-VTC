@@ -495,9 +495,12 @@ const editItem = (item, str) => {
           //   model.value["place_register_permanent"] || -1
           // ] = true;
           model.value["select_birthplace"] = model.value["birthplace_name"];
-          model.value["select_birthplace_origin"] = model.value["birthplace_origin_name"];
-          model.value["select_place_register_permanent"] = model.value["place_register_permanent_name"];
-          model.value["select_place_residence"] = model.value["place_residence_name"];
+          model.value["select_birthplace_origin"] =
+            model.value["birthplace_origin_name"];
+          model.value["select_place_register_permanent"] =
+            model.value["place_register_permanent_name"];
+          model.value["select_place_residence"] =
+            model.value["place_residence_name"];
 
           if (model.value["recruitment_date"] != null) {
             model.value["recruitment_date"] = new Date(
@@ -939,7 +942,7 @@ const openAddDialogContract = (item, str) => {
   model.value = {
     profile: item,
     sign_user: null,
-    contract_no: "",
+    contract_code: "",
     contract_name: "",
     employment: "",
     start_date: new Date(),
@@ -2276,12 +2279,7 @@ onMounted(() => {
           icon="pi pi-plus"
           class="mr-2"
         />
-        <Button
-          @click="refresh()"
-          class="p-button-outlined p-button-secondary mr-2"
-          icon="pi pi-refresh"
-          label="Tải lại"
-        />
+        
         <Button
           icon="pi pi-trash"
           label="Xóa"
@@ -2319,6 +2317,7 @@ onMounted(() => {
           optionLabel="view"
           dataKey="view"
           aria-labelledby="custom"
+          class="mr-2"
         >
           <template #option="slotProps">
             <div v-tooptip.top="slotProps.option.title">
@@ -2326,6 +2325,18 @@ onMounted(() => {
             </div>
           </template>
         </SelectButton>
+        <Button
+          @click="refresh()"
+          class="p-button-outlined p-button-secondary mr-2"
+          icon="pi pi-refresh"
+          v-tooltip.top="'Tải lại'"
+        />
+        <Button
+          @click=""
+          icon="pi pi-question-circle"
+          class="p-button-outlined p-button-secondary"
+          v-tooltip.top="'Hướng dẫn sử dụng'"
+        />
       </template>
     </Toolbar>
     <div class="tabview">

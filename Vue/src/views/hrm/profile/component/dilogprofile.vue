@@ -59,6 +59,7 @@ const submitted = ref(false);
 const saveModel = (is_continue) => {
   submitted.value = true;
   if (
+    !props.model.profile_code ||
     !props.model.profile_user_name ||
     !props.model.birthday
   ) {
@@ -171,7 +172,7 @@ const saveModel = (is_continue) => {
       );
       if (is_continue) {
         props.model.profile = null;
-        props.model.contract_no = "";
+        props.model.contract_code = "";
       } else {
         props.closeDialog();
       }
@@ -202,6 +203,35 @@ const saveModel = (is_continue) => {
 };
 
 //init
+const genCode = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_gencode",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            props.model.profile_code = tbs[0][0].profile_code;
+            props.model.superior_id = tbs[0][0].superior_id;
+          }
+        }
+      }
+    });
+};
 const initPlaceFilter = (event, type) => {
   var stc = event.value;
   if (event.value == "") {
@@ -257,6 +287,9 @@ const initPlaceFilter = (event, type) => {
 };
 onMounted(() => {
   if (props.displayDialog && props.model != null) {
+    if (props.isAdd) {
+      genCode();
+    }
     initPlaceFilter({ value: props.model.birthplace_name }, 1);
     initPlaceFilter({ value: props.model.birthplace_origin_name }, 2);
     initPlaceFilter({ value: props.model.place_register_permanent_name }, 3);
@@ -322,7 +355,7 @@ onMounted(() => {
                       <div class="col-6 md:col-6">
                         <div class="form-group">
                           <label
-                            >Mã nhân sự</label
+                            >Mã nhân sự <span class="redsao">(*)</span></label
                           >
                           <InputText
                             spellcheck="false"
@@ -332,7 +365,18 @@ onMounted(() => {
                               backgroundColor: '#FEF9E7',
                               fontWeight: 'bold',
                             }"
+                            :class="{
+                              'p-invalid':
+                                !props.model.profile_code && submitted,
+                            }"
                           />
+                          <div v-if="!props.model.profile_code && submitted">
+                            <small class="p-error">
+                              <span class="col-12 p-0"
+                                >Mã nhân sự không được để trống</span
+                              >
+                            </small>
+                          </div>
                         </div>
                       </div>
                       <div class="col-6 md:col-6">
@@ -355,6 +399,10 @@ onMounted(() => {
                             class="ip36"
                             v-model="props.model.profile_user_name"
                             :style="{ fontWeight: 'bold' }"
+                            :class="{
+                              'p-invalid':
+                                !props.model.profile_code && submitted,
+                            }"
                           />
                           <div
                             v-if="!props.model.profile_user_name && submitted"
@@ -386,6 +434,10 @@ onMounted(() => {
                             v-model="props.model.birthday"
                             :showIcon="true"
                             placeholder="dd/mm/yyyy"
+                            :class="{
+                              'p-invalid':
+                                !props.model.profile_code && submitted,
+                            }"
                           />
                           <div v-if="!props.model.birthday && submitted">
                             <small class="p-error">
@@ -416,6 +468,11 @@ onMounted(() => {
                             optionValue="value"
                             placeholder="Chọn giới tính"
                             class="ip36"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
                           />
                         </div>
                       </div>
@@ -448,6 +505,11 @@ onMounted(() => {
                     class="ip36"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     panelClass="d-design-dropdown"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
                   />
                   <!-- <TreeSelect
                     :options="props.places"
@@ -477,6 +539,11 @@ onMounted(() => {
                     class="ip36"
                     placeholder="Xã phường, Quận huyện, Tỉnh thành"
                     panelClass="d-design-dropdown"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
                   />
                   <!-- <TreeSelect
                     :options="props.places"
@@ -523,6 +590,11 @@ onMounted(() => {
                         class="ip36"
                         placeholder="Xã phường, Quận huyện, Tỉnh thành"
                         panelClass="d-design-dropdown"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -541,6 +613,11 @@ onMounted(() => {
                         placeholder="Chọn loại"
                         class="ip36"
                         v-model="props.model.identity_papers_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -591,6 +668,11 @@ onMounted(() => {
                         optionLabel="identity_place_name"
                         optionValue="identity_place_id"
                         class="ip36"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -606,6 +688,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.nationality_id"
                         :filter="true"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -620,6 +707,11 @@ onMounted(() => {
                         placeholder="Chọn trạng thái"
                         class="ip36"
                         v-model="props.model.marital_status"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -635,6 +727,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.ethnic_id"
                         :filter="true"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -650,6 +747,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.religion_id"
                         :filter="true"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -676,6 +778,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.bank_id"
                         :filter="true"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -724,6 +831,11 @@ onMounted(() => {
                         placeholder="Chọn trình độ"
                         class="ip36"
                         v-model="props.model.cultural_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -738,6 +850,11 @@ onMounted(() => {
                         placeholder="Chọn trình độ"
                         class="ip36"
                         v-model="props.model.academic_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -753,6 +870,11 @@ onMounted(() => {
                         placeholder="Chọn ngành"
                         class="ip36"
                         v-model="props.model.specialization_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -767,6 +889,11 @@ onMounted(() => {
                         placeholder="Chọn cấp"
                         class="ip36"
                         v-model="props.model.management_state_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -781,6 +908,11 @@ onMounted(() => {
                         placeholder="Chọn cấp"
                         class="ip36"
                         v-model="props.model.political_theory_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -795,6 +927,11 @@ onMounted(() => {
                         placeholder="Chọn cấp"
                         class="ip36"
                         v-model="props.model.language_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -809,6 +946,11 @@ onMounted(() => {
                         placeholder="Chọn cấp"
                         class="ip36"
                         v-model="props.model.informatic_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -885,6 +1027,11 @@ onMounted(() => {
                         class="ip36"
                         placeholder="Xã phường, Quận huyện, Tỉnh thành"
                         panelClass="d-design-dropdown"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -1007,6 +1154,35 @@ onMounted(() => {
                       </template>
                     </Column>
                     <Column
+                      field="is_type"
+                      header="Quan hệ gia đình"
+                      headerStyle="text-align:center;width:170px;height:50px"
+                      bodyStyle="text-align:center;width:170px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <div class="form-group m-0">
+                          <Dropdown
+                            :showClear="true"
+                            :options="[
+                              { value: 1, title: 'Về bản thân' },
+                              { value: 2, title: 'Về bên vợ' },
+                            ]"
+                            optionLabel="title"
+                            optionValue="value"
+                            placeholder="Chọn quan hệ"
+                            v-model="slotProps.data.is_type"
+                            class="ip36"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </template>
+                    </Column>
+                    <Column
                       field="relative_name"
                       header="Họ tên"
                       headerStyle="text-align:center;width:180px;height:50px"
@@ -1050,7 +1226,7 @@ onMounted(() => {
                       </template>
                     </Column>
                     <Column
-                      field="identification_date_issue"
+                      field="birthday"
                       header="Năm sinh"
                       headerStyle="text-align:center;width:120px;height:50px"
                       bodyStyle="text-align:center;width:120px;"
@@ -1058,8 +1234,9 @@ onMounted(() => {
                     >
                       <template #body="slotProps">
                         <Calendar
-                          v-model="slotProps.data.identification_date_issue"
+                          v-model="slotProps.data.birthday"
                           :showIcon="false"
+                          inputMask="9999"
                           view="year"
                           dateFormat="yy"
                           class="ip36"
@@ -1359,6 +1536,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="item.university_name"
                         maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -1447,6 +1629,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="item.rating"
                         maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -2100,6 +2287,11 @@ onMounted(() => {
                         placeholder="Chọn ngạch công chức (viên chức)"
                         class="ip36"
                         v-model="props.model.civil_servant_rank_name"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -2291,6 +2483,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.military_title"
                         maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>
@@ -2346,6 +2543,11 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.military_policy_family"
                         maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
                       />
                     </div>
                   </div>

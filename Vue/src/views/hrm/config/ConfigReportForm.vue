@@ -12,25 +12,11 @@ const swal = inject("$swal");
 const basedomainURL = baseURL;
 const toast = useToast();
 
-const expandedKeys = ref([]);
-
-const selectedUser = ref([]);
-
-const bgColor = ref([
-  "#F8E69A",
-  "#AFDFCF",
-  "#F4B2A3",
-  "#9A97EC",
-  "#CAE2B0",
-  "#8BCFFB",
-  "#CCADD7",
-]);
 const treedonvis = ref([]);
-const checkMultile = ref(false);
+
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
-
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
@@ -80,7 +66,7 @@ const loadDonvi = () => {
         str: encr(
           JSON.stringify({
             proc: "sys_organization_list_dictionary",
-            par: [{ par: "user_id", va: user.user_id }],
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
           cryoptojs,
@@ -90,22 +76,24 @@ const loadDonvi = () => {
     )
     .then((response) => {
       treedonvis.value = [];
-      let data = JSON.parse(response.data.data);
+      let data = JSON.parse(response.data.data)[0];
+      console.log(data, "dảa");
 
-      if (data.length > 0) {
-        let obj = renderTree(
-          data[0],
-          "organization_id",
-          "organization_name",
-          "phòng ban",
-        );
-
-        treedonvis.value = obj.arrChils;
-        treedonvis.value.forEach((element) => {
-          expandNodeMain(element);
-        });
-      } else {
-        treedonvis.value = [];
+      try {
+        if (data.length > 0) {
+          let obj = renderTree(
+            data,
+            "organization_id",
+            "organization_name",
+            "phòng ban",
+          );
+          console.log(obj, " " + "obj");
+          treedonvis.value = obj.arrChils;
+        } else {
+          treedonvis.value = [];
+        }
+      } catch (error) {
+        console.log(error);
       }
     })
     .catch((error) => {
@@ -160,7 +148,7 @@ const loadData = () => {
       swal.showLoading();
     },
   });
-  if (user.is_super) loadDonvi();
+
   axios
     .post(
       baseURL + "/api/DictionaryProc/getData",
@@ -203,24 +191,17 @@ const loadData = () => {
       }
     });
 };
-const user = store.state.user;
+const user = store.getters.user;
 const expandedKeysMain = ref([]);
 const expandNodeMain = (node) => {
-  if (node.children && node.children.length) {
+  if (node.children && node.children.length > 0) {
     expandedKeysMain.value[node.key] = true;
     for (let child of node.children) {
-      expandNode(child);
+      expandNodeMain(child);
     }
   }
 };
-const expandNode = (node) => {
-  if (node.children && node.children.length) {
-    expandedKeys.value[node.key] = true;
-    for (let child of node.children) {
-      expandNode(child);
-    }
-  }
-};
+
 const options = ref({
   searchText: "",
   pageNo: 0,
@@ -457,7 +438,7 @@ const clickRow = (node) => {
   options.value.filtersOrg = node.data.organization_id;
   loadData();
 };
-const UNclickRow = (node) => {
+const UNclickRow = () => {
   options.value.filtersOrg = null;
   loadData();
 };
@@ -480,15 +461,28 @@ const onPage = (e) => {
   options.value.pageSize = e.rows;
   loadData(true);
 };
+const first = ref(0);
 onMounted(() => {
   loadReportForm();
   loadData();
+  loadDonvi();
+
+  setTimeout(() => {
+    treedonvis.value.forEach((element) => {
+      console.log(element);
+      expandNodeMain(element);
+      console.log(expandedKeysMain.value);
+    });
+  }, 750);
+  swal.close();
 });
 </script>
 <template>
   <div class="main-layout true flex-grow-1 p-2 inline-flex">
+    <!-- {{ treedonvis }}
+    {{ user }} -->
     <div
-      v-if="user.is_super"
+      v-if="user.is_super == true && treedonvis.length > 0"
       class="col-3"
     >
       <TreeTable
@@ -664,7 +658,7 @@ onMounted(() => {
         <Column
           field="status"
           header="Hiển thị"
-          class="align-items-center justify-content-center text-center max-w-8rem"
+          class="align-items-center justify-content-center text-center max-w-6rem"
         >
           <template #body="data">
             <Checkbox
@@ -681,7 +675,7 @@ onMounted(() => {
         <Column
           field="is_system"
           header="Hệ thống"
-          class="align-items-center justify-content-center text-center max-w-8rem"
+          class="align-items-center justify-content-center text-center max-w-7rem"
         >
           <template #body="data">
             <div v-if="data.data.is_system == true">
@@ -696,12 +690,12 @@ onMounted(() => {
         <Column
           field="organization_name"
           header="Đơn vị"
-          class="align-items-center justify-content-center text-center max-w-15rem"
+          class="align-items-center justify-content-center text-center min-w-25rem"
         ></Column>
         <Column
           header="Chức năng"
           field=""
-          class="align-items-center justify-content-center text-center max-w-10rem"
+          class="align-items-center justify-content-center text-center max-w-7rem"
         >
           <template #body="data">
             <div

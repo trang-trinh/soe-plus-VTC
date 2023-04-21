@@ -95,19 +95,22 @@ namespace API.Controllers.HRM.Profile
                             }
                         }
                     }
-                    var relative = provider.FormData.GetValues("relative").SingleOrDefault();
-                    var skill = provider.FormData.GetValues("skill").SingleOrDefault();
-                    var clan_history = provider.FormData.GetValues("clan_history").SingleOrDefault();
-                    var experience = provider.FormData.GetValues("experience").SingleOrDefault();
+                    var de_relative = provider.FormData.GetValues("relative").SingleOrDefault();
+                    var de_skill = provider.FormData.GetValues("skill").SingleOrDefault();
+                    var de_clan_history = provider.FormData.GetValues("clan_history").SingleOrDefault();
+                    var se_experience = provider.FormData.GetValues("experience").SingleOrDefault();
 
-                    List<hrm_profile_relative> relatives = JsonConvert.DeserializeObject<List<hrm_profile_relative>>(relative);
-                    List<hrm_profile_skill> skills = JsonConvert.DeserializeObject<List<hrm_profile_skill>>(skill);
-                    List<hrm_profile_clan_history> clan_historys = JsonConvert.DeserializeObject<List<hrm_profile_clan_history>>(clan_history);
-                    List<hrm_profile_experience> experiences = JsonConvert.DeserializeObject<List<hrm_profile_experience>>(experience);
+                    List<hrm_profile_relative> relatives = JsonConvert.DeserializeObject<List<hrm_profile_relative>>(de_relative);
+                    List<hrm_profile_skill> skills = JsonConvert.DeserializeObject<List<hrm_profile_skill>>(de_skill);
+                    List<hrm_profile_clan_history> clan_historys = JsonConvert.DeserializeObject<List<hrm_profile_clan_history>>(de_clan_history);
+                    List<hrm_profile_experience> experiences = JsonConvert.DeserializeObject<List<hrm_profile_experience>>(se_experience);
                     #region Model
                     if (isAdd)
                     {
                         model.profile_id = helper.GenKey();
+                        model.profile_name = model.profile_user_name;
+                        model.profile_name_en = helper.convertToUnSign3(model.profile_name);
+                        model.profile_last_name = model.profile_name.Split(' ').Last();
                         model.is_order = model.is_order ?? (db.hrm_profile.Count() + 1);
                         model.created_by = uid;
                         model.created_date = DateTime.Now;
@@ -118,6 +121,11 @@ namespace API.Controllers.HRM.Profile
                     }
                     else
                     {
+                        var check = await db.hrm_profile.CountAsync(x => x.profile_id != model.profile_id && x.profile_code == model.profile_code) > 0;
+                        if (check)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Mã hồ sơ đã tồn tại!" });
+                        }
                         model.modified_by = uid;
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;
@@ -126,31 +134,97 @@ namespace API.Controllers.HRM.Profile
                     }
                     #endregion
                     #region add relative
-                    var check = await db.hrm_profile_relative.CountAsync(x => (x.is_bout ?? 0) > 0) > 0;
-                    if (!check)
+                    //var check = await db.hrm_profile_relative.CountAsync(x => (x.is_bout ?? 0) > 0) > 0;
+                    //if (!check)
+                    //{
+                    //    var relatives_old = await db.hrm_profile_relative.Where(x => x.profile_id == model.profile_id && x.is_root == true).ToListAsync();
+                    //    if (relatives_old.Count > 0)
+                    //    {
+                    //        db.hrm_profile_relative.RemoveRange(relatives_old);
+                    //    }
+                    //    if (relatives != null)
+                    //    {
+                    //        var count = 0;
+                    //        foreach (var rl in relatives)
+                    //        {
+                    //            rl.profile_relative_id = helper.GenKey();
+                    //            rl.profile_id = model.profile_id;
+                    //            rl.is_order = count++;
+                    //            rl.created_token_id = tid;
+                    //            rl.created_date = DateTime.Now;
+                    //            rl.created_by = uid;
+                    //            rl.created_token_id = tid;
+                    //            rl.created_ip = ip;
+                    //            rl.is_root = true;
+                    //            rl.is_bout = 0;
+                    //            db.hrm_profile_relative.Add(rl);
+                    //        }
+                    //    }
+                    //}
+
+                    var relative_news = relatives.Where(p => string.IsNullOrWhiteSpace(p.profile_relative_id)).ToList();
+                    var relative_olds = await db.hrm_profile_relative.Where(x => x.profile_id == model.profile_id).ToListAsync();
+                    if (relative_olds.Count > 0)
                     {
-                        var relatives_old = await db.hrm_profile_relative.Where(x => x.profile_id == model.profile_id && x.is_root == true).ToListAsync();
-                        if (relatives_old.Count > 0)
+                        var remove_ids = relatives.Where(x => !string.IsNullOrWhiteSpace(x.profile_relative_id)).Select(x => x.profile_relative_id).ToList();
+                        var removes = relative_olds.Where(x => !remove_ids.Contains(x.profile_relative_id)).ToList();
+                        if (removes.Count > 0)
                         {
-                            db.hrm_profile_relative.RemoveRange(relatives_old);
+                            db.hrm_profile_relative.RemoveRange(removes);
                         }
-                        if (relatives != null)
+                        var updates = relative_olds.Where(x => remove_ids.Contains(x.profile_relative_id)).ToList();
+                        if (updates.Count > 0)
                         {
-                            var count = 0;
-                            foreach (var rl in relatives)
+                            foreach (var item in updates)
                             {
-                                rl.profile_relative_id = helper.GenKey();
-                                rl.profile_id = model.profile_id;
-                                rl.is_order = count++;
-                                rl.created_token_id = tid;
-                                rl.created_date = DateTime.Now;
-                                rl.created_by = uid;
-                                rl.created_token_id = tid;
-                                rl.created_ip = ip;
-                                rl.is_root = true;
-                                rl.is_bout = 0;
-                                db.hrm_profile_relative.Add(rl);
+                                var update = relatives.FirstOrDefault(x => x.profile_relative_id == item.profile_relative_id);
+                                if (update != null)
+                                {
+                                    item.is_type = update.is_type;
+                                    item.relative_name = update.relative_name;
+                                    item.relationship_id = update.relationship_id;
+                                    item.birthday = update.birthday;
+                                    item.phone = update.phone;
+                                    item.tax_code = update.tax_code;
+                                    item.identification_citizen = update.identification_citizen;
+                                    item.identification_date_issue = update.identification_date_issue;
+                                    item.identification_place_issue = update.identification_place_issue;
+                                    item.is_dependent = update.is_dependent;
+                                    item.start_date = update.start_date;
+                                    item.end_date = update.end_date;
+                                    item.info = update.info;
+                                    item.note = update.note;
+                                    item.is_company = update.is_company;
+                                    item.is_die = update.is_die;
+                                    //db.Entry(update).State = EntityState.Modified;
+                                }
                             }
+                        }
+                    }
+                    if (relative_news.Count > 0)
+                    {
+                        List<hrm_profile_relative> new_relatives = new List<hrm_profile_relative>();
+                        int sttt = 0;
+                        int is_bout = db.hrm_profile_relative.Max(x => x.is_bout) ?? 0;
+
+                        foreach (var rl in relative_news)
+                        {
+                            hrm_profile_relative relative = new hrm_profile_relative();
+                            relative = rl;
+                            relative.profile_relative_id = helper.GenKey();
+                            relative.profile_id = model.profile_id;
+                            relative.is_order = sttt++;
+                            relative.created_by = uid;
+                            relative.created_date = DateTime.Now;
+                            relative.created_ip = ip;
+                            relative.created_token_id = tid;
+                            relative.is_root = false;
+                            relative.is_bout = is_bout + 1;
+                            new_relatives.Add(relative);
+                        }
+                        if (new_relatives.Count > 0)
+                        {
+                            db.hrm_profile_relative.AddRange(new_relatives);
                         }
                     }
                     #endregion
@@ -887,9 +961,50 @@ namespace API.Controllers.HRM.Profile
 
                     List<hrm_profile_relative> relatives = JsonConvert.DeserializeObject<List<hrm_profile_relative>>(rel);
                     List<hrm_profile_relative> new_relatives = new List<hrm_profile_relative>();
+
+                    var relative_news = relatives.Where(p => string.IsNullOrWhiteSpace(p.profile_relative_id)).ToList();
+                    var relative_olds = await db.hrm_profile_relative.Where(x => x.profile_id == profile_id).ToListAsync();
+                    if (relative_olds.Count > 0)
+                    {
+                        var remove_ids = relatives.Where(x => !string.IsNullOrWhiteSpace(x.profile_relative_id)).Select(x => x.profile_relative_id).ToList();
+                        var removes = relative_olds.Where(x => !remove_ids.Contains(x.profile_relative_id)).ToList();
+                        if (removes.Count > 0)
+                        {
+                            db.hrm_profile_relative.RemoveRange(removes);
+                        }
+                        var updates = relative_olds.Where(x => remove_ids.Contains(x.profile_relative_id)).ToList();
+                        if (updates.Count > 0)
+                        {
+                            foreach(var item in updates)
+                            {
+                                var update = relatives.FirstOrDefault(x => x.profile_relative_id == item.profile_relative_id);
+                                if (update != null)
+                                {
+                                    item.is_type = update.is_type;
+                                    item.relative_name = update.relative_name;
+                                    item.relationship_id = update.relationship_id;
+                                    item.birthday = update.birthday;
+                                    item.phone = update.phone;
+                                    item.tax_code = update.tax_code;
+                                    item.identification_citizen = update.identification_citizen;
+                                    item.identification_date_issue = update.identification_date_issue;
+                                    item.identification_place_issue = update.identification_place_issue;
+                                    item.is_dependent = update.is_dependent;
+                                    item.start_date = update.start_date;
+                                    item.end_date = update.end_date;
+                                    item.info = update.info;
+                                    item.note = update.note;
+                                    item.is_company = update.is_company;
+                                    item.is_die = update.is_die;
+                                    //db.Entry(update).State = EntityState.Modified;
+                                }
+                            }
+                        }
+                    }
                     int stt = 0;
                     int is_bout = db.hrm_profile_relative.Max(x => x.is_bout) ?? 0;
-                    foreach (var rl in relatives)
+                    
+                    foreach (var rl in relative_news)
                     {
                         hrm_profile_relative relative = new hrm_profile_relative();
                         relative = rl;

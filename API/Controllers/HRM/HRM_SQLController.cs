@@ -1278,42 +1278,42 @@ namespace API.Controllers.HRM
 
 
 
-                sql =  
+                sql =
 
-                    " (Select FieldValue into #child from dbo.udf_PivotParameters((Select IDChild from view_sys_organization where organization_id = "+dvid+" ), ',')) "+
+                    " (Select FieldValue into #child from dbo.udf_PivotParameters((Select IDChild from view_sys_organization where organization_id = " + dvid + " ), ',')) " +
 "Select tbn.*, cts.contract_id, (o.organization_id)department_id, (o.organization_name)department_name, ps.position_name, wp.work_position_name into #contract " +
 " from(Select ct.profile_id, Max(ct.sign_date)sign_date, Max(ct.is_order)maxorder from hrm_contract ct " +
 
-  "  where (ct.organization_id ="+ dvid +" or ct.organization_id in (Select FieldValue from #child)) and ct.status = 1	group by ct.profile_id) tbn " +
+  "  where (ct.organization_id =" + dvid + " or ct.organization_id in (Select FieldValue from #child)) and ct.status = 1	group by ct.profile_id) tbn " +
 "inner join hrm_contract cts on cts.profile_id = tbn.profile_id and cts.sign_date = tbn.sign_date and cts.is_order = tbn.maxorder " +
 "left join sys_organization o on cts.department_id = o.organization_id " +
 "left join ca_positions ps on cts.position_id = ps.position_id " +
 "left join hrm_ca_work_position wp on cts.work_position_id = wp.work_position_id";
 
-  sql+=  " select  hcal.*,su.full_name,su.avatar, " +
-"  CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 3 THEN(select distinct '[' + STUFF(( " +
-    "   SELECT ',{\"full_name\":\"' + cast(ISNULL(hcs.profile_user_name, '') as nvarchar(150)) + '\"' " +
-     "     + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(250)) + '\"' " +
-      "     + ',\"profile_id\":\"' + cast(ISNULL(hcs.profile_id, '') as nvarchar(100)) + '\"'  " +
-      "      +',\"profile_code\":\"' + cast(ISNULL(hcs.profile_code, '') as nvarchar(250)) + '\"'" +
-   "  + ',\"position_name\":\"' + cast(ISNULL(sc.position_name, '') as nvarchar(250)) + '\"'" +
-   "  + ',\"department_name\":\"' + cast(ISNULL(sc.department_name, '') as nvarchar(250)) + '\"' + '}' " +
-  "    FROM hrm_profile   hcs LEFT JOIN #contract sc ON hcs.profile_id = sc.profile_id  " +
-  "  WHERE hcs.profile_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type) " +
- "  .value('.', 'nvarchar(max)'), 1, 1, '')  +']'   ) " +
+                sql += " select  hcal.*,su.full_name,su.avatar, " +
+              "  CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 3 THEN(select distinct '[' + STUFF(( " +
+                  "   SELECT ',{\"full_name\":\"' + cast(ISNULL(hcs.profile_user_name, '') as nvarchar(150)) + '\"' " +
+                   "     + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(250)) + '\"' " +
+                    "     + ',\"profile_id\":\"' + cast(ISNULL(hcs.profile_id, '') as nvarchar(100)) + '\"'  " +
+                    "      +',\"profile_code\":\"' + cast(ISNULL(hcs.profile_code, '') as nvarchar(250)) + '\"'" +
+                 "  + ',\"position_name\":\"' + cast(ISNULL(sc.position_name, '') as nvarchar(250)) + '\"'" +
+                 "  + ',\"department_name\":\"' + cast(ISNULL(sc.department_name, '') as nvarchar(250)) + '\"' + '}' " +
+                "    FROM hrm_profile   hcs LEFT JOIN #contract sc ON hcs.profile_id = sc.profile_id  " +
+                "  WHERE hcs.profile_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type) " +
+               "  .value('.', 'nvarchar(max)'), 1, 1, '')  +']'   ) " +
 
-  "  WHEN hcal.reward_type = 2 THEN(select distinct '[' + STUFF((" +
-  "    SELECT     ',{\"department_name\":\"' + cast(ISNULL(hcs.organization_name, '') as nvarchar(150)) + '\"' + '}' " +
-  "   FROM sys_organization hcs  WHERE hcs.organization_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type).value('.', 'nvarchar(max)'), 1, 1, '')  +']'   )  " +
-" END as listRewards  ,  " +
-" CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
-" (SELECT hcrt1.reward_title_name FROM hrm_ca_reward_title hcrt1 WHERE hcrt1.reward_title_id = hcal.reward_title_id)  " +
-" WHEN hcal.reward_type = 3 THEN  " +
-"  (SELECT hcd.discipline_name FROM hrm_ca_discipline hcd   WHERE hcd.discipline_id = hcal.reward_title_id) END as reward_title_name ,  " +
-" CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
-" (SELECT hcrl.reward_level_name FROM hrm_ca_reward_level hcrl     WHERE hcrl.reward_level_id = hcal.reward_level_id)  WHEN hcal.reward_type = 3 THEN  " +
- "    (SELECT hcd.discipline_level_name FROM hrm_ca_discipline_level hcd   WHERE hcd.discipline_level_id = hcal.reward_level_id) END as reward_level_name  " +
-" from hrm_reward hcal LEFT JOIN sys_users su ON su.user_id = hcal.created_by  ";
+                "  WHEN hcal.reward_type = 2 THEN(select distinct '[' + STUFF((" +
+                "    SELECT     ',{\"department_name\":\"' + cast(ISNULL(hcs.organization_name, '') as nvarchar(150)) + '\"' + '}' " +
+                "   FROM sys_organization hcs  WHERE hcs.organization_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type).value('.', 'nvarchar(max)'), 1, 1, '')  +']'   )  " +
+              " END as listRewards  ,  " +
+              " CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
+              " (SELECT hcrt1.reward_title_name FROM hrm_ca_reward_title hcrt1 WHERE hcrt1.reward_title_id = hcal.reward_title_id)  " +
+              " WHEN hcal.reward_type = 3 THEN  " +
+              "  (SELECT hcd.discipline_name FROM hrm_ca_discipline hcd   WHERE hcd.discipline_id = hcal.reward_title_id) END as reward_title_name ,  " +
+              " CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
+              " (SELECT hcrl.reward_level_name FROM hrm_ca_reward_level hcrl     WHERE hcrl.reward_level_id = hcal.reward_level_id)  WHEN hcal.reward_type = 3 THEN  " +
+               "    (SELECT hcd.discipline_level_name FROM hrm_ca_discipline_level hcd   WHERE hcd.discipline_level_id = hcal.reward_level_id) END as reward_level_name  " +
+              " from hrm_reward hcal LEFT JOIN sys_users su ON su.user_id = hcal.created_by  ";
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
@@ -1381,11 +1381,11 @@ namespace API.Controllers.HRM
                                         WhereSQLR += " " + field.filteroperator + " CAST(" + field.key + " as date) >= CAST('" + m.value + "' as date)";
                                         break;
                                     case "arrIntersec":
-                                        WhereSQLR += " ((SELECT COUNT(*) FROM( "+
-" SELECT upp.FieldValue AS app  from dbo.udf_PivotParameters('"+ m.value + "', ',') upp " +
-" INTERSECT " +
-" SELECT upp.FieldValue AS app  from dbo.udf_PivotParameters(hcal.reward_name, ',') upp " +
-" ) as aas) > 0 ) ";
+                                        WhereSQLR += " ((SELECT COUNT(*) FROM( " +
+                                        " SELECT upp.FieldValue AS app  from dbo.udf_PivotParameters('" + m.value + "', ',') upp " +
+                                        " INTERSECT " +
+                                        " SELECT upp.FieldValue AS app  from dbo.udf_PivotParameters(hcal.reward_name, ',') upp " +
+                                        " ) as aas) > 0 ) ";
                                         break;
                                 }
                             }

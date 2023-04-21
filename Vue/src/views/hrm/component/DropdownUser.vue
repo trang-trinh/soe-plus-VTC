@@ -1,5 +1,5 @@
 <script setup>
-import { ref, inject, onMounted, watch } from "vue";
+import { ref, inject, onMounted, watch, onUpdated } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
@@ -106,7 +106,10 @@ onMounted(() => {
     model,
   };
 });
- 
+ onUpdated( ()=>{
+
+  model.value = props.model;
+ })
 </script>
 
 <template>

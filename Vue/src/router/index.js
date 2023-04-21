@@ -283,6 +283,8 @@ const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
 const Hrm_proposal = () => import("../views/hrm/recruitment/hrm_proposal.vue");
 
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
+const hrm_ConfigWorkLocation = () => import("../views/hrm/declare/hrm_config_work_location.vue");
+const HRMWorkScheDule = () => import("../views/hrm/declare/hrm_work_schedule.vue");
 const Hrm_paycheck_form = () =>
   import("../views/hrm/declare/hrm_paycheck_form.vue");
 const Hrm_rec_calendar = () =>
@@ -397,6 +399,7 @@ const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
 const HRM_ConfigEmail = () => import("../views/hrm/config/ConfigEmail.vue");
+const HRM_Contact = () => import("../views/hrm/contact/Contact.vue");
 // Request
 const Request_Dashboard = () =>
   import("../views/request/request_dashboard.vue");
@@ -513,7 +516,7 @@ const router = createRouter({
       component: UploadView,
     },
     {
-      path: "/system/options",
+      path: "/options",
       name: "options",
       component: OptionsAccount,
     },
@@ -1880,6 +1883,11 @@ const router = createRouter({
       name: "HRM_ConfigEmail",
       component: HRM_ConfigEmail,
     },
+    {
+      path: "/hrm/contact",
+      name: "hrm_contact",
+      component: HRM_Contact,
+    },
 
     // Tài liệu
     {
@@ -1927,6 +1935,15 @@ const router = createRouter({
       path: "/hrm/paycheckform",
       name: "Hrm_paycheck_form",
       component: Hrm_paycheck_form,
+    },
+    {
+      path: "/hrm/configworklocation",
+      name: "hrm_ConfigWorkLocation",
+      component: hrm_ConfigWorkLocation,
+    },   {
+      path: "/hrm/work_schedule",
+      name: "HRMWorkScheDule",
+      component: HRMWorkScheDule,
     },
     {
       path: "/hrm/configprocess",

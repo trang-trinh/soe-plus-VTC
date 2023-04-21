@@ -241,15 +241,8 @@ onMounted(() => {
 <template>
   <div class="d-container p-0 w-full p-8 m-2 " style="padding:0 15% !important">
     <div class="form  formgrid p-0  w-full">
-      <div class="col-12   p-0 flex align-items-center format-center">
-<h3>CẤU HÌNH GỬI EMAIL</h3>
-      </div>
-      <div
-        class="col-12 p-0 style-vb-2 text-center text-xl field"
-        v-if="organization"
-      >
-        {{ organization.organization_name }}
-      </div>
+  
+  
       <div class="col-12 field p-0 pt-4 flex align-items-center">
         <div class="col-6 p-0  ">
           <div class="w-10rem pb-2">Địa chỉ Email <span class="redsao pl-1"> (*)</span></div>
