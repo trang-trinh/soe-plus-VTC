@@ -578,7 +578,7 @@ const goProfile = (item) => {
   router.push({
     name: "profileinfo",
     params: { id: generateUUID() },
-    query: { id: item.profile_id_key },
+    query: { id: item.profile_id },
   });
 };
 const changeView = (item) => {
@@ -1108,7 +1108,7 @@ onMounted(() => {
                     value:
                       item.profile_user_name+
                       '<br/>' +
-                      (item.profile_id||'')+
+                      (item.profile_code||'')+
                       '<br/>' +
                       (item.department_name||''),
                     escape: true,
@@ -1433,7 +1433,7 @@ onMounted(() => {
   <Menu id="overlay_More" ref="menuButMores" :model="itemButMores" :popup="true" />
   <OverlayPanel :showCloseIcon="false" ref="opMore" appendTo="body" class="p-0 m-0" id="overlay_Users" style="width: 200px">
     <div class="grid formgrid m-0 p-0">
-      <div v-for="(item, index) in profile_mores" :key="index" class="col-12 flex p-0 py-1 item-top-hover cursor-pointer" @click="goProfile(item.profile_id)">
+      <div v-for="(item, index) in profile_mores" :key="index" class="col-12 flex p-0 py-1 item-top-hover cursor-pointer" @click="goProfile(item)">
         <div class="col-3">
           <Avatar
           v-bind:label="

@@ -203,8 +203,15 @@ const loadDonvi = (rf) => {
       if (isFirst.value) isFirst.value = false;
       data.forEach((element, i) => {
         element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        element.isClosed = false;
+        if(element.is_level>1){
+          element.isClosed = true;
+        element.isOpened = false;
+        }
+        else{
+          element.isClosed = false;
         element.isOpened = true;
+        }
+
         if (data.find(x => x.parent_id == element.organization_id)) {
           element.canExpand = true;
         }
@@ -296,7 +303,7 @@ function Expanded(dv) {
   var lst = donvis.value.filter(l => l.parent_id === dv.organization_id);
   if (lst !== null || lst.length > 0) {
     lst.forEach((o) => {
-      o.isClosed = !o.isClosed;
+      o.isClosed = true;
       if (o.isClosed) {
         Expanded(o);
       }
@@ -337,7 +344,7 @@ onMounted(() => {
   <div>
     <div>
       <Splitter class="h-full w-full pb-0 pr-0">
-        <SplitterPanel :size="30" class=" ">
+        <SplitterPanel :size="25" class=" ">
             <div class="pl-3 tab-left">
                 <div v-for="(dv, index) in donvis" :key="index"
                 :style="'margin-left:' +(dv.is_level+2) + 'em'" v-show="!dv.isClosed" class="my-3 mr-2 relative cursor-pointer ">
@@ -347,13 +354,13 @@ onMounted(() => {
                     <a v-if="!dv.isOpened"><font-awesome-icon icon="fa-solid fa-square-plus" style="font-size: 16px; color: gray;" /></a>
                     <a v-if="dv.isOpened"><font-awesome-icon icon="fa-solid fa-square-minus" style="font-size: 16px; color: gray;" /></a>
                     </span>
-                    <div class="w-full text-lg item-hover" :class="{'active':  id_active=== dv.organization_id, 'c-red-600': !dv.status}"  @click="loadDataDetail(dv.organization_id, dv.organization_name)">{{ dv.organization_name }}</div>
+                    <div class="w-full text-lg item-hover" :class="{'active':  id_active=== dv.organization_id}"  @click="loadDataDetail(dv.organization_id, dv.organization_name)">{{ dv.organization_name }}</div>
                 </div>
 
                 </div>
             </div>
         </SplitterPanel>
-        <SplitterPanel :size="70">
+        <SplitterPanel :size="75">
           <div class="d-lang-table-r">
             <div class="p-3" v-if="datalistsDetails">
               <h3 class="module-title m-0">
@@ -363,7 +370,7 @@ onMounted(() => {
               </h3>
             </div>
             <DataTable  class="w-full p-datatable-sm e-sm cursor-pointer" :value="datalistsDetails"
-         v-model:filters="filters" :showGridlines="true"
+           v-model:filters="filters" :showGridlines="true"
           filterMode="lenient" :paginator="'true'" :rows="options.PageSize" filterDisplay="menu" selectionMode="single"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
           :scrollable="true" scrollHeight="flex" responsiveLayout="scroll" 
@@ -408,17 +415,16 @@ onMounted(() => {
             <Column
             field="profile_code"
             header="Mã nhân sự"
-            headerStyle="text-align:center;max-width:100px;height:50px"
-            bodyStyle="text-align:center;max-width:100px;"
+            headerStyle="text-align:center;max-width:80px;height:50px;"
+            bodyStyle="text-align:center;max-width:80px;"
             class="align-items-center justify-content-center text-center"
             >
             </Column>
             <Column
             field="full_name"
             header="Họ và tên"
-            headerStyle="text-align:center;height:50px"
-            bodyStyle="text-align:center;"
-            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;height:50px;justify-content:center"
+            bodyStyle="text-align:left;word-break:break-word;justify-content:start"
             >
             </Column>
             <Column
@@ -454,8 +460,8 @@ onMounted(() => {
             <Column
             field="email"
             header="Email"
-            headerStyle="text-align:center;max-width:80px;height:50px"
-            bodyStyle="text-align:center;max-width:80px;"
+            headerStyle="text-align:center;max-width:140px;height:50px"
+            bodyStyle="text-align:center;max-width:140px; word-break:break-word"
             class="align-items-center justify-content-center text-center"
             >
             </Column>   
@@ -544,6 +550,11 @@ onMounted(() => {
 ::v-deep(.col-12) {
   .p-inputswitch {
     top: 6px;
+  }
+}
+::v-deep(.p-datatable) {
+  .p-datatable-thead > tr > th {
+    background-color:#fff ;
   }
 }
 </style>
