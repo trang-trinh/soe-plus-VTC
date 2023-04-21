@@ -289,7 +289,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
     <div>
       <div style="background-color: #fff; padding: 1rem;">
         <Toolbar class="w-full custoolbar">
@@ -346,7 +346,7 @@ onMounted(() => {
                 </Toolbar>
               </div> -->
               <div>
-                <div class="w-full d-lang-table">
+                <div class="w-full d-lang-table pt-1">
                   <TreeTable
                     :value="donvis"
                     v-model:selectionKeys="selectedKey"
@@ -414,7 +414,8 @@ onMounted(() => {
         </SplitterPanel>
         <SplitterPanel :size="75">
           <div class="d-lang-table-r">
-            <DataTable  class="w-full p-datatable-sm e-sm cursor-pointer" :value="datalistsDetails"
+            <DataTable  class="w-full p-datatable-sm e-sm"
+             :value="datalistsDetails"
               v-model:filters="filters" :showGridlines="true"
               filterMode="lenient" :paginator="'true'" :rows="options.PageSize" filterDisplay="menu" selectionMode="single"
               paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
@@ -449,7 +450,6 @@ onMounted(() => {
                     @error="basedomainURL + '/Portals/Image/noimg.jpg'"
                     size="large"
                     shape="circle"
-                    class="cursor-pointer"
                     :style="{
                       backgroundColor: bgColor[(slotProps.data.full_name.length+10) % 7],
                       color: 'white',
@@ -598,13 +598,19 @@ onMounted(() => {
     background:#fff !important;
   }
   thead> tr{
-  display:none;
-}
+  display:none; 
+  }
+  .p-treetable.p-treetable-sm .p-treetable-tbody > tr > td{
+    border:none !important;
+  }
 }
 ::v-deep(.d-lang-table-r) {
   .p-toolbar {
     border: none;
     padding-bottom:0px !important ;
   }
+  .p-datatable-hoverable-rows .p-selectable-row {
+    cursor: auto;
+}
 }
 </style>
