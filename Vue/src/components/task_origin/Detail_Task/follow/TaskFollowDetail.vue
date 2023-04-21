@@ -731,7 +731,7 @@ onMounted(() => {
                     </template>
                     <template #footer>
                       <div
-                        v-if="item.progress != 0"
+                        v-if="item2.progress != 0"
                         style="width: 100%"
                       >
                         <ProgressBar :value="item2.progress ?? 0" /></div

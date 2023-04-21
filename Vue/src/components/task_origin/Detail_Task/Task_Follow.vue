@@ -1,24 +1,26 @@
 <script setup>
-import { ref, inject, onMounted } from "vue";
+import { ref, inject, onMounted, onBeforeMount } from "vue";
 import { required } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 import TaskFollowDetailVue from "./follow/TaskFollowDetail.vue";
 import DetailedWork from "../DetailedWork.vue";
-
 import useVuelidate from "@vuelidate/core";
+
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 const axios = inject("axios");
 const store = inject("store");
 const toast = useToast();
 const swal = inject("$swal");
+
 // eslint-disable-next-line no-undef
 const basedomainURL = baseURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
+
 const width1 = window.screen.width;
 const bgColor = ref([
   "#F4B2A3",
@@ -217,8 +219,15 @@ const saveData = (isFormValid) => {
       });
     });
 };
-
+const isIndex = ref();
+const filterFollow = ref();
 const loadData = () => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
   axios
     .post(
       baseURL + "/api/TaskProc/getTaskData",
@@ -297,6 +306,13 @@ const loadData = () => {
           }
         });
       datalists.value = data;
+      swal.close();
+      let filter = data.filter((x) => x.status == 1);
+      if (filter.length > 0) {
+        let e = { data: filter[0] };
+        selectedProduct.value = e.data;
+        rowSelected(e);
+      }
     })
     .catch((error) => {
       options.value.loading = false;
@@ -426,7 +442,7 @@ const DeleteStep = (vl) => {
   swal
     .fire({
       title: "Thông báo",
-      text: "Bạn có muốn xoá quy trình này không!",
+      text: "Bạn có muốn xoá bước này không!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -517,6 +533,7 @@ const openStepDialog = (e) => {
   taskStep.value.is_step = e.countStep > 0 ? e.countStep + 1 : 1;
   StepDialogVisible.value = true;
   listTask.value = [];
+  headerStepDialog.value = "Thêm bước";
 };
 const openEditStepDialog = (e, f) => {
   submitted.value = false;
@@ -525,6 +542,7 @@ const openEditStepDialog = (e, f) => {
   taskStep.value = template;
   tempMinDate.value = f.start_date ? f.start_date : props.data.start_date;
   tempMaxDate.value = f.end_date ? f.end_date : props.data.end_date;
+
   StepDialogVisible.value = true;
   listTask.value = [];
   e.task_info.forEach((x) => {
@@ -533,6 +551,7 @@ const openEditStepDialog = (e, f) => {
       listTask.value = listTask.value.concat(k);
     }
   });
+  headerStepDialog.value = "Cập nhật bước";
 };
 const length2 = ref(false);
 const checklength2 = () => {
@@ -738,13 +757,12 @@ const UpdateStatusTaksFunc = (e) => {
 };
 // 0: tạo/giao 1,2: làm, 3:theo dõi
 const TypeMember = ref();
-const expandedRows = ref([]);
-const expandedRows2 = ref([]);
+
 const PositionSideBar = ref("right");
 
 const showDetail1 = ref(false);
 const selectedTaskID = ref();
-const onRowSelect = (id) => {
+const onNodeSelect = (id) => {
   showDetail1.value = false;
   showDetail1.value = true;
   selectedTaskID.value = id;
@@ -758,8 +776,19 @@ emitter.on("SideBar1", () => {
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
 });
-onMounted(() => {
+const taskInStep = ref([]);
+const taskInStep_step_name = ref();
+const typeDoTask = ref();
+const ChangeStep = (data, index) => {
+  isIndex.value = index;
+  taskInStep.value = data.task_info;
+  taskInStep_step_name.value = data.step_name;
+  typeDoTask.value = data.type;
+};
+onBeforeMount(() => {
   loadData();
+});
+onMounted(() => {
   if (props.listChild != null) {
     listChildTask.value = JSON.parse(JSON.stringify(props.listChild));
   }
@@ -784,14 +813,38 @@ onMounted(() => {
     TypeMember.value = 4;
   }
 });
+const selectedProduct = ref();
+const rowSelected = (e) => {
+  filterFollow.value = null;
+  taskInStep_step_name.value = null;
+  taskInStep.value = [];
+  ////////////////////*************************
+  filterFollow.value = e.data;
+  isIndex.value = null;
+  if (filterFollow.value.task_follow_step.length > 0) {
+    isIndex.value = 0;
+    taskInStep_step_name.value =
+      filterFollow.value.task_follow_step[0].step_name;
+    taskInStep.value = filterFollow.value.task_follow_step[0].task_info;
+    typeDoTask.value = e.data[0].type;
+  }
+};
 </script>
 <template>
   <div class="h-custom">
+    <!-- {{ selectedProduct }} -->
     <DataTable
+      class="pb-2"
+      style="height: 40vh"
       :value="datalists"
       scrollable
       scrollHeight="flex"
-      v-model:expandedRows="expandedRows"
+      v-model:selection="selectedProduct"
+      selectionMode="single"
+      dataKey="follow_id"
+      :metaKeySelection="false"
+      @row-select="rowSelected"
+      @row-unselect="rowUnslected"
     >
       <Toolbar class="w-full custoolbar">
         <template #end>
@@ -799,18 +852,19 @@ onMounted(() => {
             icon="pi pi-plus"
             label="Thêm quy trình"
             @click="openDialog()"
-            v-if="user.is_admin == true || TypeMember == 0"
+            v-if="
+              (user.is_admin == true || TypeMember == 0) &&
+              props.isClose != true
+            "
           ></Button>
         </template>
       </Toolbar>
-      <Column
-        expander
-        class="max-w-4rem"
-      />
+
       <Column
         header="Tên quy trình"
         field="follow_name"
-        header-class="justify-content-center align-items-center text-center"
+        headerClass="justify-content-center align-items-center text-center "
+        bodyClass="word-break-break-all"
       ></Column>
       <Column
         header="Bước"
@@ -909,7 +963,10 @@ onMounted(() => {
               icon="pi pi-pencil"
               v-tooltip="'Sửa'"
               @click="OpenEditDialog(data.data)"
-              v-if="user.is_admin == true || TypeMember == 0"
+              v-if="
+                (user.is_admin == true || TypeMember == 0) &&
+                props.isClose != true
+              "
             >
             </Button>
             <Button
@@ -918,7 +975,10 @@ onMounted(() => {
               type="button"
               v-tooltip="'Xóa'"
               icon="pi pi-trash"
-              v-if="user.is_admin == true || TypeMember == 0"
+              v-if="
+                (user.is_admin == true || TypeMember == 0) &&
+                props.isClose != true
+              "
             ></Button>
           </div>
         </template>
@@ -934,300 +994,226 @@ onMounted(() => {
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
-      <template #expansion="slotProps">
-        <div class="w-full">
-          <Toolbar class="w-full custoolbar">
-            <template #start>
-              <span>
-                Thông tin quy trình:
-                <span class="px-1 font-bold line-height-3">{{
-                  slotProps.data.follow_name
-                }}</span></span
-              >
-            </template>
-            <template #end>
-              <Button
-                icon="pi pi-plus"
-                label="Thêm bước"
-                @click="openStepDialog(slotProps.data)"
-                v-if="user.is_admin == true || TypeMember == 0"
-              ></Button>
-            </template>
-          </Toolbar>
-          <Accordion
-            :activeIndex="0"
-            class="w-full"
-          >
-            <AccordionTab header="Mô tả quy trình">
-              <span
-                class="max-h-15rem"
-                style="overflow-y: auto"
-              >
-                <span
-                  v-html="slotProps.data.description"
-                  v-if="slotProps.data.description != null"
-                ></span>
-                <b v-else>Không có mô tả cho quy trình này!</b>
-              </span>
-            </AccordionTab>
-          </Accordion>
-
-          <DataTable
-            :value="slotProps.data.task_follow_step"
-            v-model:expandedRows="expandedRows2"
-          >
-            <Column
-              expander
-              class="max-w-3rem"
-            />
-            <Column
-              header="Thứ tự"
-              field="is_step"
-              class="justify-content-center align-items-center text-center max-w-5rem"
-            >
-            </Column>
-            <Column
-              header="Tên bước"
-              field="step_name"
-              header-class="justify-content-center align-items-center text-center"
-            ></Column>
-            <Column
-              header="Công việc"
-              field="step_name"
-              class="justify-content-center align-items-center text-center max-w-8rem"
-            >
-              <template #body="data">
-                <div
-                  class="w-full justify-content-center align-items-center text-center"
-                >
-                  <div>
-                    {{ data.data.countTaskFinished }} /
-                    {{ data.data.countTask }}
-                  </div>
-                  <div v-if="data.data.TaskProgress > 0">
-                    <ProgressBar :value="data.data.TaskProgress" />
-                  </div>
-                  <div
-                    class="pt-2"
-                    v-else
-                  >
-                    0%
-                  </div>
-                </div>
-              </template>
-            </Column>
-            <Column
-              header="Trạng thái"
-              field="task_id_follow"
-              class="justify-content-center align-items-center text-center max-w-13rem"
-            >
-              <template #body="data">
-                <span
-                  :style="{
-                    background: data.data.status_display.bg_color,
-                    color: data.data.status_display.text_color,
-                    padding: '5px 10px',
-                    border: '1px solid' + data.data.status_display.bg_color,
-                    borderRadius: '5px',
-                  }"
-                  @click="
-                    toggle($event, 2, {
-                      follow_step_id: data.data.follow_step_id,
-                      status: data.data.status,
-                    })
-                  "
-                  aria-haspopup="true"
-                  aria-controls="overlay_menu"
-                >
-                  {{ data.data.status_display.label }}
-                </span>
-              </template></Column
-            >
-            <Column
-              header="Chức năng"
-              field=""
-              class="justify-content-center align-items-center max-w-8rem"
-            >
-              <template #body="data">
-                <div class="flex">
-                  <Button
-                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                    type="button"
-                    icon="pi pi-pencil"
-                    v-tooltip="'Sửa'"
-                    @click="openEditStepDialog(data.data, slotProps.data)"
-                    v-if="user.is_admin == true || TypeMember == 0"
-                  >
-                  </Button>
-                  <Button
-                    @click="DeleteStep(data.data, true)"
-                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                    type="button"
-                    v-tooltip="'Xóa'"
-                    icon="pi pi-trash"
-                    v-if="user.is_admin == true || TypeMember == 0"
-                  ></Button>
-                </div>
-              </template>
-            </Column>
-
-            <template #empty>
-              <div
-                class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
-              >
-                <img
-                  src="../../../assets/background/nodata.png"
-                  height="144"
-                />
-                <h3 class="m-1">Không có dữ liệu</h3>
-              </div>
-            </template>
-            <template #expansion="slotProps">
-              <div class="w-full">
-                <Toolbar class="w-full custoolbar">
-                  <template #start>
-                    <span>
-                      Thông tin bước:
-                      <span class="px-1 font-bold line-height-3">{{
-                        slotProps.data.step_name
-                      }}</span></span
-                    >
-                  </template>
-                </Toolbar>
-                <Accordion
-                  :activeIndex="0"
-                  class="w-full"
-                >
-                  <AccordionTab header="Mô tả bước">
-                    <span
-                      class="max-h-15rem"
-                      style="overflow-y: auto"
-                    >
-                      {{ slotProps.data.description }}
-                      <span
-                        v-html="slotProps.data.description"
-                        v-if="
-                          slotProps.data.description != null &&
-                          slotProps.data.description != ''
-                        "
-                      ></span>
-                      <b v-else>Không có mô tả cho bước này!</b>
-                    </span>
-                  </AccordionTab>
-                </Accordion>
-
-                <DataTable
-                  :value="slotProps.data.task_info"
-                  @rowReorder="onRowReorder"
-                  @row-click="onRowSelect($event.data.task_id)"
-                >
-                  <Column
-                    v-if="TypeMember == 0"
-                    rowReorder
-                    class="max-w-2rem justify-content-center align-items-center text-center"
-                  />
-                  <Column
-                    header="STT"
-                    field="step"
-                    class="justify-content-center align-items-center text-center max-w-5rem"
-                  ></Column>
-                  <Column
-                    header="Tên công việc"
-                    field="task_id_follow"
-                    header-class="justify-content-center align-items-center text-center"
-                  >
-                    <template #body="data">
-                      <div>
-                        <span class="font-bold text-xl">
-                          {{ data.data.task_name }}
-                        </span>
-                        <br />
-                        <span>
-                          {{
-                            moment(new Date(data.data.start_date)).format(
-                              "DD/MM/YYYY",
-                            )
-                          }}
-                        </span>
-                        -
-                        <span v-if="data.data.is_deadline == true">
-                          {{
-                            moment(new Date(data.data.end_date)).format(
-                              "DD/MM/YYYY",
-                            )
-                          }}
-                        </span>
-                      </div>
-                    </template>
-                  </Column>
-                  <Column
-                    header="Tiến độ"
-                    field="task_id_follow"
-                    class="justify-content-center align-items-center text-center max-w-8rem"
-                  >
-                    <template #body="data">
-                      <div
-                        v-if="data.data.progress > 0"
-                        class="w-full"
-                      >
-                        <ProgressBar :value="data.data.progress" />
-                      </div>
-                      <div
-                        class="pt-2"
-                        v-else
-                      >
-                        0%
-                      </div>
-                    </template>
-                  </Column>
-                  <Column
-                    header="Trạng thái"
-                    field="task_id_follow"
-                    class="justify-content-center align-items-center text-center max-w-13rem"
-                  >
-                    <template #body="data">
-                      <span
-                        :style="{
-                          background: data.data.status_display.bg_color,
-                          color: data.data.status_display.text_color,
-                          padding: '5px 10px',
-                          border:
-                            '1px solid' + data.data.status_display.bg_color,
-                          borderRadius: '5px',
-                        }"
-                      >
-                        {{ data.data.status_display.text }}
-                      </span>
-                    </template></Column
-                  >
-
-                  <template #empty>
-                    <div
-                      class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
-                    >
-                      <img
-                        src="../../../assets/background/nodata.png"
-                        height="144"
-                      />
-                      <h3 class="m-1">Không có dữ liệu</h3>
-                    </div>
-                  </template>
-                </DataTable>
-              </div>
-            </template>
-          </DataTable>
-        </div>
-      </template>
     </DataTable>
-    <TaskFollowDetailVue
-      :componentKey="componentKey"
-      :data="round"
-      :isOpen="isOpen"
-      :closeDialogDetail="closeDialogDetail"
-      :rowReorder="onRowReorder"
-      :memberType="TypeMember"
-    ></TaskFollowDetailVue>
+
+    <div
+      class="pt-2 overflow-y-auto h-50 border-top-1 border-gray-400"
+      style="height: 52vh"
+      v-if="filterFollow != null"
+    >
+      <div>
+        <div class="col-12 p-0 pt-2 flex align-items-center">
+          <div class="col-10 p-0 flex align-items-center">
+            <span
+              >Các bước thực hiện của quy trình:
+              <b>{{ filterFollow.follow_name }}</b></span
+            >
+          </div>
+          <div class="col p-0 flex align-items-center">
+            <Button
+              class="mx-1"
+              icon="pi pi-plus"
+              v-tooltip="'Thêm bước'"
+              v-if="
+                (user.is_admin == true || TypeMember == 0) &&
+                filterFollow != null &&
+                props.isClose != true
+              "
+              @click="openStepDialog(filterFollow)"
+            ></Button>
+            <Button
+              class="mx-1"
+              icon="pi pi-pencil"
+              v-tooltip="'Sửa bước đang chọn'"
+              v-if="
+                (user.is_admin == true || TypeMember == 0) &&
+                isIndex != null &&
+                props.isClose != true
+              "
+              @click="
+                openEditStepDialog(
+                  filterFollow.task_follow_step[isIndex],
+                  filterFollow,
+                )
+              "
+            ></Button>
+            <Button
+              class="mx-1 p-button-danger"
+              icon="pi pi-trash"
+              v-tooltip="'Xóa bước đang chọn'"
+              v-if="
+                (user.is_admin == true || TypeMember == 0) &&
+                isIndex != null &&
+                props.isClose != true
+              "
+              @click="DeleteStep(filterFollow.task_follow_step[isIndex], true)"
+            ></Button>
+          </div>
+        </div>
+        <div v-if="filterFollow.task_follow_step.length > 0">
+          <div class="multi-step numbered">
+            <ul class="multi-step-list">
+              <li
+                class="multi-step-item active"
+                v-for="(item, index) in filterFollow.task_follow_step"
+                :key="index"
+                :class="[{ current: index == isIndex }]"
+                @click="ChangeStep(item, index)"
+              >
+                <div
+                  class="item-wrap flex align-items-center justify-content-center"
+                >
+                  <p class="item-title text-center">{{ item.step_name }}</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div
+          v-else
+          class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
+        >
+          <img
+            src="../../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Quy trình chưa có các bước thực hiện!</h3>
+        </div>
+        <div v-if="filterFollow.task_follow_step.length > 0">
+          <div>
+            Công việc thuộc bước: <b>{{ taskInStep_step_name }}</b>
+          </div>
+          <div
+            style="height: 33vh; overflow: auto"
+            v-if="taskInStep.length > 0"
+          >
+            <div
+              class="m-2 grid align-items-center justify-content-center flex-column"
+              v-for="(item2, index) in taskInStep"
+              :key="index"
+            >
+              <Card
+                class="bg-bluegray-50 w-30rem"
+                @click="onNodeSelect(item2.task_id)"
+              >
+                <template #header>
+                  <div
+                    class="w-full align-items-center justify-content-center flex"
+                  >
+                    <span
+                      class="bg-white flex w-2rem h-2rem align-items-center justify-content-center text-center border-circle z-1 shadow-1 text-2xl font-bold text-blue-500"
+                    >
+                      {{ item2.step }}
+                    </span>
+                  </div></template
+                >
+                <template #title>
+                  <span class="font-bold text-xl">
+                    Công việc:
+                    <span class="text-blue-700"> {{ item2.task_name }}</span>
+                  </span>
+                </template>
+                <template #subtitle>
+                  <div class="flex justify-content-center align-items-center">
+                    <span
+                      v-if="item2.start_date || item2.end_date"
+                      style="color: #98a9bc"
+                    >
+                      <i
+                        style="margin-right: 5px"
+                        class="pi pi-calendar"
+                      >
+                      </i>
+                      {{
+                        item2.start_date
+                          ? moment(new Date(item2.start_date)).format(
+                              "DD/MM/YYYY",
+                            )
+                          : null
+                      }}
+                      -
+                      {{
+                        item2.end_date
+                          ? moment(new Date(item2.end_date)).format(
+                              "DD/MM/YYYY",
+                            )
+                          : null
+                      }}
+                    </span>
+                  </div>
+                </template>
+                <template #content>
+                  <div
+                    class="w-50 flex justify-content-center align-items-center"
+                  >
+                    <span
+                      class=""
+                      :style="{
+                        background: item2.status_display.bg_color,
+                        color: item2.status_display.text_color,
+                        padding: '2px 8px',
+                        border: '1px solid' + item2.status_display.bg_color,
+                        borderRadius: '5px',
+                      }"
+                    >
+                      {{ item2.status_display.text }}
+                    </span>
+                  </div>
+                </template>
+                <template #footer>
+                  <div
+                    v-if="item2.progress != 0"
+                    style="width: 100%"
+                  >
+                    <ProgressBar :value="item2.progress ?? 0" /></div
+                ></template>
+              </Card>
+              <icon
+                v-tooltip="'Tuần tự'"
+                class="py-2 pi pi-arrow-down font-bold text-2xl flex justify-content-center"
+                v-if="typeDoTask == 1 && index < taskInStep.length - 1"
+              ></icon>
+              <icon
+                class="py-2 pi pi-sort-alt font-bold text-2xl flex justify-content-center"
+                v-tooltip="'Song song'"
+                v-if="typeDoTask == 2 && index < taskInStep.length - 1"
+              ></icon>
+            </div>
+          </div>
+          <div
+            v-else
+            class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
+          >
+            <img
+              src="../../../assets/background/nodata.png"
+              height="144"
+            />
+            <h3 class="m-1">Chưa có công việc được giao!</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      v-else
+      style="height: 52vh"
+      class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
+    >
+      <img
+        src="../../../assets/background/nodata.png"
+        height="144"
+      />
+      <h3 class="m-1">Không có quy trình đang thực hiện!</h3>
+    </div>
   </div>
+
+  <TaskFollowDetailVue
+    :componentKey="componentKey"
+    :data="round"
+    :isOpen="isOpen"
+    :closeDialogDetail="closeDialogDetail"
+    :rowReorder="onRowReorder"
+    :memberType="TypeMember"
+  ></TaskFollowDetailVue>
   <Dialog
     v-model:visible="DialogVisible"
     :style="'width:40vw;'"
@@ -1430,8 +1416,8 @@ onMounted(() => {
           :showTime="true"
           class="col-3 px-0"
           :manualInput="false"
-          :minDate="new Date(props.data.start_date)"
-          :maxDate="new Date(props.data.end_date)"
+          :minDate="new Date(tempMinDate)"
+          :maxDate="new Date(tempMaxDate)"
           showButtonBar
         >
         </Calendar>
@@ -1444,13 +1430,9 @@ onMounted(() => {
           :showTime="true"
           class="col-3 px-0"
           :manualInput="false"
-          :minDate="
-            taskfollow.start_date != null
-              ? new Date(taskfollow.start_date)
-              : new Date()
-          "
           showButtonBar
-          :maxDate="new Date(props.data.end_date)"
+          :minDate="new Date(tempMinDate)"
+          :maxDate="new Date(tempMaxDate)"
         >
         </Calendar>
       </div>
@@ -1902,5 +1884,293 @@ onMounted(() => {
 <style lang="scss" scoped>
 .h-custom {
   height: calc(100vh - 5rem);
+}
+</style>
+<style lang="scss" scoped>
+// Variables
+$base-margin: 2em;
+$base-padding: 1em;
+$base-border-radius: 0.2em;
+$screen-xs-max: 786px;
+
+$text-color: #263238;
+$text-color-inverted: #fff;
+$clickable-hover: #d8f1ff;
+
+$brand-primary: #2196f3;
+$brand-success: #26a25f;
+$brand-danger: #f82502;
+
+$accent-dark: #2196f3;
+$accent-light: #2196f3;
+$accent-lighter: #ffffff;
+
+$icon-danger: "!";
+$icon-success: "✓";
+
+$animation-time: 0.5s;
+
+// Multi-step code
+
+.multi-step {
+  /*margin: ($base-margin / 2) 0;*/
+  margin: 0;
+}
+
+// Setting up flexbox for list
+.multi-step-list {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  list-style-type: none;
+  padding: 10px 10px 10px 10px;
+  padding: 0 auto;
+  overflow: auto;
+  background: #efefef;
+  .multi-step-item:first-child {
+    margin-left: 0;
+  }
+  .multi-step-item:last-child {
+    margin-right: 0;
+  }
+}
+
+// Defaults for each 'step'
+.multi-step-item {
+  position: relative;
+  width: 100%;
+  margin: 0 ($base-margin / 6);
+  @media only screen and (max-width: $screen-xs-max) {
+    margin: 0 ($base-margin / 6);
+  }
+  z-index: 2;
+  border-radius: $base-border-radius;
+
+  // Step title and subtitle defaults
+  .item-title,
+  .item-subtitle {
+    position: relative;
+    margin: 0;
+    z-index: 2;
+  }
+  @media only screen and (max-width: $screen-xs-max) {
+    .item-subtitle {
+      display: none;
+    }
+  }
+  .item-title {
+    color: $brand-primary;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  // Different step states [ active, current, completed, error]
+  &.active:hover {
+    cursor: pointer;
+  }
+  &.current .item-title,
+  &.current .item-subtitle {
+    color: $text-color-inverted;
+  }
+  &.active.current:hover .item-title,
+  &.active.current:hover .item-subtitle {
+    color: $brand-primary;
+  }
+  &.error:after {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    transform: translateY(-50%);
+    right: 0.5em;
+
+    content: $icon-danger;
+    color: $brand-danger;
+  }
+}
+
+// Creates the 'arrow' effect / background colors
+.item-wrap {
+  padding: $base-padding;
+  position: relative;
+  height: 100%;
+  &:before,
+  &:after {
+    position: absolute;
+    left: 0;
+    content: " ";
+    width: 100%;
+    height: 50.5%;
+    z-index: 1;
+    background-color: $accent-lighter;
+  }
+
+  // Top of the arrow
+  &:before {
+    top: 0;
+    transform: skew(20deg);
+    border-radius: 0.2em 0.2em 0 0;
+  }
+  // Bottom of the arrow
+  &:after {
+    bottom: 0;
+    transform: skew(-20deg);
+    border-radius: 0 0 0.2em 0.2em;
+  }
+}
+
+// Changing arrow colors based on state
+.current .item-wrap:before,
+.current .item-wrap:after {
+  background-color: $brand-primary;
+}
+
+.active:hover .item-wrap:before,
+.active:hover .item-wrap:after {
+  background-color: $clickable-hover;
+}
+
+.multi-step-item.error {
+  .item-title,
+  .item-subtitle {
+    padding-right: ($base-padding * 2);
+  }
+}
+
+// Changing step styles based on :first/:last step
+.multi-step-item:first-child .item-wrap,
+.multi-step-item:last-child .item-wrap {
+  width: 100%;
+  border-radius: $base-border-radius;
+  &:before,
+  &:after {
+    width: 50%;
+  }
+}
+
+// If first step, only point on the right
+.multi-step-item:first-child .item-wrap {
+  background: linear-gradient(to right, $accent-lighter 95%, transparent 5%);
+  &:before,
+  &:after {
+    left: 50%;
+  }
+}
+.active.multi-step-item:first-child:hover .item-wrap {
+  background: linear-gradient(to right, $clickable-hover 95%, transparent 5%);
+}
+.current.multi-step-item:first-child .item-wrap {
+  background: linear-gradient(to right, $brand-primary 95%, transparent 5%);
+}
+
+// If last step, only indent on the left
+.multi-step-item:last-child .item-wrap {
+  background: linear-gradient(to left, $accent-lighter 95%, transparent 5%);
+  &:before,
+  &:after {
+    right: 50%;
+  }
+}
+.active.multi-step-item:last-child:hover .item-wrap {
+  background: linear-gradient(to left, $clickable-hover 95%, transparent 5%);
+}
+.current.multi-step-item:last-child .item-wrap {
+  background: linear-gradient(to left, $brand-primary 95%, transparent 5%);
+}
+
+// MSI Checked & Complete
+.checked .multi-step-item.completed:after {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
+  right: 0.5em;
+  content: $icon-success;
+  color: $brand-success;
+}
+
+// MSI Numbered
+.numbered .multi-step-item {
+  counter-increment: step-counter;
+  max-width: max-content;
+  .item-wrap {
+    padding-left: ($base-padding * 5);
+  }
+
+  // Adds number to step
+  &:before {
+    content: counter(step-counter);
+    position: absolute;
+    top: 50%;
+    left: 0.75em;
+    transform: translateY(-50%);
+    min-width: fit-content;
+    padding: ($base-padding / 2) $base-padding;
+    z-index: 2;
+    font-size: 0.85em;
+    //background-color: $accent-light;
+    //color: $text-color-inverted;
+    background-color: $accent-light;
+    color: $text-color-inverted;
+    font-weight: 600;
+    text-align: unset;
+    border-radius: $base-border-radius;
+  }
+}
+
+// MSI w/ badge counts
+.item-wrap .badge {
+  position: absolute;
+  right: 0.5em;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+.error .item-wrap .badge {
+  right: 2em;
+  ~ .item-title,
+  ~ .item-subtitle {
+    padding-right: 3em;
+  }
+}
+
+// MSI CSS Loader
+.multi-step-loading {
+  opacity: 0.75;
+}
+
+.current.multi-step-loading:before {
+  border-color: $text-color-inverted;
+  border-top-color: transparent;
+  opacity: 1;
+}
+
+.busy-css {
+  z-index: 3;
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -0.5em;
+  margin-left: -0.5em;
+  border-radius: 50%;
+  width: 1em;
+  height: 1em;
+  border: 0.25em solid $accent-dark;
+  border-top-color: transparent;
+  animation: spin ($animation-time * 2) infinite linear;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+::-webkit-scrollbar-thumb {
+  background-color: #fff;
 }
 </style>
