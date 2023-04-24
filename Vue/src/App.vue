@@ -110,7 +110,7 @@ const passModuleToSidebar = () => {
           }
         });
       }
-      let path_system = ["/options"];
+      let path_system = ["/options","/hrm/contact"];
       if (
         data[1].filter((x) => x.is_link == root_path).length == 0 &&
         !path_system.includes(root_path)

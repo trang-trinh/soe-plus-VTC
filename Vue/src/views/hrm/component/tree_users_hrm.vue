@@ -309,6 +309,7 @@ const initOrganization = () => {
           rootorganizations.value = [];
           temporganizations.value = [];
         }
+        initUser(true);
       }
     })
     .catch((error) => {
@@ -477,7 +478,7 @@ const initUserSQL = () => {
 const displayDialog=ref(false);
 onMounted(() => {
   initOrganization();
-  initUser(true);
+ 
   //initRender();
   displayDialog.value=props.displayDialog;
   return {};

@@ -1000,24 +1000,8 @@ onMounted(() => {
             @click="onCheckBox(data.data, true, true)"
           /> </template
       ></Column>
+      
       <Column
-        header=""
-        headerStyle="text-align:center;max-width:50px"
-        bodyStyle="text-align:center;max-width:50px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="slotProps">
-          <Button
-            icon="pi pi-ellipsis-h"
-            class="p-button-rounded p-button-text ml-2"
-            @click="toggleMores($event, slotProps.data)"
-            aria-haspopup="true"
-            aria-controls="overlay_More"
-            v-tooltip.top="'Tác vụ'"
-          />
-        </template>
-      </Column>
-      <!-- <Column
         header="Chức năng"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:150px;height:50px"
@@ -1049,7 +1033,7 @@ onMounted(() => {
             ></Button>
           </div>
         </template>
-      </Column> -->
+      </Column>
       <template #empty>
         <div
           class="align-items-center justify-content-center p-4 text-center m-auto"

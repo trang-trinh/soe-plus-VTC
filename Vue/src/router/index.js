@@ -399,6 +399,7 @@ const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
 const HRM_ConfigEmail = () => import("../views/hrm/config/ConfigEmail.vue");
+const HRM_Contact = () => import("../views/hrm/contact/Contact.vue");
 // Request
 const Request_Dashboard = () =>
   import("../views/request/request_dashboard.vue");
@@ -1882,6 +1883,11 @@ const router = createRouter({
       name: "HRM_ConfigEmail",
       component: HRM_ConfigEmail,
     },
+    {
+      path: "/hrm/contact",
+      name: "hrm_contact",
+      component: HRM_Contact,
+    },
 
     // Tài liệu
     {
@@ -1999,7 +2005,7 @@ const router = createRouter({
       component: Request_Config_Auth_Sign,
     },
     {
-      path: "/request/config/ca_form",
+      path: "/request/config/set_number_request",
       name: "Request_Config_Number",
       component: Request_Config_Number,
     },

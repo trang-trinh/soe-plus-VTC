@@ -66,7 +66,7 @@ const loadDonvi = () => {
         str: encr(
           JSON.stringify({
             proc: "sys_organization_list_dictionary",
-            par: [{ par: "user_id", va: user.user_id }],
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
           cryoptojs,
@@ -77,18 +77,23 @@ const loadDonvi = () => {
     .then((response) => {
       treedonvis.value = [];
       let data = JSON.parse(response.data.data)[0];
+      console.log(data, "dảa");
 
-      if (data.length > 0) {
-        let obj = renderTree(
-          data,
-          "organization_id",
-          "organization_name",
-          "phòng ban",
-        );
-
-        treedonvis.value = obj.arrChils;
-      } else {
-        treedonvis.value = [];
+      try {
+        if (data.length > 0) {
+          let obj = renderTree(
+            data,
+            "organization_id",
+            "organization_name",
+            "phòng ban",
+          );
+          console.log(obj, " " + "obj");
+          treedonvis.value = obj.arrChils;
+        } else {
+          treedonvis.value = [];
+        }
+      } catch (error) {
+        console.log(error);
       }
     })
     .catch((error) => {
@@ -143,7 +148,7 @@ const loadData = () => {
       swal.showLoading();
     },
   });
-  if (user.is_super == true) loadDonvi();
+
   axios
     .post(
       baseURL + "/api/DictionaryProc/getData",
@@ -460,24 +465,22 @@ const first = ref(0);
 onMounted(() => {
   loadReportForm();
   loadData();
-  if (user.is_super == true) {
-    swal.fire({
-      width: 110,
-      didOpen: () => {
-        swal.showLoading();
-      },
+  loadDonvi();
+
+  setTimeout(() => {
+    treedonvis.value.forEach((element) => {
+      console.log(element);
+      expandNodeMain(element);
+      console.log(expandedKeysMain.value);
     });
-    setTimeout(() => {
-      treedonvis.value.forEach((element) => {
-        expandNodeMain(element);
-      });
-    }, 750);
-    swal.close();
-  }
+  }, 750);
+  swal.close();
 });
 </script>
 <template>
   <div class="main-layout true flex-grow-1 p-2 inline-flex">
+    <!-- {{ treedonvis }}
+    {{ user }} -->
     <div
       v-if="user.is_super == true && treedonvis.length > 0"
       class="col-3"

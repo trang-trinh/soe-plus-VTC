@@ -8,6 +8,7 @@ import { encr, checkURL } from "../../../util/function.js";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
 import DropdownUser from "../component/DropdownUser.vue";
 import moment from "moment";
+import { forEach } from "jszip";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -103,9 +104,22 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
+
         data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          if (element.datalists) {
+            element.datalists = JSON.parse(element.datalists);
+            if (element.datalists) {
+              element.datalists.forEach((item, i) => {
+                item.STT =
+                  options.value.PageNo * options.value.PageSize + i + 1;
+                if (item.status == "0") item.status = false;
+                else item.status = true;
+              });
+            }
+          }
         });
+
+        expandedRows.value = [...data];
         datalists.value = data;
 
         options.value.loading = false;
@@ -170,7 +184,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "created_date",
+  sort: "profile_id",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -190,8 +204,9 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
+    profile_id_fake: null,
   };
-
+  options.value.profile_id = null;
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
@@ -208,6 +223,23 @@ const closeDialog = () => {
 
   displayBasic.value = false;
   loadData(true);
+};
+function onGetMonth(date) {
+  var month = date.getMonth() + 1;
+  var year = date.getFullYear();
+  var newMonth = new Date(month + "/01" + "/" + year);
+  return newMonth;
+}
+const onSelectedschedule = () => {
+  var arr = [...work_schedule.value.work_schedule_daysfake];
+  work_schedule.value.work_schedule_monthsfake.forEach((element) => {
+    work_schedule.value.work_schedule_daysfake.forEach((item) => {
+      if (onGetMonth(item).getTime() == element.getTime()) {
+        arr = arr.filter((x) => x != item);
+      }
+    });
+  });
+  work_schedule.value.work_schedule_daysfake = arr;
 };
 
 //Thêm bản ghi
@@ -318,27 +350,54 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  work_schedule.value = dataTem;
-  if (work_schedule.value.profile_id)
-    work_schedule.value.profile_id_fake =
-      work_schedule.value.profile_id.split(",");
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_work_schedule_get",
+            par: [{ par: "work_schedule_id", va: dataTem.work_schedule_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
 
-  if (work_schedule.value.work_schedule_months) {
-    work_schedule.value.work_schedule_monthsfake = [];
-    work_schedule.value.work_schedule_months.split(",").forEach((element) => {
-      work_schedule.value.work_schedule_monthsfake.push(new Date(element));
-    });
-  }
+      work_schedule.value = data[0];
+      if (work_schedule.value.profile_id)
+        work_schedule.value.profile_id_fake =
+          work_schedule.value.profile_id.split(",");
 
-  if (work_schedule.value.work_schedule_days) {
-    work_schedule.value.work_schedule_daysfake = [];
-    work_schedule.value.work_schedule_days.split(",").forEach((element) => {
-      work_schedule.value.work_schedule_daysfake.push(new Date(element));
+      if (work_schedule.value.work_schedule_months) {
+        work_schedule.value.work_schedule_monthsfake = [];
+        work_schedule.value.work_schedule_months
+          .split(",")
+          .forEach((element) => {
+            work_schedule.value.work_schedule_monthsfake.push(
+              new Date(element)
+            );
+          });
+      }
+
+      if (work_schedule.value.work_schedule_days) {
+        work_schedule.value.work_schedule_daysfake = [];
+        work_schedule.value.work_schedule_days.split(",").forEach((element) => {
+          work_schedule.value.work_schedule_daysfake.push(new Date(element));
+        });
+      }
+      headerDialog.value = "Sửa ca làm việc";
+      isSaveTem.value = true;
+      displayBasic.value = true;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
     });
-  }
-  headerDialog.value = "Sửa ca làm việc";
-  isSaveTem.value = true;
-  displayBasic.value = true;
 };
 
 const menuButMores = ref();
@@ -457,14 +516,25 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_work_schedule", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_work_schedule", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
         data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          if (element.datalists) {
+            element.datalists = JSON.parse(element.datalists);
+            if (element.datalists) {
+              element.datalists.forEach((item, i) => {
+                item.STT =
+                  options.value.PageNo * options.value.PageSize + i + 1;
+                if (item.status == "0") item.status = false;
+                else item.status = true;
+              });
+            }
+          }
         });
+        expandedRows.value = [...data];
 
         datalists.value = data;
       } else {
@@ -480,7 +550,7 @@ const loadDataSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-
+      console.log(error);
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
@@ -518,6 +588,8 @@ const bgColor = ref([
 const refreshStamp = () => {
   options.value.SearchText = null;
   filterTrangthai.value = null;
+  options.value.config_work_location_id = null;
+  options.value.profile_id = null;
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -576,7 +648,7 @@ const onCheckBox = (value, check, checkIsmain) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái ca làm việc thành công!");
-          loadData(true);
+
           closeDialog();
         } else {
           swal.fire({
@@ -612,7 +684,7 @@ const onCheckBox = (value, check, checkIsmain) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái ca làm việc thành công!");
-          loadData(true);
+
           closeDialog();
         } else {
           swal.fire({
@@ -720,6 +792,8 @@ const filterTrangthai = ref();
 
 const reFilterEmail = () => {
   filterTrangthai.value = null;
+  options.value.config_work_location_id = null;
+  options.value.profile_id = null;
   isDynamicSQL.value = false;
   checkFilter.value = false;
   filterSQL.value = [];
@@ -730,12 +804,55 @@ const reFilterEmail = () => {
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
+  if (filterTrangthai.value != null) {
+    let filterS = {
+      filterconstraints: [
+        { value: filterTrangthai.value, matchMode: "equals" },
+      ],
+      filteroperator: "and",
+      key: "status",
+    };
+    filterSQL.value.push(filterS);
+  }
+
+  if (options.value.profile_id) {
+    let filterS = {
+      filterconstraints: [
+        {
+          value: options.value.profile_id.toString(),
+          matchMode: "arrIntersec",
+        },
+      ],
+      filteroperator: "and",
+      key: "profile_id",
+    };
+    filterSQL.value.push(filterS);
+  }
+
+  if (options.value.declare_shift_id) {
+    let filterS = {
+      filterconstraints: [
+        { value: options.value.declare_shift_id, matchMode: "equals" },
+      ],
+      filteroperator: "and",
+      key: "declare_shift_id",
+    };
+    filterSQL.value.push(filterS);
+  }
+
+  if (options.value.config_work_location_id) {
+    let filterS = {
+      filterconstraints: [
+        {
+          value: options.value.config_work_location_id.toString(),
+          matchMode: "equals",
+        },
+      ],
+      filteroperator: "and",
+      key: "config_work_location_id",
+    };
+    filterSQL.value.push(filterS);
+  }
   loadDataSQL();
 };
 watch(selectedStamps, () => {
@@ -860,6 +977,7 @@ emitter.on("emitData", (obj) => {
     case "submitModel":
       if (obj.data) {
         work_schedule.value.profile_id_fake = obj.data;
+        options.value.profile_id = obj.data;
       }
       break;
 
@@ -867,6 +985,38 @@ emitter.on("emitData", (obj) => {
       break;
   }
 });
+const expandedRows = ref([]);
+const onRowExpand = (event) => {
+  toast.add({
+    severity: "info",
+    summary: "Product Expanded",
+    detail: event.data.name,
+    life: 3000,
+  });
+};
+const onRowCollapse = (event) => {
+  toast.add({
+    severity: "success",
+    summary: "Product Collapsed",
+    detail: event.data.name,
+    life: 3000,
+  });
+};
+const expandAll = () => {
+  expandedRows.value = [...datalists.value];
+};
+const collapseAll = () => {
+  expandedRows.value = null;
+};
+const onRowSelect = (event) => {
+  options.value.declare_shift_id = event.data.declare_shift_id;
+  filterFileds();
+};
+const onRowUnselect = (event) => {
+  options.value.declare_shift_id = null;
+  filterFileds();
+};
+
 onMounted(() => {
   initTudien();
   loadData(true);
@@ -917,7 +1067,10 @@ onMounted(() => {
               aria-controls="overlay_panel"
               v-tooltip="'Bộ lọc'"
               :class="
-                filterTrangthai != null && checkFilter
+                (filterTrangthai != null ||
+                  options.config_work_location_id != null ||
+                  options.profile_id != null) &&
+                checkFilter
                   ? ''
                   : 'p-button-secondary p-button-outlined'
               "
@@ -928,17 +1081,57 @@ onMounted(() => {
               class="p-0 m-0"
               :showCloseIcon="false"
               id="overlay_panel"
-              style="width: 300px"
+              style="width: 500px"
             >
               <div class="grid formgrid m-0">
                 <div class="flex field col-12 p-0">
                   <div
-                    class="col-4 text-left pt-2 p-0"
+                    class="col-3 text-left pt-2 p-0"
+                    style="text-align: left"
+                  >
+                    Nhân sự
+                  </div>
+                  <div class="col-9">
+                    <DropdownUser
+                      :model="options.profile_id"
+                      :display="'chip'"
+                      :placeholder="'Chọn nhân sự'"
+                    />
+                  </div>
+                </div>
+                <div class="flex field col-12 p-0">
+                  <div
+                    class="col-3 text-left pt-2 p-0"
+                    style="text-align: left"
+                  >
+                    Địa điểm
+                  </div>
+                  <div class="col-9">
+                    <MultiSelect
+                      :options="listWorkLocation"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      v-model="options.config_work_location_id"
+                      optionLabel="name"
+                      optionValue="code"
+                      placeholder="Chọn địa điểm làm việc"
+                      class="w-full limit-width"
+                      style="min-height: 36px"
+                      panelClass="d-design-dropdown"
+                      display="chip"
+                    >
+                    </MultiSelect>
+                  </div>
+                </div>
+                <div class="flex field col-12 p-0">
+                  <div
+                    class="col-3 text-left pt-2 p-0"
                     style="text-align: left"
                   >
                     Trạng thái
                   </div>
-                  <div class="col-8">
+                  <div class="col-9">
                     <Dropdown
                       class="col-12 p-0 m-0"
                       v-model="filterTrangthai"
@@ -949,6 +1142,7 @@ onMounted(() => {
                     />
                   </div>
                 </div>
+
                 <div class="flex col-12 p-0">
                   <Toolbar
                     class="border-none surface-0 outline-none pb-0 w-full"
@@ -979,6 +1173,21 @@ onMounted(() => {
             class="mr-2 p-button-danger"
           />
           <Button
+            text
+            icon="pi pi-sort-amount-up
+"
+            label="Mở rộng"
+            class="mr-2 p-button-secondary"
+            @click="expandAll"
+          />
+          <Button
+            text
+            class="mr-2 p-button-secondary"
+            icon="pi pi-sort-amount-down"
+            label="Đóng lại"
+            @click="collapseAll"
+          />
+          <Button
             @click="openBasic('Thêm ca làm việc')"
             label="Thêm mới"
             icon="pi pi-plus"
@@ -996,8 +1205,8 @@ onMounted(() => {
     <Splitter class="w-full h-full">
       <SplitterPanel
         class="flex align-items-center justify-content-center"
-        :size="25"
-        :minSize="25"
+        :size="15"
+        :minSize="15"
       >
         <DataTable
           v-model:filters="filters"
@@ -1021,6 +1230,8 @@ onMounted(() => {
           responsiveLayout="scroll"
           v-model:selection="selectedDecS"
           :row-hover="true"
+          @rowSelect="onRowSelect"
+          @rowUnselect="onRowUnselect"
         >
           <Column
             field="declare_shift_name"
@@ -1036,6 +1247,7 @@ onMounted(() => {
                   backgroundColor: data.data.background_color,
                   color: data.data.text_color,
                 }"
+                class="w-full format-center"
               />
             </template>
           </Column>
@@ -1051,12 +1263,14 @@ onMounted(() => {
           </template>
         </DataTable>
       </SplitterPanel>
-      <SplitterPanel class="w-full" :size="75" :minSize="75">
+      <SplitterPanel class="w-full" :size="85" :minSize="85">
         <DataTable
           @page="onPage($event)"
           @sort="onSort($event)"
           @filter="onFilter($event)"
-          v-model:filters="filters"
+          v-model:expandedRows="expandedRows"
+          :value="datalists"
+          dataKey="profile_id"
           filterDisplay="menu"
           filterMode="lenient"
           :filters="filters"
@@ -1068,44 +1282,33 @@ onMounted(() => {
           :totalRecords="options.totalRecords"
           :loading="options.loading"
           :reorderableColumns="true"
-          :value="datalists"
+          :paginator="false"
+          class="w-full"
           removableSort
           v-model:rows="options.PageSize"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
           :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-          :paginator="true"
-          dataKey="work_schedule_id"
-          class="w-full"
           responsiveLayout="scroll"
           v-model:selection="selectedStamps"
           :row-hover="true"
         >
-          <!-- <Column
-            class="align-items-center justify-content-center text-center"
+          <Column
+            expander
+            headerStyle="text-align:center;max-width:50px;height:50px"
+            bodyStyle="text-align:center;max-width:50px;"
+        
+          />
+          <Column
+            field="candidate_code"
+            header="Ảnh"
             headerStyle="text-align:center;max-width:70px;height:50px"
             bodyStyle="text-align:center;max-width:70px"
-            selectionMode="multiple"
-            v-if="store.getters.user.is_super == true"
-          >
-          </Column> -->
-
-          <Column
-            field="STT"
-            header="STT"
-            class="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:50px;height:50px"
-            bodyStyle="text-align:center;max-width:50px"
-          ></Column>
-          <Column
-            field="Avatar"
-            header="Ảnh"
-            headerStyle="text-align:center;max-width:100px;height:50px"
-            bodyStyle="text-align:center;max-width:100px;"
-            class="align-items-center justify-content-center text-center"
+            class="align-items-center justify-content-center text-center"    
           >
             <template #body="slotProps">
-              <div class="relative">
+              <div>
                 <Avatar
+                  style="color: #fff"
                   v-bind:label="
                     slotProps.data.avatar
                       ? ''
@@ -1118,118 +1321,60 @@ onMounted(() => {
                       ? basedomainURL + slotProps.data.avatar
                       : basedomainURL + '/Portals/Image/noimg.jpg'
                   "
-                  :style="{
-                    background: bgColor[slotProps.index % 7],
-                    color: '#ffffff',
-                    width: '5rem',
-                    height: '5rem',
-                    fontSize: '1.5rem !important',
-                    borderRadius: '5px',
-                  }"
-                  size="xlarge"
-                  class="border-radius"
+                  class="w-3rem"
+                  size="large"
+                  :style="
+                    slotProps.data.avatar
+                      ? 'background-color: #2196f3'
+                      : 'background:' + bgColor[slotProps.index % 7]
+                  "
+                  shape="circle"
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
                 />
               </div>
             </template>
           </Column>
+
           <Column
             field="profile_user_name"
-            header="Họ và tên"     
+            header="Họ và tên"
             headerClass="align-items-center justify-content-center text-center"
-            headerStyle="text-align:center;max-width:200px;height:50px"
-            bodyStyle=" max-width:200px"
+            headerStyle="text-align:center; height:50px"
+            bodyStyle=" "
           >
-            <template #body="slotProps">
-              <div  >
-                <div class="mb-2">
-                  <b>{{ slotProps.data.profile_user_name }}</b>
-                </div>
-                <div class="mb-1">
-                  <div class="mb-1">
-                    <b>{{ slotProps.data.position_name }}</b>
-                  </div>
-                  <div class="mb-1">
-                    <span>{{ slotProps.data.work_position_name }}</span>
-                  </div>
-                  <div class="mb-1">
-                    <span>{{ slotProps.data.department_name }}</span>
-                  </div>
-                </div>
+            <template #body="data">
+              <div class="font-bold">
+                {{ data.data.profile_user_name }}
               </div>
             </template>
           </Column>
 
           <Column
-            field="status"
-            header="Ca làm việc"
-          
-            headerClass="align-items-center justify-content-center text-center"
-          
+            field="position_name"
+            header="Chức vụ"
+            class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:200px;height:50px"
+            bodyStyle=" max-width:200px"
           >
-            <template #body="data">
-        <div     class="flex" >
-          <div
-                  v-for="(item, index) in data.data.work_schedule_months.split(
-                    ','
-                  )"
-                  :key="index"
-                >
-             <Chip class="w-5rem mr-1" :label="moment(new Date(item)).format('MM/YYYY').toString()"></Chip>   
-                </div>
-                <div style="word-break:break-all"
-                  v-for="(item, index) in data.data.work_schedule_days.split(
-                    ','
-                  )"
-                  :key="index"
-                >
-                <Chip class="w-7rem mr-1" :label="moment(new Date(item)).format('DD/MM/YYYY').toString()"></Chip>   
-           
-                </div>
-        </div>
-                
-           
-            </template>
           </Column>
-
           <Column
-            field="status"
-            header="Trạng thái"
-            headerStyle="text-align:center;max-width:100px;height:50px"
-            bodyStyle="text-align:center;max-width:100px"
+            field="work_position_name"
+            header="Vị trí"
             class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:250px;height:50px"
+            bodyStyle=" max-width:250px"
           >
-            <template #body="data">
-              <Checkbox
-                :disabled="
-                  !(
-                    store.state.user.is_super == true ||
-                    store.state.user.user_id == data.data.created_by ||
-                    (store.state.user.role_id == 'admin' &&
-                      store.state.user.organization_id ==
-                        data.data.organization_id)
-                  )
-                "
-                :binary="true"
-                v-model="data.data.status"
-                @click="onCheckBox(data.data, true, true)"
-              /> </template
-          ></Column>
+          </Column>
           <Column
-            header=""
-            headerStyle="text-align:center;max-width:50px"
-            bodyStyle="text-align:center;max-width:50px"
+            field="department_name"
+            header="Phòng ban"
             class="align-items-center justify-content-center text-center"
+            headerStyle="text-align:center;max-width:250px;height:50px"
+            bodyStyle=" max-width:250px"
           >
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-ellipsis-h"
-                class="p-button-rounded p-button-text ml-2"
-                @click="toggleMores($event, slotProps.data)"
-                aria-haspopup="true"
-                aria-controls="overlay_More"
-                v-tooltip.top="'Tác vụ'"
-              />
-            </template>
           </Column>
 
           <template #empty>
@@ -1241,8 +1386,127 @@ onMounted(() => {
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </template>
-        </DataTable></SplitterPanel
-      >
+
+          <template #expansion="slotProps">
+            <div class="p-0 w-full">
+              <DataTable :value="slotProps.data.datalists">
+                <Column
+                  field="declare_shift_name"
+                  header="Ca làm việc"
+                  headerStyle="text-align:center;max-width:200px;height:50px"
+                  bodyStyle="text-align:center;max-width:200px"
+                  class="align-items-center justify-content-center text-center"
+                  bodyClass="bg-indigo-50"
+                >
+                  <template #body="data">
+                    <Chip
+                      :label="data.data.declare_shift_name"
+                      :style="{
+                        backgroundColor: data.data.background_color,
+                        color: data.data.text_color,
+                      }"
+                      class="w-full format-center"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field="status"
+                  header="Thời gian"
+                  headerClass="align-items-center justify-content-center text-center"
+                  headerStyle="text-align:center; height:50px"
+                  bodyClass="bg-indigo-50"
+                >
+                  <template #body="data">
+                    <div class="w-full">
+                      <div class=" " v-if="data.data.is_full_time == '0'">
+                        <Chip
+                          v-for="(
+                            item, index
+                          ) in data.data.work_schedule_months.split(',')"
+                          :key="index"
+                          class="m-1 bg-blue-300"
+                          :label="
+                            moment(new Date(item)).format('MM/YYYY').toString()
+                          "
+                        ></Chip>
+
+                        <Chip
+                          v-for="(
+                            item, index
+                          ) in data.data.work_schedule_days.split(',')"
+                          :key="index"
+                          class="m-1 bg-bluegray-300"
+                          :label="
+                            moment(new Date(item))
+                              .format('DD/MM/YYYY')
+                              .toString()
+                          "
+                        ></Chip>
+                      </div>
+                      <div class="flex" v-else>Toàn thời gian</div>
+                    </div>
+                  </template>
+                </Column>
+
+                <Column
+                  field="status"
+                  header="Trạng thái"
+                  headerStyle="text-align:center;max-width:100px;height:50px"
+                  bodyStyle="text-align:center;max-width:100px"
+                  class="align-items-center justify-content-center text-center"
+                  bodyClass="bg-indigo-50"
+                >
+                  <template #body="data">
+                    <Checkbox
+                      :disabled="
+                        !(
+                          store.state.user.is_super == true ||
+                          store.state.user.user_id == data.data.created_by ||
+                          (store.state.user.role_id == 'admin' &&
+                            store.state.user.organization_id ==
+                              data.data.organization_id)
+                        )
+                      "
+                      :binary="true"
+                      v-model="data.data.status"
+                      @click="onCheckBox(data.data, true, true)"
+                    /> </template
+                ></Column>
+                <Column
+                  header=""
+                  headerStyle="text-align:center;max-width:50px"
+                  bodyStyle="text-align:center;max-width:50px"
+                  class="align-items-center justify-content-center text-center"
+                  bodyClass="bg-indigo-50"
+                >
+                  <template #body="slotProps">
+                    <Button
+                      icon="pi pi-ellipsis-h"
+                      class="p-button-rounded p-button-text ml-2"
+                      @click="toggleMores($event, slotProps.data)"
+                      aria-haspopup="true"
+                      aria-controls="overlay_More"
+                    />
+                  </template>
+                </Column>
+
+                <template #empty>
+                  <div
+                    class="align-items-center justify-content-center p-4 text-center m-auto"
+                    v-if="!isFirst"
+                  >
+                    <img
+                      src="../../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
+                  </div>
+                </template>
+              </DataTable>
+            </div>
+          </template>
+        </DataTable>
+      </SplitterPanel>
     </Splitter>
   </div>
   <Menu
@@ -1268,7 +1532,7 @@ onMounted(() => {
     :modal="true"
   >
     <form>
-      <div class="grid formgrid">
+      <div class="grid formgrid px-2">
         <div class="field col-12 flex align-items-center md:col-12">
           <label class="col-3 text-left p-0"
             >Ca làm việc <span class="redsao">(*)</span></label
@@ -1316,6 +1580,7 @@ onMounted(() => {
               @click="showTreeUser()"
               icon="pi pi-user-plus"
               class="p-button-text p-button-rounded"
+              v-if="isSaveTem.value"
             />
           </div>
           <div class="col-9 p-0">
@@ -1323,11 +1588,34 @@ onMounted(() => {
               :model="work_schedule.profile_id_fake"
               :display="'chip'"
               :placeholder="'Chọn nhân sự'"
+              :disabled="isSaveTem"
             />
           </div>
         </div>
-
-        <div class="flex field align-items-center col-12 md:col-12">
+        <div class="flex field col-12 md:col-12">
+          <div class="col-6 p-0 align-items-center flex">
+            <div class="col-6 p-0 flex align-items-center">Toàn thời gian</div>
+            <div class="col-6 p-0">
+              <InputSwitch
+                class="w-4rem lck-checked"
+                v-model="work_schedule.is_full_time"
+              />
+            </div>
+          </div>
+          <div class="col-6 p-0 align-items-center flex">
+            <div class="col-6 p-0 flex align-items-center">Trạng thái</div>
+            <div class="col-6 p-0">
+              <InputSwitch
+                class="w-4rem lck-checked"
+                v-model="work_schedule.status"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex field align-items-center col-12 md:col-12"
+          v-if="!work_schedule.is_full_time"
+        >
           <div class="col-3 p-0 flex align-items-center">Đăng ký tháng</div>
           <div class="col-9 p-0">
             <Calendar
@@ -1337,11 +1625,15 @@ onMounted(() => {
               class="w-full"
               :showIcon="true"
               selectionMode="multiple"
+              @date-select="onSelectedschedule($event)"
             />
           </div>
         </div>
 
-        <div class="flex align-items-center col-12 md:col-12">
+        <div
+          class="flex align-items-center col-12 md:col-12"
+          v-if="!work_schedule.is_full_time"
+        >
           <div class="col-3 p-0 flex align-items-center">Đăng ký ngày</div>
           <div class="col-9 p-0">
             <Calendar
@@ -1350,6 +1642,7 @@ onMounted(() => {
               class="w-full"
               :manualInput="false"
               :showIcon="true"
+              @date-select="onSelectedschedule($event)"
             />
           </div>
         </div>

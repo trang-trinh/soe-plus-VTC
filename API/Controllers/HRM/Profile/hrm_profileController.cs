@@ -121,6 +121,11 @@ namespace API.Controllers.HRM.Profile
                     }
                     else
                     {
+                        var check = await db.hrm_profile.CountAsync(x => x.profile_id != model.profile_id && x.profile_code == model.profile_code) > 0;
+                        if (check)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Mã hồ sơ đã tồn tại!" });
+                        }
                         model.modified_by = uid;
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;

@@ -808,7 +808,7 @@ function Expanded(dv) {
   var lst = donvitrees.value.filter(l => l.parent_id === dv.organization_id);
   if (lst !== null || lst.length > 0) {
     lst.forEach((o) => {
-      o.isClosed = !o.isClosed;
+      o.isClosed = true;
       if (o.isClosed) {
         Expanded(o);
       }
