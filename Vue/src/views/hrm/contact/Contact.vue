@@ -214,16 +214,22 @@ const loadDataDetail = (id, name) => {
   department_name.value = name;
   axios
     .post(
-      baseURL + "/api/Proc/CallProc",
+      baseURL + "/api/hrm/callProc",
       {
-        proc: "hrm_contact_list_user",
-        par: [
-          { par: "organization_id", va: id },
-          { par: "user_id", va: store.getters.user.user_id },
-          { par: "search", va: options.value.SearchText },
-          { par: "pageno", va: options.value.pagenoP },
-          { par: "pagesize", va: options.value.pagesizeP },
-        ],
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_contact_list_user",
+          par: [
+            { par: "organization_id", va: id },
+            { par: "user_id", va: store.getters.user.user_id },
+            { par: "search", va: options.value.SearchText },
+            { par: "pageno", va: options.value.pagenoP },
+            { par: "pagesize", va: options.value.pagesizeP },
+          ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
       },
       config,
     )
@@ -272,15 +278,76 @@ const onRefresh = ()=>{
   };
   loadDonvi(true);
 }
-const rowClass = (data) => {
-  return data.organization_type == 0
-    ? "classdonvi"
-    : data.organization_type == 1
-      ? "classtruonghoc"
-      : "classphongban";
-};
-const rowClassStatus = (data) => {
-  return data.status ? "" : "error";
+const itemButs = ref([
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportExcel();
+    },
+  }
+]);
+const exportExcel = () => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  let proc = "hrm_contact_list_user_export";
+  axios
+    .post(
+      baseURL + "/api/Excel/ExportExcel" ,
+      {
+        excelname: "DANH BA_"+department_name.value.toUpperCase(),
+        proc: proc,
+        par: [
+        { par: "organization_id", va: id_active.value },
+          { par: "user_id", va: store.getters.user.user_id },
+          { par: "search", va: options.value.SearchText },
+          { par: "pageno", va: options.value.pagenoP },
+          { par: "pagesize", va: options.value.pagesizeP },
+        ],
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
+        swal.close();
+        toast.success("Kết xuất Data thành công!");
+        //window.open(baseURL + response.data.path);
+        if (response.data.path != null) {
+          let pathReplace = response.data.path
+            .replace(/\\+/g, "/")
+            .replace(/\/+/g, "/")
+            .replace(/^\//g, "");
+          var listPath = pathReplace.split("/");
+          var pathFile = "";
+          listPath.forEach((item) => {
+            if (item.trim() != "") {
+              pathFile += "/" + item;
+            }
+          });
+          window.open(baseURL + pathFile);
+        }
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
 };
 onMounted(() => {
   //init
@@ -315,6 +382,7 @@ onMounted(() => {
             />
 
             <Button
+              v-if="store.getters.user.is_admin || store.getters.user.is_super"
               label="Tiện ích"
               icon="pi pi-file-excel"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -322,6 +390,12 @@ onMounted(() => {
               aria-haspopup="true"
               aria-controls="overlay_Export"
             />
+            <Menu
+              id="overlay_Export"
+              ref="menuButs"
+              :model="itemButs"
+              :popup="true"
+            /> 
           </template>
         </Toolbar>
     </div>
@@ -511,7 +585,7 @@ onMounted(() => {
               >
               </Column>   
               <Column
-              field="role_name"
+              field="position_name"
               header="Chức vụ"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px;"
