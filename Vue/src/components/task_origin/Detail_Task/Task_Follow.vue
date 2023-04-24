@@ -818,6 +818,7 @@ const rowSelected = (e) => {
   filterFollow.value = null;
   taskInStep_step_name.value = null;
   taskInStep.value = [];
+
   ////////////////////*************************
   filterFollow.value = e.data;
   isIndex.value = null;
@@ -826,7 +827,7 @@ const rowSelected = (e) => {
     taskInStep_step_name.value =
       filterFollow.value.task_follow_step[0].step_name;
     taskInStep.value = filterFollow.value.task_follow_step[0].task_info;
-    typeDoTask.value = e.data[0].type;
+    typeDoTask.value = e.data.task_follow_step[0].type;
   }
 };
 </script>
