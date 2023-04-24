@@ -29,6 +29,56 @@ const counts = ref({
     count_da_hoan_thanh: 0,
     count_da_qua_han: 0,
 });
+const chartDataPie1 = ref(
+    {
+        labels: ['Đã hoàn thành', 'Chưa hoàn thành'],
+        datasets: [
+            {
+                data: [1, 2],
+                backgroundColor: ['#aaa', '#ccc'],
+                hoverBackgroundColor: [],
+            },
+        ],
+    }
+);
+const optionsChartPie1 = {
+    responsive: true,
+    plugins: {
+        title: {
+            display: true,
+            position: "bottom",
+            text: "Gửi đến tôi",
+        },
+        legend: {
+            position: "bottom",
+        },
+    },
+};
+const chartDataPie2 = ref(
+    {
+        labels: ['Đã hoàn thành', 'Chưa hoàn thành'],
+        datasets: [
+            {
+                data: [1, 2],
+                backgroundColor: ['#aaa', '#ccc'],
+                hoverBackgroundColor: [],
+            },
+        ],
+    }
+);
+const optionsChartPie2 = {
+    responsive: true,
+    plugins: {
+        title: {
+            display: true,
+            position: "bottom",
+            text: "Tôi gửi đii",
+        },
+        legend: {
+            position: "bottom",
+        },
+    },
+};
 const list_cho_duyets = ref();
 </script>
 <template>
@@ -173,6 +223,10 @@ const list_cho_duyets = ref();
                                         <div class="col-12 md:col-12 title-dashbord">
                                             Gửi đến tôi
                                         </div>
+                                        <div class="col-12">
+                                            <Chart type="doughnut" :height="300" :width="300" :data="chartDataPie1"
+                                                :options="optionsChartPie1" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -188,6 +242,10 @@ const list_cho_duyets = ref();
                                         <div class="col-12 md:col-12 title-dashbord">
                                             Tôi gửi đi
                                         </div>
+                                        <div class="col-12">
+                                            <Chart type="doughnut" :height="300" :width="300" :data="chartDataPie2"
+                                                :options="optionsChartPie2" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -198,25 +256,9 @@ const list_cho_duyets = ref();
         </div>
         <div class="surface-100 dashboard">
             <div class="d-grid formgrid m-1" style="height: 380px;">
-                <div class="col-4 md:col-4 p-0">
+                <div class="col-4 md:col-4 p-0" style="height: 100%;">
                     <div class="d-grid formgrid" style="height: 100%;">
-                        <div class="col-12 md:col-12 p-0">
-                            <div class="formgrid m-1 p-0" style="height: 100%;">
-                                <div style="height: 100%;background-color: #fff;">
-                                    <div class="formgrid p-0" style="height: 100%;background-color: #fff;">
-                                        <div class="col-12 md:col-12 title-dashbord">
-                                            <i class="pi pi-list"></i>
-                                            Đề xuất chờ duyệt mới nhất
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-4 md:col-4 p-0">
-                    <div class="d-grid formgrid" style="height: 100%;">
-                        <div class="col-12 md:col-12 p-0">
+                        <div class="col-12 md:col-12 p-0" style="height: 100%;">
                             <div class="formgrid m-1 p-0" style="height: 100%;">
                                 <div style="height: 100%;background-color: #fff;">
                                     <div class="formgrid p-0" style="height: 100%;background-color: #fff;">
@@ -225,25 +267,253 @@ const list_cho_duyets = ref();
                                             Đề xuất đã hoàn thành mới nhất
                                         </div>
                                         <div class="content-request p-10">
-                                            <ul>
-                                                <li>
-                                                    <div>
-                                                        <div class="col-12 md:col-12">
-                                                            <span style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
-                                                            <label style="margin-left: 5px;font-weight: bold;">Xin nghỉ phép</label>
-                                                        </div>
-                                                        <div class="col-12 md:col-12" style="display: flex;align-items: center;padding-top: 0px !important;">
-                                                            <div style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
-                                                                <span>Ngày lập: 10:17 02/02/2023</span>
+                                            <div style="width: 100%; height: 100%; overflow: hidden auto"
+                                                class="scroll-outer">
+                                                <div class="scroll-inner">
+                                                    <ul>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
                                                             </div>
-                                                            <span style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá hạn 0 giờ</span>
-                                                        </div>
-                                                    </div>
-                                                    <div>
+                                                            <div>
 
-                                                    </div>
-                                                </li>
-                                            </ul>
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -251,36 +521,529 @@ const list_cho_duyets = ref();
                         </div>
                     </div>
                 </div>
-                <div class="col-4 md:col-4 p-0">
+                <div class="col-4 md:col-4 p-0" style="height: 100%;">
                     <div class="d-grid formgrid" style="height: 100%;">
-                        <div class="col-12 md:col-12 p-0">
+                        <div class="col-12 md:col-12 p-0" style="height: 100%;">
                             <div class="formgrid m-1 p-0" style="height: 100%;">
                                 <div style="height: 100%;background-color: #fff;">
                                     <div class="formgrid p-0" style="height: 100%;background-color: #fff;">
                                         <div class="col-12 md:col-12 title-dashbord">
                                             <i class="pi pi-list"></i>
-                                            Đề xuất quá hạn mới nhất
+                                            Đề xuất đã hoàn thành mới nhất
                                         </div>
                                         <div class="content-request p-10">
-                                            <ul>
-                                                <li>
-                                                    <div>
-                                                        <div class="col-12 md:col-12">
-                                                            <span style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
-                                                            <label style="margin-left: 5px;font-weight: bold;">Xin nghỉ phép</label>
-                                                        </div>
-                                                        <div class="col-12 md:col-12" style="display: flex;align-items: center;padding-top: 0px !important;">
-                                                            <div style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
-                                                                <span>Ngày lập: 10:17 02/02/2023</span>
+                                            <div style="width: 100%; height: 100%; overflow: hidden auto"
+                                                class="scroll-outer">
+                                                <div class="scroll-inner">
+                                                    <ul>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
                                                             </div>
-                                                            <span style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá hạn 0 giờ</span>
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        
-                                                    </div>
-                                                </li>
-                                            </ul>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 md:col-4 p-0" style="height: 100%;">
+                    <div class="d-grid formgrid" style="height: 100%;">
+                        <div class="col-12 md:col-12 p-0" style="height: 100%;">
+                            <div class="formgrid m-1 p-0" style="height: 100%;">
+                                <div style="height: 100%;background-color: #fff;">
+                                    <div class="formgrid p-0" style="height: 100%;background-color: #fff;">
+                                        <div class="col-12 md:col-12 title-dashbord">
+                                            <i class="pi pi-list"></i>
+                                            Đề xuất đã hoàn thành mới nhất
+                                        </div>
+                                        <div class="content-request p-10">
+                                            <div style="width: 100%; height: 100%; overflow: hidden auto"
+                                                class="scroll-outer">
+                                                <div class="scroll-inner">
+                                                    <ul>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div>
+                                                                <div class="col-12 md:col-12">
+                                                                    <span
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
+                                                                        nghỉ
+                                                                        phép</label>
+                                                                </div>
+                                                                <div class="col-12 md:col-12"
+                                                                    style="display: flex;align-items: center;padding-top: 0px !important;">
+                                                                    <div
+                                                                        style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
+                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                    </div>
+                                                                    <span
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
+                                                                        hạn 0 giờ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -293,11 +1056,12 @@ const list_cho_duyets = ref();
     </div>
 </template>
 <style scoped>
-.dashboard {
+/* .dashboard {
     overflow: auto;
     max-height: calc(100vh - 360px);
     min-height: calc(100vh - 360px);
-}
+    height: 50%; 
+} */
 
 .d-grid {
     display: flex;
@@ -423,6 +1187,7 @@ const list_cho_duyets = ref();
 
 .content-request {
     height: 92%;
+    /* overflow-x: scroll; */
 }
 
 .content-request ul {
@@ -431,10 +1196,21 @@ const list_cho_duyets = ref();
     height: 100%;
 }
 
+.scroll-outer {
+    visibility: hidden;
+}
+
+.scroll-inner,
+.scroll-outer:hover,
+.scroll-outer:focus {
+    visibility: visible;
+}
+
 .content-request ul li {
     list-style: none;
     padding: 5px;
 }
+
 .content-request ul li:hover {
     cursor: pointer;
     background-color: beige;
