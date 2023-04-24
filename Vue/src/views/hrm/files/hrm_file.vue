@@ -578,7 +578,7 @@ const goProfile = (item) => {
   router.push({
     name: "profileinfo",
     params: { id: generateUUID() },
-    query: { id: item.profile_id_key },
+    query: { id: item.profile_id },
   });
 };
 const changeView = (item) => {
@@ -1052,7 +1052,7 @@ onMounted(() => {
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
             bodyStyle="text-align:center;max-width:50px;min-width:50px">
             <template #body="{ data }">
-              <img style="height: 50px; object-fit: contain" v-bind:src="
+              <img style="height: 25px; object-fit: contain" v-bind:src="
                 basedomainURL + '/Portals/file/' + data.file_type + '.png'
               " @error="
                 $event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'
@@ -1108,7 +1108,7 @@ onMounted(() => {
                     value:
                       item.profile_user_name+
                       '<br/>' +
-                      (item.profile_id||'')+
+                      (item.profile_code||'')+
                       '<br/>' +
                       (item.department_name||''),
                     escape: true,
@@ -1359,7 +1359,7 @@ onMounted(() => {
           <div class="field col-12 font-bold text-lg pl-0 pb-3">Thông tin truy cập</div>
           <div class="scroll-right">
             <div v-for="(item, index) in data_log" :key="index" class="flex mb-3"
-              :style="(index == data_log.length - 1) ? '' : 'border-bottom:2px solid #eee'">
+              >
               <div class="log-image">
                 <div class="group-sign">
                   <div style="display: inline-block; position: relative; z-index: 1;">
@@ -1433,7 +1433,7 @@ onMounted(() => {
   <Menu id="overlay_More" ref="menuButMores" :model="itemButMores" :popup="true" />
   <OverlayPanel :showCloseIcon="false" ref="opMore" appendTo="body" class="p-0 m-0" id="overlay_Users" style="width: 200px">
     <div class="grid formgrid m-0 p-0">
-      <div v-for="(item, index) in profile_mores" :key="index" class="col-12 flex p-0 py-1 item-top-hover cursor-pointer" @click="goProfile(item.profile_id)">
+      <div v-for="(item, index) in profile_mores" :key="index" class="col-12 flex p-0 py-1 item-top-hover cursor-pointer" @click="goProfile(item)">
         <div class="col-3">
           <Avatar
           v-bind:label="

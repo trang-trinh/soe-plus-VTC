@@ -1,7 +1,7 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import organizationList from "../../components/system/organization/OrganizationList.vue"
-import organizationTree from "../../components/system/organization/OrganizationTree.vue"
+//import organizationTree from "../../components/system/organization/OrganizationTree.vue"
 const emitter = inject("emitter");
 const isViewList = ref(true);
 const isViewTree = ref(false);
@@ -19,5 +19,5 @@ onMounted(() => {
 </script>
 <template>
     <organizationList v-if="isViewList"></organizationList>
-    <organizationTree v-if="isViewTree"></organizationTree>
+ <!-- //   <organizationTree v-if="isViewTree"></organizationTree> -->
 </template>
