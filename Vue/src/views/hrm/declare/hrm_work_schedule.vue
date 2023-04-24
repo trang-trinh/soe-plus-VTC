@@ -8,6 +8,7 @@ import { encr, checkURL } from "../../../util/function.js";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
 import DropdownUser from "../component/DropdownUser.vue";
 import moment from "moment";
+import { forEach } from "jszip";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -203,9 +204,9 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
-    profile_id_fake:null
+    profile_id_fake: null,
   };
-  options.value.profile_id=null;
+  options.value.profile_id = null;
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
@@ -222,6 +223,23 @@ const closeDialog = () => {
 
   displayBasic.value = false;
   loadData(true);
+};
+function onGetMonth(date) {
+  var month = date.getMonth() + 1;
+  var year = date.getFullYear();
+  var newMonth = new Date(month + "/01" + "/" + year);
+  return newMonth;
+}
+const onSelectedschedule = () => {
+  var arr = [...work_schedule.value.work_schedule_daysfake];
+  work_schedule.value.work_schedule_monthsfake.forEach((element) => {
+    work_schedule.value.work_schedule_daysfake.forEach((item) => {
+      if (onGetMonth(item).getTime() == element.getTime()) {
+        arr = arr.filter((x) => x != item);
+      }
+    });
+  });
+  work_schedule.value.work_schedule_daysfake = arr;
 };
 
 //Thêm bản ghi
@@ -507,7 +525,6 @@ const loadDataSQL = () => {
           if (element.datalists) {
             element.datalists = JSON.parse(element.datalists);
             if (element.datalists) {
-               
               element.datalists.forEach((item, i) => {
                 item.STT =
                   options.value.PageNo * options.value.PageSize + i + 1;
@@ -533,7 +550,7 @@ const loadDataSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
-console.log(error);
+      console.log(error);
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
@@ -571,6 +588,8 @@ const bgColor = ref([
 const refreshStamp = () => {
   options.value.SearchText = null;
   filterTrangthai.value = null;
+  options.value.config_work_location_id = null;
+  options.value.profile_id = null;
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -629,7 +648,7 @@ const onCheckBox = (value, check, checkIsmain) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái ca làm việc thành công!");
-     
+
           closeDialog();
         } else {
           swal.fire({
@@ -665,7 +684,7 @@ const onCheckBox = (value, check, checkIsmain) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái ca làm việc thành công!");
-          
+
           closeDialog();
         } else {
           swal.fire({
@@ -773,6 +792,8 @@ const filterTrangthai = ref();
 
 const reFilterEmail = () => {
   filterTrangthai.value = null;
+  options.value.config_work_location_id = null;
+  options.value.profile_id = null;
   isDynamicSQL.value = false;
   checkFilter.value = false;
   filterSQL.value = [];
@@ -783,7 +804,7 @@ const reFilterEmail = () => {
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
-  if (filterTrangthai.value !=null) {
+  if (filterTrangthai.value != null) {
     let filterS = {
       filterconstraints: [
         { value: filterTrangthai.value, matchMode: "equals" },
@@ -793,10 +814,15 @@ const filterFileds = () => {
     };
     filterSQL.value.push(filterS);
   }
- 
+
   if (options.value.profile_id) {
     let filterS = {
-      filterconstraints: [{ value: options.value.profile_id.toString(), matchMode: "arrIntersec" }],
+      filterconstraints: [
+        {
+          value: options.value.profile_id.toString(),
+          matchMode: "arrIntersec",
+        },
+      ],
       filteroperator: "and",
       key: "profile_id",
     };
@@ -816,7 +842,12 @@ const filterFileds = () => {
 
   if (options.value.config_work_location_id) {
     let filterS = {
-      filterconstraints: [{ value: options.value.config_work_location_id.toString(), matchMode: "equals" }],
+      filterconstraints: [
+        {
+          value: options.value.config_work_location_id.toString(),
+          matchMode: "equals",
+        },
+      ],
       filteroperator: "and",
       key: "config_work_location_id",
     };
@@ -946,7 +977,7 @@ emitter.on("emitData", (obj) => {
     case "submitModel":
       if (obj.data) {
         work_schedule.value.profile_id_fake = obj.data;
-        options.value.profile_id=obj.data;
+        options.value.profile_id = obj.data;
       }
       break;
 
@@ -985,7 +1016,7 @@ const onRowUnselect = (event) => {
   options.value.declare_shift_id = null;
   filterFileds();
 };
- 
+
 onMounted(() => {
   initTudien();
   loadData(true);
@@ -1036,7 +1067,10 @@ onMounted(() => {
               aria-controls="overlay_panel"
               v-tooltip="'Bộ lọc'"
               :class="
-                filterTrangthai != null && checkFilter
+                (filterTrangthai != null ||
+                  options.config_work_location_id != null ||
+                  options.profile_id != null) &&
+                checkFilter
                   ? ''
                   : 'p-button-secondary p-button-outlined'
               "
@@ -1055,13 +1089,14 @@ onMounted(() => {
                     class="col-3 text-left pt-2 p-0"
                     style="text-align: left"
                   >
-                    Nhân sự 
+                    Nhân sự
                   </div>
                   <div class="col-9">
-                    <DropdownUser  :model="options.profile_id"
-                            
-                            :display="'chip'"
-                            :placeholder="'Chọn nhân sự'"/>
+                    <DropdownUser
+                      :model="options.profile_id"
+                      :display="'chip'"
+                      :placeholder="'Chọn nhân sự'"
+                    />
                   </div>
                 </div>
                 <div class="flex field col-12 p-0">
@@ -1069,24 +1104,24 @@ onMounted(() => {
                     class="col-3 text-left pt-2 p-0"
                     style="text-align: left"
                   >
-                   Địa điểm
+                    Địa điểm
                   </div>
                   <div class="col-9">
                     <MultiSelect
-                              :options="listWorkLocation"
-                              :filter="true"
-                              :showClear="true"
-                              :editable="false"
-                              v-model="options.config_work_location_id"
-                              optionLabel="name"
-                              optionValue="code"
-                              placeholder="Chọn địa điểm làm việc"
-                              class="w-full limit-width"
-                              style="min-height: 36px"
-                              panelClass="d-design-dropdown"
-                              display="chip"
+                      :options="listWorkLocation"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      v-model="options.config_work_location_id"
+                      optionLabel="name"
+                      optionValue="code"
+                      placeholder="Chọn địa điểm làm việc"
+                      class="w-full limit-width"
+                      style="min-height: 36px"
+                      panelClass="d-design-dropdown"
+                      display="chip"
                     >
-                            </MultiSelect>
+                    </MultiSelect>
                   </div>
                 </div>
                 <div class="flex field col-12 p-0">
@@ -1107,7 +1142,7 @@ onMounted(() => {
                     />
                   </div>
                 </div>
-               
+
                 <div class="flex col-12 p-0">
                   <Toolbar
                     class="border-none surface-0 outline-none pb-0 w-full"
@@ -1212,6 +1247,7 @@ onMounted(() => {
                   backgroundColor: data.data.background_color,
                   color: data.data.text_color,
                 }"
+                class="w-full format-center"
               />
             </template>
           </Column>
@@ -1229,6 +1265,9 @@ onMounted(() => {
       </SplitterPanel>
       <SplitterPanel class="w-full" :size="85" :minSize="85">
         <DataTable
+          @page="onPage($event)"
+          @sort="onSort($event)"
+          @filter="onFilter($event)"
           v-model:expandedRows="expandedRows"
           :value="datalists"
           dataKey="profile_id"
@@ -1240,10 +1279,15 @@ onMounted(() => {
           :showGridlines="true"
           columnResizeMode="fit"
           :lazy="true"
+          :totalRecords="options.totalRecords"
           :loading="options.loading"
           :reorderableColumns="true"
           :paginator="false"
           class="w-full"
+          removableSort
+          v-model:rows="options.PageSize"
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
           responsiveLayout="scroll"
           v-model:selection="selectedStamps"
           :row-hover="true"
@@ -1252,13 +1296,14 @@ onMounted(() => {
             expander
             headerStyle="text-align:center;max-width:50px;height:50px"
             bodyStyle="text-align:center;max-width:50px;"
+        
           />
           <Column
             field="candidate_code"
             header="Ảnh"
             headerStyle="text-align:center;max-width:70px;height:50px"
             bodyStyle="text-align:center;max-width:70px"
-            class="align-items-center justify-content-center text-center"
+            class="align-items-center justify-content-center text-center"    
           >
             <template #body="slotProps">
               <div>
@@ -1351,13 +1396,25 @@ onMounted(() => {
                   headerStyle="text-align:center;max-width:200px;height:50px"
                   bodyStyle="text-align:center;max-width:200px"
                   class="align-items-center justify-content-center text-center"
+                  bodyClass="bg-indigo-50"
                 >
+                  <template #body="data">
+                    <Chip
+                      :label="data.data.declare_shift_name"
+                      :style="{
+                        backgroundColor: data.data.background_color,
+                        color: data.data.text_color,
+                      }"
+                      class="w-full format-center"
+                    />
+                  </template>
                 </Column>
                 <Column
                   field="status"
                   header="Thời gian"
                   headerClass="align-items-center justify-content-center text-center"
                   headerStyle="text-align:center; height:50px"
+                  bodyClass="bg-indigo-50"
                 >
                   <template #body="data">
                     <div class="w-full">
@@ -1367,7 +1424,7 @@ onMounted(() => {
                             item, index
                           ) in data.data.work_schedule_months.split(',')"
                           :key="index"
-                          class=" m-1 bg-blue-300"
+                          class="m-1 bg-blue-300"
                           :label="
                             moment(new Date(item)).format('MM/YYYY').toString()
                           "
@@ -1378,7 +1435,7 @@ onMounted(() => {
                             item, index
                           ) in data.data.work_schedule_days.split(',')"
                           :key="index"
-                          class=" m-1 bg-bluegray-300"
+                          class="m-1 bg-bluegray-300"
                           :label="
                             moment(new Date(item))
                               .format('DD/MM/YYYY')
@@ -1397,9 +1454,9 @@ onMounted(() => {
                   headerStyle="text-align:center;max-width:100px;height:50px"
                   bodyStyle="text-align:center;max-width:100px"
                   class="align-items-center justify-content-center text-center"
+                  bodyClass="bg-indigo-50"
                 >
                   <template #body="data">
-              
                     <Checkbox
                       :disabled="
                         !(
@@ -1420,6 +1477,7 @@ onMounted(() => {
                   headerStyle="text-align:center;max-width:50px"
                   bodyStyle="text-align:center;max-width:50px"
                   class="align-items-center justify-content-center text-center"
+                  bodyClass="bg-indigo-50"
                 >
                   <template #body="slotProps">
                     <Button
@@ -1522,6 +1580,7 @@ onMounted(() => {
               @click="showTreeUser()"
               icon="pi pi-user-plus"
               class="p-button-text p-button-rounded"
+              v-if="isSaveTem.value"
             />
           </div>
           <div class="col-9 p-0">
@@ -1529,27 +1588,28 @@ onMounted(() => {
               :model="work_schedule.profile_id_fake"
               :display="'chip'"
               :placeholder="'Chọn nhân sự'"
+              :disabled="isSaveTem"
             />
           </div>
         </div>
-        <div class="flex field  col-12 md:col-12">
+        <div class="flex field col-12 md:col-12">
           <div class="col-6 p-0 align-items-center flex">
             <div class="col-6 p-0 flex align-items-center">Toàn thời gian</div>
-          <div class="col-6 p-0">
-            <InputSwitch
-              class="w-4rem lck-checked"
-              v-model="work_schedule.is_full_time"
-            />
-          </div>
+            <div class="col-6 p-0">
+              <InputSwitch
+                class="w-4rem lck-checked"
+                v-model="work_schedule.is_full_time"
+              />
+            </div>
           </div>
           <div class="col-6 p-0 align-items-center flex">
             <div class="col-6 p-0 flex align-items-center">Trạng thái</div>
-          <div class="col-6 p-0">
-            <InputSwitch
-              class="w-4rem lck-checked"
-              v-model="work_schedule.is_full_time"
-            />
-          </div>
+            <div class="col-6 p-0">
+              <InputSwitch
+                class="w-4rem lck-checked"
+                v-model="work_schedule.status"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -1565,6 +1625,7 @@ onMounted(() => {
               class="w-full"
               :showIcon="true"
               selectionMode="multiple"
+              @date-select="onSelectedschedule($event)"
             />
           </div>
         </div>
@@ -1581,6 +1642,7 @@ onMounted(() => {
               class="w-full"
               :manualInput="false"
               :showIcon="true"
+              @date-select="onSelectedschedule($event)"
             />
           </div>
         </div>
