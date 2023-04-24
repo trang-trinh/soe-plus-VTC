@@ -371,7 +371,6 @@ namespace API.Controllers.HRM.Category
 
                                 hrm_log log = new hrm_log();
                                 log.title = "Sửa đăng ký ca làm việc "  ;
-
                                 log.log_module = "hrm_work_schedule";
                                 log.log_type = 1;
                                 log.id_key = das.work_schedule_id.ToString();
