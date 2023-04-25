@@ -1153,72 +1153,178 @@ onMounted(() => {
                 <h3 class="m-0">Lương và phụ cấp</h3>
               </div>
             </div>
-            <div class="col-12 md:col-12">
+            <div class="col-6 md:col-6 format-center">
               <div class="form-group">
-                <label>Ngạch lương </label>
-                <Dropdown
-                  :options="dictionarys[7]"
-                  :filter="true"
-                  :showClear="true"
-                  :editable="false"
-                  v-model="props.model.wage_id"
-                  optionLabel="wage_name"
-                  optionValue="wage_id"
-                  placeholder="Chọn ngạch lương"
-                  class="ip36"
+                <div
+                  class="field-checkbox flex justify-content-center"
+                  style="height: 100%"
                 >
-                  <template #option="slotProps">
-                    <div class="country-item flex align-items-center">
-                      <div class="pt-1 pl-2">
-                        {{ slotProps.option.wage_name }}
-                      </div>
-                    </div>
-                  </template>
-                </Dropdown>
+                  <RadioButton
+                    :inputId="'wage_type1'"
+                    name="wage_type"
+                    v-model="props.model.wage_type"
+                    :value="1"
+                  />
+                  <label for="binary">Lương khoán</label>
+                </div>
               </div>
             </div>
-            <div class="col-12 md:col-12">
+            <div class="col-6 md:col-6 format-center">
               <div class="form-group">
-                <label>Bậc lương</label>
+                <div
+                  class="field-checkbox flex justify-content-center"
+                  style="height: 100%"
+                >
+                  <RadioButton
+                    :inputId="'wage_type2'"
+                    name="wage_type"
+                    v-model="props.model.wage_type"
+                    :value="2"
+                  />
+                  <label for="binary">Lương hệ số</label>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 md:col-6">
+              <div class="form-group">
+                <label>Dự kiến từ ngày <span class="redsao">(*)</span></label>
+                <div>
+                  <Calendar
+                    :showIcon="true"
+                    class="ip36"
+                    autocomplete="on"
+                    inputId="time24"
+                    :class="{
+                      'p-invalid': !props.model.wage_start_date && submitted,
+                    }"
+                    v-model="props.model.wage_start_date"
+                    placeholder="DD/MM/YYYY"
+                  />
+                </div>
+                <div v-if="!props.model.wage_start_date && submitted">
+                  <small class="p-error">
+                    <span class="col-12 p-0"
+                      >Dự kiến từ ngày không được để trống</span
+                    >
+                  </small>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 md:col-6">
+              <div class="form-group">
+                <label>Dự kiến đến ngày</label>
+                <div>
+                  <Calendar
+                    :showIcon="true"
+                    class="ip36"
+                    autocomplete="on"
+                    inputId="time24"
+                    v-model="props.model.wage_end_date"
+                    placeholder="DD/MM/YYYY"
+                    @date-select="changeEndDate()"
+                  />
+                </div>
+              </div>
+            </div>
+            <div v-if="props.model.wage_type === 1" class="col-12 md:col-12">
+              <div class="form-group">
+                <label>Tiền lương</label>
                 <InputNumber
-                  showButtons
-                  v-model="props.model.wage_level"
+                  v-model="props.model.wage"
                   mode="decimal"
-                  locale="vi-VN"
                   :minFractionDigits="0"
                   :maxFractionDigits="2"
-                  class="ip36"
+                  placeholder="Số tiền"
+                  class="ip36 text-right"
                 />
               </div>
             </div>
-            <div class="col-12 md:col-12">
-              <div class="form-group">
-                <label>Hệ số lương </label>
-                <Dropdown
-                  :options="dictionarys[13]"
-                  :filter="true"
-                  :showClear="true"
-                  :editable="false"
-                  v-model="props.model.coef_salary_id"
-                  optionLabel="coef_salary_name"
-                  optionValue="coef_salary_id"
-                  placeholder="Chọn hệ số lương"
-                  class="ip36"
-                >
-                  <template #option="slotProps">
-                    <div class="country-item flex align-items-center">
-                      <div class="pt-1 pl-2">
-                        {{ slotProps.option.coef_salary_name }}
-                      </div>
-                    </div>
-                  </template>
-                </Dropdown>
+            <div
+              v-if="props.model.wage_type === 2"
+              class="col-12 md:col-12 p-0"
+            >
+              <div class="row">
+                <div class="col-6 md:col-6">
+                  <div class="form-group">
+                    <label>Ngạch lương </label>
+                    <Dropdown
+                      :options="dictionarys[7]"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      v-model="props.model.wage_id"
+                      optionLabel="wage_name"
+                      optionValue="wage_id"
+                      placeholder="Chọn ngạch lương"
+                      class="ip36"
+                    >
+                      <template #option="slotProps">
+                        <div class="country-item flex align-items-center">
+                          <div class="pt-1 pl-2">
+                            {{ slotProps.option.wage_name }}
+                          </div>
+                        </div>
+                      </template>
+                    </Dropdown>
+                  </div>
+                </div>
+                <div class="col-6 md:col-6">
+                  <div class="form-group">
+                    <label>Bậc lương</label>
+                    <InputNumber
+                      showButtons
+                      v-model="props.model.wage_level"
+                      mode="decimal"
+                      locale="vi-VN"
+                      :minFractionDigits="0"
+                      :maxFractionDigits="2"
+                      class="ip36"
+                    />
+                  </div>
+                </div>
+                <div class="col-6 md:col-6">
+                  <div class="form-group">
+                    <label>Hệ số lương </label>
+                    <Dropdown
+                      :options="dictionarys[13]"
+                      :filter="true"
+                      :showClear="true"
+                      :editable="false"
+                      v-model="props.model.coef_salary_id"
+                      optionLabel="coef_salary_name"
+                      optionValue="coef_salary_id"
+                      placeholder="Chọn hệ số lương"
+                      class="ip36"
+                    >
+                      <template #option="slotProps">
+                        <div class="country-item flex align-items-center">
+                          <div class="pt-1 pl-2">
+                            {{ slotProps.option.coef_salary_name }}
+                          </div>
+                        </div>
+                      </template>
+                    </Dropdown>
+                  </div>
+                </div>
+                <div class="col-6 md:col-6">
+                  <div class="form-group">
+                    <label>Tiền lương TTV</label>
+                    <InputNumber
+                      v-model="props.model.wage"
+                      mode="decimal"
+                      :minFractionDigits="0"
+                      :maxFractionDigits="2"
+                      placeholder="Số tiền"
+                      class="ip36 text-right"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
             <div
               v-for="(allowance, key) in props.model.allowances"
               :key="key"
-              class="col-12 md:col-12"
+              class="col-12 md:col-12 p-0"
             >
               <table class="table">
                 <thead>
@@ -1315,7 +1421,7 @@ onMounted(() => {
                 </tbody>
               </table>
               <div class="ml-6">
-                <table
+                <!-- <table
                   v-for="(formality, key) in allowance.formalitys"
                   :key="key"
                   class="table"
@@ -1437,7 +1543,7 @@ onMounted(() => {
                       </td>
                     </tr>
                   </tbody>
-                </table>
+                </table> -->
                 <table
                   v-for="(wage, key) in allowance.wages"
                   :key="key"
@@ -1452,7 +1558,10 @@ onMounted(() => {
                       </td>
                       <td>
                         <div class="col-12 md:col-12">
-                          <label>Số tiền</label>
+                          <label v-if="props.model.wage_type === 1"
+                            >Số tiền</label
+                          >
+                          <label v-else>Hệ số</label>
                         </div>
                       </td>
                       <td>
@@ -1492,7 +1601,7 @@ onMounted(() => {
                               v-model="wage.allowance_wage_id"
                               optionLabel="allowance_wage_name"
                               optionValue="allowance_wage_id"
-                              placeholder="Chọn hình thức"
+                              placeholder="Chọn phụ cấp"
                               class="ip36"
                             >
                               <template #option="slotProps">

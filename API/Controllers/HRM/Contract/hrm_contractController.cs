@@ -83,7 +83,7 @@ namespace API.Controllers.Hrn
                     var awd = provider.FormData.GetValues("allowance_details").SingleOrDefault();
                     List<hrm_allowance_detail> awds = JsonConvert.DeserializeObject<List<hrm_allowance_detail>>(awd);
 
-                    var sign = await db.hrm_contract.CountAsync(x => x.sign_date == model.sign_date) > 0;
+                    var sign = await db.hrm_contract.CountAsync(x => x.contract_id != model.contract_id && x.sign_date == model.sign_date) > 0;
                     if (sign)
                     {
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Ngày hợp đồng đã tồn tại!" });
