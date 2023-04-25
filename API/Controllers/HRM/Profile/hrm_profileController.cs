@@ -1657,7 +1657,8 @@ namespace API.Controllers.HRM.Profile
                                 if (File.Exists(path))
                                 {
                                     user.avatar = "/Portals/Users/" + user.user_id + "/" + helper.GenKey() + ".jpg";
-                                    File.Copy(path, user.avatar, true);
+                                    var path_copy = HttpContext.Current.Server.MapPath("~/") + user.avatar;
+                                    File.Copy(path, path_copy, true);
                                 }
                             }
                             db.sys_users.Add(user);
