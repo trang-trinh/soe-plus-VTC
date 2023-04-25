@@ -2954,7 +2954,161 @@ onMounted(() => {
             <AccordionTab>
               <template #header>
                 <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                <span> 10. Đính kèm khác (file số hóa liên quan)</span>
+                <span> 10. Nguồn thu nhập chính của gia đình</span>
+              </template>
+              <div class="col-12 md:col-12 p-0">
+                <div class="row">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Lương gia đình</label>
+                      <InputNumber
+                        showButtons
+                        v-model="props.model.salary_family"
+                        mode="decimal"
+                        locale="vi-VN"
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Nguồn khác</label>
+                      <InputNumber
+                        showButtons
+                        v-model="props.model.salary_orther"
+                        mode="decimal"
+                        locale="vi-VN"
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Được cấp, được thuê, loại nhà</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.type_rent"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Diện tích nhà sử dụng</label>
+                      <InputNumber
+                        showButtons
+                        v-model="props.model.area_level"
+                        mode="decimal"
+                        locale="vi-VN"
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Nhà tự mua, loại nhà</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.type_house"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Diện tích nhà mua</label>
+                      <InputNumber
+                        showButtons
+                        v-model="props.model.area_buy"
+                        mode="decimal"
+                        locale="vi-VN"
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Diện tích đất được cấp</label>
+                      <InputNumber
+                        showButtons
+                        v-model="props.model.area_granted"
+                        mode="decimal"
+                        locale="vi-VN"
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Diện tích đất tự mua</label>
+                      <InputNumber
+                        showButtons
+                        v-model="props.model.area_buy_yourself"
+                        mode="decimal"
+                        locale="vi-VN"
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Tổng diện tích</label>
+                      <InputNumber
+                        showButtons
+                        v-model="props.model.area_manufacture"
+                        mode="decimal"
+                        locale="vi-VN"
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Địa điểm ký</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.sign_address"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Ngày ký</label>
+                      <Calendar
+                        class="ip36"
+                        id="icon"
+                        v-model="props.model.sign_date"
+                        :showIcon="true"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </AccordionTab>
+            <!-- 11.	Đính kèm khác (file số hóa liên quan) -->
+            <AccordionTab>
+              <template #header>
+                <!-- <i class="pi pi-chart-line mr-2"></i> -->
+                <span> 11. Đính kèm khác (file số hóa liên quan)</span>
               </template>
               <div class="col-12 md:col-12">
                 <div class="form-group">

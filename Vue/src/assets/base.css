@@ -1306,3 +1306,13 @@ li.p-chips-token {
   display: block;
 }
 /*Style chung cho min-w-Xrem*/
+
+/* Style quan */
+.menu-request .red-text .p-menuitem-link .p-menuitem-icon, 
+.menu-request .red-text .p-menuitem-link .p-menuitem-text{
+  color: red !important;
+}
+.sidebar-request .p-sidebar-content {
+  height: 100%;
+  padding: 0 !important;
+}
