@@ -7,6 +7,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../util/function.js";
 //import moment from "moment";
 //Khai báo
+import SidebarViewRequest from "../request/category/component/sidebar_view_request.vue";
 
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -80,23 +81,21 @@ const optionsChartPie2 = {
     },
 };
 const list_cho_duyets = ref();
+const isShowSidebar = ref(false);
+const showDetailRequest = ref(false);
+const PositionSideBar = ref('right');
 const goToView = () => {
-    swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-    });
+    isShowSidebar.value = true;
 }
 </script>
 <template>
     <div style="min-height: calc(100vh - 50px);max-height: calc(100vh - 50px);overflow-x: hidden;overflow-y: scroll;">
         <div class="surface-100 dashboard">
-            <div class="d-grid formgrid m-1" style="height: 380px;">
-                <div class="col-6 md:col-6 p-0">
+            <div class="d-grid formgrid m-1" style="height: 100%;">
+                <div class="col-6 md:col-6 p-0" style="height: 100%;">
                     <div class="d-grid formgrid" style="height: 100%;">
                         <div class="col-12 md:col-12 p-0">
-                            <div class="card m-1" style="height: 100%;">
+                            <div class="card m-1" style="height: 98%;">
                                 <div class="card-body p-0" style="height: max-content">
                                     <div class="d-grid formgrid" style="height: 100%;">
                                         <div class="col-4 md:col-4" @click="goToView()">
@@ -112,7 +111,7 @@ const goToView = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: #f5b041; color: #fff"
                                                 @click="goRouter('docreceive')">
                                                 <div class="card-body">
@@ -125,7 +124,7 @@ const goToView = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: #33c9dc; color: #fff"
                                                 @click="goRouter('taskmain')">
                                                 <div class="card-body">
@@ -138,7 +137,7 @@ const goToView = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: #2196f3; color: #fff"
                                                 @click="goRouter('bookingmeal')">
                                                 <div class="card-body">
@@ -151,7 +150,7 @@ const goToView = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: #74b9ff; color: #fff"
                                                 @click="goRouter('chat_message')">
                                                 <div class="card-body">
@@ -164,7 +163,7 @@ const goToView = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: #f17ac7; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -177,7 +176,7 @@ const goToView = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: blueviolet; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -190,7 +189,7 @@ const goToView = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: #6dd230; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -203,7 +202,7 @@ const goToView = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: #ff8b4e; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -222,11 +221,11 @@ const goToView = () => {
                         </div>
                     </div>
                 </div>
-                <div class="col-3 md:col-3 p-0">
+                <div class="col-3 md:col-3 p-0" style="height: 100%;">
                     <div class="d-grid formgrid" style="height: 100%;">
-                        <div class="col-12 md:col-12 p-0">
+                        <div class="col-12 md:col-12 p-0" style="height: 100%;">
                             <div class="formgrid m-1 p-0" style="height: 100%;">
-                                <div style="height: 100%;background-color: #fff;">
+                                <div style="height: 98%;background-color: #fff;">
                                     <div class="formgrid p-0" style="height: 100%;background-color: #fff;">
                                         <div class="col-12 md:col-12 title-dashbord">
                                             Gửi đến tôi
@@ -240,12 +239,12 @@ const goToView = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-3 md:col-3 p-0">
+                </div> 
+                <div class="col-3 md:col-3 p-0" style="height: 100%;">
                     <div class="d-grid formgrid" style="height: 100%;">
-                        <div class="col-12 md:col-12 p-0">
+                        <div class="col-12 md:col-12 p-0" style="height: 100%;">
                             <div class="formgrid m-1 p-0" style="height: 100%;">
-                                <div style="height: 100%;background-color: #fff;">
+                                <div style="height: 98%;background-color: #fff;">
                                     <div class="formgrid p-0" style="height: 100%;background-color: #fff;">
                                         <div class="col-12 md:col-12 title-dashbord">
                                             Tôi gửi đi
@@ -263,7 +262,7 @@ const goToView = () => {
             </div>
         </div>
         <div class="surface-100 dashboard">
-            <div class="d-grid formgrid m-1" style="height: 380px;">
+            <div class="d-grid formgrid m-1" style="height: 100%;">
                 <div class="col-4 md:col-4 p-0" style="height: 100%;">
                     <div class="d-grid formgrid" style="height: 100%;">
                         <div class="col-12 md:col-12 p-0" style="height: 100%;">
@@ -1062,14 +1061,27 @@ const goToView = () => {
             </div>
         </div>
     </div>
+
+    <Sidebar class="sidebar-request" v-model:visible="isShowSidebar" :position="PositionSideBar" :style="{
+            width:
+                PositionSideBar == 'right'
+                    ? width1 > 1800
+                        ? ' 60vw'
+                        : '80vw'
+                    : '100vw',
+            'height': '101vh !important',
+        }" :showCloseIcon="false">
+        <SidebarViewRequest :isShow="showDetailRequest" :turn="0">
+        </SidebarViewRequest>
+    </Sidebar>
 </template>
 <style scoped>
-/* .dashboard {
-    overflow: auto;
+.dashboard {
+    /* overflow: auto;
     max-height: calc(100vh - 360px);
-    min-height: calc(100vh - 360px);
+    min-height: calc(100vh - 360px); */
     height: 50%; 
-} */
+}
 
 .d-grid {
     display: flex;
