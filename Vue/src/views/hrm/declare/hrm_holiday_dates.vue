@@ -402,7 +402,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_holiday_dates", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_holiday_dates", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
