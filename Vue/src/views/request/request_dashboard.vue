@@ -80,6 +80,14 @@ const optionsChartPie2 = {
     },
 };
 const list_cho_duyets = ref();
+const goToView = () => {
+    swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+    });
+}
 </script>
 <template>
     <div style="min-height: calc(100vh - 50px);max-height: calc(100vh - 50px);overflow-x: hidden;overflow-y: scroll;">
@@ -91,7 +99,7 @@ const list_cho_duyets = ref();
                             <div class="card m-1" style="height: 100%;">
                                 <div class="card-body p-0" style="height: max-content">
                                     <div class="d-grid formgrid" style="height: 100%;">
-                                        <div class="col-4 md:col-4">
+                                        <div class="col-4 md:col-4" @click="goToView()">
                                             <div class="card zoom" style="background-color: #33c9dc; color: #fff;"
                                                 @click="goRouter('calendarenact')">
                                                 <div class="card-body">
