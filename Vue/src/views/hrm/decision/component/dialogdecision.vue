@@ -50,6 +50,7 @@ const submitted = ref(false);
 const model = ref({
   type_decision_id: props.type_decision.type_decision_id,
   type_decision_code: props.type_decision.type_decision_code,
+  is_multiple: props.type_decision.is_multiple,
   decision_date: new Date(),
   start_date: new Date(),
 });
@@ -80,7 +81,7 @@ const saveModel = (is_continue) => {
 
   var obj = JSON.parse(JSON.stringify(model.value));
   if (obj.profile != null) {
-    obj.profile_id = obj.profile.profile_id;
+    obj.profiles = obj.profile.map((x) => x.profile_id).join(",");
   }
   if (obj.decision_date != null) {
     obj.decision_date = moment(obj.decision_date).format("YYYY-MM-DDTHH:mm:ss");
@@ -259,6 +260,9 @@ const deleteFile = (item, idx) => {
       }
     });
 };
+const removeMember = (arr, index) => {
+  arr.splice(index, 1);
+};
 
 //init
 const initDictionary = () => {
@@ -321,10 +325,9 @@ const initData = (ref) => {
           let tbs = JSON.parse(data);
           if (tbs[0] != null && tbs[0].length > 0) {
             model.value = tbs[0][0];
-            model.value.profile = {
-              profile_id: model.value.profile_id,
-              profile_user_name: model.value.profile_user_name,
-            };
+            if (model.value.profiles != null) {
+              model.value.profile = JSON.parse(model.value.profile);
+            }
             if (
               model.value.discipline_id == null &&
               model.value.reason != null
@@ -402,7 +405,7 @@ onMounted(() => {
                 <h3 class="m-0">Thông tin chung</h3>
               </div>
             </div>
-            <div class="col-12 md:col-12">
+            <div class="col-6 md:col-6">
               <div class="form-group">
                 <label>Số quyết định <span class="redsao">(*)</span></label>
                 <InputText
@@ -459,60 +462,101 @@ onMounted(() => {
             </div> -->
             <div class="col-6 md:col-6">
               <div class="form-group">
+                <label>Ngày quyết định <span class="redsao">(*)</span></label>
+                <div>
+                  <Calendar
+                    :showIcon="true"
+                    class="ip36"
+                    autocomplete="on"
+                    inputId="time24"
+                    :class="{
+                      'p-invalid': !model.decision_date && submitted,
+                    }"
+                    v-model="model.decision_date"
+                    placeholder="DD/MM/YYYY"
+                  />
+                </div>
+                <div v-if="!model.decision_date && submitted">
+                  <small class="p-error">
+                    <span class="col-12 p-0"
+                      >Ngày quyết định không được để trống</span
+                    >
+                  </small>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 md:col-12">
+              <div class="form-group">
                 <label>Nhân sự <span class="redsao">(*)</span></label>
-                <Dropdown
+                <MultiSelect
                   :options="dictionarys[2]"
                   :filter="true"
                   :showClear="true"
                   :editable="false"
-                  optionLabel="profile_user_name"
+                  :selectionLimit="model.is_multiple ? '' : 1"
+                  optionLabel="full_name"
                   placeholder="Chọn nhân sự"
                   v-model="model.profile"
                   class="ip36"
                   style="height: auto; min-height: 36px"
-                  :class="{
-                    'p-invalid': !model.profile && submitted,
-                  }"
                 >
                   <template #value="slotProps">
-                    <div class="mt-2" v-if="slotProps.value">
-                      <Chip
-                        :image="slotProps.value.avatar"
-                        :label="slotProps.value.profile_user_name"
-                        class="mr-2 mb-2 pl-0"
+                    <ul
+                      class="p-ulchip"
+                      v-if="slotProps.value && slotProps.value.length > 0"
+                    >
+                      <li
+                        class="p-lichip"
+                        v-for="(value, index) in slotProps.value"
+                        :key="index"
                       >
-                        <div class="flex">
-                          <div class="format-flex-center">
-                            <Avatar
-                              v-bind:label="
-                                slotProps.value.avatar
-                                  ? ''
-                                  : (
-                                      slotProps.value.profile_user_name ?? ''
-                                    ).substring(0, 1)
-                              "
-                              v-bind:image="
-                                slotProps.value.avatar
-                                  ? basedomainURL + slotProps.value.avatar
-                                  : basedomainURL + '/Portals/Image/noimg.jpg'
-                              "
-                              :style="{
-                                background: bgColor[1 % 7],
-                                color: '#ffffff',
-                                width: '2rem',
-                                height: '2rem',
-                              }"
-                              class="mr-2 text-avatar"
-                              size="xlarge"
-                              shape="circle"
-                            />
+                        <Chip
+                          :image="value.avatar"
+                          :label="value.profile_name"
+                          class="mr-2 mb-2 pl-0"
+                        >
+                          <div class="flex">
+                            <div class="format-flex-center">
+                              <Avatar
+                                v-bind:label="
+                                  value.avatar
+                                    ? ''
+                                    : (value.profile_last_name ?? '').substring(
+                                        0,
+                                        1
+                                      )
+                                "
+                                v-bind:image="
+                                  value.avatar
+                                    ? basedomainURL + value.avatar
+                                    : basedomainURL + '/Portals/Image/noimg.jpg'
+                                "
+                                style="
+                                  background-color: #2196f3;
+                                  color: #ffffff;
+                                  width: 2rem;
+                                  height: 2rem;
+                                "
+                                :style="{
+                                  background: bgColor[index % 7],
+                                }"
+                                class="mr-2 text-avatar"
+                                size="xlarge"
+                                shape="circle"
+                              />
+                            </div>
+                            <div class="format-flex-center">
+                              <span>{{ value.profile_name }}</span>
+                            </div>
+                            <span
+                              tabindex="0"
+                              class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                              @click="removeMember(model.profile, index)"
+                            ></span>
                           </div>
-                          <div class="format-flex-center">
-                            <span>{{ slotProps.value.profile_user_name }}</span>
-                          </div>
-                        </div>
-                      </Chip>
-                    </div>
+                        </Chip>
+                      </li>
+                    </ul>
                     <span v-else> {{ slotProps.placeholder }} </span>
                   </template>
                   <template #option="slotProps">
@@ -522,7 +566,7 @@ onMounted(() => {
                           v-bind:label="
                             slotProps.option.avatar
                               ? ''
-                              : slotProps.option.profile_user_name.substring(
+                              : slotProps.option.profile_last_name.substring(
                                   0,
                                   1
                                 )
@@ -533,11 +577,11 @@ onMounted(() => {
                               : basedomainURL + '/Portals/Image/noimg.jpg'
                           "
                           :style="{
-                            background: bgColor[slotProps.option.is_order % 7],
+                            backgroundColor: bgColor[slotProps.index % 7],
                             color: '#ffffff',
                             width: '3rem',
                             height: '3rem',
-                            fontSize: '1.4rem !important',
+                            fontSize: '1.2rem !important',
                           }"
                           class="text-avatar"
                           size="xlarge"
@@ -560,37 +604,12 @@ onMounted(() => {
                         </div>
                       </div>
                     </div>
-                    <span v-else> Chưa có dữ liệu </span>
+                    <span v-else> Chưa có dữ liệu tuần </span>
                   </template>
-                </Dropdown>
+                </MultiSelect>
                 <div v-if="!model.profile && submitted">
                   <small class="p-error">
                     <span class="col-12 p-0">Nhân sự không được để trống</span>
-                  </small>
-                </div>
-              </div>
-            </div>
-            <div class="col-6 md:col-6">
-              <div class="form-group">
-                <label>Ngày quyết định <span class="redsao">(*)</span></label>
-                <div>
-                  <Calendar
-                    :showIcon="true"
-                    class="ip36"
-                    autocomplete="on"
-                    inputId="time24"
-                    :class="{
-                      'p-invalid': !model.decision_date && submitted,
-                    }" 
-                    v-model="model.decision_date"
-                    placeholder="DD/MM/YYYY"
-                  />
-                </div>
-                <div v-if="!model.decision_date && submitted">
-                  <small class="p-error">
-                    <span class="col-12 p-0"
-                      >Ngày quyết định không được để trống</span
-                    >
                   </small>
                 </div>
               </div>

@@ -26,7 +26,7 @@ const props = defineProps({
 const newDate = new Date();
 </script>
 <template>
-  <Dialog :visible="true" :closable="false" style="display: block">
+  <Dialog :visible="true" :closable="false" style="display: none">
     <div id="formprint">
       <table>
         <thead>

@@ -34,7 +34,7 @@ const initData = () => {
       if (props.model && props.model.report_key) {
         let o = {
           id: props.model.report_key,
-          par: { profile_id: props.model.profile_id },
+          par: { profile_id: props.model.profile_id, isedit: props.model.isEdit || false },
         };
         let url = encodeURIComponent(
           encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
@@ -60,7 +60,7 @@ const initData = () => {
       if (props.model && props.model.report_key) {
         let o = {
           id: props.model.report_key,
-          par: { contract_id: props.model.contract_id },
+          par: { contract_id: props.model.contract_id, isedit: props.model.isEdit || false },
         };
         let url = encodeURIComponent(
           encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
@@ -86,7 +86,7 @@ const initData = () => {
       if (props.model && props.model.report_key) {
         let o = {
           id: props.model.report_key,
-          par: { decision_id: props.model.decision_id, isedit: true },
+          par: { decision_id: props.model.decision_id, isedit: props.model.isEdit || false },
         };
         let url = encodeURIComponent(
           encr(JSON.stringify(o), SecretKey, cryoptojs).toString()

@@ -1157,28 +1157,39 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-9 text-left p-0">STT</div>
-            <InputNumber
-              v-model="type_decision.is_order"
-              class="col-3 ip36 p-0"
-              :disabled="checkDisabled"
-            />
+        <div class="col-12 field md:col-12 flex  ">
+          <div
+            class="field col-6 md:col-6 p-0 align-items-center flex"
+          
+          >
+            <div class="col-6 text-left p-0">Gửi nhiều</div>
+            <InputSwitch v-model="type_decision.is_multiple" class="w-4rem lck-checked" />
           </div>
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
             <InputSwitch
-              v-model="type_decision.status"
+              v-model="type_decision.status" class="w-4rem lck-checked"
               :disabled="checkDisabled"
             />
           </div>
+        
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">STT</div>
+            <InputNumber
+              v-model="type_decision.is_order"
+              class="col-6 ip36 p-0"
+              :disabled="checkDisabled"
+            />
+          </div>
+        
           <div
-            class="field col-4 md:col-4 p-0 align-items-center flex"
+            class="field col-6 md:col-6 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="type_decision.is_system" />
+            <InputSwitch v-model="type_decision.is_system"  class="w-4rem lck-checked"/>
           </div>
         </div>
         <div class="field col-12 md:col-12">
@@ -1196,216 +1207,7 @@ onMounted(() => {
       
           />
         </div>
-        <!-- <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == true).length>0">
-          <DataTable
-            :value="listFilesS.filter((x) => x.is_system == true)"
-            filterDisplay="menu"
-            filterMode="lenient"
-            scrollHeight="flex"
-            :showGridlines="true"
-            :paginator="false"
-            :row-hover="true"
-            columnResizeMode="fit"
-          >
-            <Column field="code" header="File mẫu hệ thống">
-              <template #body="item">
-                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
-                  <div class="w-full flex align-items-center">
-                    <div class="flex w-full text-900">
-                      <div
-                        v-if="item.data.is_image"
-                        class="align-items-center flex"
-                      >
-                        <Image
-                          :src="basedomainURL + item.data.file_path"
-                          alt=""
-                          width="70"
-                          height="50"
-                          style="
-                            object-fit: contain;
-                            border: 1px solid #ccc;
-                            width: 70px;
-                            height: 50px;
-                          "
-                          preview
-                          class="pr-2"
-                        />
-                        <div class="ml-2" style="word-break: break-all">
-                          {{ item.data.file_name }}
-                        </div>
-                      </div>
-                      <div v-else>
-                        <a
-                          :href="basedomainURL + item.data.file_path"
-                          download
-                          class="w-full no-underline cursor-pointer text-900"
-                        >
-                          <div class="align-items-center flex">
-                            <div>
-                              <img
-                                :src="
-                                  basedomainURL +
-                                  '/Portals/Image/file/' +
-                                  item.data.file_path.substring(
-                                    item.data.file_path.lastIndexOf('.') + 1
-                                  ) +
-                                  '.png'
-                                "
-                                style="
-                                  width: 70px;
-                                  height: 50px;
-                                  object-fit: contain;
-                                "
-                                alt=""
-                              />
-                            </div>
-                            <div class="ml-2" style="word-break: break-all">
-                              {{ item.data.file_name }}
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <div
-                      class="w-3rem align-items-center d-style-hover-1"
-                      v-if="store.getters.user.is_super"
-                    >
-                      <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded  bg-red-300 border-none"
-                        @click="deleteFileH(item.data)"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
-        <div class="col-12 p-0" v-if="listFilesS.filter((x) => x.is_system == false).length>0">
-          <DataTable
-            :value="listFilesS.filter((x) => x.is_system == false)"
-            filterDisplay="menu"
-            filterMode="lenient"
-            scrollHeight="flex"
-            :showGridlines="true"
-            :paginator="false"
-            :row-hover="true"
-            columnResizeMode="fit"
-          >
-            <Column field="code" header="  File mẫu Đơn vị">
-              <template #body="item">
-                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
-                  <div class="w-full flex align-items-center">
-                    <div class="flex w-full text-900">
-                      <div
-                        v-if="item.data.is_image"
-                        class="align-items-center flex"
-                      >
-                        <Image
-                          :src="basedomainURL + item.data.file_path"
-                          alt=""
-                          width="70"
-                          height="50"
-                          style="
-                            object-fit: contain;
-                            border: 1px solid #ccc;
-                            width: 70px;
-                            height: 50px;
-                          "
-                          preview
-                          class="pr-2"
-                        />
-                        <div class="ml-2" style="word-break: break-all">
-                          {{ item.data.file_name }}
-                        </div>
-                      </div>
-                      <div v-else>
-                        <a
-                          :href="basedomainURL + item.data.file_path"
-                          download
-                          class="w-full no-underline cursor-pointer text-900"
-                        >
-                          <div class="align-items-center flex">
-                            <div>
-                              <img
-                                :src="
-                                  basedomainURL +
-                                  '/Portals/Image/file/' +
-                                  item.data.file_path.substring(
-                                    item.data.file_path.lastIndexOf('.') + 1
-                                  ) +
-                                  '.png'
-                                "
-                                style="
-                                  width: 70px;
-                                  height: 50px;
-                                  object-fit: contain;
-                                "
-                                alt=""
-                              />
-                            </div>
-                            <div class="ml-2" style="word-break: break-all">
-                              <div class="ml-2" style="word-break: break-all">
-                          <div style="word-break: break-all">
-                            {{ item.data.file_name }}
-                          </div>
-                          <div
-                            v-if="store.getters.user.is_super"
-                            style="
-                              word-break: break-all;
-                              font-size: 11px;
-                              font-style: italic;
-                            "
-                          >
-                            {{ item.data.organization_name }}
-                          </div>
-                        </div>
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <div
-                      class="w-3rem align-items-center d-style-hover-1"
-                      v-if="
-                    store.getters.user.organization_id == item.data.organization_id
-                  "
-                    >
-                      <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded  bg-red-300 border-none"
-                        @click="deleteFileH(item.data)"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
-        <div class="col-12 field   ">File mẫu</div>    
-        <div class="w-full col-12 field  ">
-          <FileUpload
-            chooseLabel="Chọn File"
-            :showUploadButton="false"
-            :showCancelButton="false"
-            :multiple="false"
-            accept=".doc,.docx"
-            :maxFileSize="524288000"
-            @select="onUploadFile"
-            @remove="removeFile"
-
-            :fileLimit="1"
-
-            :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
-          >
-            <template #empty>
-              <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
-            </template>
-          </FileUpload>
-        </div> -->
-      </div>
+         </div>
     </form>
     <template #footer>
       <Button
