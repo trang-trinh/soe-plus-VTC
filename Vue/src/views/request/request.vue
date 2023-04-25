@@ -350,7 +350,7 @@ const countRequest = () => {
     }
     axios
         .post(
-            baseUrlCheck + "/api/request/getData",
+            basedomainURL + "/api/request/getData",
             {
                 str: encr(
                     JSON.stringify({
