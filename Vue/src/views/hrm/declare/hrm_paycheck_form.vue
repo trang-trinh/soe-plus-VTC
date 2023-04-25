@@ -8,7 +8,15 @@ import { encr, checkURL } from "../../../util/function.js";
 import paycheck_form_dialog from "./component/paycheck_form_dialog.vue"
 import moment from "moment";
 //Khai báo
-
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");

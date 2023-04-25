@@ -373,6 +373,7 @@ const caExperience = () => import("../views/hrm/category/caExperience.vue");
 const Candidate = () => import("../views/hrm/recruitment/hrm_candidate.vue");
 
 const caClassroom = () => import("../views/hrm/category/caClassroom.vue");
+const caHolidayType = () => import("../views/hrm/category/caHolidayType.vue");
 const caReceipt = () => import("../views/hrm/category/caReceipt.vue");
 const caEnectingGroup = () =>
   import("../views/hrm/category/caEnectingGroup.vue");
@@ -1786,6 +1787,13 @@ const router = createRouter({
       name: "caHRMClassroom",
       component: caClassroom,
     },
+    {
+      path: "/hrm/category/ca_holiday_type",
+      name: "caHolidayType",
+      component: caHolidayType,
+    },
+
+    
     {
       path: "/hrm/category/ca_receipt",
       name: "caHRMReceipt",

@@ -232,6 +232,7 @@ function onGetMonth(date) {
 }
 const onSelectedschedule = () => {
   var arr = [...work_schedule.value.work_schedule_daysfake];
+  if(work_schedule.value.work_schedule_monthsfake)
   work_schedule.value.work_schedule_monthsfake.forEach((element) => {
     work_schedule.value.work_schedule_daysfake.forEach((item) => {
       if (onGetMonth(item).getTime() == element.getTime()) {
@@ -1580,7 +1581,7 @@ onMounted(() => {
               @click="showTreeUser()"
               icon="pi pi-user-plus"
               class="p-button-text p-button-rounded"
-              v-if="isSaveTem.value"
+              v-if="!isSaveTem"
             />
           </div>
           <div class="col-9 p-0">
@@ -1622,7 +1623,7 @@ onMounted(() => {
               v-model="work_schedule.work_schedule_monthsfake"
               view="month"
               dateFormat="mm/yy"
-              class="w-full"
+              class="w-full" :showOnFocus="false"
               :showIcon="true"
               selectionMode="multiple"
               @date-select="onSelectedschedule($event)"
@@ -1640,8 +1641,8 @@ onMounted(() => {
               v-model="work_schedule.work_schedule_daysfake"
               selectionMode="multiple"
               class="w-full"
-              :manualInput="false"
-              :showIcon="true"
+         
+              :showIcon="true" :showOnFocus="false"
               @date-select="onSelectedschedule($event)"
             />
           </div>
