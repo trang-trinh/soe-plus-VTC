@@ -1657,9 +1657,10 @@ namespace API.Controllers.HRM.Profile
                                 if (File.Exists(path))
                                 {
                                     var path_copy = "/Portals/" + user.organization_id + "/Users/" + user.user_id;
-                                    if (!Directory.Exists(path_copy))
+                                    var exists = HttpContext.Current.Server.MapPath("~/") + path_copy;
+                                    if (!Directory.Exists(exists))
                                     {
-                                        Directory.CreateDirectory(path_copy);
+                                        Directory.CreateDirectory(exists);
                                     }
                                     user.avatar = path_copy + "/" + helper.GenKey() + ".jpg";
                                     var root_copy = HttpContext.Current.Server.MapPath("~/") + user.avatar;
