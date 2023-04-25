@@ -69,7 +69,7 @@ namespace API.Controllers.Request.Category
 
                         obj_data.request_group_id = helper.GenKey();
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        obj_data.organization_id = super ? 0 : int.Parse(dvid);
+                        obj_data.organization_id = int.Parse(dvid);// super ? 0 : int.Parse(dvid);
                         obj_data.created_by = uid;
                         obj_data.created_date = DateTime.Now;
                         obj_data.created_ip = ip;
