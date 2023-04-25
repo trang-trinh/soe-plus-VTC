@@ -12,7 +12,7 @@ const store = inject("store");
 const swal = inject("$swal");
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
-const baseUrlCheck = "http://localhost:8080/";
+const baseUrlCheck = baseURL;
 const config = {
 	headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -36,6 +36,7 @@ const props = defineProps({
     listUserApproved: Array,
     listUserFollow: Array,
     listUserManage: Array,
+    detailFormDynamic: Array,
     reloadData: Function,
 	closeDialog: Function,
 });
@@ -315,15 +316,67 @@ const removeMember = (user, arr, type) => {
 const changeAttendees = () => {};
 //
 const saveData = (frm) => {
+    submitted.value = true;
     if (!frm) {
         return false;
-    }    
-    submitted.value = true;
+    }
     if (request_data.value.request_form_id == null) {
         request_data.value.is_change_process = true;
     }
+    if (request_data.value.is_notify_manager == true && (listUserManage.value == null || listUserManage.value.length == 0)) {
+        swal.fire({
+            type: 'error',
+            icon: 'error',
+            title: 'Thông báo',
+            text: 'Vui lòng chọn người quản lý cho đề xuất !'
+        });
+        return false;
+    }
+    if (!request_data.value.request_form_id && (listUserApproved.value == null || listUserApproved.value.length == 0)) {
+        swal.fire({
+            type: 'error',
+            icon: 'error',
+            title: 'Thông báo',
+            text: 'Vui lòng chọn người duyệt cho đề xuất !'
+        });
+        return false;
+    }
+    if (request_data.value.request_form_id != null && request_data.value.request_form_id.request_form_id != null) {
+        request_data.value.request_form_id = request_data.value.request_form_id.request_form_id;
+    }
     var formData = new FormData();
     formData.append("modelRequest", JSON.stringify(request_data.value));
+    if (formDS.value != null && formDS.value.length > 0) {
+        var cparr = [...formDS.value];
+        if (Ftables.value && Ftables.value.length > 0) {
+            Ftables.value.forEach(function (r) {
+                r.forEach(function (rr) {
+                    rr.forEach(function (ro) {
+                        cparr.push(ro);
+                    });
+                });
+            });
+        }
+        cparr.filter(x => x.kieu_truong == "radio").forEach(function (r) {
+            if (r.FormD_ID == request_data.value.Radio) {
+                r.IsGiatri = true;
+            } else {
+                r.IsGiatri = false;
+            }
+        });
+        cparr.filter(x => x.kieu_truong == "datetime" && x.IsGiatri != null && isValidDate(x.IsGiatri)).forEach(function (r) {
+            r.IsGiatri = moment(r.IsGiatri).tz(timezone).format('YYYY-MM-DDTHH:mm:ss');
+        });
+        cparr.filter(x => x.kieu_truong == "date" && x.IsGiatri != null && isValidDate(x.IsGiatri)).forEach(function (r) {
+            r.IsGiatri = moment(r.IsGiatri).tz(timezone).format('YYYY-MM-DD');
+        });
+        console.log(cparr);
+        formData.append("formDS", JSON.stringify(cparr));
+    }
+    else {
+        var cparr = [...formDS.value];
+        formData.append("formDS", JSON.stringify(cparr));
+    }
     formData.append("listApprover", JSON.stringify(listUserApproved.value));
     formData.append("listManager", JSON.stringify(listUserManage.value));
     formData.append("listFollower", JSON.stringify(listUserFollow.value));
@@ -380,8 +433,24 @@ const loadFormD = (form_id) => {
     })
     .then((response) => {
         if (response.data.err !== '1') {
-            var data = JSON.parse(res.data.data);
+            var data = JSON.parse(response.data.data);
             formDS.value = data[0];
+            if (formDS.value.length > 0) {
+                let spaceInLine = 12; // căn chỉnh form động
+                formDS.value.forEach((el, idx) => {
+                    if (el.is_class == null) {
+                        el.is_class = "col-12";
+                    }
+                    spaceInLine = spaceInLine - parseInt(el.is_class.substring(4));
+                    if (spaceInLine == 0) {
+                        el.is_end_line = true;
+                        spaceInLine = 12;
+                    }
+                    else if (spaceInLine < 0) {
+                        spaceInLine = 12;
+                    }
+                });
+            }
             let ftables = [];
             let formDynamic = data[0].filter(x => x.is_type == 3);
             if (formDynamic.length > 0) {
@@ -479,7 +548,7 @@ const request_LoadSignUser = (Form_ID, Team_ID) => {
 };
 const filterForm = () => {
     let objRequestForm = request_data.value.request_form_id;
-    var fo = props.dictionarys[0].find(x => x.request_form_id == objRequestForm.request_form_id);
+    var fo = objRequestForm ? props.dictionarys[0].find(x => x.request_form_id == objRequestForm.request_form_id) : null;
     listSignUser.value = []; // SignUser
     formDS.value = [];
     if (fo != null) {
@@ -524,7 +593,51 @@ const renderWidth = (kieu) => {
             return '';
     }
 };
+
+const loadRequestDetail = (dataRequest) => {
+    if (!dataRequest.request_form_id) {
+        loadFormD(dataRequest.request_form_id);
+    } else {
+        formDS.value = props.detailFormDynamic.filter(x => x.is_order_row == null);
+        var fd = props.detailFormDynamic.find(x => x.kieu_truong.toLowerCase() == "radio" && x.IsGiatri.toLowerCase() == "true");
+        if (fd != null) {
+            request_data.value.Radio = fd.FormD_ID;
+            fd.IsGiatri = "true";
+        }
+        var fd2 = props.detailFormDynamic.find(x => x.kieu_truong.toLowerCase() == "checkbox" && x.IsGiatri.toLowerCase() == "true");
+        if (fd2 != null) {
+            fd2.IsGiatri = "true";
+        }
+        var ftables = [];
+        props.detailFormDynamic.filter(x => x.is_type == 3).forEach(function (r) {
+            ftables.push([]);
+            var groups = groupBy(props.detailFormDynamic.filter(x => x.is_order_row != null && x.is_parent_id == r.request_formd_id), "is_order_row");
+            for (var k in groups) {
+                var fr = [];
+                groups[k].forEach(function (rr) {
+                    fr.push({ ...rr });
+                });
+                ftables[ftables.length - 1].push(fr);
+            }
+        });
+        Ftables.value = ftables;
+    }
+    if (props.listUserApproved == null || props.listUserApproved == 0) {
+        if (request_data.value.request_team_id) {
+            request_LoadSignUser(request_data.value.request_form_id, request_data.value.request_team_id);
+        }
+    }
+}
+const groupBy = function (xs, key) {
+    return xs.reduce(function (rv, x) {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+        return rv;
+    }, {});
+};
 onMounted(() => {
+    if (props.dataForm.request_id != null) {
+        loadRequestDetail(props.dataForm);
+    }
     return {
         
     };
@@ -579,7 +692,9 @@ onMounted(() => {
                     </div>
                 </div>
                 <div class="col-12 md:col-12 flex p-0">                    
-                    <div class="form-group">
+                    <div class="form-group"
+                        :class="(v$.request_name.required.$invalid && submitted) || v$.request_name.$pending.$response || (v$.request_name.maxLength.$invalid && submitted) || v$.request_name.maxLength.$pending.$response ? 'mb-2' : ''"
+                    >
                         <label class="text-left flex p-0" style="align-items:center;">
                             Tên đề xuất <span class="redsao pl-1"> (*)</span>                        
                         </label>
@@ -646,7 +761,9 @@ onMounted(() => {
                     </div>
                 </div>
                 <div class="col-12 md:col-12 flex p-0">
-                    <div class="form-group">
+                    <div class="form-group"
+                        :class="(v$.content.required.$invalid && submitted) || v$.content.$pending.$response || (v$.content.maxLength.$invalid && submitted) || v$.content.maxLength.$pending.$response ? 'mb-2' : ''"
+                    >
                         <label class="text-left flex p-0" style="align-items:center;">
                             Nội dung <span class="redsao pl-1"> (*)</span>                        
                         </label>
@@ -686,100 +803,107 @@ onMounted(() => {
                         </small>
                     </div>
 				</div>
-                <!-- <div class="col-12 md:col-12 flex p-0" v-if="formDS && formDS_filter().length > 0"> -->
-                <div class="col-12 md:col-12 flex p-0" v-if="false">
-                    <div class="formd-0">
-                        <div class="formd" 
-                            :class="d.is_class"
+                <div class="col-12 md:col-12 flex p-0" v-if="formDS && formDS_filter().length > 0">
+                <!-- <div class="col-12 md:col-12 flex p-0" v-if="false"> -->
+                    <div class="col-12 flex p-0" style="flex-wrap: wrap;">
+                        <div class="formd pl-0" 
+                            :class="(!d.is_class ? 'pr-0': (d.is_class == 'col-12' ? (d.is_class + ' pr-0') : d.is_class)) 
+                                    + ' ' + (d.is_end_line ? 'pr-0' : '')"
                             v-for="(d, idxForm) in formDS_filter(null)"
                             :key="idxForm" 
                         >
                             <div v-if="d.is_type != 3">
                                 <div class="form-group formlabel" style="margin-top:15px" v-if="d.is_label">{{ d.ten_truong }}</div>
                                 <div class="form-group" v-else>
-                                    <div v-if="d.kieu_truong != 'checkbox' && d.kieu_truong != 'radio' && d.is_type != 2">
-                                        <label class="fw-500">{{ d.ten_truong }}</label>
+                                    <div class="form-group flex mb-0" 
+                                        v-if="d.kieu_truong != 'checkbox' && d.kieu_truong != 'radio' && d.is_type != 2"
+                                    >
+                                        <label>{{ d.ten_truong }}</label>
                                         <span v-if="d.is_required" class="redsao pl-1">(*)</span> 
                                     </div>
-                                    <div v-switch="d.kieu_truong">
-                                        <div v-case="email">
+                                    <div class="form-group flex mb-0" v-else>
+                                        <label style="height: 1rem;"></label>
+                                    </div>
+                                    <div v-if="d.kieu_truong">
+                                        <div v-if="d.kieu_truong == 'email'">
                                             <InputText :max="d.is_length" 
                                                 type="email" 
                                                 spellcheck="false" 
-                                                v-model="d.value_field" 
-                                                :required="d.is_required" 
-                                                class="form-control" 
+                                                v-model="d.value_field"
+                                                class="form-control col-12 ip36 p-2"
+                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
-                                        <div v-case="varchar|nvarchar">
+                                        <div v-if="d.kieu_truong == 'varchar' || d.kieu_truong == 'nvarchar'">
                                             <InputText :max="d.is_length" 
                                                 type="text" 
-                                                v-if="d.is_length <= 500" 
                                                 spellcheck="false" 
-                                                v-model="d.value_field" 
-                                                :required="d.is_required" 
-                                                class="form-control" 
+                                                v-model="d.value_field"
+                                                class="form-control col-12 ip36 p-2"
+                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
-                                        <div v-case="int|float">
-                                            <InputNumber smart-float 
-                                                max="10" 
-                                                type="text" 
+                                        <div v-if="d.kieu_truong == 'int' || d.kieu_truong == 'float'">
+                                            <InputNumber
                                                 spellcheck="false" 
                                                 v-model="d.value_field" 
-                                                :required="d.is_required" 
-                                                class="form-control" 
+                                                class="form-control col-12 ip36 p-2"
+                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
-                                        <div v-case="textarea">
+                                        <div v-if="d.kieu_truong == 'textarea'">
                                             <Textarea :max="d.is_length" 
                                                 spellcheck="false" 
                                                 v-model="d.value_field" 
-                                                :required="d.is_required"
-                                                class="form-control" 
+                                                class="form-control col-12 p-2"
+                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                                 rows="2"
+                                                autoResize
                                             />
                                         </div>
-                                        <div v-case="checkbox">
-                                            <div class="form-group">
+                                        <div v-if="d.kieu_truong == 'checkbox'">
+                                            <div class="flex ip36 mb-0" 
+                                                style="align-items: center; flex-direction: row;">
                                                 <InputSwitch v-model="d.value_field" />
-                                                <label>{{ d.ten_truong }}</label>
+                                                <label class="ml-2">{{ d.ten_truong }}</label>
                                             </div>
                                         </div>
-                                        <div v-case="radio">
-                                            <div class="form-group">
-                                                <RadioButton :value="d.request_formd_id" v-model="request_data.Radio"/>
-                                                <label>{{ d.ten_truong }}</label>
+                                        <div v-if="d.kieu_truong == 'radio'">
+                                            <div class="flex ip36 mb-0" 
+                                                style="align-items: center; flex-direction: row;">
+                                                <RadioButton :value="d.request_formd_id" 
+                                                    v-model="request_data.Radio"/>
+                                                <label class="ml-2">{{ d.ten_truong }}</label>
                                             </div>
                                         </div>
-                                        <div v-case="date|datetime" class="dropdown datetimeinput">
+                                        <div v-if="d.kieu_truong == 'date' || d.kieu_truong == 'datetime'">
                                             <Calendar
                                                 :showIcon="true"
-                                                class="form-control ip36"
+                                                class="form-control col-12 ip36 p-0"
                                                 autocomplete="on"
                                                 inputId="time24"
                                                 v-model="d.value_field"
-                                                placeholder="dd/MM/yyyy"
-                                                :required="d.is_required" 
+                                                placeholder="dd/mm/yyyy"
+                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
-                                        <div v-case="time">
+                                        <div v-if="d.kieu_truong == 'time'">
                                             <!-- <Input type="text" class="form-control" v-model="d.value_field" placeholder="HH:MM:SS" onkeypress="formatTime(this)" max="8" :required="d.is_required" /> -->
                                             <Calendar
                                                 :showIcon="true"
-                                                class="form-control ip36"
+                                                class="form-control col-12 ip36 p-0"
                                                 autocomplete="on"
                                                 inputId="time24"
                                                 v-model="d.value_field"
                                                 placeholder="HH:mm"
                                                 timeOnly
-                                                :required="d.is_required" 
+                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
                                     </div>
                                 </div>
                                 <div class="formd" 
-                                    :class="dc.is_class"
+                                    :class="dc.is_class || ''"
                                     v-for="(dc, idxChildForm) in formDS_filter(d.request_formd_id)"
                                     :key="idxChildForm" 
                                 ></div>
@@ -807,87 +931,87 @@ onMounted(() => {
                                                 >
                                                     {{dc.TenTruong}}
                                                 </th>
-                                                <th width="36"></th>
+                                                <th width="40"></th>
                                             </tr>
                                         </thead>
                                         <tbody ng-init="$pindex=$index">
                                             <tr v-for="(r, indexF) in Ftables[$pindex]" :key="indexF">
                                                 <td v-for="td in r">
-                                                    <div ng-switch="td.kieu_truong">
-                                                        <div v-case="email">
+                                                    <div v-if="td.kieu_truong">
+                                                        <div v-if="td.kieu_truong == 'email'">
                                                             <InputText :max="td.is_length" 
                                                                 type="email" 
                                                                 spellcheck="false" 
-                                                                v-model="td.value_field" 
-                                                                :required="td.is_required" 
-                                                                class="form-control" 
+                                                                v-model="td.value_field"
+                                                                class="form-control col-12 ip36 p-2"
+                                                                :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                             />
                                                         </div>
-                                                        <div v-case="varchar|nvarchar">
+                                                        <div v-if="td.kieu_truong == 'varchar' || td.kieu_truong == 'nvarchar'">
                                                             <InputText :max="td.is_length" 
                                                                 type="text" 
-                                                                v-if="td.is_length <= 500" 
                                                                 spellcheck="false" 
-                                                                v-model="td.value_field" 
-                                                                :required="td.is_required" 
-                                                                class="form-control" 
+                                                                v-model="td.value_field"
+                                                                class="form-control col-12 ip36 p-2"
+                                                                :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                             />
                                                         </div>
-                                                        <div v-case="int|float">
-                                                            <InputNumber smart-float 
-                                                                max="10" 
-                                                                type="text" 
+                                                        <div v-if="td.kieu_truong == 'int' || td.kieu_truong == 'float'">
+                                                            <InputNumber
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field" 
-                                                                :required="td.is_required" 
-                                                                class="form-control" 
+                                                                class="form-control col-12 ip36 p-2"
+                                                                :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                             />
                                                         </div>
-                                                        <div v-case="textarea">
+                                                        <div v-if="td.kieu_truong == 'textarea'">
                                                             <Textarea :max="td.is_length" 
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field" 
-                                                                :required="td.is_required"
-                                                                class="form-control" 
-                                                                rows="2"
+                                                                class="form-control col-12 p-2"
+                                                                :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
+                                                                rows="1"
+                                                                autoResize
                                                             />
                                                         </div>
-                                                        <div v-case="checkbox">
-                                                            <div class="form-group">
+                                                        <div v-if="td.kieu_truong == 'checkbox'">
+                                                            <div class="flex ip36 mb-0" 
+                                                                style="align-items: center; flex-direction: row;">
                                                                 <InputSwitch v-model="td.value_field" />
-                                                                <label>{{ td.ten_truong }}</label>
+                                                                <label class="ml-2">{{ td.ten_truong }}</label>
                                                             </div>
                                                         </div>
-                                                        <div v-case="radio">
-                                                            <div class="form-group">
-                                                                <RadioButton :value="td.request_formd_id" v-model="request_data.Radio"/>
-                                                                <label>{{ td.ten_truong }}</label>
+                                                        <div v-if="td.kieu_truong == 'radio'">
+                                                            <div class="flex ip36 mb-0" 
+                                                                style="align-items: center; flex-direction: row;">
+                                                                <RadioButton :value="td.request_formd_id" 
+                                                                    v-model="request_data.Radio"/>
+                                                                <label class="ml-2">{{ td.ten_truong }}</label>
                                                             </div>
                                                         </div>
-                                                        <div v-case="date|datetime" class="dropdown datetimeinput">
+                                                        <div v-if="td.kieu_truong == 'date' || td.kieu_truong == 'datetime'">
                                                             <Calendar
                                                                 :showIcon="true"
-                                                                class="form-control ip36"
+                                                                class="form-control col-12 ip36 p-0"
                                                                 autocomplete="on"
                                                                 inputId="time24"
                                                                 v-model="td.value_field"
-                                                                placeholder="dd/MM/yyyy"
-                                                                :required="td.is_required" 
+                                                                placeholder="dd/mm/yyyy"
+                                                                :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                             />
                                                         </div>
-                                                        <sdiv v-case="time">
-                                                            <!-- <input type="text" class="form-control" v-model="td.value_field" placeholder="HH:MM:SS" onkeypress="formatTime(this)" MaxLength="8" :required="td.is_required" /> -->
+                                                        <div v-if="td.kieu_truong == 'time'">
                                                             <Calendar
                                                                 :showIcon="true"
-                                                                class="form-control ip36"
+                                                                class="form-control col-12 ip36 p-0"
                                                                 autocomplete="on"
                                                                 inputId="time24"
                                                                 v-model="td.value_field"
                                                                 placeholder="HH:mm"
                                                                 timeOnly
-                                                                :required="td.is_required" 
+                                                                :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                             />
-                                                        </sdiv>
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td style="text-align:center">
@@ -1352,37 +1476,39 @@ onMounted(() => {
                         </div>
                     </div>
                 </div>
-                <div class="col-4 md:col-4 flex p-0">
-                    <div class="form-group mb-2">
-                        <div class="field-checkbox flex"
-                            style="height: 100%"
-                        >
-                            <InputSwitch v-model="request_data.is_evaluate" />
-                            <label>Đánh giá kết quả</label>
+                <div class="col-12 md:col-12 flex p-0" v-if="!request_data.request_form_id">
+                    <div class="col-4 md:col-4 flex p-0">
+                        <div class="form-group mb-2">
+                            <div class="field-checkbox flex"
+                                style="height: 100%"
+                            >
+                                <InputSwitch v-model="request_data.is_evaluate" />
+                                <label>Đánh giá kết quả</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4 md:col-4 flex p-0">
+                        <div class="form-group mb-2">
+                            <div class="field-checkbox flex"
+                                style="height: 100%"
+                            >
+                                <InputSwitch v-model="request_data.is_mail" />
+                                <label>Gửi email</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4 md:col-4 flex p-0">
+                        <div class="form-group mb-2">
+                            <div class="field-checkbox flex"
+                                style="height: 100%"
+                            >
+                                <InputSwitch v-model="request_data.is_sign_ca" />
+                                <label>Yêu cầu chữ ký số (CA)</label>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-4 md:col-4 flex p-0">
-                    <div class="form-group mb-2">
-                        <div class="field-checkbox flex"
-                            style="height: 100%"
-                        >
-                            <InputSwitch v-model="request_data.is_mail" />
-                            <label>Gửi email</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-4 md:col-4 flex p-0">
-                    <div class="form-group mb-2">
-                        <div class="field-checkbox flex"
-                            style="height: 100%"
-                        >
-                            <InputSwitch v-model="request_data.is_sign_ca" />
-                            <label>Yêu cầu chữ ký số (CA)</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-4 md:col-4 flex p-0" v-if="request_data.request_form_id">
+                <div class="col-4 md:col-4 flex p-0" v-if="request_data.request_form_id && formDS && formDS.length > 0">
                     <div class="form-group">
                         <div class="field-checkbox flex"
                             style="height: 100%"
@@ -1465,7 +1591,7 @@ onMounted(() => {
             </div>
         </form>
 		<template #footer>
-			<Button class="p-button-secondary" label="Hủy" icon="pi pi-times" @click="props.closeDialog" />
+			<Button class="p-button-text" label="Hủy" icon="pi pi-times" @click="props.closeDialog" />
 			<Button label="Lưu" icon="pi pi-check" @click="saveData(!v$.$invalid)" />
 		</template>
     </Dialog>

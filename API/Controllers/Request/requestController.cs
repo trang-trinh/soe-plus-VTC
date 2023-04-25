@@ -84,6 +84,16 @@ namespace API.Controllers.Request
                         db.request_master.Add(request);
                         db.SaveChanges();
 
+                        var formDS_Request = provider.FormData.GetValues("formDS").SingleOrDefault();
+                        List<request_master_detail> formDS = JsonConvert.DeserializeObject<List<request_master_detail>>(formDS_Request);
+                        List<request_master_detail> request_detail_add = new List<request_master_detail>();
+                        foreach(var item in formDS)
+                        {
+                            item.request_detail_id = helper.GenKey();
+                            item.request_id = request.request_id;
+                            request_detail_add.Add(item);
+                        }
+
                         var modelApprover = provider.FormData.GetValues("listApprover").SingleOrDefault();
                         List<request_sign_user> listApprover = JsonConvert.DeserializeObject<List<request_sign_user>>(modelApprover);
                         //var sttApprover = 1;
@@ -236,7 +246,11 @@ namespace API.Controllers.Request
                                 //});
                             }
                         }
-                                                
+
+                        if (request_detail_add.Count > 0)
+                        {
+                            db.request_master_detail.AddRange(request_detail_add);
+                        }
                         if (listFileRequest.Count > 0)
                         {
                             db.request_master_file.AddRange(listFileRequest);
