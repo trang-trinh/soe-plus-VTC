@@ -839,7 +839,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  
+
                   <!-- <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Chuyên ngành học</label>
@@ -2276,6 +2276,61 @@ onMounted(() => {
               </div> -->
               <div class="col-12 md:col-12 p-0">
                 <div class="row">
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label><b>Thông tin Đoàn</b></label>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Số thẻ Đoàn</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.bevy_code"
+                        maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngày vào Đoàn</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.bevy_date"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Nơi vào Đoàn</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.bevy_address"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Chức vụ Đoàn hiện tại</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.bevy_position"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label><b>Thông tin Đảng</b></label>
+                    </div>
+                  </div>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Ngạch công chức (viên chức)</label>
@@ -2905,44 +2960,50 @@ onMounted(() => {
                   </div>
                   <div class="col-12 md:col-12">
                     <div class="form-group">
-                      <label>Nhập thông tin</label>
+                      <label
+                        >Khai rõ: Bị bắt, bị tù, bản thân có làm việc trong chế
+                        độ cũ</label
+                      >
                       <Textarea
                         :autoResize="true"
                         rows="4"
-                        placeholder="Khai rõ: Bị bắt, bị tù, bản thân có làm việc trong chế độ cũ"
+                        placeholder="Nhập thông tin"
                         v-model="props.model.biography_first"
                       />
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
                     <div class="form-group">
-                      <label>Nhập thông tin</label>
+                      <label
+                        >Tham gia hoặc có quan hệ với các tổ chức chính trị,
+                        kinh tế, xã hội nào ở nước ngoài</label
+                      >
                       <Textarea
                         :autoResize="true"
                         rows="4"
-                        placeholder="Tham gia hoặc có quan hệ với các tổ chức chính trị, kinh tế, xã hội nào ở nước ngoài"
+                        placeholder="Nhập thông tin"
                         v-model="props.model.biography_second"
                       />
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
                     <div class="form-group">
-                      <label>Nhập thông tin</label>
+                      <label>Có thân nhân ở nước ngoài (làm gì, địa chỉ)</label>
                       <Textarea
                         :autoResize="true"
                         rows="4"
-                        placeholder="Có thân nhân ở nước ngoài (làm gì, địa chỉ)"
+                        placeholder="Nhập thông tin"
                         v-model="props.model.biography_third"
                       />
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
                     <div class="form-group">
-                      <label>Nhập thông tin</label>
+                      <label>Nhật xét, đánh giá của cơ quan, đơn vị quản lý và sử dụng cán bộ, công chức</label>
                       <Textarea
                         :autoResize="true"
                         rows="4"
-                        placeholder="Nhật xét, đánh giá của cơ quan, đơn vị quản lý và sử dụng cán bộ, công chức"
+                        placeholder="Nhập thông tin"
                         v-model="props.model.note"
                       />
                     </div>
