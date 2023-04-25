@@ -5,6 +5,11 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
+import { CalendarView, CalendarViewHeader } from "vue-simple-calendar"
+import "../../../../node_modules/vue-simple-calendar/dist/style.css"
+	// The next two lines are optional themes
+	import "../../../../node_modules/vue-simple-calendar/dist/css/default.css"
+	import "../../../../node_modules/vue-simple-calendar/dist/css/holidays-us.css"
 import moment from "moment";
 //Khai báo
 
@@ -174,35 +179,7 @@ const openBasic = (str) => {
   headerDialog.value = str;
   displayBasic.value = true;
 };
-
-const countries = ref([
-  { name: "Nga", code: "US" },
-  { name: "Canada", code: "US" },
-  { name: "Hoa Kỳ", code: "US" },
-  { name: "Trung Quốc", code: "US" },
-  { name: "Brasil", code: "US" },
-  { name: "Úc", code: "US" },
-  { name: "Ấn Độ", code: "US" },
-  { name: " Argentina", code: "US" },
-  { name: "Kazakhstan", code: "US" },
-  { name: "Algérie", code: "US" },
-  { name: "Cộng hòa Dân chủ Congo", code: "US" },
-  { name: "Greenland", code: "US" },
-  { name: "Ả Rập Xê Út", code: "US" },
-  { name: "México", code: "US" },
-  { name: "Indonesia", code: "US" },
-  { name: "Sudan", code: "US" },
-  { name: "Việt Nam", code: "US" },
-  { name: "Nhật Bản", code: "US" },
-  { name: "Thụy Điển", code: "US" },
-  { name: "Thụy Sĩ", code: "US" },
-  { name: "Hàn quốc", code: "US" },
-  { name: "Anh Quốc", code: "US" },
-  { name: "Lào", code: "US" },
-  { name: "Pháp", code: "US" },
-  { name: "Thái lan", code: "US" },
-]);
-const closeDialog = () => {
+ const closeDialog = () => {
   holiday_dates.value = {
     emote_file: "",
     status: true,
@@ -218,11 +195,9 @@ const closeDialog = () => {
 const sttStamp = ref(1);
 const saveData = () => {
   submitted.value = true;
- 
 
   let formData = new FormData();
 
-  
   formData.append("hrm_holiday_dates", JSON.stringify(holiday_dates.value));
   swal.fire({
     width: 110,
@@ -382,7 +357,16 @@ const onSort = (event) => {
     loadDataSQL();
   }
 };
+const optionsSelB = ref([
+  { icon: "pi pi-bars", value: 1 },
+  { icon: "pi pi-table", value: 2 },
+]);
+const optionsHoliday = ref(2);
 
+const showDate = ref(new Date());
+ 
+const setShowDate = () => {
+}
 const checkFilter = ref(false);
 const filterSQL = ref([]);
 const isFirst = ref(true);
@@ -748,35 +732,9 @@ onMounted(() => {
 });
 </script>
     <template>
-  <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <DataTable
-      @page="onPage($event)"
-      @sort="onSort($event)"
-      @filter="onFilter($event)"
-      v-model:filters="filters"
-      filterDisplay="menu"
-      filterMode="lenient"
-      :filters="filters"
-      :scrollable="true"
-      scrollHeight="flex"
-      :showGridlines="true"
-      columnResizeMode="fit"
-      :lazy="true"
-      :totalRecords="options.totalRecords"
-      :loading="options.loading"
-      :reorderableColumns="true"
-      :value="datalists"
-      removableSort
-      v-model:rows="options.PageSize"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :paginator="true"
-      dataKey="holiday_dates_id"
-      responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
-      :row-hover="true"
-    >
-      <template #header>
+  <div class="d-lang-table true flex-grow-1 p-2 pb-0 pr-0">
+  <div class="surface-0  p-2">
+    
         <h3 class="module-title mt-0 ml-1 mb-2">
           <i class="pi pi-credit-card"></i> Danh sách ngày nghỉ lễ ({{
             options.totalRecords
@@ -856,6 +814,18 @@ onMounted(() => {
           </template>
 
           <template #end>
+            <SelectButton
+              v-model="optionsHoliday"
+              :options="optionsSelB"
+              optionValue="value"
+              dataKey="value"
+              class="mx-2"
+              aria-labelledby="basic"
+            >
+              <template #option="slotProps">
+                <i :class="slotProps.option.icon"></i>
+              </template>
+            </SelectButton>
             <Button
               v-if="checkDelList"
               @click="deleteList()"
@@ -891,9 +861,39 @@ onMounted(() => {
               :popup="true"
             /> -->
           </template>
-        </Toolbar></template
-      >
+        </Toolbar> 
 
+    </div>
+   
+    <DataTable
+    v-if="optionsHoliday==1"
+      @page="onPage($event)"
+      @sort="onSort($event)"
+      @filter="onFilter($event)"
+      v-model:filters="filters"
+      filterDisplay="menu"
+      filterMode="lenient"
+      :filters="filters"
+      :scrollable="true"
+      scrollHeight="flex"
+      :showGridlines="true"
+      columnResizeMode="fit"
+      :lazy="true"
+      :totalRecords="options.totalRecords"
+      :loading="options.loading"
+      :reorderableColumns="true"
+      :value="datalists"
+      removableSort
+      v-model:rows="options.PageSize"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+      :paginator="true"
+      dataKey="holiday_dates_id"
+      responsiveLayout="scroll"
+      v-model:selection="selectedStamps"
+      :row-hover="true"
+    >
+ 
       <Column
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
@@ -912,7 +912,6 @@ onMounted(() => {
       ></Column>
 
       <Column
- 
         header="Ngày bắt đầu"
         headerStyle="text-align:center;max-width:150px;height:50px"
         bodyStyle="text-align:center;max-width:150px"
@@ -925,7 +924,6 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-      
         header="Ngày kết thúc"
         headerStyle="text-align:center;max-width:150px;height:50px"
         bodyStyle="text-align:center;max-width:150px"
@@ -939,22 +937,21 @@ onMounted(() => {
       </Column>
 
       <Column
-      field="reason"
-      header="Lý do"
-      headerStyle="text-align:center ;height:50px"
-      bodyStyle="text-align:center; "
-      headerClass="align-items-center justify-content-center text-center"
-    >
+        field="reason"
+        header="Lý do"
+        headerStyle="text-align:center ;height:50px"
+        bodyStyle="text-align:center; "
+        headerClass="align-items-center justify-content-center text-center"
+      >
       </Column>
       <Column
-      field="holiday_type_name"
-      header="Kiểu nghỉ lễ"
-      headerStyle="text-align:center;max-width:200px;height:50px"
-      bodyStyle="text-align:center;max-width:200px"
-      class="align-items-center justify-content-center text-center"
-    >
-
-    </Column>
+        field="holiday_type_name"
+        header="Kiểu nghỉ lễ"
+        headerStyle="text-align:center;max-width:200px;height:50px"
+        bodyStyle="text-align:center;max-width:200px"
+        class="align-items-center justify-content-center text-center"
+      >
+      </Column>
       <Column
         field="status"
         header="Trạng thái"
@@ -1033,6 +1030,15 @@ onMounted(() => {
         </div>
       </template>
     </DataTable>
+    <calendar-view  v-if="optionsHoliday==2"
+			:show-date="showDate"
+			class="theme-default holiday-us-traditional holiday-us-official">
+			<template #header="{ headerProps }">
+				<calendar-view-header
+					:header-props="headerProps"
+					@input="setShowDate" />
+			</template>
+		</calendar-view>
   </div>
 
   <Dialog
@@ -1050,7 +1056,6 @@ onMounted(() => {
             <div class="col-8 text-left p-0">
               <Calendar
                 v-model="holiday_dates.start_date"
-           
                 class="w-full"
                 :showOnFocus="false"
                 :showIcon="true"
@@ -1062,7 +1067,6 @@ onMounted(() => {
             <div class="col-8 text-left p-0">
               <Calendar
                 v-model="holiday_dates.end_date"
-         
                 class="w-full"
                 :showOnFocus="false"
                 :showIcon="true"
@@ -1161,6 +1165,11 @@ onMounted(() => {
   object-fit: cover;
   width: 100%;
   height: 100%;
+}
+.d-lang-table{
+
+    max-height: calc(100vh - 135px);
+ 
 }
 </style>
     
