@@ -530,6 +530,19 @@ const editItem = (item, str) => {
               model.value["organization_joindate"]
             );
           }
+          if (model.value.bevy_date != null) {
+            model.value.bevy_date = new Date(model.value.bevy_date);
+          }
+          if (model.value.military_start_date != null) {
+            model.value.military_start_date = new Date(
+              model.value.military_start_date
+            );
+          }
+          if (model.value.military_end_date != null) {
+            model.value.military_end_date = new Date(
+              model.value.military_end_date
+            );
+          }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
           tbs[1].forEach((x) => {
@@ -2279,7 +2292,7 @@ onMounted(() => {
           icon="pi pi-plus"
           class="mr-2"
         />
-        
+
         <Button
           icon="pi pi-trash"
           label="Xóa"

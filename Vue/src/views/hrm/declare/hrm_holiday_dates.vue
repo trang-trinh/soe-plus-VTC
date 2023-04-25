@@ -5,6 +5,12 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
+import { CalendarView, CalendarViewHeader } from "vue-simple-calendar"
+import "../../../../node_modules/vue-simple-calendar/dist/style.css"
+	// The next two lines are optional themes
+	import "../../../../node_modules/vue-simple-calendar/dist/css/default.css"
+	import "../../../../node_modules/vue-simple-calendar/dist/css/holidays-us.css"
+import moment from "moment";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -15,25 +21,7 @@ const isDynamicSQL = ref(false);
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  type_decision_name: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
-});
-const rules = {
-  type_decision_name: {
-    required,
-    $errors: [
-      {
-        $property: "type_decision_name",
-        $validator: "required",
-        $message: "Tên loại quyết định không được để trống!",
-      },
-    ],
-  },
-};
+const filters = ref({});
 
 //Lấy số bản ghi
 const loadCount = () => {
@@ -43,7 +31,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_type_decision_count",
+            proc: "hrm_holiday_dates_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -64,7 +52,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu type_decision
+//Lấy dữ liệu holiday_dates
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -82,7 +70,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_ca_type_decision_list",
+              proc: "hrm_holiday_dates_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -101,10 +89,6 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
- 
-          if(element.report_key){
-            element.report_key_name= listTypeContractSave.value.find(x=>x.report_key==element.report_key).report_name;
-          }
         });
         datalists.value = data;
 
@@ -141,19 +125,18 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].type_decision_id;
+      datalists.value[datalists.value.length - 1].holiday_dates_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].type_decision_id;
+    options.value.id = datalists.value[0].holiday_dates_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const type_decision = ref({
-  type_decision_name: "",
+const holiday_dates = ref({
   emote_file: "",
   status: true,
   is_order: 1,
@@ -161,7 +144,7 @@ const type_decision = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, type_decision);
+
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -181,28 +164,23 @@ const options = ref({
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
-const listTypeContract = ref([]);
 const openBasic = (str) => {
   submitted.value = false;
-  type_decision.value = {
-    type_decision_name: "",
+  holiday_dates.value = {
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
   };
-  checkDisabled.value = false;
-  listFilesS.value = [];
+
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
 };
-
-const closeDialog = () => {
-  type_decision.value = {
-    type_decision_name: "",
+ const closeDialog = () => {
+  holiday_dates.value = {
     emote_file: "",
     status: true,
     is_order: 1,
@@ -215,29 +193,12 @@ const closeDialog = () => {
 //Thêm bản ghi
 
 const sttStamp = ref(1);
-const saveData = (isFormValid) => {
+const saveData = () => {
   submitted.value = true;
-  if (!isFormValid) {
-    return;
-  }
 
-  if (type_decision.value.type_decision_name.length > 250) {
-    swal.fire({
-      title: "Error!",
-      text: "Tên loại quyết định không được vượt quá 250 ký tự!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
   let formData = new FormData();
-  for (var i = 0; i < filesList.value.length; i++) {
-    let file = filesList.value[i];
-    formData.append("image", file);
-  }
- 
-  formData.append("hrm_files", JSON.stringify(listFilesS.value));
-  formData.append("hrm_ca_type_decision", JSON.stringify(type_decision.value));
+
+  formData.append("hrm_holiday_dates", JSON.stringify(holiday_dates.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -247,14 +208,14 @@ const saveData = (isFormValid) => {
   if (!isSaveTem.value) {
     axios
       .post(
-        baseURL + "/api/hrm_ca_type_decision/add_hrm_ca_type_decision",
+        baseURL + "/api/hrm_holiday_dates/add_hrm_holiday_dates",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm loại quyết định thành công!");
+          toast.success("Thêm ngày nghỉ lễ thành công!");
           loadData(true);
 
           closeDialog();
@@ -279,14 +240,14 @@ const saveData = (isFormValid) => {
   } else {
     axios
       .put(
-        baseURL + "/api/hrm_ca_type_decision/update_hrm_ca_type_decision",
+        baseURL + "/api/hrm_holiday_dates/update_hrm_holiday_dates",
         formData,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa loại quyết định thành công!");
+          toast.success("Sửa ngày nghỉ lễ thành công!");
 
           closeDialog();
         } else {
@@ -313,54 +274,14 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_type_decision_get",
-            par: [
-              {
-                par: "user_id",
-                va: store.getters.user.user_id,
-              },
-              {
-                par: "type_decision_id",
-                va: dataTem.type_decision_id,
-              },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-      if (data) {
-        type_decision.value = data[0];
-
-        if (
-          type_decision.value.is_system == true &&
-          (store.getters.user.is_super == false ||
-            store.getters.user.is_super == null)
-        ) {
-          checkDisabled.value = true;
-        }
-        if (data1) {
-          listFilesS.value = data1;
-        }
-      }
-
-      headerDialog.value = "Sửa loại quyết định";
-      isSaveTem.value = true;
-      displayBasic.value = true;
-    })
-    .catch((error) => {});
+  holiday_dates.value = dataTem;
+  if (holiday_dates.value.start_date)
+    holiday_dates.value.start_date = new Date(holiday_dates.value.start_date);
+  if (holiday_dates.value.end_date)
+    holiday_dates.value.end_date = new Date(holiday_dates.value.end_date);
+  headerDialog.value = "Sửa ngày nghỉ lễ";
+  isSaveTem.value = true;
+  displayBasic.value = true;
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -385,18 +306,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(
-            baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision",
-            {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.type_decision_id] : 1,
-            }
-          )
+          .delete(baseURL + "/api/hrm_holiday_dates/delete_hrm_holiday_dates", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: Tem != null ? [Tem.holiday_dates_id] : 1,
+          })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá loại quyết định thành công!");
+              toast.success("Xoá ngày nghỉ lễ thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -419,12 +337,8 @@ const delTem = (Tem) => {
       }
     });
 };
-const checkDisabled = ref(false);
 //Xuất excel
 
-const deleteFileH = (value) => {
-  listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
-};
 //Sort
 const onSort = (event) => {
   options.value.PageNo = 0;
@@ -443,6 +357,16 @@ const onSort = (event) => {
     loadDataSQL();
   }
 };
+const optionsSelB = ref([
+  { icon: "pi pi-bars", value: 1 },
+  { icon: "pi pi-table", value: 2 },
+]);
+const optionsHoliday = ref(2);
+
+const showDate = ref(new Date());
+ 
+const setShowDate = () => {
+}
 const checkFilter = ref(false);
 const filterSQL = ref([]);
 const isFirst = ref(true);
@@ -450,7 +374,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "type_decision_id",
+    id: "holiday_dates_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -462,7 +386,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_type_decision", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_holiday_dates", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -554,24 +478,60 @@ const onFilter = (event) => {
   loadDataSQL();
 };
 //Checkbox
-const onCheckBox = (value, check) => {
+const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.type_decision_id,
-      TextID: value.type_decision_id + "",
+      IntID: value.holiday_dates_id,
+      TextID: value.holiday_dates_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
       .put(
-        baseURL + "/api/hrm_ca_type_decision/update_s_hrm_ca_type_decision",
+        baseURL + "/api/hrm_holiday_dates/update_s_hrm_holiday_dates",
         data,
         config
       )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái loại quyết định thành công!");
+          toast.success("Sửa trạng thái ngày nghỉ lễ thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  } else {
+    let data1 = {
+      IntID: value.holiday_dates_id,
+      TextID: value.holiday_dates_id + "",
+      BitMain: value.is_default,
+    };
+    axios
+      .put(
+        baseURL + "/api/hrm_holiday_dates/Update_DefaultStamp",
+        data1,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa trạng thái ngày nghỉ lễ thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -598,12 +558,18 @@ const onCheckBox = (value, check) => {
 const deleteList = () => {
   let listId = new Array(selectedStamps.value.length);
   let checkD = false;
-
+  selectedStamps.value.forEach((item) => {
+    if (item.is_default) {
+      toast.error("Không được xóa ngày nghỉ lễ mặc định!");
+      checkD = true;
+      return;
+    }
+  });
   if (!checkD) {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá loại quyết định này không!",
+        text: "Bạn có muốn xoá ngày nghỉ lễ này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -621,11 +587,11 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.type_decision_id);
+            listId.push(item.holiday_dates_id);
           });
           axios
             .delete(
-              baseURL + "/api/hrm_ca_type_decision/delete_hrm_ca_type_decision",
+              baseURL + "/api/hrm_holiday_dates/delete_hrm_holiday_dates",
               {
                 headers: { Authorization: `Bearer ${store.getters.token}` },
                 data: listId != null ? listId : 1,
@@ -635,7 +601,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá loại quyết định thành công!");
+                toast.success("Xoá ngày nghỉ lễ thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -703,76 +669,22 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
-
-const filesList = ref([]);
-let fileSize = [];
-const onUploadFile = (event) => {
-  fileSize = [];
-  filesList.value = [];
-
-  var ms = false;
-
-  event.files.forEach((fi) => {
-    let formData = new FormData();
-    formData.append("fileupload", fi);
-    axios({
-      method: "post",
-      url: baseURL + `/api/chat/ScanFileUpload`,
-      data: formData,
-      headers: {
-        Authorization: `Bearer ${store.getters.token}`,
-      },
-    })
-      .then((response) => {
-        if (response.data.err != "1") {
-          if (fi.size > 100 * 1024 * 1024) {
-            ms = true;
-          } else {
-            filesList.value.push(fi);
-            fileSize.push(fi.size);
-          }
-        } else {
-          filesList.value = filesList.value.filter((x) => x.name != fi.name);
-          swal.fire({
-            title: "Cảnh báo",
-            text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
-            icon: "warning",
-            confirmButtonText: "OK",
-          });
-        }
-        if (ms) {
-          swal.fire({
-            icon: "warning",
-            type: "warning",
-            title: "Thông báo",
-            text: "Bạn chỉ được upload file có dung lượng tối đa 100MB!",
-          });
-        }
-      })
-      .catch(() => {
-        swal.fire({
-          title: "Thông báo",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  });
-};
-const removeFile = (event) => {
-  filesList.value = filesList.value.filter((a) => a != event.file);
-};
-const  listTypeContractSave=ref([]);
-const initTuDien = () => {
-  listTypeContract.value = [];
+const listHolidayType = ref([]);
+const initTudien = () => {
+  listHolidayType.value = [];
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "smartreport_list ",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_ca_holiday_type_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -783,49 +695,23 @@ const initTuDien = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       if (isFirst.value) isFirst.value = false;
-      var arrGroups = [];
-      data.forEach((element) => {
-        var strchk = arrGroups.find((x) => x == element.report_group);
-        if (strchk == null) {
-          arrGroups.push(element.report_group);
-        }
+      data.forEach((element, i) => {
+        listHolidayType.value.push({
+          name: element.holiday_type_name,
+          code: element.holiday_type_id,
+        });
       });
-       
-      listTypeContractSave.value=[...data]
-      arrGroups.forEach((item) => {
-        var ardf = {
-          label: item,
-          items: [],
-        };
-        data
-          .filter((x) => x.report_group == item)
-          .forEach((z) => {
-            ardf.items.push({ label: z.report_name, value: z.report_key });
-          });
-          listTypeContract.value.push(ardf);
 
-
-      });
-  loadData(true);
       options.value.loading = false;
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
     });
 };
-const listFilesS = ref([]);
 onMounted(() => {
-  initTuDien();
-
+  initTudien();
+  loadData(true);
   return {
     datalists,
     options,
@@ -846,37 +732,11 @@ onMounted(() => {
 });
 </script>
     <template>
-  <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <DataTable
-      @page="onPage($event)"
-      @sort="onSort($event)"
-      @filter="onFilter($event)"
-      v-model:filters="filters"
-      :filters="filters"
-      :scrollable="true"
-      filterDisplay="menu"
-      filterMode="lenient"
-      scrollHeight="flex"
-      :showGridlines="true"
-      columnResizeMode="fit"
-      :lazy="true"
-      :totalRecords="options.totalRecords"
-      :loading="options.loading"
-      :reorderableColumns="true"
-      :value="datalists"
-      removableSort
-      v-model:rows="options.PageSize"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :paginator="true"
-      :row-hover="true"
-      dataKey="type_decision_id"
-      responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
-    >
-      <template #header>
+  <div class="d-lang-table true flex-grow-1 p-2 pb-0 pr-0">
+  <div class="surface-0  p-2">
+    
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách loại quyết định ({{
+          <i class="pi pi-credit-card"></i> Danh sách ngày nghỉ lễ ({{
             options.totalRecords
           }})
         </h3>
@@ -954,6 +814,18 @@ onMounted(() => {
           </template>
 
           <template #end>
+            <SelectButton
+              v-model="optionsHoliday"
+              :options="optionsSelB"
+              optionValue="value"
+              dataKey="value"
+              class="mx-2"
+              aria-labelledby="basic"
+            >
+              <template #option="slotProps">
+                <i :class="slotProps.option.icon"></i>
+              </template>
+            </SelectButton>
             <Button
               v-if="checkDelList"
               @click="deleteList()"
@@ -962,7 +834,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm loại quyết định')"
+              @click="openBasic('Thêm ngày nghỉ lễ')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -989,14 +861,45 @@ onMounted(() => {
               :popup="true"
             /> -->
           </template>
-        </Toolbar></template
-      >
+        </Toolbar> 
 
+    </div>
+   
+    <DataTable
+    v-if="optionsHoliday==1"
+      @page="onPage($event)"
+      @sort="onSort($event)"
+      @filter="onFilter($event)"
+      v-model:filters="filters"
+      filterDisplay="menu"
+      filterMode="lenient"
+      :filters="filters"
+      :scrollable="true"
+      scrollHeight="flex"
+      :showGridlines="true"
+      columnResizeMode="fit"
+      :lazy="true"
+      :totalRecords="options.totalRecords"
+      :loading="options.loading"
+      :reorderableColumns="true"
+      :value="datalists"
+      removableSort
+      v-model:rows="options.PageSize"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+      :paginator="true"
+      dataKey="holiday_dates_id"
+      responsiveLayout="scroll"
+      v-model:selection="selectedStamps"
+      :row-hover="true"
+    >
+ 
       <Column
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-         selectionMode="multiple"  v-if="store.getters.user.is_super==true"
+        selectionMode="multiple"
+        v-if="store.getters.user.is_super == true"
       >
       </Column>
 
@@ -1006,33 +909,48 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-        :sortable="true"
       ></Column>
 
       <Column
-        field="type_decision_name"
-        header="Tên loại quyết định"
-        :sortable="true"
-        headerStyle="text-align:left;height:50px"
-        bodyStyle="text-align:left"
+        header="Ngày bắt đầu"
+        headerStyle="text-align:center;max-width:150px;height:50px"
+        bodyStyle="text-align:center;max-width:150px"
+        class="align-items-center justify-content-center text-center"
       >
-        <template #filter="{ filterModel }">
-          <InputText
-            type="text"
-            v-model="filterModel.value"
-            class="p-column-filter"
-            placeholder="Từ khoá"
-          />
+        <template #body="data">
+          <div v-if="data.data.start_date">
+            {{ moment(new Date(data.data.start_date)).format("DD/MM/yyyy") }}
+          </div>
         </template>
       </Column>
       <Column
-        field="report_key_name"
-        header="Mẫu quyết định"
-        headerStyle="text-align:center;max-width:300px;height:50px"
-        bodyStyle="text-align:center;max-width:300px;;max-height:60px"
+        header="Ngày kết thúc"
+        headerStyle="text-align:center;max-width:150px;height:50px"
+        bodyStyle="text-align:center;max-width:150px"
         class="align-items-center justify-content-center text-center"
       >
-        
+        <template #body="data">
+          <div v-if="data.data.end_date">
+            {{ moment(new Date(data.data.end_date)).format("DD/MM/yyyy") }}
+          </div>
+        </template>
+      </Column>
+
+      <Column
+        field="reason"
+        header="Lý do"
+        headerStyle="text-align:center ;height:50px"
+        bodyStyle="text-align:center; "
+        headerClass="align-items-center justify-content-center text-center"
+      >
+      </Column>
+      <Column
+        field="holiday_type_name"
+        header="Kiểu nghỉ lễ"
+        headerStyle="text-align:center;max-width:200px;height:50px"
+        bodyStyle="text-align:center;max-width:200px"
+        class="align-items-center justify-content-center text-center"
+      >
       </Column>
       <Column
         field="status"
@@ -1077,18 +995,20 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px"
       >
         <template #body="Tem">
-          <div>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == Tem.data.created_by ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id == Tem.data.organization_id)
+            "
+          >
             <Button
               @click="editTem(Tem.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-pencil"
               v-tooltip.top="'Sửa'"
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Tem.data.created_by ||
-                store.state.user.is_admin
-              "
             ></Button>
             <Button
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
@@ -1096,12 +1016,6 @@ onMounted(() => {
               icon="pi pi-trash"
               @click="delTem(Tem.data)"
               v-tooltip.top="'Xóa'"
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Tem.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
-                  store.state.user.organization_id == Tem.data.organization_id)
-              "
             ></Button>
           </div>
         </template>
@@ -1116,98 +1030,109 @@ onMounted(() => {
         </div>
       </template>
     </DataTable>
+    <calendar-view  v-if="optionsHoliday==2"
+			:show-date="showDate"
+			class="theme-default holiday-us-traditional holiday-us-official">
+			<template #header="{ headerProps }">
+				<calendar-view-header
+					:header-props="headerProps"
+					@input="setShowDate" />
+			</template>
+		</calendar-view>
   </div>
 
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '35vw' }"
+    :style="{ width: '45vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Loại quyết định <span class="redsao">(*)</span></label
-          >
-          <InputText
-            v-model="type_decision.type_decision_name"
-            spellcheck="false"
-            class="col-9 ip36 px-2"
-            :class="{
-              'p-invalid': v$.type_decision_name.$invalid && submitted,
-            }"
-            :disabled="checkDisabled"
+        <div class="col-12 field md:col-12 p-0 flex">
+          <div class="col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left p-0">Ngày bắt đầu</div>
+            <div class="col-8 text-left p-0">
+              <Calendar
+                v-model="holiday_dates.start_date"
+                class="w-full"
+                :showOnFocus="false"
+                :showIcon="true"
+              />
+            </div>
+          </div>
+          <div class="col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-4 text-left p-0 pl-3">Ngày kết thúc</div>
+            <div class="col-8 text-left p-0">
+              <Calendar
+                v-model="holiday_dates.end_date"
+                class="w-full"
+                :showOnFocus="false"
+                :showIcon="true"
+                :minDate="
+                  holiday_dates.start_date
+                    ? new Date(holiday_dates.start_date)
+                    : null
+                "
+              />
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field p-0 md:col-12 flex align-items-center">
+          <div class="col-2 p-0">Lý do</div>
+          <Textarea
+            :autoResize="true"
+            rows="3"
+            class="col-10 p-2 pb-0"
+            v-model="holiday_dates.reason"
           />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
-          <div class="col-3 text-left"></div>
-          <small
-            v-if="
-              (v$.type_decision_name.$invalid && submitted) ||
-              v$.type_decision_name.$pending.$response
-            "
-            class="col-9 p-error"
-          >
-            <span class="col-12 p-0">{{
-              v$.type_decision_name.required.$message
-                .replace("Value", "Tên loại quyết định")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
-        </div>
-        <div class="col-12 field md:col-12 flex  ">
-          <div
-            class="field col-6 md:col-6 p-0 align-items-center flex"
-          
-          >
-            <div class="col-6 text-left p-0">Gửi nhiều</div>
-            <InputSwitch v-model="type_decision.is_multiple" class="w-4rem lck-checked" />
+
+        <div class="col-12 field md:col-12 flex align-items-center p-0">
+          <div class="col-2 p-0">Kiểu nghỉ lễ</div>
+          <div class="col-10 p-0">
+            <Dropdown
+              :filter="true"
+              v-model="holiday_dates.holiday_type_id"
+              :options="listHolidayType"
+              optionLabel="name"
+              optionValue="code"
+              class="w-full"
+              panelClass="d-design-dropdown"
+              placeholder="Chọn kiểu nghỉ lễ"
+            />
           </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-6 text-center p-0">Trạng thái</div>
+        </div>
+        <div class="col-12 field md:col-12 p-0 flex">
+          <div class="col-6 md:col-6 align-items-center p-0 flex">
+            <div class="col-4 p-0">Trạng thái</div>
             <InputSwitch
-              v-model="type_decision.status" class="w-4rem lck-checked"
-              :disabled="checkDisabled"
+              v-model="holiday_dates.status"
+              class="w-4rem lck-checked"
             />
           </div>
-        
-        </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
-            <InputNumber
-              v-model="type_decision.is_order"
-              class="col-6 ip36 p-0"
-              :disabled="checkDisabled"
-            />
-          </div>
-        
           <div
-            class="field col-6 md:col-6 p-0 align-items-center flex"
+            class="col-6 md:col-6 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
-            <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="type_decision.is_system"  class="w-4rem lck-checked"/>
+            <div class="col-4 p-0 pl-3">Hệ thống</div>
+            <InputSwitch
+              v-model="holiday_dates.is_system"
+              class="w-4rem lck-checked"
+            />
           </div>
         </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Mẫu quyết định </label>
-          <Dropdown
-            :filter="true"
-            v-model="type_decision.report_key"
-            :options="listTypeContract"
-            optionLabel="label"
-            optionValue="value"
-            optionGroupLabel="label" optionGroupChildren="items"
-            class="col-9"
-            panelClass="d-design-dropdown"
-            placeholder="Chọn mẫu quyết định"
-      
-          />
+        <div class="col-12 md:col-12 align-items-center flex">
+          <div class="col-6 p-0 align-items-center flex">
+            <div class="col-4 p-0">STT</div>
+            <InputNumber
+              v-model="holiday_dates.is_order"
+              class="col-8 ip36 p-0"
+            />
+          </div>
         </div>
-         </div>
+      </div>
     </form>
     <template #footer>
       <Button
@@ -1217,12 +1142,7 @@ onMounted(() => {
         class="p-button-outlined"
       />
 
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveData(!v$.$invalid)"
-        autofocus
-      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveData()" autofocus />
     </template>
   </Dialog>
 </template>
@@ -1245,6 +1165,11 @@ onMounted(() => {
   object-fit: cover;
   width: 100%;
   height: 100%;
+}
+.d-lang-table{
+
+    max-height: calc(100vh - 135px);
+ 
 }
 </style>
     

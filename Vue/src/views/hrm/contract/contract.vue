@@ -393,6 +393,7 @@ const openAddDialog = (str) => {
     sign_date: new Date(),
     status: 0,
     is_order: options.value.total + 1,
+    wage_type: 1,
     allowances: [
       {
         allowance_id: CreateGuid(),
@@ -468,6 +469,12 @@ const editItem = (item, str) => {
             ]
               .split(",")
               .map((x) => parseInt(x));
+          }
+          if (model.value["wage_start_date"] != null) {
+            model.value["wage_start_date"] = new Date(model.value["wage_start_date"]);
+          }
+          if (model.value["wage_end_date"] != null) {
+            model.value["wage_end_date"] = new Date(model.value["wage_end_date"]);
           }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
