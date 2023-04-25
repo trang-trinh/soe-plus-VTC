@@ -862,6 +862,14 @@ onMounted(() => {
               :editable="true"
             />
           </div>
+          <div class="field" v-if="module.parent_id== 243">
+            <label class="col-3 text-left">Mã báo cáo</label>
+            <InputText
+            spellcheck="false"
+            class="col-8 ip36"
+            v-model="module.report_code"
+          />
+          </div>
           <div class="field">
             <label class="col-3 text-left">Kiểu mở</label>
             <Dropdown
@@ -907,6 +915,14 @@ onMounted(() => {
             optionLabel="data.organization_name"
             optionValue="data.organization_id"
           ></TreeSelect>
+        </div>
+        <div class="field col-12 md:col-12" v-if="module.parent_id== 243">
+          <label class="col-2 text-left">Ghi chú</label>
+          <InputText
+            spellcheck="false"
+            class="col-10 ip36"
+            v-model="module.report_note"
+          />
         </div>
         <div class="field col-12 md:col-12">
           <label style="vertical-align: text-left" class="col-2"

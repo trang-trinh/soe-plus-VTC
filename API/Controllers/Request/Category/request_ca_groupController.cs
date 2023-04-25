@@ -67,7 +67,7 @@ namespace API.Controllers.Request.Category
                         fdca_group = provider.FormData.GetValues("model").SingleOrDefault();
                         request_ca_group obj_data = JsonConvert.DeserializeObject<request_ca_group>(fdca_group);
 
-
+                        obj_data.request_group_id = helper.GenKey();
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
                         obj_data.organization_id = super ? 0 : int.Parse(dvid);
                         obj_data.created_by = uid;

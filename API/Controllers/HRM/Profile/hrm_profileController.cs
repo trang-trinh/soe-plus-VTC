@@ -1656,8 +1656,15 @@ namespace API.Controllers.HRM.Profile
                                 var path = HttpContext.Current.Server.MapPath("~/") + profile.avatar;
                                 if (File.Exists(path))
                                 {
-                                    user.avatar = "/Portals/Users/" + user.user_id + "/" + helper.GenKey() + ".jpg";
-                                    File.Copy(path, user.avatar, true);
+                                    var path_copy = "/Portals/" + user.organization_id + "/Users/" + user.user_id;
+                                    var exists = HttpContext.Current.Server.MapPath("~/") + path_copy;
+                                    if (!Directory.Exists(exists))
+                                    {
+                                        Directory.CreateDirectory(exists);
+                                    }
+                                    user.avatar = path_copy + "/" + helper.GenKey() + ".jpg";
+                                    var root_copy = HttpContext.Current.Server.MapPath("~/") + user.avatar;
+                                    File.Copy(path, root_copy, true);
                                 }
                             }
                             db.sys_users.Add(user);
