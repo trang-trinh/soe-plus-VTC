@@ -364,6 +364,7 @@ const caHRMTitle = () => import("../views/hrm/category/caTitle.vue");
 const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
   const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
+  const hrmHolidayDate = () => import("../views/hrm/declare/hrm_holiday_dates.vue");
 const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
@@ -373,6 +374,7 @@ const caExperience = () => import("../views/hrm/category/caExperience.vue");
 const Candidate = () => import("../views/hrm/recruitment/hrm_candidate.vue");
 
 const caClassroom = () => import("../views/hrm/category/caClassroom.vue");
+const caHolidayType = () => import("../views/hrm/category/caHolidayType.vue");
 const caReceipt = () => import("../views/hrm/category/caReceipt.vue");
 const caEnectingGroup = () =>
   import("../views/hrm/category/caEnectingGroup.vue");
@@ -1743,7 +1745,14 @@ const router = createRouter({
       path: "/hrm/hrm_shift",
       name: "caHRMDeclareShift",
       component: caHRMDeclareShift,
+    }, {
+      path: "/hrm/declare/holiday_dates",
+      name: "hrmHolidayDate",
+      component: hrmHolidayDate,
     },
+
+
+    
     {
       path: "/hrm/category/ca_decision",
       name: "caHRMDecision",
@@ -1786,6 +1795,13 @@ const router = createRouter({
       name: "caHRMClassroom",
       component: caClassroom,
     },
+    {
+      path: "/hrm/category/ca_holiday_type",
+      name: "caHolidayType",
+      component: caHolidayType,
+    },
+
+    
     {
       path: "/hrm/category/ca_receipt",
       name: "caHRMReceipt",

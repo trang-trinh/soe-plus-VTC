@@ -67,10 +67,10 @@ namespace API.Controllers.Request.Category
                         fdca_group = provider.FormData.GetValues("model").SingleOrDefault();
                         request_ca_team obj_data = JsonConvert.DeserializeObject<request_ca_team>(fdca_group);
 
-
+                        obj_data.request_team_id = helper.GenKey();
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
                         obj_data.request_team_id = helper.GenKey();
-                        obj_data.organization_id = super ? 0 : int.Parse(dvid);
+                        obj_data.organization_id = int.Parse(dvid);// super ? 0 : int.Parse(dvid);
                         obj_data.created_by = uid;
                         obj_data.created_date = DateTime.Now;
                         obj_data.created_ip = ip;
