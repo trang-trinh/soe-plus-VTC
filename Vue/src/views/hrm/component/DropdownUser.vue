@@ -89,7 +89,7 @@ const props = defineProps({
   placeholder: String,
   class: String,
   display: String,
- 
+  disabled:Boolean
 });
 const model = ref();
 const submitModel=()=>{
@@ -126,6 +126,7 @@ onMounted(() => {
     :display="props.display"
     :filter="true"
     v-if="isShow"
+    :disabled="props.disabled"
   >
     <template #option="slotProps">
       <div v-if="slotProps.option" class="flex">
