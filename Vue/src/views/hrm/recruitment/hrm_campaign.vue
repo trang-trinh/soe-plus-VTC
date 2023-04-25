@@ -1234,7 +1234,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
+            proc: "hrm_ca_work_position_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -1253,8 +1253,8 @@ const initTudien = () => {
       listVacancies.value = [];
       data.forEach((element, i) => {
         listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
+          name: element.work_position_name,
+          code: element.work_position_id,
         });
       });
     })
@@ -1411,8 +1411,8 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
-                                  autocomplete="on"
+                                  class="ip36" :showOnFocus="false"
+                                  autocomplete="on" 
                                   inputId="time24"
                                   v-model="options.start_dateI"
                                   placeholder="Từ ngày"
@@ -1423,7 +1423,7 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
+                                  class="ip36" :showOnFocus="false"
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.end_dateI"
@@ -1574,7 +1574,7 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  class="ip36"
+                                  class="ip36" :showOnFocus="false"
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.start_dateD"
@@ -1588,7 +1588,7 @@ onMounted(() => {
                                   :showIcon="true"
                                   class="ip36"
                                   autocomplete="on"
-                                  inputId="time24"
+                                  inputId="time24" :showOnFocus="false"
                                   v-model="options.end_dateD"
                                   placeholder="Đến ngày"
                                 />
@@ -1873,7 +1873,7 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="vacancy_name"
+              field="work_position_name"
               header="Vị trí"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"

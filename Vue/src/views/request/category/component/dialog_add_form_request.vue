@@ -117,25 +117,21 @@ const MoveDownQT = (arr, m, idx_cr, type) => {
 		arr[idx_cr] = arr[idx_cr + 1];
 		arr[idx_cr + 1] = el;
 	}
-	if (type == 0) {
-		listGroupTeams.value.forEach((e, i) => {
-			if (arr.length == 1) {
-				e.isDisableDown = true;
-				e.isDisableUp = true;
-			} else if (i == 0 && listGroupTeams.value.length > 1) {
-				e.isDisableDown = false;
-				e.isDisableUp = true;
-			} else if ((i + 1 == listGroupTeams.value.length) && listGroupTeams.value.length > 1) {
-				e.isDisableDown = true;
-				e.isDisableUp = false;
-			} else if (i > 0 && i < listGroupTeams.value.length - 1) {
-				e.isDisableDown = false;
-				e.isDisableUp = false;
-			}
-		})
-	} else {
-
-	}
+	arr.forEach((e, i) => {
+		if (arr.length == 1) {
+			e.isDisableDown = true;
+			e.isDisableUp = true;
+		} else if (i == 0 && arr.length > 1) {
+			e.isDisableDown = false;
+			e.isDisableUp = true;
+		} else if ((i + 1 == arr.length) && arr.length > 1) {
+			e.isDisableDown = true;
+			e.isDisableUp = false;
+		} else if (i > 0 && i < arr.length - 1) {
+			e.isDisableDown = false;
+			e.isDisableUp = false;
+		}
+	})
 };
 const MoveUpQT = (arr, m, idx_cr, type) => {
 	if (idx_cr > 0) {
@@ -143,23 +139,21 @@ const MoveUpQT = (arr, m, idx_cr, type) => {
 		arr[idx_cr] = arr[idx_cr - 1];
 		arr[idx_cr - 1] = el;
 	}
-	if (type == 0) {
-		listGroupTeams.value.forEach((e, i) => {
-			if (arr.length == 1) {
-				e.isDisableDown = true;
-				e.isDisableUp = true;
-			} else if (i == 0 && listGroupTeams.value.length > 1) {
-				e.isDisableDown = false;
-				e.isDisableUp = true;
-			} else if ((i + 1 == listGroupTeams.value.length) && listGroupTeams.value.length > 1) {
-				e.isDisableDown = true;
-				e.isDisableUp = false;
-			} else if (i > 0 && i < listGroupTeams.value.length - 1) {
-				e.isDisableDown = false;
-				e.isDisableUp = false;
-			}
-		})
-	}
+	arr.forEach((e, i) => {
+		if (arr.length == 1) {
+			e.isDisableDown = true;
+			e.isDisableUp = true;
+		} else if (i == 0 && arr.length > 1) {
+			e.isDisableDown = false;
+			e.isDisableUp = true;
+		} else if ((i + 1 == arr.length) && arr.length > 1) {
+			e.isDisableDown = true;
+			e.isDisableUp = false;
+		} else if (i > 0 && i < arr.length - 1) {
+			e.isDisableDown = false;
+			e.isDisableUp = false;
+		}
+	})
 };
 const displayDialogUser = ref(false);
 const selectedUser = ref([]);
@@ -170,7 +164,11 @@ const indexSelect = ref();
 const OpenDialogTreeUser = (one, index) => {
 	indexSelect.value = index;
 	selectedUser.value = [];
-	headerDialogUser.value = "Chọn người duyệt"; 0
+	if (listGroupTeams.value.length > 0) {
+		selectedUser.value = [...listGroupTeams.value[index].GroupTeamUsers];
+	}
+
+	headerDialogUser.value = "Chọn người duyệt";
 	displayDialogUser.value = true;
 };
 const closeDialog = () => {
@@ -179,10 +177,10 @@ const closeDialog = () => {
 const choiceTreeUser = () => {
 	if (selectedUser.value.length > 0) {
 		selectedUser.value.forEach(function (u, j) {
-			let groupuser = { request_form_sign_user_id: -1, request_form_sign_id: null, user_id: u.user_id, full_name: u.full_name, avatar: u.avatar, last_name: u.last_name, created_by: null, created_date: null, created_ip: null, created_token_id: null, STT: null };
 			listGroupTeams.value.forEach((d, i) => {
 				if (i == indexSelect.value) {
-					groupuser.STT = j + 1;
+					let groupuser = { request_form_sign_user_id: "-1", request_form_sign_id: null, user_id: u.user_id, full_name: u.full_name, avatar: u.avatar, last_name: u.last_name, created_by: null, created_date: null, created_ip: null, created_token_id: null, status: true, STT: d.GroupTeamUsers.length + 1 };
+					// groupuser.STT = j + 1;
 					d.GroupTeamUsers.push(groupuser);
 					d.GroupTeamUsers.forEach((e, k) => {
 						if (d.GroupTeamUsers.length == 1) {
@@ -538,9 +536,9 @@ onMounted(() => {
 		? ''
 		: (value.data.last_name ?? '').substring(0, 1)
 " v-bind:image="basedomainURL + value.data.avatar" style="background-color: #2196f3;color: #ffffff;width: 2.5rem;height: 2.5rem;font-size: 15px !important;
-																										" :style="{
-																											background: bgColor[value.index] + '!important',
-																										}" class="cursor-pointer" size="xlarge" shape="circle" />
+																													" :style="{
+																														background: bgColor[value.index] + '!important',
+																													}" class="cursor-pointer" size="xlarge" shape="circle" />
 												<span style="margin-left: 10px;">{{ value.data.full_name }}</span>
 											</template>
 										</Column>
@@ -553,7 +551,7 @@ onMounted(() => {
 													<span style="width:25%;font-size: 17px;">
 														<i style="padding: 5px;font-size: 17px;"
 															class="pi pi-angle-down hover-cursor" v-tooltip.top="'Xuống'"
-															:class="(data.data.isDisableUp ? 'colorDisable' : '')"
+															:class="(data.data.isDisableDown ? 'colorDisable' : '')"
 															@click="MoveDownQT(slotProps.data.GroupTeamUsers, data.data, data.index, 1)"></i>
 													</span>
 													<span style="width:25%;font-size: 17px;">

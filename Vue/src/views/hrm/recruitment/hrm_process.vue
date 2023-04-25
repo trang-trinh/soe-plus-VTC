@@ -892,7 +892,7 @@ onMounted(() => {
                             <div class="col-6 md:col-6">
                               <div class="form-group">
                                 <Calendar
-                                  :showIcon="true"
+                                  :showIcon="true" 
                                   autocomplete="on"
                                   inputId="time24"
                                   v-model="options.start_date"
@@ -1133,13 +1133,13 @@ onMounted(() => {
             responsiveLayout="scroll"
             v-model:selection="selectedStamps"
             :row-hover="true"
-            selectionMode="multiple"
+            
           >
             <Column
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
-              selectionMode="multiple"
+               selectionMode="multiple"  v-if="store.getters.user.is_super==true"
             >
             </Column>
 

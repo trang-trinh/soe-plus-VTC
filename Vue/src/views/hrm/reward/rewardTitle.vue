@@ -5,9 +5,10 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 import dialogReward from "./component/dialog_reward.vue";
+import DropdownUser from "../component/DropdownUser.vue";
 import router from "@/router";
 //Khai báo
-
+const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -216,6 +217,7 @@ const options = ref({
   totalRecords3: 0,
   totalRecordsExport: 50,
   pagenoExport: 1,
+  reward_name:[]
 });
 
 //Hiển thị dialog
@@ -616,22 +618,29 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
+  
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
   });
-  if (tabs.value.id == 0) {
+ 
     axios
       .post(
         baseURL + "/api/Excel/ExportExcelWithLogo",
         {
-          excelname: "DANH SÁCH KHEN THƯỞNG",
+          excelname: options.value.tab==0?"DANH SÁCH KHEN THƯỞNG":"DANH SÁCH KỶ LUẬT",
           proc: "hrm_reward_export",
           par: [
             { par: "user_id", va: store.state.user.user_id },
             { par: "search", va: options.value.SearchText },
+            {
+              par: "reward_name",
+              va: options.value.reward_name
+                ? options.value.reward_name.toString()
+                : null,
+            },
             {
               par: "reward_level_id",
               va: options.value.reward_level_id
@@ -644,9 +653,9 @@ const exportData = (method) => {
                 ? options.value.reward_title_id.toString()
                 : null,
             },
-          
-            { par: "start_dateI", va: options.value.start_dateI },
-            { par: "end_dateI", va: options.value.end_dateI },
+            { par: "reward_type", va: options.value.tab  },
+            { par: "start_date", va:   options.value.start_dateI},
+            { par: "end_date", va:options.value.end_dateI },
         
             { par: "sort", va: options.value.sort },
             { par: "pageno", va: options.value.pagenoExport - 1 },
@@ -694,7 +703,7 @@ const exportData = (method) => {
           store.commit("gologout");
         }
       });
-  }
+ 
 };
 
 const activeTab = (tab) => {
@@ -849,6 +858,17 @@ const reFilterEmail = () => {
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
+
+  if (options.value.reward_name.length>0) {
+    let filterS1 = {
+      filterconstraints: [ { value: options.value.reward_name.toString(), matchMode: "arrIntersec" }],
+      filteroperator: "or",
+      key: "reward_name",
+    };
+     
+      filterSQL.value.push(filterS1);
+  
+  }
   if (options.value.reward_level_id) {
     let filterS1 = {
       filterconstraints: [],
@@ -1111,6 +1131,19 @@ const loadUserProfiles = () => {
       }
     });
 };
+  emitter.on("emitData", (obj) => {
+    switch (obj.type) {
+      case "submitModel":
+        if (obj.data) {
+           
+         options.value.reward_name=obj.data;
+ 
+        }
+        break;
+     
+      default: break;
+    }
+  });
 onMounted(() => {
   loadUserProfiles();
   initTudien();
@@ -1177,7 +1210,7 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width: 400px"
+                style="width: 600px"
               >
                 <div class="grid formgrid m-0">
                   <div
@@ -1192,6 +1225,13 @@ onMounted(() => {
                       <div class="col-12 md:col-12">
                         
                         <div class="row" >
+                          <div class="col-12 md:col-12">
+                            <div class="py-2"  >Đối tượng khen thưởng</div>
+                            <DropdownUser  :model="options.reward_name"
+                            
+                            :display="'chip'"
+                            :placeholder="'Chọn đối tượng khen thưởng'"/>
+                          </div>
                           <div class="col-12 md:col-12">
                             <div class="py-2" v-if="options.tab == 0">Cấp khen thưởng</div>
                             <div class="py-2"   v-if="options.tab == 1">Cấp kỷ luật</div>
@@ -1245,7 +1285,7 @@ onMounted(() => {
                                     :showIcon="true"
                                     class="ip36"
                                     autocomplete="on"
-                                    inputId="time24"
+                                    inputId="time24" :showOnFocus="false"
                                     v-model="options.start_dateI"
                                     placeholder="Từ ngày"
                                   />
@@ -1257,7 +1297,7 @@ onMounted(() => {
                                     :showIcon="true"
                                     class="ip36"
                                     autocomplete="on"
-                                    inputId="time24"
+                                    inputId="time24" :showOnFocus="false"
                                     v-model="options.end_dateI"
                                     placeholder="Đến ngày"
                                   />
@@ -1390,7 +1430,7 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
-              selectionMode="multiple"
+               selectionMode="multiple"  v-if="store.getters.user.is_super==true"
             >
             </Column>
             <Column

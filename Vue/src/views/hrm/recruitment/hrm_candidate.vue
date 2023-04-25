@@ -1069,8 +1069,8 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  autocomplete="on"
-                                  inputId="time24"
+                                  autocomplete="on" 
+                                  inputId="time24" :showOnFocus="false"
                                   v-model="options.start_date"
                                   placeholder="Từ ngày"
                                 />
@@ -1080,8 +1080,8 @@ onMounted(() => {
                               <div class="form-group">
                                 <Calendar
                                   :showIcon="true"
-                                  autocomplete="on"
-                                  inputId="time24"
+                                  autocomplete="on" :showOnFocus="false"
+                                  inputId="time24" 
                                   v-model="options.end_date"
                                   placeholder="Đến ngày"
                                 />
@@ -1237,7 +1237,7 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
-              selectionMode="multiple"
+               selectionMode="multiple"  v-if="store.getters.user.is_super==true"
             >
             </Column> -->
 

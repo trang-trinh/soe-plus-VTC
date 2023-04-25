@@ -3,7 +3,7 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { encr, checkURL } from "../../../../util/function.js";
+import { encr, autoFillDate } from "../../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
 const store = inject("store");
@@ -271,38 +271,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_rec_proposal_list_all",
-            par: [
-              { par: "status", va: 2 },
-              { par: "user_id", va: store.getters.user.user_id },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listProposal.value = [];
-      data.forEach((element) => {
-        listProposal.value.push({
-          name: element.recruitment_proposal_name,
-          code: element.recruitment_proposal_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
+  
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -746,10 +715,12 @@ onMounted(() => {
             <div class="w-10rem pl-3">Ngày quyết định</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
-                class="w-full"
-                id="basic_purchase_date"
+              @blur="autoFillDate(reward,'decision_date')"
+              id="decision_date"
+                class="w-full"    :manualInput="true" 
+               
                 v-model="reward.decision_date"
-                autocomplete="off"
+                autocomplete="off" :showOnFocus="false"
                 :showIcon="true"
                 placeholder="dd/mm/yyyy"
               />
@@ -901,7 +872,7 @@ onMounted(() => {
                     optionValue="data.department_id"
                     panelClass="d-design-dropdown"
                     class="w-full d-tree-input"
-                    selectionMode="multiple"
+                     selectionMode="multiple"  v-if="store.getters.user.is_super==true"
                     :metaKeySelection="false"
                     placeholder="-------- Chọn phòng ban khen thưởng--------"
                     display="chip"
@@ -1079,12 +1050,14 @@ onMounted(() => {
             <div class="w-10rem">Ngày hiệu lực</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
+              @blur="autoFillDate(reward,'effective_date')"
+              id="effective_date"
                 class="w-full"
                 placeholder="dd/mm/yyyy"
-                id="basic_purchase_date"
+               
                 v-model="reward.effective_date"
                 autocomplete="off"
-                :showIcon="true"
+                :showIcon="true" :showOnFocus="false"
               />
             </div>
           </div>

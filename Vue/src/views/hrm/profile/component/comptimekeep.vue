@@ -16,8 +16,8 @@ const basedomainURL = baseURL;
 
 //Get arguments
 const props = defineProps({
-  key: Number,
   profile_id: String,
+  view: Number,
 });
 
 //Declare
@@ -451,7 +451,9 @@ const initDay = (start_date, end_date) => {
     });
 };
 onMounted(() => {
-  initDictionary();
+  if (props.view === 4) {
+    initDictionary();
+  }
 });
 </script>
 <template>

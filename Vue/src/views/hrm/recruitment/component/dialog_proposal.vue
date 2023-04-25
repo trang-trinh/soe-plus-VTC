@@ -3,7 +3,7 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { encr, checkURL } from "../../../../util/function.js";
+import { encr, autoFillDate } from "../../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
 const store = inject("store");
@@ -78,7 +78,7 @@ const recruitment_proposal = ref({
   expected_cost: null,
   start_date: null,
   end_date: null,
-  vacancy_id: null,
+  work_position_id: null,
   rec_position_id: null,
   rec_formality_id: null,
   rec_salary_from: null,
@@ -161,7 +161,7 @@ const saveData = (isFormValid) => {
     return;
   }
   if (
-    recruitment_proposal.value.vacancy_id == null ||
+    recruitment_proposal.value.work_position_id == null ||
     recruitment_proposal.value.end_date == null ||
     recruitment_proposal.value.recruits_num == null
   ) {
@@ -349,22 +349,14 @@ const listSpecialization = ref([]);
 const listExperience = ref([]);
 const listLanguage_level = ref([]);
 
-const listStatus = ref([
-  { name: "Lên kế hoạch", code: 1 },
-  { name: "Đang thực hiện", code: 2 },
-  { name: "Đã hoàn thành", code: 3 },
-  { name: "Tạm dừng", code: 4 },
-  { name: "Đã hủy", code: 5 },
-]);
+ 
 const listGender = ref([
   { name: "Nam", code: 1 },
   { name: "Nữ", code: 2 },
   { name: "Khác", code: 3 },
 ]);
 
-const checkShow = ref(false);
-const checkShow2 = ref(false);
-const checkShow3 = ref(false);
+ 
  
 const deleteFileH = (value) => {
   listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
@@ -488,7 +480,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
+            proc: "hrm_ca_work_position_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -507,8 +499,8 @@ const initTudien = () => {
       listVacancies.value = [];
       data.forEach((element, i) => {
         listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
+          name: element.work_position_name,
+          code: element.work_position_id,
         });
       });
     })
@@ -521,11 +513,10 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "ca_positions_list",
+            proc: "hrm_positions_list",
             par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100000 },
-              { par: "user_id", va: store.getters.user.user_id },
+            { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
             ],
           }),
           SecretKey,
@@ -1023,7 +1014,7 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 :filter="true"
-                v-model="recruitment_proposal.vacancy_id"
+                v-model="recruitment_proposal.work_position_id"
                 :options="listVacancies"
                 optionLabel="name"
                 optionValue="code"
@@ -1032,7 +1023,7 @@ onMounted(() => {
                 placeholder="Chọn vị trí tuyển dụng"
                 :class="{
                   'p-invalid':
-                    recruitment_proposal.vacancy_id == null && submitted,
+                    recruitment_proposal.work_position_id == null && submitted,
                 }"
               />
             </div>
@@ -1055,7 +1046,7 @@ onMounted(() => {
         </div>
         <div
           class="col-12 p-0 field flex"
-          v-if="recruitment_proposal.vacancy_id == null && submitted"
+          v-if="recruitment_proposal.work_position_id == null && submitted"
         >
           <div class="p-0 col-6">
             <div class="col-12 p-0 flex">
@@ -1092,10 +1083,11 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
-                id="basic_purchase_date"
+                @blur="autoFillDate(recruitment_proposal,'start_date')"
+              id="start_date"
                 v-model="recruitment_proposal.start_date"
                 autocomplete="off"
-                :showIcon="true"
+                :showIcon="true" :showOnFocus="false"
                 placeholder="dd/mm/yyyy"
               />
             </div>
@@ -1108,9 +1100,10 @@ onMounted(() => {
               <Calendar
                 class="w-full"
                 placeholder="dd/mm/yyyy"
-                id="basic_purchase_date"
+                @blur="autoFillDate(recruitment_proposal,'end_date')"
+              id="end_date"
                 v-model="recruitment_proposal.end_date"
-                autocomplete="off"
+                autocomplete="off" :showOnFocus="false"
                 :minDate="
                   recruitment_proposal.start_date
                     ? new Date(recruitment_proposal.start_date)

@@ -670,8 +670,11 @@ const loadPhongban = (rf) => {
       donvis.value = obj.arrChils;
       opition.value.loading = false;
 
-      if (data[0] != null)
+      if (data[0] != null){
+        selectedKey.value ={};
+        selectedKey.value[data[0].organization_id] = true;
         loadUser(true, data[0].organization_id, data[0].organization_name);
+      }
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -1813,6 +1816,7 @@ onMounted(() => {
                     >
                       <template #body="md">
                         <div
+                          class="avt-org"
                           :class="
                             md.node.data.organization_parent_id ===
                             organization_id_label
@@ -3185,6 +3189,11 @@ onMounted(() => {
   .p-treeselect-panel .p-treeselect-items-wrapper {
     max-height: 200px !important;
     max-width: 300px !important;
+  }
+}
+::v-deep(.avt-org) {
+  img {
+    object-fit: contain !important;
   }
 }
 </style>

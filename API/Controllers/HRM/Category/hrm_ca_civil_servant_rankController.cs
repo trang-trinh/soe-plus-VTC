@@ -23,7 +23,7 @@ using Newtonsoft.Json.Linq;
 namespace API.Controllers.HRM.Category
 {
     [Authorize(Roles = "login")]
-    public class hrm_ca_allowanceController : ApiController
+    public class hrm_ca_civil_servant_rankController : ApiController
     {
         public string getipaddress()
         {
@@ -131,14 +131,14 @@ namespace API.Controllers.HRM.Category
         }
         #endregion
         [HttpPost]
-        public async Task<HttpResponseMessage> add_hrm_ca_allowance()
+        public async Task<HttpResponseMessage> add_hrm_ca_civil_servant_rank()
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            string fdca_allowance = "";
+            string fdca_civil_servant_rank = "";
             IEnumerable<Claim> claims = identity.Claims;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
@@ -169,17 +169,17 @@ namespace API.Controllers.HRM.Category
                         {
                             Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
                         }
-                        fdca_allowance = provider.FormData.GetValues("hrm_ca_allowance").SingleOrDefault();
-                        hrm_ca_allowance ca_allowance = JsonConvert.DeserializeObject<hrm_ca_allowance>(fdca_allowance);
+                        fdca_civil_servant_rank = provider.FormData.GetValues("hrm_ca_civil_servant_rank").SingleOrDefault();
+                        hrm_ca_civil_servant_rank ca_civil_servant_rank = JsonConvert.DeserializeObject<hrm_ca_civil_servant_rank>(fdca_civil_servant_rank);
 
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        ca_allowance.organization_id = int.Parse(dvid);
-                        ca_allowance.created_by = uid;
-                        ca_allowance.created_date = DateTime.Now;
-                        ca_allowance.created_ip = ip;
-                        ca_allowance.created_token_id = tid;
-                        db.hrm_ca_allowance.Add(ca_allowance);
+                        ca_civil_servant_rank.organization_id = int.Parse(dvid);
+                        ca_civil_servant_rank.created_by = uid;
+                        ca_civil_servant_rank.created_date = DateTime.Now;
+                        ca_civil_servant_rank.created_ip = ip;
+                        ca_civil_servant_rank.created_token_id = tid;
+                        db.hrm_ca_civil_servant_rank.Add(ca_civil_servant_rank);
                         db.SaveChanges();
 
                         #region add hrm_log
@@ -187,11 +187,11 @@ namespace API.Controllers.HRM.Category
                         {
 
                             hrm_log log = new hrm_log();
-                            log.title = "Thêm phụ cấp " + ca_allowance.allowance_name;
+                            log.title = "Thêm phụ cấp " + ca_civil_servant_rank.civil_servant_rank_name;
 
-                            log.log_module = "ca_allowance";
+                            log.log_module = "ca_civil_servant_rank";
                             log.log_type = 0;
-                            log.id_key = ca_allowance.allowance_id.ToString();
+                            log.id_key = ca_civil_servant_rank.civil_servant_rank_id.ToString();
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
                             log.created_token_id = tid;
@@ -209,7 +209,7 @@ namespace API.Controllers.HRM.Category
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_allowance, contents }), domainurl + "hrm_ca_allowance/Add_ca_allowance", ip, tid, "Lỗi khi thêm phụ cấp", 0, "phụ cấp");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_civil_servant_rank, contents }), domainurl + "hrm_ca_civil_servant_rank/Add_ca_civil_servant_rank", ip, tid, "Lỗi khi thêm phụ cấp", 0, "phụ cấp");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -220,7 +220,7 @@ namespace API.Controllers.HRM.Category
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_allowance, contents }), domainurl + "hrm_ca_allowance/Add_ca_allowance", ip, tid, "Lỗi khi thêm phụ cấp", 0, "phụ cấp  ");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_civil_servant_rank, contents }), domainurl + "hrm_ca_civil_servant_rank/Add_ca_civil_servant_rank", ip, tid, "Lỗi khi thêm phụ cấp", 0, "phụ cấp  ");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -230,14 +230,14 @@ namespace API.Controllers.HRM.Category
             }
         }
         [HttpPut]
-        public async Task<HttpResponseMessage> update_hrm_ca_allowance()
+        public async Task<HttpResponseMessage> update_hrm_ca_civil_servant_rank()
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            string fdca_allowance = "";
+            string fdca_civil_servant_rank = "";
             IEnumerable<Claim> claims = identity.Claims;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
@@ -269,19 +269,19 @@ namespace API.Controllers.HRM.Category
                         {
                             Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
                         }
-                        fdca_allowance = provider.FormData.GetValues("hrm_ca_allowance").SingleOrDefault();
-                        hrm_ca_allowance ca_allowance = JsonConvert.DeserializeObject<hrm_ca_allowance>(fdca_allowance);
+                        fdca_civil_servant_rank = provider.FormData.GetValues("hrm_ca_civil_servant_rank").SingleOrDefault();
+                        hrm_ca_civil_servant_rank ca_civil_servant_rank = JsonConvert.DeserializeObject<hrm_ca_civil_servant_rank>(fdca_civil_servant_rank);
 
 
 
 
 
 
-                        ca_allowance.modified_by = uid;
-                        ca_allowance.modified_date = DateTime.Now;
-                        ca_allowance.modified_ip = ip;
-                        ca_allowance.modified_token_id = tid;
-                        db.Entry(ca_allowance).State = EntityState.Modified;
+                        ca_civil_servant_rank.modified_by = uid;
+                        ca_civil_servant_rank.modified_date = DateTime.Now;
+                        ca_civil_servant_rank.modified_ip = ip;
+                        ca_civil_servant_rank.modified_token_id = tid;
+                        db.Entry(ca_civil_servant_rank).State = EntityState.Modified;
                         db.SaveChanges();
 
 
@@ -290,11 +290,11 @@ namespace API.Controllers.HRM.Category
                         {
 
                             hrm_log log = new hrm_log();
-                            log.title = "Sửa phụ cấp " + ca_allowance.allowance_name;
+                            log.title = "Sửa phụ cấp " + ca_civil_servant_rank.civil_servant_rank_name;
 
-                            log.log_module = "ca_allowance";
+                            log.log_module = "ca_civil_servant_rank";
                             log.log_type = 1;
-                            log.id_key = ca_allowance.allowance_id.ToString();
+                            log.id_key = ca_civil_servant_rank.civil_servant_rank_id.ToString();
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
                             log.created_token_id = tid;
@@ -313,7 +313,7 @@ namespace API.Controllers.HRM.Category
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_allowance, contents }), domainurl + "hrm_ca_allowance/Update_ca_allowance", ip, tid, "Lỗi khi cập nhật ca_allowance", 0, "ca_allowance");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_civil_servant_rank, contents }), domainurl + "hrm_ca_civil_servant_rank/Update_ca_civil_servant_rank", ip, tid, "Lỗi khi cập nhật ca_civil_servant_rank", 0, "ca_civil_servant_rank");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -324,7 +324,7 @@ namespace API.Controllers.HRM.Category
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_allowance, contents }), domainurl + "hrm_ca_allowance/Update_ca_allowance", ip, tid, "Lỗi khi cập nhật ca_allowance", 0, "ca_allowance");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_civil_servant_rank, contents }), domainurl + "hrm_ca_civil_servant_rank/Update_ca_civil_servant_rank", ip, tid, "Lỗi khi cập nhật ca_civil_servant_rank", 0, "ca_civil_servant_rank");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -337,7 +337,7 @@ namespace API.Controllers.HRM.Category
 
 
         [HttpDelete]
-        public async Task<HttpResponseMessage> delete_hrm_ca_allowance([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
+        public async Task<HttpResponseMessage> delete_hrm_ca_civil_servant_rank([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -359,11 +359,11 @@ namespace API.Controllers.HRM.Category
                 {
                     using (DBEntities db = new DBEntities())
                     {
-                        var das = await db.hrm_ca_allowance.Where(a => id.Contains(a.allowance_id)).ToListAsync();
+                        var das = await db.hrm_ca_civil_servant_rank.Where(a => id.Contains(a.civil_servant_rank_id)).ToListAsync();
                         List<string> paths = new List<string>();
                         if (das != null)
                         {
-                            List<hrm_ca_allowance> del = new List<hrm_ca_allowance>();
+                            List<hrm_ca_civil_servant_rank> del = new List<hrm_ca_civil_servant_rank>();
                             foreach (var da in das)
                             {
 
@@ -374,11 +374,11 @@ namespace API.Controllers.HRM.Category
                                 {
 
                                     hrm_log log = new hrm_log();
-                                    log.title = "Xóa phụ cấp " + da.allowance_name;
+                                    log.title = "Xóa phụ cấp " + da.civil_servant_rank_name;
 
-                                    log.log_module = "ca_allowance";
+                                    log.log_module = "ca_civil_servant_rank";
                                     log.log_type = 2;
-                                    log.id_key = da.allowance_id.ToString();
+                                    log.id_key = da.civil_servant_rank_id.ToString();
                                     log.created_date = DateTime.Now;
                                     log.created_by = uid;
                                     log.created_token_id = tid;
@@ -394,7 +394,7 @@ namespace API.Controllers.HRM.Category
                             {
                                 return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
                             }
-                            db.hrm_ca_allowance.RemoveRange(del);
+                            db.hrm_ca_civil_servant_rank.RemoveRange(del);
                         }
                         await db.SaveChangesAsync();
 
@@ -404,7 +404,7 @@ namespace API.Controllers.HRM.Category
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_ca_allowance/Delete_ca_allowance", ip, tid, "Lỗi khi xoá tem", 0, "ca_allowance");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_ca_civil_servant_rank/Delete_ca_civil_servant_rank", ip, tid, "Lỗi khi xoá tem", 0, "ca_civil_servant_rank");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -415,7 +415,7 @@ namespace API.Controllers.HRM.Category
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_ca_allowance/Delete_ca_allowance", ip, tid, "Lỗi khi xoá tem", 0, "ca_allowance");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_ca_civil_servant_rank/Delete_ca_civil_servant_rank", ip, tid, "Lỗi khi xoá tem", 0, "ca_civil_servant_rank");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -433,7 +433,7 @@ namespace API.Controllers.HRM.Category
 
 
         [HttpPut]
-        public async Task<HttpResponseMessage> update_s_hrm_ca_allowance([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
+        public async Task<HttpResponseMessage> update_s_hrm_ca_civil_servant_rank([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -455,7 +455,7 @@ namespace API.Controllers.HRM.Category
                     using (DBEntities db = new DBEntities())
                     {
                         var int_id = int.Parse(trangthai.IntID.ToString());
-                        var das = db.hrm_ca_allowance.Where(a => (a.allowance_id == int_id)).FirstOrDefault<hrm_ca_allowance>();
+                        var das = db.hrm_ca_civil_servant_rank.Where(a => (a.civil_servant_rank_id == int_id)).FirstOrDefault<hrm_ca_civil_servant_rank>();
                         if (das != null)
                         {
                             das.modified_by = uid;
@@ -470,11 +470,11 @@ namespace API.Controllers.HRM.Category
                             {
 
                                 hrm_log log = new hrm_log();
-                                log.title = "Sửa phụ cấp " + das.allowance_name;
+                                log.title = "Sửa phụ cấp " + das.civil_servant_rank_name;
 
-                                log.log_module = "ca_allowance";
+                                log.log_module = "ca_civil_servant_rank";
                                 log.log_type = 1;
-                                log.id_key = das.allowance_id.ToString();
+                                log.id_key = das.civil_servant_rank_id.ToString();
                                 log.created_date = DateTime.Now;
                                 log.created_by = uid;
                                 log.created_token_id = tid;
@@ -494,7 +494,7 @@ namespace API.Controllers.HRM.Category
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_allowance/Update_Trangthaica_allowance", ip, tid, "Lỗi khi cập nhật trạng thái ca_allowances", 0, "hrm_ca_allowance");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_civil_servant_rank/Update_Trangthaica_civil_servant_rank", ip, tid, "Lỗi khi cập nhật trạng thái ca_civil_servant_ranks", 0, "hrm_ca_civil_servant_rank");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -505,7 +505,7 @@ namespace API.Controllers.HRM.Category
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_allowance/Update_Trangthaica_allowance", ip, tid, "Lỗi khi cập nhật trạng thái ca_allowances", 0, "hrm_ca_allowance");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_ca_civil_servant_rank/Update_Trangthaica_civil_servant_rank", ip, tid, "Lỗi khi cập nhật trạng thái ca_civil_servant_ranks", 0, "hrm_ca_civil_servant_rank");
                     if (!helper.debug)
                     {
                         contents = "";

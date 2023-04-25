@@ -406,11 +406,7 @@ onMounted(() => {
   <div class="d-container p-0">
     <div class="p-0 surface-0">
       <div class="grid mt-0 p-0 m-0">
-        <div class="col-12 field p-0 font-bold">
-          <div class="col-12 p-0 format-center text-xl">
-            Tỷ lệ đóng bảo hiểm
-          </div>
-        </div>
+      
         <div class="col-12 field format-center p-0 font-bold">
           <Toolbar class="w-full custoolbar">
             <template #end>
@@ -709,11 +705,7 @@ onMounted(() => {
 .hover:hover {
   cursor: pointer;
   color: #2196f3 !important;
-}
-.check-scroll {
-  max-height: 45rem;
-  overflow: scroll;
-}
+} 
 
 @media only screen and (max-height: 768px) {
   .style-vb-1 {
@@ -728,11 +720,7 @@ onMounted(() => {
   .style-vb-3 {
     padding: 8px !important;
   }
-
-  .check-scroll {
-    max-height: 30rem;
-    overflow: scroll;
-  }
+ 
 }
 
 @media only screen and (max-height: 678px) {
@@ -740,9 +728,6 @@ onMounted(() => {
     display: none;
   }
 
-  .check-scroll {
-    max-height: 20rem;
-    overflow: scroll;
-  }
+ 
 }
 </style>

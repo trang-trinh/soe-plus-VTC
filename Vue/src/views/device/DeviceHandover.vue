@@ -10,6 +10,8 @@ import detailsHandover from "../../components/device/detailsHandover.vue";
 import detailsDevice from "../../components/device/detailsDevice.vue";
 import { el } from "date-fns/locale";
 import { encr, checkURL } from "../../util/function.js";
+import printDocHandover from "./print/printDocHandover.vue";
+import printListHandover from "./print/printListHandover.vue";
 //Khai báo
 const router = inject("router");
 
@@ -17,8 +19,7 @@ const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
-import printDocHandover from "./print/printDocHandover.vue";
-import printListHandover from "./print/printListHandover.vue";
+
 const basedomainURL = baseURL;
 const selectedHandOver = ref();
 const selectedCard = ref([]);

@@ -82,14 +82,16 @@ namespace API.Controllers.Hrn
                     List<hrm_allowance> aws = JsonConvert.DeserializeObject<List<hrm_allowance>>(aw);
                     var awd = provider.FormData.GetValues("allowance_details").SingleOrDefault();
                     List<hrm_allowance_detail> awds = JsonConvert.DeserializeObject<List<hrm_allowance_detail>>(awd);
+
+                    var sign = await db.hrm_contract.CountAsync(x => x.sign_date == model.sign_date) > 0;
+                    if (sign)
+                    {
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Ngày hợp đồng đã tồn tại!" });
+                    }
+
                     #region Model
                     if (isAdd)
                     {
-                        var check = await db.hrm_contract.CountAsync(x => x.contract_no == model.contract_no) > 0;
-                        if (check)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Mã hợp đồng đã tồn tại!" });
-                        }
                         model.contract_id = helper.GenKey();
                         model.is_order = model.is_order ?? (db.hrm_contract.Count() + 1);
                         model.status = 0;
@@ -102,6 +104,11 @@ namespace API.Controllers.Hrn
                     }
                     else
                     {
+                        var check = await db.hrm_contract.CountAsync(x => x.contract_id != model.contract_id && x.contract_code == model.contract_code) > 0;
+                        if (check)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Mã hợp đồng đã tồn tại!" });
+                        }
                         model.modified_by = uid;
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;
@@ -554,7 +561,20 @@ namespace API.Controllers.Hrn
                         if (model != null)
                         {
                             model.status = status;
-                            if (model.status == 3)
+                            if (model.status == 1)
+                            {
+                                model.is_active = true;
+                                var old = await db.hrm_contract.Where(x => x.profile_id == model.profile_id && x.contract_id != model.contract_id).ToListAsync();
+                                if (old.Count > 0)
+                                {
+                                    foreach(var o in old)
+                                    {
+                                        o.is_active = false;
+                                        o.status = 2;
+                                    }
+                                }
+                            }
+                            else if (model.status == 3)
                             {
                                 model.liquidation_content = content;
                                 model.liquidation_date = date;

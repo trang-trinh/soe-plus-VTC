@@ -179,7 +179,7 @@ onMounted(() => {
             view="year"
             dateFormat="yy"
             @date-select="loadContract()"
- 
+          
           />
         </div>
         <div class="col-3 flex align-items-center format-center">
@@ -372,11 +372,7 @@ onMounted(() => {
   </div>
 </template>
 <style scoped>
-.check-scroll {
-  max-height: 40rem;
-  overflow: scroll;
-  overflow-x: hidden;
-}
+ 
 
 @media only screen and (max-height: 768px) {
   .style-vb-1 {
@@ -392,10 +388,7 @@ onMounted(() => {
     padding: 8px !important;
   }
 
-  .check-scroll {
-    max-height: 35rem;
-    overflow: scroll;
-  }
+ 
 }
 
 @media only screen and (max-height: 678px) {
@@ -403,9 +396,6 @@ onMounted(() => {
     display: none;
   }
 
-  .check-scroll {
-    max-height: 25rem;
-    overflow: scroll;
-  }
+ 
 }
 </style>

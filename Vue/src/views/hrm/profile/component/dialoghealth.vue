@@ -278,6 +278,17 @@ onMounted(() => {
             />
           </div>
         </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Tình trạng sức khỏe</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              v-model="health.military_health"
+              maxLength="50"
+            />
+          </div>
+        </div>
         <div class="col-12 md:col-12">
           <div class="form-group">
             <label>Ghi chú</label>
@@ -366,7 +377,7 @@ onMounted(() => {
                   id="icon"
                   v-model="slotProps.data.injection_date"
                   :showIcon="true"
-                  placeholder="dd/mm/yyyy"
+                  placeholder="dd/mm/yyyy" :showOnFocus="false"
                 />
               </template>
             </Column>

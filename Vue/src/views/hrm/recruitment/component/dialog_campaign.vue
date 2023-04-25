@@ -3,7 +3,7 @@ import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import { encr, checkURL } from "../../../../util/function.js";
+import { encr, autoFillDate } from "../../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
 const store = inject("store");
@@ -254,80 +254,8 @@ const saveData = (isFormValid) => {
       });
   }
 };
-const listDropdownUserGive = ref();
-const listDropdownUserCheck = ref();
-const listDropdownUser = ref();
-const listUsers = ref([]);
-const loadUser = () => {
-  listUsers.value = [];
-  listDropdownUser.value = [];
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_users_list_dd",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 10000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      data.forEach((element, i) => {
-        listDropdownUser.value.push({
-          name: element.full_name,
-          code: element.user_id,
-
-          avatar: element.avatar,
-          department_name: element.department_name,
-          department_id: element.department_id,
-          role_name: element.role_name,
-          position_name: element.position_name,
-          phone_number: element.phone,
-          organization_id: element.organization_id,
-        });
-        listUsers.value.push({ data: element, active: false });
-      });
-      listUsers.value = data;
-      listDropdownUserGive.value = listDropdownUser.value;
-      listDropdownUserCheck.value = listDropdownUser.value.filter(
-        (x) => x.code != store.getters.user.user_id
-      );
-    })
-    .catch((error) => {
-      console.log(error);
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
+ 
+ 
 const v$ = useVuelidate(rules, campaign);
 const listVacancies = ref([]);
 const listPosition = ref([]);
@@ -453,7 +381,7 @@ const initTudien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_ca_vacancy_list",
+            proc: "hrm_ca_work_position_list",
             par: [
               { par: "pageno", va: 0 },
               { par: "pagesize", va: 100000 },
@@ -472,8 +400,8 @@ const initTudien = () => {
       listVacancies.value = [];
       data.forEach((element, i) => {
         listVacancies.value.push({
-          name: element.vacancy_name,
-          code: element.vacancy_id,
+          name: element.work_position_name,
+          code: element.work_position_id,
         });
       });
     })
@@ -822,17 +750,7 @@ const loadUserProfiles = () => {
       data.forEach((element, i) => {
         listDataUsers.value.push({
           profile_user_name: element.profile_user_name,
-          code: {
-            profile_id: element.profile_id,
-            avatar: element.avatar,
-            profile_user_name: element.profile_user_name,
-            department_name: element.department_name,
-            department_id: element.department_id,
-            work_position_name: element.work_position_name,
-            position_name: element.position_name,
-            position_id: element.position_id,
-            work_position_id: element.work_position_id,
-          },
+          code:element.profile_id,
           avatar: element.avatar,
           department_name: element.department_name,
           department_id: element.department_id,
@@ -863,7 +781,7 @@ const   displayBasic=ref(false);
 onMounted(() => {
   loadData();
   initTudien();
-  loadUser();
+ 
   loadUserProfiles();
   displayBasic.value=props.displayBasic;
   return {};
@@ -873,7 +791,7 @@ onMounted(() => {
   <Dialog
     :header="props.headerDialog"
     v-model:visible=" displayBasic"
-    :style="{ width: '55vw' }"
+    :style="{ width: '65vw' }"
     :maximizable="true"
     :modal="true"
     :closable="true"
@@ -994,10 +912,10 @@ onMounted(() => {
               Người phụ trách <span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
-              <MultiSelect
+              <MultiSelect :filter="true"
                 v-model="campaign.user_verify_fake"
-                :options="listDropdownUserGive"
-                optionLabel="name"
+                :options="listDataUsers"
+                optionLabel="profile_user_name"
                 optionValue="code"
                 placeholder="-------- Chọn người phụ trách --------"
                 panelClass="d-design-dropdown"
@@ -1007,52 +925,59 @@ onMounted(() => {
                 }"
                 display="chip"
               >
-                <template #option="slotProps">
-                  <div class="country-item flex align-items-center">
-                    <div class="grid w-full p-0">
-                      <div
-                        class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
-                      >
-                        <div class="col-1 mx-2 p-0 align-items-center">
-                          <Avatar   style="color:#fff"
-                            v-bind:label="
-                              slotProps.option.avatar
-                                ? ''
-                                : slotProps.option.name.substring(
-                                    slotProps.option.name.lastIndexOf(' ') + 1,
-                                    slotProps.option.name.lastIndexOf(' ') + 2
-                                  )
-                            "
-                            :image="basedomainURL + slotProps.option.avatar"
-                            size="small"
-                            :style="
-                              slotProps.option.avatar
-                                ? 'background-color: #2196f3'
-                                : 'background:' +
-                                  bgColor[slotProps.option.name.length % 7]
-                            "
-                            shape="circle"
-                            @error="
-                              $event.target.src =
-                                basedomainURL + '/Portals/Image/nouser1.png'
-                            "
-                          />
+               <template #option="slotProps">
+                  <div v-if="slotProps.option" class="flex">
+                    <div class="format-center">
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : slotProps.option.profile_user_name.substring(0, 1)
+                        "
+                        v-bind:image="
+                          slotProps.option.avatar
+                            ? basedomainURL + slotProps.option.avatar
+                            : basedomainURL + '/Portals/Image/noimg.jpg'
+                        "
+                        style="
+                          color: #ffffff;
+                          width: 3rem;
+                          height: 3rem;
+                          font-size: 1.4rem !important;
+                        "
+                        :style="{
+                          background:
+                            bgColor[
+                              slotProps.option.profile_user_name.length % 7
+                            ],
+                        }"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                    </div>
+                    <div class="format-center text-left ml-3">
+                      <div>
+                        <div class="mb-1 font-bold">
+                          {{ slotProps.option.profile_user_name }}
                         </div>
-                        <div class="col-11 p-0 ml-3 align-items-center">
-                          <div class="pt-2">
-                            <div class="font-bold">
-                              {{ slotProps.option.name }}
-                            </div>
-                            <div
-                              class="flex w-full text-sm   text-500"
+                        <div class="description">
+                          <div>
+                            <span v-if="slotProps.option.position_name">{{
+                              slotProps.option.position_name
+                            }}</span>
+                            <span v-else>{{
+                              slotProps.option.profile_code
+                            }}</span>
+
+                            <span v-if="slotProps.option.department_name">
+                              | {{ slotProps.option.department_name }}</span
                             >
-                              <div>{{ slotProps.option.position_name }}</div>
-                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                  <span v-else> Chưa có dữ liệu </span>
                 </template>
               </MultiSelect>
             </div>
@@ -1060,62 +985,69 @@ onMounted(() => {
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Người theo dõi</div>
             <div style="width: calc(100% - 10rem)">
-              <MultiSelect
+              <MultiSelect   :filter="true"
                 v-model="campaign.user_follows_fake"
-                :options="listDropdownUserGive"
-                optionLabel="name"
+                :options="listDataUsers"
+                optionLabel="profile_user_name"
                 optionValue="code"
                 placeholder="-------- Chọn người theo dõi --------"
                 panelClass="d-design-dropdown"
                 class="w-full p-0 d-tree-input"
                 display="chip"
               >
-                <template #option="slotProps">
-                  <div class="country-item flex align-items-center">
-                    <div class="grid w-full p-0">
-                      <div
-                        class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
-                      >
-                        <div class="col-1 mx-2 p-0 align-items-center">
-                          <Avatar   style="color:#fff"
-                            v-bind:label="
-                              slotProps.option.avatar
-                                ? ''
-                                : slotProps.option.name.substring(
-                                    slotProps.option.name.lastIndexOf(' ') + 1,
-                                    slotProps.option.name.lastIndexOf(' ') + 2
-                                  )
-                            "
-                            :image="basedomainURL + slotProps.option.avatar"
-                            size="small"
-                            :style="
-                              slotProps.option.avatar
-                                ? 'background-color: #2196f3'
-                                : 'background:' +
-                                  bgColor[slotProps.option.name.length % 7]
-                            "
-                            shape="circle"
-                            @error="
-                              $event.target.src =
-                                basedomainURL + '/Portals/Image/nouser1.png'
-                            "
-                          />
+              <template #option="slotProps">
+                  <div v-if="slotProps.option" class="flex">
+                    <div class="format-center">
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : slotProps.option.profile_user_name.substring(0, 1)
+                        "
+                        v-bind:image="
+                          slotProps.option.avatar
+                            ? basedomainURL + slotProps.option.avatar
+                            : basedomainURL + '/Portals/Image/noimg.jpg'
+                        "
+                        style="
+                          color: #ffffff;
+                          width: 3rem;
+                          height: 3rem;
+                          font-size: 1.4rem !important;
+                        "
+                        :style="{
+                          background:
+                            bgColor[
+                              slotProps.option.profile_user_name.length % 7
+                            ],
+                        }"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                    </div>
+                    <div class="format-center text-left ml-3">
+                      <div>
+                        <div class="mb-1 font-bold">
+                          {{ slotProps.option.profile_user_name }}
                         </div>
-                        <div class="col-11 p-0 ml-3 align-items-center">
-                          <div class="pt-2">
-                            <div class="font-bold">
-                              {{ slotProps.option.name }}
-                            </div>
-                            <div
-                              class="flex w-full text-sm   text-500"
+                        <div class="description">
+                          <div>
+                            <span v-if="slotProps.option.position_name">{{
+                              slotProps.option.position_name
+                            }}</span>
+                            <span v-else>{{
+                              slotProps.option.profile_code
+                            }}</span>
+
+                            <span v-if="slotProps.option.department_name">
+                              | {{ slotProps.option.department_name }}</span
                             >
-                              <div>{{ slotProps.option.position_name }}</div>
-                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                  <span v-else> Chưa có dữ liệu </span>
                 </template>
               </MultiSelect>
             </div>
@@ -1185,9 +1117,11 @@ onMounted(() => {
             <div class="w-10rem">Ngày bắt đầu</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
+              @blur="autoFillDate(campaign,'start_date')"
+              id="start_date"
                 class="w-full"
-                id="basic_purchase_date"
-                v-model="campaign.start_date"
+        
+                v-model="campaign.start_date" :showOnFocus="false"
                 autocomplete="on"
                 :showIcon="true"
                 placeholder="dd/mm/yyyy"
@@ -1200,8 +1134,9 @@ onMounted(() => {
               <Calendar
                 class="w-full"
                 placeholder="dd/mm/yyyy"
-                id="basic_purchase_date"
-                v-model="campaign.end_date"
+                @blur="autoFillDate(campaign,'end_date')"
+              id="end_date"
+                v-model="campaign.end_date" :showOnFocus="false"
                 autocomplete="on"
                 :minDate="
                   campaign.start_date ? new Date(campaign.start_date) : null
@@ -1274,7 +1209,7 @@ onMounted(() => {
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem">Hình thức làm việc</div>
               <div style="width: calc(100% - 10rem)">
-                <Dropdown
+                <Dropdown   :filter="true"
                   v-model="campaign.rec_formality_id"
                   :options="listFormality"
                   optionLabel="name"
@@ -1342,9 +1277,11 @@ onMounted(() => {
               <div style="width: calc(100% - 10rem)">
                 <Calendar
                   class="w-full"
+                  @blur="autoFillDate(campaign,'rec_recruitment_deadline')"
+              id="rec_recruitment_deadline"
                   placeholder="dd/mm/yyyy"
                   v-model="campaign.rec_recruitment_deadline"
-                  autocomplete="on"
+                  autocomplete="on" :showOnFocus="false"
                   :showIcon="true"
                   :class="{
                     'p-invalid':
@@ -1414,7 +1351,7 @@ onMounted(() => {
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">Trình độ</div>
             <div style="width: calc(100% - 10rem)">
-              <Dropdown
+              <Dropdown   :filter="true"
                 v-model="campaign.can_academic_level_id"
                 :options="listAcademic_level"
                 optionLabel="name"
@@ -1428,7 +1365,7 @@ onMounted(() => {
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Chuyên ngành</div>
             <div style="width: calc(100% - 10rem)">
-              <Dropdown
+              <Dropdown   :filter="true"
                 v-model="campaign.can_specialization_id"
                 :options="listSpecialization"
                 optionLabel="name"
@@ -1446,7 +1383,7 @@ onMounted(() => {
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem">Kinh nghiệm</div>
               <div style="width: calc(100% - 10rem)">
-                <Dropdown
+                <Dropdown   :filter="true"
                   v-model="campaign.can_experience_id"
                   :options="listExperience"
                   optionLabel="name"
@@ -1462,7 +1399,7 @@ onMounted(() => {
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem pl-3">Ngoại ngữ</div>
               <div style="width: calc(100% - 10rem)">
-                <Dropdown
+                <Dropdown   :filter="true"
                   v-model="campaign.can_language_level_id"
                   :options="listLanguage_level"
                   optionLabel="name"
@@ -1508,7 +1445,7 @@ onMounted(() => {
             <div class="col-12 field flex p-0 text-left align-items-center">
               <div class="w-10rem pl-3">Giới tính</div>
               <div style="width: calc(100% - 10rem)">
-                <Dropdown
+                <Dropdown 
                   v-model="campaign.can_gender"
                   :options="listGender"
                   optionLabel="name"

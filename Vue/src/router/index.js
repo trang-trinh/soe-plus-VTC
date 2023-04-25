@@ -283,6 +283,8 @@ const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
 const Hrm_proposal = () => import("../views/hrm/recruitment/hrm_proposal.vue");
 
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
+const hrm_ConfigWorkLocation = () => import("../views/hrm/declare/hrm_config_work_location.vue");
+const HRMWorkScheDule = () => import("../views/hrm/declare/hrm_work_schedule.vue");
 const Hrm_paycheck_form = () =>
   import("../views/hrm/declare/hrm_paycheck_form.vue");
 const Hrm_rec_calendar = () =>
@@ -293,7 +295,8 @@ const Hrm_config_approved = () =>
   import("../views/hrm/process/ConfigAprrovedGroups.vue");
 const Hrm_Recruitment_Process = () =>
   import("../views/hrm/recruitment/hrm_process.vue");
-
+const HRM_Report_Config = () =>
+  import("../views/hrm/config/ConfigReportForm.vue");
 //end
 // TV
 const ConfigScreenTV = () => import("../views/tivi/tivi_screen_config.vue");
@@ -360,9 +363,8 @@ const caHRMSpecialization = () =>
 const caHRMTitle = () => import("../views/hrm/category/caTitle.vue");
 const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
-
-  const caHRMDecision = () =>
-  import("../views/hrm/category/caDecision.vue");
+  const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
+const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
 const caLeavingReason = () =>
@@ -383,6 +385,10 @@ const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
   const caAllowance = () =>
   import("../views/hrm/category/caAllowance.vue");
+  const caWageGroups = () =>
+  import("../views/hrm/category/caWageGroups.vue");
+  const caCivilServantRank = () =>
+  import("../views/hrm/category/caCivilServantRank.vue");
 const caTags = () => import("../views/hrm/category/caTags.vue");
 const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
 const caWorkPosition = () => import("../views/hrm/category/caWorkPosition.vue");
@@ -393,6 +399,7 @@ const HRM_Training = () => import("../views/hrm/training/hrm_training.vue");
 const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
 const HRM_ConfigEmail = () => import("../views/hrm/config/ConfigEmail.vue");
+const HRM_Contact = () => import("../views/hrm/contact/Contact.vue");
 // Request
 const Request_Dashboard = () =>
   import("../views/request/request_dashboard.vue");
@@ -509,7 +516,7 @@ const router = createRouter({
       component: UploadView,
     },
     {
-      path: "/system/options",
+      path: "/options",
       name: "options",
       component: OptionsAccount,
     },
@@ -524,12 +531,12 @@ const router = createRouter({
       component: Error,
     },
     {
-      path: "/sys/sys_approved_groups",
+      path: "/system/sys_approved_groups",
       name: "sys_sys_approved_groups",
       component: ConfigAprrovedGroups,
     },
     {
-      path: "/sys/sys_process",
+      path: "/system/sys_process",
       name: "sys_sys_process",
       component: ConfigProcess,
     },
@@ -717,49 +724,49 @@ const router = createRouter({
       component: Status,
     },
     {
-      path: "/project",
+      path: "/system/project",
       name: "project",
       component: Project,
     },
     {
-      path: "/api",
+      path: "/system/api",
       name: "api",
       component: Api,
     },
     {
-      path: "/table",
+      path: "/system/table",
       name: "table",
       component: Table,
     },
     {
-      path: "/plugin",
+      path: "/system/plugin",
       name: "plugin",
       component: Plugin,
     },
     //Task
     {
-      path: "/project/task",
+      path: "/system/project/task",
       name: "task/project",
       component: Task,
     },
 
     {
-      path: "/taskgroup",
-      name: "taskgroup",
+      path: "/system/taskgroup",
+      name: "taskgroupSASS",
       component: TaskGroup,
     },
     {
-      path: "/taskcheck",
+      path: "/system/taskcheck",
       name: "taskcheck",
       component: TaskCheck,
     },
     {
-      path: "/taskreport/mainreport",
+      path: "/system/taskreport/mainreport",
       name: "mainreport",
       component: MainReport,
     },
     {
-      path: "/taskreport/checklistreport",
+      path: "/system/taskreport/checklistreport",
       name: "checklistreport",
       component: CheckListReport,
     },
@@ -1714,14 +1721,26 @@ const router = createRouter({
       component: caHRMSpecialization,
     },
     {
-      path: "/hrm/category/ca_title",
-      name: "caHRMTitle",
+      path: "/hrm/category/ca_positions",
+      name: "caHRMPositions",
       component: Positions,
     },
     {
       path: "/hrm/category/ca_typeContract",
       name: "caHRMTypeContract",
       component: caHRMTypeContract,
+    },
+    {
+      path: "/hrm/category/ca_title",
+      name: "caHRMTitle",
+      component: caHRMTitle,
+    },
+
+    
+    {
+      path: "/hrm/hrm_shift",
+      name: "caHRMDeclareShift",
+      component: caHRMDeclareShift,
     },
     {
       path: "/hrm/category/ca_decision",
@@ -1786,6 +1805,16 @@ const router = createRouter({
       component: caAllowance,
     },
     {
+      path: "/hrm/category/ca_wage_groups",
+      name: "caHRMcaWageGroups",
+      component: caWageGroups,
+    },
+    {
+      path: "/hrm/category/ca_civilservantrank",
+      name: "caHRMcaCivilServantRank",
+      component: caCivilServantRank,
+    },
+    {
       path: "/hrm/category/ca_discipline",
       name: "caHRMDiscipline",
       component: caDiscipline,
@@ -1795,7 +1824,7 @@ const router = createRouter({
       name: "caHRMReason",
       component: caReason,
     },
-    
+
     {
       path: "/hrm/category/ca_tags",
       name: "caHRMTags",
@@ -1854,7 +1883,12 @@ const router = createRouter({
       name: "HRM_ConfigEmail",
       component: HRM_ConfigEmail,
     },
-    
+    {
+      path: "/hrm/contact",
+      name: "hrm_contact",
+      component: HRM_Contact,
+    },
+
     // Tài liệu
     {
       path: "/files/file_main/:id/:type",
@@ -1901,6 +1935,15 @@ const router = createRouter({
       path: "/hrm/paycheckform",
       name: "Hrm_paycheck_form",
       component: Hrm_paycheck_form,
+    },
+    {
+      path: "/hrm/configworklocation",
+      name: "hrm_ConfigWorkLocation",
+      component: hrm_ConfigWorkLocation,
+    },   {
+      path: "/hrm/work_schedule",
+      name: "HRMWorkScheDule",
+      component: HRMWorkScheDule,
     },
     {
       path: "/hrm/configprocess",
@@ -1957,14 +2000,19 @@ const router = createRouter({
     },
     // Request/Config
     {
-      path: "/request/config/ca_team",
+      path: "/request/config/set_auth_sign",
       name: "Request_Config_Auth_Sign",
       component: Request_Config_Auth_Sign,
     },
     {
-      path: "/request/config/ca_form",
+      path: "/request/config/set_number_request",
       name: "Request_Config_Number",
       component: Request_Config_Number,
+    },
+    {
+      path: "/hrm/config/report",
+      name: "HRM_Report_Config",
+      component: HRM_Report_Config,
     },
     {
       path: "/tasks/report/project",

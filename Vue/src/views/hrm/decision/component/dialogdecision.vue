@@ -43,6 +43,7 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const dictionarys = ref([]);
+const reasons = ref([]);
 
 //Function
 const submitted = ref(false);
@@ -282,6 +283,9 @@ const initDictionary = () => {
         if (data != null) {
           let tbs = JSON.parse(data);
           dictionarys.value = tbs;
+          reasons.value = tbs[1].filter(
+            (x) => x.type_decision_id === props.type_decision.type_decision_id
+          );
         }
       }
     });
@@ -419,7 +423,7 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="col-12 md:col-12">
+            <!-- <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Loại quyết định <span class="redsao">(*)</span></label>
                 <Dropdown
@@ -452,7 +456,7 @@ onMounted(() => {
                   </small>
                 </div>
               </div>
-            </div>
+            </div> -->
             <div class="col-6 md:col-6">
               <div class="form-group">
                 <label>Nhân sự <span class="redsao">(*)</span></label>
@@ -577,7 +581,7 @@ onMounted(() => {
                     inputId="time24"
                     :class="{
                       'p-invalid': !model.decision_date && submitted,
-                    }"
+                    }" 
                     v-model="model.decision_date"
                     placeholder="DD/MM/YYYY"
                   />
@@ -627,16 +631,16 @@ onMounted(() => {
             </div>
             <div class="col-12 md:col-12">
               <div class="form-group">
-                <label>Lý do bổ nhiệm </label>
+                <label>Lý do </label>
                 <Dropdown
-                  :options="dictionarys[1]"
+                  :options="reasons"
                   :filter="true"
                   :showClear="true"
                   :editable="true"
                   v-model="model.discipline_id"
                   optionLabel="discipline_name"
                   optionValue="discipline_id"
-                  placeholder="Chọn lý do bổ nhiệm"
+                  placeholder="Chọn lý do"
                   class="ip36"
                 >
                   <template #option="slotProps">
@@ -685,16 +689,18 @@ onMounted(() => {
         </div>
         <div class="col-6 md:col-6">
           <div class="row">
-            <!-- <div class="col-12 md:col-12">
-              <div class="form-group">
-                <h3 class="m-0">Thông tin bổ nhiệm</h3>
+            <template v-if="props.type_decision.decision_code">
+              <div class="col-12 md:col-12">
+                <div class="form-group">
+                  <h3 class="m-0">Thông tin bổ nhiệm</h3>
+                </div>
               </div>
-            </div>
-            <div class="col-12 md:col-12">
-              <div class="form-group">
-                <h3 class="m-0">Điều chỉnh lương phụ cấp</h3>
+              <div class="col-12 md:col-12">
+                <div class="form-group">
+                  <h3 class="m-0">Điều chỉnh lương phụ cấp</h3>
+                </div>
               </div>
-            </div> -->
+            </template>
             <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Mô tả</label>

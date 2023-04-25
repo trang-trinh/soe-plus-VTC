@@ -5,7 +5,10 @@ import configUsers from "./ConfigUserCode.vue";
 import ConfigContract from "./ConfigContract.vue";
 import ConfigHolidays from "./ConfigHolidays.vue";
 import ConfigInsurance from "./ConfigInsuranceRate.vue";
+import ConfigEmail from "./ConfigEmail.vue";
+import ConfigContact from "./ConfigContact.vue";
 import { encr, checkURL } from "../../../util/function.js";
+ 
 //Khai báo
 const router = inject("router");
 const cryoptojs = inject("cryptojs");
@@ -152,12 +155,30 @@ onMounted(() => {
                Tỷ lệ đóng bảo hiểm
                 </div>
             </template>
-            <div class="check-scroll-2"   v-if="activeIndex==3">
+            <div    v-if="activeIndex==3">
               <ConfigInsurance />
               </div>
           </AccordionTab>
-          
-          
+          <AccordionTab  >
+            <template #header>
+                <div class="text-xl">
+           Cấu hình gửi Email
+                </div>
+            </template>
+            <div    v-if="activeIndex==4">
+              <ConfigEmail />
+              </div>
+          </AccordionTab>
+          <AccordionTab  >
+            <template #header>
+                <div class="text-xl">
+           Thiết lập khác
+                </div>
+            </template>
+            <div    v-if="activeIndex==5">
+              <ConfigContact/>
+              </div>
+          </AccordionTab>
         </Accordion>
       </div></div>
     </div>

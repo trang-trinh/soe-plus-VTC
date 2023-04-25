@@ -867,6 +867,10 @@ namespace API.Controllers.Request.Category
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
 
                         obj_data.request_form_sign_id = helper.GenKey();
+                        obj_data.created_by = uid;
+                        obj_data.created_date = DateTime.Now;
+                        obj_data.created_ip = ip;
+                        obj_data.created_token_id = tid;
                         db.request_ca_form_sign.Add(obj_data);
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -895,6 +899,372 @@ namespace API.Controllers.Request.Category
                 }
                 Log.Error(contents);
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+        public async Task<HttpResponseMessage> update_request_ca_form_sign()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            string fdca_form_sign = "";
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        fdca_form_sign = provider.FormData.GetValues("request_form_sign").SingleOrDefault();
+                        request_ca_form_sign obj_data = JsonConvert.DeserializeObject<request_ca_form_sign>(fdca_form_sign);
+
+                        bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+                        //obj_data.created_by = uid;
+                        //obj_data.created_date = DateTime.Now;
+                        //obj_data.created_ip = ip;
+                        //obj_data.created_token_id = tid;
+                        db.Entry(obj_data).State = EntityState.Modified;
+
+                        db.SaveChanges();
+
+                        #region add request_log
+                        if (helper.wlog)
+                        {
+                            request_log log = new request_log();
+                            log.title = "Sửa form_sign " + obj_data.group_name;
+                            log.log_module = "request_ca_form_sign";
+                            log.log_type = 1;
+                            log.id_key = obj_data.request_form_sign_id.ToString();
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.request_log.Add(log);
+                            db.SaveChanges();
+
+                        }
+                        #endregion
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_form_sign, contents }), domainurl + "request_ca_form/add_request_ca_form", ip, tid, "Lỗi khi thêm form", 0, "request_ca_form");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_form_sign, contents }), domainurl + "request_ca_form/add_request_ca_form", ip, tid, "Lỗi khi thêm form", 0, "request_ca_form");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+        [HttpDelete]
+        public async Task<HttpResponseMessage> delete_request_ca_form_sign([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> id)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            IEnumerable<Claim> claims = identity.Claims;
+
+            try
+            {
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        var das = await db.request_ca_form_sign.Where(a => id.Contains(a.request_form_sign_id)).ToListAsync();
+                        List<string> paths = new List<string>();
+                        if (das != null)
+                        {
+                            List<request_ca_form_sign> del = new List<request_ca_form_sign>();
+                            foreach (var da in das)
+                            {
+                                del.Add(da);
+
+                                #region add request_log
+                                if (helper.wlog)
+                                {
+                                    request_log log = new request_log();
+                                    log.title = "Xóa nhóm duyệt " + da.group_name;
+                                    log.log_module = "request_form_sign_user";
+                                    log.log_type = 2;
+                                    log.id_key = da.request_form_sign_id.ToString();
+                                    log.created_date = DateTime.Now;
+                                    log.created_by = uid;
+                                    log.created_token_id = tid;
+                                    log.created_ip = ip;
+                                    db.request_log.Add(log);
+                                    db.SaveChanges();
+                                }
+                                #endregion
+                            }
+                            if (del.Count == 0)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                            }
+                            db.request_ca_form_sign.RemoveRange(del);
+                        }
+                        await db.SaveChangesAsync();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "request_ca_form/delete_request_ca_form_sign", ip, tid, "Lỗi khi xoá nhóm duyệt", 0, "request_ca_form");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "request_ca_form/delete_request_ca_form_sign", ip, tid, "Lỗi khi xoá nhóm duyệt", 0, "request_ca_form");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+        }
+        public async Task<HttpResponseMessage> update_request_ca_form_sign_user()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            string fdca_form_sign_user = "";
+            string fdca_form_sign_id = "";
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        fdca_form_sign_user = provider.FormData.GetValues("request_form_sign_user").SingleOrDefault();
+                        fdca_form_sign_id = provider.FormData.GetValues("request_form_sign_id").SingleOrDefault();
+                        List<request_form_sign_user> obj_datas = JsonConvert.DeserializeObject<List<request_form_sign_user>>(fdca_form_sign_user);
+                        string request_form_sign_id = JsonConvert.DeserializeObject<string>(fdca_form_sign_id);
+
+                        bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+
+                        if(obj_datas.Count > 0)
+                        {
+                            foreach(var item in obj_datas)
+                            {
+                                if (item.request_form_sign_user_id != "-1")
+                                {
+                                    db.Entry(item).State = EntityState.Modified;
+                                }
+                                else
+                                {
+                                    item.request_form_sign_user_id = helper.GenKey();
+                                    item.request_form_sign_id = request_form_sign_id;
+                                    item.created_by = uid;
+                                    item.created_date = DateTime.Now;
+                                    item.created_ip = ip;
+                                    item.created_token_id = tid;
+                                    db.request_form_sign_user.Add(item);
+                                }
+                            }
+                        }
+                        db.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_form_sign_user, contents }), domainurl + "request_ca_form/add_request_ca_form_sign", ip, tid, "Lỗi khi thêm nhóm duyệt", 0, "add_request_ca_form_sign");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_form_sign_user, contents }), domainurl + "request_ca_form/add_request_ca_form_sign", ip, tid, "Lỗi khi thêm nhóm duyệt", 0, "add_request_ca_form_sign");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+        [HttpDelete]
+        public async Task<HttpResponseMessage> delete_request_ca_form_sign_user([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> id)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            IEnumerable<Claim> claims = identity.Claims;
+
+            try
+            {
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        var das = await db.request_form_sign_user.Where(a => id.Contains(a.request_form_sign_user_id)).ToListAsync();
+                        List<string> paths = new List<string>();
+                        if (das != null)
+                        {
+                            List<request_form_sign_user> del = new List<request_form_sign_user>();
+                            foreach (var da in das)
+                            {
+                                del.Add(da);
+
+                                #region add request_log
+                                if (helper.wlog)
+                                {
+                                    request_log log = new request_log();
+                                    log.title = "Xóa nhân sự nhóm duyệt " + da.request_form_sign_user_id;
+                                    log.log_module = "request_form_sign_user";
+                                    log.log_type = 2;
+                                    log.id_key = da.request_form_sign_user_id.ToString();
+                                    log.created_date = DateTime.Now;
+                                    log.created_by = uid;
+                                    log.created_token_id = tid;
+                                    log.created_ip = ip;
+                                    db.request_log.Add(log);
+                                    db.SaveChanges();
+                                }
+                                #endregion
+                            }
+                            if (del.Count == 0)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                            }
+                            db.request_form_sign_user.RemoveRange(del);
+                        }
+                        await db.SaveChangesAsync();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "request_ca_form/delete_request_ca_form_sign_user", ip, tid, "Lỗi khi xoá nhân sự nhóm duyệt", 0, "request_ca_form");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "request_ca_form/delete_request_ca_form_sign_user", ip, tid, "Lỗi khi xoá nhân sự nhóm duyệt", 0, "request_ca_form");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
         }
     }

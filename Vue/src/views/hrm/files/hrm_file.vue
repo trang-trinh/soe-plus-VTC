@@ -7,6 +7,15 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 //Khai báo
+const bgColors = ref([
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+  "#B0DE09",
+]);
 const router = inject("router");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -18,8 +27,9 @@ const file_detail = ref();
 const data_log = ref();
 const layout = ref("list");
 const first = ref(0);
-const list_users= ref([]);
-const list_profiles= ref([]);
+const list_users = ref([]);
+const list_profiles = ref([]);
+const top_users = ref([]);
 const isTopView = ref(false)
 const list_types = ref([
   { img: "/Portals/file/pdf.png", label: "PDF", type: 1 },
@@ -51,7 +61,7 @@ const total_file = ref(0);
 const total_size = ref(0);
 const itemButMores = ref([
   {
-    label: "Xem thông tin",
+    label: "Xem",
     icon: "pi pi-info-circle",
     command: (event) => {
       viewFile(file.value);
@@ -65,9 +75,9 @@ const itemButMores = ref([
     },
   },
 ]);
-const downloadFile = (file)=>{
+const downloadFile = (file) => {
   var url = baseURL + file.file_path;
-  var name = file.file_name || ("file_download"+ file.file_type);
+  var name = file.file_name || ("file_download" + file.file_type);
   const a = document.createElement("a");
   a.href =
     basedomainURL +
@@ -83,7 +93,7 @@ const downloadFile = (file)=>{
 const dataDetail = ref();
 const ModalShowFile = ref(false);
 const fileNamDetail = ref('File số hóa');
-const viewFile = (data)=>{
+const viewFile = (data) => {
   updateView(data.file_id);
   fileNamDetail.value = data.file_name;
   dataDetail.value = data;
@@ -106,12 +116,12 @@ const loadCount = () => {
             proc: "hrm_file_count1",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
-                { par: "search", va: options.value.search },
-                { par: "type_files", va: type_files.value },
-                { par: "profiles", va: profiles.value },
-                { par: "users", va: users.value },
-                { par: "start_date", va: options.value.start_date },
-                { par: "end_date", va: options.value.end_date },
+              { par: "search", va: options.value.search },
+              { par: "type_files", va: type_files.value },
+              { par: "profiles", va: profiles.value },
+              { par: "users", va: users.value },
+              { par: "start_date", va: options.value.start_date },
+              { par: "end_date", va: options.value.end_date },
             ],
           }),
           SecretKey,
@@ -134,22 +144,22 @@ const loadData = (rf, is_filter) => {
 
   if (options.value.users != null && options.value.users.length > 0) {
     users.value = options.value.users.map((x) => x["user_id"]).join(",");
-    }
-    else  users.value = null;
-    if (options.value.profiles != null && options.value.profiles.length > 0) {
-      profiles.value = options.value.profiles.map((x) => x["profile_id"]).join(",");
-    } else profiles.value = null;
-    if (options.value.type_files != null && options.value.type_files.length > 0) {
-      type_files.value = options.value.type_files.map((x) => x["type"]).join(",");
-    } else type_files.value = null;
-  if(is_filter) loadTudien();
+  }
+  else users.value = null;
+  if (options.value.profiles != null && options.value.profiles.length > 0) {
+    profiles.value = options.value.profiles.map((x) => x["profile_id"]).join(",");
+  } else profiles.value = null;
+  if (options.value.type_files != null && options.value.type_files.length > 0) {
+    type_files.value = options.value.type_files.map((x) => x["type"]).join(",");
+  } else type_files.value = null;
+  if (is_filter) loadTudien();
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
       return false;
     }
     if (rf) {
-        loadCount();
+      loadCount();
     }
     swal.fire({
       width: 110,
@@ -186,34 +196,36 @@ const loadData = (rf, is_filter) => {
         swal.close();
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        if(data.length>0){
+        if (data.length > 0) {
           data.forEach((item, i) => {
-          item.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          item.file_name_grid = item.file_name;
-          if (item.file_name.length > 30)
-          item.file_name_grid = item.file_name.substring(0, 30) + "...";
-          //context label
-          item.capacityMB = formatBytes(item.file_size)
-          item.labelContext =
-          item.file_name +
-          (item.full_name ? "\nNgười tạo: " + item.full_name : "") +
-          "\nNgày sửa cuối: " +
-          moment(new Date(item.modified_date || item.created_date)).format(
-            "DD/MM/YYYY hh:mm"
-          ) +
-          (item.capacityMB
-            ? ""
-            : "\nSize: " + item.capacityMB);
-        });
-        if(isfilter.value == true ) isTopView.value = false;
-          if(options.value.PageNo== 0 && data.length>6 && !isfilter.value){
-            datatop.value = data.slice(0,4);
-            datalists.value = data.slice(4);
+            item.STT = options.value.PageNo * options.value.PageSize + i + 1;
+            item.file_name_grid = item.file_name;
+            item.list_profile = JSON.parse(item.list_profile);
+            //item.list_profile = item.list_profile != null ? item.list_profile.concat(item.list_profile) : null;
+            if (item.file_name.length > 30)
+              item.file_name_grid = item.file_name.substring(0, 30) + "...";
+            //context label
+            item.capacityMB = formatBytes(item.file_size);
+            item.labelContext =
+              item.file_name +
+              (item.full_name ? "\nNgười tạo: " + item.full_name : "") +
+              "\nNgày sửa cuối: " +
+              moment(new Date(item.modified_date || item.created_date)).format(
+                "DD/MM/YYYY hh:mm"
+              ) +
+              (item.capacityMB
+                ? ""
+                : "\nSize: " + item.capacityMB);
+          });
+          if (isfilter.value == true) isTopView.value = false;
+          if (options.value.PageNo == 0 && data.length > 6 && !isfilter.value) {
+            datatop.value = data.slice(0, 4);
+            datalists.value = data
             isTopView.value = true;
           }
-          else{
+          else {
             datalists.value = data;
-          } 
+          }
         }
         else {
           datalists.value = [];
@@ -276,7 +288,7 @@ const options = ref({
   sort: "created_date",
   search: "",
   PageNo: 0,
-  PageSize: 20,
+  PageSize: 50,
   loading: true,
   totalRecords: null,
   type: null
@@ -431,7 +443,7 @@ const onFilter = (event) => {
 const itemclick = ref()
 const goFile = (item) => {
   itemclick.value = item.file_id;
- // updateView(item.file_id);
+  // updateView(item.file_id);
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -485,14 +497,14 @@ const loadTudien = () => {
           JSON.stringify({
             proc: "hrm_file_dictionary1",
             par: [
-                { par: "user_id", va: store.getters.user.user_id },
-                { par: "search", va: options.value.search },
-                { par: "type_files", va: type_files.value },
-                { par: "profiles", va: profiles.value },
-                { par: "users", va: users.value },
-                { par: "start_date", va: options.value.start_date },
-                { par: "end_date", va: options.value.end_date },
-          ],
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "search", va: options.value.search },
+              { par: "type_files", va: type_files.value },
+              { par: "profiles", va: profiles.value },
+              { par: "users", va: users.value },
+              { par: "start_date", va: options.value.start_date },
+              { par: "end_date", va: options.value.end_date },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -516,18 +528,18 @@ const loadTudien = () => {
           ? data[0].find((x) => x.file_type == "More").count_type
           : 0;
         chartDatapie.value.datasets = [];
-          displayChart.value= true;
-          setTimeout(() => {
+        displayChart.value = true;
+        setTimeout(() => {
           lightOptions.value.plugins.legend.display = true;
           chartDatapie.value.datasets.push({
             data: [],
-            backgroundColor: ["#689F38", "#0086f0", "#9C27B0", "#FBC02D"],
-            hoverBackgroundColor: ["#81C784", "#64B5F6", "#D382E1", "#ece484"],
+            backgroundColor: ["#EE7E79", "#83ECC6", "#84B7F9", "#F5CD7C"],
+            hoverBackgroundColor: ["#de5e58", "#56e7b2", "#4c96f6", "#f2c05a"],
           });
           chartDatapie.value.datasets[0].data = dataCol;
-        }, 100);          
+        }, 100);
       }
-      else displayChart.value= false;
+      else displayChart.value = false;
       if (data[1].length > 0) {
         total_file.value = data[1][0].total_file;
       }
@@ -540,21 +552,24 @@ const loadTudien = () => {
       if (data[3].length > 0) {
         list_profiles.value = data[3];
       }
+      if (data[4].length > 0) {
+        top_users.value = data[4];
+      }
     })
-    .catch((error) => { 
+    .catch((error) => {
       debugger
     });
 };
 const first_module = ref(0);
 const filterTrangthai = ref();
 const item_hover = ref();
-const hoverItem = (id)=>{
+const hoverItem = (id) => {
   item_hover.value = id;
 }
-const leaveItem = ()=>{
+const leaveItem = () => {
   item_hover.value = null;
 }
-const clearDetail = ()=>{
+const clearDetail = () => {
   selectedStamps.value = null;
   isDetail.value = false;
   itemclick.value = null;
@@ -562,23 +577,23 @@ const clearDetail = ()=>{
 const goProfile = (item) => {
   router.push({
     name: "profileinfo",
-    params: { id: generateUUID()},
-    query: { id: item.profile_id_key },
+    params: { id: generateUUID() },
+    query: { id: item.profile_id },
   });
 };
-const changeView = (item)=>{
+const changeView = (item) => {
   layout.value = item;
-  options.value.PageNo= 0;
-  if(item == 'grid'){
-    options.value.PageSize= 36;
-  } 
-  else{
-    options.value.PageSize= 20;
-  } 
+  options.value.PageNo = 0;
+  if (item == 'grid') {
+    options.value.PageSize = 54;
+  }
+  else {
+    options.value.PageSize = 50;
+  }
   loadData(true, true)
 }
 watch(selectedStamps, () => {
-  if(selectedStamps.value){
+  if (selectedStamps.value) {
     goFile(selectedStamps.value);
   }
 });
@@ -586,29 +601,36 @@ watch(selectedStamps, () => {
 // const toggle = (event) => {
 //   op.value.toggle(event);
 // };
-const onRefresh = ()=>{
-   options.value = {
-  IsNext: true,
-  sort: "created_date",
-  search: "",
-  PageNo: 0,
-  PageSize: 20,
-  loading: true,
-  totalRecords: null,
-  type: null,
-  type_files: [],
-  users: [],
-  profiles: [],
-  start_date: null,
-  end_date: null,
+const onRefresh = () => {
+  options.value = {
+    IsNext: true,
+    sort: "created_date",
+    search: "",
+    PageNo: 0,
+    PageSize: 50,
+    loading: true,
+    totalRecords: null,
+    type: null,
+    type_files: [],
+    users: [],
+    profiles: [],
+    start_date: null,
+    end_date: null,
   };
   layout.value = 'list';
   isfilter.value = false;
   loadData(true, true);
 }
+//
+const opMore = ref();
+const profile_mores = ref();
+const toggleMoreUsers = (event, data) => {
+  opMore.value.toggle(event);
+  profile_mores.value = data;
+};
 //filter
 const opfilter = ref();
-const isfilter =ref(false)
+const isfilter = ref(false)
 const toggleFilter = (event) => {
   opfilter.value.toggle(event);
 };
@@ -674,576 +696,363 @@ onMounted(() => {
     <div class="flex body-content">
       <div class="flex-1" v-if="datalists">
         <Toolbar class="w-full custoolbar">
-            <template #start>
-              <div class="header-bar">
-                <Toolbar class="outline-none surface-0 border-none pb-1 ml-3">
+          <template #start>
+            <div class="header-bar">
+              <Toolbar class="outline-none surface-0 border-none pb-1 ml-3">
                 <template #start>
                   <span class="p-input-icon-left">
                     <i class="pi pi-search" />
-                    <InputText
-                      @keyup.enter="loadData(true)"
-                      v-model="options.search"
-                      type="text"
-                      spellcheck="false"
-                      :placeholder="'Tìm kiếm'"
-                    />
+                    <InputText @keyup.enter="loadData(true)" v-model="options.search" type="text" spellcheck="false"
+                      :placeholder="'Tìm kiếm'" />
                   </span>
-                  <Button
-                    @click="toggleFilter($event)"
-                    type="button"
-                    class="ml-2 p-button-outlined p-button-secondary"
-                    aria:haspopup="true"
-                    aria-controls="overlay_panel"
-                  >
+                  <Button @click="toggleFilter($event)" type="button" class="ml-2 p-button-outlined p-button-secondary"
+                    aria:haspopup="true" aria-controls="overlay_panel">
                     <div>
                       <span class="mr-2"><i class="pi pi-filter"></i></span>
                       <span class="mr-2">Lọc dữ liệu</span>
                       <span><i class="pi pi-chevron-down"></i></span>
                     </div>
                   </Button>
-                  <OverlayPanel
-                    :showCloseIcon="false"
-                    ref="opfilter"
-                    appendTo="body"
-                    class="p-0 m-0"
-                    id="overlay_panel"
-                    style="width: 400px"
-                  >
-                  <div class="grid formgrid m-0">
-                    <div
-                      class="col-12 md:col-12 p-0"
-                      :style="{
+                  <OverlayPanel :showCloseIcon="false" ref="opfilter" appendTo="body" class="p-0 m-0" id="overlay_panel"
+                    style="width: 400px">
+                    <div class="grid formgrid m-0">
+                      <div class="col-12 md:col-12 p-0" :style="{
                         minHeight: 'unset',
                         maxheight: 'calc(100vh - 300px)',
                         overflow: 'auto',
-                      }"
-                    > 
-                    <div class="row">
-                      <div class="col-12 md:col-12">
-                        <div class="form-group">
-                          <label>Loại</label>
-                          <MultiSelect
-                            :options="list_types"
-                            :filter="true"
-                            :showClear="true"
-                            :editable="false"
-                            v-model="options.type_files"
-                            optionLabel="label"
-                            placeholder="Chọn loại"
-                            class="w-full limit-width"
-                            style="min-height: 36px"
-                            panelClass="d-design-dropdown"
-                          >
-                            <template #value="slotProps">
-                              <ul
-                                class="p-ulchip"
-                                v-if="
-                                  slotProps.value && slotProps.value.length > 0
-                                "
-                              >
-                                <li
-                                  class="p-lichip"
-                                  v-for="(value, index) in slotProps.value"
-                                  :key="index"
-                                >
-                                  <Chip class="mr-2 mb-2 px-3 py-2">
-                                    <div class="flex">
-                                      <div>
-                                        <span>{{ value.label }}</span>
-                                      </div>
-                                      <span
-                                        tabindex="0"
-                                        class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                        @click="
-                                          removeFilter(
-                                            index,
-                                            options.type_files
-                                          );
-                                          $event.stopPropagation();
-                                        "
-                                        v-tooltip.top="'Xóa'"
-                                      ></span>
+                      }">
+                        <div class="row">
+                          <div class="col-12 md:col-12">
+                            <div class="form-group">
+                              <label>Loại</label>
+                              <MultiSelect :options="list_types" :filter="true" :showClear="true" :editable="false"
+                                v-model="options.type_files" optionLabel="label" placeholder="Chọn loại"
+                                class="w-full limit-width" style="min-height: 36px" panelClass="d-design-dropdown">
+                                <template #value="slotProps">
+                                  <ul class="p-ulchip" v-if="
+                                    slotProps.value && slotProps.value.length > 0
+                                  ">
+                                    <li class="p-lichip" v-for="(value, index) in slotProps.value" :key="index">
+                                      <Chip class="mr-2 mb-2 px-3 py-2">
+                                        <div class="flex">
+                                          <div>
+                                            <span>{{ value.label }}</span>
+                                          </div>
+                                          <span tabindex="0"
+                                            class="p-chip-remove-icon pi pi-times-circle format-flex-center" @click="
+                                              removeFilter(
+                                                index,
+                                                options.type_files
+                                              );
+                                            $event.stopPropagation();
+                                            " v-tooltip.top="'Xóa'"></span>
+                                        </div>
+                                      </Chip>
+                                    </li>
+                                  </ul>
+                                  <span v-else>
+                                    {{ slotProps.placeholder }}
+                                  </span>
+                                </template>
+                              </MultiSelect>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group">
+                              <label>Nhân sự</label>
+                              <MultiSelect :options="list_profiles" v-model="options.profiles" :filter="true"
+                                :showClear="true" :editable="false" optionLabel="profile_user_name"
+                                placeholder="Chọn nhân sự" class="w-full limit-width" style="min-height: 36px"
+                                panelClass="d-design-dropdown">
+                                <template #value="slotProps">
+                                  <ul class="p-ulchip" v-if="
+                                    slotProps.value && slotProps.value.length > 0
+                                  ">
+                                    <li class="p-lichip" v-for="(value, index) in slotProps.value" :key="index">
+                                      <Chip :image="value.avatar" :label="value.profile_user_name"
+                                        class="mr-2 mb-2 px-3 py-2">
+                                        <div class="flex">
+                                          <div class="format-flex-center">
+                                            <Avatar v-bind:label="
+                                              value.avatar
+                                                ? ''
+                                                : (
+                                                  value.profile_user_name ?? ''
+                                                ).substring(0, 1)
+                                            " v-bind:image="
+                                                value.avatar
+                                                  ? basedomainURL + value.avatar
+                                                  : basedomainURL +
+                                                  '/Portals/Image/noimg.jpg'
+                                              " :style="{
+                                                background:
+                                                  bgColor[value.is_order % 7],
+                                                color: '#ffffff',
+                                                width: '2rem',
+                                                height: '2rem',
+                                              }" class="mr-2 text-avatar" size="xlarge" shape="circle" />
+                                          </div>
+                                          <div class="format-flex-center text-left">
+                                            <span>{{ value.profile_user_name }}</span>
+                                          </div>
+                                          <span tabindex="0"
+                                            class="p-chip-remove-icon pi pi-times-circle format-flex-center" @click="
+                                              removeFilter(index, options.profiles);
+                                            $event.stopPropagation();
+                                            " v-tooltip.top="'Xóa'"></span>
+                                        </div>
+                                      </Chip>
+                                    </li>
+                                  </ul>
+                                  <span v-else>
+                                    {{ slotProps.placeholder }}
+                                  </span>
+                                </template>
+                                <template #option="slotProps">
+                                  <div v-if="slotProps.option" class="flex">
+                                    <div class="format-center">
+                                      <Avatar v-bind:label="
+                                        slotProps.option.avatar
+                                          ? ''
+                                          : slotProps.option.profile_user_name.substring(
+                                            0,
+                                            1
+                                          )
+                                      " v-bind:image="
+                                          slotProps.option.avatar
+                                            ? basedomainURL + slotProps.option.avatar
+                                            : basedomainURL +
+                                            '/Portals/Image/noimg.jpg'
+                                        " :style="{
+                                          background:
+                                            bgColor[slotProps.option.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '3rem',
+                                          height: '3rem',
+                                          fontSize: '1.4rem !important',
+                                        }" class="text-avatar m-0" size="xlarge" shape="circle" />
                                     </div>
-                                  </Chip>
-                                </li>
-                              </ul>
-                              <span v-else>
-                                {{ slotProps.placeholder }}
-                              </span>
+                                    <div class="format-center text-left ml-3">
+                                      <div>
+                                        <div class="mb-1">
+                                          {{ slotProps.option.profile_user_name }}
+                                        </div>
+                                        <div class="description">
+                                          <div>
+                                            <span>{{
+                                              slotProps.option.profile_code
+                                            }}</span><span v-if="slotProps.option.department_name">
+                                              |
+                                              {{
+                                                slotProps.option.department_name
+                                              }}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <span v-else> Chưa có dữ liệu </span>
+                                </template>
+                              </MultiSelect>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group">
+                              <label>Người tạo</label>
+                              <MultiSelect :options="list_users" v-model="options.users" :filter="true" :showClear="true"
+                                :editable="false" optionLabel="full_name" placeholder="Chọn người tạo"
+                                class="w-full limit-width" style="min-height: 36px" panelClass="d-design-dropdown">
+                                <template #value="slotProps">
+                                  <ul class="p-ulchip" v-if="
+                                    slotProps.value && slotProps.value.length > 0
+                                  ">
+                                    <li class="p-lichip" v-for="(value, index) in slotProps.value" :key="index">
+                                      <Chip :image="value.avatar" :label="value.full_name" class="mr-2 mb-2 px-3 py-2">
+                                        <div class="flex">
+                                          <div class="format-flex-center">
+                                            <Avatar v-bind:label="
+                                              value.avatar
+                                                ? ''
+                                                : (
+                                                  value.last_name ?? ''
+                                                ).substring(0, 1)
+                                            " v-bind:image="
+                                                value.avatar
+                                                  ? basedomainURL + value.avatar
+                                                  : basedomainURL +
+                                                  '/Portals/Image/noimg.jpg'
+                                              " :style="{
+                                                background:
+                                                  bgColor[value.is_order % 7],
+                                                color: '#ffffff',
+                                                width: '2rem',
+                                                height: '2rem',
+                                              }" class="mr-2 text-avatar" size="xlarge" shape="circle" />
+                                          </div>
+                                          <div class="format-flex-center text-left">
+                                            <span>{{ value.full_name }}</span>
+                                          </div>
+                                          <span tabindex="0"
+                                            class="p-chip-remove-icon pi pi-times-circle format-flex-center" @click="
+                                              removeFilter(index, options.users);
+                                            $event.stopPropagation();
+                                                                                    " v-tooltip.top="'Xóa'"></span>
+                                        </div>
+                                      </Chip>
+                                    </li>
+                                  </ul>
+                                  <span v-else>
+                                    {{ slotProps.placeholder }}
+                                  </span>
+                                </template>
+                                <template #option="slotProps">
+                                  <div v-if="slotProps.option" class="flex">
+                                    <div class="format-center">
+                                      <Avatar v-bind:label="
+                                        slotProps.option.avatar
+                                          ? ''
+                                          : slotProps.option.profile_user_name.substring(
+                                            0,
+                                            1
+                                          )
+                                      " v-bind:image="
+                                          slotProps.option.avatar
+                                            ? basedomainURL + slotProps.option.avatar
+                                            : basedomainURL +
+                                            '/Portals/Image/noimg.jpg'
+                                        " :style="{
+                                          background:
+                                            bgColor[slotProps.option.is_order % 7],
+                                          color: '#ffffff',
+                                          width: '3rem',
+                                          height: '3rem',
+                                          fontSize: '1.4rem !important',
+                                        }" class="text-avatar m-0" size="xlarge" shape="circle" />
+                                    </div>
+                                    <div class="format-center text-left ml-3">
+                                      <div>
+                                        <div class="mb-1">
+                                          {{ slotProps.option.full_name }}
+                                        </div>
+                                        <div class="description">
+                                          <div>
+                                            <span>{{
+                                              slotProps.option.user_id
+                                            }}</span><span v-if="slotProps.option.department_name">
+                                              |
+                                              {{
+                                                slotProps.option.department_name
+                                              }}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <span v-else> Chưa có dữ liệu </span>
+                                </template>
+                              </MultiSelect>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label>Ngày tạo</label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <Calendar :showIcon="true" class="ip36" autocomplete="on" inputId="time24"
+                                v-model="options.start_date" placeholder="Từ ngày" />
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <Calendar :showIcon="true" class="ip36" autocomplete="on" inputId="time24"
+                                v-model="options.end_date" placeholder="Đến ngày" />
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-12 p-0">
+                          <Toolbar class="border-none surface-0 outline-none px-0 pb-0 w-full">
+                            <template #start>
+                              <Button @click="resetFilter()" class="p-button-outlined" label="Bỏ chọn"></Button>
                             </template>
-                          </MultiSelect>
+                            <template #end>
+                              <Button @click="filter($event)" label="Lọc"></Button>
+                            </template>
+                          </Toolbar>
                         </div>
                       </div>
-                     <div class="col-12 md:col-12">
-                      <div class="form-group">
-                        <label>Nhân sự</label>
-                        <MultiSelect
-                          :options="list_profiles"
-                          v-model="options.profiles"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          optionLabel="profile_user_name"
-                          placeholder="Chọn nhân sự"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip
-                                  :image="value.avatar"
-                                  :label="value.profile_user_name"
-                                  class="mr-2 mb-2 px-3 py-2"
-                                >
-                                  <div class="flex">
-                                    <div class="format-flex-center">
-                                      <Avatar
-                                        v-bind:label="
-                                          value.avatar
-                                            ? ''
-                                            : (
-                                                value.profile_user_name ?? ''
-                                              ).substring(0, 1)
-                                        "
-                                        v-bind:image="
-                                          value.avatar
-                                            ? basedomainURL + value.avatar
-                                            : basedomainURL +
-                                              '/Portals/Image/noimg.jpg'
-                                        "
-                                        :style="{
-                                          background:
-                                            bgColor[value.is_order % 7],
-                                          color: '#ffffff',
-                                          width: '2rem',
-                                          height: '2rem',
-                                        }"
-                                        class="mr-2 text-avatar"
-                                        size="xlarge"
-                                        shape="circle"
-                                      />
-                                    </div>
-                                    <div class="format-flex-center text-left">
-                                      <span>{{ value.profile_user_name }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(index, options.profiles);
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                          <template #option="slotProps">
-                            <div v-if="slotProps.option" class="flex">
-                              <div class="format-center">
-                                <Avatar
-                                  v-bind:label="
-                                    slotProps.option.avatar
-                                      ? ''
-                                      : slotProps.option.profile_user_name.substring(
-                                          0,
-                                          1
-                                        )
-                                  "
-                                  v-bind:image="
-                                    slotProps.option.avatar
-                                      ? basedomainURL + slotProps.option.avatar
-                                      : basedomainURL +
-                                        '/Portals/Image/noimg.jpg'
-                                  "
-                                  :style="{
-                                    background:
-                                      bgColor[slotProps.option.is_order % 7],
-                                    color: '#ffffff',
-                                    width: '3rem',
-                                    height: '3rem',
-                                    fontSize: '1.4rem !important',
-                                  }"
-                                  class="text-avatar m-0"
-                                  size="xlarge"
-                                  shape="circle"
-                                />
-                              </div>
-                              <div class="format-center text-left ml-3">
-                                <div>
-                                  <div class="mb-1">
-                                    {{ slotProps.option.profile_user_name }}
-                                  </div>
-                                  <div class="description">
-                                    <div>
-                                      <span>{{
-                                        slotProps.option.profile_code
-                                      }}</span
-                                      ><span
-                                        v-if="slotProps.option.department_name"
-                                      >
-                                        |
-                                        {{
-                                          slotProps.option.department_name
-                                        }}</span
-                                      >
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <span v-else> Chưa có dữ liệu </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                      </div>
-                      <div class="col-12 md:col-12">
-                      <div class="form-group">
-                        <label>Người tạo</label>
-                        <MultiSelect
-                          :options="list_users"
-                          v-model="options.users"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          optionLabel="full_name"
-                          placeholder="Chọn người tạo"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip
-                                  :image="value.avatar"
-                                  :label="value.full_name"
-                                  class="mr-2 mb-2 px-3 py-2"
-                                >
-                                  <div class="flex">
-                                    <div class="format-flex-center">
-                                      <Avatar
-                                        v-bind:label="
-                                          value.avatar
-                                            ? ''
-                                            : (
-                                                value.last_name ?? ''
-                                              ).substring(0, 1)
-                                        "
-                                        v-bind:image="
-                                          value.avatar
-                                            ? basedomainURL + value.avatar
-                                            : basedomainURL +
-                                              '/Portals/Image/noimg.jpg'
-                                        "
-                                        :style="{
-                                          background:
-                                            bgColor[value.is_order % 7],
-                                          color: '#ffffff',
-                                          width: '2rem',
-                                          height: '2rem',
-                                        }"
-                                        class="mr-2 text-avatar"
-                                        size="xlarge"
-                                        shape="circle"
-                                      />
-                                    </div>
-                                    <div class="format-flex-center text-left">
-                                      <span>{{ value.full_name }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(index, options.users);
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                          <template #option="slotProps">
-                            <div v-if="slotProps.option" class="flex">
-                              <div class="format-center">
-                                <Avatar
-                                  v-bind:label="
-                                    slotProps.option.avatar
-                                      ? ''
-                                      : slotProps.option.profile_user_name.substring(
-                                          0,
-                                          1
-                                        )
-                                  "
-                                  v-bind:image="
-                                    slotProps.option.avatar
-                                      ? basedomainURL + slotProps.option.avatar
-                                      : basedomainURL +
-                                        '/Portals/Image/noimg.jpg'
-                                  "
-                                  :style="{
-                                    background:
-                                      bgColor[slotProps.option.is_order % 7],
-                                    color: '#ffffff',
-                                    width: '3rem',
-                                    height: '3rem',
-                                    fontSize: '1.4rem !important',
-                                  }"
-                                  class="text-avatar m-0"
-                                  size="xlarge"
-                                  shape="circle"
-                                />
-                              </div>
-                              <div class="format-center text-left ml-3">
-                                <div>
-                                  <div class="mb-1">
-                                    {{ slotProps.option.full_name }}
-                                  </div>
-                                  <div class="description">
-                                    <div>
-                                      <span>{{
-                                        slotProps.option.user_id
-                                      }}</span
-                                      ><span
-                                        v-if="slotProps.option.department_name"
-                                      >
-                                        |
-                                        {{
-                                          slotProps.option.department_name
-                                        }}</span
-                                      >
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <span v-else> Chưa có dữ liệu </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                      </div>
-                      <div class="col-12 md:col-12">
-                      <div class="form-group m-0">
-                        <label>Ngày tạo</label>
-                      </div>
                     </div>
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <Calendar
-                          :showIcon="true"
-                          class="ip36"
-                          autocomplete="on"
-                          inputId="time24"
-                          v-model="options.start_date"
-                          placeholder="Từ ngày"
-                        />
-                      </div>
-                    </div>
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <Calendar
-                          :showIcon="true"
-                          class="ip36"
-                          autocomplete="on"
-                          inputId="time24"
-                          v-model="options.end_date"
-                          placeholder="Đến ngày"
-                        />
-                      </div>
-                    </div>
-                    </div>
-                    <div class="col-12 md:col-12 p-0">
-                      <Toolbar
-                          class="border-none surface-0 outline-none px-0 pb-0 w-full"
-                        >
-                          <template #start>
-                            <Button
-                              @click="resetFilter()"
-                              class="p-button-outlined"
-                              label="Bỏ chọn"
-                            ></Button>
-                          </template>
-                          <template #end>
-                            <Button @click="filter($event)" label="Lọc"></Button>
-                          </template>
-                        </Toolbar>
-                      </div>
-                    </div>
-                    </div>                         
                   </OverlayPanel>
                 </template>
                 <template #end>
                 </template>
               </Toolbar>
-                <!-- <div class="flex w-full p-3">
-                  <div class="w-15rem mr-2">
-                    <Dropdown v-model="filterType" :options="list_types" optionLabel="label" placeholder="Kho dữ liệu"
-                      class="w-full" showClear="true" @change="loadData(true)">
-                      <template #value="slotProps">
-                        <div class="flex align-items-center" v-if="slotProps.value">
-                          <img class="icon-modules" v-bind:src="basedomainURL + slotProps.value.img" />
-                          <div class="ml-2">
-                            {{ slotProps.value.label }}
-                          </div>
-                        </div>
-                        <span v-else>
-                          {{ slotProps.placeholder }}
-                        </span>
-                      </template>
-                      <template #option="slotProps">
-                        <div class="country-item flex">
-                          <img class="icon-modules" v-bind:src="basedomainURL + slotProps.option.img" />
-                          <div style="margin-left: 5px">
-                            {{ slotProps.option.label }}
-                          </div>
-                        </div>
-                      </template>
-                    </Dropdown>
-                  </div>
-                  <div class="w-15rem mr-2">
-                    <div class="w-full flex">
-                      <span class="w-full p-input-icon-left ">
-                        <i class="pi pi-search" />
-                        <InputText type="text" style="height:32px" v-model="options.search" spellcheck="false"
-                          @keyup.enter="loadData(true)" placeholder="Tìm kiếm" />
-                      </span>
-                    </div>
-                  </div>
-                </div> -->
-              </div>
-            </template>
-            <template #end>
-                <!-- <DataViewLayoutOptions v-model="layout" /> -->
-                <div class="p-dataview-layout-options p-selectbutton p-buttonset">
-                  <button class="p-button p-button-icon-only" :class="layout== 'list'?'p-highlight':''" type="button" @click="changeView('list')">
-                    <i class="pi pi-bars"></i>
-                  </button>
-                  <button class="p-button p-button-icon-only" :class="layout== 'grid'?'p-highlight':''"  type="button" @click="changeView('grid')">
-                    <i class="pi pi-th-large"></i>
-                  </button>
-                </div>
-                <Button
-                  class="mr-2 ml-2 p-button-outlined p-button-secondary"
-                  icon="pi pi-refresh"
-                  @click="onRefresh()"
-                />
-              </template>
-          </Toolbar>
-          <div class="w-full" v-if="isTopView">
-            <h3 class="ml-3 my-2">Gần đây</h3>
-            <div class="flex">
-              <div v-for="(item, index) in datatop" :key="index" class="col-3" >
-               <div  @click="goFile(item)"
-                  @mouseover="hoverItem(item.file_id)"
-                  @mouseleave="leaveItem()"
-                  v-on:dblclick="viewFile(item)"
-                  :title="item.labelContext"
-                class="m-2 p-2 cursor-pointer item-top-hover relative" style="background-color:#f1f6fc;border-radius: 15px;height: 95%;">
-                <Button
-                    v-show="item.file_id == item_hover"
-                    icon="pi pi-ellipsis-h"
-                    class="p-button-rounded p-button-text absolute btn-more"
-                    @click="toggleMores($event, item)"
-                    aria-haspopup="true"
-                    style="top:6px !important"
-                    aria-controls="overlay_More"
-                  />
-                <div class="format-center text-1line my-2 mr-4" style="">{{item.file_name }}</div>
+            </div>
+          </template>
+          <template #end>
+            <!-- <DataViewLayoutOptions v-model="layout" /> -->
+            <div class="p-dataview-layout-options p-selectbutton p-buttonset">
+              <button class="p-button p-button-icon-only" :class="layout == 'list' ? 'p-highlight' : ''" type="button"
+                @click="changeView('list')">
+                <i class="pi pi-bars"></i>
+              </button>
+              <button class="p-button p-button-icon-only" :class="layout == 'grid' ? 'p-highlight' : ''" type="button"
+                @click="changeView('grid')">
+                <i class="pi pi-th-large"></i>
+              </button>
+            </div>
+            <Button class="mr-2 ml-2 p-button-outlined p-button-secondary" icon="pi pi-refresh" @click="onRefresh()" />
+          </template>
+        </Toolbar>
+        <div class="w-full" v-if="isTopView">
+          <h3 class="ml-3 my-2">Gần đây</h3>
+          <div class="flex">
+            <div v-for="(item, index) in datatop" :key="index" class="col-3">
+              <div @click="goFile(item)" @mouseover="hoverItem(item.file_id)" @mouseleave="leaveItem()"
+                v-on:dblclick="viewFile(item)" :title="item.labelContext"
+                class="m-2 p-2 cursor-pointer item-top-hover relative"
+                style="background-color:#f1f6fc;border-radius: 15px;height: 95%;">
+                <Button v-show="item.file_id == item_hover" icon="pi pi-ellipsis-h"
+                  class="p-button-rounded p-button-text absolute btn-more" @click="toggleMores($event, item)"
+                  aria-haspopup="true" style="top:6px !important" aria-controls="overlay_More" />
+                <div class="format-center text-1line my-2 mr-4" style="">{{ item.file_name }}</div>
                 <div class="item-content">
                   <div class="mx-2 bg-white py-2">
-                        <Image
-                          v-if="item.is_image"
-                          height="110"
-                          class="w-full cursor-pointer"
-                          v-bind:src="
-                            item.file_path
-                              ? basedomainURL + item.file_path
-                              : basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                        />
-                        <img
-                          v-else
-                          class="w-full cursor-pointer"
-                          style="height: 110px; object-fit: contain"
-                          v-bind:src="
-                            basedomainURL +
-                            '/Portals/file/' +
-                            item.file_type.replace('.','') +
-                            '.png'
-                          "
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                        />
-                      </div>
+                    <Image v-if="item.is_image" height="110" class="w-full cursor-pointer" v-bind:src="
+                      item.file_path
+                        ? basedomainURL + item.file_path
+                        : basedomainURL + '/Portals/Image/noimg.jpg'
+                    " />
+                    <img v-else class="w-full cursor-pointer" style="height: 110px; object-fit: contain" v-bind:src="
+                      basedomainURL +
+                      '/Portals/file/' +
+                      item.file_type.replace('.', '') +
+                      '.png'
+                    " @error="
+                      $event.target.src =
+                      basedomainURL + '/Portals/Image/noimg.jpg'
+                    " />
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
           </div>
-          <DataTable
-          v-if="layout== 'list'"
-          class="w-full p-datatable-sm e-sm cursor-pointer"
-          :value="datalists"
-          :class="isTopView?'over-scroll-list':'over-scroll'"
-          v-model:filters="filters"
-          :showGridlines="true"
-          filterMode="lenient"
-          :paginator="'true'"
-          :rows="options.PageSize"
-          filterDisplay="menu"
-          selectionMode="single"
+        </div>
+        <DataTable v-if="layout == 'list'" class="w-full p-datatable-sm e-sm cursor-pointer" :value="datalists"
+          :class="isTopView ? 'over-scroll-list' : 'over-scroll'" v-model:filters="filters" :showGridlines="true"
+          filterMode="lenient" :paginator="'true'" :rows="options.PageSize" filterDisplay="menu" selectionMode="single"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-          :scrollable="true"
-          scrollHeight="flex"
-          responsiveLayout="scroll"
-          v-model:selection="selectedStamps"
-          pageLinkSize="4"
-          :globalFilterFields="[
+          :scrollable="true" scrollHeight="flex" responsiveLayout="scroll" v-model:selection="selectedStamps"
+          pageLinkSize="4" :globalFilterFields="[
             'file_name'
-          ]"
-          v-model:first="first_module"
-          v-on:dblclick="viewFile(selectedStamps)"
-          @page="onPage($event)"
-        >
+          ]" v-model:first="first_module" v-on:dblclick="viewFile(selectedStamps)" @page="onPage($event)">
 
           <Column field="file_type" class="align-items-center justify-content-center text-center"
             headerStyle="text-align:center;max-width:50px;min-width:50px;height:50px"
             bodyStyle="text-align:center;max-width:50px;min-width:50px">
             <template #body="{ data }">
-              <img style="height: 90%; object-fit: contain" v-bind:src="
+              <img style="height: 25px; object-fit: contain" v-bind:src="
                 basedomainURL + '/Portals/file/' + data.file_type + '.png'
               " @error="
                 $event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'
@@ -1262,20 +1071,85 @@ onMounted(() => {
               {{ formatBytes(data.file_size) }}
             </template>
           </Column>
-          <Column field="profile_name" header="Nhân sự"
-            headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px"
-            bodyStyle="text-align:center;max-width:200px;min-width:150px;"
+          <Column field="list_profile" header="Nhân sự"
+            headerStyle="text-align:center;max-width:200px;min-width:150px;height:50px;justify-content:center;display:flex"
+            bodyStyle="max-width:200px;min-width:150px;"
             class="align-items-center justify-content-center text-center">
             <template #body="slotProps">
-            <b @click="goProfile(slotProps.data)" class="hover">{{
-              slotProps.data.profile_name
-            }}</b>
-          </template>
+              <!-- <span v-for="(item, index) in slotProps.data.list_profile" :key="index">
+                <b @click="goProfile(item.profile_id)" class="hover">{{
+                  item.profile_user_name
+                }}</b>
+                <span v-if="index < (slotProps.data.list_profile.length -1)">,&nbsp;</span>                
+              </span> -->
+              <div class="flex" :style="{ justifyContent: 'center' }">
+              <AvatarGroup
+                v-if="
+                  slotProps.data.list_profile &&
+                  slotProps.data.list_profile.length > 0
+                "
+              >
+                <Avatar
+                  v-for="(item, index) in slotProps.data.list_profile.slice(
+                    0,
+                    3
+                  )"
+                  v-bind:label="
+                    item.avatar
+                      ? ''
+                      : item.profile_user_name.substring(0, 1)
+                  "
+                  v-bind:image="
+                    item.avatar
+                      ? basedomainURL + item.avatar
+                      : basedomainURL + '/Portals/Image/noimg.jpg'
+                  "
+                  v-tooltip.top="{
+                    value:
+                      item.profile_user_name+
+                      '<br/>' +
+                      (item.profile_code||'')+
+                      '<br/>' +
+                      (item.department_name||''),
+                    escape: true,
+                  }"
+                  @click="goProfile(item.profile_id)"
+                  :key="item.profile_id"
+                  @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                  size="large"
+                  shape="circle"
+                  class="cursor-pointer"
+                  :style="{
+                    backgroundColor: bgColors[index % 7],
+                    color: 'white',
+                    fontSize: '13px !important',
+                  }"
+                />
+                <Avatar
+                  v-if="
+                    slotProps.data.list_profile &&
+                    slotProps.data.list_profile.length > 3
+                  "
+                  v-bind:label="
+                    '+' + (slotProps.data.list_profile.length - 3).toString()
+                  "
+                  @click="toggleMoreUsers($event, slotProps.data.list_profile.slice(3,slotProps.data.list_profile.length))"
+                  aria:haspopup="true" aria-controls="overlay_Users"
+                  shape="circle"
+                  size="large"
+                  :style="{
+                    backgroundColor: '#2196f3',
+                    color: '#ffffff',
+                  }"
+                  class="cursor-pointer"
+                />
+              </AvatarGroup>
+            </div>
+            </template>
           </Column>
           <Column field="created_date" header="Ngày/ Người tạo"
             headerStyle="text-align:left;max-width:170px;min-width:170px;height:50px"
-            bodyStyle="text-align:left;max-width:170px;min-width:170px;;max-height:60px"
-            class="">
+            bodyStyle="text-align:left;max-width:170px;min-width:170px;" class="">
             <template #body="slotProps">
               <span class="mr-2">{{
                 moment(new Date(slotProps.data.created_date)).format(
@@ -1288,152 +1162,161 @@ onMounted(() => {
                     ? ''
                     : slotProps.data.last_name.substring(0, 1)
                 " v-bind:image="
-                  slotProps.data.avatar
-                    ? basedomainURL + slotProps.data.avatar
-                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                " style="background-color: #2196f3;color: #ffffff;width: 2rem;height: 2rem;font-size: 1rem !important;" :style="{
-                      background: bgColor[slotProps.data.is_order % 7],
-                    }" class="text-avatar" size="xlarge" shape="circle" v-tooltip.top="slotProps.data.full_name" />
+                    slotProps.data.avatar
+                      ? basedomainURL + slotProps.data.avatar
+                      : basedomainURL + '/Portals/Image/noimg.jpg'
+                  " style="background-color: #2196f3;color: #ffffff;width: 2rem;height: 2rem;font-size: 1rem !important;"
+                  :style="{
+                    background: bgColor[slotProps.data.is_order % 7],
+                  }" class="text-avatar" size="xlarge" shape="circle" v-tooltip.top="slotProps.data.full_name" />
               </div>
             </template>
           </Column>
-          <Column field="created_date" header=""
-            headerStyle="text-align:center;max-width:60px;min-width:60px;height:50px"
-            bodyStyle="text-align:center;max-width:60px;min-width:60px;;max-height:50px"
+          <Column field="created_date" header="" headerStyle="text-align:center;max-width:60px;min-width:60px;height:50px"
+            bodyStyle="text-align:center;max-width:60px;min-width:60px"
             class="align-items-center justify-content-center text-center">
             <template #body="slotProps">
-              <Button
-              icon="pi pi-ellipsis-h"
-              class="p-button-text p-button-secondary ml-2"
-              @click="toggleMores($event, slotProps.data)"
-              aria-haspopup="true"
-              aria-controls="overlay_More"
-            />
-              </template>
+              <Button icon="pi pi-ellipsis-h" class="p-button-text p-button-secondary ml-2"
+                @click="toggleMores($event, slotProps.data)" aria-haspopup="true" aria-controls="overlay_More" />
+            </template>
           </Column>
           <template #empty>
             <div class="
-                align-items-center
-                justify-content-center
-                p-4
-                text-center
-                m-auto
-              " v-if="!isFirst">
+                  align-items-center
+                  justify-content-center
+                  p-4
+                  text-center
+                  m-auto
+                " v-if="!isFirst">
               <img src="../../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </template>
-          </DataTable>
-          <div
-          v-if="layout== 'grid'"
-            class="col-12 p-0 overflow-y-auto grid-9"
-          >
+        </DataTable>
+        <div v-if="layout == 'grid'" class="col-12 p-0 overflow-y-auto grid-9">
           <div class="header-top">
             <span class="font-bold flex ml-5 text-lg">Danh sách files</span>
           </div>
-          <DataView
-            class="w-full h-full e-sm flex flex-column p-dataview-unset"
-            :value="datalists"
-            :class="isTopView?'over-scroll-grid':'over-scroll-grid-notop'"
-            :layout="layout"
-            :paginator="'true'"
-            rows="36"
-            responsiveLayout="scroll"
-            :scrollable="false"
+          <DataView class="w-full h-full e-sm flex flex-column p-dataview-unset" :value="datalists"
+            :class="isTopView ? 'over-scroll-grid' : 'over-scroll-grid-notop'" :layout="layout" :paginator="'true'" rows="36"
+            responsiveLayout="scroll" :scrollable="false"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            v-model:first="first"
-            >
+            v-model:first="first">
             <template #grid="slotProps">
-                <div
-                  style="width: 100%"
-                  class="md:col-2 col-2 card-content cursor-pointer relative"
-                  :title="slotProps.data.labelContext"
-                  @click="goFile(slotProps.data)"
-                  @mouseover="hoverItem(slotProps.data.file_id)"
-                  @mouseleave="leaveItem()"
-                  v-on:dblclick="viewFile(slotProps.data)"
-                >
-                 <Button
-                    v-show="slotProps.data.file_id == item_hover"
-                    icon="pi pi-ellipsis-h"
-                    class="p-button-rounded p-button-text absolute btn-more"
-                    @click="toggleMores($event, slotProps.data)"
-                    aria-haspopup="true"
-                    style=""
-                    aria-controls="overlay_More"
-                  />
-                  <Card class="no-paddcontent p-0 item-hover" :class="itemclick== slotProps.data.file_id? 'item-click':''">
-                    <template #title>
-                      <div class="grid-item">
-                        <Image
-                          v-if="slotProps.data.is_image"
-                          height="110"
-                          class="w-full cursor-pointer"
-                          v-bind:src="
-                            slotProps.data.file_path
-                              ? basedomainURL + slotProps.data.file_path
-                              : basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                        />
-                        <img
-                          v-else
-                          class="w-full cursor-pointer"
-                          style="height: 110px; object-fit: contain"
-                          v-bind:src="
-                            basedomainURL +
-                            '/Portals/file/' +
-                            slotProps.data.file_type.replace('.','') +
-                            '.png'
-                          "
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                        />
-                      </div>
-                    </template>
-                    <template #content>
-                      <div
-                        class="
-                          format-center
-                          mx-2
-                          text-3line text-title
-                          my-2
-                        "
-                      >
-                        {{ slotProps.data.file_name_grid }}
-                      </div>
-                    </template>
-                  </Card>
-                </div>
-              </template>
-              <template #empty>
-                <div
-                  class="
-                    align-items-center
-                    justify-content-center
-                    p-4
-                    text-center
-                  "
-                >
-                  <img src="../../../assets/background/nodata.png" height="144" />
-                  <h3 class="m-1">Không có dữ liệu</h3>
-                </div>
-              </template>
+              <div style="width: 100%" class="md:col-2 col-2 card-content cursor-pointer relative"
+                :title="slotProps.data.labelContext" @click="goFile(slotProps.data)"
+                @mouseover="hoverItem(slotProps.data.file_id)" @mouseleave="leaveItem()"
+                v-on:dblclick="viewFile(slotProps.data)">
+                <Button v-show="slotProps.data.file_id == item_hover" icon="pi pi-ellipsis-h"
+                  class="p-button-rounded p-button-text absolute btn-more" @click="toggleMores($event, slotProps.data)"
+                  aria-haspopup="true" style="" aria-controls="overlay_More" />
+                <Card class="no-paddcontent p-0 item-hover" :class="itemclick == slotProps.data.file_id ? 'item-click' : ''">
+                  <template #title>
+                    <div class="grid-item">
+                      <Image v-if="slotProps.data.is_image" height="110" class="w-full cursor-pointer" v-bind:src="
+                        slotProps.data.file_path
+                          ? basedomainURL + slotProps.data.file_path
+                          : basedomainURL + '/Portals/Image/noimg.jpg'
+                      " />
+                      <img v-else class="w-full cursor-pointer" style="height: 110px; object-fit: contain" v-bind:src="
+                        basedomainURL +
+                        '/Portals/file/' +
+                        slotProps.data.file_type.replace('.', '') +
+                        '.png'
+                      " @error="
+                        $event.target.src =
+                        basedomainURL + '/Portals/Image/noimg.jpg'
+                      " />
+                    </div>
+                  </template>
+                  <template #content>
+                    <div class="
+                            format-center
+                            mx-2
+                            text-3line text-title
+                            my-2
+                          ">
+                      {{ slotProps.data.file_name_grid }}
+                    </div>
+                  </template>
+                </Card>
+              </div>
+            </template>
+            <template #empty>
+              <div class="
+                      align-items-center
+                      justify-content-center
+                      p-4
+                      text-center
+                    ">
+                <img src="../../../assets/background/nodata.png" height="144" />
+                <h3 class="m-1">Không có dữ liệu</h3>
+              </div>
+            </template>
           </DataView>
-          </div>
+        </div>
       </div>
       <div style="width: 320px !important; border-left: 1px solid rgba(0, 0, 0, 0.1);overflow: hidden;">
         <div v-if="!isDetail">
           <div class="header-bar w-full format-center" style="border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
-            <h3>Kho số hóa: {{ total_file || 0}} files</h3>
+            <div class="col-12 font-bold text-lg text-center">
+              Kho số hóa: {{ total_file || 0 }} files
+          </div>
           </div>
           <div class="body-right format-center" v-if="displayChart">
             <Chart type="pie" style="width: 90% !important" :data="chartDatapie" :options="lightOptions" />
           </div>
-          <div class=" format-center w-full" v-if="displayChart">
+          <div class="format-center w-full" v-if="displayChart">
             <h4>Tổng dung lượng: {{ formatBytes(total_size) }}</h4>
           </div>
+          <div class="col-12 font-bold text-lg text-center mt-5 mb-1">
+              Tài khoản truy cập nhiều nhất
+          </div>
+          <DataTable
+              :value="top_users"
+              :scrollable="true"
+              :lazy="true"
+              :rowHover="true"
+              :showGridlines="false"
+              dataKey="created_by"
+              scrollHeight="flex"
+              filterDisplay="menu"
+              filterMode="lenient"
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              responsiveLayout="scroll"
+              class="border-none padding-new"
+            >
+              <Column
+                field="full_name"
+                header="Tài khoản"
+                headerStyle="max-width:auto;justify-content:center;height:40px"
+              >
+              <template #body="slotProps">
+              <div>
+                <Avatar v-bind:label="
+                  slotProps.data.avatar
+                    ? ''
+                    : slotProps.data.last_name.substring(0, 1)
+                " v-bind:image="
+                    slotProps.data.avatar
+                      ? basedomainURL + slotProps.data.avatar
+                      : basedomainURL + '/Portals/Image/noimg.jpg'
+                  " style="background-color: #2196f3;color: #ffffff;width: 2rem;height: 2rem;font-size: 1rem !important;"
+                  :style="{
+                    background: bgColor[slotProps.data.full_name.length % 7],
+                  }" class="text-avatar" size="xlarge" shape="circle"  />
+              </div>
+              <span class="ml-2">{{slotProps.data.full_name}}</span>
+            </template>
+              </Column>
+              <Column
+                field="total_view"
+                header="Số lần"
+                headerStyle="text-align:center;max-width:50px;height:40px;justify-content:center"
+                bodyStyle="text-align:center;max-width:50px;justify-content:center"
+              >
+              </Column>
+            </DataTable>
         </div>
         <div v-else class="p-3">
           <div class="field col-12 pl-0 flex">
@@ -1450,12 +1333,12 @@ onMounted(() => {
               <Avatar v-bind:label="
                 file_detail.avatar ? '' : file_detail.last_name.substring(0, 1)
               " v-bind:image="basedomainURL + file_detail.avatar" style="background-color: #2196f3;
-                            color: #ffffff;
-                            width: 2rem;
-                            height: 2rem;
-                          " :style="{
-                            background: bgColor[file_detail.last_name.length % 7],
-                          }" class="mr-2" size="xlarge" shape="circle" />
+                    color: #ffffff;
+                    width: 2rem;
+                    height: 2rem;
+                  " :style="{
+                    background: bgColor[file_detail.last_name.length % 7],
+                  }" class="mr-2" size="xlarge" shape="circle" />
               <div class="text-bold">{{ file_detail.full_name }} </div>
             </div>
           </div>
@@ -1470,26 +1353,26 @@ onMounted(() => {
           <div class="field col-12 flex">
             <div class="col-3 p-0 flex" style="align-items:center">Vị trí hồ sơ: </div>
             <div class="col-9 p-0 text-bold">
-              {{ file_detail.type_name}}
+              {{ file_detail.type_name }}
             </div>
           </div>
           <div class="field col-12 font-bold text-lg pl-0 pb-3">Thông tin truy cập</div>
           <div class="scroll-right">
             <div v-for="(item, index) in data_log" :key="index" class="flex mb-3"
-              :style="(index == data_log.length - 1) ? '' : 'border-bottom:2px solid #eee'">
+              >
               <div class="log-image">
                 <div class="group-sign">
                   <div style="display: inline-block; position: relative; z-index: 1;">
                     <Avatar v-bind:label="
                       item.avatar ? '' : item.last_name.substring(0, 1)
                     " v-bind:image="basedomainURL + item.avatar" style="
-                            background-color: #2196f3;
-                            color: #ffffff;
-                            width: 4rem;
-                            height: 4rem;
-                          " :style="{
-                            background: bgColor[index % 7],
-                          }" class="mr-2" size="xlarge" shape="circle" />
+                              background-color: #2196f3;
+                              color: #ffffff;
+                              width: 4rem;
+                              height: 4rem;
+                            " :style="{
+                              background: bgColor[index % 7],
+                            }" class="mr-2" size="xlarge" shape="circle" />
                   </div>
                   <span class="sign-date description" v-if="item.position_name">{{ item.position_name }} </span>
                 </div>
@@ -1510,114 +1393,126 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <Dialog
-    v-model:visible="ModalShowFile"
-    :header="fileNamDetail"
-    :modal="true"
-    :closable="true"
-    :style="{ width: '70vw' }"
-    :maximizable="true"
-    :autoZIndex="true"
-      >
-        <div class="grid formgrid m-2 h-full">
-          <div v-if="dataDetail" class="w-full format-center">
-             <img
-              v-if="
-                'gif,jpeg,png,jpg,.gif,.jpeg,.png,.jpg'.includes(dataDetail.file_type.toLowerCase())
-              "
-              style="width: 100%; min-height: 66vh; height: 100%"
-              class="w-full cursor-pointer"
-              :src="
-                dataDetail.file_path
-                  ? basedomainURL + dataDetail.file_path
-                  : basedomainURL + '/Portals/Image/noimg.jpg'
-              "
-            />
-            <video
-              v-if="
-                'mp4,flv,mov,wmv,.mp4,.flv,.mov,.wmv'.includes(dataDetail.file_type.toLowerCase())
-              "
-              style="width: 100%; min-height: 66vh; height: 100%"
-              controls
-              :src="basedomainURL + dataDetail.file_path"
-            ></video>
-            <audio
-              style="width: 100%; margin: 0px auto"
-              controls
-              v-if="
-                'mp3,wma,aac,flac,alac,wav,.mp3,.wma,.aac,.flac,.alac,.wav'.includes(
-                  dataDetail.file_type.toLowerCase()
-                )
-              "
-            >
-              <source :src="basedomainURL + dataDetail.file_path" />
-            </audio>
-            <iframe
-              v-if="
-                'pptx,ppt,doc,docx,xls,xlsx, pdf, txt, .pptx,.ppt,.doc,.docx,.xls,.xlsx,.pdf,.txt'.includes(
-                  dataDetail.file_type.toLowerCase()
-                )
-              "
-              allowfullscreen
-              :src="
-                basedomainURL +
-                '/Viewer/?title=' +
-                dataDetail.file_name +
-                '&url=' +
-                dataDetail.file_path
-              "
-              style="width: 100%; min-height: 66vh; height: 100%"
-              title="Iframe Example"
-            >
-            </iframe>
-          </div>
+  <Dialog v-model:visible="ModalShowFile" :header="fileNamDetail" :modal="true" :closable="true"
+    :style="{ width: '70vw' }" :maximizable="true" :autoZIndex="true">
+    <div class="grid formgrid m-2 h-full">
+      <div v-if="dataDetail" class="w-full format-center">
+        <img v-if="
+          'gif,jpeg,png,jpg,.gif,.jpeg,.png,.jpg'.includes(dataDetail.file_type.toLowerCase())
+        " style="width: 100%; min-height: 66vh; height: 100%" class="w-full cursor-pointer" :src="
+            dataDetail.file_path
+              ? basedomainURL + dataDetail.file_path
+              : basedomainURL + '/Portals/Image/noimg.jpg'
+          " />
+        <video v-if="
+          'mp4,flv,mov,wmv,.mp4,.flv,.mov,.wmv'.includes(dataDetail.file_type.toLowerCase())
+        " style="width: 100%; min-height: 66vh; height: 100%" controls
+          :src="basedomainURL + dataDetail.file_path"></video>
+        <audio style="width: 100%; margin: 0px auto" controls v-if="
+          'mp3,wma,aac,flac,alac,wav,.mp3,.wma,.aac,.flac,.alac,.wav'.includes(
+            dataDetail.file_type.toLowerCase()
+          )
+        ">
+          <source :src="basedomainURL + dataDetail.file_path" />
+        </audio>
+        <iframe v-if="
+          'pptx,ppt,doc,docx,xls,xlsx, pdf, txt, .pptx,.ppt,.doc,.docx,.xls,.xlsx,.pdf,.txt'.includes(
+            dataDetail.file_type.toLowerCase()
+          )
+        " allowfullscreen :src="
+            basedomainURL +
+            '/Viewer/?title=' +
+            dataDetail.file_name +
+            '&url=' +
+            dataDetail.file_path
+          " style="width: 100%; min-height: 66vh; height: 100%" title="Iframe Example">
+        </iframe>
+      </div>
+    </div>
+  </Dialog>
+  <Menu id="overlay_More" ref="menuButMores" :model="itemButMores" :popup="true" />
+  <OverlayPanel :showCloseIcon="false" ref="opMore" appendTo="body" class="p-0 m-0" id="overlay_Users" style="width: 200px">
+    <div class="grid formgrid m-0 p-0">
+      <div v-for="(item, index) in profile_mores" :key="index" class="col-12 flex p-0 py-1 item-top-hover cursor-pointer" @click="goProfile(item)">
+        <div class="col-3">
+          <Avatar
+          v-bind:label="
+            item.avatar
+              ? ''
+              : item.profile_user_name.substring(0, 1)
+          "
+          v-bind:image="
+            item.avatar
+              ? basedomainURL + item.avatar
+              : basedomainURL + '/Portals/Image/noimg.jpg'
+          "
+          :key="item.profile_id"
+          @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+          size="large"
+          shape="circle"
+          class="cursor-pointer"
+          :style="{
+            backgroundColor: bgColors[index % 7],
+            color: 'white',
+            width:'2.7rem',
+            height:'2.7rem',
+            fontSize: '13px !important',
+          }"
+        />
         </div>
-      </Dialog>
-  <Menu
-    id="overlay_More"
-    ref="menuButMores"
-    :model="itemButMores"
-    :popup="true"
-  />
+        <div class="col-9 flex align-items-center hover font-bold">
+          {{item.profile_user_name}}
+        </div>
+      </div>
+    </div>
+  </OverlayPanel>
 </template>
     
 <style scoped>
-  @import url(../profile/component/stylehrm.css);
+@import url(../profile/component/stylehrm.css);
 
-  .header-top{
-    height:50px; 
-    border-top: 1px solid #e9ecef!important;
-    border-bottom: 1px solid #e9ecef!important;
-    display: flex;
-    align-items: center;
+.header-top {
+  height: 50px;
+  border-top: 1px solid #e9ecef !important;
+  border-bottom: 1px solid #e9ecef !important;
+  display: flex;
+  align-items: center;
 
-  }
-.item-hover:hover{
-  background-color: #f0f8ff!important;
 }
-.item-top-hover:hover{
-  background-color: #cce9ff!important;
+
+.item-hover:hover {
+  background-color: #f0f8ff !important;
 }
-.item-click{
-  background-color: #cce9ff!important;
+
+.item-top-hover:hover {
+  background-color: #cce9ff !important;
 }
-.btn-more{
-  right:2px;
-   top:2px; 
-   border-radius: 50%;
-   color:#607D8B;
-  border:1px solid #607D8B;
+
+.item-click {
+  background-color: #cce9ff !important;
+}
+
+.btn-more {
+  right: 2px;
+  top: 2px;
+  border-radius: 50%;
+  color: #607D8B;
+  border: 1px solid #607D8B;
   width: 22px !important;
-  height:22px !important;
+  height: 22px !important;
 }
+
 .scroll-right {
   overflow: auto;
   max-height: calc(100vh - 350px);
   min-height: calc(100vh - 350px);
 }
+
 .hover:hover {
   color: #0078d4;
 }
+
+
 .text-bold {
   color: #000000;
 }
@@ -1625,32 +1520,37 @@ onMounted(() => {
 .header-bar {
   background-color: #fff !important;
   height: 57px !important;
-  display:flex;
+  display: flex;
 }
 
 .body-content {
   background: #fff;
 }
-.over-scroll{
+
+.over-scroll {
   min-height: calc(100vh - 150px);
   max-height: calc(100vh - 150px);
   overflow: auto;
 }
-.over-scroll-list{
-  min-height: calc(100vh - 360px);
-  max-height: calc(100vh - 360px);
+
+.over-scroll-list {
+  min-height: calc(100vh - 342px);
+  max-height: calc(100vh - 342px);
   overflow: auto;
 }
-.over-scroll-grid{
+
+.over-scroll-grid {
   min-height: calc(100vh - 390px);
   max-height: calc(100vh - 390px);
   overflow: auto;
 }
-.over-scroll-grid-notop{
+
+.over-scroll-grid-notop {
   min-height: calc(100vh - 200px);
   max-height: calc(100vh - 200px);
   overflow: auto;
 }
+
 .text-1line {
   text-overflow: ellipsis;
   overflow: hidden;
@@ -1659,6 +1559,7 @@ onMounted(() => {
   display: -webkit-box;
   -webkit-box-orient: vertical;
 }
+
 .field {
   margin-bottom: 0.75rem;
 }
@@ -1712,22 +1613,28 @@ onMounted(() => {
 ::v-deep(.p-datatable-wrapper) {
 
   th {
-    height: 50px;
     border: none !important;
     border-top: 1px solid #e9ecef !important;
     border-bottom: 1px solid #e9ecef !important;
     background: #fff !important;
   }
 }
-
+::v-deep(.padding-new) {
+  tr > td{
+  border:none !important;
+}
+thead> tr{
+  display:none;
+}
+}
 ::v-deep(.p-selectable-row) {
 
   td {
-  height: 50px;
-  border: none !important;
-  border-top: 1px solid #e9ecef !important;
-  border-bottom: 1px solid #e9ecef !important;
-}
+    min-height: 50px;
+    border: none !important;
+    border-top: 1px solid #e9ecef !important;
+    border-bottom: 1px solid #e9ecef !important;
+  }
 
 }
 ::v-deep(.p-datatable-header) {
@@ -1735,19 +1642,23 @@ onMounted(() => {
   background: #fff !important;
   border-width: 0px !important;
 }
-.p-toolbar{
+
+.p-toolbar {
   padding: 0px !important;
 }
+
 ::v-deep(.grid-9) {
   .grid {
     grid-template-columns: repeat(9, 1fr);
   }
 }
+
 ::v-deep(.p-dataview-content) {
   .grid {
     display: grid !important;
   }
 }
+
 ::v-deep(.grid-item) {
   img {
     width: 100%;
@@ -1756,9 +1667,10 @@ onMounted(() => {
 }
 
 ::v-deep(.p-card) {
-    box-shadow: none!important;
-    background: #fff;
-    height: 100%;
+  box-shadow: none !important;
+  background: #fff;
+  height: 100%;
+
   .p-card-body {
     padding: 0.5rem !important;
   }
@@ -1791,7 +1703,9 @@ onMounted(() => {
     display: grid !important;
   }
 }
+
 ::v-deep(.form-group) {
+
   .p-multiselect .p-multiselect-label,
   .p-dropdown .p-dropdown-label,
   .p-treeselect .p-treeselect-label {
@@ -1799,9 +1713,11 @@ onMounted(() => {
     display: flex;
     align-items: center;
   }
+
   .p-chip img {
     margin: 0;
   }
+
   .p-avatar-text {
     font-size: 1rem;
   }

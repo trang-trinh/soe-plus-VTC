@@ -10,6 +10,7 @@ import dialogtag from "../profile/component//dialogtag.vue";
 import dialogcontract from "../contract/component/dialogcontract.vue";
 import diloginsurance from "../profile/component/diloginsurance.vue";
 import dialogstatus from "../profile/component/dialogstatus.vue";
+import dialogmatchaccount from "../profile/component/dialogmatchaccount.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
 const router = inject("router");
@@ -323,7 +324,7 @@ const itemButMores = ref([
     label: "Cấp tài khoản truy cập",
     icon: "pi pi-key",
     command: (event) => {
-      //editItem(profile.value, "Chỉnh sửa hợp đồng");
+      openMatchAccount(profile.value, "Liên kết tài khoản");
     },
   },
   {
@@ -493,17 +494,14 @@ const editItem = (item, str) => {
           // model.value["select_place_register_permanent"][
           //   model.value["place_register_permanent"] || -1
           // ] = true;
-          if (model.value["birthplace_id"] == null) {
-            model.value["select_birthplace"] = model.value["birthplace_name"];
-          }
-          if (model.value["birthplace_origin_id"] == null) {
-            model.value["select_birthplace_origin"] =
-              model.value["birthplace_origin_name"];
-          }
-          if (model.value["place_register_permanent"] == null) {
-            model.value["select_place_register_permanent"] =
-              model.value["place_register_permanent_name"];
-          }
+          model.value["select_birthplace"] = model.value["birthplace_name"];
+          model.value["select_birthplace_origin"] =
+            model.value["birthplace_origin_name"];
+          model.value["select_place_register_permanent"] =
+            model.value["place_register_permanent_name"];
+          model.value["select_place_residence"] =
+            model.value["place_residence_name"];
+
           if (model.value["recruitment_date"] != null) {
             model.value["recruitment_date"] = new Date(
               model.value["recruitment_date"]
@@ -515,6 +513,21 @@ const editItem = (item, str) => {
           if (model.value["identity_date_issue"] != null) {
             model.value["identity_date_issue"] = new Date(
               model.value["identity_date_issue"]
+            );
+          }
+          if (model.value["partisan_date"] != null) {
+            model.value["partisan_date"] = new Date(
+              model.value["partisan_date"]
+            );
+          }
+          if (model.value["partisan_joindate"] != null) {
+            model.value["partisan_joindate"] = new Date(
+              model.value["partisan_joindate"]
+            );
+          }
+          if (model.value["organization_joindate"] != null) {
+            model.value["organization_joindate"] = new Date(
+              model.value["organization_joindate"]
             );
           }
         }
@@ -543,6 +556,12 @@ const editItem = (item, str) => {
             }
             if (x["end_date"] != null) {
               x["end_date"] = new Date(x["end_date"]);
+            }
+            if (x["degree_date"] != null) {
+              x["degree_date"] = new Date(x["degree_date"]);
+            }
+            if (x["graduation_year"] != null) {
+              x["graduation_year"] = new Date(x["graduation_year"]);
             }
             if (x["certificate_start_date"] != null) {
               x["certificate_start_date"] = new Date(
@@ -923,7 +942,7 @@ const openAddDialogContract = (item, str) => {
   model.value = {
     profile: item,
     sign_user: null,
-    contract_no: "",
+    contract_code: "",
     contract_name: "",
     employment: "",
     start_date: new Date(),
@@ -978,6 +997,20 @@ const openAddDialogStatus = (item, str) => {
 const closeDialogStatus = () => {
   displayDialogStatus.value = false;
   forceRerender(7);
+};
+
+//Function Matching account
+const headerDialogMatchAccount = ref();
+const displayDialogMatchAccount = ref(false);
+const openMatchAccount = (item, str) => {
+  profile.value = item;
+  forceRerender(8);
+  headerDialogMatchAccount.value = str;
+  displayDialogMatchAccount.value = true;
+};
+const closeDialogMatchAccount = () => {
+  forceRerender(8);
+  displayDialogMatchAccount.value = false;
 };
 
 //Init
@@ -2246,12 +2279,7 @@ onMounted(() => {
           icon="pi pi-plus"
           class="mr-2"
         />
-        <Button
-          @click="refresh()"
-          class="p-button-outlined p-button-secondary mr-2"
-          icon="pi pi-refresh"
-          label="Tải lại"
-        />
+        
         <Button
           icon="pi pi-trash"
           label="Xóa"
@@ -2289,6 +2317,7 @@ onMounted(() => {
           optionLabel="view"
           dataKey="view"
           aria-labelledby="custom"
+          class="mr-2"
         >
           <template #option="slotProps">
             <div v-tooptip.top="slotProps.option.title">
@@ -2296,6 +2325,18 @@ onMounted(() => {
             </div>
           </template>
         </SelectButton>
+        <Button
+          @click="refresh()"
+          class="p-button-outlined p-button-secondary mr-2"
+          icon="pi pi-refresh"
+          v-tooltip.top="'Tải lại'"
+        />
+        <Button
+          @click=""
+          icon="pi pi-question-circle"
+          class="p-button-outlined p-button-secondary"
+          v-tooltip.top="'Hướng dẫn sử dụng'"
+        />
       </template>
     </Toolbar>
     <div class="tabview">
@@ -2541,12 +2582,26 @@ onMounted(() => {
         </Column>
         <Column
           header=""
-          headerStyle="text-align:center;max-width:100px"
-          bodyStyle="text-align:center;max-width:100px"
+          headerStyle="text-align:center;max-width:150px"
+          bodyStyle="text-align:center;max-width:150px"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <ul class="flex p-0" style="list-style: none">
+            <ul
+              class="flex p-0 justify-content-right"
+              style="list-style: none; justify-content: right"
+            >
+              <li v-if="slotProps.data.is_matchaccount">
+                <Button
+                  @click="
+                    openMatchAccount(slotProps.data, 'liên kết tài khoản')
+                  "
+                  icon="pi pi-user"
+                  class="p-button-rounded p-button-text"
+                  v-tooltip.top="'Đã được cấp tài khoản truy cập'"
+                  style="font-size: 15px; color: #000"
+                />
+              </li>
               <li>
                 <Button
                   :icon="
@@ -2991,6 +3046,13 @@ onMounted(() => {
     :closeDialog="closeDialogStatus"
     :profile="profile"
     :initData="null"
+  />
+  <dialogmatchaccount
+    :key="componentKey['8']"
+    :headerDialog="headerDialogMatchAccount"
+    :displayDialog="displayDialogMatchAccount"
+    :closeDialog="closeDialogMatchAccount"
+    :profile="profile"
   />
   <Menu
     id="overlay_More"

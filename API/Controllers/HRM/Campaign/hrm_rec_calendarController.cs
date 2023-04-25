@@ -125,13 +125,15 @@ namespace API.Controllers.HRM.Campaign
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/RecCalendar", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/RecCalendar", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/RecCalendar", fileName);
+                            // }
+                             newFileName = Path.Combine(root + "/" + dvid + "/RecCalendar",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/RecCalendar", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -352,13 +354,15 @@ db.SaveChanges();
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/RecCalendar", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/RecCalendar", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/RecCalendar", fileName);
+                            // }
+                               newFileName = Path.Combine(root + "/" + dvid + "/RecCalendar",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/RecCalendar", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {

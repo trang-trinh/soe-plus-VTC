@@ -24,7 +24,6 @@ const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
-
 const { cookies } = useCookies();
 const showInfoChat = ref(true);
 //Nơi nhận EMIT từ component

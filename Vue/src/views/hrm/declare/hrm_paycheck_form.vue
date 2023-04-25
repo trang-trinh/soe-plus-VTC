@@ -193,6 +193,7 @@ const loadData = (rf) => {
       });
  
       datalists.value = data;
+ 
 
       options.value.loading = false;
     })
@@ -926,9 +927,7 @@ const openDetails=(data)=>{
   displayPaycheck.value=true;
 }
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   loadData(true);
   initTudien();
   loadUserProfiles();
@@ -1102,7 +1101,7 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
-              selectionMode="multiple"
+               selectionMode="multiple"  v-if="store.getters.user.is_super==true"
             >
             </Column>
 
@@ -1132,7 +1131,7 @@ onMounted(() => {
         </template>
 
         <template #body="data">
-          <div class="flex w-full align-items-center pr-2">
+          <div class="flex w-full align-items-center pr-2" v-if="data.data.profile_user_name">
                   <Avatar
                     v-bind:label="
                       data.data.avatar
@@ -1403,7 +1402,7 @@ onMounted(() => {
               :showIcon="true"
               class="col-8 p-0"
               autocomplete="off"
-              view="month"
+              view="month" :showOnFocus="false"
               dateFormat="mm/yy"
               v-model="paycheck_form.paycheck_form_date"
               placeholder="Chọn tháng"

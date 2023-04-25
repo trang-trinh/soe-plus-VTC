@@ -114,13 +114,15 @@ namespace API.Controllers.HRM.Recruitment_proposal
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Recruitment_proposal", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Recruitment_proposal", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Recruitment_proposal", fileName);
+                            // }
+                               newFileName = Path.Combine(root + "/" + dvid + "/Recruitment_proposal",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Recruitment_proposal", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -321,13 +323,15 @@ db.SaveChanges();
                             }
                             newFileName = Path.Combine(root + "/" + dvid + "/Recruitment_proposal", fileName);
                             fileInfo = new FileInfo(newFileName);
-                            if (fileInfo.Exists)
-                            {
-                                fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
-                                fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
+                            // if (fileInfo.Exists)
+                            // {
+                            //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
+                            //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                                newFileName = Path.Combine(root + "/" + dvid + "/Recruitment_proposal", fileName);
-                            }
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/Recruitment_proposal", fileName);
+                            // }
+                              newFileName = Path.Combine(root + "/" + dvid + "/Recruitment_proposal",
+                                helper.newFileName(fileInfo, root + "/" + dvid + "/Recruitment_proposal", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
