@@ -218,10 +218,10 @@ onMounted(() => {
             </span>
           </td>
           <td  class="text-center" >
-              {{ item.module_id }}
+              {{ item.report_code }}
           </td>
           <td class="text-left">
-              {{ item.is_level }}
+              {{ item.report_note }}
           </td>
         </tr>
     </tbody>
