@@ -393,6 +393,7 @@ const openAddDialog = (str) => {
     sign_date: new Date(),
     status: 0,
     is_order: options.value.total + 1,
+    wage_type: 1,
     allowances: [
       {
         allowance_id: CreateGuid(),
