@@ -86,7 +86,7 @@ const initData = () => {
       if (props.model && props.model.report_key) {
         let o = {
           id: props.model.report_key,
-          par: { decision_id: props.model.decision_id, isedit: true },
+          par: { decision_id: props.model.decision_id, isedit: false },
         };
         let url = encodeURIComponent(
           encr(JSON.stringify(o), SecretKey, cryoptojs).toString()

@@ -839,26 +839,8 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Trình độ học vấn cao nhất</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[6]"
-                        optionLabel="academic_level_name"
-                        optionValue="academic_level_id"
-                        placeholder="Chọn trình độ"
-                        class="ip36"
-                        v-model="props.model.academic_level_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
+                  
+                  <!-- <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Chuyên ngành học</label>
                       <Dropdown
@@ -877,7 +859,7 @@ onMounted(() => {
                         }"
                       />
                     </div>
-                  </div>
+                  </div> -->
                   <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Quản lý nhà nước</label>
@@ -1662,7 +1644,26 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-4 format-center">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Trình độ chuyên môn</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[6]"
+                        optionLabel="academic_level_name"
+                        optionValue="academic_level_id"
+                        placeholder="Chọn trình độ"
+                        class="ip36"
+                        v-model="item.academic_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6 format-center">
                     <div class="form-group m-0">
                       <div
                         class="field-checkbox flex justify-content-center"
@@ -1673,8 +1674,7 @@ onMounted(() => {
                       </div>
                     </div>
                   </div>
-
-                  <div class="col-4 md:col-4">
+                  <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Ngày hiệu lực</label>
                       <Calendar
@@ -1685,7 +1685,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
+                  <div class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Ngày hết hiệu lực</label>
                       <Calendar
