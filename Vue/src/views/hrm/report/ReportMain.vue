@@ -195,7 +195,8 @@ onMounted(() => {
 
 <template>
   <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <table class="w-full" style="overflow-y: scroll" id="table-bc">
+    <div class="overflow-auto" style="max-height: calc(100vh - 40px);">
+      <table class="w-full" id="table-bc">
       <thead>
       <tr class="">
         <th align="center">
@@ -226,6 +227,7 @@ onMounted(() => {
         </tr>
     </tbody>
     </table>
+    </div>
   </div>
 
 </template>
