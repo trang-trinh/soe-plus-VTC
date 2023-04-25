@@ -1306,3 +1306,11 @@ li.p-chips-token {
 .word-break-break-all {
   word-break: break-all;
 }
+.menu-request .red-text .p-menuitem-link .p-menuitem-icon, 
+.menu-request .red-text .p-menuitem-link .p-menuitem-text{
+  color: red !important;
+}
+.sidebar-request .p-sidebar-content {
+  height: 100%;
+  padding: 0 !important;
+}
