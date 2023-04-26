@@ -478,8 +478,8 @@ onMounted(() => {
         </span>
       </div>
       <div class="col-4 p-0 m-0">
-        <Button @click="refreshData()" label="Tải lại" class="mr-2 p-button-outlined p-button-secondary" style="float: right;"
-          icon="pi pi-refresh" autofocus/>
+        <Button @click="refreshData()" label="Tải lại" class="mr-2 p-button-outlined p-button-secondary"
+          style="float: right;" icon="pi pi-refresh" autofocus />
       </div>
     </div>
     <div class="col-md-12 flex"
@@ -508,26 +508,25 @@ onMounted(() => {
                   <div style="display: flex;align-items: center;">
                     <span style="margin: 0px;margin-right: 10px;font-weight: bold;font-size: 14px;">{{ index + 1 }}</span>
                     <Avatar v-tooltip.bottom="{
-                      value:
-                        u.full_name +
-                        '<br/>' +
-                        (u.tenChucVu || '') +
-                        '<br/>' +
-                        (u.tenToChuc || ''),
-                      escape: true,
-                    }" v-bind:label="
-  u.avatar
+                        value:
+                          u.full_name +
+                          '<br/>' +
+                          (u.tenChucVu || '') +
+                          '<br/>' +
+                          (u.tenToChuc || ''),
+                        escape: true,
+                      }" v-bind:label="u.avatar
     ? ''
     : (u.last_name ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + u.avatar" style="
+    " v-bind:image="basedomainURL + u.avatar" style="
                                                                                                       background-color: #2196f3;
                                                                                                       color: #ffffff;
                                                                                                       width: 2.5rem;
                                                                                                       height: 2.5rem;
                                                                                                     font-size: 15px !important;
                                                                                                   " :style="{
-                                                                                                    background: bgColor[index] + '!important',
-                                                                                                  }"
+                                                                                                      background: bgColor[index] + '!important',
+                                                                                                    }"
                       class="cursor-pointer" size="xlarge" shape="circle" />
                     <span style="font-size: 14px;">{{ u.full_name }}</span>
                   </div>
@@ -539,20 +538,20 @@ onMounted(() => {
       </div>
       <div class="col-9"
         style="background-color: #fff;margin-left: 5px;min-height: calc(100vh - 100px);max-height: calc(100vh - 100px);">
-        <DataTable class="table-ca-request" :value="listGroups" :paginator="false" :scrollable="true"
-          scrollDirection="both" scrollHeight="flex" :lazy="true" dataKey="request_form_sign_id" :rowHover="true">
+        <DataTable class="table-ca-request-procedure-procedure" :value="listGroups" :paginator="false" :scrollable="true" 
+          scrollDirection="both" :lazy="true" dataKey="request_form_sign_id" :rowHover="true">
           <Column field="group_name" header="Nhóm phê duyệt"
-            headerStyle="width:15rem;height:50px;border-left:none;border-right:none;"
-            bodyStyle="height:50px;;width:15rem;border-left:none;border-right:none;position:relative">
+            headerStyle="width:auto;height:50px;border-left:none;border-right:none;"
+            bodyStyle="width:auto;border-left:none;border-right:none;position:relative">
           </Column>
           <Column field="type_process_name" header="Kiểu duyệt"
             headerStyle="text-align:center;width:11rem;height:50px;border-left:none;border-right:none;"
-            bodyStyle="text-align:center;height:50px;;width:11rem;border-left:none;border-right:none;position:relative"
+            bodyStyle="text-align:center;height:50px;width:11rem;border-left:none;border-right:none;position:relative"
             class="align-items-center justify-content-center text-center">
           </Column>
           <Column field="" header="Ngày tạo"
             headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-            bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+            bodyStyle="text-align:center;height:50px;width:10rem;border-left:none;border-right:none;position:relative"
             class="align-items-center justify-content-center text-center">
             <template #body="data">
               <div style="
@@ -568,7 +567,7 @@ onMounted(() => {
           </Column>
           <Column field="" header="Thành viên"
             headerStyle="text-align:center;width:15rem;height:50px;border-left:none;border-right:none;"
-            bodyStyle="text-align:center;height:50px;;width:15rem;border-left:none;border-right:none;position:relative"
+            bodyStyle="text-align:center;height:50px;width:15rem;border-left:none;border-right:none;position:relative"
             class="align-items-center justify-content-center text-center">
             <template #body="data">
               <span class="span-thanh-vien" @click="selectUser(data.data)"
@@ -578,7 +577,7 @@ onMounted(() => {
           </Column>
           <Column field="is_required" header="Trạng thái"
             headerStyle="text-align:center;width:7rem;height:50px;border-left:none;border-right:none;"
-            bodyStyle="text-align:center;height:50px;;width:7rem;border-left:none;border-right:none;position:relative"
+            bodyStyle="text-align:center;height:50px;width:7rem;border-left:none;border-right:none;position:relative"
             class="align-items-center justify-content-center text-center">
             <template #body="data">
               <Checkbox disabled :binary="true" v-model="data.data.status" @click="changeStatus(data.data)" />
@@ -586,13 +585,12 @@ onMounted(() => {
           </Column>
           <Column field="" header=""
             headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-            bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+            bodyStyle="text-align:center;height:50px;width:10rem;border-left:none;border-right:none;position:relative"
             class="align-items-center justify-content-center text-center">
             <template #body="Tem">
-              <div v-if="
-                store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
+              <div v-if="store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
                 (store.state.user.role_id == 'admin' && store.state.user.organization_id == Tem.data.organization_id)
-              ">
+                ">
                 <Button @click="edit_request_form_sign(Tem.data)" class="
                                                                       															p-button-rounded
                                                                       															p-button-secondary
@@ -697,7 +695,7 @@ onMounted(() => {
           <Button label="Chọn nhân sự" icon="pi pi-users" @click="OpenDialogTreeUser()" autofocus />
         </div>
         <div class="field col-12 md:col-12 algn-items-center flex p-0">
-          <DataTable class="table-ca-request-form-sign-user" :value="listSelectUsers" :paginator="false"
+          <DataTable class="table-ca-request-procedure-form-sign-user" :value="listSelectUsers" :paginator="false"
             :scrollable="true" scrollDirection="both" scrollHeight="flex" :lazy="true" dataKey="request_form_sign_user_id"
             :rowHover="true">
             <Column field="" header="Nhân sự" headerStyle="width:15rem;height:50px;border-left:none;border-right:none;"
@@ -705,26 +703,25 @@ onMounted(() => {
               <template #body="data">
                 <div style="display: flex;align-items: center;">
                   <Avatar v-tooltip.bottom="{
-                    value:
-                      data.data.full_name +
-                      '<br/>' +
-                      (data.data.tenChucVu || '') +
-                      '<br/>' +
-                      (data.data.tenToChuc || ''),
-                    escape: true,
-                  }" v-bind:label="
-  data.data.avatar
-    ? ''
-    : (data.data.last_name ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + data.data.avatar" style="
+                      value:
+                        data.data.full_name +
+                        '<br/>' +
+                        (data.data.tenChucVu || '') +
+                        '<br/>' +
+                        (data.data.tenToChuc || ''),
+                      escape: true,
+                    }" v-bind:label="data.data.avatar
+      ? ''
+      : (data.data.last_name ?? '').substring(0, 1)
+    " v-bind:image="basedomainURL + data.data.avatar" style="
                                                                                                       background-color: #2196f3;
                                                                                                       color: #ffffff;
                                                                                                       width: 2.5rem;
                                                                                                       height: 2.5rem;
                                                                                                     font-size: 15px !important;
                                                                                                   " :style="{
-                                                                                                    background: bgColor[data.index] + '!important',
-                                                                                                  }"
+                                                                                                      background: bgColor[data.index] + '!important',
+                                                                                                    }"
                     class="cursor-pointer" size="xlarge" shape="circle" />
                   <span style="font-size: 14px;margin-left: 10px;">{{ data.data.full_name }}</span>
                 </div>
@@ -754,7 +751,7 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:7rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <Checkbox disabled :binary="true" v-model="data.data.status"/>
+                <Checkbox disabled :binary="true" v-model="data.data.status" />
               </template>
             </Column>
             <Column field="" header=""
@@ -762,10 +759,9 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="Tem">
-                <div v-if="
-                  store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
+                <div v-if="store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
                   (store.state.user.role_id == 'admin' && store.state.user.organization_id == Tem.data.organization_id)
-                ">
+                  ">
                   <Button class="
                                                                       															p-button-rounded
                                                                       															p-button-danger
@@ -825,19 +821,19 @@ onMounted(() => {
   margin-left: 10px;
 }
 
-::v-deep(.table-ca-request) {
+::v-deep(.table-ca-request-procedure) {
   .p-datatable-emptymessage {
     justify-content: center;
   }
 }
 
-::v-deep(.table-ca-request) {
+::v-deep(.table-ca-request-procedure) {
   .span-thanh-vien:hover {
     cursor: pointer;
   }
 }
 
-::v-deep(.table-ca-request-form-sign-user) {
+::v-deep(.table-ca-request-procedure-form-sign-user) {
   .p-inputnumber-input {
     text-align: center;
   }

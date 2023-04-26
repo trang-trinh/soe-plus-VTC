@@ -114,6 +114,7 @@ const itemButMores = ref([
 ]);
 const toggleMores = (event, item) => {
   decision.value = item;
+  decision.value.isEdit = true;
   menuButMores.value.toggle(event);
   selectedNodes.value = item;
   options.value["filterContract_id"] = selectedNodes.value["decision_id"];
@@ -178,11 +179,13 @@ const toggleStatus = (item, event) => {
   opstatus.value.toggle(event);
 };
 const goProfile = (item) => {
-  router.push({
-    name: "profileinfo",
-    params: { id: item.decision_id },
-    query: { id: item.profile_id },
-  });
+  if (item.profile_id != null) {
+    router.push({
+      name: "profileinfo",
+      params: { id: item.decision_id },
+      query: { id: item.profile_id },
+    });
+  }
 };
 const copyItem = (item, str) => {
   files.value = [];
@@ -605,7 +608,7 @@ const deleteItem = (item) => {
           } else {
           }
           axios
-            .delete(baseURL + "/api/hrm_contract/delete_contract", {
+            .delete(baseURL + "/api/hrm_decision/delete_decision", {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: ids,
             })

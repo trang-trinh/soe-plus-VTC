@@ -767,7 +767,7 @@ const showListUser = ref(false);
 const listUserTeam = ref([]);
 const teamActive = ref();
 const goUserTeam = (dataTeam, autoOpen) => {
-	if (showListUser.value == false || autoOpen == true) {
+	if (showListUser.value == false || autoOpen == true || teamActive.value.request_team_id != dataTeam.request_team_id) {
 		teamActive.value = dataTeam;
 		axios
 		.post(
