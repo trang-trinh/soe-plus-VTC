@@ -888,6 +888,9 @@ li.p-chips-token {
 .d-design-calendar.p-calendar .p-inputtext {
   text-align: center !important;
 }
+.d-design-calendar-1.p-calendar .p-inputtext {
+  opacity: 1 !important; 
+}
 .d-design-inputnumber.p-inputnumber .p-inputtext {
   text-align: center !important;
 }
@@ -1319,11 +1322,10 @@ li.p-chips-token {
 
 /* Style khai báo ngày nghỉ lễ */
 .theme-default .cv-header-day{
-  font-weight: bold !important;
+  font-weight: bold !important; 
 }
 .theme-default .cv-day-number{
-  font-weight: bold !important;
-  font-size: 1.2rem !important;
+ display: none;
 }
 .theme-default .cv-header .cv-header-nav .previousYear,.previousPeriod,.currentPeriod,.nextPeriod,.nextYear{
   background: #ffffff;
@@ -1348,4 +1350,32 @@ li.p-chips-token {
   align-items: center;
   text-align: center;
   font-weight: bold;
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item{
+  margin-top: 3px;margin-left: 3px;
+  cursor: pointer;
+}
+.cv-wrapper .cv-week {
+  min-height: 5rem;
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span1{
+  width: calc((100% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span2{
+  width: calc((200% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span3{
+  width: calc((300% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span4{
+  width: calc((400% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span5{
+  width: calc((500% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span6{
+  width: calc((600% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span7{
+  width: calc((700% / 7) - 0.5em);
 }
