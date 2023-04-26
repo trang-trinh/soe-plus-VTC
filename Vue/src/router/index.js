@@ -365,6 +365,7 @@ const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
   const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
   const hrmHolidayDate = () => import("../views/hrm/declare/hrm_holiday_dates.vue");
+  const hrmHeadbarCalendar = () => import("../views/hrm/declare/hrm_headbar_calendar.vue");
 const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
@@ -1800,7 +1801,11 @@ const router = createRouter({
       name: "caHolidayType",
       component: caHolidayType,
     },
-
+    {
+      path: "/hrm/hrm_headbar_calendar",
+      name: "hrmHeadbarCalendar",
+      component: hrmHeadbarCalendar,
+    },
     
     {
       path: "/hrm/category/ca_receipt",

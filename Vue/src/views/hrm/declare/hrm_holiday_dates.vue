@@ -760,7 +760,7 @@ const state = ref({
   /* Show the current month, and give it some fake items to show */
   showDate: thisMonth(1),
   message: "",
-  startingDayOfWeek: 0,
+  startingDayOfWeek:1,
   disablePast: false,
   disableFuture: false,
   displayPeriodUom: "month",
@@ -1335,6 +1335,8 @@ onMounted(() => {
         </template>
       </Toolbar>
     </div>
+    <div class="h-full px-3">
+      
     <calendar-view
       :items="state.items"
       :show-date="state.showDate"
@@ -1350,14 +1352,14 @@ onMounted(() => {
       :enable-date-selection="true"
       :selection-start="state.selectionStart"
       :selection-end="state.selectionEnd"
-    
- 
+      :starting-day-of-week="state.startingDayOfWeek"
+ :locale="'vi-VN'"
       @date-selection-finish="finishSelection"
       @drop-on-date="onDrop"
       @click-date="onClickDay"
       @click-item="onClickItem"
  
-      class="theme-default holiday-us-traditional holiday-us-official"
+      class="theme-default "
     >
       <template #header="{ headerProps }">
         <calendar-view-header
@@ -1366,6 +1368,8 @@ onMounted(() => {
         />
       </template>
     </calendar-view>
+    
+  </div>
   </div>
   <Dialog
     :header="headerDialog"
@@ -1511,9 +1515,13 @@ onMounted(() => {
   flex-direction: column;
   flex-grow: 1;
   overflow-x: hidden;
-  overflow-y: scroll;
-
+  overflow-y: hidden;
+ 
   background-color: white;
 }
+.calendar-parent .cv-wrapper{
+  min-height: unset !important;
+}
+
 </style>
     

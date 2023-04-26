@@ -1086,7 +1086,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           <div class="col-6 flex p-0 align-items-center">
             <div class="col-6 p-0  ">Màu chữ</div>
             <div class="col-6 p-0 flex align-items-center">
-              <div class="mr-2" v-if="holiday_type.">  {{ holiday_type.text_color }}</div>
+              <div class="mr-2" v-if="holiday_type.text_color">  {{ holiday_type.text_color }}</div>
               <div>  <Button
                 class="p-button-rounded p-button-outlined p-button-secondary  "
                 :style="{
