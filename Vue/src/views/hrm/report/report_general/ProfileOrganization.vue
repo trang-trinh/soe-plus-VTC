@@ -82,19 +82,13 @@ const loadData = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "hrm_report_workers_list1",
+                        proc: "hrm_report_profile_organization_list",
                         par: [
                             { par: "search", va: options.value.SearchText },
                             { par: "user_id", va: store.getters.user.user_id },
                             { par: "department_id", va: options.value.department_id},
-                            { par: "gender", va: options.value.gender},
-                            { par: "academic_level_id", va: options.value.academic_level_id},
-                            { par: "specialization_id", va: options.value.specialization_id},
-                            { par: "professional_work_id", va: options.value.professional_work_id},
-                            { par: "title_id", va: options.value.title_id},
-                            { par: "description", va: options.value.description},
-                            { par: "pageno", va: options.value.PageNo},
-                            { par: "pagesize", va: options.value.PageSize},
+                            { par: "start_date", va: null},
+                            { par: "end_date", va: null},
                         ],
                     }),
                     SecretKey,
@@ -106,9 +100,21 @@ const loadData = () => {
         .then((response) => {
             let data = JSON.parse(response.data.data);
             if (data[0].length > 0) {
-                data[0].forEach((item, index) => {
-                    item.stt = index + 1;
-                });
+                // data[0].forEach((item, index) => {
+                //     item.stt = index + 1;
+                // });
+                data[0] = groupBy(data[0], 'department_id');
+                    let arr = [];
+                    for (let pb in data[0]) {
+                        let data_ns_by_id = groupBy(data[0][pb], 'profile_code');
+                        let arr_ns = [];
+                        for (let ns in data_ns_by_id) {
+                            arr_ns.push({ group_ns: ns, name_group_ns: data_ns_by_id[ns][0].profile_user_name, list_con: data_ns_by_id[ns] });
+                        };
+                        data_ns_by_id = arr_ns;
+                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data_ns_by_id });
+                    }
+                data[0] = arr;
                 datalists.value = data[0];
                 options.totalRecords = data[0].length;
             }
@@ -289,6 +295,12 @@ const renderTreeDV = (data, id, name, title) => {
     });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
+function groupBy(list, props) {
+            return list.reduce((a, b) => {
+                (a[b[props]] = a[b[props]] || []).push(b);
+                return a;
+            }, {});
+        }
 onMounted(() => {
     //init
     loadData();
@@ -455,143 +467,239 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-        <div>
-            <DataTable
-            id="table-bc"
-            class="p-datatable-sm e-sm"
-            :value="datalists"
-            dataKey="contract_id"
-            :showGridlines="true"
-            :rowHover="true"
-            :loading="options.loading"
-            currentPageReportTemplate=""
-            responsiveLayout="scroll"
-            rows="100"
-            :scrollable="true"
-            scrollHeight="flex"
-            rowGroupMode="subheader"
-            groupRowsBy="personel_groups_id"
-            :paginator="true"
-            :totalRecords="options.totalRecords"
-            @page="onPage($event)"
-            @filter="onFilter($event)"
-            @sort="onSort($event)"
-            v-model:first="first"
-            scrollDirection="both"
-            >
-            <!-- <DataTable class="table-ca-request" :value="datalists" :paginator="false" :scrollable="true"
-            scrollDirection="both" scrollHeight="flex" :lazy="true" dataKey="request_formd_id" :rowHover="true"
-            > -->
-            <template #groupheader="slotProps">
-               <span class="font-bold">{{ slotProps.data.personel_groups_name }}</span> 
-            </template>
-                <Column field="stt" header="STT" headerStyle="text-align:center;width:50px;height:50px"
-                    bodyStyle="text-align:center;width:50px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="profile_code" header="Mã nhân viên" 
-                    headerStyle="text-align:center;width:80px;height:50px;justify-content:center"
-                    bodyStyle="width:80px;text-align:left"
-                    >
-                </Column>
-                <Column field="profile_user_name" header="Họ và tên"
-                    headerStyle="text-align:center;height:50px;justify-content:center;width:150px"
-                    bodyStyle="text-align:left;word-break:break-word;justify-content:start;width:150px">
-                </Column>
-                <Column field="organization_name" header="Đơn vị/phòng ban"
-                    headerStyle="text-align:center;width:220px;height:50px;justify-content:center"
-                    bodyStyle="width:220px;text-align:left"
-                    >
-                </Column>
-                <Column field="gender" header="Giới tính" headerStyle="text-align:center;width:80px;height:50px;justify-content:center"
-                    bodyStyle="width:80px;text-align:left"
-                   >
-                </Column>
-                <Column field="birthday" header="Ngày sinh" headerStyle="text-align:center;width:100px;height:50px"
-                    bodyStyle="text-align:center;width:100px;"
-                    class="align-items-center justify-content-center text-center">
-                    <template #body="{ data }">
-                        <span v-if="data.birthday"> {{ moment(new Date(data.birthday)).format("DD/MM/YYYY ") }}</span>
-                    </template>
-                </Column>
-                <Column field="age" header="Tuổi" headerStyle="text-align:center;width:60px;height:50px;"
-                    bodyStyle="text-align:center;width:60px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="ethnic_name" header="Dân tộc" headerStyle="text-align:center;width:80px;height:50px;justify-content:center"
-                    bodyStyle="width:80px;text-align:left"
-                  >
-                </Column>
-                <Column field="cultural_level_name" header="Trình độ văn hóa" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
-                   >
-                </Column>
-                <Column field="academic_level_name" header="Trình độ chuyên môn" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
-                  >
-                </Column>
-                <Column field="specialization_name" header="Chuyên ngành" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
-                   >
-                </Column>
-                <Column field="professional_work_name" header="Công việc chuyên môn" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
-                   >
-                </Column>
-                <Column field="description" header="Mô tả chi tiết công việc" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
-                   >
-                </Column>
-                <Column field="start_date" header="Ngày vào đơn vị" headerStyle="text-align:center;width:100px;height:50px"
-                    bodyStyle="text-align:center;width:100px;"
-                    class="align-items-center justify-content-center text-center">
-                    <template #body="{ data }">
-                        <span v-if="data.birthday"> {{ moment(new Date(data.start_date)).format("DD/MM/YYYY ") }}</span>
-                    </template>
-                </Column>
-                <Column field="is_partisan" header="Đảng viên" headerStyle="text-align:center;width:100px;height:50px;"
-                    bodyStyle="text-align:center;width:100px;"
-                    class="align-items-center justify-content-center text-center">
-                    <template #body="{ data }">
-                        <span v-if="data.is_partisan">X</span>
-                    </template>
-                </Column>
-                <Column field="position_name" header="Chức vụ" headerStyle="text-align:center;width:100px;height:50px;justify-content:center"
-                    bodyStyle="width:100px;text-align:left"
-                   >
-                </Column>
-                <Column field="title_name" header="Chức danh"
-                    headerStyle="text-align:center;width:100px;height:50px;justify-content:center"
-                    bodyStyle="width:100px;text-align:left"
-                    >
-                </Column>
-                <Column field="place_permanent" header="Nơi ở hiện nay"
-                    headerStyle="text-align:center;width:200px;height:50px;justify-content:center"
-                    bodyStyle="width:200px;text-align:left"
-                    >
-                </Column>
-                <Column field="note" header="Ghi chú"
-                    headerStyle="text-align:center;width:100px;height:50px;justify-content:center"
-                    bodyStyle="width:100px;text-align:left"
-                    >
-                </Column>
-                <template #empty>
-                    <div class="
-                    align-items-center
-                    justify-content-center
-                    p-4
-                    text-center
-                    m-auto
-                    " >
-                        <img src="../../../../assets/background/nodata.png" height="144" />
-                        <h3 class="m-1">Không có dữ liệu</h3>
-                    </div>
-                </template>
-            </DataTable>
-        </div>
+    <div style="overflow-x: scroll;">
+        <table class="table table-condensed table-hover tbpad" style="table-layout: fixed">
+        <thead>
+            <tr>
+                <th class="text-center sticky left-sticky1" width="50" style="background-color: #F9FAFB;">STT</th>
+                <th class="text-center sticky left-sticky1" width="200" style="background-color: #F9FAFB;">Mã nhân viên</th>
+                <th class="text-center sticky" width="150">Họ và tên</th>
+                <th class="text-center sticky" width="100">Ngày sinh</th>
+                <th class="text-center sticky" width="100">Tuổi</th>
+                <th class="text-center sticky" width="100">Giới tính</th>
+                <th class="text-center sticky" width="150">Chức danh</th>
+                <th class="text-center sticky" width="80">Loại LĐ</th>
+                <th class="text-center sticky" width="100">Chức danh</th>
+                <th class="text-center sticky" width="150">Chức vụ</th>
+                <th class="text-center sticky" width="100">Số điện thoại</th>
+                <th class="text-center sticky" width="150">Loại LĐ</th>
+                <th class="text-center sticky" width="200">Quê quán</th>
+                <th class="text-center sticky" width="100">Tình trạng hôn nhân</th>
+                <th class="text-center sticky" width="200">Dân tộc</th>
+                <th class="text-center sticky" width="100">Tôn giáo</th>
+                <th class="text-center sticky" width="120">Đảng viên</th>
+                <th class="text-center sticky" width="200" rowspan="2">Thuộc diện chính sách</th>
+                <th class="text-center sticky" width="200" rowspan="2">Nơi đăng ký HKTT</th>
+                <th class="text-center sticky" width="200" rowspan="2">Nơi đăng ở hiện nay</th>
+                <th class="text-center sticky" width="100">Liên hệ khẩn cấp</th>
+                <th class="text-center sticky" width="150">Thành phần gia đình</th>
+                <th class="text-center sticky" width="300" rowspan="3">Theo dõi CMND</th>
+                <th class="text-center sticky" width="100">Ngày vào đơn vị</th>
+                <th class="text-center sticky" width="150">Thâm niên công tác</th>
+                <th class="text-center sticky" width="150">Thâm niên phép tính năm</th>
+                <th class="text-center sticky" width="500" rowspan="5">Trình độ chuyên môn chính</th>
+                <th class="text-center sticky" width="150">Số di động</th>
+                <th class="text-center sticky" width="150">Email</th>
+                <th class="text-center sticky" width="150">Chiều cao</th>
+                <th class="text-center sticky" width="150">Cân nặng</th>
+            </tr>
+            <tr>
+                <th class="text-center sticky1" width="100">Đã tham gia quân đội</th>
+                <th class="text-center sticky1" width="100">Con gia đình chính sách</th>
+                <th class="text-center sticky1" width="100">Số nhà, đường phố</th>
+                <th class="text-center sticky1" width="100">Xã/Phường,Quận/Huyện,Tỉnh/TP</th>
+                <th class="text-center sticky1" width="100">Số nhà, đường phố</th>
+                <th class="text-center sticky1" width="100">Xã/Phường,Quận/Huyện,Tỉnh/TP</th>
+                <th class="text-center sticky1" width="100">Số CMND</th>
+                <th class="text-center sticky1" width="100">Ngày cấp CMND</th>
+                <th class="text-center sticky1" width="100">Nơi cấp CMND</th>
+                <th class="text-center sticky1" width="100">Trình độ văn hóa</th>
+                <th class="text-center sticky1" width="100">Bằng cấp</th>
+                <th class="text-center sticky1" width="100">Chuyên ngành</th>
+                <th class="text-center sticky1" width="100">Trường tốt nghiệp</th>
+                <th class="text-center sticky1" width="100">Hình thức đào tạo</th>
+            </tr>
+        </thead>
+        <!-- <tbody v-for="(fIndex, bc) in datalists" :key="fIndex">
+            <tr>
+                <td style="background-color: #f6ddcc" colspan="18"><b>{{bc.group}}</b></td>
+            </tr>
+            <tr v-for="(index2,dg) in bc.list" :key="index2">
+                <td style="background-color: #e5e8e8 " class="text-center">{{index2 + 1}}</td>
+                <td style="background-color:aliceblue" align="center">
+                    {{dg.MaNhansu}}
+                </td>
+                <td style="background-color:aliceblue" align="center">
+                    {{dg.Nguoitudanhgia}}
+                </td>
+                <td align="center">
+                    {{dg.tenChucVu}}
+                </td>
+                <td align="center">
+                    {{dg.Diemtudanhgia}}
+                </td>
+                <td align="center"></td>
+                <td align="left">
+                    {{dg.Ykientudanhgia}}
+                </td>
+                <td align="center">
+                    {{dg.Ngaytudanhgia | date: 'dd/MM/yyyy'}}
+                </td>
+                <td align="center">
+                    {{dg.Manguoidanhgia}}
+                </td>
+                <td align="center">
+                    {{dg.Tennguoidanhgia}}
+                </td>
+                <td align="center">
+                    {{dg.ChucvuNguoidanhgia}}
+                </td>
+                <td align="center">
+                    {{dg.Diemdanhgia}}
+                </td>
+                <td align="center">
+                    {{dg.Xeploaidanhgia}}
+                </td>
+                <td align="left">
+                    {{dg.Ykiendanhgia}}
+                </td>
+                <td align="center">
+                    {{dg.Ngaydanhgia | date: 'dd/MM/yyyy'}}
+                </td>
+                <td align="left">{{dg.Ykientudanhgia}}</td>
+                <td align="left"></td>
+                <td align="left"></td>
+            </tr>
+        </tbody> -->
+    </table>
+    </div>
     </div>
 </template>
+<style scoped>
+    .table {
+        margin-bottom: 0px !important;
+    }
 
+    th.sticky {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0px;
+        outline-offset: -1px;
+        color: #313435;
+        z-index: 2;
+        vertical-align: middle !important;
+        background-color: #F9FAFB;
+    }
+
+    th.sticky1 {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 46px;
+        outline-offset: -1px;
+        color: #313435;
+        z-index: 2;
+        vertical-align: middle !important;
+        background-color: #F9FAFB;
+    }
+
+    td span {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .btn.btn-secondary:hover {
+        background-color: #e6f0f8 !important;
+        color: #2f90d1 !important;
+    }
+
+    .table-bordered {
+        border-top: none !important;
+        border-left: none !important;
+    }
+
+    .cs-input .select2-container .select2-selection--single {
+        height: 35px;
+    }
+
+    tr td {
+        word-break: break-word;
+        vertical-align: middle !important;
+    }
+
+    .searchbar .ul-menu {
+        left: 2.5rem !important;
+    }
+
+    .btn.btn-task:last-child {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
+
+    .btn.btn-task:first-child {
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+
+    .btn.btn-task {
+        border: 1px solid #dadbdc;
+        background-color: #fafbfa;
+        color: #797a7b;
+        font-weight: 600;
+    }
+
+        .btn.btn-task:hover {
+            background-color: #e6f0f8;
+            color: #2f90d1;
+        }
+
+        .btn.btn-task.true {
+            background-color: #e6f0f8;
+            color: #2f90d1;
+        }
+
+    .tasktab li a {
+        font-size: 14px;
+    }
+
+    .notconfirm-bg {
+        background-color: #fffcd9;
+    }
+
+    .confirm-bg {
+        background-color: #F1F8E8;
+    }
+
+    .bdT {
+        border-top: none !important;
+    }
+
+    .tbpad td {
+        height: 42px !important;
+    }
+
+    .btn-secondary:not(:disabled):not(.disabled).active, .btn-secondary:not(:disabled):not(.disabled):active, .show > .btn-secondary.dropdown-toggle {
+        color: #fff;
+        background-color: #545b62;
+        border-color: aliceblue !important;
+    }
+
+    table th {
+        background-color: #8BCFFB !important;
+    }
+
+    table th, table td {
+        border: 1px solid rgba(0,0,0,.3) !important;
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px !important;
+        background-color: #F5F5F5;
+    }
+</style>
 <style scoped>
 #table-bc{
   max-height: calc(100vh - 110px);
