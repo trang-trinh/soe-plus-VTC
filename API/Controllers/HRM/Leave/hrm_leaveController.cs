@@ -74,10 +74,23 @@ namespace API.Controllers.Leave
 
                     var leave = await db.hrm_leave_profile.FirstOrDefaultAsync(x => x.profile_id == model.profile_id && x.year == model.year);
                     if (leave != null) {
+                        leave.month1 = model.month1;
+                        leave.month2 = model.month2;
+                        leave.month3 = model.month3;
+                        leave.month4 = model.month4;
+                        leave.month5 = model.month5;
+                        leave.month6 = model.month6;
+                        leave.month7 = model.month7;
+                        leave.month8 = model.month8;
+                        leave.month9 = model.month9;
+                        leave.month10 = model.month10;
+                        leave.month11 = model.month11;
+                        leave.month12 = model.month12;
                         leave.modified_by = uid;
-                        leave.modified_date = DateTime.Now;
+                        leave.modified_date = DateTime  .Now;
                         leave.modified_ip = ip;
                         leave.modified_token_id = tid;
+                        db.Entry(leave).State = EntityState.Modified;
                     }
                     else
                     {
