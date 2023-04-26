@@ -110,7 +110,7 @@ const passModuleToSidebar = () => {
           }
         });
       }
-      let path_system = ["/options","/hrm/contact","/hrm/hrm_headbar_calendar"];
+      let path_system = ["/options","/hrm/contact","/hrm/hrm_headbar_calendar","/hrm/hrm_report/hrm_report_workers","/hrm/hrm_report/profile_organization"];
       if (
         data[1].filter((x) => x.is_link == root_path).length == 0 &&
         !path_system.includes(root_path)
