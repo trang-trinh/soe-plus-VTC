@@ -780,8 +780,8 @@ onMounted(() => {
                                 <span class="uutien mr-2" v-tooltip.top="'Bảo mật'" v-if="slotProps.data.is_security">
                                     <i class="pi pi-flag" style="color:red;"></i>
                                 </span>
-                                <span style="padding:0.25rem 0.5rem;background-color: #ff8b4e;color: #fff;" 
-                                    class="card-nhom flex text-left mr-2" 
+                                <span style="padding:0.25rem 0.5rem;background-color: #ff8b4e;color: #fff;margin-right: 0.5rem !important;" 
+                                    class="card-nhom flex text-left" 
                                     v-if="slotProps.data.is_change_process"
                                 >
                                     Quy trình động
@@ -947,9 +947,10 @@ onMounted(() => {
                     class="align-items-center justify-content-center text-center"
                 >
                     <template #body="slotProps">
-                        <Chip
+                        <Chip class="status_request"
                             :class="slotProps.data.objStatus.class || ''"
                             v-bind:label="slotProps.data.objStatus.text || ''"
+                            style="border-radius: 5px !important;"
                         />
                     </template>
                 </Column>

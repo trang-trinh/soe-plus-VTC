@@ -4,6 +4,7 @@ import { useToast } from "vue-toastification";
 import { required, maxLength } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { encr } from "../../../util/function";
+import moment from "moment";
 import treeuser from "../../../components/user/treeuser.vue";
 
 const toast = useToast();
@@ -358,17 +359,17 @@ const saveData = (frm) => {
             });
         }
         cparr.filter(x => x.kieu_truong == "radio").forEach(function (r) {
-            if (r.FormD_ID == request_data.value.Radio) {
-                r.IsGiatri = true;
+            if (r.request_formd_id == request_data.value.Radio) {
+                r.value_field = true;
             } else {
-                r.IsGiatri = false;
+                r.value_field = false;
             }
         });
-        cparr.filter(x => x.kieu_truong == "datetime" && x.IsGiatri != null && isValidDate(x.IsGiatri)).forEach(function (r) {
-            r.IsGiatri = moment(r.IsGiatri).tz(timezone).format('YYYY-MM-DDTHH:mm:ss');
+        cparr.filter(x => x.kieu_truong == "datetime" && x.value_field != null && isValidDate(x.value_field)).forEach(function (r) {
+            r.value_field = moment(r.value_field).format('YYYY-MM-DDTHH:mm:ss');
         });
-        cparr.filter(x => x.kieu_truong == "date" && x.IsGiatri != null && isValidDate(x.IsGiatri)).forEach(function (r) {
-            r.IsGiatri = moment(r.IsGiatri).tz(timezone).format('YYYY-MM-DD');
+        cparr.filter(x => x.kieu_truong == "date" && x.value_field != null && isValidDate(x.value_field)).forEach(function (r) {
+            r.value_field = moment(r.value_field).format('YYYY-MM-DD');
         });
         console.log(cparr);
         formData.append("formDS", JSON.stringify(cparr));
@@ -377,13 +378,21 @@ const saveData = (frm) => {
         var cparr = [...formDS.value];
         formData.append("formDS", JSON.stringify(cparr));
     }
+    
     formData.append("listApprover", JSON.stringify(listUserApproved.value));
     formData.append("listManager", JSON.stringify(listUserManage.value));
     formData.append("listFollower", JSON.stringify(listUserFollow.value));
+    
     for (var i = 0; i < files.value.length; i++) {
         let file = files.value[i];
         formData.append("files", file);
     }
+    swal.fire({
+        width: 110,
+        didOpen: () => {
+        swal.showLoading();
+        },
+    });
     axios({
         method: request_data.value.request_id == null ? 'post' : 'put',
         url: baseUrlCheck 
@@ -394,10 +403,12 @@ const saveData = (frm) => {
 		},
     })
     .then((response) => {
+        swal.close();
         props.closeDialog();
         props.reloadData();
     })
     .catch((error) => {
+        swal.close();
         if (error.status === 401) {
             swal.fire({
                 text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -599,17 +610,30 @@ const loadRequestDetail = (dataRequest) => {
         loadFormD(dataRequest.request_form_id);
     } else {
         formDS.value = props.detailFormDynamic.filter(x => x.is_order_row == null);
-        var fd = props.detailFormDynamic.find(x => x.kieu_truong.toLowerCase() == "radio" && x.IsGiatri.toLowerCase() == "true");
-        if (fd != null) {
-            request_data.value.Radio = fd.FormD_ID;
-            fd.IsGiatri = "true";
+        var fd = props.detailFormDynamic.filter(x => x.kieu_truong.toLowerCase() == "radio" && x.value_field.toLowerCase() == "true");
+        if (fd != null && fd.length > 0) {
+            //request_data.value.Radio = fd.request_formd_id;
+            //fd.value_field = "true";
+            fd.forEach((r) => {
+                request_data.value.Radio = r.request_formd_id;
+                r.value_field = r.value_field == "true";
+            });
         }
-        var fd2 = props.detailFormDynamic.find(x => x.kieu_truong.toLowerCase() == "checkbox" && x.IsGiatri.toLowerCase() == "true");
-        if (fd2 != null) {
-            fd2.IsGiatri = "true";
+        var fd2 = props.detailFormDynamic.filter(x => x.kieu_truong.toLowerCase() == "checkbox" && x.value_field.toLowerCase() == "true");
+        if (fd2 != null && fd2.length > 0) {
+            //fd2.value_field = "true";
+            fd2.forEach((r) => {
+                r.value_field = r.value_field == "true";
+            });
+        }
+        var fd3 = props.detailFormDynamic.filter(x => (x.kieu_truong == "datetime" || x.kieu_truong == "date") && x.value_field != null && isValidDate(x.value_field));
+        if (fd3 != null && fd3.length > 0) {
+            fd3.forEach((r) => {
+                r.value_field = new Date(r.value_field);
+            });
         }
         var ftables = [];
-        props.detailFormDynamic.filter(x => x.is_type == 3).forEach(function (r) {
+        props.detailFormDynamic.filter(x => x.is_type == 3).forEach((r) => {
             ftables.push([]);
             var groups = groupBy(props.detailFormDynamic.filter(x => x.is_order_row != null && x.is_parent_id == r.request_formd_id), "is_order_row");
             for (var k in groups) {
@@ -628,12 +652,16 @@ const loadRequestDetail = (dataRequest) => {
         }
     }
 }
-const groupBy = function (xs, key) {
-    return xs.reduce(function (rv, x) {
+const groupBy = (xs, key) => {
+    return xs.reduce((rv, x) => {
         (rv[x[key]] = rv[x[key]] || []).push(x);
         return rv;
     }, {});
 };
+function isValidDate(date) {
+    //return d instanceof Date && !isNaN(d);
+    return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date))
+}
 onMounted(() => {
     if (props.dataForm.request_id != null) {
         loadRequestDetail(props.dataForm);
@@ -883,7 +911,7 @@ onMounted(() => {
                                                 autocomplete="on"
                                                 inputId="time24"
                                                 v-model="d.value_field"
-                                                placeholder="dd/mm/yyyy"
+                                                placeholder="DD/MM/yyyy"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
@@ -996,7 +1024,7 @@ onMounted(() => {
                                                                 autocomplete="on"
                                                                 inputId="time24"
                                                                 v-model="td.value_field"
-                                                                placeholder="dd/mm/yyyy"
+                                                                placeholder="DD/MM/yyyy"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                             />
                                                         </div>

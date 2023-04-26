@@ -167,9 +167,9 @@ span.rqxoa, span.uutien2 {
     height: 1.25rem !important;
     border-radius: 5px;
 }
-.p-chip {
+/* .p-chip {
     border-radius: 5px !important;
-}
+} */
 .p-chip .p-chip-text {
     font-weight: bold;
 }
