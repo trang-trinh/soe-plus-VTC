@@ -5,12 +5,17 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
-import { CalendarView, CalendarViewHeader } from "vue-simple-calendar"
-import "../../../../node_modules/vue-simple-calendar/dist/style.css"
-	// The next two lines are optional themes
-	import "../../../../node_modules/vue-simple-calendar/dist/css/default.css"
-	import "../../../../node_modules/vue-simple-calendar/dist/css/holidays-us.css"
+import {
+  CalendarView,
+  CalendarViewHeader,
+  CalendarMath,
+} from "vue-simple-calendar";
+import "../../../../node_modules/vue-simple-calendar/dist/style.css";
+// The next two lines are optional themes
+import "../../../../node_modules/vue-simple-calendar/dist/css/default.css";
+import "../../../../node_modules/vue-simple-calendar/dist/css/holidays-us.css";
 import moment from "moment";
+import { Tooltip } from "chart.js";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -87,8 +92,35 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
+        state.value.items = [];
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          44;
+          if (element.start_date){
+            if(element.text_color)
+            element.text_color="color:"+element.text_color;
+            else
+            element.text_color="";
+            if(element.background_color)
+            element.background_color="; background-color:"+element.background_color;
+            else
+            element.background_color="";
+            state.value.items.push({
+              id: element.holiday_dates_id,
+              startDate: new Date(element.start_date),
+              endDate: element.end_date
+                ? new Date(element.end_date)
+                : new Date(element.start_date),
+              title:
+                "<span>" +
+                element.reason +
+                "</span> <br/><span class='text-sm'>" +
+                element.holiday_type_name +
+                "</span>",
+                tooltip:element.reason,
+                style:element.text_color  + element.background_color
+            });
+          }
         });
         datalists.value = data;
 
@@ -179,13 +211,14 @@ const openBasic = (str) => {
   headerDialog.value = str;
   displayBasic.value = true;
 };
- const closeDialog = () => {
+const closeDialog = () => {
   holiday_dates.value = {
     emote_file: "",
     status: true,
     is_order: 1,
   };
-
+  state.value.selectionEnd = null;
+  state.value.selectionStart = null;
   displayBasic.value = false;
   loadData(true);
 };
@@ -195,7 +228,12 @@ const openBasic = (str) => {
 const sttStamp = ref(1);
 const saveData = () => {
   submitted.value = true;
-
+  if (
+    holiday_dates.value.start_date == null ||
+    holiday_dates.value.holiday_type_id == null
+  ) {
+    return;
+  }
   let formData = new FormData();
 
   formData.append("hrm_holiday_dates", JSON.stringify(holiday_dates.value));
@@ -361,12 +399,14 @@ const optionsSelB = ref([
   { icon: "pi pi-bars", value: 1 },
   { icon: "pi pi-table", value: 2 },
 ]);
+const listOpCalendar = ref([
+  { label: "Tuần", value: "week" },
+  { label: "Tháng", value: "month" },
+  { label: "Năm", value: "year" },
+]);
+
 const optionsHoliday = ref(2);
 
-const showDate = ref(new Date());
- 
-const setShowDate = () => {
-}
 const checkFilter = ref(false);
 const filterSQL = ref([]);
 const isFirst = ref(true);
@@ -665,6 +705,7 @@ watch(selectedStamps, () => {
     checkDelList.value = false;
   }
 });
+
 const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
@@ -709,6 +750,159 @@ const initTudien = () => {
       options.value.loading = false;
     });
 };
+
+const thisMonth = (d) => {
+  const t = new Date();
+  return new Date(t.getFullYear(), t.getMonth(), d);
+};
+
+const state = ref({
+  /* Show the current month, and give it some fake items to show */
+  showDate: thisMonth(1),
+  message: "",
+  startingDayOfWeek:1,
+  disablePast: false,
+  disableFuture: false,
+  displayPeriodUom: "month",
+  displayPeriodCount: 1,
+  displayWeekNumbers: false,
+  showTimes: false,
+  selectionStart: undefined,
+  selectionEnd: undefined,
+  newItemTitle: "",
+  newItemStartDate: "",
+  newItemEndDate: "",
+  useDefaultTheme: true,
+  useHolidayTheme: true,
+  useTodayIcons: false,
+  items: [
+    /*{
+			id: "e0",
+			startDate: "2018-01-05",
+		},*/
+    {
+      id: "e1",
+      startDate: thisMonth(15, 18, 30),
+
+    },
+  ],
+});
+
+const onClickDay = (d) => {
+  submitted.value = false;
+  holiday_dates.value = {
+ 
+    status: true,
+    is_order: sttStamp.value,
+    organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
+    start_date:d,
+    end_date:d
+  };
+  checkIsmain.value = false;
+  isSaveTem.value = false;
+  headerDialog.value = "Thêm ngày nghỉ lễ";
+  displayBasic.value = true; 
+};
+ 
+const onClickItem = (e) => {
+  submitted.value = false;
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_holiday_dates_get",
+            par: [{ par: "holiday_dates_id", va: e.id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      holiday_dates.value = data[0];
+    
+      if (holiday_dates.value.start_date)
+    holiday_dates.value.start_date = new Date(holiday_dates.value.start_date);
+  if (holiday_dates.value.end_date)
+    holiday_dates.value.end_date = new Date(holiday_dates.value.end_date);
+  headerDialog.value = "Sửa ngày nghỉ lễ";
+      isSaveTem.value = true;
+      displayBasic.value = true;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+    });
+ 
+};
+const setShowDate = (d) => {
+ 
+  state.value.showDate = d;
+};
+const setSelection = (dateRange) => {
+  state.value.selectionEnd = dateRange[1];
+  state.value.selectionStart = dateRange[0];
+};
+const finishSelection = (dateRange) => {
+  setSelection(dateRange);
+  submitted.value = false;
+  holiday_dates.value = {
+ 
+    status: true,
+    is_order: sttStamp.value,
+    organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
+    start_date:dateRange[0],
+    end_date:dateRange[1]
+  };
+  checkIsmain.value = false;
+  isSaveTem.value = false;
+  headerDialog.value = "Thêm ngày nghỉ lễ";
+  displayBasic.value = true; 
+};
+const onDrop = (item,date) => {
+    
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_holiday_dates_get",
+            par: [{ par: "holiday_dates_id", va: item.id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      holiday_dates.value = data[0];
+    
+      const eLength = CalendarMath.dayDiff(item.startDate, date)
+	item.originalItem.startDate = CalendarMath.addDays(item.startDate, eLength)
+	item.originalItem.endDate = CalendarMath.addDays(item.endDate, eLength)
+    holiday_dates.value.start_date = 	item.originalItem.startDate;
+    holiday_dates.value.end_date = item.originalItem.endDate;
+  headerDialog.value = "Sửa ngày nghỉ lễ";
+      isSaveTem.value = true;
+      displayBasic.value = true;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+    });
+};
+
 onMounted(() => {
   initTudien();
   loadData(true);
@@ -732,141 +926,126 @@ onMounted(() => {
 });
 </script>
     <template>
-  <div class="d-lang-table true flex-grow-1 p-2 pb-0 pr-0">
-  <div class="surface-0  p-2">
-    
-        <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-credit-card"></i> Danh sách ngày nghỉ lễ ({{
-            options.totalRecords
-          }})
-        </h3>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="options.SearchText"
-                @keyup="searchStamp"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />
-              <Button
-                type="button"
-                class="ml-2"
-                icon="pi pi-filter"
-                @click="toggle"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                v-tooltip="'Bộ lọc'"
-                :class="
-                  filterTrangthai != null && checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
-                "
-              />
-              <OverlayPanel
-                ref="op"
-                appendTo="body"
-                class="p-0 m-0"
-                :showCloseIcon="false"
-                id="overlay_panel"
-                style="width: 300px"
-              >
-                <div class="grid formgrid m-0">
-                  <div class="flex field col-12 p-0">
-                    <div
-                      class="col-4 text-left pt-2 p-0"
-                      style="text-align: left"
-                    >
-                      Trạng thái
-                    </div>
-                    <div class="col-8">
-                      <Dropdown
-                        class="col-12 p-0 m-0"
-                        v-model="filterTrangthai"
-                        :options="trangThai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Trạng thái"
-                      />
-                    </div>
+  <div
+    v-if="optionsHoliday == 1"
+    class="calendar-parent true flex-grow-1 p-2 pb-0 pr-0"
+  >
+    <div class="surface-0 p-2">
+      <h3 class="module-title mt-0 ml-1 mb-2">
+        <i class="pi pi-credit-card"></i> Danh sách ngày nghỉ lễ ({{
+          options.totalRecords
+        }})
+      </h3>
+      <Toolbar class="w-full custoolbar">
+        <template #start>
+          <span class="p-input-icon-left">
+            <i class="pi pi-search" />
+            <InputText
+              v-model="options.SearchText"
+              @keyup="searchStamp"
+              type="text"
+              spellcheck="false"
+              placeholder="Tìm kiếm"
+            />
+            <Button
+              type="button"
+              class="ml-2"
+              icon="pi pi-filter"
+              @click="toggle"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+              v-tooltip="'Bộ lọc'"
+              :class="
+                filterTrangthai != null && checkFilter
+                  ? ''
+                  : 'p-button-secondary p-button-outlined'
+              "
+            />
+            <OverlayPanel
+              ref="op"
+              appendTo="body"
+              class="p-0 m-0"
+              :showCloseIcon="false"
+              id="overlay_panel"
+              style="width: 300px"
+            >
+              <div class="grid formgrid m-0">
+                <div class="flex field col-12 p-0">
+                  <div
+                    class="col-4 text-left pt-2 p-0"
+                    style="text-align: left"
+                  >
+                    Trạng thái
                   </div>
-                  <div class="flex col-12 p-0">
-                    <Toolbar
-                      class="border-none surface-0 outline-none pb-0 w-full"
-                    >
-                      <template #start>
-                        <Button
-                          @click="reFilterEmail"
-                          class="p-button-outlined"
-                          label="Xóa"
-                        ></Button>
-                      </template>
-                      <template #end>
-                        <Button @click="filterFileds" label="Lọc"></Button>
-                      </template>
-                    </Toolbar>
+                  <div class="col-8">
+                    <Dropdown
+                      class="col-12 p-0 m-0"
+                      v-model="filterTrangthai"
+                      :options="trangThai"
+                      optionLabel="name"
+                      optionValue="code"
+                      placeholder="Trạng thái"
+                    />
                   </div>
                 </div>
-              </OverlayPanel>
-            </span>
-          </template>
+                <div class="flex col-12 p-0">
+                  <Toolbar
+                    class="border-none surface-0 outline-none pb-0 w-full"
+                  >
+                    <template #start>
+                      <Button
+                        @click="reFilterEmail"
+                        class="p-button-outlined"
+                        label="Xóa"
+                      ></Button>
+                    </template>
+                    <template #end>
+                      <Button @click="filterFileds" label="Lọc"></Button>
+                    </template>
+                  </Toolbar>
+                </div>
+              </div>
+            </OverlayPanel>
+          </span>
+        </template>
 
-          <template #end>
-            <SelectButton
-              v-model="optionsHoliday"
-              :options="optionsSelB"
-              optionValue="value"
-              dataKey="value"
-              class="mx-2"
-              aria-labelledby="basic"
-            >
-              <template #option="slotProps">
-                <i :class="slotProps.option.icon"></i>
-              </template>
-            </SelectButton>
-            <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
-            <Button
-              @click="openBasic('Thêm ngày nghỉ lễ')"
-              label="Thêm mới"
-              icon="pi pi-plus"
-              class="mr-2"
-            />
-            <Button
-              @click="refreshStamp"
-              class="mr-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              v-tooltip="'Tải lại'"
-            />
-
-            <!-- <Button
-              label="Tiện ích"
-              icon="pi pi-file-excel"
-              class="mr-2 p-button-outlined p-button-secondary"
-              @click="toggleExport"
-              aria-haspopup="true"
-              aria-controls="overlay_Export"
-            />
-            <Menu
-              id="overlay_Export"
-              ref="menuButs"
-              :model="itemButs"
-              :popup="true"
-            /> -->
-          </template>
-        </Toolbar> 
-
+        <template #end>
+          <SelectButton
+            v-model="optionsHoliday"
+            :options="optionsSelB"
+            optionValue="value"
+            dataKey="value"
+            class="mx-2"
+            aria-labelledby="basic"
+          >
+            <template #option="slotProps">
+              <i :class="slotProps.option.icon"></i>
+            </template>
+          </SelectButton>
+          <Button
+            v-if="checkDelList"
+            @click="deleteList()"
+            label="Xóa"
+            icon="pi pi-trash"
+            class="mr-2 p-button-danger"
+          />
+          <Button
+            @click="openBasic('Thêm ngày nghỉ lễ')"
+            label="Thêm mới"
+            icon="pi pi-plus"
+            class="mr-2"
+          />
+          <Button
+            @click="refreshStamp"
+            class="mr-2 p-button-outlined p-button-secondary"
+            icon="pi pi-refresh"
+            v-tooltip="'Tải lại'"
+          />
+        </template>
+      </Toolbar>
     </div>
-   
     <DataTable
-    v-if="optionsHoliday==1"
+      v-if="optionsHoliday == 1"
       @page="onPage($event)"
       @sort="onSort($event)"
       @filter="onFilter($event)"
@@ -893,7 +1072,6 @@ onMounted(() => {
       v-model:selection="selectedStamps"
       :row-hover="true"
     >
- 
       <Column
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
@@ -1030,17 +1208,169 @@ onMounted(() => {
         </div>
       </template>
     </DataTable>
-    <calendar-view  v-if="optionsHoliday==2"
-			:show-date="showDate"
-			class="theme-default holiday-us-traditional holiday-us-official">
-			<template #header="{ headerProps }">
-				<calendar-view-header
-					:header-props="headerProps"
-					@input="setShowDate" />
-			</template>
-		</calendar-view>
   </div>
 
+  <div v-else class="calendar-parent">
+    <div class="surface-0 p-2">
+      <h3 class="module-title mt-0 ml-1 mb-2">
+        <i class="pi pi-credit-card"></i> Danh sách ngày nghỉ lễ ({{
+          options.totalRecords
+        }})
+      </h3>
+      <Toolbar class="w-full custoolbar">
+        <template #start>
+          <span class="p-input-icon-left">
+            <i class="pi pi-search" />
+            <InputText
+              v-model="options.SearchText"
+              @keyup="searchStamp"
+              type="text"
+              spellcheck="false"
+              placeholder="Tìm kiếm"
+            />
+            <Button
+              type="button"
+              class="ml-2"
+              icon="pi pi-filter"
+              @click="toggle"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+              v-tooltip="'Bộ lọc'"
+              :class="
+                filterTrangthai != null && checkFilter
+                  ? ''
+                  : 'p-button-secondary p-button-outlined'
+              "
+            />
+            <OverlayPanel
+              ref="op"
+              appendTo="body"
+              class="p-0 m-0"
+              :showCloseIcon="false"
+              id="overlay_panel"
+              style="width: 300px"
+            >
+              <div class="grid formgrid m-0">
+                <div class="flex field col-12 p-0">
+                  <div
+                    class="col-4 text-left pt-2 p-0"
+                    style="text-align: left"
+                  >
+                    Trạng thái
+                  </div>
+                  <div class="col-8">
+                    <Dropdown
+                      class="col-12 p-0 m-0"
+                      v-model="filterTrangthai"
+                      :options="trangThai"
+                      optionLabel="name"
+                      optionValue="code"
+                      placeholder="Trạng thái"
+                    />
+                  </div>
+                </div>
+                <div class="flex col-12 p-0">
+                  <Toolbar
+                    class="border-none surface-0 outline-none pb-0 w-full"
+                  >
+                    <template #start>
+                      <Button
+                        @click="reFilterEmail"
+                        class="p-button-outlined"
+                        label="Xóa"
+                      ></Button>
+                    </template>
+                    <template #end>
+                      <Button @click="filterFileds" label="Lọc"></Button>
+                    </template>
+                  </Toolbar>
+                </div>
+              </div>
+            </OverlayPanel>
+          </span>
+        </template>
+
+        <template #end>
+          <SelectButton
+            v-model="state.displayPeriodUom"
+            :options="listOpCalendar"
+            optionValue="value"
+            optionLabel="label"
+            dataKey="value"
+            class="mx-2"
+            aria-labelledby="basic"
+          >
+          </SelectButton>
+          <SelectButton
+            v-model="optionsHoliday"
+            :options="optionsSelB"
+            optionValue="value"
+            dataKey="value"
+            class="mx-2"
+            aria-labelledby="basic"
+          >
+            <template #option="slotProps">
+              <i :class="slotProps.option.icon"></i>
+            </template>
+          </SelectButton>
+          <Button
+            v-if="checkDelList"
+            @click="deleteList()"
+            label="Xóa"
+            icon="pi pi-trash"
+            class="mr-2 p-button-danger"
+          />
+          <Button
+            @click="openBasic('Thêm ngày nghỉ lễ')"
+            label="Thêm mới"
+            icon="pi pi-plus"
+            class="mr-2"
+          />
+          <Button
+            @click="refreshStamp"
+            class="mr-2 p-button-outlined p-button-secondary"
+            icon="pi pi-refresh"
+            v-tooltip="'Tải lại'"
+          />
+        </template>
+      </Toolbar>
+    </div>
+    <div class="h-full px-3">
+      
+    <calendar-view
+      :items="state.items"
+      :show-date="state.showDate"
+      :time-format-options="{ hour: 'numeric', minute: '2-digit' }"
+      :enable-drag-drop="true"
+      :disable-past="state.disablePast"
+      :disable-future="state.disableFuture"
+      :show-times="state.showTimes"
+      :display-period-uom="state.displayPeriodUom"
+      :display-period-count="state.displayPeriodCount"
+      :current-period-label="state.useTodayIcons ? 'icons' : ''"
+      :displayWeekNumbers="state.displayWeekNumbers"
+      :enable-date-selection="true"
+      :selection-start="state.selectionStart"
+      :selection-end="state.selectionEnd"
+      :starting-day-of-week="state.startingDayOfWeek"
+ :locale="'vi-VN'"
+      @date-selection-finish="finishSelection"
+      @drop-on-date="onDrop"
+      @click-date="onClickDay"
+      @click-item="onClickItem"
+ 
+      class="theme-default "
+    >
+      <template #header="{ headerProps }">
+        <calendar-view-header
+          :header-props="headerProps"
+          @input="setShowDate"
+        />
+      </template>
+    </calendar-view>
+    
+  </div>
+  </div>
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
@@ -1052,13 +1382,18 @@ onMounted(() => {
       <div class="grid formgrid m-2">
         <div class="col-12 field md:col-12 p-0 flex">
           <div class="col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-4 text-left p-0">Ngày bắt đầu</div>
+            <div class="col-4 text-left p-0">
+              Ngày bắt đầu<span class="redsao pl-1"> (*)</span>
+            </div>
             <div class="col-8 text-left p-0">
               <Calendar
                 v-model="holiday_dates.start_date"
                 class="w-full"
                 :showOnFocus="false"
                 :showIcon="true"
+                :class="{
+                  'p-invalid': holiday_dates.start_date == null && submitted,
+                }"
               />
             </div>
           </div>
@@ -1090,7 +1425,9 @@ onMounted(() => {
         </div>
 
         <div class="col-12 field md:col-12 flex align-items-center p-0">
-          <div class="col-2 p-0">Kiểu nghỉ lễ</div>
+          <div class="col-2 p-0">
+            Kiểu nghỉ lễ<span class="redsao pl-1"> (*)</span>
+          </div>
           <div class="col-10 p-0">
             <Dropdown
               :filter="true"
@@ -1098,6 +1435,10 @@ onMounted(() => {
               :options="listHolidayType"
               optionLabel="name"
               optionValue="code"
+              :showIcon="true"
+              :class="{
+                'p-invalid': holiday_dates.holiday_type_id == null && submitted,
+              }"
               class="w-full"
               panelClass="d-design-dropdown"
               placeholder="Chọn kiểu nghỉ lễ"
@@ -1123,7 +1464,7 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="col-12 md:col-12 align-items-center flex">
+        <div class="col-12 p-0 md:col-12 align-items-center flex">
           <div class="col-6 p-0 align-items-center flex">
             <div class="col-4 p-0">STT</div>
             <InputNumber
@@ -1166,10 +1507,21 @@ onMounted(() => {
   width: 100%;
   height: 100%;
 }
-.d-lang-table{
-
-    max-height: calc(100vh - 135px);
- 
+.d-lang-table {
+  max-height: calc(100vh - 135px);
 }
+.calendar-parent {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow-x: hidden;
+  overflow-y: hidden;
+ 
+  background-color: white;
+}
+.calendar-parent .cv-wrapper{
+  min-height: unset !important;
+}
+
 </style>
     

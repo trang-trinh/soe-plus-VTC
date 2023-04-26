@@ -49,6 +49,7 @@ const menuTaikhoan = ref();
 const visibleSidebarRight = ref(false);
 const axios = inject("axios"); // inject axios
 const itemheaders = ref([
+{ label: "Xem lịch", icon: "pi pi-fw pi-calendar", to: "/hrm/hrm_headbar_calendar" },
   { label: "Cài đặt", icon: "pi pi-fw pi-cog", to: "/options" },
   {
     label: "Đăng xuất",

@@ -689,6 +689,16 @@ const deleteList = () => {
   }
 };
 
+const opColor = ref();
+let pcolor = "";
+const toggleColor = (event, pc) => {
+  opColor.value.toggle(event);
+  pcolor = pc;
+};
+const changeColor = (color) => {
+  holiday_type.value[pcolor] = color.hex;
+  if (!color.hex.includes("#")) opColor.value.hide();
+};
 //Filter
 const trangThai = ref([
   { name: "Hiển thị", code: 1 },
@@ -1072,29 +1082,79 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
             :min="0"    inputId="locale-indian" locale="en-IN" :minFractionDigits="2"
           />
         </div>
-      
+        <div class="field col-12 md:col-12 p-0 flex">
+          <div class="col-6 flex p-0 align-items-center">
+            <div class="col-6 p-0  ">Màu chữ</div>
+            <div class="col-6 p-0 flex align-items-center">
+              <div class="mr-2" v-if="holiday_type.text_color">  {{ holiday_type.text_color }}</div>
+              <div>  <Button
+                class="p-button-rounded p-button-outlined p-button-secondary  "
+                :style="{
+                  backgroundColor: holiday_type.text_color,
+                  color: holiday_type.text_color ? 'transparent' : '#333',
+                  border: '1px solid #ccc',
+                }"
+                type="button"
+                icon="pi pi-palette"
+                @click="toggleColor($event, 'text_color')"
+              />
+              </div>
 
-        <div class="col-12 field md:col-12 flex p-0">
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-9 text-left p-0">STT</div>
-            <InputNumber
-              v-model="holiday_type.is_order"
-              class="col-3 ip36 p-0" 
+            </div>
+          </div>
+
+          <OverlayPanel ref="opColor">
+            <ColorPicker
+              theme="dark"
+              @changeColor="changeColor"
+              :sucker-hide="true"
             />
-          </div>
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="holiday_type.status" />
-          </div>
-          <div
-            class="field col-4 md:col-4 p-0 align-items-center flex"
-            v-if="store.getters.user.is_super"
-          >
-            <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="holiday_type.is_system" />
+          </OverlayPanel>
+
+          <div class="col-6 flex p-0 align-items-center">
+            <div class="col-6  pl-3">Màu nền</div>
+            <div class="col-6 p-0 flex align-items-center">
+                <div class="mr-2" v-if="holiday_type.background_color">  {{ holiday_type.background_color }}</div>
+              <div> 
+              <Button
+                class="p-button-rounded p-button-outlined p-button-secondary  "
+                :style="{
+                  backgroundColor: holiday_type.background_color,
+                  color: holiday_type.background_color
+                    ? 'transparent'
+                    : '#333',
+                  border: '1px solid #ccc',
+                }"
+                type="button"
+                icon="pi pi-palette"
+                @click="toggleColor($event, 'background_color')"
+              />
+              </div>
+            </div>
           </div>
         </div>
-        
+
+        <div class="col-12 field md:col-12 flex p-0">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">STT</div>
+            <InputNumber
+              v-model="holiday_type.is_order"
+              class="col-6 ip36 p-0" 
+            />
+          </div>
+          <div class="field col-6 md:col-6   align-items-center flex">
+            <div class="col-6 text-left ">Trạng thái</div>
+            <InputSwitch v-model="holiday_type.status" />
+          </div>
+         
+        </div>
+        <div
+            class="field col-12 md:col-12 p-0 align-items-center flex"
+            v-if="store.getters.user.is_super"
+          >
+            <div class="col-3 text-left p-0">Hệ thống</div>
+            <InputSwitch v-model="holiday_type.is_system" />
+          </div>
       </div>
     </form>
     <template #footer>
