@@ -1941,9 +1941,9 @@ $animation-time: 0.5s;
 .multi-step-item {
   position: relative;
   width: 100%;
-  margin: 0 ($base-margin / 6);
+  margin: 0 calc($base-margin / 6);
   @media only screen and (max-width: $screen-xs-max) {
-    margin: 0 ($base-margin / 6);
+    margin: 0 calc($base-margin / 6);
   }
   z-index: 2;
   border-radius: $base-border-radius;
@@ -2107,7 +2107,7 @@ $animation-time: 0.5s;
     left: 0.75em;
     transform: translateY(-50%);
     min-width: fit-content;
-    padding: ($base-padding / 2) $base-padding;
+    padding: calc($base-padding / 2) $base-padding;
     z-index: 2;
     font-size: 0.85em;
     //background-color: $accent-light;

@@ -286,12 +286,12 @@ const initDictionary = () => {
         baseURL + "/api/request/getData",
         {
             str: encr(
-            JSON.stringify({
-                proc: "request_dictionary_by_user",
-                par: [{ par: "user_id", va: store.getters.user.user_id }],
-            }),
-            SecretKey,
-            cryoptojs
+                JSON.stringify({
+                    proc: "request_dictionary_by_user",
+                    par: [{ par: "user_id", va: store.getters.user.user_id }],
+                }),
+                SecretKey,
+                cryoptojs
             ).toString(),
         },
         config
@@ -430,6 +430,7 @@ const closeDialog = () => {
         priority_level: 0,
         type_process: 1,
         is_evaluate: true,
+        request_team_id: dictionarys.value[2].length > 0 ? dictionarys.value[2][0].request_team_id : null,
     };
     displayAddRequest.value = false;
 };
@@ -442,6 +443,7 @@ const listFilesRequest = ref([]);
 const listUserApproved = ref([]);
 const listUserFollow = ref([]);
 const listUserManage = ref([]);
+const detailFormDynamic = ref([]);
 const openAddDialog = (title) => {
     headerAddDialog.value = title;
     request_data.value = {
@@ -451,11 +453,13 @@ const openAddDialog = (title) => {
         priority_level: 0,
         type_process: 1,
         is_evaluate: true,
+        request_team_id: dictionarys.value[2].length > 0 ? dictionarys.value[2][0].request_team_id : null,
     };
     listFilesRequest.value = [];
     listUserApproved.value = [];
     listUserFollow.value = [];
     listUserManage.value = [];
+    detailFormDynamic.value = [];
     displayAddRequest.value = true;
     forceRerenderForm();
 };
@@ -498,6 +502,7 @@ const editRequest = (dataRequest) => {
     listUserApproved.value = [];
     listUserFollow.value = [];
     listUserManage.value = [];
+    detailFormDynamic.value = [];
     axios
         .post(
         baseURL + "/api/request/getData",
@@ -522,18 +527,12 @@ const editRequest = (dataRequest) => {
             if (data != null) {
                 let dataConvert = JSON.parse(data);
                 request_data.value = dataConvert[0][0];
+                request_data.value.request_form_id = request_data.value.request_form_id != null ? { label: request_data.value.request_form_name, request_form_id: request_data.value.request_form_id} : null;
                 listFilesRequest.value = dataConvert[1];
                 listUserApproved.value = dataConvert[2];
                 listUserManage.value = dataConvert[3];
                 listUserFollow.value = dataConvert[4];
-                let detailFormDynamic = dataConvert[5];
-                if (detailFormDynamic != null && detailFormDynamic.length > 0) {
-                    var fd = detailFormDynamic.find(x => x.kieu_truong.toLowerCase() == "radio" && x.value_field.toLowerCase() == "true");
-                    if (fd != null) {
-                        $scope.modelrequest.Radio = fd.FormD_ID;
-                        fd.IsGiatri = "true";
-                    }
-                }
+                detailFormDynamic.value = dataConvert[5];
                 if (request_data.value.created_date != null) {
                     request_data.value.created_date = new Date(request_data.value.created_date);
                 }
@@ -749,7 +748,7 @@ onMounted(() => {
                         <div class="flex" 
                             :class="slotProps.data.status != 2 && slotProps.data.is_overdue && slotProps.data.Deadline && slotProps.data.SoNgayHan <= 24 ? 'overdue-request' : ''"
                             style="flex-direction: column;">
-                            <span>{{ slotProps.data.request_code }}</span>
+                            <span style="word-break: break-all;">{{ slotProps.data.request_code }}</span>
                             <div class="mt-2" v-if="slotProps.data.status_processing == 3">
                                 <Rating class="star-rating-custom"
                                     v-model="slotProps.data.evaluated_score"
@@ -771,70 +770,87 @@ onMounted(() => {
                 >
                     <template #body="slotProps">
                         <div class="flex" style="flex-direction: column;">
-                            <div class="flex" style="align-items: center;">
-                                <span class="uutien" 
-                                    :class="'uutien' + slotProps.data.is_security" 
+                            <div class="flex" style="align-items: baseline;">
+                                <span class="uutien mr-2" 
+                                    :class="'uutien' + (slotProps.data.is_security||0)" 
                                     v-if="slotProps.data.is_security > 0"
                                 >
                                     {{ slotProps.data.priority_level == 1 ? 'Gấp' : 'Rất gấp' }}
                                 </span>
-                                <span class="uutien" v-tooltip.top="'Bảo mật'" v-if="slotProps.data.is_security">
+                                <span class="uutien mr-2" v-tooltip.top="'Bảo mật'" v-if="slotProps.data.is_security">
                                     <i class="pi pi-flag" style="color:red;"></i>
                                 </span>
-                                <span style="padding:0.25rem 0.5rem;background-color: #ff8b4e;color: #fff;" 
-                                    class="card-nhom text-left" 
+                                <span style="padding:0.25rem 0.5rem;background-color: #ff8b4e;color: #fff;margin-right: 0.5rem !important;" 
+                                    class="card-nhom flex text-left" 
                                     v-if="slotProps.data.is_change_process"
-                                >Quy trình động
+                                >
+                                    Quy trình động
                                 </span>
-                                <span class="font-bold ml-2"
+                                <span class="flex font-bold"
+                                    style="flex:1;"
                                     :style="slotProps.data.is_overdue ? 'color:red !important;' : ''"
                                 >
                                     {{ slotProps.data.request_name }}
                                 </span>                                
                             </div>
                             <div class="flex mt-2" style="align-items: center;">
-                                <span style="padding:0.25rem 0.5rem;background-color: antiquewhite;" class="card-nhom text-left">
+                                <span style="padding:0.25rem 0.5rem;background-color: antiquewhite;white-space: normal;" 
+                                    class="card-nhom flex text-left">
                                     {{ slotProps.data.last_name + " - " + (slotProps.data.request_form_name || 'Đề xuất trực tiếp') }}
                                 </span>
-                                <a v-if="slotProps.data.is_overdue" 
+                                <span class="flex ml-2 span-note-request" v-if="slotProps.data.is_overdue" 
                                     v-tooltip.top="{ value: 'Hạn xử lý: ' + 
                                         (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
-                                    style="color:red;font-size:12px">
+                                    style="color:red;">
                                     <i style="font-size:12px" class="pi pi-clock"></i> 
-                                    <span class="pl-1">({{ slotProps.data.SoNgayHan }}h)</span>
-                                </a>
-                                <a v-if="!slotProps.data.is_overdue && slotProps.data.Deadline" 
-                                    v-tooltip.top="{ value: 'Hạn xử lý: ' + 
-                                        (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
-                                    :style="slotProps.data.SoNgayHan <= 24 ? 'color:orange' : 'color:#333'"
-                                    style="font-size:12px">
-                                    <i style="font-size:12px" class="pi pi-clock"></i> 
-                                    ({{ slotProps.data.SoNgayHan }}h)
-                                </a>
-                                <a v-if="slotProps.data.SoFile > 0" style="font-size:12px">
-                                    <i style="font-size:12px" class="pi pi-paperclip"></i> 
-                                    ({{slotProps.data.SoFile}})
-                                </a>
-                                <a v-if="slotProps.data.SoChat > 0" style="font-size:12px">
-                                    <i v-tooltip.top="'Số thảo luận'" style="font-size:12px" class="pi pi-comment"></i>
-                                    <span v-tooltip.top="'Số thảo luận'">({{ slotProps.data.SoChat }})</span>
-                                    <span v-tooltip.top="'Số thảo luận chưa đọc'" class="badge badge-danger" v-if="slotProps.data.SoSendhub > 0">
-                                        {{ slotProps.data.SoSendhub }}
+                                    <span class="pl-1">
+                                        ({{ slotProps.data.SoNgayHan || 0 }}h)
                                     </span>
-                                </a>
-                                <a style="color:#2196f3!important;font-size:12px" v-if="slotProps.data.Stask > 0">
-                                    <i style="font-size:12px" class="pi pi-server"></i> 
-                                    ({{ slotProps.data.StaskFinish + "/" + slotProps.data.Stask }})
-                                    <div :v-tooltip.top="'Tiến độ công việc: ' + slotProps.data.StaskTiendo + '%'" 
-                                        class="radialProgressBar"
+                                </span>
+                                <span class="flex ml-2 span-note-request" v-if="!slotProps.data.is_overdue && slotProps.data.Deadline" 
+                                    v-tooltip.top="{ value: 'Hạn xử lý: ' + 
+                                        (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
+                                    :style="slotProps.data.SoNgayHan <= 24 ? 'color:orange' : 'color:#333'">
+                                    <i style="font-size:12px" class="pi pi-clock"></i> 
+                                    <span class="pl-1">
+                                        ({{ slotProps.data.SoNgayHan || 0 }}h)
+                                    </span>
+                                </span>
+                                <span class="flex ml-2 span-note-request" v-if="(slotProps.data.SoFile > 0)">
+                                    <i style="font-size:12px" class="pi pi-paperclip"></i> 
+                                    <span class="pl-1" v-tooltip.top="'File đính kèm'">
+                                        ({{slotProps.data.SoFile || 0}})
+                                    </span>
+                                </span>
+                                <span class="flex ml-2 span-note-request" v-if="(slotProps.data.SoChat > 0)">
+                                    <i v-tooltip.top="'Số thảo luận'" style="font-size:12px" class="pi pi-comment"></i>
+                                    <span class="pl-1" v-tooltip.top="'Số thảo luận'">
+                                        ({{ slotProps.data.SoChat || 0 }})</span>
+                                    <Badge class="flex ml-1"
+                                        style="align-items: center;justify-content: center;width:1.25rem;height:1.25rem;"
+                                        v-tooltip.top="'Số thảo luận chưa đọc'"
+                                        :value="slotProps.data.SoSendhub || 0"
+                                        v-if="(slotProps.data.SoSendhub > 0)"
+                                    ></Badge>
+                                </span>
+                                <span class="flex ml-2 span-note-request" 
+                                    style="color:#2196f3 !important;" 
+                                    v-if="(slotProps.data.Stask > 0)">
+                                    <font-awesome-icon icon="fa-solid fa-list-check" 
+                                        style="font-size: 12px; display: block; color: #2196f3"
+                                    />
+                                    <span class="pl-1">
+                                        ({{ (slotProps.data.StaskFinish || 0) + "/" + (slotProps.data.Stask || 0) }})
+                                    </span>
+                                    <span v-tooltip.top="'Tiến độ công việc: ' + slotProps.data.StaskTiendo + '%'" 
+                                        class="radialProgressBar pl-1"
                                         :class="'progress-' + slotProps.data.bgtiendo" 
-                                        style="width:24px;height:24px;display:inline-flex"
                                     >
-                                        <div class="overlay" style="font-size:6px;width:16px;height:16px;color:#000">
-                                            {{slotProps.data.StaskTiendo}}%
-                                        </div>
-                                    </div>
-                                </a>
+                                        <span class="overlay" style="color:#000">
+                                            {{slotProps.data.StaskTiendo || 0}}%
+                                        </span>
+                                    </span>
+                                </span>
                             </div>
                         </div>
                     </template>
@@ -931,9 +947,10 @@ onMounted(() => {
                     class="align-items-center justify-content-center text-center"
                 >
                     <template #body="slotProps">
-                        <Chip
+                        <Chip class="status_request"
                             :class="slotProps.data.objStatus.class || ''"
                             v-bind:label="slotProps.data.objStatus.text || ''"
+                            style="border-radius: 5px !important;"
                         />
                     </template>
                 </Column>
@@ -1012,6 +1029,7 @@ onMounted(() => {
         :listUserApproved="listUserApproved"
         :listUserFollow="listUserFollow"
         :listUserManage="listUserManage"
+        :detailFormDynamic="detailFormDynamic"
 		:reloadData="listRequest"
 		:closeDialog="closeDialog"
     ></dialogAddRequest>

@@ -30,13 +30,6 @@ const store = inject("store");
 const selectedNodes = ref([]);
 const filters = ref({});
 const router = inject("router");
-const opition = ref({
-  search: "",
-  PageNo: 1,
-  PageSize: 1000,
-  organization_type: null,
-  user_id: store.getters.user.user_id,
-});
 
 const options = ref({
   IsNext: true,
@@ -112,7 +105,7 @@ const loadData = () => {
     });
 };
 const goDetailReport= (item)=>{
-  router.push({ name: item.is_link});
+  router.push({ path: item.is_link });
 }
 
 const exportExcel = () => {

@@ -405,6 +405,8 @@ const HRM_ConfigEmail = () => import("../views/hrm/config/ConfigEmail.vue");
 const HRM_Contact = () => import("../views/hrm/contact/Contact.vue");
 //hrm report
 const HRM_Report = () => import("../views/hrm/report/ReportMain.vue");
+const HRM_ReportWorkers = () => import("../views/hrm/report/report_general/ReportWorkers.vue");
+
 // Request
 const Request_Dashboard = () =>
   import("../views/request/request_dashboard.vue");
@@ -1911,10 +1913,16 @@ const router = createRouter({
       name: "hrm_contact",
       component: HRM_Contact,
     },
+    // hrm report
     {
       path: "/hrm/hrm_report",
       name: "hrm_report",
       component: HRM_Report,
+    },
+    {
+      path: "/hrm/hrm_report/hrm_report_workers",
+      name: "hrm_reportworkers",
+      component: HRM_ReportWorkers,
     },
     // Tài liệu
     {
