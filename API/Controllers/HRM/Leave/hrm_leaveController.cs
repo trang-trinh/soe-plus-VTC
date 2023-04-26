@@ -90,7 +90,6 @@ namespace API.Controllers.Leave
                         leave.modified_date = DateTime.Now;
                         leave.modified_ip = ip;
                         leave.modified_token_id = tid;
-                        db.Entry(leave).State = EntityState.Modified;
                     }
                     else
                     {
