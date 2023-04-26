@@ -276,6 +276,7 @@ const HrmProfileInfo = () =>
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
 const HrmDecision = () => import("../views/hrm/decision/decision.vue");
 const HrmTimekeep = () => import("../views/hrm/timekeep/timekeep.vue");
+const HRMLeave = () => import("../views/hrm/leave/leave.vue");
 const Insurance = () => import("../views/hrm/insurance/insurance.vue");
 const Hrm_File = () => import("../views/hrm/files/hrm_file.vue");
 const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
@@ -365,6 +366,7 @@ const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
   const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
   const hrmHolidayDate = () => import("../views/hrm/declare/hrm_holiday_dates.vue");
+  const hrmHeadbarCalendar = () => import("../views/hrm/declare/hrm_headbar_calendar.vue");
 const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
@@ -404,6 +406,9 @@ const HRM_ConfigEmail = () => import("../views/hrm/config/ConfigEmail.vue");
 const HRM_Contact = () => import("../views/hrm/contact/Contact.vue");
 //hrm report
 const HRM_Report = () => import("../views/hrm/report/ReportMain.vue");
+const HRM_ReportWorkers = () => import("../views/hrm/report/report_general/ReportWorkers.vue");
+const HRM_ReportProfileOrganization = () => import("../views/hrm/report/report_general/ProfileOrganization.vue");
+
 // Request
 const Request_Dashboard = () =>
   import("../views/request/request_dashboard.vue");
@@ -1593,6 +1598,11 @@ const router = createRouter({
       name: "timekeep",
       component: HrmTimekeep,
     },
+    {
+      path: "/hrm/leave",
+      name: "hrmleave",
+      component: HRMLeave,
+    },
     // CA_HRM
     {
       path: "/hrm/category/academic_level",
@@ -1800,7 +1810,11 @@ const router = createRouter({
       name: "caHolidayType",
       component: caHolidayType,
     },
-
+    {
+      path: "/hrm/hrm_headbar_calendar",
+      name: "hrmHeadbarCalendar",
+      component: hrmHeadbarCalendar,
+    },
     
     {
       path: "/hrm/category/ca_receipt",
@@ -1906,10 +1920,21 @@ const router = createRouter({
       name: "hrm_contact",
       component: HRM_Contact,
     },
+    // hrm report
     {
       path: "/hrm/hrm_report",
       name: "hrm_report",
       component: HRM_Report,
+    },
+    {
+      path: "/hrm/hrm_report/hrm_report_workers",
+      name: "hrm_reportworkers",
+      component: HRM_ReportWorkers,
+    },
+        {
+      path: "/hrm/hrm_report/profile_organization",
+      name: "hrm_profile_organization",
+      component: HRM_ReportProfileOrganization ,
     },
     // Tài liệu
     {

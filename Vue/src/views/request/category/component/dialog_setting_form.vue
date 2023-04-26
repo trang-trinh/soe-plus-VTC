@@ -55,12 +55,18 @@ function generateUUID() {
 }
 const listSettingForms = ref(props.listSettingForms);
 const listDropdownClass = ref([
-  { value: "col-md-2", text: "col-md-2" },
-  { value: "col-md-3", text: "col-md-3" },
-  { value: "col-md-4", text: "col-md-4" },
-  { value: "col-md-6", text: "col-md-6" },
-  { value: "col-md-8", text: "col-md-8" },
-  { value: "col-md-12", text: "col-md-12" },
+  { value: "col-1", text: "col-1" },
+  { value: "col-2", text: "col-2" },
+  { value: "col-3", text: "col-3" },
+  { value: "col-4", text: "col-4" },
+  { value: "col-5", text: "col-5" },
+  { value: "col-6", text: "col-6" },
+  { value: "col-7", text: "col-7" },
+  { value: "col-8", text: "col-8" },
+  { value: "col-9", text: "col-9" },
+  { value: "col-10", text: "col-10" },
+  { value: "col-11", text: "col-11" },
+  { value: "col-12", text: "col-12" },
 ])
 const listDropdownAlign = ref([
   { value: "left", text: "Trái" },
@@ -346,8 +352,8 @@ onMounted(() => {
                       class="pi pi-plus-circle hover-cursor" v-tooltip.top="'Thêm cấp con'"></i>
                   </span>
                   <span v-if="data.data.is_edit">
-                    <i style="font-size: 15px;" @click="editSettingFormD(data.data)"
-                      class="pi pi-lock hover-cursor" v-tooltip.top="'Khóa'"></i>
+                    <i style="font-size: 15px;" @click="editSettingFormD(data.data)" class="pi pi-lock hover-cursor"
+                      v-tooltip.top="'Khóa'"></i>
                   </span>
                   <span v-if="!data.data.is_edit">
                     <i style="font-size: 15px;" @click="editSettingFormD(data.data)" class="pi pi-pencil hover-cursor"
@@ -394,8 +400,8 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <Dropdown :options="listTypeColumn" :disabled="!data.data.is_edit" style=""
-                  :filter="true" :showClear="true" :editable="false" v-model="data.data.kieu_truong" optionLabel="text"
+                <Dropdown :options="listTypeColumn" :disabled="!data.data.is_edit" style="" :filter="true"
+                  :showClear="true" :editable="false" v-model="data.data.kieu_truong" optionLabel="text"
                   optionValue="value" placeholder="" class="col-12 ip36">
                 </Dropdown>
               </template>
@@ -405,8 +411,8 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <InputText type="text" style="" :disabled="!data.data.is_edit" class="col-12 ip36"
-                  spellcheck="false" v-model="data.data.is_length" placeholder="" />
+                <InputText type="text" style="" :disabled="!data.data.is_edit" class="col-12 ip36" spellcheck="false"
+                  v-model="data.data.is_length" placeholder="" />
               </template>
             </Column>
             <Column field="is_width" header="Width"
@@ -414,8 +420,8 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <InputNumber v-if="!data.data.is_label" :disabled="!data.data.is_edit" style=""
-                  class="col-12 ip36" spellcheck="false" v-model="data.data.is_width" placeholder="" />
+                <InputNumber v-if="!data.data.is_label" :disabled="!data.data.is_edit" style="" class="col-12 ip36"
+                  spellcheck="false" v-model="data.data.is_width" placeholder="" />
               </template>
             </Column>
             <Column field="text_align" header="Align"
@@ -423,10 +429,9 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit"
-                  :options="listDropdownAlign" style="" :filter="true" :showClear="true" :editable="false"
-                  v-model="data.data.text_align" optionLabel="text" optionValue="value" placeholder=""
-                  class="col-12 ip36">
+                <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit" :options="listDropdownAlign" style=""
+                  :filter="true" :showClear="true" :editable="false" v-model="data.data.text_align" optionLabel="text"
+                  optionValue="value" placeholder="" class="col-12 ip36">
                 </Dropdown>
               </template>
             </Column>
@@ -435,9 +440,9 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit"
-                  :options="listDropdownClass" style="" :filter="true" :showClear="true" :editable="false"
-                  v-model="data.data.is_class" optionLabel="text" optionValue="value" placeholder="" class="col-12 ip36">
+                <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit" :options="listDropdownClass" style=""
+                  :filter="true" :showClear="true" :editable="false" v-model="data.data.is_class" optionLabel="text"
+                  optionValue="value" placeholder="" class="col-12 ip36">
                 </Dropdown>
               </template>
             </Column>
@@ -462,10 +467,9 @@ onMounted(() => {
               bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
-                <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit"
-                  :options="listDropdownPermission" style="" :filter="true" :showClear="true" :editable="false"
-                  v-model="data.data.is_permission" optionLabel="text" optionValue="value" placeholder=""
-                  class="col-12 ip36">
+                <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit" :options="listDropdownPermission"
+                  style="" :filter="true" :showClear="true" :editable="false" v-model="data.data.is_permission"
+                  optionLabel="text" optionValue="value" placeholder="" class="col-12 ip36">
                 </Dropdown>
               </template>
             </Column>
@@ -507,4 +511,5 @@ onMounted(() => {
   .p-datatable-emptymessage {
     justify-content: center;
   }
-}</style>
+}
+</style>

@@ -1316,3 +1316,36 @@ li.p-chips-token {
   height: 100%;
   padding: 0 !important;
 }
+
+/* Style khai báo ngày nghỉ lễ */
+.theme-default .cv-header-day{
+  font-weight: bold !important;
+}
+.theme-default .cv-day-number{
+  font-weight: bold !important;
+  font-size: 1.2rem !important;
+}
+.theme-default .cv-header .cv-header-nav .previousYear,.previousPeriod,.currentPeriod,.nextPeriod,.nextYear{
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  color: #495057;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  display: inline-flex;
+  cursor: pointer;
+  user-select: none;
+  align-items: center;
+  vertical-align: bottom;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+.theme-default .cv-header .cv-header-nav .currentPeriod{
+ font-weight: bold;
+}
+.theme-default .cv-header .periodLabel{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+}

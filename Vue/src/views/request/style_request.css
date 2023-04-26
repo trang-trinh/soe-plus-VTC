@@ -112,9 +112,9 @@
 }
 span.uutien {
     padding: 2px 5px;
-    margin-right: 2px;
+    /* margin-right: 2px; */
     border-radius: 5px;
-    font-size: 10px;
+    font-size: 12px;
 }
 span.rqlap {
     background-color: #aaa;
@@ -167,9 +167,9 @@ span.rqxoa, span.uutien2 {
     height: 1.25rem !important;
     border-radius: 5px;
 }
-.p-chip {
+/* .p-chip {
     border-radius: 5px !important;
-}
+} */
 .p-chip .p-chip-text {
     font-weight: bold;
 }
@@ -183,4 +183,13 @@ span.rqxoa, span.uutien2 {
 }
 .requestbutton button:last-child {
     margin-right: 0;
+}
+.formd.col-1, .formd.col-2, .formd.col-3, .formd.col-4, 
+.formd.col-5, .formd.col-6, .formd.col-7, .formd.col-8, 
+.formd.col-9, .formd.col-10, .formd.col-11, .formd.col-12 {
+    padding-right: 1rem;
+}
+.span-note-request {
+    font-size: 12px;
+    align-items: center;
 }
