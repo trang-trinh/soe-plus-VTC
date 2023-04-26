@@ -142,10 +142,10 @@ const saveModel = (is_continue) => {
   let formData = new FormData();
   formData.append("isAdd", props.isAdd);
   formData.append("model", JSON.stringify(obj));
-  formData.append("relative", JSON.stringify(props.datachilds[1]));
-  formData.append("skill", JSON.stringify(props.datachilds[2]));
-  formData.append("clan_history", JSON.stringify(props.datachilds[3]));
-  formData.append("experience", JSON.stringify(props.datachilds[4]));
+  formData.append("relative", JSON.stringify(props.datachilds[1] || []));
+  formData.append("skill", JSON.stringify(props.datachilds[2] || []));
+  formData.append("clan_history", JSON.stringify(props.datachilds[3] || []));
+  formData.append("experience", JSON.stringify(props.datachilds[4] || []));
   for (var i = 0; i < props.files.length; i++) {
     let file = props.files[i];
     if (file["key"] === "avatar") {

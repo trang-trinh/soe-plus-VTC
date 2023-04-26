@@ -112,10 +112,10 @@ const loadData = (rf) => {
                 ? new Date(element.end_date)
                 : new Date(element.start_date),
               title:
-                "<span>" +
-                element.reason +
-                "</span> <br/><span class='text-sm'>" +
+             " <span class='text-sm'> [ " +
                 element.holiday_type_name +
+                " ]</span> <span>" +
+                element.reason +
                 "</span>",
                 tooltip:element.reason,
                 style:element.text_color  + element.background_color
