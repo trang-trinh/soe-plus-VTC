@@ -59,252 +59,14 @@ const loadCount = () => {
 };
 //Lấy dữ liệu holiday_dates
 const loadData = (rf) => {
- 
-  
-    if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
+  if (rf) {
+    if (options.value.PageNo == 0) {
+      loadCount();
     }
-    state.value.items = [];
-    axios
-      .post(
-        baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "hrm_holiday_dates_list_all",
-              par: [
-       
-                { par: "user_id", va: store.getters.user.user_id },
-                { par: "status", va: true },
-              ],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        if (isFirst.value) isFirst.value = false;
-
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-
-          if (element.start_date) {
-            if (element.text_color)
-              element.text_color = "color:" + element.text_color;
-            else element.text_color = "";
-            if (element.background_color)
-              element.background_color =
-                "; background-color:" + element.background_color;
-            else element.background_color = "";
-            state.value.items.push({
-              id: "nothingshow",
-              id_hol:element.holiday_dates_id,
-              startDate: new Date(element.start_date),
-              endDate: element.end_date
-                ? new Date(element.end_date)
-                : new Date(element.start_date),
-              title:
-                " <span class='text-sm'> <i class='" +
-                element.icon +
-                " px-1' ></i>" +
-                " </span>   <span>" +
-                element.reason +
-                "</span>",
-                tooltip:" ",
-              style: element.text_color + element.background_color,
-            });
-          }
-        });
-        datalists.value = data;
-
-        options.value.loading = false;
-      })
-      .catch((error) => {
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
-
-        if (error && error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
-          store.commit("gologout");
-        }
-      });
-    axios
-      .post(
-        baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "hrm_work_schedule_user_list",
-              par: [{ par: "user_id", va: store.getters.user.user_id }],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-
-        data.forEach((element, i) => {
-          var txt_color = "";
-          if (element.background_color)
-            txt_color = "color:" + element.text_color;
-          var bg_color = "";
-          if (element.background_color)
-            bg_color = "; background-color:" + element.background_color;
-
-          element.text_color = txt_color;
-          element.background_color = bg_color;
-          if (!element.is_full_time) {
-            if (element.work_schedule_days) {
-              element.work_schedule_days.split(",").forEach((item, idx) => {
-                state.value.items.push({
-                  id: element.work_schedule_id,
-                  startDate: new Date(item),
-                  endDate: new Date(item),
-                  title: element.declare_shift_name,
-                  tooltip:" ",
-
-                  style: element.text_color + element.background_color,
-                });
-              });
-            }
-            if (element.work_schedule_months) {
-              element.work_schedule_months.split(",").forEach((item, idx) => {
-                var date = new Date(item);
-                var numDays = new Date(
-                  date.getFullYear(),
-                  date.getMonth() + 1,
-                  0
-                ).getDate();
-
-                for (let index = 1; index <= numDays; index++) {
-                  state.value.items.push({
-                    id: element.work_schedule_id,
-                    startDate: new Date(
-                      date.getFullYear(),
-                      date.getMonth(),
-                      index
-                    ),
-                    endDate: new Date(
-                      date.getFullYear(),
-                      date.getMonth(),
-                      index
-                    ),
-                    title: element.declare_shift_name,
-                    tooltip:" ",
-                    style: element.text_color + element.background_color,
-                  });
-                }
-              });
-            }
-          } else {
-            for (let indexs = 0; indexs < 12; indexs++) {
-              var date = new Date();
-              var numDays = new Date(date.getFullYear(), indexs, 0).getDate();
-              var newDate = new Date(date.getFullYear(), indexs, 0);
-              for (let index = 1; index <= numDays; index++) {
-                state.value.items.push({
-                  id: element.work_schedule_id,
-                  startDate: new Date(
-                    newDate.getFullYear(),
-                    newDate.getMonth(),
-                    index
-                  ),
-                  endDate: new Date(
-                    newDate.getFullYear(),
-                    newDate.getMonth(),
-                    index
-                  ),
-                  title: element.declare_shift_name,
-                  tooltip:" ",
-                  style: element.text_color + element.background_color,
-                });
-              }
-            }
-          }
-        });
-        options.value.loading = false;
-      })
-      .catch((error) => {
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
-
-        if (error && error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
-          store.commit("gologout");
-        }
-      });
-  
-};
-//Phân trang dữ liệu
-const onPage = (event) => {
-  if (event.rows != options.value.PageSize) {
-    options.value.PageSize = event.rows;
   }
-  if (event.page == 0) {
-    //Trang đầu
-    options.value.id = null;
-    options.value.IsNext = true;
-  } else if (event.page > options.value.PageNo + 1) {
-    //Trang cuối
-    options.value.id = -1;
-    options.value.IsNext = false;
-  } else if (event.page > options.value.PageNo) {
-    //Trang sau
-
-    options.value.id =
-      datalists.value[datalists.value.length - 1].holiday_dates_id;
-    options.value.IsNext = true;
-  } else if (event.page < options.value.PageNo) {
-    //Trang trước
-    options.value.id = datalists.value[0].holiday_dates_id;
-    options.value.IsNext = false;
-  }
-  options.value.PageNo = event.page;
-  loadData(true);
-};
-
-const holiday_dates = ref({
-  emote_file: "",
-  status: true,
-  is_order: 1,
-});
-
-const selectedStamps = ref();
-const submitted = ref(false);
-
-const isSaveTem = ref(false);
-const datalists = ref();
-const toast = useToast();
-const basedomainURL = baseURL;
-const checkDelList = ref(false);
-
-const options = ref({
-  IsNext: true,
-  sort: "created_date",
-  SearchText: "",
-  PageNo: 0,
-  PageSize: 20,
-  loading: true,
-  totalRecords: null,
-  displayPeriodCount:1
-});
-const setShowDate = (d) => {
-  state.value.showDate = d;
   state.value.items = [];
+  options.value.declareShiftCount = 0;
+  options.value.holidayDatesCount = 0;
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -313,9 +75,8 @@ const setShowDate = (d) => {
           JSON.stringify({
             proc: "hrm_holiday_dates_list_all",
             par: [
-           
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: null },
+              { par: "status", va: true },
             ],
           }),
           SecretKey,
@@ -341,7 +102,7 @@ const setShowDate = (d) => {
           else element.background_color = "";
           state.value.items.push({
             id: "nothingshow",
-              id_hol:element.holiday_dates_id,
+            id_hol: element.holiday_dates_id,
             startDate: new Date(element.start_date),
             endDate: element.end_date
               ? new Date(element.end_date)
@@ -353,7 +114,7 @@ const setShowDate = (d) => {
               " </span>   <span>" +
               element.reason +
               "</span>",
-              tooltip:" ",
+            tooltip: " ",
             style: element.text_color + element.background_color,
           });
         }
@@ -409,10 +170,19 @@ const setShowDate = (d) => {
                 startDate: new Date(item),
                 endDate: new Date(item),
                 title: element.declare_shift_name,
-                tooltip:" ",
+                tooltip: " ",
 
                 style: element.text_color + element.background_color,
               });
+              if (state.value.displayPeriodUom == "month") {
+                var dateCount = new Date();
+                if (
+                  new Date(item).getMonth() == dateCount.getMonth() &&
+                  new Date(item).getFullYear() == dateCount.getFullYear()
+                ) {
+                  options.value.declareShiftCount++;
+                }
+              }
             });
           }
           if (element.work_schedule_months) {
@@ -434,9 +204,287 @@ const setShowDate = (d) => {
                   ),
                   endDate: new Date(date.getFullYear(), date.getMonth(), index),
                   title: element.declare_shift_name,
-                  tooltip:" ",
+                  tooltip: " ",
                   style: element.text_color + element.background_color,
                 });
+                if (state.value.displayPeriodUom == "month") {
+                  var dateCount = new Date();
+                  if (
+                    new Date(item).getMonth() == dateCount.getMonth() &&
+                    new Date(item).getFullYear() == dateCount.getFullYear()
+                  ) {
+                    options.value.declareShiftCount++;
+                  }
+                }
+              }
+            });
+          }
+        } else {
+          for (let indexs = 0; indexs < 12; indexs++) {
+            var date = new Date();
+            var numDays = new Date(date.getFullYear(), indexs, 0).getDate();
+            var newDate = new Date(date.getFullYear(), indexs, 0);
+            for (let index = 1; index <= numDays; index++) {
+              state.value.items.push({
+                id: element.work_schedule_id,
+                startDate: new Date(
+                  newDate.getFullYear(),
+                  newDate.getMonth(),
+                  index
+                ),
+                endDate: new Date(
+                  newDate.getFullYear(),
+                  newDate.getMonth(),
+                  index
+                ),
+                title: element.declare_shift_name,
+                tooltip: " ",
+                style: element.text_color + element.background_color,
+              });
+              if (state.value.displayPeriodUom == "month") {
+                var dateCount = new Date();
+                if (
+                  new Date(item).getMonth() == dateCount.getMonth() &&
+                  new Date(item).getFullYear() == dateCount.getFullYear()
+                ) {
+                  options.value.declareShiftCount++;
+                }
+              }
+            }
+          }
+        }
+      });
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+//Phân trang dữ liệu
+const onPage = (event) => {
+  if (event.rows != options.value.PageSize) {
+    options.value.PageSize = event.rows;
+  }
+  if (event.page == 0) {
+    //Trang đầu
+    options.value.id = null;
+    options.value.IsNext = true;
+  } else if (event.page > options.value.PageNo + 1) {
+    //Trang cuối
+    options.value.id = -1;
+    options.value.IsNext = false;
+  } else if (event.page > options.value.PageNo) {
+    //Trang sau
+
+    options.value.id =
+      datalists.value[datalists.value.length - 1].holiday_dates_id;
+    options.value.IsNext = true;
+  } else if (event.page < options.value.PageNo) {
+    //Trang trước
+    options.value.id = datalists.value[0].holiday_dates_id;
+    options.value.IsNext = false;
+  }
+  options.value.PageNo = event.page;
+  loadData(true);
+};
+
+const holiday_dates = ref({
+  emote_file: "",
+  status: true,
+  is_order: 1,
+});
+
+const selectedStamps = ref();
+const submitted = ref(false);
+
+const isSaveTem = ref(false);
+const datalists = ref();
+const toast = useToast();
+const basedomainURL = baseURL;
+const checkDelList = ref(false);
+
+const options = ref({
+  IsNext: true,
+  sort: "created_date",
+  SearchText: "",
+  PageNo: 0,
+  PageSize: 20,
+  loading: true,
+  totalRecords: null,
+  displayPeriodCount: 1,
+  declareShiftCount: 0,
+  holidayDatesCount: 0,
+});
+const setShowDate = (d) => {
+    
+  state.value.showDate = d;
+  state.value.items = [];
+  options.value.declareShiftCount = 0;
+  options.value.holidayDatesCount = 0;
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_holiday_dates_list_all",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+
+      data.forEach((element, i) => {
+        element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+
+        if (element.start_date) {
+          if (element.text_color)
+            element.text_color = "color:" + element.text_color;
+          else element.text_color = "";
+          if (element.background_color)
+            element.background_color =
+              "; background-color:" + element.background_color;
+          else element.background_color = "";
+          state.value.items.push({
+            id: "nothingshow",
+            id_hol: element.holiday_dates_id,
+            startDate: new Date(element.start_date),
+            endDate: element.end_date
+              ? new Date(element.end_date)
+              : new Date(element.start_date),
+            title:
+              " <span class='text-sm'> <i class='" +
+              element.icon +
+              " px-1' ></i>" +
+              " </span>   <span>" +
+              element.reason +
+              "</span>",
+            tooltip: " ",
+            style: element.text_color + element.background_color,
+          });
+        }
+      });
+      datalists.value = data;
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_work_schedule_user_list",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      data.forEach((element, i) => {
+        var txt_color = "";
+        if (element.background_color) txt_color = "color:" + element.text_color;
+        var bg_color = "";
+        if (element.background_color)
+          bg_color = "; background-color:" + element.background_color;
+
+        element.text_color = txt_color;
+        element.background_color = bg_color;
+        if (!element.is_full_time) {
+          if (element.work_schedule_days) {
+            element.work_schedule_days.split(",").forEach((item, idx) => {
+              state.value.items.push({
+                id: element.work_schedule_id,
+                startDate: new Date(item),
+                endDate: new Date(item),
+                title: element.declare_shift_name,
+                tooltip: " ",
+
+                style: element.text_color + element.background_color,
+              });
+              var dateCount = new Date();
+              //Lọc theo tuần chưa đưcọ
+              if (state.value.displayPeriodUom == "week") {
+                if (
+                  new Date(item).getMonth() == dateCount.getMonth() &&
+                  new Date(item).getFullYear() == dateCount.getFullYear()
+                ) {
+                  options.value.declareShiftCount++;
+                }
+              }
+              if (state.value.displayPeriodUom == "month") {
+                if (
+                  new Date(item).getMonth() == dateCount.getMonth() &&
+                  new Date(item).getFullYear() == dateCount.getFullYear()
+                ) {
+                  options.value.declareShiftCount++;
+                }
+              }
+              if (state.value.displayPeriodUom == "year") {
+                if (new Date(item).getFullYear() == dateCount.getFullYear()) {
+                  options.value.declareShiftCount++;
+                }
+              }
+            });
+          }
+          if (element.work_schedule_months) {
+            element.work_schedule_months.split(",").forEach((item, idx) => {
+              var date = new Date(item);
+              var numDays = new Date(
+                date.getFullYear(),
+                date.getMonth() + 1,
+                0
+              ).getDate();
+
+              for (let index = 1; index <= numDays; index++) {
+                state.value.items.push({
+                  id: element.work_schedule_id,
+                  startDate: new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    index
+                  ),
+                  endDate: new Date(date.getFullYear(), date.getMonth(), index),
+                  title: element.declare_shift_name,
+                  tooltip: " ",
+                  style: element.text_color + element.background_color,
+                });
+                options.value.declareShiftCount++;
               }
             });
           }
@@ -463,9 +511,10 @@ const setShowDate = (d) => {
                   index
                 ),
                 title: element.declare_shift_name,
-                tooltip:" ",
+                tooltip: " ",
                 style: element.text_color + element.background_color,
               });
+              options.value.declareShiftCount++;
             }
           }
         }
@@ -487,20 +536,19 @@ const setShowDate = (d) => {
 };
 
 //Hiển thị dialog
- 
+
 //Thêm bản ghi
 
 const sttStamp = ref(1);
- 
+
 //Sort
- 
+
 const listOpCalendar = ref([
   { label: "Tuần", value: "week" },
   { label: "Tháng", value: "month" },
   { label: "Năm", value: "year" },
 ]);
 
- 
 const checkFilter = ref(false);
 const filterSQL = ref([]);
 const isFirst = ref(true);
@@ -559,11 +607,11 @@ const loadDataSQL = () => {
 const searchStamp = (event) => {
   if (event.code == "Enter") {
     if (options.value.SearchText == "") {
-     loadData(true);
+      loadData(true);
     } else {
-      state.value.items=
-        state.value.items.filter(x=>x.title.includes(options.value.SearchText)
-        )
+      state.value.items = state.value.items.filter((x) =>
+        x.title.includes(options.value.SearchText)
+      );
     }
   }
 };
@@ -624,23 +672,21 @@ const listWeeks = ref([
 const filterTrangthai = ref();
 
 const reFilterEmail = () => {
-  options.value.displayPeriodCount=1;
-  state.value.displayPeriodCount=1
+  options.value.displayPeriodCount = 1;
+  state.value.displayPeriodCount = 1;
 
-  options.value.startingDayOfWeek=1;
-  state.value.startingDayOfWeek=1;
+  options.value.startingDayOfWeek = 1;
+  state.value.startingDayOfWeek = 1;
 
-  options.value.displayWeekNumbers=false;
-  state.value.displayWeekNumbers=false;
+  options.value.displayWeekNumbers = false;
+  state.value.displayWeekNumbers = false;
   options.value.SearchText = null;
   op.value.hide();
- 
 };
 const filterFileds = () => {
- state.value.displayPeriodCount=options.value.displayPeriodCount;
- state.value.startingDayOfWeek=options.value.startingDayOfWeek;
- state.value.displayWeekNumbers=options.value.displayWeekNumbers;
- 
+  state.value.displayPeriodCount = options.value.displayPeriodCount;
+  state.value.startingDayOfWeek = options.value.startingDayOfWeek;
+  state.value.displayWeekNumbers = options.value.displayWeekNumbers;
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -730,9 +776,8 @@ const state = ref({
     },
   ],
 });
- 
+
 const work_schedule = ref({});
- 
 
 const displayBasicCal = ref(false);
 const displayBasicHol = ref(false);
@@ -744,92 +789,92 @@ const closeDialogCal = () => {
 };
 const onClickItem = (e) => {
   submitted.value = false;
-if(e.id !="nothingshow"){
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_work_schedule_get",
-            par: [{ par: "work_schedule_id", va: e.id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      work_schedule.value = data[0];
-      if (work_schedule.value.profile_id)
-        work_schedule.value.profile_id_fake =
-          work_schedule.value.profile_id.split(",");
-      if (work_schedule.value.work_schedule_months) {
-        work_schedule.value.work_schedule_monthsfake = [];
-        work_schedule.value.work_schedule_months
-          .split(",")
-          .forEach((element) => {
-            work_schedule.value.work_schedule_monthsfake.push(
-              new Date(element)
-            );
-          });
-      }
-      if (work_schedule.value.work_schedule_days) {
-        work_schedule.value.work_schedule_daysfake = [];
-        work_schedule.value.work_schedule_days.split(",").forEach((element) => {
-          work_schedule.value.work_schedule_daysfake.push(new Date(element));
-        });
-      }
-      if (work_schedule.value.start_time)
-        work_schedule.value.start_time = new Date(
-          work_schedule.value.start_time
-        );
-      if (work_schedule.value.end_time)
-        work_schedule.value.end_time = new Date(work_schedule.value.end_time);
-      displayBasicCal.value = true;
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
-    });
-  }
-  else{
-     
+  if (e.id != "nothingshow") {
     axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_holiday_dates_get",
-            par: [{ par: "holiday_dates_id", va: e.originalItem.id_hol  }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      holiday_dates.value = data[0];
-       
-      if (holiday_dates.value.start_date)
-      holiday_dates.value.start_date = new Date(
-        holiday_dates.value.start_date
-        );
-      if (holiday_dates.value.end_date)
-      holiday_dates.value.end_date = new Date(holiday_dates.value.end_date);
-      displayBasicHol.value = true;
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
-    });
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_work_schedule_get",
+              par: [{ par: "work_schedule_id", va: e.id }],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        work_schedule.value = data[0];
+        if (work_schedule.value.profile_id)
+          work_schedule.value.profile_id_fake =
+            work_schedule.value.profile_id.split(",");
+        if (work_schedule.value.work_schedule_months) {
+          work_schedule.value.work_schedule_monthsfake = [];
+          work_schedule.value.work_schedule_months
+            .split(",")
+            .forEach((element) => {
+              work_schedule.value.work_schedule_monthsfake.push(
+                new Date(element)
+              );
+            });
+        }
+        if (work_schedule.value.work_schedule_days) {
+          work_schedule.value.work_schedule_daysfake = [];
+          work_schedule.value.work_schedule_days
+            .split(",")
+            .forEach((element) => {
+              work_schedule.value.work_schedule_daysfake.push(
+                new Date(element)
+              );
+            });
+        }
+        if (work_schedule.value.start_time)
+          work_schedule.value.start_time = new Date(
+            work_schedule.value.start_time
+          );
+        if (work_schedule.value.end_time)
+          work_schedule.value.end_time = new Date(work_schedule.value.end_time);
+        displayBasicCal.value = true;
+      })
+      .catch((error) => {
+        toast.error("Tải dữ liệu không thành công!");
+        options.value.loading = false;
+      });
+  } else {
+    axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_holiday_dates_get",
+              par: [{ par: "holiday_dates_id", va: e.originalItem.id_hol }],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        holiday_dates.value = data[0];
 
-
+        if (holiday_dates.value.start_date)
+          holiday_dates.value.start_date = new Date(
+            holiday_dates.value.start_date
+          );
+        if (holiday_dates.value.end_date)
+          holiday_dates.value.end_date = new Date(holiday_dates.value.end_date);
+        displayBasicHol.value = true;
+      })
+      .catch((error) => {
+        toast.error("Tải dữ liệu không thành công!");
+        options.value.loading = false;
+      });
   }
 };
 
@@ -844,7 +889,7 @@ onMounted(() => {
     loadCount,
 
     basedomainURL,
- 
+
     isFirst,
     searchStamp,
 
@@ -876,7 +921,7 @@ onMounted(() => {
               @click="toggle"
               aria:haspopup="true"
               aria-controls="overlay_panel"
-              v-tooltip="'Bộ lọc'"
+              v-tooltip="'Cấu hình'"
               :class="
                 filterTrangthai != null && checkFilter
                   ? ''
@@ -897,15 +942,22 @@ onMounted(() => {
                     class="col-6 text-left pt-2 p-0"
                     style="text-align: left"
                   >
-                 <span  v-if="state.displayPeriodUom=='month'" >   Số tháng hiển thị</span>
-                 <span  v-if="state.displayPeriodUom=='year'" >   Số năm hiển thị</span>
-                 <span  v-if="state.displayPeriodUom=='week'" >   Số tuần hiển thị</span>
+                    <span v-if="state.displayPeriodUom == 'month'">
+                      Số tháng hiển thị</span
+                    >
+                    <span v-if="state.displayPeriodUom == 'year'">
+                      Số năm hiển thị</span
+                    >
+                    <span v-if="state.displayPeriodUom == 'week'">
+                      Số tuần hiển thị</span
+                    >
                   </div>
                   <div class="col-6">
-                    <InputNumber   class="col-12 p-0 m-0"
-                      v-model="options.displayPeriodCount"   :min="1"
-                     />
-                 
+                    <InputNumber
+                      class="col-12 p-0 m-0"
+                      v-model="options.displayPeriodCount"
+                      :min="1"
+                    />
                   </div>
                 </div>
                 <div class="flex field col-12 p-0">
@@ -913,7 +965,7 @@ onMounted(() => {
                     class="col-6 text-left pt-2 p-0"
                     style="text-align: left"
                   >
-                  Ngày bắt đầu
+                    Ngày bắt đầu
                   </div>
                   <div class="col-6">
                     <Dropdown
@@ -926,7 +978,7 @@ onMounted(() => {
                     />
                   </div>
                 </div>
-                <div class="flex   col-12 p-0">
+                <div class="flex col-12 p-0">
                   <div
                     class="col-6 text-left pt-2 p-0"
                     style="text-align: left"
@@ -934,11 +986,10 @@ onMounted(() => {
                     Hiển thị số tuần
                   </div>
                   <div class="col-6">
-                    
                     <InputSwitch
-              v-model="options.displayWeekNumbers"
-              class="w-4rem lck-checked"
-            />
+                      v-model="options.displayWeekNumbers"
+                      class="w-4rem lck-checked"
+                    />
                   </div>
                 </div>
                 <div class="flex col-12 p-0">
@@ -953,13 +1004,29 @@ onMounted(() => {
                       ></Button>
                     </template>
                     <template #end>
-                      <Button @click="filterFileds" label="Lọc"></Button>
+                      <Button @click="filterFileds" label="Cấu hình"></Button>
                     </template>
                   </Toolbar>
                 </div>
               </div>
             </OverlayPanel>
           </span>
+          <Button
+            type="button"
+            label="Ca làm việc"
+            icon="pi pi-briefcase"
+            :badge="options.declareShiftCount"
+            badgeClass="p-badge-danger"
+            class="p-button-outlined p-button-secondary mx-2"
+          />
+          <Button
+            type="button"
+            label="Ngày nghỉ lễ"
+            icon="pi pi-sort-alt-slash"
+            :badge="options.holidayDatesCount"
+            badgeClass="p-badge-danger"
+            class="p-button-outlined p-button-secondary mx-2"
+          />
         </template>
 
         <template #end>
@@ -1052,7 +1119,7 @@ onMounted(() => {
               backgroundColor: work_schedule.background_color,
             }"
             disabled
-            style="opacity: 1 !important;"
+            style="opacity: 1 !important"
           />
         </div>
         <div class="field flex align-items-center col-12 md:col-12">
@@ -1061,20 +1128,21 @@ onMounted(() => {
           <InputText
             v-model="work_schedule.config_work_location_name"
             class="w-full"
-            disabled style="opacity: 1 !important;"
+            disabled
+            style="opacity: 1 !important"
           />
         </div>
         <div class="field flex align-items-center col-12 md:col-12">
           <label class="col-3 text-left p-0">Địa điểm làm việc </label>
           <Textarea
-          :autoResize="true"
-                  rows="1"  
-                  cols="30"
+            :autoResize="true"
+            rows="1"
+            cols="30"
             v-model="work_schedule.config_work_location_address"
             class="w-full"
-            disabled style="opacity: 1 !important;background-color: #eee"
+            disabled
+            style="opacity: 1 !important; background-color: #eee"
           />
-         
         </div>
         <div class="field flex align-items-center col-12 md:col-12">
           <label class="col-3 text-left p-0">Thời gian làm việc </label>
@@ -1088,7 +1156,7 @@ onMounted(() => {
               :showIcon="true"
               :timeOnly="true"
               v-model="work_schedule.start_time"
-              disabled   
+              disabled
             />
           </div>
           <div class="col-1 text-left p-0"></div>
@@ -1102,7 +1170,7 @@ onMounted(() => {
               :showIcon="true"
               :timeOnly="true"
               v-model="work_schedule.end_time"
-              disabled 
+              disabled
             />
           </div>
         </div>
@@ -1136,47 +1204,44 @@ onMounted(() => {
               backgroundColor: holiday_dates.background_color,
             }"
             disabled
-            style="opacity: 1 !important;"
+            style="opacity: 1 !important"
           />
         </div>
         <div class="field flex align-items-center col-12 md:col-12">
           <label class="col-3 text-left p-0">Lý do</label>
 
           <Textarea
-          :autoResize="true"
-                  rows="1"  
-                  cols="30"
+            :autoResize="true"
+            rows="1"
+            cols="30"
             v-model="holiday_dates.reason"
             class="w-full"
-            disabled style="opacity: 1 !important;background-color: #eee"
+            disabled
+            style="opacity: 1 !important; background-color: #eee"
           />
         </div>
-      
+
         <div class="field flex align-items-center col-12 md:col-12">
-          <label class="col-3 text-left p-0">Thời gian  </label>
+          <label class="col-3 text-left p-0">Thời gian </label>
           <div class="col-4 text-left p-0">
             <Calendar
-       
               class="w-full d-design-calendar-1"
               autocomplete="on"
               icon="pi pi-clock"
               :showIcon="true"
-           
               v-model="holiday_dates.start_date"
-              disabled   
+              disabled
             />
           </div>
           <div class="col-1 text-left p-0"></div>
           <div class="col-4 text-left p-0">
             <Calendar
-         
               class="w-full d-design-calendar-1"
               autocomplete="on"
               icon="pi pi-clock"
               :showIcon="true"
-           
               v-model="holiday_dates.end_date"
-              disabled 
+              disabled
             />
           </div>
         </div>
